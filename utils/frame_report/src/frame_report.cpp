@@ -71,6 +71,7 @@ FrameReport::FrameReport()
         LOGE("dlopen libframe_ui_intf.so failed");
         return;
     }
+    Init();
 }
 
 FrameReport::~FrameReport()
@@ -265,6 +266,46 @@ int FrameReport::SchedMsg(int type, const std::string& message, int length)
         LOGE("load SchedMsg function failed!");
     }
     return ret;
+}
+
+int FrameReport::GetEnable()
+{
+    if (!schedSoLoaded_) {
+        return 0;
+    }
+    if (getEnableFunc_ == nullptr) {
+        getEnableFunc_ = (GetEnableFunc)LoadSymbol("GetSenseSchedEnable");
+    }
+    if (getEnableFunc_ != nullptr) {
+        return getEnableFunc_();
+    } else {
+        LOGE("FrameReport:[GetEnable] load GetSenseSchedEnable function failed.");
+        return 0;
+    }
+}
+
+void FrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
+{
+    if (setParamFunc_ == nullptr) {
+        setParamFunc_ = (SetParamFunc)LoadSymbol("SetFrameParam");
+    }
+    if (setParamFunc_ != nullptr) {
+        setParamFunc_(requestId, load, schedFrameNum, value);
+    } else {
+        LOGE("FrameReport:[SetFrameParam]load SetFrameParam function failed.");
+    }
+}
+
+void FrameReport::Init()
+{
+    if (initFunc_ == nullptr) {
+        initFunc_ = (InitFunc)LoadSymbol("Init");
+    }
+    if (initFunc_ != nullptr) {
+        initFunc_();
+    } else {
+        LOGE("FrameReport:[Init]load Init function failed.");
+    }
 }
 
 void FrameReport::Report(std::string& name)
