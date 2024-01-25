@@ -28,6 +28,7 @@ group("unittest") {
     ":buffer_queue_test",
     ":buffer_shared_test",
     ":consumer_surface_test",
+    ":metadata_helper_test",
     ":native_buffer_test",
     ":native_image_test",
     ":native_window_test",
@@ -264,6 +265,8 @@ ohos_unittest("native_window_test") {
   ]
 }
 
+## UnitTest native_window_test }}}
+
 ## UnitTest metadata_helper_test {{{
 ohos_unittest("metadata_helper_test") {
   module_out_path = module_out_path
@@ -279,9 +282,7 @@ ohos_unittest("metadata_helper_test") {
   ]
 }
 
-## UnitTest producer_surface_test }}}
-
-## UnitTest native_window_test }}}
+## UnitTest metadata_helper_test }}}
 
 ## UnitTest native_buffer_test {{{
 ohos_unittest("native_buffer_test") {
