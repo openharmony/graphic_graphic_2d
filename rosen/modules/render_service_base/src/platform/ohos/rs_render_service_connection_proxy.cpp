@@ -1541,7 +1541,7 @@ bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Medi
     }
     bool result = reply.ReadBool();
     if (!result || !RSMarshallingHelper::Unmarshalling(reply, pixelmap)) {
-        RS_LOGE("RSRenderServiceConnectionProxy::GetPixelmap: GetPixelmap failed");
+        RS_LOGD("RSRenderServiceConnectionProxy::GetPixelmap: GetPixelmap failed");
         return false;
     }
     return true;

@@ -1135,7 +1135,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
 #endif
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
+        ROSEN_LOGD("RSPropertiesPainter::DrawFilter image null");
         return;
     }
 #ifndef USE_ROSEN_DRAWING

@@ -1015,7 +1015,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
 
     ScreenInfo info;
     if (screens_.count(id) == 0) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        RS_LOGD("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return info;
     }
 
@@ -1241,7 +1241,7 @@ int32_t RSScreenManager::GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCa
 int32_t RSScreenManager::GetScreenTypeLocked(ScreenId id, RSScreenType& type) const
 {
     if (screens_.count(id) == 0) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        RS_LOGD("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
 

@@ -98,7 +98,7 @@ bool RSRenderServiceConnectHub::Connect()
         ++tryCnt;
         // try most 5 times to get render service.
         if (tryCnt == 5) {
-            ROSEN_LOGE("RSRenderServiceConnectHub::Connect failed, tried %{public}d times.", tryCnt);
+            ROSEN_LOGD("RSRenderServiceConnectHub::Connect failed, tried %{public}d times.", tryCnt);
             break;
         }
 
@@ -117,7 +117,7 @@ bool RSRenderServiceConnectHub::Connect()
     } while (true);
 
     if (renderService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to get render service proxy.");
+        ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to get render service proxy.");
         return false;
     }
     wptr<RSRenderServiceConnectHub> rsConnhub = this;
@@ -132,7 +132,7 @@ bool RSRenderServiceConnectHub::Connect()
     sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token_);
 
     if (conn == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
+        ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
         return false;
     }
 
