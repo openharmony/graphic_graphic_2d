@@ -614,7 +614,7 @@ public:
     DrawBitmapOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawBitmapOpItem(const Bitmap& bitmap, const scalar px, const scalar py, const Paint& paint)
         : DrawWithPaintOpItem(paint, DrawOpItem::BITMAP_OPITEM), px_(px), py_(py),
-          bitmap_(std::make_shared<Bitmap>()) {}
+          bitmap_(std::make_shared<Bitmap>(bitmap)) {}
     ~DrawBitmapOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
