@@ -107,6 +107,7 @@ RSRenderThread::RSRenderThread()
         ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s",
             prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
+        ApplyModifiers();
         Render();
         SendCommands();
         context_->activeNodesInRoot_.clear();
@@ -435,6 +436,32 @@ void RSRenderThread::Animate(uint64_t timestamp)
 
     if (needRequestNextVsync) {
         RSRenderThread::Instance().RequestNextVSync();
+    }
+}
+
+void RSRenderThread::ApplyModifiers()
+{
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
+    if (context_->activeNodesInRoot_.empty()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("ApplyModifiers (PropertyDrawableEnable %s)",
+        RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
+    context_->globalRootRenderNode_->ApplyModifiers();
+    for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
+        for (const auto& [id, nodePtr] : nodeSet) {
+            auto ptr = nodePtr.lock();
+            if (ptr == nullptr) {
+                continue;
+            }
+            bool isZOrderChanged = ptr->ApplyModifiers();
+            if (!isZOrderChanged) {
+                continue;
+            }
+            if (auto parent = ptr->GetParent().lock()) {
+                parent->isChildrenSorted_ = false;
+            }
+        }
     }
 }
 

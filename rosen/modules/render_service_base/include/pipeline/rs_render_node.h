@@ -250,7 +250,6 @@ public:
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
-    void ApplyChildrenModifiers();
 
     bool IsShadowValidLastFrame() const;
     void SetShadowValidLastFrame(bool isShadowValidLastFrame)
@@ -698,13 +697,14 @@ private:
 
     void OnRegister();
 
+    friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
     friend class RSMainThread;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;
+    friend class RSRenderThread;
     friend class RSRenderTransition;
-    friend class DrawFuncOpItem;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;
