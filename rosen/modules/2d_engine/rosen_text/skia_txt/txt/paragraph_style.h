@@ -59,7 +59,7 @@ public:
     TextAlign textAlign = TextAlign::START;
     TextDirection textDirection = TextDirection::LTR;
     size_t maxLines = std::numeric_limits<size_t>::max();
-    std::u16string ellipsis;
+    std::u16string ellipsis = u"\u2026";
     std::string locale;
 };
 } // namespace SPText

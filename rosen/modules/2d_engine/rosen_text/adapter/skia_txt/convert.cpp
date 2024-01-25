@@ -74,6 +74,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .forceStrutHeight = style.lineStyleOnly,
         .textAlign = static_cast<SPText::TextAlign>(style.textAlign),
         .textDirection = static_cast<SPText::TextDirection>(style.textDirection),
+        .ellipsisModal = static_cast<SPText::EllipsisModal>(style.ellipsisModal),
         .maxLines = style.maxLines,
         .ellipsis = style.ellipsis,
         .locale = style.locale,
