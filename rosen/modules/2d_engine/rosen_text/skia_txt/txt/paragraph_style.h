@@ -56,6 +56,7 @@ public:
     double strutLeading = -1;
     bool forceStrutHeight = false;
 
+    EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     TextAlign textAlign = TextAlign::START;
     TextDirection textDirection = TextDirection::LTR;
     size_t maxLines = std::numeric_limits<size_t>::max();

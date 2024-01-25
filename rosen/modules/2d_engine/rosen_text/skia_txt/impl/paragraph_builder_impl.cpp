@@ -113,6 +113,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     textStyle.setFontFamilies({ SkString(txt.fontFamily.c_str()) });
     textStyle.setLocale(SkString(txt.locale.c_str()));
     skStyle.setTextStyle(textStyle);
+    skStyle.setEllipsisMod(static_cast<skt::EllipsisModal>(txt.ellipsisModal));
     if (txt.ellipsisModal != EllipsisModal::TAIL) {
         skStyle.setEllipsis(txt.ellipsis);
     }
