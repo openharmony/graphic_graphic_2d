@@ -468,10 +468,21 @@ void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& roo
         return;
     }
     auto rootMat = rootMatrix.value();
+    bool hasScale = false;
 #ifndef USE_ROSEN_DRAWING
-    bool hasScale = rootMat.getScaleX() != 1.0f || rootMat.getScaleY() != 1.0f;
+    // skScaleFactors[0]-minimum scaling factor, skScaleFactors[1]-maximum scaling factor
+    SkScalar skScaleFactors[2];
+    bool getMinMaxScales = rootMat.getMinMaxScales(skScaleFactors);
+    if (getMinMaxScales) {
+        hasScale = !ROSEN_EQ(skScaleFactors[0], 1.f) || !ROSEN_EQ(skScaleFactors[1], 1.f);
+    }
 #else
-    bool hasScale = rootMat.Get(Drawing::Matrix::SCALE_X) != 1.0f || rootMat.Get(Drawing::Matrix::SCALE_Y) != 1.0f;
+    // scaleFactors[0]-minimum scaling factor, scaleFactors[1]-maximum scaling factor
+    Drawing::scalar scaleFactors[2];
+    bool getMinMaxScales = rootMat.GetMinMaxScales(scaleFactors);
+    if (getMinMaxScales) {
+        hasScale = !ROSEN_EQ(scaleFactors[0], 1.f) || !ROSEN_EQ(scaleFactors[1], 1.f);
+    }
 #endif
     if (hasScale) {
         sandbox_->matrix_ = std::nullopt;
@@ -2264,7 +2275,7 @@ std::string RSProperties::Dump() const
         sprintf_s(buffer, UINT8_MAX, ", PositionZ[%.1f]", GetPositionZ()) != -1) {
         dumpInfo.append(buffer);
     }
-    
+
     // blendmode
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
