@@ -215,14 +215,17 @@ const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
     RSModifierType::SCALE,
 };
+static const auto emptyChildrenList = std::make_shared<const std::list<std::shared_ptr<RSRenderNode>>>();
 }
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : id_(id), fullChildrenList_(emptyChildrenList), context_(context), isTextureExportNode_(isTextureExportNode)
+
 {}
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : isOnTheTree_(isOnTheTree), id_(id), fullChildrenList_(emptyChildrenList), context_(context),
+      isTextureExportNode_(isTextureExportNode)
 {}
 
 bool RSRenderNode::GetIsTextureExportNode() const
@@ -2170,7 +2173,8 @@ void RSRenderNode::OnTreeStateChanged()
         // attempt to clear FullChildrenList, to avoid memory leak
         std::lock_guard<std::mutex> lock(fullChildrenListMutex_);
         isFullChildrenListValid_ = false;
-        fullChildrenList_.reset();
+        isChildrenSorted_ = false;
+        std::atomic_store(&fullChildrenList_, emptyChildrenList);
     } else {
         SetDirty();
     }
@@ -2200,25 +2204,26 @@ bool RSRenderNode::HasDisappearingTransition(bool recursive) const
 
 RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetChildren()
 {
-    if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList();
-    }
-    return fullChildrenList_;
+    return std::atomic_load(&fullChildrenList_);
 }
 
 RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetSortedChildren()
+{
+    return std::atomic_load(&fullChildrenList_);
+}
+
+std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const
+{
+    return children_.empty() ? nullptr : children_.front().lock();
+}
+
+void RSRenderNode::UpdateFullChildrenListIfNeeded()
 {
     if (!isFullChildrenListValid_) {
         GenerateFullChildrenList();
     } else if (!isChildrenSorted_) {
         ResortChildren();
     }
-    return fullChildrenList_;
-}
-
-std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const
-{
-    return children_.empty() ? nullptr : children_.front().lock();
 }
 
 void RSRenderNode::GenerateFullChildrenList()
@@ -2228,15 +2233,16 @@ void RSRenderNode::GenerateFullChildrenList()
         return;
     }
 
-    // Step 0: Initialize
-    auto fullChildrenList = std::make_shared<std::list<std::shared_ptr<RSRenderNode>>>();
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
     if (children_.empty() && disappearingChildren_.empty()) {
         isFullChildrenListValid_ = true;
         isChildrenSorted_ = true;
-        fullChildrenList_ = std::move(fullChildrenList);
+        std::atomic_store(&fullChildrenList_, emptyChildrenList);
         return;
     }
+
+    // Step 0: Initialize
+    auto fullChildrenList = std::make_shared<std::list<std::shared_ptr<RSRenderNode>>>();
 
     // Step 1: Copy all children into sortedChildren while checking and removing expired children.
     children_.remove_if([&](const auto& child) -> bool {
@@ -2285,7 +2291,10 @@ void RSRenderNode::GenerateFullChildrenList()
     // update flags
     isFullChildrenListValid_ = true;
     isChildrenSorted_ = true;
-    fullChildrenList_ = std::move(fullChildrenList);
+    // Type conversion
+    ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
+    // atomic assign
+    std::atomic_exchange(&fullChildrenList_, std::move(constFullChildrenList));
 }
 
 void RSRenderNode::ResortChildren()
@@ -2295,6 +2304,7 @@ void RSRenderNode::ResortChildren()
         return;
     }
 
+    // Copy on write
     auto fullChildrenList = std::make_shared<std::list<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
 
     // sort all children by z-order (note: std::list::sort is stable) if needed
@@ -2302,8 +2312,12 @@ void RSRenderNode::ResortChildren()
         return first->GetRenderProperties().GetPositionZ() < second->GetRenderProperties().GetPositionZ();
     });
 
+    // update flags
     isChildrenSorted_ = true;
-    fullChildrenList_ = std::move(fullChildrenList);
+    // Type conversion
+    ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
+    // atomic assign
+    std::atomic_exchange(&fullChildrenList_, std::move(constFullChildrenList));
 }
 
 uint32_t RSRenderNode::GetChildrenCount() const

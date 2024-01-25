@@ -561,6 +561,7 @@ private:
     bool isChildrenSorted_ = false;
     std::mutex fullChildrenListMutex_;
 
+    void UpdateFullChildrenListIfNeeded();
     void GenerateFullChildrenList();
     void ResortChildren();
 

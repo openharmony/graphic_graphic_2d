@@ -441,27 +441,37 @@ void RSRenderThread::Animate(uint64_t timestamp)
 
 void RSRenderThread::ApplyModifiers()
 {
-    std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
     if (context_->activeNodesInRoot_.empty()) {
         return;
     }
     RS_TRACE_NAME_FMT("ApplyModifiers (PropertyDrawableEnable %s)",
         RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
+    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> nodesThatNeedsRegenerateChildren;
     context_->globalRootRenderNode_->ApplyModifiers();
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
-            auto ptr = nodePtr.lock();
-            if (ptr == nullptr) {
+            auto node = nodePtr.lock();
+            if (node == nullptr) {
                 continue;
             }
-            bool isZOrderChanged = ptr->ApplyModifiers();
-            if (!isZOrderChanged) {
+            if (!node->isFullChildrenListValid_ || !node->isChildrenSorted_) {
+                nodesThatNeedsRegenerateChildren.emplace(node->id_, node);
+            }
+            // apply modifiers, if z-order not changed, skip
+            if (!node->ApplyModifiers()) {
                 continue;
             }
-            if (auto parent = ptr->GetParent().lock()) {
+            if (auto parent = node->GetParent().lock()) {
                 parent->isChildrenSorted_ = false;
+                nodesThatNeedsRegenerateChildren.emplace(parent->id_, parent);
             }
         }
+    }
+    // Update the full children list of the nodes that need it
+    nodesThatNeedsRegenerateChildren.emplace(0, context_->globalRootRenderNode_);
+    for (auto& [id, node] : nodesThatNeedsRegenerateChildren) {
+        node->UpdateFullChildrenListIfNeeded();
     }
 }
 
