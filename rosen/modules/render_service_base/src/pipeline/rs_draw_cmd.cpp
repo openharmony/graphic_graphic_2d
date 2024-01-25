@@ -3318,7 +3318,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     canvas->DrawImageRect(*image_, Rect{
         surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_},
+        surfaceBufferInfo_.offSetX_ + surfaceBufferInfo_.width_,
+        surfaceBufferInfo_.offSetY_ + surfaceBufferInfo_.height_},
         samplingOptions);
 #endif
 }
