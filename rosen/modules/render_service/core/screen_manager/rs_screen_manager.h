@@ -224,9 +224,8 @@ public:
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
-
-    virtual ScreenId GetActiveScreenId() = 0;
 #endif
+    virtual ScreenId GetActiveScreenId() = 0;
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 
@@ -376,9 +375,8 @@ public:
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void HandlePostureData(const SensorEvent * const event) override;
-
-    ScreenId GetActiveScreenId() override;
 #endif
+    ScreenId GetActiveScreenId() override;
     
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override

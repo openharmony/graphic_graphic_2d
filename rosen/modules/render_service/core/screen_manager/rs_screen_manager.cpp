@@ -68,7 +68,9 @@ RSScreenManager::~RSScreenManager() noexcept
 bool RSScreenManager::Init() noexcept
 {
     composer_ = HdiBackend::GetInstance();
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     isFoldScreenFlag_ = system::GetParameter("const.window.foldscreen.type", "") != "";
+#endif
     if (composer_ == nullptr) {
         RS_LOGE("RSScreenManager %{public}s: Failed to get composer.", __func__);
         return false;
@@ -92,7 +94,6 @@ bool RSScreenManager::Init() noexcept
         RegisterSensorCallback();
     }
 #endif
-
     RS_LOGI("RSScreenManager Init succeed");
     return true;
 }
@@ -210,6 +211,11 @@ ScreenId RSScreenManager::GetActiveScreenId()
     }
     RS_LOGI("RSScreenManager activeScreenId: %{public}" PRIu64 " ", activeScreenId_);
     return activeScreenId_;
+}
+#else
+ScreenId RSScreenManager::GetActiveScreenId()
+{
+    return INVALID_SCREEN_ID;
 }
 #endif
 
@@ -514,9 +520,11 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 
     RS_LOGI("RSScreenManager %{public}s: A new screen(id %{public}" PRIu64 ") connected.", __func__, id);
     connectedIds_.emplace_back(id);
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     if (isFoldScreenFlag_ && id != 0) {
         externalScreenId_ = id;
     }
+#endif
 }
 
 void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput> &output)
