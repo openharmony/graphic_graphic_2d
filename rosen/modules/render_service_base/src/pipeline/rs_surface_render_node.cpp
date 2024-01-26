@@ -47,6 +47,7 @@
 
 namespace OHOS {
 namespace Rosen {
+const int SCB_NODE_NAME_PREFIX_LENGTH = 3;
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(config.id, context, config.isTextureExportNode), RSSurfaceHandler(config.id), name_(config.name),
@@ -906,6 +907,11 @@ bool RSSurfaceRenderNode::IsMultiInstance()
         GetName().find("shell_assistant") != std::string::npos;
 }
 
+bool RSSurfaceRenderNode::IsNeedSetVSync()
+{
+    return GetName().substr(0, SCB_NODE_NAME_PREFIX_LENGTH) != "SCB" && !IsMultiInstance();
+}
+
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, RSVisibleLevel>& pidVisMap,
@@ -927,7 +933,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
     // collect visible changed pid
     if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE && !isSystemAnimatedScenes) {
         uint32_t tmpPid = ExtractPid(GetId());
-        pidVisMap[tmpPid] = IsMultiInstance() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
+        pidVisMap[tmpPid] = !IsNeedSetVSync() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
     }
 
     visibleRegionForCallBack_ = region;
