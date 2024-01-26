@@ -4962,14 +4962,11 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     if (node.GetRenderProperties().GetUseEffect() && RSSystemParameters::GetDrawingEffectRegionEnabledDfx()) {
         const auto& effectData = canvas_->GetEffectData();
-        auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
-        if (geoPtr != nullptr) {
-            if ((effectData == nullptr || effectData->cachedImage_ == nullptr) ||
-                !RSSystemProperties::GetEffectMergeEnabled()) {
-                nodesUseEffectFallbackForDfx_.emplace_back(geoPtr->GetAbsRect());
-            } else {
-                nodesUseEffectForDfx_.emplace_back(geoPtr->GetAbsRect());
-            }
+        if ((effectData == nullptr || effectData->cachedImage_ == nullptr) ||
+            !RSSystemProperties::GetEffectMergeEnabled()) {
+            nodesUseEffectFallbackForDfx_.emplace_back(geoPtr->GetAbsRect());
+        } else {
+            nodesUseEffectForDfx_.emplace_back(geoPtr->GetAbsRect());
         }
     }
     const auto& property = node.GetRenderProperties();
