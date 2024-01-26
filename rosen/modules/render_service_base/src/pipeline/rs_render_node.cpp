@@ -740,7 +740,7 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
     out += "]";
 }
 
-void DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
+void RSRenderNode::DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
     std::shared_ptr<RSRenderModifier>& modifier) const
 {
     if (type < RSModifierType::ENV_FOREGROUND_COLOR) {
