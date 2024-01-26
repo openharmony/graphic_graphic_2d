@@ -1317,6 +1317,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetCacheEnabledForRotation(isEnabled);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_DIRTY_REGION_INFO) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            GpuDirtyRegionInfo gpuDirtyRegionInfo = GetCurrentDirtyRegionInfo(id);
+            reply.WriteInt64(gpuDirtyRegionInfo.activeGpuDirtyRegionAreas);
+            reply.WriteInt64(gpuDirtyRegionInfo.globalGpuDirtyRegionAreas);
+            reply.WriteInt32(gpuDirtyRegionInfo.skipProcessFramesNumber);
+            reply.WriteInt32(gpuDirtyRegionInfo.activeFramesNumber);
+            reply.WriteInt32(gpuDirtyRegionInfo.globalFramesNumber);
+            reply.WriteString("");
+            break;
+        }
 #ifdef TP_FEATURE_ENABLE
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG) : {
             auto token = data.ReadInterfaceToken();
