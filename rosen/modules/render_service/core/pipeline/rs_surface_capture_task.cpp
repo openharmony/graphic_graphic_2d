@@ -696,7 +696,7 @@ void RSSurfaceCaptureVisitor::ProcessChildren(RSRenderNode &node)
     if (DrawBlurInCache(node)) {
         return;
     }
-    for (auto& child : *node.GetSortedChildren()) {
+    for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
 }
