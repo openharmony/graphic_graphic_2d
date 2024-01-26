@@ -72,6 +72,29 @@ bool RSSymbolAnimation::isEqual(const Vector2f val1, const Vector2f val2)
     return(val1.x_ == val2.x_ && val1.y_ == val2.y_);
 }
 
+#ifndef USE_ROSEN_DRAWING
+Vector4f RSSymbolAnimation::CalculateOffset(const SkPath &path, const float &offsetX, const float &offsetY)
+{
+    auto rect = path.getBounds();
+    float left = rect.fLeft;
+    float top = rect.fTop;
+#else
+Vector4f RSSymbolAnimation::CalculateOffset(const Drawing::Path &path, const float &offsetX, const float &offsetY)
+{
+    auto rect = path.GetBounds();
+    float left = rect.GetLeft();
+    float top = rect.GetTop();
+#endif
+    float newOffsetX = offsetX + left;
+    float newOffsetY = offsetY + top;
+    
+    // the 'newOffsetX, newOffsetY' is offset of new node;
+    // the '-left, -top' is offset of path on new node;
+    Vector4f nodeOffsets = Vector4f(newOffsetX, newOffsetY, -left, -top);
+    
+    return nodeOffsets;
+}
+
 bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&
     symbolAnimationConfig)
 {
@@ -86,8 +109,12 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
     } else {
         rsNode_->canvasNodesListMap[symbolSpanId] = {canvasNode};
     }
-    Vector4f bounds = rsNode_->GetStagingProperties().GetBounds();
-    SetSymbolGeometry(canvasNode, Vector4f(0.0f, 0.0f, bounds[2], bounds[3])); // index 2 width 3 height
+
+    auto& symbolNode = symbolAnimationConfig->SymbolNodes[0];
+    Vector4f offsets = CalculateOffset(symbolNode.symbolData.path_,
+        symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]); //index 0 offsetX of layout, 1 offsetY of layout
+    SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], //index 0 offsetX of newNode, 1 offsetY of newNode
+        symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3])); // index 2 width 3 height
     const Vector2f scaleValueBegin = {1.0f, 1.0f}; // 1.0 scale
     const Vector2f scaleValue = {1.15f, 1.15f};    // 1.5 scale
     const Vector2f scaleValueEnd = scaleValueBegin;
@@ -96,20 +123,19 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
         return false;
     }
     animation->Start(canvasNode);
-    auto recordingCanvas = canvasNode->BeginRecording(bounds[2], bounds[3]);
-    auto& symbolNode = symbolAnimationConfig->SymbolNodes[0];
+    auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]);
 
     #ifndef USE_ROSEN_DRAWING
         SkPaint paint;
         paint.setColor(symbolNode.color);
         paint.setAntiAlias(true);
-        SkPoint offsetLocal = SkPoint::Make(symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]);
+        SkPoint offsetLocal = SkPoint::Make(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
         recordingCanvas->drawSymbol(symbolNode.symbolData, offsetLocal, paint);
     #else
         Drawing::Brush brush;
         Drawing::Pen pen;
         SetIconProperty(brush, pen, symbolNode);
-        Drawing::Point offsetLocal = Drawing::Point{symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]};
+        Drawing::Point offsetLocal = Drawing::Point{offsets[2], offsets[3]}; // index 2 offsetX 3 offsetY
         recordingCanvas->AttachBrush(brush);
         recordingCanvas->DrawSymbol(symbolNode.symbolData, offsetLocal);
         recordingCanvas->DetachBrush();
@@ -192,17 +218,19 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
         return false;
     }
 
-    Vector4f bounds = rsNode_->GetStagingProperties().GetBounds();
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
+        Vector4f offsets = CalculateOffset(symbolNode.symbolData.path_,
+            symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]); //index 0 offsetX of layout, 1 offsetY of layout
         auto canvasNode = RSCanvasNode::Create();
         if (rsNode_->canvasNodesListMap.count(symbolSpanId) > 0) {
             rsNode_->canvasNodesListMap[symbolSpanId].emplace_back(canvasNode);
         } else {
             rsNode_->canvasNodesListMap[symbolSpanId] = {canvasNode};
         }
-        SetSymbolGeometry(canvasNode, Vector4f(0.f, 0.f, bounds[2], bounds[3])); // 2: width 3: height
+        SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], //0: offsetX and 1: offsetY of newNode
+            symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3])); // 2: width 3: height
         CreateOrSetModifierValue(alphaPropertyPhase1_, 0.4f); // 0.4 means 40% alpha
         CreateOrSetModifierValue(alphaPropertyPhase2_, 0.6f); // 0.6 means 60% alpha
         CreateOrSetModifierValue(alphaPropertyPhase3_, 1.0f); // 1.0 means 100% alpha
@@ -221,18 +249,18 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
             return false;
         }
         animation->Start(canvasNode);
-        auto recordingCanvas = canvasNode->BeginRecording(bounds[2], bounds[3]);
+        auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]);
         #ifndef USE_ROSEN_DRAWING
             SkPaint paint;
             paint.setColor(symbolNode.color);
             paint.setAntiAlias(true);
-            SkPoint offsetLocal = SkPoint::Make(symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]);
-            recordingCanvas->drawSymbol(symbolNode.symbolData, offsetLocal, paint);
+            symbolNode.path.offset(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
+            recordingCanvas->drawPath(symbolNode.path, paint);
         #else
             Drawing::Brush brush;
             Drawing::Pen pen;
             SetIconProperty(brush, pen, symbolNode);
-            symbolNode.path.Offset(symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]);
+            symbolNode.path.Offset(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
             recordingCanvas->AttachBrush(brush);
             recordingCanvas->AttachPen(pen);
             recordingCanvas->DrawPath(symbolNode.path);
