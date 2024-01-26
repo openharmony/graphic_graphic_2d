@@ -24,7 +24,7 @@ constexpr const char *TEXT2 = "honorificabilitudinitatibus";
 
 namespace {
 // default ellipsis \u2026 corresponds to ...
-const std::u16string g_ellipsis = u"\u2026";
+const std::u16string ELLIPSIS = u"\u2026";
 struct EllipsisModalInfo {
     std::string span;
     TypographyStyle tpStyle;
@@ -39,7 +39,7 @@ struct EllipsisModalInfo {
     {
         .span = TEXT,
         .tpStyle = {
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "default,H,100",
@@ -49,7 +49,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:2,H,100",
@@ -59,7 +59,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:1,H,100",
@@ -69,7 +69,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:1,H,150",
@@ -79,7 +79,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:1,H,70",
@@ -89,7 +89,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:1,H,60",
@@ -99,7 +99,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:1,H,30",
@@ -109,7 +109,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:1,H,25",
@@ -119,7 +119,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "L:1,H,15",
@@ -129,7 +129,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:2,M,100",
@@ -139,7 +139,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:1,M,300",
@@ -148,7 +148,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:1,M,150",
@@ -158,7 +158,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:1,M,70",
@@ -168,7 +168,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:1,M,60",
@@ -178,7 +178,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:1,M,30",
@@ -188,7 +188,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:1,M,25",
@@ -198,7 +198,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "L:1,M,15",
@@ -207,7 +207,7 @@ struct EllipsisModalInfo {
     {
         .span = TEXT,
         .tpStyle = {
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "default,T,100",
@@ -217,7 +217,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:1,T,100",
@@ -227,7 +227,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:2,T,100",
@@ -237,7 +237,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:1,T,70",
@@ -247,7 +247,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:2,T,70",
@@ -257,7 +257,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:1,T,60",
@@ -267,7 +267,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:2,T,60",
@@ -277,7 +277,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:1,T,30",
@@ -287,7 +287,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:2,T,30",
@@ -297,7 +297,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:1,T,15",
@@ -307,7 +307,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = g_ellipsis,
+            .ellipsis = ELLIPSIS,
             .ellipsisModal = EllipsisModal::TAIL,
         },
         .title = "L:2,T,15",
