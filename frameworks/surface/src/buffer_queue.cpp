@@ -377,7 +377,6 @@ GSError BufferQueue::CheckBufferQueueCache(uint32_t sequence)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not found in cache");
         return GSERROR_NO_ENTRY;
     }
 
@@ -441,7 +440,6 @@ GSError BufferQueue::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(lastFlusedSequence_) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(lastFlusedSequence_, "not found in cache");
         return GSERROR_NO_ENTRY;
     }
     auto &state = bufferQueueCache_[lastFlusedSequence_].state;
@@ -500,7 +498,6 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
     ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not found in cache");
         return GSERROR_NO_ENTRY;
     }
     if (bufferQueueCache_[sequence].isDeleting) {
@@ -559,7 +556,7 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
         BLOGND("Success Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " AcquireFence:%{public}d",
             sequence, uniqueId_, fence->Get());
     } else if (ret == GSERROR_NO_BUFFER) {
-        BLOGN_FAILURE("there is no dirty buffer");
+        BLOGND("there is no dirty buffer");
     }
 
     CountTrace(HITRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
@@ -601,7 +598,6 @@ void BufferQueue::ListenerBufferReleasedCb(sptr<SurfaceBuffer> &buffer, const sp
 GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncFence>& fence)
 {
     if (buffer == nullptr) {
-        BLOGE("invalid parameter: buffer is null, please check");
         return GSERROR_INVALID_ARGUMENTS;
     }
 
@@ -836,7 +832,6 @@ GSError BufferQueue::DetachBuffer(sptr<SurfaceBuffer> &buffer)
     std::lock_guard<std::mutex> lockGuard(mutex_);
     uint32_t sequence = buffer->GetSeqNum();
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
 
@@ -1103,7 +1098,6 @@ GSError BufferQueue::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     bufferQueueCache_[sequence].scalingMode = scalingMode;
