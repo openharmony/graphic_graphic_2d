@@ -179,20 +179,24 @@ napi_value JsFont::MeasureText(napi_env env, napi_callback_info info)
 napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("[NAPI]font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnEnableSubpixel font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("[NAPI]Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsFont::OnEnableSubpixel Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    bool isSubpixel = true;
-    ConvertFromJsValue(env, argv[0], isSubpixel);
+    bool isSubpixel = false;
+    if (!ConvertFromJsValue(env, argv[0], isSubpixel)) {
+        ROSEN_LOGE("JsFont::OnEnableSubpixel Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
+
     m_font->SetSubpixel(isSubpixel);
     return NapiGetUndefined(env);
 }
@@ -200,20 +204,24 @@ napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
 napi_value JsFont::OnEnableEmbolden(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("[NAPI]font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnEnableEmbolden font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("[NAPI]Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsFont::OnEnableEmbolden Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    bool isEmbolden = true;
-    ConvertFromJsValue(env, argv[0], isEmbolden);
+    bool isEmbolden = false;
+    if (!ConvertFromJsValue(env, argv[0], isEmbolden)) {
+        ROSEN_LOGE("JsFont::OnEnableEmbolden Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
+
     m_font->SetEmbolden(isEmbolden);
     return NapiGetUndefined(env);
 }
@@ -221,20 +229,24 @@ napi_value JsFont::OnEnableEmbolden(napi_env env, napi_callback_info info)
 napi_value JsFont::OnEnableLinearMetrics(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("[NAPI]font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnEnableLinearMetrics font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("[NAPI]Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsFont::OnEnableLinearMetrics Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    bool isLinearMetrics = true;
-    ConvertFromJsValue(env, argv[0], isLinearMetrics);
+    bool isLinearMetrics = false;
+    if (!ConvertFromJsValue(env, argv[0], isLinearMetrics)) {
+        ROSEN_LOGE("JsFont::OnEnableLinearMetrics Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
+
     m_font->SetLinearMetrics(isLinearMetrics);
     return NapiGetUndefined(env);
 }
@@ -242,20 +254,24 @@ napi_value JsFont::OnEnableLinearMetrics(napi_env env, napi_callback_info info)
 napi_value JsFont::OnSetSize(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("[NAPI]font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnSetSize font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("[NAPI]Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsFont::OnSetSize Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    double textSize = 0;
-    ConvertFromJsNumber(env, argv[0], textSize);
+    double textSize = 0.0;
+    if (!ConvertFromJsValue(env, argv[0], textSize)) {
+        ROSEN_LOGE("JsFont::OnSetSize Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
+
     m_font->SetSize((float)textSize);
     return NapiGetUndefined(env);
 }
@@ -263,8 +279,8 @@ napi_value JsFont::OnSetSize(napi_env env, napi_callback_info info)
 napi_value JsFont::OnGetSize(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("[NAPI]font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnGetSize font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     double textSize = m_font->GetSize();
@@ -274,8 +290,8 @@ napi_value JsFont::OnGetSize(napi_env env, napi_callback_info info)
 napi_value JsFont::OnGetMetrics(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("[NAPI]font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnGetMetrics font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     FontMetrics metrics;
     m_font->GetMetrics(&metrics);
@@ -285,40 +301,35 @@ napi_value JsFont::OnGetMetrics(napi_env env, napi_callback_info info)
 napi_value JsFont::OnSetTypeface(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("[NAPI]font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnSetTypeface font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        ROSEN_LOGE("[NAPI]Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsFont::OnSetTypeface Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    JsTypeface *typeface = nullptr;
-    status = napi_unwrap(env, argv[0], (void **)&typeface);
-    if (status != napi_ok) {
-        ROSEN_LOGE("[NAPI]Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+    JsTypeface *jsTypeface = nullptr;
+    napi_unwrap(env, argv[0], (void **)&jsTypeface);
+    if (jsTypeface == nullptr) {
+        ROSEN_LOGE("JsFont::OnSetTypeface jsTypeface is nullptr");
+        return NapiGetUndefined(env);
     }
-    m_font->SetTypeface(typeface->GetTypeface());
+
+    m_font->SetTypeface(jsTypeface->GetTypeface());
     return NapiGetUndefined(env);
 }
 
 napi_value JsFont::OnGetTypeface(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("JsFont::OnGetTypeface font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnGetTypeface font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    size_t argCount = 0;
-    napi_value jsThis = nullptr;
-    napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
-    if (status != napi_ok) {
-        ROSEN_LOGE("JsFont::OnGetTypeface failed to napi_get_cb_info");
-    }
     std::shared_ptr<Typeface> typeface = m_font->GetTypeface();
     return JsTypeface::CreateJsTypeface(env, typeface);
 }
@@ -326,8 +337,8 @@ napi_value JsFont::OnGetTypeface(napi_env env, napi_callback_info info)
 napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        ROSEN_LOGE("JsFont::OnMeasureText font is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        ROSEN_LOGE("JsFont::OnMeasureText font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_TWO;
@@ -335,20 +346,21 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_TWO) {
         ROSEN_LOGE("JsFont::OnMeasureText Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     std::string text = "";
     if (!ConvertFromJsValue(env, argv[0], text)) {
-        ROSEN_LOGE("JsFont::OnMeasureText Failed to convert parameter to string");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsFont::OnMeasureText Argv[0] is invalid");
+        return NapiGetUndefined(env);
     }
 
     TextEncoding TextEncoding = TextEncoding::UTF8;
     if (!ConvertFromJsTextEncoding(env, TextEncoding, argv[1])) {
         ROSEN_LOGE("JsFont::OnMeasureText ConvertFromJsTextEncoding failed");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiGetUndefined(env);
     }
+
     double textSize = m_font->MeasureText(text.c_str(), text.length(), TextEncoding);
     return GetDoubleAndConvertToJsValue(env, textSize);
 }

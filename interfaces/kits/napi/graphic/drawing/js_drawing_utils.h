@@ -36,26 +36,12 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr size_t ARGC_FIVE = 5;
 constexpr size_t ARGC_SIX = 6;
 
-enum class DrawingError : int32_t {
-    DRAWING_OK = 0,
-    DRAWING_ERROR_NULLPTR,
-    DRAWING_ERROR_INVALID_PARAM,
-    DRAWING_ERROR_INVALID_ENUM_USAGE,
-};
-
 enum class DrawingErrorCode : int32_t {
-    DRAWING_OK = 0,
-    DRAWING_ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
-    DRAWING_ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
-    DRAWING_ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
-    DRAWING_ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
-};
-
-const std::map<DrawingError, DrawingErrorCode> JS_TO_ERROR_CODE_MAP {
-    { DrawingError::DRAWING_OK, DrawingErrorCode::DRAWING_OK },
-    { DrawingError::DRAWING_ERROR_NULLPTR, DrawingErrorCode::DRAWING_ERROR_INVALID_PARAM },
-    { DrawingError::DRAWING_ERROR_INVALID_PARAM, DrawingErrorCode::DRAWING_ERROR_INVALID_PARAM },
-    { DrawingError::DRAWING_ERROR_INVALID_ENUM_USAGE, DrawingErrorCode::DRAWING_ERROR_ABNORMAL_PARAM_VALUE },
+    OK = 0,
+    ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
+    ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
+    ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
+    ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
 };
 
 template<class T>
@@ -211,6 +197,9 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 
 inline bool ConvertClampFromJsValue(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
 {
+    if (jsValue == nullptr) {
+        return false;
+    }
     bool ret = napi_get_value_int32(env, jsValue, &value) == napi_ok;
     value = std::clamp(value, lo, hi);
     return ret;
@@ -265,11 +254,11 @@ inline napi_value NapiGetUndefined(napi_env env)
 }
 
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func);
-napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message = std::string());
+napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 
 bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_value nativeType);
 
-napi_value NapiThrowError(napi_env env, DrawingError err);
+napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
 } // namespace Drawing
 } // namespace OHOS::Rosen
 
