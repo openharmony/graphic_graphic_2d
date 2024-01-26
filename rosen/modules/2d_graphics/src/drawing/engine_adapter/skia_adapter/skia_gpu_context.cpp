@@ -14,7 +14,6 @@
  */
 
 #include "skia_gpu_context.h"
-#include <mutex>
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 #include "include/core/SkTypes.h"
@@ -24,6 +23,7 @@
 #include "utils/log.h"
 #include "skia_trace_memory_dump.h"
 #include "utils/system_properties.h"
+#include "skia_task_executor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,16 +65,15 @@ void SkiaPersistentCache::store(const SkData& key, const SkData& data)
 
 SkiaGPUContext::SkiaGPUContext() : grContext_(nullptr), skiaPersistentCache_(nullptr) {}
 
-std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = nullptr;
-void SkiaGPUContext::InitSkExecutor()
-{
-    static std::mutex mtx;
-    mtx.lock();
-    if (threadPool == nullptr) {
-        threadPool = SkExecutor::MakeFIFOThreadPool(3); // 3 threads async task
+class CommonPoolExecutor : public SkExecutor {
+public:
+    void add(std::function<void(void)> func) override
+    {
+        TaskPoolExecutor::PostTask(std::move(func));
     }
-    mtx.unlock();
-}
+};
+
+static CommonPoolExecutor g_defaultExecutor;
 
 bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 {
@@ -83,14 +82,13 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
         skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
     }
 
-    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
-    grOptions.fExecutor = threadPool.get();
+    grOptions.fExecutor = &g_defaultExecutor;
 #ifdef NEW_SKIA
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
 #else
@@ -106,9 +104,8 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
-    InitSkExecutor();
     GrContextOptions grOptions;
-    grOptions.fExecutor = threadPool.get();
+    grOptions.fExecutor = &g_defaultExecutor;
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
@@ -122,14 +119,13 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     if (options.GetPersistentCache() != nullptr) {
         skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
     }
-    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
-    grOptions.fExecutor = threadPool.get();
+    grOptions.fExecutor = &g_defaultExecutor;
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
