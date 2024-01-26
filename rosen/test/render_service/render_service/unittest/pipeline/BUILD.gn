@@ -423,7 +423,10 @@ ohos_unittest("RSUniRenderUtilTest") {
 ## Build RSUniRenderVisitorTest
 ohos_unittest("RSUniRenderVisitorTest") {
   module_out_path = module_output_path
-  sources = [ "rs_uni_render_visitor_test.cpp" ]
+  sources = [
+    "mock/mock_matrix.cpp",
+    "rs_uni_render_visitor_test.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
