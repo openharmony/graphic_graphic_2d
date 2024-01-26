@@ -245,10 +245,10 @@ void RSParallelRenderManager::PackParallelCompositionTask(std::shared_ptr<RSNode
     baseNode_ = node;
     compositionTaskManager_.Reset();
     auto children = node->GetSortedChildren();
-    for (auto iter = children.rbegin(); iter != children.rend(); iter++) {
+    for (auto iter = children->rbegin(); iter != children->rend(); iter++) {
         std::shared_ptr<RSDisplayRenderNode> displayNode =
             RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(*iter);
-        if (*iter == *children.begin()) {
+        if (*iter == *children->begin()) {
             mainDisplayNode_ = displayNode;
             break;
         }
