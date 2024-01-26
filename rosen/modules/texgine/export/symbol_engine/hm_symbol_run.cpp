@@ -199,20 +199,13 @@ void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<Texgin
         SkPoint offsetLocal = SkPoint::Make(offset.first, offset.second);
         EffectStrategy symbolEffect = style.symbol.GetEffectStrategy();
         uint32_t symbolId = static_cast<uint32_t>(glyphId);
-        switch (symbolEffect) {
-            case EffectStrategy::SCALE:
-                if (!SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy())) {
-                    canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                }
-                break;
-            case EffectStrategy::HIERARCHICAL:
-                SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy());
+        if (symbolEffect > 1) { // 1 > has animation
+            if (!SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy())) {
                 canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
-            default:
-                ClearSymbolAnimation(symbolData, symbolId, offset);
-                canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
+            }
+        } else {
+            ClearSymbolAnimation(symbolData, symbolId, offset);
+            canvas.DrawSymbol(symbolData, offsetLocal, paint);
         }
     } else {
         canvas.DrawTextBlob(blob, offset.first, offset.second, paint);
@@ -240,20 +233,13 @@ void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<Texgin
         RSPoint offsetLocal = RSPoint{ offset.first, offset.second };
         RSEffectStrategy symbolEffect = style.symbol.GetEffectStrategy();
         uint32_t symbolId = static_cast<uint32_t>(glyphId);
-        switch (symbolEffect) {
-            case RSEffectStrategy::SCALE:
-                if (!SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy())) {
-                    canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                }
-                break;
-            case RSEffectStrategy::HIERARCHICAL:
-                SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy());
+        if (symbolEffect > 1) { // 1 > has animation
+            if (!SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy())) {
                 canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
-            default:
-                ClearSymbolAnimation(symbolData, symbolId, offset);
-                canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
+            }
+        } else {
+            ClearSymbolAnimation(symbolData, symbolId, offset);
+            canvas.DrawSymbol(symbolData, offsetLocal, paint);
         }
     } else {
         canvas.DrawTextBlob(blob, offset.first, offset.second, paint);
