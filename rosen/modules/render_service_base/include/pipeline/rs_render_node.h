@@ -518,6 +518,8 @@ protected:
 
     void DumpSubClassNode(std::string& out) const;
     void DumpDrawCmdModifiers(std::string& out) const;
+    void DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
+        std::shared_ptr<RSRenderModifier>& modifier) const;
 
     const std::weak_ptr<RSContext> GetContext() const
     {

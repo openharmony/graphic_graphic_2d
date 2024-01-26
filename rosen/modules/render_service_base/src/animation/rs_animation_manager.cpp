@@ -35,6 +35,7 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
     if (animations_.empty()) {
         return;
     }
+    const auto lengthTwo = 2;
     out += ", RSAnimationManager: [";
     for (auto[id, animation]: animations_) {
         if (!animation) {
@@ -43,7 +44,7 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
         animation->DumpAnimation(out);
         out += ", ";
     }
-    out = out.substr(0, out.length() - 2);
+    out = out.substr(0, out.length() - lengthTwo);
     out += "]";
 }
 

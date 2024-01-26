@@ -730,32 +730,7 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         modifierDesc += "type:" + std::to_string(static_cast<int>(type)) + ", modifiers: ";
         std::string propertyDesc = "Property_";
         for (auto& modifier : modifiers) {
-            if (type < RSModifierType::ENV_FOREGROUND_COLOR) {
-                propertyDesc += "drawCmdList:[";
-                auto propertyValue = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>
-                    (modifier->GetProperty())->Get();
-                propertyDesc += propertyValue->GetOpsWithDesc();
-                std::string::size_type pos = 0;
-                while ((pos = propertyDesc.find("\n", pos)) != std::string::npos) {
-                    propertyDesc.replace(pos, 1, ",");
-                }
-                propertyDesc.pop_back();
-            } else if (type == RSModifierType::ENV_FOREGROUND_COLOR) {
-                propertyDesc += "ENV_FOREGROUND_COLOR:[Rgba-";
-                auto propertyValue = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>
-                    (modifier->GetProperty())->Get();
-                propertyDesc += std::to_string(propertyValue.AsRgbaInt());
-            } else if (type == RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY) {
-                propertyDesc += "ENV_FOREGROUND_COLOR_STRATEGY:[";
-                auto propertyValue = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>
-                    (modifier->GetProperty())->Get();
-                propertyDesc += std::to_string(static_cast<int>(propertyValue));
-            } else if (type == RSModifierType::GEOMETRYTRANS) {
-                propertyDesc += "GEOMETRYTRANS:[";
-                auto propertyValue = std::static_pointer_cast<RSRenderProperty<SkMatrix>>
-                    (modifier->GetProperty())->Get();
-                propertyValue.dump(propertyDesc, 0);
-            }
+            DumpDrawCmdModifier(propertyDesc, type, modifier);
             propertyDesc += "], ";
         }
         modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
@@ -763,6 +738,37 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
     }
     out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length());
     out += "]";
+}
+
+void DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
+    std::shared_ptr<RSRenderModifier>& modifier) const;
+{
+    if (type < RSModifierType::ENV_FOREGROUND_COLOR) {
+        propertyDesc += "drawCmdList:[";
+        auto propertyValue = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>
+            (modifier->GetProperty())->Get();
+        propertyDesc += propertyValue->GetOpsWithDesc();
+        std::string::size_type pos = 0;
+        while ((pos = propertyDesc.find("\n", pos)) != std::string::npos) {
+            propertyDesc.replace(pos, 1, ",");
+        }
+        propertyDesc.pop_back();
+    } else if (type == RSModifierType::ENV_FOREGROUND_COLOR) {
+        propertyDesc += "ENV_FOREGROUND_COLOR:[Rgba-";
+        auto propertyValue = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>
+            (modifier->GetProperty())->Get();
+        propertyDesc += std::to_string(propertyValue.AsRgbaInt());
+    } else if (type == RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY) {
+        propertyDesc += "ENV_FOREGROUND_COLOR_STRATEGY:[";
+        auto propertyValue = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>
+            (modifier->GetProperty())->Get();
+        propertyDesc += std::to_string(static_cast<int>(propertyValue));
+    } else if (type == RSModifierType::GEOMETRYTRANS) {
+        propertyDesc += "GEOMETRYTRANS:[";
+        auto propertyValue = std::static_pointer_cast<RSRenderProperty<SkMatrix>>
+            (modifier->GetProperty())->Get();
+        propertyValue.dump(propertyDesc, 0);
+    }
 }
 
 void RSRenderNode::ResetIsOnlyBasicGeoTransform()
