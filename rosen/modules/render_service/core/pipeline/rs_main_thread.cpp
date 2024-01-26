@@ -1421,6 +1421,9 @@ void RSMainThread::WaitUntilUploadTextureTaskFinishedForGL()
 
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
+    if (isAccessibilityConfigChanged_) {
+        RSUniRenderVisitor::ClearRenderGroupCache();
+    }
     UpdateUIFirstSwitch();
     UpdateRogSizeIfNeeded();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();

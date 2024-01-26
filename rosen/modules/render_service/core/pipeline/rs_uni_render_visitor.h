@@ -168,6 +168,8 @@ public:
         screenInfo_ = screenInfo;
     }
 
+    static void ClearRenderGroupCache();
+
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     void PartialRenderOptionInit();

@@ -4732,6 +4732,12 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
     return true;
 }
 
+void RSUniRenderVisitor::ClearRenderGroupCache()
+{
+    std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
+    cacheRenderNodeMap.clear();
+}
+
 bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
 {
     if (node.GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE ||
