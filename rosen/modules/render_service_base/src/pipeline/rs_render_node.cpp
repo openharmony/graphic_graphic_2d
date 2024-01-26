@@ -741,7 +741,7 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
 }
 
 void DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
-    std::shared_ptr<RSRenderModifier>& modifier) const;
+    std::shared_ptr<RSRenderModifier>& modifier) const
 {
     if (type < RSModifierType::ENV_FOREGROUND_COLOR) {
         propertyDesc += "drawCmdList:[";
