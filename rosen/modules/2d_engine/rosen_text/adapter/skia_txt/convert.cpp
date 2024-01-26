@@ -115,6 +115,10 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.height = style.heightScale;
     textStyle.heightOverride = style.heightOnly;
     textStyle.locale = style.locale;
+    textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
+        style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
+        style.backgroundRect.leftBottomRadius };
+    textStyle.styleId = style.styleId;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
 
     if (style.isSymbolGlyph) {

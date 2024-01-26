@@ -101,6 +101,8 @@ bool TextStyle::operator==(TextStyle const& other) const
         heightOverride == other.heightOverride &&
         halfLeading == other.halfLeading &&
         locale == other.locale &&
+        styleId == other.styleId &&
+        backgroundRect == other.backgroundRect &&
         foreground == other.foreground &&
         fontFamilies == other.fontFamilies &&
         textShadows == other.textShadows;
