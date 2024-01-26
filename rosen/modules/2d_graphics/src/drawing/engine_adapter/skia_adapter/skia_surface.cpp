@@ -314,7 +314,7 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot() const
 
     auto skImage = skSurface_->makeImageSnapshot();
     if (skImage == nullptr) {
-        LOGE("skSurface makeImageSnashot failed");
+        LOGD("skSurface makeImageSnashot failed");
         return nullptr;
     }
 
@@ -333,7 +333,7 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     auto iRect = SkIRect::MakeLTRB(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
     auto skImage = skSurface_->makeImageSnapshot(iRect);
     if (skImage == nullptr) {
-        LOGE("skSurface makeImageSnashot failed");
+        LOGD("skSurface makeImageSnashot failed");
         return nullptr;
     }
 
