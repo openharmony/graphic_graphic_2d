@@ -464,8 +464,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame001, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
 #endif
-    int w;
-    int h;
+    int32_t w;
+    int32_t h;
 #ifndef USE_ROSEN_DRAWING
     auto cmds = std::make_shared<DrawCmdList>(w, h);
 #else
