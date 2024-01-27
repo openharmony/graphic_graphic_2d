@@ -219,7 +219,7 @@ int32_t BufferQueueProducer::AttachBufferRemote(MessageParcel &arguments, Messag
         reply.WriteInt32(ret);
         return 0;
     }
-    timeOut = arguments.ReadUint32();
+    timeOut = static_cast<int32_t>(arguments.ReadUint32());
 
     ret = AttachBuffer(buffer, timeOut);
     reply.WriteInt32(ret);
