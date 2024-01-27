@@ -158,6 +158,24 @@ Path SkiaTextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* b
     return path;
 }
 
+void SkiaTextBlob::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
+{
+    SkTextBlob* skTextBlob = nullptr;
+    if (blob) {
+        auto skiaBlobImpl = blob->GetImpl<SkiaTextBlob>();
+        if (skiaBlobImpl != nullptr) {
+            skTextBlob = skiaBlobImpl->GetTextBlob().get();
+        }
+    }
+    std::vector<SkPoint> skPoints;
+    GetPointsForTextBlob(skTextBlob, skPoints);
+
+    points.reserve(skPoints.size());
+    for (const auto& p : skPoints) {
+        points.emplace_back(p.x(), p.y());
+    }
+}
+
 std::shared_ptr<Rect> SkiaTextBlob::Bounds() const
 {
     if (skTextBlob_) {

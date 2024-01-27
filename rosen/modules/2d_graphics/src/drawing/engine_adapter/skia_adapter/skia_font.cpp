@@ -144,6 +144,43 @@ std::shared_ptr<Typeface> SkiaFont::GetTypeface()
     return typeface_;
 }
 
+FontEdging SkiaFont::GetEdging() const
+{
+    return static_cast<FontEdging>(skFont_.getEdging());
+}
+
+FontHinting SkiaFont::GetHinting() const
+{
+    return static_cast<FontHinting>(skFont_.getHinting());
+}
+
+scalar SkiaFont::GetScaleX() const
+{
+    return skFont_.getScaleX();
+}
+
+scalar SkiaFont::GetSkewX() const
+{
+    return skFont_.getSkewX();
+}
+
+bool SkiaFont::IsSubpixel() const
+{
+    return skFont_.isSubpixel();
+}
+
+uint16_t SkiaFont::UnicharToGlyph(int32_t uni) const
+{
+    return skFont_.unicharToGlyph(uni);
+}
+
+int SkiaFont::TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding, 
+    uint16_t glyphs[], int maxGlyphCount) const
+{
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    return skFont_.textToGlyphs(text, byteLength, skEncoding, glyphs, maxGlyphCount);
+}
+
 scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
