@@ -2906,7 +2906,7 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
     }
     const auto& particles = particleVector.GetParticleVector();
     auto bounds = properties.GetDrawRegion();
-    for (const auto & particle : particles) {
+    for (const auto& particle : particles) {
         if (particle != nullptr && particle->IsAlive()) {
             // Get particle properties
             auto position = particle->GetPosition();
