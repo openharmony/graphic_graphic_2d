@@ -2195,17 +2195,17 @@ void RSPropertiesPainter::GetOutlineDirtyRect(RectI& dirtyOutline,
     auto skRect = Rect2SkRect(GetRRectForDrawingBorder(properties, outline, true).rect_);
     matrix.MapRect(&skRect);
     dirtyOutline.left_ = std::floor(skRect.left());
-    dirtyOutline.top_ = std::floor(drawingRect.top());
-    dirtyOutline.width_ = std::ceil(drawingRect.width()) + 2;
-    dirtyOutline.height_ = std::ceil(drawingRect.height()) + 2;
+    dirtyOutline.top_ = std::floor(skRect.top());
+    dirtyOutline.width_ = std::ceil(skRect.width()) + PARAM_DOUBLE;
+    dirtyOutline.height_ = std::ceil(skRect.height()) + PARAM_DOUBLE;
 #else
     Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
     auto drawingRect = Rect2DrawingRect(GetRRectForDrawingBorder(properties, outline, true).rect_);
     matrix.MapRect(drawingRect, drawingRect);
     dirtyOutline.left_ = std::floor(drawingRect.GetLeft());
     dirtyOutline.top_ = std::floor(drawingRect.GetTop());
-    dirtyOutline.width_ = std::ceil(drawingRect.GetWidth()) + 2;
-    dirtyOutline.height_ = std::ceil(drawingRect.GetHeight()) + 2;
+    dirtyOutline.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
+    dirtyOutline.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
 #endif
 }
 
