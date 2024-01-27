@@ -15,6 +15,8 @@
 
 #include "property/rs_color_picker_cache_task.h"
 
+#include <atomic>
+
 #ifndef USE_ROSEN_DRAWING
 #include "include/gpu/GrBackendSurface.h"
 #include "src/image/SkImage_Base.h"
@@ -53,7 +55,6 @@ bool RSColorPickerCacheTask::InitSurface(Drawing::GPUContext* gpuContext)
 {
     RS_TRACE_NAME("RSColorPickerCacheTask InitSurface");
     if (cacheSurface_ != nullptr) {
-        ROSEN_LOGE("RSColorPickerCacheTask cacheSurface is null");
         return true;
     }
 #ifdef IS_OHOS
@@ -77,11 +78,6 @@ bool RSColorPickerCacheTask::InitTask(const sk_sp<SkImage> imageSnapshot)
 bool RSColorPickerCacheTask::InitTask(const std::shared_ptr<Drawing::Image> imageSnapshot)
 #endif
 {
-    RS_TRACE_NAME("RSColorPickerCacheTask InitTask");
-    #ifdef IS_OHOS
-        auto runner = AppExecFwk::EventRunner::Current();
-        initHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-    #endif
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSColorPickerCacheTask imageSnapshot is null");
         return false;
@@ -94,6 +90,11 @@ bool RSColorPickerCacheTask::InitTask(const std::shared_ptr<Drawing::Image> imag
 #endif
         return true;
     }
+    ROSEN_LOGD("RSColorPickerCacheTask InitTask:%{public}p", this);
+#ifdef IS_OHOS
+    auto runner = AppExecFwk::EventRunner::Current();
+    initHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+#endif
     imageSnapshotCache_ = imageSnapshot;
 #ifndef USE_ROSEN_DRAWING
     surfaceSize_.set(imageSnapshotCache_->width(), imageSnapshotCache_->height());
@@ -102,6 +103,16 @@ bool RSColorPickerCacheTask::InitTask(const std::shared_ptr<Drawing::Image> imag
     surfaceSize_.SetBottom(imageSnapshotCache_->GetHeight());
 #endif
     return false;
+}
+
+void RSColorPickerCacheTask::Reset()
+{
+    ROSEN_LOGD("RSColorPickerCacheTask::Reset:%{public}p", this);
+    if (!imageSnapshotCache_) {
+        return;
+    }
+    std::unique_lock<std::mutex> lock(*grBackendTextureMutex_);
+    imageSnapshotCache_.reset();
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -270,6 +281,7 @@ bool RSColorPickerCacheTask::Render()
 bool RSColorPickerCacheTask::Render()
 {
     RS_TRACE_NAME_FMT("RSColorPickerCacheTask::Render:%p", this);
+    ROSEN_LOGD("RSColorPickerCacheTask::Render:%{public}p", this);
     if (cacheSurface_ == nullptr) {
         SetStatus(CacheProcessStatus::WAITING);
         ROSEN_LOGE("RSColorPickerCacheTask cacheSurface is null");
@@ -282,20 +294,25 @@ bool RSColorPickerCacheTask::Render()
         ROSEN_LOGE("RSColorPickerCacheTask cacheCanvas is null");
         return false;
     }
+    CHECK_CACHE_PROCESS_STATUS;
     auto threadImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888,
         Drawing::ALPHATYPE_PREMUL };
-    bool ret = threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
-        Drawing::TextureOrigin::BOTTOM_LEFT, info, nullptr);
-    if (!ret) {
-        RS_LOGE("RSColorPickerCacheTask::Render BuildFromTexture failed");
-        return false;
+    {
+        std::unique_lock<std::mutex> lock(*grBackendTextureMutex_);
+        if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
+            Drawing::TextureOrigin::BOTTOM_LEFT, info, nullptr)) {
+            SetStatus(CacheProcessStatus::WAITING);
+            ROSEN_LOGE("RSColorPickerCacheTask::Render BuildFromTexture failed");
+            return false;
+        }
     }
-
+    CHECK_CACHE_PROCESS_STATUS;
     Drawing::ColorQuad color;
     std::shared_ptr<Drawing::Pixmap> dst;
     if (GpuScaleImage(cacheCanvas, threadImage, dst)) {
         uint32_t errorCode = 0;
+        CHECK_CACHE_PROCESS_STATUS;
         std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
         if (errorCode == 0) {
             if (isShadow_ && shadowColorStrategy_ == SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN) {
@@ -399,37 +416,13 @@ bool RSColorPickerCacheTask::GetFirstGetColorFinished()
     return firstGetColorFinished_;
 }
 
-
-void RSColorPickerCacheTask::ResetGrContext()
-{
-#ifndef USE_ROSEN_DRAWING
-    if (cacheSurface_ != nullptr) {
-        auto recordingContext = cacheSurface_->recordingContext();
-        if (recordingContext != nullptr) {
-            GrDirectContext* grContext = recordingContext->asDirectContext();
-            if (grContext != nullptr) {
-                cacheSurface_ = nullptr;
-                grContext->freeGpuResources();
-            }
-        }
-    }
-#else
-    if (cacheSurface_ != nullptr) {
-        std::shared_ptr<Drawing::GPUContext> gpuContext = cacheSurface_->GetCanvas()->GetGPUContext();
-        if (gpuContext != nullptr) {
-            cacheSurface_ = nullptr;
-            gpuContext->FreeGpuResources();
-        }
-    }
-#endif
-}
-
 std::function<void(std::weak_ptr<RSColorPickerCacheTask>)> RSColorPickerCacheTask::postColorPickerTask = nullptr;
 #ifdef IS_OHOS
     std::function<void(std::shared_ptr<Drawing::Image> &&,
         std::shared_ptr<Drawing::Surface> &&,
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> &&,
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> &&)> RSColorPickerCacheTask::saveImgAndSurToRelease = nullptr;
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler>,
+        std::weak_ptr<std::atomic<bool>>,
+        std::weak_ptr<std::mutex>)> RSColorPickerCacheTask::saveImgAndSurToRelease = nullptr;
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -440,6 +433,7 @@ bool RSColorPickerCacheTask::PostPartialColorPickerTask(std::shared_ptr<RSColorP
     std::shared_ptr<Drawing::Image> imageSnapshot)
 #endif
 {
+    ROSEN_LOGD("RSColorPickerCacheTask::PostPartialColorPickerTask:%{public}p", colorPickerTask.get());
     if (RSColorPickerCacheTask::postColorPickerTask == nullptr) {
         ROSEN_LOGD("PostPartialColorPickerTask::postColorPickerTask is null\n");
         return false;
@@ -450,7 +444,7 @@ bool RSColorPickerCacheTask::PostPartialColorPickerTask(std::shared_ptr<RSColorP
         return false;
     }
 
-    if (colorPickerTask->GetStatus() == CacheProcessStatus::WAITING) {
+    if (colorPickerTask->GetStatus() == CacheProcessStatus::WAITING && !colorPickerTask->GetWaitRelease()) {
         if (colorPickerTask->InitTask(imageSnapshot)) {
             ROSEN_LOGD("PostPartialColorPickerTask, init task");
             colorPickerTask->SetStatus(CacheProcessStatus::DOING);
@@ -458,18 +452,19 @@ bool RSColorPickerCacheTask::PostPartialColorPickerTask(std::shared_ptr<RSColorP
         }
         return false;
     } else if (colorPickerTask->GetStatus() == CacheProcessStatus::DONE) {
-        ROSEN_LOGD("PostPartialColorPickerTask, done");
+        ROSEN_LOGD("PostPartialColorPickerTask, DONE");
         #ifdef IS_OHOS
-        auto initHandler = colorPickerTask->GetInitHandler();
+            auto initHandler = colorPickerTask->GetInitHandler();
             if (initHandler != nullptr) {
                 auto task = colorPickerTask;
+                ROSEN_LOGD("CacheProcessStatus::DONE, Reset():%{public}p", task.get());
                 initHandler->PostTask(
                     [task]() { task->Reset(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
             }
         #endif
         return true;
     } else {
-        ROSEN_LOGD("PostPartialColorPickerTask, doing");
+        ROSEN_LOGD("PostPartialColorPickerTask, doing or wait release");
         return false;
     }
 }
@@ -492,7 +487,7 @@ void RSColorPickerCacheTask::SetShadowColorStrategy(int shadowColorStrategy)
 
 void RSColorPickerCacheTask::SetWaitRelease(bool waitRelease)
 {
-    waitRelease_ = waitRelease;
+    waitRelease_->store(waitRelease);
 }
 
 bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) const
@@ -507,22 +502,20 @@ bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) 
 
 bool RSColorPickerCacheTask::GetWaitRelease() const
 {
-    return waitRelease_;
+    return waitRelease_->load();
 }
 
 void RSColorPickerCacheTask::ReleaseColorPicker()
 {
-    SetStatus(CacheProcessStatus::WAITING);
-    Reset();
-    #ifdef IS_OHOS
-        if (GetHandler() != nullptr) {
-            auto task = this;
-            task->GetHandler()->PostTask(
-                [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        }
-    #endif
-    // release finished
-    waitRelease_ = false;
+#ifdef IS_OHOS
+    waitRelease_->store(true);
+    cacheProcessStatus_.store(CacheProcessStatus::WAITING);
+    if (imageSnapshotCache_ || cacheSurface_ || initHandler_ || handler_) {
+        ROSEN_LOGD("RSColorPickerCacheTask::ReleaseColorPicker:%{public}p", this);
+        RSColorPickerCacheTask::saveImgAndSurToRelease(std::move(imageSnapshotCache_), std::move(cacheSurface_),
+            initHandler_, waitRelease_, grBackendTextureMutex_);
+    }
+#endif
 }
 
 } // namespace Rosen
