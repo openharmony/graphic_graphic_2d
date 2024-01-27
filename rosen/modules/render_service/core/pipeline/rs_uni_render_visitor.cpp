@@ -4215,12 +4215,21 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             // clear hole while generating cache surface
 #ifndef USE_ROSEN_DRAWING
             SkAutoCanvasRestore arc(canvas_.get(), true);
-            canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
+            if (node.GetRenderProperties().GetClipBounds() != nullptr) {
+                canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
+            } else {
+                canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(node.GetRenderProperties().GetRRect()));
+            }
             canvas_->clear(SK_ColorTRANSPARENT);
 #else
             Drawing::AutoCanvasRestore arc(*canvas_, true);
-            canvas_->ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect()),
-                Drawing::ClipOp::INTERSECT, false);
+            if (node.GetRenderProperties().GetClipBounds() != nullptr) {
+                canvas_->ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect()),
+                    Drawing::ClipOp::INTERSECT, false);
+            } else {
+                canvas_->ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(node.GetRenderProperties().GetRRect()),
+                    Drawing::ClipOp::INTERSECT, false);
+            }
             canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
         }
