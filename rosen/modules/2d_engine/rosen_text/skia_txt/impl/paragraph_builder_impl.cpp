@@ -88,7 +88,9 @@ void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 
 std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 {
-    return std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
+    auto ret = std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
+    builder_->Reset();
+    return ret;
 }
 
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
