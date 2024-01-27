@@ -115,8 +115,8 @@ void RSRenderParticleEmitterTest::SetUp()
     scale_ = RenderParticleParaType(scaleVal, randomUpdator, scaleRandom, scaleChangeOverLife);
     Range<float> spinRandom = Range<float>(1.f, 0.f);
     spin_ = RenderParticleParaType(scaleVal, randomUpdator, spinRandom, scaleChangeOverLife);
-    params =
-        std::make_shared<ParticleRenderParams>(emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, spin_);
+    params = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, spin_);
     particleEmitter = std::make_shared<RSRenderParticleEmitter>(params);
 }
 void RSRenderParticleEmitterTest::TearDown() {}
