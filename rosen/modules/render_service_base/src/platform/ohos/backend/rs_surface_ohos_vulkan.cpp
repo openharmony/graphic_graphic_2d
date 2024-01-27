@@ -386,6 +386,12 @@ void RSSurfaceOhosVulkan::SetSurfaceBufferUsage(uint64_t usage)
 
 void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
 {
+    if (pixelFormat != pixelFormat_) {
+        for (auto &[key, val] : mSurfaceMap) {
+            NativeWindowCancelBuffer(mNativeWindow, key);
+        }
+        mSurfaceMap.clear();
+    }
     pixelFormat_ = pixelFormat;
 }
 
