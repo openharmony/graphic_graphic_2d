@@ -264,7 +264,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #else
     }
 #endif
-    if (surface_) {
+    if (!surface_) {
         return;
     }
 
