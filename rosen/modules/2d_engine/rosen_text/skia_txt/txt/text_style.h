@@ -75,6 +75,32 @@ public:
     double blurSigma = 0.0;
 };
 
+struct RectStyle {
+    SkColor color = 0;
+    SkScalar leftTopRadius = 0.0f;
+    SkScalar rightTopRadius = 0.0f;
+    SkScalar rightBottomRadius = 0.0f;
+    SkScalar leftBottomRadius = 0.0f;
+
+    bool operator ==(const RectStyle& rhs) const
+    {
+        return color == rhs.color &&
+            leftTopRadius == rhs.leftTopRadius &&
+            rightTopRadius == rhs.rightTopRadius &&
+            rightBottomRadius == rhs.rightBottomRadius &&
+            leftBottomRadius == rhs.leftBottomRadius;
+    }
+
+    bool operator !=(const RectStyle& rhs) const
+    {
+        return color != rhs.color ||
+            leftTopRadius != rhs.leftTopRadius ||
+            rightTopRadius != rhs.rightTopRadius ||
+            rightBottomRadius != rhs.rightBottomRadius ||
+            leftBottomRadius != rhs.leftBottomRadius;
+    }
+};
+
 // TextStyle is a collection of parameters that control how text is displayed,
 // including parameters for fonts, decorations, and text.
 class TextStyle {
@@ -102,6 +128,9 @@ public:
     double height = 1.0;
     bool heightOverride = false;
     std::string locale;
+    RectStyle backgroundRect = {0, 0.0f, 0.0f, 0.0f, 0.0f};
+    int styleId = 0;
+
     std::optional<PaintRecord> background;
     std::optional<PaintRecord> foreground;
 
