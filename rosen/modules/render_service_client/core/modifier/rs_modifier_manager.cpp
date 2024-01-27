@@ -111,6 +111,16 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     return hasRunningAnimation;
 }
 
+void RSModifierManager::FlushStartAnimation(int64_t time)
+{
+    for (auto& iter : animations_) {
+        auto animation = iter.second.lock();
+        if (animation && animation->GetNeedUpdateStartTime()) {
+            animation->SetStartTime(time);
+        }
+    }
+}
+
 bool RSModifierManager::JudgeAnimateWhetherSkip(AnimationId animId, int64_t time, int64_t vsyncPeriod)
 {
     bool isSkip = false;

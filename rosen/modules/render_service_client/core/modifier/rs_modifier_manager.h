@@ -54,6 +54,7 @@ public:
     bool JudgeAnimateWhetherSkip(AnimationId animId, int64_t time, int64_t vsyncPeriod);
     void SetDisplaySyncEnable(bool isDisplaySyncEnabled);
     bool IsDisplaySyncEnabled() const;
+    void FlushStartAnimation(int64_t time);
 
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);

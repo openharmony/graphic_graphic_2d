@@ -59,6 +59,7 @@ public:
     bool FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod = 0);
     void FlushModifier();
     bool HasUIAnimation();
+    void FlushAnimationStartTime(uint64_t timeStamp);
 
     void SetAppFreeze(bool isAppFreeze);
 
