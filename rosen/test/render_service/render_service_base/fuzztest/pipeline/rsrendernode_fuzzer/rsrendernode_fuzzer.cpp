@@ -128,42 +128,6 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // getdata
-    NodeId id = GetData<NodeId>();
-    int w = GetData<int>();
-    int h = GetData<int>();
-    RSModifierType type = GetData<RSModifierType>();
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<DrawCmdList> drawCmds = std::make_shared<DrawCmdList>(w, h);
-    SkCanvas tmpCanvas;
-#else
-    std::shared_ptr<Drawing::DrawCmdList> drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
-    Drawing::Canvas tmpCanvas;
-#endif
-    float alpha = GetData<float>();
-    RSPaintFilterCanvas canvas(&tmpCanvas, alpha);
-    RSCanvasRenderNode node(id);
-
-    // test
-    node.UpdateRecording(drawCmds, type);
-    node.ProcessRenderBeforeChildren(canvas);
-    node.ProcessRenderContents(canvas);
-    node.ProcessRenderAfterChildren(canvas);
-
-    return true;
-}
-
 bool RSContextFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -275,47 +239,6 @@ bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    int w = GetData<int>();
-    int h = GetData<int>();
-    float fLeft = GetData<float>();
-    float fTop = GetData<float>();
-    float fRight = GetData<float>();
-    float fBottom = GetData<float>();
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    SkRect rect = { fLeft, fTop, fRight, fBottom };
-    float alpha = GetData<float>();
-    RSPaintFilterCanvas canvas(&skCanvas, alpha);
-
-    // test
-    DrawCmdList* list = new DrawCmdList(w, h);
-    list->Playback(skCanvas, &rect);
-    list->Playback(canvas, &rect);
-#else
-    Drawing::Canvas drCanvas;
-    Drawing::Rect rect = { fLeft, fTop, fRight, fBottom };
-    float alpha = GetData<float>();
-    RSPaintFilterCanvas canvas(&drCanvas, alpha);
-
-    // test
-    Drawing::DrawCmdList* list = new Drawing::DrawCmdList(w, h);
-    list->Playback(drCanvas, &rect);
-    list->Playback(canvas, &rect);
-#endif
-    return true;
-}
-
 bool RSOcclusionConfigFuzzTes(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -346,10 +269,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::RSBaseRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSContextFuzzTest(data, size);
-    OHOS::Rosen::RSCanvasRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSDirtyRegionManagerFuzzTest(data, size);
     OHOS::Rosen::RSDisplayRenderNodeFuzzTest(data, size);
-    OHOS::Rosen::RSDrawCmdListFuzzTest(data, size);
     OHOS::Rosen::RSOcclusionConfigFuzzTes(data, size);
     return 0;
 }
