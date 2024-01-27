@@ -100,7 +100,7 @@ void TypefaceFontStyleSet::getStyle(int index, SkFontStyle* style, SkString* nam
 
 SkTypeface* TypefaceFontStyleSet::createTypeface(int index)
 {
-    if (index < typefaces_.size()) {
+    if (index < static_cast<int>(typefaces_.size())) {
         return SkRef(typefaces_[index].get());
     }
     return nullptr;
