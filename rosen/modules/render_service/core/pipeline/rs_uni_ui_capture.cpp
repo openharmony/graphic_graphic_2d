@@ -160,7 +160,7 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     *static_cast<int32_t*>(fdPtr) = fd;
     pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
 #else
-    auto data = (uint8_t *)malloc(size);
+    auto data = static_cast<uint8_t *>(size);
     if (data == nullptr) {
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap data is nullptr");
         return false;
