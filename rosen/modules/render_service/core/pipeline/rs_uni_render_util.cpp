@@ -33,14 +33,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr const char* ENTRY_VIEW = "EntryView";
-constexpr const char* WALLPAPER_VIEW = "WallpaperView";
-constexpr const char* SCREENLOCK_WINDOW = "ScreenLockWindow";
-constexpr const char* SYSUI_DROPDOWN = "SysUI_Dropdown";
-constexpr const char* SYSUI_STATUS_BAR = "SysUI_StatusBar";
-constexpr const char* PRIVACY_INDICATOR = "PrivacyIndicator";
-};
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     bool useAlignedDirtyRegion)
 {
@@ -531,12 +523,9 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
         RS_TRACE_NAME("assign info: " + logInfo);
     }
     std::string surfaceName = node->GetName();
-    bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
-        surfaceName == SYSUI_STATUS_BAR || surfaceName == SCREENLOCK_WINDOW ||
-        surfaceName == SYSUI_DROPDOWN || surfaceName == PRIVACY_INDICATOR;
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
         surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
-    if (needFilter || needFilterSCB || node->IsSelfDrawingType()) {
+    if (needFilterSCB || node->IsSelfDrawingType()) {
         return false;
     }
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
