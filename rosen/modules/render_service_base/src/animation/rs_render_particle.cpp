@@ -586,7 +586,7 @@ float RSRenderParticle::GetRandomValue(float min, float max)
         std::uniform_real_distribution<float> dis(min, max);
         return dis(gen);
     } else {
-        return (min + max) / 2.0f;
+        return min + (max - min) / 2.0f;
     }
 }
 
