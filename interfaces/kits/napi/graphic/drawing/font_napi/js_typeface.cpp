@@ -118,11 +118,11 @@ napi_value JsTypeface::OnGetFamilyName(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+
     auto name = m_typeface->GetFamilyName();
-    auto objValue = GetStringAndConvertToJsValue(env, name);
-    return objValue;
+    return GetStringAndConvertToJsValue(env, name);
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

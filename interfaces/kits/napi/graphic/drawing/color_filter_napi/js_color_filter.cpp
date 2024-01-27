@@ -106,27 +106,35 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_TWO) {
-        ROSEN_LOGE("Drawing_napi: CreateBlendModeColorFilter Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    uint32_t alpha;
-    uint32_t red;
-    uint32_t green;
-    uint32_t blue;
     napi_value tempValue = nullptr;
+    int32_t alpha = 0;
+    int32_t red = 0;
+    int32_t green = 0;
+    int32_t blue = 0;
     napi_get_named_property(env, argv[0], "alpha", &tempValue);
-    napi_get_value_uint32(env, tempValue, &alpha);
+    bool isAlphaOk = ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "red", &tempValue);
-    napi_get_value_uint32(env, tempValue, &red);
+    bool isRedOk = ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "green", &tempValue);
-    napi_get_value_uint32(env, tempValue, &green);
+    bool isGreenOk = ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "blue", &tempValue);
-    napi_get_value_uint32(env, tempValue, &blue);
-    uint32_t jsMode;
-    ConvertFromJsValue(env, argv[1], jsMode);
-    auto color = Color::ColorQuadSetARGB(alpha, red, green, blue);
+    bool isBlueOk = ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
+    if (!(isAlphaOk && isRedOk && isGreenOk && isBlueOk)) {
+        ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
 
+    uint32_t jsMode = 0;
+    if (!ConvertFromJsValue(env, argv[1], jsMode)) {
+        ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argv[1] is invalid");
+        return NapiGetUndefined(env);
+    }
+
+    auto color = Color::ColorQuadSetARGB(alpha, red, green, blue);
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateBlendModeColorFilter(color, BlendMode(jsMode));
     return JsColorFilter::Create(env, colorFilter);
 }
@@ -137,25 +145,26 @@ napi_value JsColorFilter::CreateComposeColorFilter(napi_env env, napi_callback_i
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_TWO) {
-        ROSEN_LOGE("Drawing_napi: CreateComposeColorFilter Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        ROSEN_LOGE("JsColorFilter::CreateComposeColorFilter Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     JsColorFilter *jsColorFilter1 = nullptr;
-    status = napi_unwrap(env, argv[0], (void **)&jsColorFilter1);
-    if (status != napi_ok) {
-        ROSEN_LOGE("Drawing_napi: CreateComposeColorFilter Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
     JsColorFilter *jsColorFilter2 = nullptr;
-    status = napi_unwrap(env, argv[1], (void **)&jsColorFilter2);
-    if (status != napi_ok) {
-        ROSEN_LOGE("Drawing_napi: CreateComposeColorFilter Argv[1] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+    napi_unwrap(env, argv[0], (void **)&jsColorFilter1);
+    napi_unwrap(env, argv[1], (void **)&jsColorFilter2);
+    if (jsColorFilter1 == nullptr || jsColorFilter2 == nullptr) {
+        ROSEN_LOGE("JsColorFilter::CreateComposeColorFilter argv is invalid");
+        return NapiGetUndefined(env);
     }
 
     std::shared_ptr<ColorFilter> colorFilter1 = jsColorFilter1->GetColorFilter();
     std::shared_ptr<ColorFilter> colorFilter2 = jsColorFilter2->GetColorFilter();
+    if (colorFilter1 == nullptr || colorFilter2 == nullptr) {
+        ROSEN_LOGE("JsColorFilter::CreateComposeColorFilter colorFilter is nullptr");
+        return NapiGetUndefined(env);
+    }
+
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateComposeColorFilter(*colorFilter1, *colorFilter2);
     return JsColorFilter::Create(env, colorFilter);
 }
