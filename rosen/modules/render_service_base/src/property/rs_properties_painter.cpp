@@ -475,6 +475,7 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
+
     RSAutoCanvasRestore acr(&canvas);
     SkPath skPath;
     if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
@@ -675,8 +676,13 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     }
     int32_t fLeft = std::clamp(int(matrix.getTranslateX()), 0, deviceWidth - 1);
     int32_t fTop = std::clamp(int(matrix.getTranslateY()), 0, deviceHeight - 1);
+    int32_t fRight = std::clamp(int(fLeft + clipIBounds.width()), 0, deviceWidth - 1);
+    int32_t fBottom = std::clamp(int(fTop + clipIBounds.height()), 0, deviceHeight - 1);
+    if (fLeft == fRight || fTop == fBottom) {
+        return false;
+    }
 
-    SkIRect regionBounds = SkIRect::MakeXYWH(fLeft, fTop, clipIBounds.width(), clipIBounds.height());
+    SkIRect regionBounds = SkIRect::MakeLTRB(fLeft, fTop, fRight, fBottom);
     sk_sp<SkImage> shadowRegionImage = skSurface->makeImageSnapshot(regionBounds);
 
     if (shadowRegionImage == nullptr) {
@@ -727,8 +733,13 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     }
     int32_t fLeft = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_X)), 0, deviceWidth - 1);
     int32_t fTop = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_Y)), 0, deviceHeight - 1);
+    int32_t fRight = std::clamp(int(fLeft + clipIBounds.GetWidth()), 0, deviceWidth - 1);
+    int32_t fBottom = std::clamp(int(fTop + clipIBounds.GetHeight()), 0, deviceHeight - 1);
+    if (fLeft == fRight || fTop == fBottom) {
+        return false;
+    }
 
-    Drawing::RectI regionBounds = { fLeft, fTop, clipIBounds.GetWidth() + fLeft, clipIBounds.GetHeight() + fTop };
+    Drawing::RectI regionBounds = { fLeft, fTop, fRight, fBottom };
     std::shared_ptr<Drawing::Image> shadowRegionImage = drSurface->GetImageSnapshot(regionBounds);
 
     if (shadowRegionImage == nullptr) {
