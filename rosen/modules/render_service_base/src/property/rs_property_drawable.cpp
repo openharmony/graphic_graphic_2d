@@ -356,7 +356,7 @@ inline bool HasPropertyDrawableInRange(
         [](const auto& drawablePtr) { return drawablePtr != nullptr; });
 }
 
-inline uint8_t CalculateDrawableVecStatus(RSRenderContent& content, RSPropertyDrawable::DrawableVec& drawableVec)
+uint8_t CalculateDrawableVecStatus(RSRenderContent& content, const RSPropertyDrawable::DrawableVec& drawableVec)
 {
     uint8_t result = 0;
     auto& properties = content.GetRenderProperties();
