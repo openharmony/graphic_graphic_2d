@@ -704,11 +704,19 @@ GSError BufferQueueProducer::GetPresentTimestamp(uint32_t sequence, GraphicPrese
 
 bool BufferQueueProducer::GetStatus() const
 {
+    if (bufferQueue_ == nullptr) {
+        BLOGNE("BufferQueueProducer::bufferQueue is nullptr.");
+        return false;
+    }
     return bufferQueue_->GetStatus();
 }
 
 void BufferQueueProducer::SetStatus(bool status)
 {
+    if (bufferQueue_ == nullptr) {
+        BLOGNE("BufferQueueProducer::bufferQueue is nullptr.");
+        return;
+    }
     bufferQueue_->SetStatus(status);
 }
 

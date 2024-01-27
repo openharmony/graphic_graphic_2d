@@ -17,8 +17,9 @@
 #include <buffer_extra_data_impl.h>
 #include <buffer_queue_producer.h>
 #include "buffer_consumer_listener.h"
-#include "sync_fence.h"
 #include "consumer_surface.h"
+#include "sync_fence.h"
+#include "frame_report.h"
 #include "producer_surface_delegator.h"
 
 using namespace testing;
@@ -183,6 +184,7 @@ HWTEST_F(BufferQueueProducerTest, ReqCan003, Function | MediumTest | Level2)
  */
 HWTEST_F(BufferQueueProducerTest, ReqFlu001, Function | MediumTest | Level2)
 {
+    Rosen::FrameReport::GetInstance().SetGameScene(true);
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -235,35 +237,36 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu002, Function | MediumTest | Level2)
 }
 
 /*
-* Function: AttachBuffer
+* Function: AttachBuffer and DetachBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call AttachBuffer
+* CaseDescription: 1. call AttachBuffer and DetachBuffer
 * 4. check ret
 */
-HWTEST_F(BufferQueueProducerTest, AttachBuffer001, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueProducerTest, AttachAndDetachBuffer001, Function | MediumTest | Level2)
 {
-    int32_t timeOut = 0;
     IBufferProducer::RequestBufferReturnValue retVal;
     sptr<SurfaceBuffer> &buffer = retVal.buffer;
 
     sptr<BufferQueue> bufferQueue = nullptr;
     auto bqpTmp = new BufferQueueProducer(bufferQueue);
 
-    GSError ret = bqpTmp->AttachBuffer(buffer, timeOut);
+    GSError ret = bqpTmp->AttachBuffer(buffer);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+    ret = bqpTmp->DetachBuffer(buffer);
     ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 /*
-* Function: AttachBufferRemote
+* Function: AttachAndDetachBufferRemote
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call AttachBufferRemote
+* CaseDescription: 1. call AttachBufferRemote, DetachBufferRemote
 * 4. check ret
 */
-HWTEST_F(BufferQueueProducerTest, AttachBufferRemote, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueProducerTest, AttachAndDetachBufferRemote, Function | MediumTest | Level2)
 {
     MessageParcel arguments;
     arguments.WriteInt32(5);
@@ -272,5 +275,101 @@ HWTEST_F(BufferQueueProducerTest, AttachBufferRemote, Function | MediumTest | Le
     MessageOption option;
     int32_t ret = bqp->AttachBufferRemote(arguments, reply, option);
     ASSERT_EQ(ret, 0);
+    ret = bqp->DetachBufferRemote(arguments, reply, option);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+* Function: SetTunnelHandleRemote
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelHandleRemote
+* 4. check ret
+*/
+HWTEST_F(BufferQueueProducerTest, SetTunnelHandleRemote, Function | MediumTest | Level2)
+{
+    MessageParcel arguments;
+    arguments.WriteInt32(5);
+    MessageParcel reply;
+    reply.WriteInt32(6);
+    MessageOption option;
+    int32_t ret = bqp->SetTunnelHandleRemote(arguments, reply, option);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+* Function: GetPresentTimestampRemote
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPresentTimestampRemote
+* 4. check ret
+*/
+HWTEST_F(BufferQueueProducerTest, GetPresentTimestampRemote, Function | MediumTest | Level2)
+{
+    MessageParcel arguments;
+    arguments.WriteInt32(5);
+    MessageParcel reply;
+    reply.WriteInt32(6);
+    MessageOption option;
+    int32_t ret = bqp->GetPresentTimestampRemote(arguments, reply, option);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+* Function: BufferQueueProducer member function nullptr test
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: BufferQueueProducer member function nullptr test
+ */
+HWTEST_F(BufferQueueProducerTest, NullTest, Function | MediumTest | Level2)
+{
+    sptr<BufferQueue> bq = nullptr;
+    auto bqpTmp = new BufferQueueProducer(bq);
+    IBufferProducer::RequestBufferReturnValue retval;
+    GSError ret = bqpTmp->RequestBuffer(requestConfig, bedata, retval);
+    EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+    ret = bqpTmp->CancelBuffer(retval.sequence, bedata);
+    EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bqpTmp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
+    EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+    ret = bqpTmp->GetLastFlushedBuffer(retval.buffer, acquireFence, nullptr, 0);
+    EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->AttachBuffer(retval.buffer), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->DetachBuffer(retval.buffer), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->GetQueueSize(), 0);
+    EXPECT_EQ(bqpTmp->SetQueueSize(0), OHOS::GSERROR_INVALID_ARGUMENTS);
+    std::string name = "test";
+    EXPECT_EQ(bqpTmp->GetName(name), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->GetDefaultWidth(), 0);
+    EXPECT_EQ(bqpTmp->GetDefaultHeight(), 0);
+    EXPECT_EQ(bqpTmp->GetDefaultUsage(), 0);
+    EXPECT_EQ(bqpTmp->GetUniqueId(), 0);
+    sptr<IProducerListener> listener = nullptr;
+    EXPECT_EQ(bqpTmp->RegisterReleaseListener(listener), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->UnRegisterReleaseListener(), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H), OHOS::GSERROR_INVALID_ARGUMENTS);
+    std::vector<BufferVerifyAllocInfo> infos;
+    std::vector<bool> supporteds;
+    EXPECT_EQ(bqpTmp->IsSupportedAlloc(infos, supporteds), OHOS::GSERROR_INVALID_ARGUMENTS);
+    uint64_t uniqueId;
+    EXPECT_EQ(bqpTmp->GetNameAndUniqueId(name, uniqueId), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->Disconnect(), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->SetScalingMode(0, ScalingMode::SCALING_MODE_FREEZE), OHOS::GSERROR_INVALID_ARGUMENTS);
+    std::vector<GraphicHDRMetaData> meta;
+    EXPECT_EQ(bqpTmp->SetMetaData(0, meta), OHOS::GSERROR_INVALID_ARGUMENTS);
+    std::vector<uint8_t> metaData;
+    EXPECT_EQ(bqpTmp->SetMetaDataSet(0, GraphicHDRMetadataKey::GRAPHIC_MATAKEY_BLUE_PRIMARY_X,
+        metaData), OHOS::GSERROR_INVALID_ARGUMENTS);
+    sptr<SurfaceTunnelHandle> handle = nullptr;
+    EXPECT_EQ(bqpTmp->SetTunnelHandle(handle), OHOS::GSERROR_INVALID_ARGUMENTS);
+    int64_t time = 0;
+    EXPECT_EQ(bqpTmp->GetPresentTimestamp(0, GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_DELAY,
+        time), OHOS::GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqpTmp->GetStatus(), false);
+    bqpTmp->SetStatus(false);
 }
 }
