@@ -73,7 +73,7 @@ struct JankFrameRecordStats {
 };
 
 struct AnimationTraceStats {
-    std::pair<int64_t, std::string> animationId_ = {-1, ""};
+    std::pair<int64_t, std::string> animationId_ = { -1, "" };
     std::string traceName_;
     int64_t traceCreateTimeSteady_ = TIMESTAMP_INITIAL;
     bool isDisplayAnimator_ = false;
