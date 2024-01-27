@@ -167,6 +167,11 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     skStyle.setHalfLeading(txt.halfLeading);
 
     skStyle.setLocale(SkString(txt.locale.c_str()));
+    skStyle.setStyleId(txt.styleId);
+    skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
+        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,
+        txt.backgroundRect.leftBottomRadius });
+
     if (txt.background.has_value()) {
         skStyle.setBackgroundPaintID(AllocPaintID(txt.background.value()));
     }

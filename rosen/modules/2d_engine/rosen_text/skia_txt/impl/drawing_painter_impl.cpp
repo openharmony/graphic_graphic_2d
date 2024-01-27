@@ -58,6 +58,25 @@ static Drawing::Rect ToDrawingRect(const SkRect& skRect)
     return rect;
 }
 
+static Drawing::RoundRect ToDrawingRoundRect(const SkRRect& skRRect)
+{
+    Drawing::Rect rect;
+    rect.SetLeft(skRRect.rect().fLeft);
+    rect.SetTop(skRRect.rect().fTop);
+    rect.SetRight(skRRect.rect().fRight);
+    rect.SetBottom(skRRect.rect().fBottom);
+    Drawing::scalar ltRadius = skRRect.radii(SkRRect::Corner::kUpperLeft_Corner).x();
+    Drawing::scalar rtRadius = skRRect.radii(SkRRect::Corner::kUpperRight_Corner).x();
+    Drawing::scalar rbRadius = skRRect.radii(SkRRect::Corner::kLowerRight_Corner).x();
+    Drawing::scalar lbRadius = skRRect.radii(SkRRect::Corner::kLowerLeft_Corner).x();
+    Drawing::Point leftTop = {ltRadius, ltRadius};
+    Drawing::Point rightTop = {rtRadius, rtRadius};
+    Drawing::Point rightBottom = {rbRadius, rbRadius};
+    Drawing::Point leftBottom = {lbRadius, lbRadius};
+    Drawing::RoundRect roundRect(rect, {leftTop, rightTop, rightBottom, leftBottom});
+    return roundRect;
+}
+
 RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, const std::vector<PaintRecord>& paints)
     : canvas_(canvas), paints_(paints)
 {}
@@ -181,6 +200,17 @@ void RSCanvasParagraphPainter::drawRect(const SkRect& rect, const SkPaintOrID& p
         canvas_->DrawRect(rsRect);
         canvas_->DetachBrush();
     }
+}
+
+void RSCanvasParagraphPainter::drawRRect(const SkRRect& rrect, const SkColor color)
+{
+    Drawing::RoundRect rsRRect = ToDrawingRoundRect(rrect);
+    Drawing::Brush brush;
+    brush.SetColor(PaintRecord::ToRSColor(color));
+    brush.SetAntiAlias(false);
+    canvas_->AttachBrush(brush);
+    canvas_->DrawRoundRect(rsRRect);
+    canvas_->DetachBrush();
 }
 
 void RSCanvasParagraphPainter::drawFilledRect(const SkRect& rect, const DecorationStyle& decorStyle)
