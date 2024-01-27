@@ -38,11 +38,19 @@ FontWeight GetTxtFontWeight(int fontWeight)
     return static_cast<FontWeight>(weight);
 }
 
+#ifndef USE_ROSEN_DRAWING
 FontStyle GetTxtFontStyle(SkFontStyle::Slant slant)
 {
     return slant == SkFontStyle::Slant::kUpright_Slant ?
         FontStyle::NORMAL : FontStyle::ITALIC;
 }
+#else
+FontStyle GetTxtFontStyle(RSFontStyle::Slant slant)
+{
+    return slant == RSFontStyle::Slant::UPRIGHT_SLANT ?
+        FontStyle::NORMAL : FontStyle::ITALIC;
+}
+#endif
 
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
 {
@@ -241,8 +249,13 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     txt.decorationColor = skStyle.getDecorationColor();
     txt.decorationStyle = static_cast<TextDecorationStyle>(skStyle.getDecorationStyle());
     txt.decorationThicknessMultiplier = SkScalarToDouble(skStyle.getDecorationThicknessMultiplier());
+#ifndef USE_ROSEN_DRAWING
     txt.fontWeight = GetTxtFontWeight(skStyle.getFontStyle().weight());
     txt.fontStyle = GetTxtFontStyle(skStyle.getFontStyle().slant());
+#else
+    txt.fontWeight = GetTxtFontWeight(skStyle.getFontStyle().GetWeight());
+    txt.fontStyle = GetTxtFontStyle(skStyle.getFontStyle().GetSlant());
+#endif
 
     txt.baseline = static_cast<TextBaseline>(skStyle.getTextBaseline());
 

@@ -26,19 +26,29 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 namespace {
-SkFontStyle::Weight ConvertToSkFontWeight(FontWeight fontWeight)
+int ConvertToSkFontWeight(FontWeight fontWeight)
 {
     constexpr int weightBase = 100;
-    return static_cast<SkFontStyle::Weight>(static_cast<int>(fontWeight) * weightBase + weightBase);
+    return static_cast<int>(fontWeight) * weightBase + weightBase;
 }
 
-SkFontStyle MakeSkFontStyle(FontWeight fontWeight, FontStyle fontStyle)
+#ifndef USE_ROSEN_DRAWING
+SkFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
 {
     auto weight = ConvertToSkFontWeight(fontWeight);
     auto slant = fontStyle == FontStyle::NORMAL ?
         SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant;
     return SkFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
 }
+#else
+RSFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
+{
+    auto weight = ConvertToSkFontWeight(fontWeight);
+    auto slant = fontStyle == FontStyle::NORMAL ?
+        RSFontStyle::Slant::UPRIGHT_SLANT : RSFontStyle::Slant::ITALIC_SLANT;
+    return RSFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
+}
+#endif
 
 SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
 {
@@ -135,7 +145,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     paint.SetColor(textStyle.getColor());
     textStyle.setForegroundPaintID(AllocPaintID(paint));
 
-    textStyle.setFontStyle(MakeSkFontStyle(txt.fontWeight, txt.fontStyle));
+    textStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontStyle));
     textStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
     textStyle.setHeight(SkDoubleToScalar(txt.height));
     textStyle.setHeightOverride(txt.heightOverride);
@@ -143,7 +153,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     textStyle.setLocale(SkString(txt.locale.c_str()));
     skStyle.setTextStyle(textStyle);
     skt::StrutStyle strutStyle;
-    strutStyle.setFontStyle(MakeSkFontStyle(txt.strutFontWeight, txt.strutFontStyle));
+    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontStyle));
     strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
     strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
     strutStyle.setHeightOverride(txt.strutHeightOverride);
@@ -184,7 +194,7 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     skStyle.setDecorationColor(txt.decorationColor);
     skStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(txt.decorationStyle));
     skStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(txt.decorationThicknessMultiplier));
-    skStyle.setFontStyle(MakeSkFontStyle(txt.fontWeight, txt.fontStyle));
+    skStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontStyle));
     skStyle.setTextBaseline(static_cast<skt::TextBaseline>(txt.baseline));
 
     std::vector<SkString> fonts;
