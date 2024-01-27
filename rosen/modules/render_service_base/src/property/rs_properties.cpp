@@ -1983,7 +1983,6 @@ void RSProperties::SetAiInvert(const std::optional<Vector4f>& aiInvert)
 {
     aiInvert_ = aiInvert;
     colorFilterNeedUpdate_ = true;
-    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
     isDrawn_ = true;
@@ -2810,7 +2809,7 @@ void RSProperties::OnApplyModifiers()
         if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
             filterNeedUpdate_ = true;
         }
-        if (aiInvert_.has_value() || systemBarEffect_) {
+        if (systemBarEffect_) {
             auto aiBarFilter = std::make_shared<RSAIBarFilter>();
             backgroundFilter_ = aiBarFilter;
         }

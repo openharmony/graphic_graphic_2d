@@ -67,6 +67,7 @@ public:
     // Foreground Color filter
     static void DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
+    static void DrawBinarizationShader(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas);
@@ -154,6 +155,8 @@ private:
     static void DrawBorderLight(const RSProperties& properties, SkCanvas& canvas,
         std::shared_ptr<SkRuntimeShaderBuilder>& lightBuilder, SkPaint& paint, SkV4& lightIntensity);
     static sk_sp<SkShader> MakeLightUpEffectShader(float lightUpDeg, sk_sp<SkShader> imageShader);
+    static sk_sp<SkShader> MakeBinarizationShader(float low, float high,
+        float thresholdLow, float thresholdHigh, sk_sp<SkShader> imageShader);
     static sk_sp<SkRuntimeEffect> MakeGreyAdjustmentEffect();
 
     static void DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
@@ -175,6 +178,8 @@ private:
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity);
     static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
         float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high,
+        float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::RuntimeEffect> MakeGreyAdjustmentEffect();
 
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
@@ -182,6 +187,7 @@ private:
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
 
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
 #endif // USE_ROSEN_DRAWING
