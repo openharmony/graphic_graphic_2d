@@ -440,7 +440,7 @@ void CoreCanvas::AttachPaint()
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
-        LOGE("Drawing CoreCanvas AttachPaint with Invalid Paint");
+        LOGD("Drawing CoreCanvas AttachPaint with Invalid Paint");
         return;
     }
 
