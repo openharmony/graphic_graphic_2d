@@ -56,10 +56,10 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/utils/hgm_one_shot_timer.cpp",
   ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags = [
-      "-flto=thin",
-      "-fwhole-program-vtables",
-    ]
+    cflags = [ "-flto=thin" ]
+    if (enhanced_opt) {
+      cflags += [ "-fwhole-program-vtables" ]
+    }
   }
 
   deps = [
