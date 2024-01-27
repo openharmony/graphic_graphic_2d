@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
 } // namespace
 
@@ -68,23 +67,17 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
     }
 
     RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur");
+    auto clipIPadding = dst;
 #ifndef USE_ROSEN_DRAWING
-    SkMatrix mat = canvas.getTotalMatrix();
+    ComputeScale(clipIPadding.width(), clipIPadding.height(), para->useMaskAlgorithm_);
+    auto scaledClipIPadding = SkRect::MakeLTRB(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() +
+        clipIPadding.GetWidth() * imageScale_, clipIPadding.GetTop() + clipIPadding.GetHeight() * imageScale_);
+    auto alphaGradientShader = MakeAlphaGradientShader(SkRect::Make(scaledClipIPadding), para, directionBias_);
 #else
-    Drawing::Matrix mat = canvas.GetTotalMatrix();
-#endif
-    uint8_t directionBias = CalcDirectionBias(mat);
-
-#ifndef USE_ROSEN_DRAWING
-    ComputeScale(src.width(), src.height(), para->useMaskAlgorithm_);
-    auto scaledsrc = SkRect::MakeLTRB(src.GetLeft(), src.GetTop(),
-        src.GetLeft() + src.GetWidth() * imageScale_, src.GetTop() + src.GetHeight() * imageScale_);
-    auto alphaGradientShader = MakeAlphaGradientShader(SkRect::Make(scaledsrc), para, directionBias);
-#else
-    ComputeScale(src.GetWidth(), src.GetHeight(), para->useMaskAlgorithm_);
-    auto scaledsrc = Drawing::Rect(src.GetLeft(), src.GetTop(),
-        src.GetLeft() + src.GetWidth() * imageScale_, src.GetTop() + src.GetHeight() * imageScale_);
-    auto alphaGradientShader = MakeAlphaGradientShader(scaledsrc, para, directionBias);
+    ComputeScale(clipIPadding.GetWidth(), clipIPadding.GetHeight(), para->useMaskAlgorithm_);
+    auto scaledClipIPadding = Drawing::Rect(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() +
+        clipIPadding.GetWidth() * imageScale_, clipIPadding.GetTop() + clipIPadding.GetHeight() * imageScale_);
+    auto alphaGradientShader = MakeAlphaGradientShader(scaledClipIPadding, para, directionBias_);
 #endif
     if (alphaGradientShader == nullptr) {
         ROSEN_LOGE("RSLinearGradientBlurFilter::DrawImageRect alphaGradientShader null");
@@ -164,90 +157,46 @@ void RSLinearGradientBlurFilter::TransformGradientBlurDirection(uint8_t& directi
 #ifndef USE_ROSEN_DRAWING
 bool RSLinearGradientBlurFilter::GetGradientDirectionPoints(
     SkPoint (&pts)[2], const SkRect& clipBounds, GradientDirection direction)
-#else
-bool RSLinearGradientBlurFilter::GetGradientDirectionPoints(
-    Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GradientDirection direction)
-#endif
 {
     switch (direction) {
         case GradientDirection::BOTTOM: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(clipBounds.width() / 2, 0); // 2 represents middle of width;
-            pts[1].set(clipBounds.width() / 2, clipBounds.height()); // 2 represents middle of width;
-#else
-            pts[0].Set(clipBounds.GetWidth() / 2, 0); // 2 represents middle of width;
-            pts[1].Set(clipBounds.GetWidth() / 2, clipBounds.GetHeight()); // 2 represents middle of width;
-#endif
+            pts[0].set(clipBounds.width() / 2 + clipBounds.left(), clipBounds.top()); // 2  middle of width;
+            pts[1].set(clipBounds.width() / 2 + clipBounds.left(), clipBounds.bottom()); // 2  middle of width;
             break;
         }
         case GradientDirection::TOP: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(clipBounds.width() / 2, clipBounds.height()); // 2 represents middle of width;
-            pts[1].set(clipBounds.width() / 2, 0); // 2 represents middle of width;
-#else
-            pts[0].Set(clipBounds.GetWidth() / 2, clipBounds.GetHeight()); // 2 represents middle of width;
-            pts[1].Set(clipBounds.GetWidth() / 2, 0); // 2 represents middle of width;
-#endif
+            pts[0].set(clipBounds.width() / 2 + clipBounds.left(), clipBounds.bottom()); // 2  middle of width;
+            pts[1].set(clipBounds.width() / 2 + clipBounds.left(), clipBounds.top()); // 2  middle of width;
             break;
         }
         case GradientDirection::RIGHT: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(0, clipBounds.height() / 2); // 2 represents middle of height;
-            pts[1].set(clipBounds.width(), clipBounds.height() / 2); // 2 represents middle of height;
-#else
-            pts[0].Set(0, clipBounds.GetHeight() / 2); // 2 represents middle of height;
-            pts[1].Set(clipBounds.GetWidth(), clipBounds.GetHeight() / 2); // 2 represents middle of height;
-#endif
+            pts[0].set(clipBounds.left(), clipBounds.height() / 2 + clipBounds.top()); // 2  middle of height;
+            pts[1].set(clipBounds.right(), clipBounds.height() / 2 + clipBounds.top()); // 2  middle of height;
             break;
         }
         case GradientDirection::LEFT: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(clipBounds.width(), clipBounds.height() / 2); // 2 represents middle of height;
-            pts[1].set(0, clipBounds.height() / 2); // 2 represents middle of height;
-#else
-            pts[0].Set(clipBounds.GetWidth(), clipBounds.GetHeight() / 2); // 2 represents middle of height;
-            pts[1].Set(0, clipBounds.GetHeight() / 2); // 2 represents middle of height;
-#endif
+            pts[0].set(clipBounds.right(), clipBounds.height() / 2 + clipBounds.top()); // 2  middle of height;
+            pts[1].set(clipBounds.left(), clipBounds.height() / 2 + clipBounds.top()); // 2  middle of height;
             break;
         }
         case GradientDirection::RIGHT_BOTTOM: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(0, 0);
-            pts[1].set(clipBounds.width(), clipBounds.height());
-#else
-            pts[0].Set(0, 0);
-            pts[1].Set(clipBounds.GetWidth(), clipBounds.GetHeight());
-#endif
+            pts[0].set(clipBounds.left(), clipBounds.top());
+            pts[1].set(clipBounds.right(), clipBounds.bottom());
             break;
         }
         case GradientDirection::LEFT_TOP: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(clipBounds.width(), clipBounds.height());
-            pts[1].set(0, 0);
-#else
-            pts[0].Set(clipBounds.GetWidth(), clipBounds.GetHeight());
-            pts[1].Set(0, 0);
-#endif
+            pts[0].set(clipBounds.right(), clipBounds.bottom());
+            pts[1].set(clipBounds.left(), clipBounds.top());
             break;
         }
         case GradientDirection::LEFT_BOTTOM: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(clipBounds.width(), 0);
-            pts[1].set(0, clipBounds.height());
-#else
-            pts[0].Set(clipBounds.GetWidth(), 0);
-            pts[1].Set(0, clipBounds.GetHeight());
-#endif
+            pts[0].set(clipBounds.right(), clipBounds.top());
+            pts[1].set(clipBounds.left(), clipBounds.bottom());
             break;
         }
         case GradientDirection::RIGHT_TOP: {
-#ifndef USE_ROSEN_DRAWING
-            pts[0].set(0, clipBounds.height());
-            pts[1].set(clipBounds.width(), 0);
-#else
-            pts[0].Set(0, clipBounds.GetHeight());
-            pts[1].Set(clipBounds.GetWidth(), 0);
-#endif
+            pts[0].set(clipBounds.left(), clipBounds.bottom());
+            pts[1].set(clipBounds.right(), clipBounds.top());
             break;
         }
         default: {
@@ -256,6 +205,58 @@ bool RSLinearGradientBlurFilter::GetGradientDirectionPoints(
     }
     return true;
 }
+#else
+bool RSLinearGradientBlurFilter::GetGradientDirectionPoints(
+    Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GradientDirection direction)
+{
+    switch (direction) {
+        case GradientDirection::BOTTOM: {
+            pts[0].Set(clipBounds.GetWidth() / 2 + clipBounds.GetLeft(), clipBounds.GetTop()); // 2 middle of width;
+            pts[1].Set(clipBounds.GetWidth() / 2 + clipBounds.GetLeft(), clipBounds.GetBottom()); // 2  middle of width;
+            break;
+        }
+        case GradientDirection::TOP: {
+            pts[0].Set(clipBounds.GetWidth() / 2 + clipBounds.GetLeft(), clipBounds.GetBottom()); // 2  middle of width;
+            pts[1].Set(clipBounds.GetWidth() / 2 + clipBounds.GetLeft(), clipBounds.GetTop()); // 2  middle of width;
+            break;
+        }
+        case GradientDirection::RIGHT: {
+            pts[0].Set(clipBounds.GetLeft(), clipBounds.GetHeight() / 2 + clipBounds.GetTop()); // 2  middle of height;
+            pts[1].Set(clipBounds.GetRight(), clipBounds.GetHeight() / 2 + clipBounds.GetTop()); // 2  middle of height;
+            break;
+        }
+        case GradientDirection::LEFT: {
+            pts[0].Set(clipBounds.GetRight(), clipBounds.GetHeight() / 2 + clipBounds.GetTop()); // 2  middle of height;
+            pts[1].Set(clipBounds.GetLeft(), clipBounds.GetHeight() / 2 + clipBounds.GetTop()); // 2  middle of height;
+            break;
+        }
+        case GradientDirection::RIGHT_BOTTOM: {
+            pts[0].Set(clipBounds.GetLeft(), clipBounds.GetTop());
+            pts[1].Set(clipBounds.GetRight(), clipBounds.GetBottom());
+            break;
+        }
+        case GradientDirection::LEFT_TOP: {
+            pts[0].Set(clipBounds.GetRight(), clipBounds.GetBottom());
+            pts[1].Set(clipBounds.GetLeft(), clipBounds.GetTop());
+            break;
+        }
+        case GradientDirection::LEFT_BOTTOM: {
+            pts[0].Set(clipBounds.GetRight(), clipBounds.GetTop());
+            pts[1].Set(clipBounds.GetLeft(), clipBounds.GetBottom());
+            break;
+        }
+        case GradientDirection::RIGHT_TOP: {
+            pts[0].Set(clipBounds.GetLeft(), clipBounds.GetBottom());
+            pts[1].Set(clipBounds.GetRight(), clipBounds.GetTop());
+            break;
+        }
+        default: {
+            return false;
+        }
+    }
+    return true;
+}
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkShader> RSLinearGradientBlurFilter::MakeAlphaGradientShader(
@@ -264,14 +265,6 @@ sk_sp<SkShader> RSLinearGradientBlurFilter::MakeAlphaGradientShader(
     std::vector<SkColor> c;
     std::vector<SkScalar> p;
     SkPoint pts[2];
-#else
-std::shared_ptr<Drawing::ShaderEffect> RSLinearGradientBlurFilter::MakeAlphaGradientShader(
-    const Drawing::Rect& clipBounds, const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias)
-{
-    std::vector<Drawing::ColorQuad> c;
-    std::vector<Drawing::scalar> p;
-    Drawing::Point pts[2];
-#endif
 
     uint8_t direction = static_cast<uint8_t>(para->direction_);
     if (directionBias != 0) {
@@ -284,72 +277,57 @@ std::shared_ptr<Drawing::ShaderEffect> RSLinearGradientBlurFilter::MakeAlphaGrad
     uint8_t ColorMax = 255;
     uint8_t ColorMin = 0;
     if (para->fractionStops_[0].second > 0.01) {  // 0.01 represents the fraction bias
-#ifndef USE_ROSEN_DRAWING
         c.emplace_back(SkColorSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
-#else
-        c.emplace_back(Drawing::Color::ColorQuadSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
-#endif
         p.emplace_back(para->fractionStops_[0].second - 0.01); // 0.01 represents the fraction bias
     }
     for (size_t i = 0; i < para->fractionStops_.size(); i++) {
-#ifndef USE_ROSEN_DRAWING
         c.emplace_back(SkColorSetARGB(
             static_cast<uint8_t>(para->fractionStops_[i].first * ColorMax), ColorMax, ColorMax, ColorMax));
-#else
-        c.emplace_back(Drawing::Color::ColorQuadSetARGB(
-            static_cast<uint8_t>(para->fractionStops_[i].first * ColorMax), ColorMax, ColorMax, ColorMax));
-#endif
         p.emplace_back(para->fractionStops_[i].second);
     }
     // 0.01 represents the fraction bias
     if (para->fractionStops_[para->fractionStops_.size() - 1].second < (1 - 0.01)) {
-#ifndef USE_ROSEN_DRAWING
         c.emplace_back(SkColorSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
-#else
-        c.emplace_back(Drawing::Color::ColorQuadSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
-#endif
         // 0.01 represents the fraction bias
         p.emplace_back(para->fractionStops_[para->fractionStops_.size() - 1].second + 0.01);
     }
-#ifndef USE_ROSEN_DRAWING
     auto shader = SkGradientShader::MakeLinear(pts, &c[0], &p[0], p.size(), SkTileMode::kClamp);
     return shader;
-#else
-    return Drawing::ShaderEffect::CreateLinearGradient(pts[0], pts[1], c, p, Drawing::TileMode::CLAMP);
-#endif
 }
+#else
+std::shared_ptr<Drawing::ShaderEffect> RSLinearGradientBlurFilter::MakeAlphaGradientShader(
+    const Drawing::Rect& clipBounds, const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias)
+{
+    std::vector<Drawing::ColorQuad> c;
+    std::vector<Drawing::scalar> p;
+    Drawing::Point pts[2];
 
-#ifndef USE_ROSEN_DRAWING
-uint8_t RSLinearGradientBlurFilter::CalcDirectionBias(const SkMatrix& mat)
-{
-    uint8_t directionBias = 0;
-    // 1 and 3 represents rotate matrix's index
-    if ((mat.get(1) > FLOAT_ZERO_THRESHOLD) && (mat.get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
-        directionBias = 1; // 1 represents rotate 90 degree
-    // 0 and 4 represents rotate matrix's index
-    } else if ((mat.get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
-        directionBias = 2; // 2 represents rotate 180 degree
-    // 1 and 3 represents rotate matrix's index
-    } else if ((mat.get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(3) > FLOAT_ZERO_THRESHOLD)) {
-        directionBias = 3; // 3 represents rotate 270 degree
+    uint8_t direction = static_cast<uint8_t>(para->direction_);
+    if (directionBias != 0) {
+        TransformGradientBlurDirection(direction, directionBias);
     }
-    return directionBias;
-}
-#else
-uint8_t RSLinearGradientBlurFilter::CalcDirectionBias(const Drawing::Matrix& mat)
-{
-    uint8_t directionBias = 0;
-    // 1 and 3 represents rotate matrix's index
-    if ((mat.Get(1) > FLOAT_ZERO_THRESHOLD) && (mat.Get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
-        directionBias = 1; // 1 represents rotate 90 degree
-    // 0 and 4 represents rotate matrix's index
-    } else if ((mat.Get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
-        directionBias = 2; // 2 represents rotate 180 degree
-    // 1 and 3 represents rotate matrix's index
-    } else if ((mat.Get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(3) > FLOAT_ZERO_THRESHOLD)) {
-        directionBias = 3; // 3 represents rotate 270 degree
+    bool result = GetGradientDirectionPoints(pts, clipBounds, static_cast<GradientDirection>(direction));
+    if (!result) {
+        return nullptr;
     }
-    return directionBias;
+    uint8_t ColorMax = 255;
+    uint8_t ColorMin = 0;
+    if (para->fractionStops_[0].second > 0.01) {  // 0.01 represents the fraction bias
+        c.emplace_back(Drawing::Color::ColorQuadSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
+        p.emplace_back(para->fractionStops_[0].second - 0.01); // 0.01 represents the fraction bias
+    }
+    for (size_t i = 0; i < para->fractionStops_.size(); i++) {
+        c.emplace_back(Drawing::Color::ColorQuadSetARGB(
+            static_cast<uint8_t>(para->fractionStops_[i].first * ColorMax), ColorMax, ColorMax, ColorMax));
+        p.emplace_back(para->fractionStops_[i].second);
+    }
+    // 0.01 represents the fraction bias
+    if (para->fractionStops_[para->fractionStops_.size() - 1].second < (1 - 0.01)) {
+        c.emplace_back(Drawing::Color::ColorQuadSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
+        // 0.01 represents the fraction bias
+        p.emplace_back(para->fractionStops_[para->fractionStops_.size() - 1].second + 0.01);
+    }
+    return Drawing::ShaderEffect::CreateLinearGradient(pts[0], pts[1], c, p, Drawing::TileMode::CLAMP);
 }
 #endif
 
@@ -598,25 +576,29 @@ void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_pt
     }
     std::shared_ptr<Drawing::Image> filteredSnapshot = offscreenSurface->GetImageSnapshot();
     Drawing::Matrix matrix;
+    Drawing::Matrix matrix2;
+    matrix2.Translate(dst.GetLeft(), dst.GetTop());
+    Drawing::Matrix inputMatrix;
+    inputMatrix.Translate(-srcRect.GetLeft(), -srcRect.GetTop());
+    inputMatrix.PostConcat(matrix2);
+
     auto srcImageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), inputMatrix);
     auto blurImageShader = Drawing::ShaderEffect::CreateImageShader(*filteredSnapshot, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
     auto shader = MakeMaskLinearGradientBlurShader(srcImageShader, blurImageShader, alphaGradientShader);
 
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
-    Drawing::Rect rect = dst;
-    rect.Offset(-dst.GetLeft(), -dst.GetTop());
     canvas.AttachBrush(brush);
-    canvas.DrawRect(rect);
+    canvas.DrawRect(dst);
     canvas.DetachBrush();
 }
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkShader> RSLinearGradientBlurFilter::MakeMaskLinearGradientBlurShader(sk_sp<SkShader> srcImageShader,
-        sk_sp<SkShader> blurImageShader, sk_sp<SkShader> gradientShader)
+sk_sp<SkShader> RSLinearGradientBlurFilter::MakeMaskLinearGradientBlurShader(
+    sk_sp<SkShader> srcImageShader, sk_sp<SkShader> blurImageShader, sk_sp<SkShader> gradientShader)
 #else
 std::shared_ptr<Drawing::ShaderEffect> RSLinearGradientBlurFilter::MakeMaskLinearGradientBlurShader(
     std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
