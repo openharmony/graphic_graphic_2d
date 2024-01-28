@@ -191,6 +191,11 @@ bool Matrix::GetMinMaxScales(scalar scaleFactors[2])
 {
     return matrixImplPtr->GetMinMaxScales(scaleFactors);
 }
+
+bool Matrix::HasPerspective() const
+{
+    return matrixImplPtr->HasPerspective();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
