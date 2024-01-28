@@ -77,6 +77,20 @@ OH_Drawing_Bitmap* OH_Drawing_BitmapCreate(void);
 void OH_Drawing_BitmapDestroy(OH_Drawing_Bitmap*);
 
 /**
+ * @brief Creates an <b>OH_Drawing_Bitmap</b> object with <b>OH_Drawing_Image_Info</b> object
+ * and sets the mem address or pixel storage.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Image_Info Indicates the pointer to an <b>OH_Drawing_Image_Info</b> object.
+ * @param pixels the pointer to memory address or pixel storage.
+ * @param rowBytes size of pixel row or larger.
+ * @return Returns the pointer to the <b>OH_Drawing_Bitmap</b> object created.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_Bitmap* OH_Drawing_BitmapCreateFromPixels(OH_Drawing_Image_Info*, void* pixels, uint32_t rowBytes);
+
+/**
  * @brief Initializes the width and height of an <b>OH_Drawing_Bitmap</b> object
  * and sets the pixel format for the bitmap.
  *

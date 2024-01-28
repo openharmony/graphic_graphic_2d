@@ -65,29 +65,6 @@ OH_Drawing_Point* OH_Drawing_PointCreate(float x, float y);
  */
 void OH_Drawing_PointDestroy(OH_Drawing_Point*);
 
-/**
- * @brief Creates an <b>OH_Drawing_Point3</b> object.
- *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param x Indicates the x-axis coordinates of the point.
- * @param y Indicates the y-axis coordinates of the point.
- * @param z Indicates the z-axis coordinates of the point.
- * @return Returns the pointer to the <b>OH_Drawing_Point3</b> object created.
- * @since 12
- * @version 1.0
- */
-OH_Drawing_Point3* OH_Drawing_Point3Create(float x, float y, float z);
-
-/**
- * @brief Destroys an <b>OH_Drawing_Point3</b> object and reclaims the memory occupied by the object.
- *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Point3 Indicates the pointer to an <b>OH_Drawing_Point3</b> object.
- * @since 12
- * @version 1.0
- */
-void OH_Drawing_Point3Destroy(OH_Drawing_Point3*);
-
 #ifdef __cplusplus
 }
 #endif

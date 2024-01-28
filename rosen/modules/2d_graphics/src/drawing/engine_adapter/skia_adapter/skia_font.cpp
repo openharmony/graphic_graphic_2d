@@ -150,6 +150,12 @@ scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding e
     return skFont_.measureText(text, byteLength, skEncoding);
 }
 
+int SkiaFont::CountText(const void* text, size_t byteLength, TextEncoding encoding) const
+{
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    return skFont_.countText(text, byteLength, skEncoding);
+}
+
 const SkFont& SkiaFont::GetFont() const
 {
     return skFont_;

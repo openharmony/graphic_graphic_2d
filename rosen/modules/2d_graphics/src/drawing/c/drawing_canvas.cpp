@@ -56,6 +56,11 @@ static const Point& CastToPoint(const OH_Drawing_Point& cPoint)
     return reinterpret_cast<const Point&>(cPoint);
 }
 
+static Point3 CastToPoint3(OH_Drawing_Point3D& cPoint3)
+{
+    return {cPoint3.x, cPoint3.y, cPoint3.z};
+}
+
 static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
 {
     return reinterpret_cast<const RoundRect&>(cRoundRect);
@@ -239,6 +244,21 @@ void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bi
     canvas->DrawBitmap(CastToBitmap(*cBitmap), left, top);
 }
 
+void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap,
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* sampling)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || cBitmap == nullptr || dst == nullptr || sampling == nullptr) {
+        return;
+    }
+    if (src == nullptr) {
+        canvas->DrawBitmap(CastToBitmap(*cBitmap), CastToRect(*dst), CastToSamplingOptions(*sampling));
+    } else {
+        canvas->DrawBitmap(CastToBitmap(*cBitmap), CastToRect(*src),
+            CastToRect(*dst), CastToSamplingOptions(*sampling));
+    }
+}
+
 void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect)
 {
     if (cRect == nullptr) {
@@ -408,35 +428,38 @@ int32_t OH_Drawing_CanvasGetHeight(OH_Drawing_Canvas* cCanvas)
     return canvas->GetHeight();
 }
 
-OH_Drawing_Rect* OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas* cCanvas)
+void OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas* cCanvas, OH_Drawing_Rect* cRect)
 {
+    if (cRect == nullptr) {
+        return;
+    }
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
-        return nullptr;
+        return;
     }
-    OHOS::Rosen::Drawing::Rect rect = canvas->GetLocalClipBounds();
-    OH_Drawing_Rect* cRect = (OH_Drawing_Rect*)new Rect(rect);
-    return cRect;
+    Rect rect = canvas->GetLocalClipBounds();
+    Rect* outRect = reinterpret_cast<Rect*>(cRect);
+    *outRect = rect;
 }
 
-OH_Drawing_Matrix* OH_Drawing_CanvasGetLocalToDevice(OH_Drawing_Canvas* cCanvas)
+void OH_Drawing_CanvasGetTotalMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* cMatrix)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr) {
-        return nullptr;
+    if (canvas == nullptr || cMatrix == nullptr) {
+        return;
     }
-    OHOS::Rosen::Drawing::Matrix matrix = canvas->GetTotalMatrix();
-    OH_Drawing_Matrix* cMatrix = (OH_Drawing_Matrix*)new Matrix(matrix);
-    return cMatrix;
+    Matrix matrix = canvas->GetTotalMatrix();
+    Matrix* outMatrix = reinterpret_cast<Matrix*>(cMatrix);
+    *outMatrix = matrix;
 }
 
 void OH_Drawing_CanvasConcatMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* cMatrix)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr) {
+    if (canvas == nullptr || cMatrix == nullptr) {
         return;
     }
-    canvas->ConcatMatrix(*reinterpret_cast<OHOS::Rosen::Drawing::Matrix*>(cMatrix));
+    canvas->ConcatMatrix(*reinterpret_cast<Matrix*>(cMatrix));
 }
 
 static ShadowFlags CClipOpCastToClipOp(OH_Drawing_CanvasShadowFlags cFlag)
@@ -461,18 +484,20 @@ static ShadowFlags CClipOpCastToClipOp(OH_Drawing_CanvasShadowFlags cFlag)
     return shadowFlags;
 }
 
-void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas* cCanvas, OH_Drawing_Path* cPath, OH_Drawing_Point3* planeParams,
-    OH_Drawing_Point3* devLightPos, float lightRadius, uint32_t ambientColor, uint32_t spotColor,
+void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas* cCanvas, OH_Drawing_Path* cPath, OH_Drawing_Point3D cPlaneParams,
+    OH_Drawing_Point3D cDevLightPos, float lightRadius, uint32_t ambientColor, uint32_t spotColor,
     OH_Drawing_CanvasShadowFlags flag)
 {
-    Canvas* canvas = CastToCanvas(cCanvas);
-    if (canvas == nullptr) {
+    if (cCanvas == nullptr || cPath == nullptr ||
+        flag < SHADOW_FLAGS_NONE || flag > SHADOW_FLAGS_ALL) {
         return;
     }
-    canvas->DrawShadow(*reinterpret_cast<Path*>(cPath), *reinterpret_cast<Point3*>(planeParams),
-        *reinterpret_cast<Point3*>(devLightPos), lightRadius, Color(ambientColor), Color(spotColor),
+    Canvas* canvas = CastToCanvas(cCanvas);
+    canvas->DrawShadow(*reinterpret_cast<Path*>(cPath), CastToPoint3(cPlaneParams),
+        CastToPoint3(cDevLightPos), lightRadius, Color(ambientColor), Color(spotColor),
         CClipOpCastToClipOp(flag));
 }
+
 void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* matrix)
 {
     Canvas* canvas = CastToCanvas(cCanvas);

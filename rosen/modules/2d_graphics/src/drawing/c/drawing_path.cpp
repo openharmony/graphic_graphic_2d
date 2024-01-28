@@ -111,6 +111,9 @@ void OH_Drawing_PathCubicTo(
 void OH_Drawing_PathAddRect(OH_Drawing_Path* cPath, float left,
     float top, float right, float bottom, OH_Drawing_PathDirection dir)
 {
+    if (dir < PATH_DIRECTION_CW || dir > PATH_DIRECTION_CCW) {
+        return;
+    }
     Path* path = CastToPath(cPath);
     if (path == nullptr) {
         return;
@@ -121,7 +124,8 @@ void OH_Drawing_PathAddRect(OH_Drawing_Path* cPath, float left,
 void OH_Drawing_PathAddRoundRect(OH_Drawing_Path* cPath,
     const OH_Drawing_RoundRect* roundRect, OH_Drawing_PathDirection dir)
 {
-    if (roundRect == nullptr) {
+    if (dir < PATH_DIRECTION_CW || dir > PATH_DIRECTION_CCW ||
+        roundRect == nullptr) {
         return;
     }
     Path* path = CastToPath(cPath);
@@ -179,8 +183,11 @@ void OH_Drawing_PathTransform(OH_Drawing_Path* cPath, const OH_Drawing_Matrix* m
     path->Transform(*CastToMatrix(matrix));
 }
 
-void OH_Drawing_SetFillStyle(OH_Drawing_Path* cPath, OH_Drawing_PathFillType fillstyle)
+void OH_Drawing_PathSetFillType(OH_Drawing_Path* cPath, OH_Drawing_PathFillType fillstyle)
 {
+    if (fillstyle < PATH_FILL_TYPE_WINDING || fillstyle > PATH_FILL_TYPE_INVERSE_EVEN_ODD) {
+        return;
+    }
     Path* path = CastToPath(cPath);
     if (path == nullptr) {
         return;

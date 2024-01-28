@@ -76,17 +76,6 @@ void OH_Drawing_FontSetTypeface(OH_Drawing_Font*, OH_Drawing_Typeface*);
 OH_Drawing_Typeface* OH_Drawing_FontGetTypeface(OH_Drawing_Font*);
 
 /**
- * @brief Set Font and glyph metrics should ignore hinting and rounding.
- *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
- * @param bool Should ignore hinting and rounding.
- * @since 12
- * @version 1.0
- */
-void OH_Drawing_FontSetLinearMetrics(OH_Drawing_Font*, bool);
-
-/**
  * @brief Sets text size for an <b>OH_Drawing_Font</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -96,6 +85,20 @@ void OH_Drawing_FontSetLinearMetrics(OH_Drawing_Font*, bool);
  * @version 1.0
  */
 void OH_Drawing_FontSetTextSize(OH_Drawing_Font*, float textSize);
+
+/**
+ * @brief Calculate number of glyphs represented by text.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param text Indicates the character storage encoded with text encoding.
+ * @param byteLength Indicates the text length in bytes.
+ * @param encoding Indicates the text encoding.
+ * @since 12
+ * @version 1.0
+ */
+int OH_Drawing_FontCountText(OH_Drawing_Font*, const void* text, size_t byteLength,
+    OH_Drawing_TextEncoding encoding);
 
 /**
  * @brief Enables or disables linearly scalable font for an <b>OH_Drawing_Font</b> object.

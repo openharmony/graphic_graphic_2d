@@ -140,6 +140,8 @@ public:
      */
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding);
 
+    int CountText(const void* text, size_t byteLength, TextEncoding encoding) const;
+
     template<typename T>
     T* GetImpl() const
     {

@@ -224,6 +224,8 @@ public:
 
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
+    void DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling);
+    void DrawBitmap(const Bitmap& bitmap, const Rect& dst, const SamplingOptions& sampling);
     virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py);
     virtual void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling);
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,

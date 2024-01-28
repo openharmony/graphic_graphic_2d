@@ -88,6 +88,24 @@ void OH_Drawing_BitmapDestroy(OH_Drawing_Bitmap* cBitmap)
     delete CastToBitmap(cBitmap);
 }
 
+OH_Drawing_Bitmap* OH_Drawing_BitmapCreateFromPixels(OH_Drawing_Image_Info* cImageInfo, void* pixels, uint32_t rowBytes)
+{
+    if (cImageInfo == nullptr || pixels == nullptr || rowBytes == 0) {
+        return nullptr;
+    }
+
+    ImageInfo imageInfo(cImageInfo->width, cImageInfo->height,
+        static_cast<ColorType>(cImageInfo->colorType), static_cast<AlphaType>(cImageInfo->alphaType));
+
+    Bitmap* bitmap = new Bitmap;
+    bool ret = bitmap->InstallPixels(imageInfo, pixels, rowBytes);
+    if (!ret) {
+        delete bitmap;
+        return nullptr;
+    }
+    return (OH_Drawing_Bitmap*)bitmap;
+}
+
 void OH_Drawing_BitmapBuild(OH_Drawing_Bitmap* cBitmap, const uint32_t width, const uint32_t height,
     const OH_Drawing_BitmapFormat* cBitmapFormat)
 {
