@@ -83,6 +83,10 @@ HWTEST_F(RSVirtualScreenProcessorTest, Init, TestSize.Level1)
     std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
     ASSERT_NE(nullptr, rsSoftwareProcessor);
     ASSERT_EQ(false, rsSoftwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+
+    RSSurfaceRenderNodeConfig sConfig;
+    RSSurfaceRenderNode rsSurfaceRenderNode(sConfig);
+    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
 /**

@@ -554,4 +554,41 @@ HWTEST_F(RSParallelRenderManagerTest, PackParallelCompositionTask, TestSize.Leve
     ASSERT_EQ(status, ParallelStatus::FIRSTFLUSH);
 }
 
+#ifdef USE_ROSEN_DRAWING
+/**
+ * @tc.name: DrawImageMergeFuncForRosenDrawing
+ * @tc.desc: Test RSParallelRenderManagerTest.DrawImageMergeFuncForRosenDrawing
+ * @tc.type: FUNC
+ * @tc.require: AR000HQ6GH
+ */
+HWTEST_F(RSParallelRenderManagerTest, DrawImageMergeFuncForRosenDrawing, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Image> img;
+    Drawing::Canvas tmpCanvas;
+    RSPaintFilterCanvas canvas(&tmpCanvas);
+    bool ret = RSParallelRenderManager::Instance()->DrawImageMergeFuncForRosenDrawing(canvas, img);
+    EXPECT_NE(ret, true);
+}
+#endif
+
+/**
+ * @tc.name: SetParallelMode
+ * @tc.desc: Test RSParallelRenderManagerTest.SetParallelMode
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, SetParallelMode, TestSize.Level1)
+{
+    auto instance = RSParallelRenderManager::Instance();
+    instance->SetParallelMode(false);
+    instance->StartSubRenderThread(threadNum_, nullptr);
+
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas tmpCanvas;
+#else
+    Drawing::Canvas tmpCanvas;
+#endif
+    RSPaintFilterCanvas canvas(&tmpCanvas);
+    RSParallelRenderManager::Instance()->DrawImageMergeFunc(canvas);
+}
 } // namespace OHOS::Rosen
