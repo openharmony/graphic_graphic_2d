@@ -2052,6 +2052,9 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
             nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
             SetDirty();
         }
+        if (type == NodeGroupType::GROUPED_BY_USER) {
+            GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
+        }
     }
 }
 
