@@ -2178,7 +2178,7 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     if (isSubThread_) {
         node.SetIsUsedBySubThread(true);
         ProcessShadowFirst(node, isSubThread_);
-        for (auto& child : node.GetSortedChildren(true)) {
+        for (auto child : node.GetSortedChildren(true)) {
             ProcessChildInner(node, child);
         }
         // Main thread may invalidate the FullChildrenList, check if we need to clear it.
@@ -2186,7 +2186,7 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
         node.SetIsUsedBySubThread(false);
     } else {
         ProcessShadowFirst(node, isSubThread_);
-        for (auto& child : node.GetSortedChildren()) {
+        for (auto child : node.GetSortedChildren()) {
             // skip shadow drawing in updateCacheProcess，it will draw in drawCacheWithBlur
             // and skip shadow repeat drawing in normal process
             if (!drawCacheWithBlur_ && node.GetRenderProperties().GetShadowColorStrategy() !=
@@ -2212,7 +2212,7 @@ void RSUniRenderVisitor::ProcessChildrenForScreenRecordingOptimization(
         node.SetIsUsedBySubThread(true);
         // just process child above the root of capture window
         bool startVisit = false;
-        for (auto& child : node.GetSortedChildren()) {
+        for (auto child : node.GetSortedChildren()) {
             if (child->GetId() == rootIdOfCaptureWindow) {
                 startVisit = true;
             }
@@ -2226,7 +2226,7 @@ void RSUniRenderVisitor::ProcessChildrenForScreenRecordingOptimization(
     } else {
         // just process child above the root of capture window
         bool startVisit = false;
-        for (auto& child : node.GetSortedChildren()) {
+        for (auto child : node.GetSortedChildren()) {
             if (child->GetId() == rootIdOfCaptureWindow) {
                 startVisit = true;
             }
@@ -2237,7 +2237,7 @@ void RSUniRenderVisitor::ProcessChildrenForScreenRecordingOptimization(
     }
 }
 
-void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNode::SharedPtr& child)
+void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNode::SharedPtr child)
 {
     if (child && ProcessSharedTransitionNode(*child)) {
         if (node.GetDrawingCacheRootId() != INVALID_NODEID) {
