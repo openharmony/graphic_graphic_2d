@@ -163,6 +163,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #else
     }
 #endif
+    if (!skSurface_) {
+        return;
+    }
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
@@ -182,7 +185,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         }
     } else {
         auto cmds = recordingCanvas_->GetDrawCmdList();
-        if (cmds->GetSize() > 0 && skSurface_) {
+        if (cmds && cmds->GetSize() > 0) {
             recordingCanvas_ = std::make_shared<RSRecordingCanvas>(width, height);
             canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
             ProcessCPURenderInBackgroundThread(cmds);
@@ -207,11 +210,11 @@ void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_p
     auto nodeId = GetId();
     auto ctx = GetContext().lock();
     RSBackgroundThread::Instance().PostTask([cmds, surface, nodeId, ctx]() {
-        if (!ctx) {
+        if (!cmds || cmds->GetSize() == 0 || !surface || !ctx) {
             return;
         }
         auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
-        if (!node || !surface || surface != node->skSurface_) {
+        if (!node || surface != node->skSurface_) {
             return;
         }
         cmds->Playback(*surface->getCanvas());
@@ -261,6 +264,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #else
     }
 #endif
+    if (!surface_) {
+        return;
+    }
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
@@ -278,7 +284,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         }
     } else {
         auto cmds = recordingCanvas_->GetDrawCmdList();
-        if (!cmds->IsEmpty() && surface_) {
+        if (cmds && !cmds->IsEmpty()) {
             recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height);
             canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
             ProcessCPURenderInBackgroundThread(cmds);
@@ -307,11 +313,11 @@ void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_p
     auto nodeId = GetId();
     auto ctx = GetContext().lock();
     RSBackgroundThread::Instance().PostTask([cmds, surface, nodeId, ctx]() {
-        if (!ctx) {
+        if (!cmds || cmds->IsEmpty() || !surface || !ctx) {
             return;
         }
         auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
-        if (!node || !surface || surface != node->surface_) {
+        if (!node || surface != node->surface_) {
             return;
         }
         cmds->Playback(*surface->GetCanvas());
