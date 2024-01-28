@@ -232,6 +232,11 @@ bool SkiaMatrix::GetMinMaxScales(scalar scaleFactors[2])
 {
     return skMatrix_.getMinMaxScales(scaleFactors);
 }
+
+bool SkiaMatrix::HasPerspective() const
+{
+    return skMatrix_.hasPerspective();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

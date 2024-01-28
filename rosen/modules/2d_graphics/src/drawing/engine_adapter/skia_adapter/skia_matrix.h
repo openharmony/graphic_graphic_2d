@@ -80,6 +80,7 @@ public:
     void Reset() override;
 
     bool GetMinMaxScales(scalar scaleFactors[2]) override;
+    bool HasPerspective() const override;
 
 private:
     SkMatrix skMatrix_;
