@@ -1934,7 +1934,7 @@ void RSMainThread::SurfaceOcclusionCallback()
             } else if (!vectorEmpty && ROSEN_EQ(visibleAreaRatio, 1.0f)) {
                 level = partitionVector.size();
             } else if (!vectorEmpty && (visibleAreaRatio > 0.0f)) {
-                for (auto &point : partitionVector) {
+                for (const auto &point : partitionVector) {
                     if (visibleAreaRatio > point) {
                         level += 1;
                         continue;

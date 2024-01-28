@@ -59,7 +59,7 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    auto rsSurfaceFrameOhosRaster = RSSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
+    RSSurfaceFrameOhosRaster rsSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
 #if ACE_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
