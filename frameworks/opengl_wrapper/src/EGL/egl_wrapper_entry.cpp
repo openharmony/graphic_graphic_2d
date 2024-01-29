@@ -1182,14 +1182,14 @@ EGLBoolean EglSetDamageRegionKHRImpl(EGLDisplay dpy, EGLSurface surf,
     return display->SetDamageRegionKHR(surf, rects, nRects);
 }
 
-EGLBoolean EglDupNativeFenceFDANDROIDImpl(EGLDisplay dpy, EGLSyncKHR sync)
+EGLint EglDupNativeFenceFDANDROIDImpl(EGLDisplay dpy, EGLSyncKHR sync)
 {
     WLOGD("");
     EglWrapperDisplay *display = ValidateDisplay(dpy);
     if (!display) {
         return EGL_FALSE;
     }
-    EGLBoolean ret = EGL_FALSE;
+    EGLint ret = -1;
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglDupNativeFenceFDANDROID) {
         ret = table->egl.eglDupNativeFenceFDANDROID(display->GetEglDisplay(), sync);
