@@ -140,6 +140,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
 
     skStyle.turnHintingOff();
     skStyle.setReplaceTabCharacters(true);
+    skStyle.setTextSplitRatio(txt.textSplitRatio);
 
     return skStyle;
 }
