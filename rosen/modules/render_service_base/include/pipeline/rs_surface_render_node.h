@@ -359,7 +359,6 @@ public:
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
-    bool IsMultiInstance();
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
