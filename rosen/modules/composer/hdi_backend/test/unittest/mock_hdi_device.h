@@ -38,6 +38,7 @@ public:
     MOCK_METHOD2(GetScreenSupportedModes, int32_t(uint32_t, std::vector<GraphicDisplayModeInfo>&));
     MOCK_METHOD2(GetScreenMode, int32_t(uint32_t, uint32_t&));
     MOCK_METHOD2(SetScreenMode, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD3(SetScreenOverlayResolution, int32_t(uint32_t, uint32_t, uint32_t));
     MOCK_METHOD2(GetScreenPowerStatus, int32_t(uint32_t, GraphicDispPowerStatus&));
     MOCK_METHOD2(SetScreenPowerStatus, int32_t(uint32_t, GraphicDispPowerStatus));
     MOCK_METHOD2(GetScreenBacklight, int32_t(uint32_t, uint32_t&));

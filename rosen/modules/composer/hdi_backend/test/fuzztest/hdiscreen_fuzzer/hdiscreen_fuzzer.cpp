@@ -118,6 +118,9 @@ namespace OHOS {
         }
         
         g_hdiScreen->SetScreenMode(modeId);
+        uint32_t width = 1080;
+        uint32_t height = 1920;
+        g_hdiScreen->SetScreenOverlayResolution(width, height);
         g_hdiScreen->SetScreenPowerStatus(status);
         g_hdiScreen->SetScreenBacklight(level);
         g_hdiScreen->SetScreenVsyncEnabled(enabled);

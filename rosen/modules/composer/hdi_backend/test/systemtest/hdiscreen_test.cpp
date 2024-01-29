@@ -42,6 +42,7 @@ void HdiScreenSysTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, GetScreenSupportedModes(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenOverlayResolution(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenBacklight(_, _)).WillRepeatedly(testing::Return(0));
@@ -72,6 +73,9 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
 
     uint32_t modeId = 0;
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetScreenMode(modeId), 0);
+    uint32_t width = 1080;
+    uint32_t height = 1920;
+    ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetScreenOverlayResolution(width, height), 0);
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenMode(modeId), 0);
 
     GraphicDispPowerStatus dispPowerStatus = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;

@@ -295,6 +295,10 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
         RS_LOGD("RSScreen:%{public}s: width: %{public}d, height: %{public}d.", __func__, width, height);
         return;
     }
+    if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
+        RS_LOGE("RSScreen:%{public}s: hdi set screen rog resolution failed.", __func__);
+        return;
+    }
     width_ = width;
     height_ = height;
     RS_LOGI("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}d,"

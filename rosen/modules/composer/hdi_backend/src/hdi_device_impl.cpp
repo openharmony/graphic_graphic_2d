@@ -171,6 +171,12 @@ int32_t HdiDeviceImpl::SetScreenMode(uint32_t screenId, uint32_t modeId)
     return g_composer->SetDisplayMode(screenId, modeId);
 }
 
+int32_t HdiDeviceImpl::SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetDisplayOverlayResolution(screenId, width, height);
+}
+
 int32_t HdiDeviceImpl::GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status)
 {
     CHECK_FUNC(g_composer);
