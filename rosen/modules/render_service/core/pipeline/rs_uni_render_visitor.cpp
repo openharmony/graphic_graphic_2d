@@ -2167,6 +2167,22 @@ void RSUniRenderVisitor::CheckSkipRepeatShadow(RSRenderNode& node, const bool re
     }
 }
 
+void RSUniRenderVisitor::SetNodeSkipShadow(std::shared_ptr<RSRenderNode> node, const bool resetStatus)
+{
+    // skip shadow drawing in updateCacheProcess，it will draw in drawCacheWithBlur
+    // and skip shadow repeat drawing in normal process
+    if (!drawCacheWithBlur_ && node->GetRenderProperties().GetShadowColorStrategy() !=
+        SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE &&
+        (updateCacheProcessCnt_ != 0 || noNeedTodrawShadowAgain_)) {
+        ROSEN_LOGD("skip draw shadow and text repeatly");
+        if (resetStatus) {
+            node->GetMutableRenderProperties().SetNeedSkipShadow(false);
+            return;
+        }
+        node->GetMutableRenderProperties().SetNeedSkipShadow(true);
+    }
+}
+
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
     if (DrawBlurInCache(node)) {
@@ -2187,15 +2203,9 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     } else {
         ProcessShadowFirst(node, isSubThread_);
         for (auto child : node.GetSortedChildren()) {
-            // skip shadow drawing in updateCacheProcess，it will draw in drawCacheWithBlur
-            // and skip shadow repeat drawing in normal process
-            if (!drawCacheWithBlur_ && node.GetRenderProperties().GetShadowColorStrategy() !=
-                SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE &&
-                (updateCacheProcessCnt_ != 0 || noNeedTodrawShadowAgain_)) {
-                RS_TRACE_NAME("skip draw shadow and text repeatly");
-                break;
-            }
+            SetNodeSkipShadow(child, false);
             ProcessChildInner(node, child);
+            SetNodeSkipShadow(child, true);
         }
     }
 
@@ -4189,7 +4199,7 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             Drawing::AutoCanvasRestore arc(*canvas_.get(), true);
             RectI shadowRect;
             auto rrect = node.GetRenderProperties().GetRRect();
-            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, node.GetRenderProperties(), &rrect, false);
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, node.GetRenderProperties(), &rrect, false, false);
             std::shared_ptr<Drawing::CoreCanvasImpl> coreCanvas = canvas_->GetCanvasData();
             auto skiaCanvas = static_cast<Drawing::SkiaCanvas *>(coreCanvas.get());
             SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());

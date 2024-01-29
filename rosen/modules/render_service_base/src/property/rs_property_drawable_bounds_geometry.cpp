@@ -625,7 +625,7 @@ void RSPathMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
 RSPropertyDrawable::DrawablePtr RSShadowBaseDrawable::Generate(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
-    if (properties.IsSpherizeValid() || !properties.IsShadowValid()) {
+    if (properties.IsSpherizeValid() || !properties.IsShadowValid() || properties.GetNeedSkipShadow()) {
         return nullptr;
     }
     if (properties.GetShadowMask()) {

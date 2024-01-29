@@ -151,6 +151,8 @@ public:
 
     bool GetUseShadowBatching() const;
     void SetUseShadowBatching(bool useShadowBatching);
+    bool GetNeedSkipShadow() const;
+    void SetNeedSkipShadow(bool needSkipShadow);
 
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
@@ -387,6 +389,7 @@ private:
     bool hasBounds_ = false;
     bool useEffect_ = false;
     bool useShadowBatching_ = false;
+    bool needSkipShadow_ = false;
 
     int colorBlendMode_ = 0;
     int colorBlendApplyType_ = 0;
