@@ -867,8 +867,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         if (particleType == ParticleType::POINTS) {
             auto radius = particleParams[i].emitterConfig_.radius_;
             auto radiusMax = radius * scaleMax;
-            left = std::min(left, position.x_ - radiusMax);
-            top = std::min(top, position.y_ - radiusMax);
+            left = std::min(left - radiusMax, position.x_ - radiusMax);
+            top = std::min(top - radiusMax, position.y_ - radiusMax);
             right = std::max(right + radiusMax + radiusMax, position.x_ + emitSize.x_ + radiusMax + radiusMax);
             bottom = std::max(bottom + radiusMax + radiusMax, position.y_ + emitSize.y_ + radiusMax + radiusMax);
         } else {
@@ -885,8 +885,8 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             }
             float imageSizeWidthMax = imageSizeWidth * scaleMax;
             float imageSizeHeightMax = imageSizeHeight * scaleMax;
-            left = std::min(left, position.x_ - imageSizeWidthMax);
-            top = std::min(top, position.y_ - imageSizeHeightMax);
+            left = std::min(left - imageSizeWidthMax, position.x_ - imageSizeWidthMax);
+            top = std::min(top - imageSizeHeightMax, position.y_ - imageSizeHeightMax);
             right = std::max(right + imageSizeWidthMax + imageSizeWidthMax,
                 position.x_ + emitSize.x_ + imageSizeWidthMax + imageSizeWidthMax);
             bottom = std::max(bottom + imageSizeHeightMax + imageSizeHeightMax,
