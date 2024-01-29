@@ -1699,6 +1699,16 @@ bool RSProperties::GetUseShadowBatching() const
     return useShadowBatching_;
 }
 
+void RSProperties::SetNeedSkipShadow(bool needSkipShadow)
+{
+    needSkipShadow_ = needSkipShadow;
+}
+
+bool RSProperties::GetNeedSkipShadow() const
+{
+    return needSkipShadow_;
+}
+
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
     pixelStretch_ = stretchSize;
@@ -2804,17 +2814,9 @@ void RSProperties::OnApplyModifiers()
             backgroundFilter_ = aiBarFilter;
         }
         if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
-            if (backgroundFilter_->GetFilterType() == RSFilter::MATERIAL) {
-                auto filter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter_);
-                filter->ReleaseColorPickerFilter();
-            }
             backgroundFilter_.reset();
         }
         if (filter_ != nullptr && !filter_->IsValid()) {
-            if (filter_->GetFilterType() == RSFilter::MATERIAL) {
-                auto filter = std::static_pointer_cast<RSMaterialFilter>(filter_);
-                filter->ReleaseColorPickerFilter();
-            }
             filter_.reset();
         }
         IfLinearGradientBlurInvalid();
@@ -2919,16 +2921,9 @@ void RSProperties::ReleaseColorPickerTaskShadow() const
     if (colorPickerTaskShadow_ == nullptr) {
         return;
     }
-    #ifdef IS_OHOS
-    auto initHandler = colorPickerTaskShadow_->GetInitHandler();
-        if (initHandler != nullptr) {
-            auto task = colorPickerTaskShadow_;
-            task->SetWaitRelease(true);
-            initHandler->PostTask(
-                [task]() { task->ReleaseColorPicker(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        }
-    #endif
+    colorPickerTaskShadow_->ReleaseColorPicker();
 }
+
 
 bool RSProperties::GetHaveEffectRegion() const
 {

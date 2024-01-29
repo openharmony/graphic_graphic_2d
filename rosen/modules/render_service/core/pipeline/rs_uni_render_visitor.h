@@ -74,6 +74,7 @@ public:
     bool InitNodeCache(RSRenderNode& node);
     void CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor);
     void CheckSkipRepeatShadow(RSRenderNode& node, const bool resetStatus);
+    void SetNodeSkipShadow(std::shared_ptr<RSRenderNode> node, const bool resetStatus);
     void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
     {
         renderEngine_ = renderEngine;
