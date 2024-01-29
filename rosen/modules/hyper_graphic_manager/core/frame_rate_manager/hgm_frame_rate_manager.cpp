@@ -783,11 +783,8 @@ void HgmFrameRateManager::UpdateVoteRule()
     // priority 3: VOTER_SCENE < VOTER_TOUCH
     auto srcPos = find(voters_.begin(), voters_.end(), srcScene);
     auto dstPos = find(voters_.begin(), voters_.end(), dstScene);
-    if (srcPos != voters_.end() || dstPos == voters_.end()) {
-        HGM_LOGW("HgmFrameRateManager:invalid scene");
-        return;
-    }
-    // sort
+    
+    // resort
     voters_.erase(srcPos);
     if (scenePriority == SCENE_AFTER_TOUCH) {
         voters_.insert(++dstPos, srcScene);
