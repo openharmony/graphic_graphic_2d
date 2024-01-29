@@ -15,6 +15,7 @@
 
 #include "c/drawing_text_blob.h"
 #include "utils/log.h"
+#include <mutex>
 #include <unordered_map>
 
 #include "text/text_blob_builder.h"
@@ -23,6 +24,7 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
+static std::mutex g_textBlobLockMutex;
 static std::unordered_map<void*, std::shared_ptr<TextBlob>> g_textBlobMap;
 
 static TextBlobBuilder* CastToTextBlobBuilder(OH_Drawing_TextBlobBuilder* cTextBlobBuilder)
@@ -60,6 +62,7 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromText(const void* text, size_t 
     const Font font = CastToFont(*cFont);
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(text,
         byteLength, font, static_cast<TextEncoding>(cTextEncoding));
+    std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
     g_textBlobMap.insert({textBlob.get(), textBlob});
     return (OH_Drawing_TextBlob*)textBlob.get();
 }
@@ -79,6 +82,7 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromPosText(const void* text, size
     }
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromPosText(text, byteLength,
         pts, font, static_cast<TextEncoding>(cTextEncoding));
+    std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
     g_textBlobMap.insert({textBlob.get(), textBlob});
     return (OH_Drawing_TextBlob*)textBlob.get();
 }
@@ -93,12 +97,14 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromString(const char* str,
     const Font font = CastToFont(*cFont);
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromString(str,
         font, static_cast<TextEncoding>(cTextEncoding));
+    std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
     g_textBlobMap.insert({textBlob.get(), textBlob});
     return (OH_Drawing_TextBlob*)textBlob.get();
 }
 
 void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rect* cRect)
 {
+    std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
     auto it = g_textBlobMap.find(cTextBlob);
     if (it == g_textBlobMap.end()) {
         return;
@@ -136,12 +142,14 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobBuilderMake(OH_Drawing_TextBlobBuilder* 
         return nullptr;
     }
     std::shared_ptr<TextBlob> textBlob = textBlobBuilder->Make();
+    std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
     g_textBlobMap.insert({textBlob.get(), textBlob});
     return (OH_Drawing_TextBlob*)textBlob.get();
 }
 
 void OH_Drawing_TextBlobDestroy(OH_Drawing_TextBlob* cTextBlob)
 {
+    std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
     auto it = g_textBlobMap.find(cTextBlob);
     if (it == g_textBlobMap.end()) {
         return;

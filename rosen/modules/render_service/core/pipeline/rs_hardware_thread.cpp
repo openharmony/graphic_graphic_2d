@@ -619,8 +619,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             } else {
                 params.paint.SetShaderEffect(imageShader);
                 params.targetColorGamut = colorGamut;
-
-                auto screenManager = CreateOrGetScreenManager();
                 params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
 
                 uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
