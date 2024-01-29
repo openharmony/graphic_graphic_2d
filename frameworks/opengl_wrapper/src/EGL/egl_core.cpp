@@ -20,11 +20,18 @@
 #include "egl_pre_initializer.h"
 #include "egl_wrapper_layer.h"
 #include "egl_wrapper_loader.h"
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+#include "egl_wrapper_hook.h"
+#endif
 #include "../wrapper_log.h"
 
 namespace OHOS {
 EglWrapperDispatchTable gWrapperHook;
 GlHookTable gGlHookNoContext;
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+GlHookTable g_glHookCSDR;
+GlHookTable g_glHookSingle;
+#endif
 
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(...)
@@ -106,6 +113,14 @@ bool EglCoreInit()
         WLOGE("EglWrapperLayer Init Failed.");
     }
 
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+    EglWrapperHook& hookLayer(EglWrapperHook::GetInstance());
+    if (!hookLayer.Hook(&gWrapperHook)) {
+        WLOGE("EglWrapperHookLayer init Failed!");
+    } else {
+        WLOGI("EglWrapperHookLayer init Success!");
+    }
+#endif
     return true;
 }
 }; // namespace OHOS
