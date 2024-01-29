@@ -307,6 +307,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    bool IsNeedSetVSync();
 
     void SetContextBounds(const Vector4f bounds);
 
