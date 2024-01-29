@@ -80,6 +80,12 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
+struct DrawBuffer {
+    int32_t w;
+    int32_t h;
+};
+
+
 bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -124,6 +130,37 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     node->HasDisappearingTransition(recursive);
     node->SetTunnelHandleChange(change);
     node->UpdateChildrenOutOfRectFlag(flag);
+
+    return true;
+}
+
+bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // getdata
+    NodeId id = GetData<NodeId>();
+    DrawBuffer drawBuffer = GetData<DrawBuffer>();
+    RSModifierType type = GetData<RSModifierType>();
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds = Drawing::DrawCmdList::CreateFromData(
+        { &drawBuffer, sizeof(DrawBuffer) }, true);
+    Drawing::Canvas tmpCanvas;
+    float alpha = GetData<float>();
+    RSPaintFilterCanvas canvas(&tmpCanvas, alpha);
+    RSCanvasRenderNode node(id);
+
+    // test
+    node.UpdateRecording(drawCmds, type);
+    node.ProcessRenderBeforeChildren(canvas);
+    node.ProcessRenderContents(canvas);
+    node.ProcessRenderAfterChildren(canvas);
 
     return true;
 }
@@ -239,6 +276,35 @@ bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    DrawBuffer drawBuffer = GetData<DrawBuffer>();
+    float fLeft = GetData<float>();
+    float fTop = GetData<float>();
+    float fRight = GetData<float>();
+    float fBottom = GetData<float>();
+    Drawing::Canvas drCanvas;
+    Drawing::Rect rect = { fLeft, fTop, fRight, fBottom };
+    float alpha = GetData<float>();
+    RSPaintFilterCanvas canvas(&drCanvas, alpha);
+
+    // test
+    std::shared_ptr<Drawing::DrawCmdList> list = Drawing::DrawCmdList::CreateFromData(
+        { &drawBuffer, sizeof(DrawBuffer) }, true);
+    list->Playback(drCanvas, &rect);
+    list->Playback(canvas, &rect);
+    return true;
+}
+
 bool RSOcclusionConfigFuzzTes(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -269,8 +335,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::RSBaseRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSContextFuzzTest(data, size);
+    OHOS::Rosen::RSCanvasRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSDirtyRegionManagerFuzzTest(data, size);
     OHOS::Rosen::RSDisplayRenderNodeFuzzTest(data, size);
+    OHOS::Rosen::RSDrawCmdListFuzzTest(data, size);
     OHOS::Rosen::RSOcclusionConfigFuzzTes(data, size);
     return 0;
 }
