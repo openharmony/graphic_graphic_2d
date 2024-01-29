@@ -280,6 +280,27 @@ HWTEST_F(BufferQueueProducerTest, AttachAndDetachBufferRemote, Function | Medium
 }
 
 /*
+* Function: SetTunnelHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelHandle
+* 4. check ret
+*/
+HWTEST_F(BufferQueueProducerTest, SetTunnelHandle, Function | MediumTest | Level2)
+{
+    EXPECT_EQ(bqp->SetTunnelHandle(nullptr), GSERROR_INVALID_OPERATING);
+    GraphicExtDataHandle *handle = static_cast<GraphicExtDataHandle *>(
+        malloc(sizeof(GraphicExtDataHandle) + sizeof(int32_t)));
+    handle->fd = -1;
+    handle->reserveInts = 1;
+    handle->reserve[0] = 0;
+    GSError ret = bqp->SetTunnelHandle(handle);
+    EXPECT_EQ(ret, GSERROR_OK);
+    free(handle);
+}
+
+/*
 * Function: SetTunnelHandleRemote
 * Type: Function
 * Rank: Important(2)
@@ -371,5 +392,6 @@ HWTEST_F(BufferQueueProducerTest, NullTest, Function | MediumTest | Level2)
         time), OHOS::GSERROR_INVALID_ARGUMENTS);
     EXPECT_EQ(bqpTmp->GetStatus(), false);
     bqpTmp->SetStatus(false);
+    bqpTmp = nullptr;
 }
 }
