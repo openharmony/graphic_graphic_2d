@@ -96,17 +96,17 @@ void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint
         canvas_->DetachBrush();
     } else if (pr.pen.has_value() && !pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
-        hmSymbolRun.DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
         canvas_->DetachPen();
     } else if (!pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
-        hmSymbolRun.DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
         canvas_->DetachBrush();
     } else {
         Drawing::Brush brush;
         brush.SetColor(pr.color);
         canvas_->AttachBrush(brush);
-        hmSymbolRun.DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
         canvas_->DetachBrush();
     }
 }
