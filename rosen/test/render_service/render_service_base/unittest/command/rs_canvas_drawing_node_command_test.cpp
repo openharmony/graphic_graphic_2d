@@ -43,8 +43,11 @@ void RSCanvasDrawingNodeCommandTest::TearDown() {}
 HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateTest, TestSize.Level1)
 {
     RSContext context;
-    NodeId targetId = static_cast<NodeId>(-1);
+    NodeId targetId = static_cast<NodeId>(1);
     RSCanvasDrawingNodeCommandHelper::Create(context, targetId, false);
+
+    RSCanvasDrawingNodeCommandHelper::ResetSurface(context, targetId);
+    RSCanvasDrawingNodeCommandHelper::ResetSurface(context, 0);
 }
 
 } // namespace OHOS::Rosen

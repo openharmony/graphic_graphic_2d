@@ -721,5 +721,42 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
 #endif
     RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
 }
+
+/**
+ * @tc.name: Rect2SkRect001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, Rect2SkRect001, TestSize.Level1)
+{
+    RectF r;
+    r.SetAll(1.0, 1.0, 1.0, 1.0);
+#ifndef USE_ROSEN_DRAWING
+    auto rect = RSPropertiesPainter::Rect2SkRect(*r);
+    ASSERT_NE(nullptr, rect);
+#else
+    //auto drawRect = RSPropertiesPainter::Rect2DrawingRect(*r);
+    //ASSERT_NE(nullptr, rect);
+#endif
+}
+
+/**
+ * @tc.name: RRect2SkRRect001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, RRect2SkRRect001, TestSize.Level1)
+{
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+#ifndef USE_ROSEN_DRAWING
+    auto rect = RSPropertiesPainter::RRect2SkRRect(*rrect);
+    ASSERT_NE(nullptr, rect);
+#else
+    //auto rect = RSPropertiesPainter::RRect2DrawingRRect(*rrect);
+    //ASSERT_NE(nullptr, rect);
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

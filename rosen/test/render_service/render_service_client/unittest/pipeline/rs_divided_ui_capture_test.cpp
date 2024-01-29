@@ -46,6 +46,22 @@ HWTEST_F(RSDividedUICaptureTest, TakeLocalCapture, TestSize.Level1)
 {
     RSDividedUICapture rsDividedUICapture(1, 1.0, 1.0);
     auto pixelmap = rsDividedUICapture.TakeLocalCapture();
+
+    RSDividedUICapture rsDividedUICapture(1, 0, 1.0);
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    ASSERT_EQ(nullptr, pixelmap);
+
+    RSDividedUICapture rsDividedUICapture(1, 1.0, 0);
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    ASSERT_EQ(nullptr, pixelmap);
+
+    RSDividedUICapture rsDividedUICapture(1, -1, 1);
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    ASSERT_EQ(nullptr, pixelmap);
+
+    RSDividedUICapture rsDividedUICapture(1, 1.0, -1);
+    pixelmap = rsDividedUICapture.TakeLocalCapture();
+    ASSERT_EQ(nullptr, pixelmap);
 }
 
 } // namespace Rosen
