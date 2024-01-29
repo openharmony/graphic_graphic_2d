@@ -30,6 +30,7 @@
 #endif
 
 #include "hm_symbol_txt.h"
+#include "rosen_text/symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,33 +41,64 @@ public:
     ~HMSymbolRun() {}
 
 #ifndef USE_ROSEN_DRAWING
-    static SymbolLayers GetSymbolLayers(const SkGlyphID& glyphId, const HMSymbolTxt& symbolText);
+    SymbolLayers GetSymbolLayers(const SkGlyphID& glyphId, const HMSymbolTxt& symbolText);
 
-    static void SetSymbolRenderColor(const SymbolRenderingStrategy& renderMode,
+    void SetSymbolRenderColor(const SymbolRenderingStrategy& renderMode,
         const std::vector<SColor>& colors, SymbolLayers& symbolInfo);
 
-    static bool GetAnimationGroups(const uint32_t glyohId, const EffectStrategy effectStrategy,
+    bool GetAnimationGroups(const uint32_t glyphid, const EffectStrategy effectStrategy,
         AnimationSetting& animationOut);
 
-    static bool SetGroupsByEffect(const uint32_t glyphId, const EffectStrategy effectStrategy,
+    bool SetGroupsByEffect(const uint32_t glyphId, const EffectStrategy effectStrategy,
         std::vector<RenderGroup>& renderGroups);
 
-    static void DrawSymbol(SkCanvas* canvas, SkTextBlob* blob, const SkPoint& offset,
+    bool SymbolAnimation(const HMSymbolData symbol, const uint32_t glyphid,
+        const std::pair<double, double> offset, const EffectStrategy effectMode);
+
+    void ClearSymbolAnimation(const HMSymbolData symbol, const uint32_t glyphid,
+        const std::pair<double, double> offset);
+
+    void DrawSymbol(SkCanvas* canvas, SkTextBlob* blob, const SkPoint& offset,
         const SkPaint &paint, const HMSymbolTxt &symbolTxt);
 #else
-    static RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
+    RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
 
-    static void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
+    void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
         const std::vector<RSSColor>& colors, RSSymbolLayers& symbolInfo);
     
-    static bool GetAnimationGroups(const uint32_t glyohId, const RSEffectStrategy effectStrategy,
+    bool GetAnimationGroups(const uint32_t glyphid, const RSEffectStrategy effectStrategy,
         RSAnimationSetting& animationOut);
 
-    static bool SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
+    bool SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
         std::vector<RSRenderGroup>& renderGroups);
+
+    bool SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
+        const std::pair<double, double> offset, const RSEffectStrategy effectMode);
+
+    void ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
+        const std::pair<double, double> offset);
     
-    static void DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& offset, const HMSymbolTxt &symbolTxt);
+    void DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& offset, const HMSymbolTxt &symbolTxt);
 #endif
+
+    void SetAnimation(std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
+        animationFunc)
+    {
+        if (animationFunc) {
+            animationFunc_ = animationFunc;
+        }
+    }
+
+    void SetSymbolId(const uint64_t& symbolId)
+    {
+        symbolId_ = symbolId;
+    }
+
+private:
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc_ = nullptr;
+
+    uint64_t symbolId_;
 };
 }
 }
