@@ -356,6 +356,9 @@ void RSBorderFourLineRoundCornerDrawable::Draw(const RSRenderContent& content, R
     Drawing::scalar centerX = innerRrect_.GetRect().GetLeft() + innerRrect_.GetRect().GetWidth() / 2;
     Drawing::scalar centerY = innerRrect_.GetRect().GetTop() + innerRrect_.GetRect().GetHeight() / 2;
     Drawing::Point center = { centerX, centerY };
+    auto rect = rrect_.GetRect();
+    Drawing::SaveLayerOps slr(&rect, nullptr);
+    canvas.SaveLayer(slr);
     if (drawBorder_) {
         properties.GetBorder()->PaintTopPath(canvas, pen, rrect_, center);
         properties.GetBorder()->PaintRightPath(canvas, pen, rrect_, center);
