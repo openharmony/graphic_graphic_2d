@@ -165,6 +165,8 @@ public:
 
     const std::shared_ptr<RSRenderPropertyBase> GetAnimateVelocity() const;
 
+    static bool isCalcAnimateVelocity_;
+
 protected:
     explicit RSRenderAnimation(AnimationId id);
     RSRenderAnimation() = default;

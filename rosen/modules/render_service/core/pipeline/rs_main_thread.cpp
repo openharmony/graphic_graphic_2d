@@ -2036,6 +2036,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     if (receiver_) {
         receiver_->GetVSyncPeriod(period);
     }
+    RSRenderAnimation::isCalcAnimateVelocity_ = isRateDeciderEnabled;
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled,
