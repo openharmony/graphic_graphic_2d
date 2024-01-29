@@ -72,6 +72,9 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
 
 BufferQueueProducer::~BufferQueueProducer()
 {
+    if (token_ && producerSurfaceDeathRecipient_) {
+        token_->RemoveDeathRecipient(producerSurfaceDeathRecipient_);
+    }
 }
 
 GSError BufferQueueProducer::CheckConnectLocked()
