@@ -33,7 +33,7 @@ public:
     explicit HdiLayer(uint32_t screenId);
     virtual ~HdiLayer();
 
-    static constexpr int FRAME_RECORDS_NUM = 128;
+    static constexpr int FRAME_RECORDS_NUM = 256;
 
     /* output create and set layer info */
     static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t screenId);
