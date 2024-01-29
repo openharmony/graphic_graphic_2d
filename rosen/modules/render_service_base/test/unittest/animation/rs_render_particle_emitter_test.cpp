@@ -40,8 +40,8 @@ public:
     void TearDown() override;
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
-    EmitterConfig emiterConfig_;
-    ParticaleVelocity velocity_;
+    EmitterConfig emitterConfig_;
+    ParticleVelocity velocity_;
     RenderParticleAcceleration acceleration_;
     RenderParticleColorParaType color_;
     RenderParticleParaType<float> opacity_;
@@ -65,10 +65,12 @@ void RSRenderParticleEmitterTest::SetEmitConfig()
     float radius = 1;
     std::shared_ptr<RSImage> image;
     Vector2f imageSize = Vector2f(1.f, 1.f);
-    emitterConfig_ = EmitterConfig(
-        emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
-    ParticleVelocity velocity;
-    RenderParticleAcceleration acceleration;
+    emitterConfig_ =
+        EmitterConfig(emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
+}
+
+void RSRenderParticleEmitterTest::SetColor()
+{
     Color start = RSColor(200, 0, 0, 100);
     Color end = RSColor(255, 255, 255, 255);
     Range<Color> colorVal = Range<Color>(start, end);
@@ -113,7 +115,8 @@ void RSRenderParticleEmitterTest::SetUp()
     scale_ = RenderParticleParaType(scaleVal, randomUpdator, scaleRandom, scaleChangeOverLife);
     Range<float> spinRandom = Range<float>(1.f, 0.f);
     spin_ = RenderParticleParaType(scaleVal, randomUpdator, spinRandom, scaleChangeOverLife);
-    params = std::make_shared<ParticleRenderParams>(emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, spin_);
+    params = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, spin_);
     particleEmitter = std::make_shared<RSRenderParticleEmitter>(params);
 }
 void RSRenderParticleEmitterTest::TearDown() {}
