@@ -901,15 +901,9 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
     return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
 }
 
-bool RSSurfaceRenderNode::IsMultiInstance()
-{
-    return GetName().find("filemanager") != std::string::npos || GetName().find("browser") != std::string::npos ||
-        GetName().find("shell_assistant") != std::string::npos;
-}
-
 bool RSSurfaceRenderNode::IsNeedSetVSync()
 {
-    return GetName().substr(0, SCB_NODE_NAME_PREFIX_LENGTH) != "SCB" && !IsMultiInstance();
+    return GetName().substr(0, SCB_NODE_NAME_PREFIX_LENGTH) != "SCB";
 }
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
