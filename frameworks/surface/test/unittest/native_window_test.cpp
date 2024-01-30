@@ -535,7 +535,7 @@ HWTEST_F(NativeWindowTest, GetLastFlushedBuffer001, Function | MediumTest | Leve
 HWTEST_F(NativeWindowTest, GetLastFlushedBuffer002, Function | MediumTest | Level2)
 {
     int code = SET_USAGE;
-    uint64_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_PROTECTED;
+    uint64_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_PROTECTED;
     ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, usage), OHOS::GSERROR_OK);
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
