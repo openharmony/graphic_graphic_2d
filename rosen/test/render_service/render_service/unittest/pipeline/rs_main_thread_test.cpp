@@ -1468,7 +1468,9 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation, TestSize.Level1)
     auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
     curAllSurfaces.emplace_back(nullptr);
     curAllSurfaces.emplace_back(node);
-    mainThread->CalcOcclusionImplementation(curAllSurfaces);
+    VisibleData dstCurVisVec;
+    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
 }
 
 /**
