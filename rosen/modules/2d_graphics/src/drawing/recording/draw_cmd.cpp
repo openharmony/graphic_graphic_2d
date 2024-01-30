@@ -1220,7 +1220,7 @@ void DrawSymbolOpItem::InitialVariableColor()
         animation.endValue = 1; // 1 means alpha end value
         animation.speedValue = 0.08; // 0.08 means alpha change step
         animation.number = 0; // 0 means number of times that the animation to be played
-        animation.startDuration = standStartDuration - 100 * j; //100 is start time duration
+        animation.startDuration = standStartDuration - static_cast<long long>(100 * j); //100 is start time duration
         animation.curTime = standStartTime; // every group have same start timestamp
         animation_.push_back(animation);
         symbol_.symbolInfo_.renderGroups[j].color.a = animation.startValue;

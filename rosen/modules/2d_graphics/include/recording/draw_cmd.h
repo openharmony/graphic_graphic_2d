@@ -544,6 +544,8 @@ public:
         if (brush) {
             hasBrush_ = true;
             brush_ = *brush;
+        } else {
+            hasBrush_ = false;
         }
         image_ = std::make_shared<Image>(*image);
     }
@@ -583,6 +585,8 @@ public:
         if (brush) {
             hasBrush_ = true;
             brush_ = *brush;
+        } else {
+            hasBrush_ = false;
         }
         image_ = std::make_shared<Image>(*image);
     }
@@ -1204,6 +1208,8 @@ public:
         } else if (image != nullptr) {
             image_ = image;
             isImage_ = true;
+        } else {
+            isImage_ = false;
         }
     }
     ~DrawAdaptiveImageOpItem() override = default;
