@@ -1751,7 +1751,7 @@ void RSMainThread::CalcOcclusion()
     }
     std::map<NodeId, std::vector<RSBaseRenderNode::SharedPtr>> curAllSurfacesInDisplay;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    for (const auto& child : node->GetSortedChildren()) {
+    for (const auto& child : *node->GetSortedChildren()) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
         if (displayNode) {
             const auto& surfaces = displayNode->GetCurAllSurfaces();

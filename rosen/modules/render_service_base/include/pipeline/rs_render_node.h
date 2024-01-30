@@ -145,11 +145,11 @@ public:
 
     bool GetIsTextureExportNode() const;
 
-    using ChildrenListSharedPtr = std::shared_ptr<const std::list<std::shared_ptr<RSRenderNode>>>;
+    using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
-    ChildrenListSharedPtr GetChildren();
+    ChildrenListSharedPtr GetChildren() const;
     // return children and disappeared children, sorted by z-index
-    ChildrenListSharedPtr GetSortedChildren();
+    ChildrenListSharedPtr GetSortedChildren() const;
     uint32_t GetChildrenCount() const;
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
 
@@ -559,7 +559,6 @@ private:
     ChildrenListSharedPtr fullChildrenList_;
     bool isFullChildrenListValid_ = false;
     bool isChildrenSorted_ = false;
-    std::mutex fullChildrenListMutex_;
 
     void UpdateFullChildrenListIfNeeded();
     void GenerateFullChildrenList();
