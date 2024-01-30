@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSCubicBezierInterpolator : public RSInterpolator {
 public:
-    RSCubicBezierInterpolator(float ctrx1, float ctry1, float ctrx2, float ctry2);
+    RSCubicBezierInterpolator(float ctlX1, float ctlY1, float ctlX2, float ctlY2);
     ~RSCubicBezierInterpolator() override = default;
 
     float InterpolateImpl(float input) const override;
@@ -34,19 +34,17 @@ public:
     [[nodiscard]] static RSCubicBezierInterpolator* Unmarshalling(Parcel& parcel);
 
 private:
-    RSCubicBezierInterpolator(uint64_t id, float ctrx1, float ctry1, float ctrx2, float ctry2);
-    float GetCubicBezierValue(const float time, const float ctr1, const float ctr2) const;
+    RSCubicBezierInterpolator(uint64_t id, float ctlX1, float ctlY1, float ctlX2, float ctlY2);
 
     int BinarySearch(float key) const;
 
     constexpr static int MAX_RESOLUTION = 4000;
     constexpr static float SEARCH_STEP = 1.0f / MAX_RESOLUTION;
-    constexpr static int THIRD_RDER = 3.0;
 
-    float controllx1_;
-    float controlly1_;
-    float controllx2_;
-    float controlly2_;
+    float controlX1_;
+    float controlY1_;
+    float controlX2_;
+    float controlY2_;
 };
 } // namespace Rosen
 } // namespace OHOS
