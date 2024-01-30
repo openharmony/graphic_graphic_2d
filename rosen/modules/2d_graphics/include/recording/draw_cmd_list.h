@@ -52,7 +52,7 @@ public:
     /*
      * @brief   Destroy a DrawCmdList
      */
-    ~DrawCmdList() override = default;
+    ~DrawCmdList() override;
 
     uint32_t GetType() const override
     {
