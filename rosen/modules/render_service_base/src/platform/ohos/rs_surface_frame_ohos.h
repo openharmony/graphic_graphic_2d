@@ -26,6 +26,7 @@ class RenderContext;
 class RSSurfaceFrameOhos : public RSSurfaceFrame {
 public:
     virtual void SetRenderContext(RenderContext* context);
+    virtual ~RSSurfaceFrameOhos() = default;
 protected:
     RenderContext* renderContext_;
 };

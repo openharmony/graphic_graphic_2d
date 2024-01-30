@@ -31,6 +31,7 @@ namespace {
     const uint8_t* g_data = nullptr;
     size_t g_size = 0;
     size_t g_pos = 0;
+    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
 } // namespace
 
 template<class T>
@@ -59,12 +60,11 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RSSurfaceFrameOhosRaster rsSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
+    auto rsSurfaceFrameOhosRaster = RSSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
 #if ACE_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        RenderContext renderContext_;
-        rsSurfaceFrameOhosRaster.SetRenderContext(&renderContext_);
+        rsSurfaceFrameOhosRaster.SetRenderContext(renderContext.get());
     }
 #endif
     (void)rsSurfaceFrameOhosRaster.GetBufferAge();
