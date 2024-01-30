@@ -67,7 +67,7 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromPosText(const void* text, size_t
     auto skFont = skiaFont->GetFont();
     const int count = skFont.countText(text, byteLength, skEncoding);
     SkPoint skPts[count];
-    for (size_t i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i) {
         skPts[i] = {pos[i].GetX(), pos[i].GetY()};
     }
     sk_sp<SkTextBlob> skTextBlob = SkTextBlob::MakeFromPosText(text, byteLength, skPts, skFont, skEncoding);
