@@ -62,53 +62,51 @@ void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser
     }
 }
 
-void FontParser::GetStringFromNameId(FontParser::NameId nameId, const std::string& nameString,
+void FontParser::GetStringFromNameId(FontParser::NameId nameId, unsigned int languageId, const std::string& nameString,
     FontParser::FontDescriptor& fontDescriptor)
 {
     switch (nameId) {
         case FontParser::NameId::FONT_FAMILY: {
-            if (fontDescriptor.fontFamily.size() == 0) {
-#ifdef BUILD_NON_SDK_VER
-                fontDescriptor.fontFamily = GbkToUtf8(nameString);
-#else
-                fontDescriptor.fontFamily = nameString;
-#endif
-            }
+            SetNameString(fontDescriptor, fontDescriptor.fontFamily, fontDescriptor.fontFamilyLid,
+                languageId, nameString);
             break;
         }
         case FontParser::NameId::FONT_SUBFAMILY: {
-            if (fontDescriptor.fontSubfamily.size() == 0) {
-#ifdef BUILD_NON_SDK_VER
-                fontDescriptor.fontSubfamily = GbkToUtf8(nameString);
-#else
-                fontDescriptor.fontSubfamily = nameString;
-#endif
-            }
+            SetNameString(fontDescriptor, fontDescriptor.fontSubfamily, fontDescriptor.fontSubfamilyLid,
+                languageId, nameString);
             break;
         }
         case FontParser::NameId::FULL_NAME: {
-            if (fontDescriptor.fullName.size() == 0) {
-#ifdef BUILD_NON_SDK_VER
-                fontDescriptor.fullName = GbkToUtf8(nameString);
-#else
-                fontDescriptor.fullName = nameString;
-#endif
-            }
+            SetNameString(fontDescriptor, fontDescriptor.fullName, fontDescriptor.fullNameLid,
+                languageId, nameString);
             break;
         }
         case FontParser::NameId::POSTSCRIPT_NAME: {
-            if (fontDescriptor.postScriptName.size() == 0) {
-#ifdef BUILD_NON_SDK_VER
-                fontDescriptor.postScriptName = GbkToUtf8(nameString);
-#else
-                fontDescriptor.postScriptName = nameString;
-#endif
-            }
+            SetNameString(fontDescriptor, fontDescriptor.postScriptName, fontDescriptor.postScriptNameLid,
+                languageId, nameString);
             break;
         }
         default: {
             break;
         }
+    }
+}
+
+void FontParser::SetNameString(FontParser::FontDescriptor& fontDescriptor, std::string& field, unsigned int& fieldLid,
+    unsigned int languageId, const std::string& nameString)
+{
+    bool willSet = field.empty();
+    if (!willSet) {
+        if (languageId == fontDescriptor.requestedLid) {
+            willSet = true;
+        } else if (fieldLid != fontDescriptor.requestedLid && languageId == LANGUAGE_DEFAULT) {
+            willSet = true;
+        }
+    }
+
+    if (willSet) {
+        fieldLid = languageId;
+        field = nameString;
     }
 }
 
@@ -122,37 +120,25 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
             continue;
         }
         FontParser::NameId nameId = static_cast<FontParser::NameId>(nameTable->nameRecord[i].nameId.Get());
+        unsigned int languageId = static_cast<unsigned int>(nameTable->nameRecord[i].languageId.Get());
         FontParser::PlatformId platformId =
             static_cast<FontParser::PlatformId>(nameTable->nameRecord[i].platformId.Get());
         auto len = nameTable->nameRecord[i].length.Get();
         auto stringOffset = nameTable->nameRecord[i].stringOffset.Get();
         const char* data = stringStorage + stringOffset;
         if (platformId == FontParser::PlatformId::MACINTOSH) {
-            std::string nameString(data, len);
-            GetStringFromNameId(nameId, nameString, fontDescriptor);
-        } else if (platformId == FontParser::PlatformId::WINDOWS) {
-            char* buffer = new (std::nothrow) char[len]();
-            if (buffer == nullptr) {
-                return FAILED;
-            }
 #ifdef BUILD_NON_SDK_VER
-            if (memcpy_s(buffer, len, data, len) != EOK) {
-                LOGSO_FUNC_LINE(ERROR) << "memcpy failed";
-                delete[] buffer;
-                return FAILED;
-            }
+            std::string nameString = ToUtf8(std::string(data, len));
 #else
-            memcpy(buffer, data, len);
+            std::string nameString(data, len);
 #endif
-            const char16_t *strPtr = reinterpret_cast<const char16_t *>(buffer);
-            const std::u16string u16str(strPtr, strPtr + HALF(len));
+            GetStringFromNameId(nameId, languageId, nameString, fontDescriptor);
+        } else if (platformId == FontParser::PlatformId::WINDOWS) {
             std::wstring_convert<std::codecvt_utf16<char16_t>, char16_t> converter;
-            const std::string name = converter.to_bytes(u16str);
-            std::vector<char> vec(name.begin(), name.end());
-            vec.erase(std::remove(vec.begin(), vec.end(), '\0'), vec.end());
-            std::string nameString = std::string(vec.begin(), vec.end());
-            GetStringFromNameId(nameId, nameString, fontDescriptor);
-            delete[] buffer;
+            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converterUtf8;
+            const std::u16string u16str = converter.from_bytes(data, data + len);
+            std::string nameString = converterUtf8.to_bytes(u16str);
+            GetStringFromNameId(nameId, languageId, nameString, fontDescriptor);
         }
     }
 
@@ -286,10 +272,11 @@ int FontParser::ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontParser
     return SUCCESSED;
 }
 
-int FontParser::SetFontDescriptor()
+int FontParser::SetFontDescriptor(const unsigned int languageId)
 {
     for (unsigned int i = 0; i < fontSet_.size(); ++i) {
         FontParser::FontDescriptor fontDescriptor;
+        fontDescriptor.requestedLid = languageId;
         fontDescriptor.path = fontSet_[i];
         const char* path = fontSet_[i].c_str();
         auto typeface = TexgineTypeface::MakeFromFile(path);
@@ -315,7 +302,7 @@ int FontParser::SetFontDescriptor()
 }
 
 #ifdef BUILD_NON_SDK_VER
-std::string FontParser::GbkToUtf8(const std::string& gbkStr)
+std::string FontParser::ToUtf8(const std::string& str)
 {
     std::string utf8Str;
     // UTF-8 and GB2312 is encoding format of string
@@ -323,8 +310,8 @@ std::string FontParser::GbkToUtf8(const std::string& gbkStr)
     if (conv == (iconv_t)-1) {
         return utf8Str;
     }
-    char* inBuf = const_cast<char*>(gbkStr.c_str());
-    size_t inBytesLeft = gbkStr.length();
+    char* inBuf = const_cast<char*>(str.c_str());
+    size_t inBytesLeft = str.length();
     size_t outBytesLeft = inBytesLeft * 2;
     char* outBuf = new char[outBytesLeft];
     char* outBufStart = outBuf;
@@ -338,9 +325,9 @@ std::string FontParser::GbkToUtf8(const std::string& gbkStr)
 }
 #endif
 
-std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts()
+std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts(const std::string locale)
 {
-    if (SetFontDescriptor() != SUCCESSED) {
+    if (SetFontDescriptor(GetLanguageId(locale)) != SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "set visibility font descriptor failed";
     }
 
