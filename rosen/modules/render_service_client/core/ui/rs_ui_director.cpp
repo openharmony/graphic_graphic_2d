@@ -82,6 +82,9 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
             RSRenderThread::Instance().SetCacheDir(cacheDir_);
         }
         RSRenderThread::Instance().Start();
+    } else {
+        // force fallback animaiions send to RS if no render thread
+        RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
     }
     RSApplicationAgentImpl::Instance().RegisterRSApplicationAgent();
 

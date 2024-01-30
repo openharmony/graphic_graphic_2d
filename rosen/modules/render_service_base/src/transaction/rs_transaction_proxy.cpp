@@ -71,7 +71,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
 
-    if (renderServiceClient_ != nullptr && isRenderServiceCommand) {
+    if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
         AddRemoteCommand(command, nodeId, followType);
         return;
     }
