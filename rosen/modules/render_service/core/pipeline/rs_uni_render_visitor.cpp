@@ -118,13 +118,14 @@ bool CheckScbReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
     bool result = false;
+    auto sortedChildren = node.GetSortedChildren();
     if (node.IsScbScreen()) {
-        for (const auto& child : *node.GetSortedChildren()) {
+        for (const auto& child : *sortedChildren) {
             result = CheckScbReadyToDraw(child);
         }
         return result;
     }
-    for (auto& child : *node.GetSortedChildren()) {
+    for (auto& child : *sortedChildren) {
         result = CheckRootNodeReadyToDraw(child);
         // when appWindow has abilityComponent node
         if (child != nullptr && child->IsInstanceOf<RSSurfaceRenderNode>()) {
@@ -298,7 +299,7 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
 }
 
 void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode>& cacheRootNode,
-    const std::list<RSRenderNode::SharedPtr>& children)
+    const std::vector<RSRenderNode::SharedPtr>& children)
 {
     for (auto& child : children) {
         if (child == nullptr) {
@@ -2190,15 +2191,16 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     }
 
     CheckSkipRepeatShadow(node, false);
+    const auto children = node.GetSortedChildren();
 
     if (isSubThread_) {
         ProcessShadowFirst(node, isSubThread_);
-        for (auto child : *node.GetSortedChildren()) {
+        for (auto child : *children) {
             ProcessChildInner(node, child);
         }
     } else {
         ProcessShadowFirst(node, isSubThread_);
-        for (auto child : *node.GetSortedChildren()) {
+        for (auto child : *children) {
             SetNodeSkipShadow(child, false);
             ProcessChildInner(node, child);
             SetNodeSkipShadow(child, true);
@@ -5193,12 +5195,13 @@ void RSUniRenderVisitor::SetHardwareEnabledNodes(
 
 bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
-    if (!IsHardwareComposerEnabled() || rootNode->GetChildrenCount() == 0) {
+    auto children = rootNode->GetChildren();
+    if (!IsHardwareComposerEnabled() || children->empty()) {
         RS_LOGD("RSUniRenderVisitor::DoDirectComposition HardwareComposer disabled");
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
-    auto child = rootNode->GetFirstChild();
+    auto& child = children->front();
     if (child == nullptr || !child->IsInstanceOf<RSDisplayRenderNode>()) {
         RS_LOGE("RSUniRenderVisitor::DoDirectComposition child type not match");
         return false;

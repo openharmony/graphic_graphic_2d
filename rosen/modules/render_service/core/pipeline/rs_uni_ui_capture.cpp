@@ -355,15 +355,16 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessChildren(RSRenderNode& node)
 {
+    auto sortedChildren = node.GetSortedChildren();
     if (RSSystemProperties::GetUseShadowBatchingEnabled()
         && (node.GetRenderProperties().GetUseShadowBatching())) {
-        for (auto& child : *node.GetSortedChildren()) {
+        for (auto& child : *sortedChildren) {
             if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
                 node->ProcessShadowBatching(*canvas_);
             }
         }
     }
-    for (auto& child : *node.GetSortedChildren()) {
+    for (auto& child : *sortedChildren) {
         child->Process(shared_from_this());
     }
 }

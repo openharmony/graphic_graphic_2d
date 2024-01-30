@@ -204,9 +204,8 @@ void RSSurfaceRenderNode::PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas
     canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
-void RSSurfaceRenderNode::CollectSurface(
-    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender,
-    bool onlyFirstLevel)
+void RSSurfaceRenderNode::CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
+    std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender, bool onlyFirstLevel)
 {
     if (IsScbScreen()) {
         for (auto& child : *node->GetSortedChildren()) {
@@ -1583,12 +1582,9 @@ std::vector<std::shared_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetLeashW
     if (!IsLeashWindow()) {
         return res;
     }
-    for (auto& childNode : *GetChildren()) {
-        if (childNode) {
-            auto childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
-            if (childNodeSurface) {
+    for (auto& childNode : *GetSortedChildren()) {
+        if (auto childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode)) {
                 res.emplace_back(childNodeSurface);
-            }
         }
     }
     return res;
