@@ -225,4 +225,50 @@ HWTEST(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener001, TestSize.Lev
     renderEngine->RegisterDeleteBufferListener(node->GetConsumer(), false);
 }
 #endif
+
+#ifdef USE_ROSEN_DRAWING
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: ConvertColorGamutToDrawingColorSpace
+ * @tc.desc: Test ConvertColorGamutToDrawingColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issueI6GJ1Z
+ */
+HWTEST(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::ColorSpace> colorSpace;
+    colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_NE(colorSpace, nullptr);
+    colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    ASSERT_NE(colorSpace, nullptr);
+    colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_BT2020);
+    ASSERT_NE(colorSpace, nullptr);
+    colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
+    ASSERT_EQ(colorSpace, nullptr);
+}
+#endif
+
+/**
+ * @tc.name: DrawDisplayNodeWithParams
+ * @tc.desc: Test DrawDisplayNodeWithParams
+ * @tc.type: FUNC
+ * @tc.require: issueI6GJ1Z
+ */
+HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->Init(true);
+    auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
+    drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+    RSPaintFilterCanvas recordingCanvas(drawingRecordingCanvas.get());
+    
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode node(id, config);
+
+    BufferDrawParam param;
+    renderEngine->DrawDisplayNodeWithParams(recordingCanvas, node, param);
+}
+#endif
 }
