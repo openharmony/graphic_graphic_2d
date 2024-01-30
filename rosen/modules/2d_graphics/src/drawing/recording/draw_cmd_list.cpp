@@ -111,6 +111,11 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMo
     opAllocator_.Add(&height_, sizeof(int32_t));
 }
 
+DrawCmdList::~DrawCmdList()
+{
+    ClearOp();
+}
+
 bool DrawCmdList::AddDrawOp(std::shared_ptr<DrawOpItem>&& drawOpItem)
 {
     if (mode_ != DrawCmdList::UnmarshalMode::DEFERRED) {
@@ -505,7 +510,9 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
         lastOpGenSize_ = opAllocator_.GetSize();
     }
     for (auto op : drawOpItems_) {
-        op->Playback(&canvas, rect);
+        if (op) {
+            op->Playback(&canvas, rect);
+        }
     }
     canvas.DetachPaint();
 }

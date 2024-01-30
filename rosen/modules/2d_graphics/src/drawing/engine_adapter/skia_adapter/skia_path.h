@@ -29,7 +29,7 @@ class DRAWING_API SkiaPath : public PathImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
-    SkiaPath() noexcept;
+    SkiaPath() noexcept {};
     ~SkiaPath() override {};
     SkiaPath(const SkiaPath& p) noexcept;
     SkiaPath &operator=(const SkiaPath& p) noexcept;
