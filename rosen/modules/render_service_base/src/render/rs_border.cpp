@@ -501,6 +501,7 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Dr
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
             canvas.DrawRect(topBorder.GetBounds());
@@ -634,6 +635,7 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const 
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
             canvas.DrawRect(rightBorder.GetBounds());
@@ -771,6 +773,7 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
             canvas.DrawRect(bottomBorder.GetBounds());
@@ -904,6 +907,7 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const D
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
             canvas.DrawRect(leftBorder.GetBounds());
