@@ -58,7 +58,7 @@ public:
     void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
 
     void ProcessChildren(RSRenderNode& node) override;
-    void ProcessChildInner(RSRenderNode& node, const RSRenderNode::SharedPtr& child);
+    void ProcessChildInner(RSRenderNode& node, const RSRenderNode::SharedPtr child);
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
     void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override;
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
@@ -74,6 +74,7 @@ public:
     bool InitNodeCache(RSRenderNode& node);
     void CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor);
     void CheckSkipRepeatShadow(RSRenderNode& node, const bool resetStatus);
+    void SetNodeSkipShadow(std::shared_ptr<RSRenderNode> node, const bool resetStatus);
     void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
     {
         renderEngine_ = renderEngine;
@@ -167,6 +168,8 @@ public:
     {
         screenInfo_ = screenInfo;
     }
+
+    static void ClearRenderGroupCache();
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:

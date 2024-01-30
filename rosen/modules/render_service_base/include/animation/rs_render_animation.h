@@ -146,6 +146,11 @@ public:
         return calculateAnimationValue_;
     }
 
+    bool GetNeedUpdateStartTime() const
+    {
+        return needUpdateStartTime_;
+    }
+
     void Attach(RSRenderNode* renderNode);
     void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
@@ -159,6 +164,8 @@ public:
     void SetStartTime(int64_t);
 
     const std::shared_ptr<RSRenderPropertyBase> GetAnimateVelocity() const;
+
+    static bool isCalcAnimateVelocity_;
 
 protected:
     explicit RSRenderAnimation(AnimationId id);
@@ -219,6 +226,7 @@ private:
     RSRenderNode* target_ { nullptr };
 
     friend class RSAnimation;
+    friend class RSModifierManager;
 };
 } // namespace Rosen
 } // namespace OHOS

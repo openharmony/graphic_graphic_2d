@@ -73,6 +73,7 @@ struct JankFrameRecordStats {
 };
 
 struct AnimationTraceStats {
+    std::pair<int64_t, std::string> animationId_ = { -1, "" };
     std::string traceName_;
     int64_t traceCreateTimeSteady_ = TIMESTAMP_INITIAL;
     bool isDisplayAnimator_ = false;
@@ -114,7 +115,7 @@ private:
     void RecordJankFrame();
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);
     void RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool isReportTaskDelayed);
-    void SetAnimationTraceBegin(const JankFrames& jankFrames);
+    void SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, const JankFrames& jankFrames);
     void SetAnimationTraceEnd(const JankFrames& jankFrames);
     void CheckAnimationTraceTimeout();
     std::string GetSceneDescription(const DataBaseRs& info) const;

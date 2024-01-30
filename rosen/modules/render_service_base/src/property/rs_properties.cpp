@@ -1699,6 +1699,16 @@ bool RSProperties::GetUseShadowBatching() const
     return useShadowBatching_;
 }
 
+void RSProperties::SetNeedSkipShadow(bool needSkipShadow)
+{
+    needSkipShadow_ = needSkipShadow;
+}
+
+bool RSProperties::GetNeedSkipShadow() const
+{
+    return needSkipShadow_;
+}
+
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
     pixelStretch_ = stretchSize;
@@ -1973,7 +1983,6 @@ void RSProperties::SetAiInvert(const std::optional<Vector4f>& aiInvert)
 {
     aiInvert_ = aiInvert;
     colorFilterNeedUpdate_ = true;
-    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
     isDrawn_ = true;
@@ -2800,22 +2809,14 @@ void RSProperties::OnApplyModifiers()
         if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
             filterNeedUpdate_ = true;
         }
-        if (aiInvert_.has_value() || systemBarEffect_) {
+        if (systemBarEffect_) {
             auto aiBarFilter = std::make_shared<RSAIBarFilter>();
             backgroundFilter_ = aiBarFilter;
         }
         if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
-            if (backgroundFilter_->GetFilterType() == RSFilter::MATERIAL) {
-                auto filter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter_);
-                filter->ReleaseColorPickerFilter();
-            }
             backgroundFilter_.reset();
         }
         if (filter_ != nullptr && !filter_->IsValid()) {
-            if (filter_->GetFilterType() == RSFilter::MATERIAL) {
-                auto filter = std::static_pointer_cast<RSMaterialFilter>(filter_);
-                filter->ReleaseColorPickerFilter();
-            }
             filter_.reset();
         }
         IfLinearGradientBlurInvalid();
@@ -2920,16 +2921,9 @@ void RSProperties::ReleaseColorPickerTaskShadow() const
     if (colorPickerTaskShadow_ == nullptr) {
         return;
     }
-    #ifdef IS_OHOS
-    auto initHandler = colorPickerTaskShadow_->GetInitHandler();
-        if (initHandler != nullptr) {
-            auto task = colorPickerTaskShadow_;
-            task->SetWaitRelease(true);
-            initHandler->PostTask(
-                [task]() { task->ReleaseColorPicker(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        }
-    #endif
+    colorPickerTaskShadow_->ReleaseColorPicker();
 }
+
 
 bool RSProperties::GetHaveEffectRegion() const
 {

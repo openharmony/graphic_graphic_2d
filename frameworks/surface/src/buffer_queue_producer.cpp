@@ -72,6 +72,9 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
 
 BufferQueueProducer::~BufferQueueProducer()
 {
+    if (token_ && producerSurfaceDeathRecipient_) {
+        token_->RemoveDeathRecipient(producerSurfaceDeathRecipient_);
+    }
 }
 
 GSError BufferQueueProducer::CheckConnectLocked()
@@ -219,7 +222,7 @@ int32_t BufferQueueProducer::AttachBufferRemote(MessageParcel &arguments, Messag
         reply.WriteInt32(ret);
         return 0;
     }
-    timeOut = arguments.ReadUint32();
+    timeOut = arguments.ReadInt32();
 
     ret = AttachBuffer(buffer, timeOut);
     reply.WriteInt32(ret);

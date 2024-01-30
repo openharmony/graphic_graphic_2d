@@ -287,8 +287,8 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
     auto bufferId = buffer->GetSeqNum();
     RS_OPTIONAL_TRACE_NAME_FMT("MapEglImage seqNum: %d", bufferId);
     RS_LOGD("RSEglImageManager::MapEglImageFromSurfaceBuffer: %{public}d", bufferId);
-    bool isImageCacheNotFound = false;
     {
+        bool isImageCacheNotFound = false;
         std::lock_guard<std::mutex> lock(opMutex_);
         isImageCacheNotFound = imageCacheSeqs_.count(bufferId) == 0 || imageCacheSeqs_[bufferId] == nullptr;
         if (!isImageCacheNotFound) {

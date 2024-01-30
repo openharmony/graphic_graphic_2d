@@ -47,6 +47,7 @@
 
 namespace OHOS {
 namespace Rosen {
+const int SCB_NODE_NAME_PREFIX_LENGTH = 3;
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(config.id, context, config.isTextureExportNode), RSSurfaceHandler(config.id), name_(config.name),
@@ -900,10 +901,9 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
     return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
 }
 
-bool RSSurfaceRenderNode::IsMultiInstance()
+bool RSSurfaceRenderNode::IsNeedSetVSync()
 {
-    return GetName().find("filemanager") != std::string::npos || GetName().find("browser") != std::string::npos ||
-        GetName().find("shell_assistant") != std::string::npos;
+    return GetName().substr(0, SCB_NODE_NAME_PREFIX_LENGTH) != "SCB";
 }
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
@@ -927,7 +927,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
     // collect visible changed pid
     if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE && !isSystemAnimatedScenes) {
         uint32_t tmpPid = ExtractPid(GetId());
-        pidVisMap[tmpPid] = IsMultiInstance() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
+        pidVisMap[tmpPid] = !IsNeedSetVSync() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
     }
 
     visibleRegionForCallBack_ = region;
@@ -1599,7 +1599,7 @@ bool RSSurfaceRenderNode::IsHistoryOccludedDirtyRegionNeedSubmit()
     return (hasUnSubmittedOccludedDirtyRegion_ &&
         !historyUnSubmittedOccludedDirtyRegion_.IsEmpty() &&
         !visibleRegion_.IsEmpty() &&
-        !visibleRegion_.IsIntersectWith(historyUnSubmittedOccludedDirtyRegion_));
+        visibleRegion_.IsIntersectWith(historyUnSubmittedOccludedDirtyRegion_));
 }
 
 void RSSurfaceRenderNode::ClearHistoryUnSubmittedDirtyInfo()
@@ -1647,8 +1647,7 @@ bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
 
 bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 {
-    bool isDirty = deviceType == DeviceType::PC ?
-        (IsMainWindowType() && !surfaceCacheContentStatic_) :
+    bool isDirty = deviceType == DeviceType::PC ? !surfaceCacheContentStatic_ :
         (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty());
     if (isDirty) {
         return false;
@@ -1658,8 +1657,7 @@ bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
     } else if (IsLeashWindow()) {
         auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
         // leashwindow children changed or has other type node except surfacenode
-        if (deviceType == DeviceType::PC && (lastFrameChildrenCnt_ != GetChildren().size() ||
-            nestedSurfaceNodes.size() != GetChildren().size())) {
+        if (deviceType == DeviceType::PC && lastFrameChildrenCnt_ != GetChildren().size()) {
             return false;
         }
         for (auto& nestedSurface: nestedSurfaceNodes) {
@@ -1704,6 +1702,9 @@ bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
         return true;
     } else if (IsLeashWindow()) {
         auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
+        if (nestedSurfaceNodes.empty()) {
+            return false;
+        }
         for (auto& nestedSurface: nestedSurfaceNodes) {
             if (nestedSurface && !nestedSurface->IsVisibleDirtyEmpty(deviceType)) {
                 return false;

@@ -581,9 +581,13 @@ float RSRenderParticle::GetRandomValue(float min, float max)
         std::swap(min, max);
     }
     std::random_device rd;
-    std::mt19937_64 gen(rd());
-    std::uniform_real_distribution<float> dis(min, max);
-    return dis(gen);
+    if (rd.entropy() > 0) {
+        std::mt19937_64 gen(rd());
+        std::uniform_real_distribution<float> dis(min, max);
+        return dis(gen);
+    } else {
+        return min + (max - min) / 2.0f;
+    }
 }
 
 Vector2f RSRenderParticle::CalculateParticlePosition(

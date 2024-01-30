@@ -307,6 +307,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    bool IsNeedSetVSync();
 
     void SetContextBounds(const Vector4f bounds);
 
@@ -358,7 +359,6 @@ public:
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
-    bool IsMultiInstance();
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;

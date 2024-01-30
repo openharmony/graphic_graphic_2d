@@ -102,7 +102,7 @@ std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data
     return cmdList;
 }
 
-DrawCmdList::DrawCmdList(DrawCmdList::UnmarshalMode mode) : mode_(mode) {}
+DrawCmdList::DrawCmdList(DrawCmdList::UnmarshalMode mode) : width_(0), height_(0), mode_(mode) {}
 
 DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMode mode)
     : width_(width), height_(height), mode_(mode)
@@ -207,7 +207,7 @@ void DrawCmdList::MarshallingDrawOps()
     uint32_t opReplaceIndex = 0;
     for (size_t index = 0; index < drawOpItems_.size(); index++) {
         drawOpItems_[index]->Marshalling(*this);
-        if (index == replacedOpListForVector_[opReplaceIndex].first) {
+        if (index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
             opIndexForCache[opReplaceIndex] = lastOpItemOffset_.value();
             ++opReplaceIndex;
         }

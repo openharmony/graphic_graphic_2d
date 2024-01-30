@@ -457,6 +457,7 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Dr
             topClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + topW * EXTEND);
             topClipPath.LineTo(offsetX, offsetY + topW * EXTEND);
             topClipPath.Close();
+            topClipPath.Offset(-0.5, 0);
             canvas.ClipPath(topClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
@@ -485,6 +486,7 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Dr
             topClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + topW * EXTEND);
             topClipPath.LineTo(offsetX + width, offsetY + topW * EXTEND);
             topClipPath.Close();
+            topClipPath.Offset(0.5, 0);
             canvas.ClipPath(topClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
@@ -589,6 +591,7 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const 
             rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + topW * EXTEND);
             rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY);
             rightClipPath.Close();
+            rightClipPath.Offset(0, -0.5);
             canvas.ClipPath(rightClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
@@ -617,6 +620,7 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const 
             rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + height - bottomW * EXTEND);
             rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + height);
             rightClipPath.Close();
+            rightClipPath.Offset(0, 0.5);
             canvas.ClipPath(rightClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
@@ -725,6 +729,7 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const
             bottomClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + height - bottomW * EXTEND);
             bottomClipPath.LineTo(offsetX + width, offsetY + height - bottomW * EXTEND);
             bottomClipPath.Close();
+            bottomClipPath.Offset(0.5, 0);
             canvas.ClipPath(bottomClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
@@ -753,6 +758,7 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const
             bottomClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + height - bottomW * EXTEND);
             bottomClipPath.LineTo(offsetX, offsetY + height - bottomW * EXTEND);
             bottomClipPath.Close();
+            bottomClipPath.Offset(-0.5, 0);
             canvas.ClipPath(bottomClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
@@ -856,6 +862,7 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const D
             leftClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + height - bottomW * EXTEND);
             leftClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + height);
             leftClipPath.Close();
+            leftClipPath.Offset(0, 0.5);
             canvas.ClipPath(leftClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
@@ -872,20 +879,21 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const D
         if ((style == BorderStyle::SOLID) || (ROSEN_EQ(tlX, 0.f) && !ROSEN_EQ(topW, 0.f))) {
 #ifndef USE_ROSEN_DRAWING
             leftBorder.lineTo(offsetX + leftW / 2.0f, offsetY);
-            SkPath topClipPath;
-            topClipPath.moveTo(offsetX - leftW, offsetY - topW);
-            topClipPath.lineTo(offsetX + leftW * EXTEND, offsetY + topW * EXTEND);
-            topClipPath.lineTo(offsetX + leftW * EXTEND, offsetY);
-            topClipPath.close();
-            canvas.clipPath(topClipPath, SkClipOp::kDifference, true);
+            SkPath leftClipPath;
+            leftClipPath.moveTo(offsetX - leftW, offsetY - topW);
+            leftClipPath.lineTo(offsetX + leftW * EXTEND, offsetY + topW * EXTEND);
+            leftClipPath.lineTo(offsetX + leftW * EXTEND, offsetY);
+            leftClipPath.close();
+            canvas.clipPath(leftClipPath, SkClipOp::kDifference, true);
 #else
             leftBorder.LineTo(offsetX + leftW / 2.0f, offsetY);
-            Drawing::Path topClipPath;
-            topClipPath.MoveTo(offsetX - leftW, offsetY - topW);
-            topClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + topW * EXTEND);
-            topClipPath.LineTo(offsetX + leftW * EXTEND, offsetY);
-            topClipPath.Close();
-            canvas.ClipPath(topClipPath, Drawing::ClipOp::DIFFERENCE, true);
+            Drawing::Path leftClipPath;
+            leftClipPath.MoveTo(offsetX - leftW, offsetY - topW);
+            leftClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + topW * EXTEND);
+            leftClipPath.LineTo(offsetX + leftW * EXTEND, offsetY);
+            leftClipPath.Close();
+            leftClipPath.Offset(0, -0.5);
+            canvas.ClipPath(leftClipPath, Drawing::ClipOp::DIFFERENCE, true);
 #endif
         }
 #ifndef USE_ROSEN_DRAWING

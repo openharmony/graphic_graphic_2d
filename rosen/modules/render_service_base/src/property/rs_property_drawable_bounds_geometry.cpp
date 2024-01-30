@@ -356,6 +356,9 @@ void RSBorderFourLineRoundCornerDrawable::Draw(const RSRenderContent& content, R
     Drawing::scalar centerX = innerRrect_.GetRect().GetLeft() + innerRrect_.GetRect().GetWidth() / 2;
     Drawing::scalar centerY = innerRrect_.GetRect().GetTop() + innerRrect_.GetRect().GetHeight() / 2;
     Drawing::Point center = { centerX, centerY };
+    auto rect = rrect_.GetRect();
+    Drawing::SaveLayerOps slr(&rect, nullptr);
+    canvas.SaveLayer(slr);
     if (drawBorder_) {
         properties.GetBorder()->PaintTopPath(canvas, pen, rrect_, center);
         properties.GetBorder()->PaintRightPath(canvas, pen, rrect_, center);
@@ -625,7 +628,7 @@ void RSPathMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
 RSPropertyDrawable::DrawablePtr RSShadowBaseDrawable::Generate(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
-    if (properties.IsSpherizeValid() || !properties.IsShadowValid()) {
+    if (properties.IsSpherizeValid() || !properties.IsShadowValid() || properties.GetNeedSkipShadow()) {
         return nullptr;
     }
     if (properties.GetShadowMask()) {
@@ -909,6 +912,22 @@ RSPropertyDrawable::DrawablePtr RSLightUpEffectDrawable::Generate(const RSRender
 bool RSLightUpEffectDrawable::Update(const RSRenderContent& content)
 {
     return content.GetRenderProperties().IsLightUpEffectValid();
+}
+
+// ============================================================================
+// Binarization
+void RSBinarizationDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    RSPropertiesPainter::DrawBinarizationShader(content.GetRenderProperties(), canvas);
+}
+ 
+RSPropertyDrawable::DrawablePtr RSBinarizationDrawable::Generate(const RSRenderContent& content)
+{
+    auto& aiInvert = content.GetRenderProperties().GetAiInvert();
+    if (!aiInvert.has_value()) {
+        return nullptr;
+    }
+    return std::make_unique<RSBinarizationDrawable>();
 }
 
 // ============================================================================

@@ -74,6 +74,7 @@ public:
     virtual void Reset() = 0;
 
     virtual bool GetMinMaxScales(scalar scaleFactors[2]) = 0;
+    virtual bool HasPerspective() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

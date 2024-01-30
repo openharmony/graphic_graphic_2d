@@ -1838,7 +1838,14 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         canvas.DrawImage(*cacheImage, -shadowRectOffsetX_ * scaleX + gravityTranslate.x_,
             -shadowRectOffsetY_ * scaleY + gravityTranslate.y_, samplingOptions);
     } else {
-        canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);
+        if (canvas.GetTotalMatrix().HasPerspective()) {
+            // In case of perspective transformation, make dstRect 1px outset to anti-alias
+            Drawing::Rect dst(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight());
+            dst.MakeOutset(1, 1);
+            canvas.DrawImageRect(*cacheImage, dst, samplingOptions);
+        } else {
+            canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);
+        }
     }
     canvas.DetachBrush();
     canvas.Restore();
@@ -2051,6 +2058,9 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
         } else {
             nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
             SetDirty();
+        }
+        if (type == NodeGroupType::GROUPED_BY_USER) {
+            GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
         }
     }
 }

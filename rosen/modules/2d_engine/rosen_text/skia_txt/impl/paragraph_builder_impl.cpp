@@ -88,7 +88,9 @@ void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 
 std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 {
-    return std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
+    auto ret = std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
+    builder_->Reset();
+    return ret;
 }
 
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
@@ -167,6 +169,11 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     skStyle.setHalfLeading(txt.halfLeading);
 
     skStyle.setLocale(SkString(txt.locale.c_str()));
+    skStyle.setStyleId(txt.styleId);
+    skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
+        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,
+        txt.backgroundRect.leftBottomRadius });
+
     if (txt.background.has_value()) {
         skStyle.setBackgroundPaintID(AllocPaintID(txt.background.value()));
     }
