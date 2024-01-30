@@ -1335,7 +1335,7 @@ void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& prop
         parentNode = parentNode->GetParent().lock();
     }
     if (!parentNode) {
-        ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffectFallback: parentNode null, draw filter failed.");
+        ROSEN_LOGD("RSPropertiesPainter::ApplyBackgroundEffectFallback: parentNode null, draw filter failed.");
         return;
     }
     auto& filter = parentNode->GetRenderProperties().GetBackgroundFilter();
