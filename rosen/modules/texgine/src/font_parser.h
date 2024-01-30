@@ -111,7 +111,7 @@ private:
             return LANGUAGE_SC;
         } else if (localeLower.find(TRADITIONAL_CHINESE) == 0) {
             return LANGUAGE_TC;
-        } else if(localeLower.find(ENGLISH) == 0) {
+        } else if (localeLower.find(ENGLISH) == 0) {
             return LANGUAGE_EN;
         } else {
             return LANGUAGE_SC;
