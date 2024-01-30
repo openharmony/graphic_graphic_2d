@@ -278,8 +278,9 @@ static __eglMustCastToProperFunctionPointerType findBuiltinWrapper(const char* p
 {
     static void* dlglv3Handle = dlopen("/system/lib64/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
     void* proc = dlsym(dlglv3Handle, procname);
-    if (proc) return (__eglMustCastToProperFunctionPointerType)proc;
-    
+    if (proc) {
+        return (__eglMustCastToProperFunctionPointerType)proc;
+    }
     return nullptr;
 }
 

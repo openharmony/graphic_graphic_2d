@@ -148,7 +148,8 @@ EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
 }
 
 #if USE_IGRAPHICS_EXTENDS_HOOKS
-void EglWrapperDisplay::ChooseHookTable(bool isAfterHook, EglWrapperContext *ctx, EglWrapperContext *curCtx,
+void EglWrapperDisplay::ChooseHookTable(bool isAfterHook,
+    const EglWrapperContext *ctx, const EglWrapperContext *curCtx,
     GlHookTable **ppHookTable)
 {
     if (ppHookTable == nullptr) {
