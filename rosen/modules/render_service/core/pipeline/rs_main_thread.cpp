@@ -1671,7 +1671,8 @@ RSVisibleLevel RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curR
     return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
 }
 
-void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
+void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces,
+    VisibleData& dstCurVisVec, std::map<uint32_t, RSVisibleLevel>& dstPidVisMap)
 {
     Occlusion::Region accumulatedRegion;
     VisibleData curVisVec;
@@ -1731,11 +1732,8 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         }
     }
 
-    // Callback to WMS and QOS
-    CallbackToWMS(curVisVec);
-    SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    // Callback for registered self drawing surfacenode
-    SurfaceOcclusionCallback();
+    dstCurVisVec.insert(dstCurVisVec.end(), curVisVec.begin(), curVisVec.end());
+    dstPidVisMap.insert(pidVisMap.begin(), pidVisMap.end());
 }
 
 void RSMainThread::CalcOcclusion()
@@ -1751,7 +1749,17 @@ void RSMainThread::CalcOcclusion()
         RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
         return;
     }
+    std::map<NodeId, std::vector<RSBaseRenderNode::SharedPtr>> curAllSurfacesInDisplay;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    for (const auto& child : node->GetSortedChildren()) {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+        if (displayNode) {
+            const auto& surfaces = displayNode->GetCurAllSurfaces();
+            curAllSurfacesInDisplay[displayNode->GetNodeId()] = surfaces;
+            curAllSurfaces.insert(curAllSurfaces.end(), surfaces.begin(), surfaces.end());
+        }
+    }
+
     if (node->GetChildrenCount()== 1) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             node->GetSortedChildren().front());
@@ -1805,7 +1813,17 @@ void RSMainThread::CalcOcclusion()
         return;
     }
     isReduceVSyncBySystemAnimatedScenes_ = false;
-    CalcOcclusionImplementation(curAllSurfaces);
+    VisibleData dstCurVisVec;
+    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    for (auto& surfaces : curAllSurfacesInDisplay) {
+        CalcOcclusionImplementation(surfaces.second, dstCurVisVec, dstPidVisMap);
+    }
+
+    // Callback to WMS and QOS
+    CallbackToWMS(dstCurVisVec);
+    SetVSyncRateByVisibleLevel(dstPidVisMap, curAllSurfaces);
+    // Callback for registered self drawing surfacenode
+    SurfaceOcclusionCallback();
 }
 
 void RSMainThread::DeleteMultiInstancePid(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
