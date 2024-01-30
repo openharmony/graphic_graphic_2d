@@ -499,6 +499,7 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Dr
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             canvas.AttachBrush(brush);
             canvas.DrawRect(topBorder.GetBounds());
             canvas.DetachBrush();
@@ -629,6 +630,7 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const 
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             canvas.AttachBrush(brush);
             canvas.DrawRect(rightBorder.GetBounds());
             canvas.DetachBrush();
@@ -763,6 +765,7 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             canvas.AttachBrush(brush);
             canvas.DrawRect(bottomBorder.GetBounds());
             canvas.DetachBrush();
@@ -893,6 +896,7 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const D
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
             Drawing::Brush brush;
+            brush.SetColor(pen.GetColor());
             canvas.AttachBrush(brush);
             canvas.DrawRect(leftBorder.GetBounds());
             canvas.DetachBrush();
