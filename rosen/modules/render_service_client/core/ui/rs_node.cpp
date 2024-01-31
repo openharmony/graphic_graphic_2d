@@ -1391,7 +1391,7 @@ void RSNode::MarkContentChanged(bool isChanged)
 
 void RSNode::ClearAllModifiers()
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);    
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     for (auto [id, modifier] : modifiers_) {
         if (modifier) {
             modifier->DetachFromNode();
