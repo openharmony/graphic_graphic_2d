@@ -49,14 +49,15 @@ RSRenderServiceVisitor::~RSRenderServiceVisitor() {}
 
 void RSRenderServiceVisitor::PrepareChildren(RSRenderNode& node)
 {
-    for (auto& child : *node.GetSortedChildren()) {
+    node.ApplyChildrenModifiers();
+    for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
 }
 
 void RSRenderServiceVisitor::ProcessChildren(RSRenderNode& node)
 {
-    for (auto& child : *node.GetSortedChildren()) {
+    for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
 }

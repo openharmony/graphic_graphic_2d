@@ -503,7 +503,7 @@ void RSUniRenderUtil::ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& 
         ReleaseColorPickerFilter(properties.GetBackgroundFilter());
     }
     // Recursive to release color picker resource
-    for (auto& child : *node->GetChildren()) {
+    for (auto& child : node->GetChildren()) {
         if (auto canvasChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child)) {
             ReleaseColorPickerResource(canvasChild);
         }
@@ -552,11 +552,13 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         return;
     }
     bool isRotation = displayNode->IsRotationChanged();
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    std::list<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        displayNode->CollectSurface(displayNode, curAllSurfaces, true, true);
+        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
+        displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
+        std::copy(curAllSurfacesVec.begin(), curAllSurfacesVec.end(), std::back_inserter(curAllSurfaces));
     } else {
-        curAllSurfaces = *displayNode->GetSortedChildren();
+        curAllSurfaces = displayNode->GetSortedChildren();
     }
     for (auto iter = curAllSurfaces.begin(); iter != curAllSurfaces.end(); iter++) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
@@ -610,8 +612,8 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
     }
 }
 
-void RSUniRenderUtil::AssignSubThreadNode(
-    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, const std::shared_ptr<RSSurfaceRenderNode>& node)
+void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node == nullptr) {
         ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
@@ -630,7 +632,7 @@ void RSUniRenderUtil::AssignSubThreadNode(
     } else {
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     }
-    node->SetLastFrameChildrenCnt(node->GetChildren()->size());
+    node->SetLastFrameChildrenCnt(node->GetChildren().size());
     subThreadNodes.emplace_back(node);
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
@@ -640,7 +642,7 @@ void RSUniRenderUtil::AssignSubThreadNode(
             !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
             node->GetDirtyManager()->MergeDirtyRect(node->GetOldDirty());
         } else {
-            for (auto& child : *node->GetSortedChildren()) {
+            for (auto& child : node->GetSortedChildren()) {
                 auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
                 if (surfaceNode && surfaceNode->IsAppWindow()) {
                     surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
@@ -707,7 +709,7 @@ void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNo
     }
     auto appWindow = node;
     if (node->IsLeashWindow()) {
-        for (auto& child : *node->GetSortedChildren()) {
+        for (auto& child : node->GetSortedChildren()) {
             auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
             if (surfaceNodePtr && surfaceNodePtr->IsAppWindow()) {
                 appWindow = surfaceNodePtr;
@@ -732,11 +734,13 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
     if (displayNode == nullptr) {
         return;
     }
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    std::list<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        displayNode->CollectSurface(displayNode, curAllSurfaces, true, true);
+        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
+        displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
+        std::copy(curAllSurfacesVec.begin(), curAllSurfacesVec.end(), std::back_inserter(curAllSurfaces));
     } else {
-        curAllSurfaces = *displayNode->GetSortedChildren();
+        curAllSurfaces = displayNode->GetSortedChildren();
     }
     std::set<std::shared_ptr<RSBaseRenderNode>> tmpSet(curAllSurfaces.begin(), curAllSurfaces.end());
     for (auto& child : oldChildren) {
