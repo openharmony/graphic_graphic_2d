@@ -15,6 +15,7 @@
 #include "gtest/gtest.h"
 #include "rs_test_util.h"
 
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 
 using namespace testing;
@@ -453,5 +454,73 @@ HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest |
     ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) < 0.001);
     ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) < 0.001);
 #endif
+}
+
+/*
+ * @tc.name: IsNodeAssignSubThread001
+ * @tc.desc: test IsNodeAssignSubThread for non focus node
+ * @tc.type: FUNC
+ * @tc.require: issueI904G4
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    displayNode->AddChild(surfaceNode);
+
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread->GetDeviceType() != DeviceType::PHONE) {
+        ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()),
+            surfaceNode->QuerySubAssignable(displayNode->IsRotationChanged()));
+    }
+}
+
+/*
+ * @tc.name: IsNodeAssignSubThread002
+ * @tc.desc: test IsNodeAssignSubThread for focus node which has shared transition
+ * @tc.type: FUNC
+ * @tc.require: issueI904G4
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    displayNode->AddChild(surfaceNode);
+    surfaceNode->SetHasSharedTransitionNode(true);
+    
+    auto mainThread = RSMainThread::Instance();
+    std::string str = "";
+    mainThread->SetFocusAppInfo(-1, -1, str, str, surfaceNode->GetId());
+    if (mainThread->GetDeviceType() != DeviceType::PHONE) {
+        ASSERT_FALSE(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()));
+    }
+}
+
+/*
+ * @tc.name: IsNodeAssignSubThread003
+ * @tc.desc: test IsNodeAssignSubThread for focus node which don't have shared transition
+ * @tc.type: FUNC
+ * @tc.require: issueI904G4
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread003, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    displayNode->AddChild(surfaceNode);
+    surfaceNode->SetHasSharedTransitionNode(false);
+    
+    auto mainThread = RSMainThread::Instance();
+    std::string str = "";
+    mainThread->SetFocusAppInfo(-1, -1, str, str, surfaceNode->GetId());
+    if (mainThread->GetDeviceType() != DeviceType::PHONE) {
+        ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()),
+            surfaceNode->QuerySubAssignable(displayNode->IsRotationChanged()));
+    }
 }
 } // namespace OHOS::Rosen
