@@ -175,8 +175,8 @@ void RSParallelTaskManager::UpdateNodeCost(RSDisplayRenderNode& node, std::vecto
     RS_TRACE_NAME("UpdateNodeCost");
     auto surfaceNodes = node.GetSortedChildren();
     std::map<uint64_t, int32_t> costs;
-    for (auto it = surfaceNodes.begin(); it != surfaceNodes.end(); ++it) {
-        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+    for (auto& it : *surfaceNodes) {
+        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
         costs.insert(std::pair<uint64_t, int32_t>(surface->GetId(), surface->GetNodeCost()));
     }
     auto updateNodeCost = reinterpret_cast<void(*)(int*, std::map<uint64_t, int32_t> &, std::vector<uint32_t> &)>(
