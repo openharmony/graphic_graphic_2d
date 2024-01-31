@@ -529,7 +529,7 @@ void DrawPathOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGE("DrawPathOpItem path is null!");
+        LOGD("DrawPathOpItem path is null!");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -589,7 +589,7 @@ void DrawShadowOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawShadowOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGE("DrawShadowOpItem path is null!");
+        LOGD("DrawShadowOpItem path is null!");
         return;
     }
     canvas->DrawShadow(*path_, planeParams_, devLightPos_, lightRadius_,
@@ -621,7 +621,7 @@ void DrawRegionOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (region_ == nullptr) {
-        LOGE("DrawRegionOpItem region is nullptr!");
+        LOGD("DrawRegionOpItem region is nullptr!");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -653,7 +653,7 @@ void DrawVerticesOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawVerticesOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (vertices_ == nullptr) {
-        LOGE("DrawVerticesOpItem vertices is null");
+        LOGD("DrawVerticesOpItem vertices is null");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -713,7 +713,7 @@ void DrawImageNineOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageNineOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageNineOpItem image is null");
+        LOGD("DrawImageNineOpItem image is null");
         return;
     }
     Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
@@ -754,7 +754,7 @@ void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageNineOpItem image is null");
+        LOGD("DrawImageNineOpItem image is null");
         return;
     }
     Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
@@ -786,7 +786,7 @@ void DrawBitmapOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawBitmapOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (bitmap_ == nullptr) {
-        LOGE("DrawBitmapOpItem bitmap is null");
+        LOGD("DrawBitmapOpItem bitmap is null");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -819,7 +819,7 @@ void DrawImageOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageOpItem image is null");
+        LOGD("DrawImageOpItem image is null");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -852,7 +852,7 @@ void DrawImageRectOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageRectOpItem image is null");
+        LOGD("DrawImageRectOpItem image is null");
         return;
     }
     if (isForeground_) {
@@ -894,7 +894,7 @@ void DrawPictureOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (picture_ == nullptr) {
-        LOGE("DrawPictureOpItem picture is null");
+        LOGD("DrawPictureOpItem picture is null");
         return;
     }
     canvas->DrawPicture(*picture_);
@@ -941,7 +941,7 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (textBlob_ == nullptr) {
-        LOGE("DrawTextBlobOpItem textBlob is null");
+        LOGD("DrawTextBlobOpItem textBlob is null");
         return;
     }
     Drawing::RectI globalClipBounds = canvas->GetDeviceClipBounds();
@@ -1011,7 +1011,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p)
 {
     if (!textBlob) {
-        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -1063,7 +1063,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cm
 {
     std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob);
     if (!textBlob_) {
-        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -1117,7 +1117,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cm
 std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Canvas* canvas)
 {
     if (!textBlob_) {
-        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
 
@@ -1335,7 +1335,7 @@ void DrawSymbolOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (!canvas) {
-        LOGE("SymbolOpItem::Playback failed cause by canvas is nullptr");
+        LOGD("SymbolOpItem::Playback failed cause by canvas is nullptr");
         return;
     }
     SetSymbol();
@@ -1487,7 +1487,7 @@ void ClipPathOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipPathOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGE("ClipPathOpItem path is null!");
+        LOGD("ClipPathOpItem path is null!");
         return;
     }
     canvas->ClipPath(*path_, clipOp_, doAntiAlias_);
@@ -1516,7 +1516,7 @@ void ClipRegionOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (region_ == nullptr) {
-        LOGE("ClipRegionOpItem region is null!");
+        LOGD("ClipRegionOpItem region is null!");
         return;
     }
     canvas->ClipRegion(*region_, clipOp_);
@@ -1919,7 +1919,7 @@ void DrawAdaptivePixelMapOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawAdaptivePixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (pixelMap_ == nullptr) {
-        LOGE("DrawAdaptivePixelMapOpItem pixelMap is null!");
+        LOGD("DrawAdaptivePixelMapOpItem pixelMap is null!");
         return;
     }
     canvas->AttachPaint(paint_);
