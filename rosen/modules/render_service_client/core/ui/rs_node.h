@@ -400,6 +400,10 @@ protected:
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
 
+    std::recursive_mutex& GetPropertyMutex()
+    {
+        return propertyMutex_;
+    }
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -451,7 +455,7 @@ private:
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
     std::mutex animationMutex_;
-    std::recursive_mutex propertyMutex;
+    std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;
     friend class RSTransition;
