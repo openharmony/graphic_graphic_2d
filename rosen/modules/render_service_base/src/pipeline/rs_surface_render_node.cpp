@@ -400,8 +400,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
 #endif
 
 #ifndef ROSEN_CROSS_PLATFORM
-    RSPropertiesPainter::DrawBackground(property, canvas, true,
-        IsSelfDrawingNode() && (GetBuffer() != nullptr) && selfDrawingType_ == SelfDrawingNodeType::VIDEO);
+    RSPropertiesPainter::DrawBackground(property, canvas, true, IsSelfDrawingNode() && (GetBuffer() != nullptr));
 #else
     RSPropertiesPainter::DrawBackground(property, canvas);
 #endif

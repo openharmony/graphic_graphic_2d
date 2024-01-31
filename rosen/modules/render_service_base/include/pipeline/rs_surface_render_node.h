@@ -136,6 +136,11 @@ public:
         selfDrawingType_ = selfDrawingType;
     }
 
+    SelfDrawingNodeType GetSelfDrawingNodeType() const
+    {
+        return selfDrawingType_;
+    }
+
     bool NeedBilinearInterpolation() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
