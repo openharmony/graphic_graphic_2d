@@ -24,12 +24,10 @@
 #include "window.h"
 
 
-#ifdef ENABLE_NATIVEBUFFER
 #include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
-#endif
 
 #include "rs_vulkan_context.h"
 #include "include/gpu/GrBackendSemaphore.h"
