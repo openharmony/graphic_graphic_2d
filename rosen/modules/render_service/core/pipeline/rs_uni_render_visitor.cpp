@@ -4627,7 +4627,25 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 auto ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
                 params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
 #endif
-                renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+                auto bgColor = property.GetBackgroundColor();
+                if ((node.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
+                    (bgColor != RgbPalette::Transparent())) {
+                    auto bounds = RSPropertiesPainter::Rect2DrawingRect(property.GetBoundsRect());
+                    Drawing::SaveLayerOps layerOps(&bounds, nullptr);
+                    canvas_->SaveLayer(layerOps);
+                    canvas_->SaveAlpha();
+                    canvas_->SetAlpha(1.0f);
+                    Drawing::Brush brush;
+                    brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+                    canvas_->AttachBrush(brush);
+                    canvas_->DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(property.GetRRect()));
+                    canvas_->DetachBrush();
+                    renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+                    canvas_->RestoreAlpha();
+                    canvas_->Restore();
+                } else {
+                    renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+                }
             }
         }
 
