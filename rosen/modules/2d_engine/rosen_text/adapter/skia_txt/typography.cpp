@@ -105,6 +105,31 @@ void Typography::Layout(double width)
     return paragraph_->Layout(width);
 }
 
+double Typography::GetGlyphsBoundsTop()
+{
+    return paragraph_->GetGlyphsBoundsTop();
+}
+
+double Typography::GetGlyphsBoundsBottom()
+{
+    return paragraph_->GetGlyphsBoundsBottom();
+}
+
+double Typography::GetGlyphsBoundsLeft()
+{
+    return paragraph_->GetGlyphsBoundsLeft();
+}
+
+double Typography::GetGlyphsBoundsRight()
+{
+    return paragraph_->GetGlyphsBoundsRight();
+}
+
+Drawing::FontMetrics Typography::MeasureText()
+{
+    return paragraph_->MeasureText();
+}
+
 void Typography::Paint(SkCanvas *canvas, double x, double y)
 {
     return paragraph_->Paint(canvas, x, y);
