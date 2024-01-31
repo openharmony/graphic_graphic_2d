@@ -628,7 +628,7 @@ void RSPathMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
 RSPropertyDrawable::DrawablePtr RSShadowBaseDrawable::Generate(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
-    if (properties.IsSpherizeValid() || !properties.IsShadowValid() || properties.GetNeedSkipShadow()) {
+    if (properties.IsSpherizeValid() || !properties.IsShadowValid()) {
         return nullptr;
     }
     if (properties.GetShadowMask()) {
@@ -731,6 +731,10 @@ RSColor RSShadowDrawable::GetColorForShadow(const RSRenderContent& content, RSPa
 
 void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
+    if (content.GetRenderProperties().GetNeedSkipShadow()) {
+        RS_TRACE_NAME("RSShadowDrawable::Draw NeedSkipShadow");
+        return;
+    }
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
