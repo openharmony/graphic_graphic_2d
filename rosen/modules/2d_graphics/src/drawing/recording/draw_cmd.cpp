@@ -38,6 +38,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 namespace {
+constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
 bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
     std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas)
 {
@@ -1020,7 +1021,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
         return false;
     }
     bounds->Offset(x, y);
-
+    bounds->MakeOutset(TEXT_BLOB_CACHE_MARGIN, TEXT_BLOB_CACHE_MARGIN);
     // create CPU raster surface
     Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
@@ -1048,7 +1049,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
-        bounds->GetLeft() + image->GetWidth(), bounds->GetTop()+ image->GetHeight());
+        bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
     SamplingOptions sampling;
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
     PaintHandle fakePaintHandle;
