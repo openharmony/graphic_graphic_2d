@@ -180,7 +180,6 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
         SkiaImageInfo::ConvertToSkColorType(colorType),
         skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
     if (skSurface == nullptr) {
-        LOGE("skSurface nullptr");
         return nullptr;
     }
 
@@ -221,7 +220,6 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
         sampleCnt, SkiaImageInfo::ConvertToSkColorType(colorType),
         skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
     if (skSurface == nullptr) {
-        LOGE("skSurface nullptr");
         return nullptr;
     }
 
