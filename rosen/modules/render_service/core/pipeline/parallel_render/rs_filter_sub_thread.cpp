@@ -141,15 +141,8 @@ void RSFilterSubThread::PostTask(const std::function<void()>& task)
 #ifdef IS_OHOS
 void RSFilterSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
     std::shared_ptr<Drawing::Surface>&& cacheSurface,
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler,
-    std::weak_ptr<std::mutex> grBackendTextureMutex)
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler)
 {
-    ROSEN_LOGD("RSFilterSubThread::AddToReleaseQueue");
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto backendTextureMutex = grBackendTextureMutex.lock();
-    if (backendTextureMutex != nullptr) {
-        std::unique_lock<std::mutex> lock(*backendTextureMutex);
-    }
     if (initHandler != nullptr) {
         auto runner = initHandler->GetEventRunner();
         std::string handlerName = runner->GetRunnerThreadName();
@@ -163,6 +156,22 @@ void RSFilterSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cach
         }
     }
     tmpSurfaceResources_.push(std::move(cacheSurface));
+}
+
+void RSFilterSubThread::PreAddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
+    std::shared_ptr<Drawing::Surface>&& cacheSurface,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler,
+    std::weak_ptr<std::mutex> grBackendTextureMutex)
+{
+    ROSEN_LOGD("RSFilterSubThread::AddToReleaseQueue");
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto backendTextureMutex = grBackendTextureMutex.lock();
+    if (backendTextureMutex != nullptr) {
+        std::unique_lock<std::mutex> lock(*backendTextureMutex);
+        AddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface), initHandler);
+    } else {
+        AddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface), initHandler);
+    }
 }
 
 void RSFilterSubThread::ResetWaitRelease(std::weak_ptr<std::atomic<bool>> waitRelease)
@@ -189,14 +198,8 @@ void RSFilterSubThread::ReleaseSurface(std::weak_ptr<std::atomic<bool>> waitRele
 }
 
 void RSFilterSubThread::ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue,
-    std::weak_ptr<std::atomic<bool>> waitRelease,
-    std::weak_ptr<std::mutex> grBackendTextureMutex)
+    std::weak_ptr<std::atomic<bool>> waitRelease)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto backendTextureMutex = grBackendTextureMutex.lock();
-    if (backendTextureMutex != nullptr) {
-        std::unique_lock<std::mutex> lock(*backendTextureMutex);
-    }
     while (queue.size() > 0) {
         auto tmp = queue.front();
         queue.pop();
@@ -207,6 +210,20 @@ void RSFilterSubThread::ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>
         tmp.reset();
     }
     PostTask([this, waitRelease]() { ReleaseSurface(waitRelease); });
+}
+
+void RSFilterSubThread::PreReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue,
+    std::weak_ptr<std::atomic<bool>> waitRelease,
+    std::weak_ptr<std::mutex> grBackendTextureMutex)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto backendTextureMutex = grBackendTextureMutex.lock();
+    if (backendTextureMutex != nullptr) {
+        std::unique_lock<std::mutex> lock(*backendTextureMutex);
+        ReleaseImage(queue, waitRelease);
+    } else {
+        ReleaseImage(queue, waitRelease);
+    }
 }
 
 void RSFilterSubThread::ReleaseImageAndSurfaces(std::weak_ptr<std::atomic<bool>> waitRelease,
@@ -220,7 +237,7 @@ void RSFilterSubThread::ReleaseImageAndSurfaces(std::weak_ptr<std::atomic<bool>>
         if (imageQueue.size() != 0) {
             initHandler->PostTask(
                 [this, &imageQueue, waitRelease, grBackendTextureMutex]() {
-                    ReleaseImage(imageQueue, waitRelease, grBackendTextureMutex);
+                    PreReleaseImage(imageQueue, waitRelease, grBackendTextureMutex);
                 }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
     }
@@ -232,7 +249,7 @@ void RSFilterSubThread::SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Ima
     std::weak_ptr<std::atomic<bool>> waitRelease,
     std::weak_ptr<std::mutex> grBackendTextureMutex)
 {
-    AddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface), initHandler, grBackendTextureMutex);
+    PreAddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface), initHandler, grBackendTextureMutex);
     ReleaseImageAndSurfaces(waitRelease, grBackendTextureMutex);
 }
 #endif
