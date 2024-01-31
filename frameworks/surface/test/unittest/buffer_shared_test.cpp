@@ -20,7 +20,6 @@
 #include "buffer_extra_data_impl.h"
 #include "buffer_queue.h"
 #include "buffer_consumer_listener.h"
-#include "buffer_manager.h"
 #include "buffer_log.h"
 #include "iconsumer_surface.h"
 #include "test_header.h"

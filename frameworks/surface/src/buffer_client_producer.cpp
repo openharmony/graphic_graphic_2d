@@ -17,7 +17,6 @@
 
 #include <iremote_stub.h>
 #include "buffer_log.h"
-#include "buffer_manager.h"
 #include "buffer_utils.h"
 #include "sync_fence.h"
 #include "message_option.h"

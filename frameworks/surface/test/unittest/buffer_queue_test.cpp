@@ -17,7 +17,6 @@
 #include <surface.h>
 #include <buffer_extra_data_impl.h>
 #include <buffer_queue.h>
-#include <buffer_manager.h>
 #include "buffer_consumer_listener.h"
 #include "sync_fence.h"
 #include "consumer_surface.h"
@@ -699,6 +698,7 @@ HWTEST_F(BufferQueueTest, AttachBufferAndDetachBuffer001, Function | MediumTest 
     EXPECT_EQ(bq->DetachBuffer(buffer), GSERROR_INVALID_ARGUMENTS);
     BufferQueue *bqTmp = new BufferQueue("testTmp", true);
     EXPECT_EQ(bqTmp->DetachBuffer(buffer), GSERROR_INVALID_OPERATING);
+    bqTmp = nullptr;
 }
 
 /*

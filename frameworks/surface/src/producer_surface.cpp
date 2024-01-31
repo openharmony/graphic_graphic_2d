@@ -18,7 +18,6 @@
 #include <cinttypes>
 
 #include "buffer_log.h"
-#include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
 #include "buffer_producer_listener.h"
 #include "sync_fence.h"

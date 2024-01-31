@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 #include <surface.h>
 #include <surface_buffer_impl.h>
-#include <buffer_manager.h>
 #include <buffer_utils.h>
 #include <metadata_helper.h>
 
@@ -110,9 +109,6 @@ HWTEST_F(SurfaceBufferImplTest, State002, Function | MediumTest | Level2)
     ASSERT_EQ(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
     ASSERT_EQ(buffer->GetUsage(), BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
     ASSERT_EQ(buffer->GetSurfaceBufferColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3);
-
-    ret = BufferManager::GetInstance()->Free(buffer);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
 /*
@@ -129,8 +125,7 @@ HWTEST_F(SurfaceBufferImplTest, State002, Function | MediumTest | Level2)
 HWTEST_F(SurfaceBufferImplTest, Parcel001, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> sbi = new SurfaceBufferImpl(0);
-    const auto &bm = BufferManager::GetInstance();
-    auto sret = bm->Alloc(requestConfig, sbi);
+    auto sret = sbi->Alloc(requestConfig);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
 
     MessageParcel parcel;
@@ -176,8 +171,7 @@ HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
     using namespace HDI::Display::Graphic::Common::V1_0;
 
     sptr<SurfaceBuffer> sbi = new SurfaceBufferImpl(0);
-    const auto &bm = BufferManager::GetInstance();
-    auto sret = bm->Alloc(requestConfig, sbi);
+    auto sret = sbi->Alloc(requestConfig);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
 
     uint32_t metadataKey = 2;

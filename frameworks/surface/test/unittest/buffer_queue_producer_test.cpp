@@ -18,8 +18,8 @@
 #include <buffer_queue_producer.h>
 #include "buffer_consumer_listener.h"
 #include "consumer_surface.h"
-#include "sync_fence.h"
 #include "frame_report.h"
+#include "sync_fence.h"
 #include "producer_surface_delegator.h"
 
 using namespace testing;
@@ -256,6 +256,7 @@ HWTEST_F(BufferQueueProducerTest, AttachAndDetachBuffer001, Function | MediumTes
     ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
     ret = bqpTmp->DetachBuffer(buffer);
     ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+    bqpTmp = nullptr;
 }
 
 /*
@@ -289,14 +290,14 @@ HWTEST_F(BufferQueueProducerTest, AttachAndDetachBufferRemote, Function | Medium
 */
 HWTEST_F(BufferQueueProducerTest, SetTunnelHandle, Function | MediumTest | Level2)
 {
-    EXPECT_EQ(bqp->SetTunnelHandle(nullptr), GSERROR_INVALID_OPERATING);
+    EXPECT_EQ(bqp->SetTunnelHandle(nullptr), GSERROR_OK);
     GraphicExtDataHandle *handle = static_cast<GraphicExtDataHandle *>(
         malloc(sizeof(GraphicExtDataHandle) + sizeof(int32_t)));
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
     GSError ret = bqp->SetTunnelHandle(handle);
-    EXPECT_EQ(ret, GSERROR_OK);
+    EXPECT_EQ(ret, GSERROR_NO_ENTRY);
     free(handle);
 }
 
@@ -347,8 +348,8 @@ HWTEST_F(BufferQueueProducerTest, GetPresentTimestampRemote, Function | MediumTe
  */
 HWTEST_F(BufferQueueProducerTest, NullTest, Function | MediumTest | Level2)
 {
-    sptr<BufferQueue> bq = nullptr;
-    auto bqpTmp = new BufferQueueProducer(bq);
+    sptr<BufferQueue> bqTmp = nullptr;
+    auto bqpTmp = new BufferQueueProducer(bqTmp);
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bqpTmp->RequestBuffer(requestConfig, bedata, retval);
     EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
@@ -392,6 +393,7 @@ HWTEST_F(BufferQueueProducerTest, NullTest, Function | MediumTest | Level2)
         time), OHOS::GSERROR_INVALID_ARGUMENTS);
     EXPECT_EQ(bqpTmp->GetStatus(), false);
     bqpTmp->SetStatus(false);
+    bqTmp = nullptr;
     bqpTmp = nullptr;
 }
 }

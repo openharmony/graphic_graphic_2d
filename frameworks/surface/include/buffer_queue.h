@@ -25,7 +25,6 @@
 #include <ibuffer_consumer_listener.h>
 #include <ibuffer_producer.h>
 #include "surface_type.h"
-#include <buffer_manager.h>
 #include <surface_tunnel_handle.h>
 #include "surface_buffer.h"
 #include "consumer_surface_delegator.h"
@@ -184,7 +183,6 @@ private:
     std::mutex listenerMutex_;
     std::mutex producerListenerMutex_;
     const uint64_t uniqueId_;
-    sptr<BufferManager> bufferManager_ = nullptr;
     OnReleaseFunc onBufferRelease_ = nullptr;
     std::mutex onBufferReleaseMutex_;
     sptr<IProducerListener> producerListener_ = nullptr;
