@@ -190,7 +190,7 @@ void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<ExtendRecordingCanva
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessChildren(RSRenderNode& node)
 {
-    for (auto& child : node.GetSortedChildren()) {
+    for (auto& child : *node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
 }
@@ -357,8 +357,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareChildren(RSRenderNode& node)
 {
-    node.ApplyChildrenModifiers();
-    for (auto& child : node.GetSortedChildren()) {
+    for (auto& child : *node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
 }

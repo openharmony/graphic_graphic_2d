@@ -215,14 +215,17 @@ const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
     RSModifierType::SCALE,
 };
+static const auto emptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
 }
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : id_(id), fullChildrenList_(emptyChildrenList), context_(context), isTextureExportNode_(isTextureExportNode)
 {}
+
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : isOnTheTree_(isOnTheTree), id_(id), fullChildrenList_(emptyChildrenList), context_(context),
+      isTextureExportNode_(isTextureExportNode)
 {}
 
 bool RSRenderNode::GetIsTextureExportNode() const
@@ -746,14 +749,14 @@ void RSRenderNode::CollectSurface(
     const std::shared_ptr<RSRenderNode>& node, std::vector<RSRenderNode::SharedPtr>& vec, bool isUniRender,
     bool onlyFirstLevel)
 {
-    for (auto& child : node->GetSortedChildren()) {
+    for (auto& child : *node->GetSortedChildren()) {
         child->CollectSurface(child, vec, isUniRender, onlyFirstLevel);
     }
 }
 
 void RSRenderNode::CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum)
 {
-    for (auto& child : GetSortedChildren()) {
+    for (auto& child : *GetSortedChildren()) {
         child->CollectSurfaceForUIFirstSwitch(leashWindowCount, minNodeNum);
         if (leashWindowCount >= minNodeNum) {
             return;
@@ -1246,7 +1249,7 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& 
     }
 }
 
-void RSRenderNode::RemoveModifierInternal(const PropertyId& id)
+void RSRenderNode::RemoveModifier(const PropertyId& id)
 {
     auto it = modifiers_.find(id);
     if (it != modifiers_.end()) {
@@ -1260,25 +1263,6 @@ void RSRenderNode::RemoveModifierInternal(const PropertyId& id)
         modifiers.remove_if([id](const auto& modifier) -> bool {
             return modifier ? modifier->GetPropertyId() == id : true;
         });
-    }
-}
-
-void RSRenderNode::RemoveModifier(const PropertyId& id)
-{
-    SetDirty();
-    if (!GetIsUsedBySubThread()) {
-        RemoveModifierInternal(id);
-    } else if (auto context = context_.lock()) {
-        context->PostTask([weakThis = weak_from_this(), id]() {
-            if (auto node = weakThis.lock()) {
-                node->SetDirty();
-                node->RemoveModifierInternal(id);
-            }
-        });
-    } else {
-        ROSEN_LOGE("%{public}s GetIsUsedBySubThread[%{public}d] nodeId[%{public}" PRIu64 "]"
-            "PropertyId[%{public}" PRIu64 "]", __func__, GetIsUsedBySubThread(), GetId(), id);
-        RemoveModifierInternal(id);
     }
 }
 
@@ -2186,9 +2170,13 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
 void RSRenderNode::OnTreeStateChanged()
 {
     if (!isOnTheTree_) {
+        // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
+        auto prevFullChildrenList = fullChildrenList_;
+
         // attempt to clear FullChildrenList, to avoid memory leak
         isFullChildrenListValid_ = false;
-        ClearFullChildrenListIfNeeded();
+        isChildrenSorted_ = false;
+        std::atomic_store_explicit(&fullChildrenList_, emptyChildrenList, std::memory_order_release);
     } else {
         SetDirty();
     }
@@ -2216,43 +2204,46 @@ bool RSRenderNode::HasDisappearingTransition(bool recursive) const
     return parent->HasDisappearingTransition(true);
 }
 
-const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetChildren(bool inSubThread)
+RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetChildren() const
 {
-    if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList(inSubThread);
-    }
-    return fullChildrenList_;
+    return std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 }
 
-const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetSortedChildren(bool inSubThread)
+RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetSortedChildren() const
 {
-    if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList(inSubThread);
-    }
-    if (!isChildrenSorted_) {
-        SortChildren(inSubThread);
-    }
-    return fullChildrenList_;
+    return std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 }
 
-void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
+std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    // Node is currently used by sub thread, delay the operation
-    if (GetIsUsedBySubThread() != inSubThread) {
-        return;
+    return children_.empty() ? nullptr : children_.front().lock();
+}
+
+void RSRenderNode::UpdateFullChildrenListIfNeeded()
+{
+    if (!isFullChildrenListValid_) {
+        GenerateFullChildrenList();
+    } else if (!isChildrenSorted_) {
+        ResortChildren();
     }
-    // maybe unnecessary, but just in case
-    fullChildrenList_.clear();
+}
+
+void RSRenderNode::GenerateFullChildrenList()
+{
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
     if (children_.empty() && disappearingChildren_.empty()) {
+        auto prevFullChildrenList = fullChildrenList_;
         isFullChildrenListValid_ = true;
         isChildrenSorted_ = true;
+        std::atomic_store_explicit(&fullChildrenList_, emptyChildrenList, std::memory_order_release);
         return;
     }
 
+    // Step 0: Initialize
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+
     // Step 1: Copy all children into sortedChildren while checking and removing expired children.
-    children_.remove_if([this](const auto& child) -> bool {
+    children_.remove_if([&](const auto& child) -> bool {
         auto existingChild = child.lock();
         if (existingChild == nullptr) {
             ROSEN_LOGI("RSRenderNode::GenerateSortedChildren removing expired child, this is rare but possible.");
@@ -2264,7 +2255,7 @@ void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
             "child(id %{public}" PRIu64 ")"" into children_", GetId(), existingChild->GetId());
             return false;
         }
-        fullChildrenList_.emplace_back(std::move(existingChild));
+        fullChildrenList->emplace_back(std::move(existingChild));
         return false;
     });
 
@@ -2274,7 +2265,7 @@ void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
     //     RSRenderTransition::OnDetach.
     //     2. We don't need to check if the disappearing child is expired; it's already been checked when moving from
     //     children_ to disappearingChildren_. We hold ownership of the shared_ptr of the child after that.
-    std::for_each(disappearingChildren_.begin(), disappearingChildren_.end(), [this](const auto& pair) -> void {
+    std::for_each(disappearingChildren_.begin(), disappearingChildren_.end(), [&](const auto& pair) -> void {
         auto& disappearingChild = pair.first;
         if (isContainBootAnimation_ && !disappearingChild->GetBootAnimation()) {
             ROSEN_LOGD("RSRenderNode::GenerateSortedChildren %{public}" PRIu64 " skip"
@@ -2283,41 +2274,51 @@ void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
             return;
         }
         const auto& origPos = pair.second;
-        if (origPos < fullChildrenList_.size()) {
-            fullChildrenList_.emplace(std::next(fullChildrenList_.begin(), origPos), disappearingChild);
+        if (origPos < fullChildrenList->size()) {
+            fullChildrenList->emplace(std::next(fullChildrenList->begin(), origPos), disappearingChild);
         } else {
-            fullChildrenList_.emplace_back(disappearingChild);
+            fullChildrenList->emplace_back(disappearingChild);
         }
     });
-
-    // update flags
-    isFullChildrenListValid_ = true;
-    isChildrenSorted_ = false;
-}
-
-void RSRenderNode::SortChildren(bool inSubThread)
-{
-    // Node is currently used by sub thread, delay the operation
-    if (GetIsUsedBySubThread() != inSubThread) {
-        return;
-    }
-    // sort all children by z-order (note: std::list::sort is stable) if needed
-    std::lock_guard<std::mutex> lock(mutex_);
-    fullChildrenList_.sort([](const auto& first, const auto& second) -> bool {
+    
+    // Step 3: Sort all children by z-order
+    std::stable_sort(
+        fullChildrenList->begin(), fullChildrenList->end(), [](const auto& first, const auto& second) -> bool {
         return first->GetRenderProperties().GetPositionZ() < second->GetRenderProperties().GetPositionZ();
     });
+
+    // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
+    auto prevFullChildrenList = fullChildrenList_;
+
+    // Update the flag to indicate that children are now valid and sorted
+    isFullChildrenListValid_ = true;
     isChildrenSorted_ = true;
+
+    // Move the fullChildrenList to fullChildrenList_ atomically
+    ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
+    std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
 }
 
-void RSRenderNode::ApplyChildrenModifiers()
+void RSRenderNode::ResortChildren()
 {
-    bool anyChildZOrderChanged = false;
-    for (auto& child : GetChildren()) {
-        anyChildZOrderChanged = child->ApplyModifiers() || anyChildZOrderChanged;
-    }
-    if (anyChildZOrderChanged) {
-        isChildrenSorted_ = false;
-    }
+    // Make a copy of the fullChildrenList for sorting
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+
+    // Sort the children by their z-order
+    std::stable_sort(
+        fullChildrenList->begin(), fullChildrenList->end(), [](const auto& first, const auto& second) -> bool {
+        return first->GetRenderProperties().GetPositionZ() < second->GetRenderProperties().GetPositionZ();
+    });
+
+    // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
+    auto prevFullChildrenList = fullChildrenList_;
+
+    // Update the flag to indicate that children are now sorted
+    isChildrenSorted_ = true;
+
+    // Move the fullChildrenList to fullChildrenList_ atomically
+    ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
+    std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
 }
 
 uint32_t RSRenderNode::GetChildrenCount() const
@@ -2738,28 +2739,6 @@ inline void RSRenderNode::AddActiveNode()
 {
     if (auto context = GetContext().lock()) {
         context->AddActiveNode(shared_from_this());
-    }
-}
-
-void RSRenderNode::ClearFullChildrenListIfNeeded(bool inSubThread)
-{
-    // fullChildrenList is valid
-    if (LIKELY(isFullChildrenListValid_) || fullChildrenList_.empty()) {
-        return;
-    }
-    if (!inSubThread) {
-        // main thread clears the fullChildrenList only if sub thread is not using it
-        if (!GetIsUsedBySubThread()) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            fullChildrenList_.clear();
-        }
-    } else if (auto context = context_.lock()) {
-        // sub thread should not clear the fullChildrenList directly, post task to main thread to do that
-        context->PostTask([weakThis = weak_from_this()]() {
-            if (auto node = weakThis.lock()) {
-                node->ClearFullChildrenListIfNeeded();
-            }
-        });
     }
 }
 

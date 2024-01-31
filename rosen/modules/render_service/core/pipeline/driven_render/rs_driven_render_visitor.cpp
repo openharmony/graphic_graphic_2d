@@ -37,7 +37,7 @@ RSDrivenRenderVisitor::RSDrivenRenderVisitor()
 
 void RSDrivenRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
-    for (auto& child : node.GetSortedChildren()) {
+    for (auto& child : *node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
 }
@@ -103,7 +103,7 @@ void RSDrivenRenderVisitor::ProcessChildren(RSRenderNode& node)
     if (hasTraverseDrivenNode_ && currDrivenSurfaceNode_->IsBackgroundSurface()) {
         return;
     }
-    for (auto& child : node.GetSortedChildren()) {
+    for (auto& child : *node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
 }

@@ -293,7 +293,7 @@ private:
     // if cache root reuses, update its subtree
     // [attention] check curSurfaceDirtyManager_ before function calls
     void UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode>& cacheRootNode,
-        const std::list<RSRenderNode::SharedPtr>& children);
+        const std::vector<RSRenderNode::SharedPtr>& children);
     // set node cacheable animation after checking whold child tree
     void SetNodeCacheChangeStatus(RSRenderNode& node);
     void DisableNodeCacheInSetting(RSRenderNode& node);
