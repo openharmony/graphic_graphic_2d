@@ -280,7 +280,7 @@ void RSMainThread::Init()
         subThreadManager->SubmitFilterSubThreadTask();
         SendCommands();
         {
-            std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+            std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
             context_->activeNodesInRoot_.clear();
         }
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -660,7 +660,7 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
             if (node->IsAppWindow()) {
                 pid = ExtractPid(node->GetId());
             } else if (node->IsLeashWindow()) {
-                for (auto& child : *node->GetSortedChildren()) {
+                for (auto& child : node->GetSortedChildren()) {
                     auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
                     if (surfaceNodePtr && surfaceNodePtr->IsAppWindow()) {
                         pid = ExtractPid(child->GetId());
@@ -1018,7 +1018,7 @@ bool RSMainThread::CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const
         if (node->GetId() == appNodeId) {
             return true;
         }
-        for (auto& child : *node->GetSortedChildren()) {
+        for (auto& child : node->GetSortedChildren()) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
             if (surfaceNode && surfaceNode->GetId() == appNodeId) {
                 return true;
@@ -1104,7 +1104,7 @@ bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
                 return true;
             }
         } else {
-            for (auto& child : *node->GetSortedChildren()) {
+            for (auto& child : node->GetSortedChildren()) {
                 auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
                 if (surfaceNode && surfaceNode->IsAppWindow() && surfaceNode->GetId() == appNodeId) {
                     return true;
@@ -1500,7 +1500,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
         if (IsUIFirstOn()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
-                rootNode->GetFirstChild());
+                rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
             std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
             RSUniRenderUtil::AssignWindowNodes(displayNode, mainThreadNodes, subThreadNodes);
@@ -1752,7 +1752,7 @@ void RSMainThread::CalcOcclusion()
     }
     std::map<NodeId, std::vector<RSBaseRenderNode::SharedPtr>> curAllSurfacesInDisplay;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    for (const auto& child : *node->GetSortedChildren()) {
+    for (const auto& child : node->GetSortedChildren()) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
         if (displayNode) {
             const auto& surfaces = displayNode->GetCurAllSurfaces();
@@ -1762,7 +1762,8 @@ void RSMainThread::CalcOcclusion()
     }
 
     if (node->GetChildrenCount()== 1) {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node->GetFirstChild());
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
+            node->GetSortedChildren().front());
         if (displayNode) {
             curAllSurfaces = displayNode->GetCurAllSurfaces();
         }
@@ -2367,7 +2368,7 @@ bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootN
 
     (*RemoveStoppedThreads)();
 
-    auto children = *rootNode->GetSortedChildren();
+    auto children = rootNode->GetSortedChildren();
     bool animate_ = doWindowAnimate_;
     for (auto it = children.rbegin(); it != children.rend(); it++) {
         auto child = *it;
@@ -2827,7 +2828,7 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
         return std::any_of(context_->activeNodesInRoot_.begin(), context_->activeNodesInRoot_.end(),
             [pid](const auto& iter) { return ExtractPid(iter.first) == pid; });
     } else {
-        std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+        std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
         return context_->activeNodesInRoot_.count(nodeId);
     }
 }
@@ -2870,36 +2871,26 @@ void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSS
 
 void RSMainThread::ApplyModifiers()
 {
-    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
     if (context_->activeNodesInRoot_.empty()) {
         return;
     }
     RS_TRACE_NAME_FMT("ApplyModifiers (PropertyDrawableEnable %s)",
         RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> nodesThatNeedsRegenerateChildren;
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
-            auto node = nodePtr.lock();
-            if (node == nullptr) {
+            auto ptr = nodePtr.lock();
+            if (ptr == nullptr) {
                 continue;
             }
-            if (!node->isFullChildrenListValid_ || !node->isChildrenSorted_) {
-                nodesThatNeedsRegenerateChildren.emplace(node->id_, node);
-            }
-            // apply modifiers, if z-order not changed, skip
-            if (!node->ApplyModifiers()) {
+            bool isZOrderChanged = ptr->ApplyModifiers();
+            if (!isZOrderChanged) {
                 continue;
             }
-            if (auto parent = node->GetParent().lock()) {
+            if (auto parent = ptr->GetParent().lock()) {
                 parent->isChildrenSorted_ = false;
-                nodesThatNeedsRegenerateChildren.emplace(parent->id_, parent);
             }
         }
-    }
-    // Update the full children list of the nodes that need it
-    nodesThatNeedsRegenerateChildren.emplace(0, context_->globalRootRenderNode_);
-    for (auto& [id, node] : nodesThatNeedsRegenerateChildren) {
-        node->UpdateFullChildrenListIfNeeded();
     }
 }
 
@@ -2967,13 +2958,16 @@ void RSMainThread::UpdateRogSizeIfNeeded()
     if (!rootNode) {
         return;
     }
-    auto child = rootNode->GetFirstChild();
-    if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
-        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (displayNode) {
-            auto screenManager_ = CreateOrGetScreenManager();
-            screenManager_->SetRogScreenResolution(
-                displayNode->GetScreenId(), displayNode->GetRogWidth(), displayNode->GetRogHeight());
+    std::list<RSBaseRenderNode::SharedPtr> children = rootNode->GetSortedChildren();
+    if (!children.empty()) {
+        auto child = children.front();
+        if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
+            auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+            if (displayNode) {
+                auto screenManager_ = CreateOrGetScreenManager();
+                screenManager_->SetRogScreenResolution(displayNode->GetScreenId(),
+                    displayNode->GetRogWidth(), displayNode->GetRogHeight());
+            }
         }
     }
 }
@@ -2987,11 +2981,11 @@ void RSMainThread::UpdateUIFirstSwitch()
     if (!rootNode) {
         return;
     }
-    auto firstChildren = rootNode->GetFirstChild();
-    if (!firstChildren) {
+    auto sortedChildren = rootNode->GetSortedChildren();
+    if (sortedChildren.empty()) {
         return;
     }
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(sortedChildren.front());
     if (!displayNode) {
         return;
     }
