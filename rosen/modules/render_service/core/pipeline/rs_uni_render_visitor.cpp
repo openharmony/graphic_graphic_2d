@@ -2219,7 +2219,7 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 void RSUniRenderVisitor::ProcessChildrenForScreenRecordingOptimization(
     RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow)
 {
-    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
+    if (DrawBlurInCache(node)) {
         return;
     }
     if (isSubThread_) {
@@ -2258,8 +2258,23 @@ void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNod
             child->SetDrawingCacheRootId(node.GetDrawingCacheRootId());
         }
         SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+        UpdateVirtualScreenFilterAppRootId(child);
         child->Process(shared_from_this());
+        UpdateVirtualScreenFilterAppRootId(child);
         RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+    }
+}
+
+void RSUniRenderVisitor::UpdateVirtualScreenFilterAppRootId(const RSRenderNode::SharedPtr& node)
+{
+    if (node->GetType() == RSRenderNodeType::SURFACE_NODE && virtualScreenFilterAppRootId_ == INVALID_NODEID &&
+        screenInfo_.filteredAppSet.find(node->GetId()) != screenInfo_.filteredAppSet.end()) {
+        // limit surface node is to reduce filteredAppSet set times
+        // don't update if node's parent is in filteredAppSet
+        virtualScreenFilterAppRootId_ = node->GetId();
+    } else if (virtualScreenFilterAppRootId_ == node->GetId()) {
+        // restore virtualScreenFilterAppRootId_ only by itself
+        virtualScreenFilterAppRootId_ = INVALID_NODEID;
     }
 }
 
@@ -4336,8 +4351,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
         RS_PROCESS_TRACE(isPhone_, node.GetName() + " App Occluded Leashwindow Skip");
         return false;
     }
-    if (!screenInfo_.filteredAppSet.empty() &&
-        screenInfo_.filteredAppSet.find(node.GetId()) == screenInfo_.filteredAppSet.end()) {
+    if (!screenInfo_.filteredAppSet.empty() && virtualScreenFilterAppRootId_ == INVALID_NODEID) {
         RS_PROCESS_TRACE(isPhone_, node.GetName() + " skip because it isn't filtered App");
         RS_LOGD("RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess:\
             %{public}s skip because it isn't filtered App", node.GetName().c_str());

@@ -541,8 +541,13 @@ private:
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     bool CheckIfNeedResetRotate();
-    void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
 
+    // use for virtual screen app/window filtering ability
+    NodeId virtualScreenFilterAppRootId_ = INVALID_NODEID;
+    void UpdateVirtualScreenFilterAppRootId(const RSRenderNode::SharedPtr& node);
+
+    void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
+    
     // dfx for effect render node
     void DrawEffectRenderNodeForDFX();
     std::vector<RectI> nodesUseEffectFallbackForDfx_;
