@@ -659,8 +659,10 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += ", isContainBootAnimation_: " + std::to_string(isContainBootAnimation_);
     out += "\n";
 
-    for (auto& child : fullChildrenList_) {
-        child->DumpTree(depth + 1, out);
+    for (auto& child : children_) {
+        if (auto c = child.lock()) {
+            c->DumpTree(depth + 1, out);
+        }
     }
     for (auto& [child, pos] : disappearingChildren_) {
         child->DumpTree(depth + 1, out);
