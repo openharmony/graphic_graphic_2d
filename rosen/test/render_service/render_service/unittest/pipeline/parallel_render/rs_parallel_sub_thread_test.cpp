@@ -329,4 +329,61 @@ HWTEST_F(RSParallelSubThreadTest, CalcCostTest4, TestSize.Level1)
     RSParallelRenderManager::Instance()->uniVisitor_ = nullptr;
 }
 
+#ifdef USE_ROSEN_DRAWING
+/**
+ * @tc.name: FlushForRosenDrawing001
+ * @tc.desc: Test RSParallelSubThreadTest.FlushForRosenDrawing001
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, FlushForRosenDrawing001, TestSize.Level1)
+{
+    auto curThread1 = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
+    ASSERT_FALSE(curThread1->FlushForRosenDrawing());
+    curThread1->CreateResource();
+    curThread1->drCanvas_ = new Drawing::Canvas();
+    ASSERT_TRUE(curThread1->drCanvas_ != nullptr);
+    curThread1->canvas_ = std::make_shared<RSPaintFilterCanvas>(curThread1->drCanvas_);
+    ASSERT_TRUE(curThread1->FlushForRosenDrawing());
+}
+
+/**
+ * @tc.name: FlushForRosenDrawing002
+ * @tc.desc: Test RSParallelSubThreadTest.FlushForRosenDrawing002
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, FlushForRosenDrawing002, TestSize.Level1)
+{
+    auto curThread1 = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
+    curThread1->AcquireSubDrawingSurface(100, 100);  // surface size 100 * 100
+    ASSERT_FALSE(curThread1->FlushForRosenDrawing());
+}
+
+/**
+ * @tc.name: getresource
+ * @tc.desc: Test RSParallelSubThreadTest.getresource
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, getresource, TestSize.Level1)
+{
+    auto curThread1 = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
+    EXPECT_EQ(curThread1->GetDrawingSurface(), nullptr);
+    EXPECT_EQ(curThread1->GetTexture(), nullptr);
+}
+
+/**
+ * @tc.name: CreateShareGrContext
+ * @tc.desc: Test RSParallelSubThreadTest.CreateShareGrContext
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, CreateShareGrContext, TestSize.Level1)
+{
+    auto curThread = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
+    auto sptr = curThread->CreateShareGPUContext();
+    EXPECT_NE(sptr, nullptr);
+}
+#endif
 } // namespace OHOS::Rosen

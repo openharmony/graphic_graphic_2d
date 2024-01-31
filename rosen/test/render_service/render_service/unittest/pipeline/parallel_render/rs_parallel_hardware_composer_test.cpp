@@ -77,4 +77,18 @@ HWTEST_F(RSParallelHardwareComposerTest, HardwareComposerEnabledTest, TestSize.L
     hardwareComposer->AddTransparentColorArea(100, std::move(shape4));
 }
 
+/**
+ * @tc.name: HardwareComposerGetRRectTest
+ * @tc.desc: Test RSParallelRenderExtTest.HardwareComposerGetRRectTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6COJS
+ */
+HWTEST_F(RSParallelHardwareComposerTest, HardwareComposerGetRRectTest, TestSize.Level1)
+{
+    RectF rect = {0.f, 0.f, 8.f, 8.f};
+    Vector4f radius = {0.f, 0.f, 0.f, 0.f};
+    auto shape = std::make_unique<RSParallelSelfDrawingSurfaceShape>(false, rect, radius);
+    Drawing::RoundRect rrect = shape->GetRRect();
+    EXPECT_EQ(rrect.GetRect().right_, 8.f);
+}
 } // namespace OHOS::Rosen

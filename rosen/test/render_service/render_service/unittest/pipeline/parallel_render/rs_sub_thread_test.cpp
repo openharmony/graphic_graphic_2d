@@ -101,4 +101,56 @@ HWTEST_F(RsSubThreadTest, CreateShareGrContextTest, TestSize.Level1)
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     curThread->CreateShareGrContext();
 }
+
+/**
+ * @tc.name: ResetGrContext
+ * @tc.desc: Test RsSubThreadTest.ResetGrContext
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsSubThreadTest, ResetGrContext, TestSize.Level1)
+{
+    auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
+    ASSERT_TRUE(curThread != nullptr);
+    curThread->ResetGrContext();
+    curThread->Start();
+    curThread->ResetGrContext();
+}
+
+#ifdef USE_ROSEN_DRAWING
+/**
+ * @tc.name: AddToReleaseQueue
+ * @tc.desc: Test RsSubThreadTest.AddToReleaseQueue
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsSubThreadTest, AddToReleaseQueue, TestSize.Level1)
+{
+    const Drawing::ImageInfo info =
+    Drawing::ImageInfo{200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
+    auto surface(Drawing::Surface::MakeRaster(info));
+    auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
+    ASSERT_TRUE(curThread != nullptr);
+    curThread->AddToReleaseQueue(std::move(surface));
+}
+#endif
+
+/**
+ * @tc.name: RenderCache
+ * @tc.desc: Test RsSubThreadTest.RenderCache
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsSubThreadTest, RenderCache, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    const std::shared_ptr<RSSuperRenderTask> threadTask_ = std::make_shared<RSSuperRenderTask>(rsDisplayRenderNode);
+    
+    auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
+    ASSERT_TRUE(curThread != nullptr);
+    curThread->Start();
+    curThread->RenderCache(threadTask_);
+}
 } // namespace OHOS::Rosen
