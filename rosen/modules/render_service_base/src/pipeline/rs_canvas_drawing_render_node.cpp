@@ -91,6 +91,7 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
     }
     preThreadInfo_ = curThreadInfo_;
     canvas_->setMatrix(preMatrix);
+    canvas_->flush();
     return true;
 }
 #else
@@ -131,6 +132,7 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
     }
     preThreadInfo_ = curThreadInfo_;
     canvas_->SetMatrix(preMatrix);
+    canvas_->Flush();
     return true;
 }
 #endif
