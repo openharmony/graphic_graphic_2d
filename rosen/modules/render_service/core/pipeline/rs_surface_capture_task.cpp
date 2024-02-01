@@ -923,7 +923,8 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->restore();
     }
 
-    if (isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
+    if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
+        isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
             process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
             node.GetName().c_str(), node.GetId());
@@ -1016,7 +1017,8 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->Restore();
     }
 
-    if (isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
+    if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
+        isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
             process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
             node.GetName().c_str(), node.GetId());
@@ -1043,7 +1045,8 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         canvas_->setMatrix(geoPtr->GetAbsMatrix());
     }
 
-    if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
+    if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
+        isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
             process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
             node.GetName().c_str(), node.GetId());
@@ -1099,7 +1102,8 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         canvas_->SetMatrix(geoPtr->GetAbsMatrix());
     }
 
-    if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
+    if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
+        isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
             process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
             node.GetName().c_str(), node.GetId());
