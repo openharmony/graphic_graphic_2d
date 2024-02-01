@@ -168,6 +168,7 @@ void RSScreenManager::HandleSensorData(float angle)
         activeScreenId_ = innerScreenId_;
     }
     isPostureSensorDataHandled_ = true;
+    HgmCore::Instance().SetActiveScreenId(activeScreenId_);
     activeScreenIdAssignedCV_.notify_one();
 }
 
