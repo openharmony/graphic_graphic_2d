@@ -90,6 +90,17 @@ using groupedTransitionNodesType = std::unordered_map<NodeId, std::pair<RSUniRen
     std::unordered_map<NodeId, RSUniRenderVisitor::RenderParam>>>;
 static std::unordered_map<NodeId, std::pair<RSUniRenderVisitor::RenderParam,
     std::unordered_map<NodeId, RSUniRenderVisitor::RenderParam>>> groupedTransitionNodes = {};
+static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
+    { DirtyRegionType::UPDATE_DIRTY_REGION, "UPDATE_DIRTY_REGION" },
+    { DirtyRegionType::OVERLAY_RECT, "OVERLAY_RECT" },
+    { DirtyRegionType::FILTER_RECT, "FILTER_RECT" },
+    { DirtyRegionType::SHADOW_RECT, "SHADOW_RECT" },
+    { DirtyRegionType::PREPARE_CLIP_RECT, "PREPARE_CLIP_RECT" },
+    { DirtyRegionType::REMOVE_CHILD_RECT, "REMOVE_CHILD_RECT" },
+    { DirtyRegionType::RENDER_PROPERTIES_RECT, "RENDER_PROPERTIES_RECT" },
+    { DirtyRegionType::CANVAS_NODE_SKIP_RECT, "CANVAS_NODE_SKIP_RECT" },
+    { DirtyRegionType::OUTLINE_RECT, "OUTLINE_RECT" },
+};
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
