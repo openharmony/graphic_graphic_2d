@@ -1122,7 +1122,7 @@ private:
         }
     public:
         // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
-        const static int CONTAINER_TITLE_HEIGHT = 48;   // container title height = 48 vp
+        const static int CONTAINER_TITLE_HEIGHT = 37;   // container title height = 37 vp
         const static int CONTENT_PADDING = 4;           // container <--> content distance 4 vp
         const static int CONTAINER_BORDER_WIDTH = 1;    // container border width 2 vp
         const static int CONTAINER_OUTER_RADIUS = 16;   // container outer radius 16 vp
