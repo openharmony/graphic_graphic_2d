@@ -126,6 +126,9 @@ public:
     sptr<NativeSurface> GetNativeSurface() override;
     GSError SetWptrNativeWindowToPSurface(void* nativeWindow) override;
     virtual GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) override;
+    GSError RegisterUserDataChangeListener(const std::string &funcName, OnUserDataChangeFunc func) override;
+    GSError UnRegisterUserDataChangeListener(const std::string &funcName) override;
+    GSError ClearUserDataChangeListener() override;
 private:
     bool IsRemote();
     void CleanAllLocked();
@@ -141,6 +144,8 @@ private:
     sptr<IProducerListener> listener_;
     wptr<NativeWindow> wpNativeWindow_ = nullptr;
     wptr<ProducerSurfaceDelegator> wpPSurfaceDelegator_ = nullptr;
+    std::map<std::string, OnUserDataChangeFunc> onUserDataChange_;
+    std::mutex lockMutex_;
 };
 } // namespace OHOS
 
