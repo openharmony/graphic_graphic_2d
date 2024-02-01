@@ -174,7 +174,7 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     }
 }
 
-void HgmFrameRateManager::FrameRateReport()
+void HgmFrameRateManager::FrameRateReport() const
 {
     std::unordered_map<pid_t, uint32_t> rates;
     rates[GetRealPid()] = currRefreshRate_;
@@ -391,7 +391,7 @@ int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velo
     return 0;
 }
 
-float HgmFrameRateManager::PixelToMM(float velocity) const
+float HgmFrameRateManager::PixelToMM(float velocity)
 {
     float velocityMM = 0.0f;
     auto& hgmCore = HgmCore::Instance();
