@@ -2026,6 +2026,32 @@ void RSRenderServiceConnectionProxy::RunOnRemoteDiedCallback()
     }
 }
 
+GpuDirtyRegionInfo RSRenderServiceConnectionProxy::GetCurrentDirtyRegionInfo(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    GpuDirtyRegionInfo gpuDirtyRegionInfo;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return gpuDirtyRegionInfo;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_DIRTY_REGION_INFO);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetCurrentDirtyRegionInfo: Send Request err.");
+        return gpuDirtyRegionInfo;
+    }
+    gpuDirtyRegionInfo.activeGpuDirtyRegionAreas = reply.ReadInt64();
+    gpuDirtyRegionInfo.globalGpuDirtyRegionAreas = reply.ReadInt64();
+    gpuDirtyRegionInfo.skipProcessFramesNumber = reply.ReadInt32();
+    gpuDirtyRegionInfo.activeFramesNumber = reply.ReadInt32();
+    gpuDirtyRegionInfo.globalFramesNumber = reply.ReadInt32();
+    gpuDirtyRegionInfo.windowName = reply.ReadString();
+    return gpuDirtyRegionInfo;
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config)
 {

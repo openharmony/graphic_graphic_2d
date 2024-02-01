@@ -242,6 +242,8 @@ private:
     void NotifyTouchEvent(int32_t touchStatus) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
+
+    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) override;
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif

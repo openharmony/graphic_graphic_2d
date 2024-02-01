@@ -212,6 +212,8 @@ public:
 
     void RunOnRemoteDiedCallback() override;
 
+    GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) override;
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif

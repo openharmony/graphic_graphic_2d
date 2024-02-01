@@ -240,6 +240,8 @@ public:
 
     virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 
+    virtual GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id) = 0;
+
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
 #endif
