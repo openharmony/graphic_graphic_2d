@@ -34,16 +34,6 @@ void VulkanRenderBackend::RenderFrame()
         LOGE("drSurface is nullptr, can not RenderFrame");
         return;
     }
-#ifdef ENABLE_DDGR_OPTIMIZE
-    dSurface_ = drSurface_->GetImpl<Drawing::DDGRSurface>()->ExportDDGRSurface();
-    // flush commands
-    if (dSurface_->GetCanvas() != nullptr) {
-        dSurface_->GetCanvas()->Flush();
-        std::cout << "VulkanRenderBackend DDGR RenderFrame flushing end" << std::endl;
-    } else {
-        std::cout << "ddgr canvas is nullptr!!!" << std::endl;
-    }
-#else
     skSurface_ = drSurface_->GetImpl<Drawing::SkiaSurface>()->GetSkSurface().get();
     if (skSurface_ == nullptr) {
         std::cout << "skSurface is nullptr, can not RenderFrame" << std::endl;
@@ -56,7 +46,6 @@ void VulkanRenderBackend::RenderFrame()
     } else {
         std::cout << "skia canvas is nullptr!!!" << std::endl;
     }
-#endif
 }
 
 SkCanvas* VulkanRenderBackend::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame)

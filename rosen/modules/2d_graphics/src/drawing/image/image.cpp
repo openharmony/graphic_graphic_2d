@@ -225,6 +225,11 @@ bool Image::IsOpaque() const
     return imageImplPtr->IsOpaque();
 }
 
+void Image::HintCacheGpuResource() const
+{
+    imageImplPtr->HintCacheGpuResource();
+}
+
 std::shared_ptr<Data> Image::Serialize() const
 {
     return imageImplPtr->Serialize();

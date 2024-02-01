@@ -536,7 +536,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(snapshot->GetWidth(), snapshot->GetHeight())) {
         ROSEN_LOGD("TakeSnapshot cache image resource(width:%{public}d, height:%{public}d).", snapshot->GetWidth(),
             snapshot->GetHeight());
-        as_IB(snapshot->ExportSkImage().get())->hintCacheGpuResource();
+        snapshot->HintCacheGpuResource();
     }
     filter->PreProcess(snapshot);
 
@@ -596,7 +596,7 @@ void RSFilterCacheManager::FilterPartialRender(
                 filteredSnapshot->GetWidth(), filteredSnapshot->GetHeight())) {
             ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%{public}d, height:%{public}d).",
                 filteredSnapshot->GetWidth(), filteredSnapshot->GetHeight());
-            as_IB(filteredSnapshot->ExportSkImage().get())->hintCacheGpuResource();
+            filteredSnapshot->HintCacheGpuResource();
         }
 #endif
         cachedFilteredSnapshot_.reset();
@@ -711,7 +711,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
             filteredSnapshot->GetWidth(), filteredSnapshot->GetHeight())) {
         ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%{public}d, height:%{public}d).",
             filteredSnapshot->GetWidth(), filteredSnapshot->GetHeight());
-        as_IB(filteredSnapshot->ExportSkImage().get())->hintCacheGpuResource();
+        filteredSnapshot->HintCacheGpuResource();
     }
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (filteredSnapshot->IsTextureBacked()) {

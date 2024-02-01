@@ -452,6 +452,11 @@ bool SkiaImage::IsOpaque() const
     return (skiaImage_ == nullptr) ? false : skiaImage_->isOpaque();
 }
 
+void SkiaImage::HintCacheGpuResource() const
+{
+    as_IB(skiaImage_.get())->hintCacheGpuResource();
+}
+
 const sk_sp<SkImage> SkiaImage::GetImage() const
 {
     return skiaImage_;

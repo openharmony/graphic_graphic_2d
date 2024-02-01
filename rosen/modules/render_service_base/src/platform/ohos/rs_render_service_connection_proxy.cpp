@@ -25,10 +25,6 @@
 #include "transaction/rs_marshalling_helper.h"
 #include "rs_trace.h"
 
-#if defined (ENABLE_DDGR_OPTIMIZE)
-#include "ddgr_renderer.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -55,9 +51,6 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         if (isUniMode) {
             ++transactionDataIndex_;
         }
-#if defined (ENABLE_DDGR_OPTIMIZE)
-        DDGRRenderer::GetInstance().IntegrateSetIndex(transactionDataIndex_);
-#endif
         transactionData->SetIndex(transactionDataIndex_);
         std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
         if (!FillParcelWithTransactionData(transactionData, parcel)) {
