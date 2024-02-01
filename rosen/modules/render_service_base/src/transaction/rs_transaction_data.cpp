@@ -193,7 +193,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     }
     uint8_t followType = 0;
     NodeId nodeId = 0;
-    u_int8_t hasCommand = 0;
+    uint8_t hasCommand = 0;
     uint16_t commandType = 0;
     uint16_t commandSubType = 0;
 
