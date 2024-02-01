@@ -2416,6 +2416,10 @@ bool RSRenderNode::IsShadowValidLastFrame() const
 void RSRenderNode::SetStaticCached(bool isStaticCached)
 {
     isStaticCached_ = isStaticCached;
+    // ensure defrost subtree would be updated
+    if (!isStaticCached_) {
+        SetContentDirty();
+    }
 }
 bool RSRenderNode::IsStaticCached() const
 {
