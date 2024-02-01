@@ -28,8 +28,10 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class BufferQueueProducerTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
+    void SetUp();
+    void TearDown();
 
     static inline BufferRequestConfig requestConfig = {
         .width = 0x100,
@@ -47,28 +49,42 @@ public:
             }
         },
     };
-    static inline std::vector<int32_t> deletingBuffers;
-    static inline int64_t timestamp = 0;
-    static inline std::vector<Rect> damages = {};
-    static inline sptr<BufferQueue> bq = nullptr;
-    static inline sptr<BufferQueueProducer> bqp = nullptr;
-    static inline sptr<BufferExtraData> bedata = nullptr;
+protected:
+    int64_t timestamp_ = 0;
+    std::vector<Rect> damages_ = {};
+    sptr<BufferQueueProducer> bqp_ = nullptr;
+    sptr<BufferQueue> bq_ = nullptr;
+    sptr<BufferExtraData> bedata_ = nullptr;
 };
 
-void BufferQueueProducerTest::SetUpTestCase()
+
+void BufferQueueProducerTest::SetUp()
 {
-    bq = new BufferQueue("test");
-    bq->Init();
+    bq_ = new BufferQueue("test");
+    bq_->Init();
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    bq->RegisterConsumerListener(listener);
-    bqp = new BufferQueueProducer(bq);
-    bedata = new OHOS::BufferExtraDataImpl;
+    bq_->RegisterConsumerListener(listener);
+    if (bqp_ == nullptr) {
+        bqp_ = new BufferQueueProducer(bq_);
+    }
+    if (bedata_ == nullptr) {
+        bedata_ = new OHOS::BufferExtraDataImpl;
+    }
 }
 
-void BufferQueueProducerTest::TearDownTestCase()
+void BufferQueueProducerTest::TearDown()
 {
-    bq = nullptr;
-    bqp = nullptr;
+    damages_.clear();
+    std::vector<Rect> tmp;
+    std::swap(damages_, tmp);
+    if (bqp_ != nullptr) {
+        bqp_->SetStatus(false);
+        bqp_ = nullptr;
+    }
+    bq_ = nullptr;
+    if (bedata_ != nullptr) {
+        bedata_ = nullptr;
+    }
 }
 
 /*
@@ -84,16 +100,16 @@ void BufferQueueProducerTest::TearDownTestCase()
  */
 HWTEST_F(BufferQueueProducerTest, QueueSize001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(bqp->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
+    ASSERT_EQ(bqp_->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
 
-    GSError ret = bqp->SetQueueSize(2);
+    GSError ret = bqp_->SetQueueSize(2);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
+    ret = bqp_->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
+    EXPECT_NE(ret, OHOS::GSERROR_OK);
 
-    ASSERT_EQ(bqp->GetQueueSize(), 2u);
-    ASSERT_EQ(bq->GetQueueSize(), 2u);
+    EXPECT_EQ(bqp_->GetQueueSize(), 2u);
+    EXPECT_EQ(bq_->GetQueueSize(), 2u);
 }
 
 /*
@@ -108,10 +124,10 @@ HWTEST_F(BufferQueueProducerTest, QueueSize001, Function | MediumTest | Level2)
 HWTEST_F(BufferQueueProducerTest, ReqCan001, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
+    GSError ret = bqp_->RequestBuffer(requestConfig, bedata_, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->CancelBuffer(retval.sequence, bedata);
+    ret = bqp_->CancelBuffer(retval.sequence, bedata_);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -127,13 +143,13 @@ HWTEST_F(BufferQueueProducerTest, ReqCan001, Function | MediumTest | Level2)
 HWTEST_F(BufferQueueProducerTest, ReqCan002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
+    GSError ret = bqp_->RequestBuffer(requestConfig, bedata_, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->CancelBuffer(retval.sequence, bedata);
+    ret = bqp_->CancelBuffer(retval.sequence, bedata_);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->CancelBuffer(retval.sequence, bedata);
+    ret = bqp_->CancelBuffer(retval.sequence, bedata_);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -151,26 +167,26 @@ HWTEST_F(BufferQueueProducerTest, ReqCan003, Function | MediumTest | Level2)
     IBufferProducer::RequestBufferReturnValue retval2;
     IBufferProducer::RequestBufferReturnValue retval3;
 
-    auto ret = bqp->RequestBuffer(requestConfig, bedata, retval1);
+    auto ret = bqp_->RequestBuffer(requestConfig, bedata_, retval1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_EQ(retval1.buffer, nullptr);
+    EXPECT_NE(retval1.buffer, nullptr);
 
-    ret = bqp->RequestBuffer(requestConfig, bedata, retval2);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_NE(retval2.buffer, nullptr);
+    ret = bqp_->RequestBuffer(requestConfig, bedata_, retval2);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
+    EXPECT_NE(retval2.buffer, nullptr);
 
-    ret = bqp->RequestBuffer(requestConfig, bedata, retval3);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
-    ASSERT_EQ(retval3.buffer, nullptr);
+    ret = bqp_->RequestBuffer(requestConfig, bedata_, retval3);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
+    EXPECT_NE(retval3.buffer, nullptr);
 
-    ret = bqp->CancelBuffer(retval1.sequence, bedata);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ret = bqp_->CancelBuffer(retval1.sequence, bedata_);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->CancelBuffer(retval2.sequence, bedata);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ret = bqp_->CancelBuffer(retval2.sequence, bedata_);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->CancelBuffer(retval3.sequence, bedata);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
+    ret = bqp_->CancelBuffer(retval3.sequence, bedata_);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
 }
 
 /*
@@ -186,18 +202,19 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu001, Function | MediumTest | Level2)
 {
     Rosen::FrameReport::GetInstance().SetGameScene(true);
     IBufferProducer::RequestBufferReturnValue retval;
-    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    std::cout << "start flu001" << std::endl;
+    GSError ret = bqp_->RequestBuffer(requestConfig, bedata_, retval);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    ret = bqp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ret = bqp_->FlushBuffer(retval.sequence, bedata_, acquireFence, flushConfig);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
+    ret = bq_->AcquireBuffer(retval.buffer, retval.fence, timestamp_, damages_);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
-    ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
+    ret = bq_->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -214,25 +231,25 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu001, Function | MediumTest | Level2)
 HWTEST_F(BufferQueueProducerTest, ReqFlu002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
+    GSError ret = bqp_->RequestBuffer(requestConfig, bedata_, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    ret = bqp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
+    ret = bqp_->FlushBuffer(retval.sequence, bedata_, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
+    ret = bqp_->FlushBuffer(retval.sequence, bedata_, acquireFence, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
+    ret = bq_->AcquireBuffer(retval.buffer, retval.fence, timestamp_, damages_);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
-    ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
+    ret = bq_->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     int32_t timeOut = 1;
-    ret = bqp->AttachBuffer(retval.buffer, timeOut);
+    ret = bqp_->AttachBuffer(retval.buffer, timeOut);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -250,7 +267,7 @@ HWTEST_F(BufferQueueProducerTest, AttachAndDetachBuffer001, Function | MediumTes
     sptr<SurfaceBuffer> &buffer = retVal.buffer;
 
     sptr<BufferQueue> bufferQueue = nullptr;
-    auto bqpTmp = new BufferQueueProducer(bufferQueue);
+    sptr<BufferQueueProducer> bqpTmp = new BufferQueueProducer(bufferQueue);
 
     GSError ret = bqpTmp->AttachBuffer(buffer);
     ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
@@ -274,9 +291,9 @@ HWTEST_F(BufferQueueProducerTest, AttachAndDetachBufferRemote, Function | Medium
     MessageParcel reply;
     reply.WriteInt32(6);
     MessageOption option;
-    int32_t ret = bqp->AttachBufferRemote(arguments, reply, option);
+    int32_t ret = bqp_->AttachBufferRemote(arguments, reply, option);
     ASSERT_EQ(ret, 0);
-    ret = bqp->DetachBufferRemote(arguments, reply, option);
+    ret = bqp_->DetachBufferRemote(arguments, reply, option);
     ASSERT_EQ(ret, 0);
 }
 
@@ -290,13 +307,13 @@ HWTEST_F(BufferQueueProducerTest, AttachAndDetachBufferRemote, Function | Medium
 */
 HWTEST_F(BufferQueueProducerTest, SetTunnelHandle, Function | MediumTest | Level2)
 {
-    EXPECT_EQ(bqp->SetTunnelHandle(nullptr), GSERROR_OK);
+    EXPECT_EQ(bqp_->SetTunnelHandle(nullptr), GSERROR_OK);
     GraphicExtDataHandle *handle = static_cast<GraphicExtDataHandle *>(
         malloc(sizeof(GraphicExtDataHandle) + sizeof(int32_t)));
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
-    GSError ret = bqp->SetTunnelHandle(handle);
+    GSError ret = bqp_->SetTunnelHandle(handle);
     EXPECT_EQ(ret, GSERROR_NO_ENTRY);
     free(handle);
 }
@@ -316,8 +333,8 @@ HWTEST_F(BufferQueueProducerTest, SetTunnelHandleRemote, Function | MediumTest |
     MessageParcel reply;
     reply.WriteInt32(6);
     MessageOption option;
-    int32_t ret = bqp->SetTunnelHandleRemote(arguments, reply, option);
-    ASSERT_EQ(ret, 0);
+    int32_t ret = bqp_->SetTunnelHandleRemote(arguments, reply, option);
+    EXPECT_EQ(ret, 0);
 }
 
 /*
@@ -335,8 +352,8 @@ HWTEST_F(BufferQueueProducerTest, GetPresentTimestampRemote, Function | MediumTe
     MessageParcel reply;
     reply.WriteInt32(6);
     MessageOption option;
-    int32_t ret = bqp->GetPresentTimestampRemote(arguments, reply, option);
-    ASSERT_EQ(ret, 0);
+    int32_t ret = bqp_->GetPresentTimestampRemote(arguments, reply, option);
+    EXPECT_EQ(ret, 0);
 }
 
 /*
@@ -349,14 +366,14 @@ HWTEST_F(BufferQueueProducerTest, GetPresentTimestampRemote, Function | MediumTe
 HWTEST_F(BufferQueueProducerTest, NullTest, Function | MediumTest | Level2)
 {
     sptr<BufferQueue> bqTmp = nullptr;
-    auto bqpTmp = new BufferQueueProducer(bqTmp);
+    sptr<BufferQueueProducer> bqpTmp = new BufferQueueProducer(bqTmp);
     IBufferProducer::RequestBufferReturnValue retval;
-    GSError ret = bqpTmp->RequestBuffer(requestConfig, bedata, retval);
+    GSError ret = bqpTmp->RequestBuffer(requestConfig, bedata_, retval);
     EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-    ret = bqpTmp->CancelBuffer(retval.sequence, bedata);
+    ret = bqpTmp->CancelBuffer(retval.sequence, bedata_);
     EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    ret = bqpTmp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
+    ret = bqpTmp->FlushBuffer(retval.sequence, bedata_, acquireFence, flushConfig);
     EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
     ret = bqpTmp->GetLastFlushedBuffer(retval.buffer, acquireFence, nullptr, 0);
     EXPECT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
