@@ -367,7 +367,7 @@ void CharGroups::ReverseAll()
     std::reverse(pcgs_->begin(), pcgs_->end());
 }
 
-bool CharGroups::CheckCodePoint()
+bool CharGroups::CheckCodePoint() const
 {
     if (!GetSize()) {
         return false;

@@ -42,7 +42,7 @@ public:
     SymbolNodeBuild(const AnimationSetting animationSetting, const HMSymbolData symbolData,
     const EffectStrategy effectStrategy, const std::pair<double, double> offset);
 
-    void AddWholeAnimation(HMSymbolData &symbolData, const Vector4f &nodeBounds,
+    void AddWholeAnimation(const HMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::shared_ptr<SymbolAnimationConfig> symbolAnimationConfig);
 
     void AddHierarchicalAnimation(HMSymbolData &symbolData, const Vector4f &nodeBounds,
@@ -51,7 +51,7 @@ public:
     SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
     const RSEffectStrategy effectStrategy, const std::pair<double, double> offset);
 
-    void AddWholeAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
+    void AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::shared_ptr<SymbolAnimationConfig> symbolAnimationConfig);
 
     void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
@@ -60,7 +60,8 @@ public:
     ~SymbolNodeBuild() {}
     bool DecomposeSymbolAndDraw();
     void ClearAnimation();
-    void SetAnimation(std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
+    void SetAnimation(
+        const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc)
     {
         animationFunc_ = animationFunc;

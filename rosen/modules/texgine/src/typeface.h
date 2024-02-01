@@ -40,8 +40,8 @@ public:
     std::shared_ptr<TexgineTypeface> Get() const { return typeface_; }
 
     void ComputeFakeryItalic(bool isItalic);
-    bool DetectionItalic();
-    bool DetectionFakeBold();
+    bool DetectionItalic() const;
+    bool DetectionFakeBold() const;
     void ComputeFakery(int wantedWeight);
 
 private:

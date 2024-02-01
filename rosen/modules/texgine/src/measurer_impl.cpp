@@ -113,7 +113,7 @@ void MeasurerImpl::UpdateCache()
     }
 }
 
-void MeasurerImpl::GetInitKey(struct MeasurerCacheKey &key)
+void MeasurerImpl::GetInitKey(struct MeasurerCacheKey &key) const
 {
     key.text = text_;
     key.style = style_;

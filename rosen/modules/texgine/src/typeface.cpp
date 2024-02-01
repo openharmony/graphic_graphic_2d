@@ -127,7 +127,7 @@ void Typeface::ComputeFakeryItalic(bool isItalic)
     isFakeItalic_ = isItalic;
 }
 
-bool Typeface::DetectionItalic()
+bool Typeface::DetectionItalic() const
 {
     return isFakeItalic_;
 }
@@ -138,7 +138,7 @@ void Typeface::ComputeFakery(int wantedWeight)
     isFakeBold_ = isFakeBold;
 }
 
-bool Typeface::DetectionFakeBold()
+bool Typeface::DetectionFakeBold() const
 {
     return isFakeBold_;
 }

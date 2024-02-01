@@ -51,7 +51,7 @@ public:
     std::shared_ptr<TextSpan> TryToTextSpan() const noexcept(false);
     std::shared_ptr<AnySpan> TryToAnySpan() const noexcept(false);
 
-    double GetWidth() const noexcept(false);
+    double GetWidth() const;
     double GetHeight() const noexcept(false);
     size_t GetNumberOfCharGroup() const noexcept(false);
     std::vector<double> GetGlyphWidths() const noexcept(false);
@@ -77,18 +77,18 @@ public:
     double GetJustifyGap() const noexcept(true);
     void SetJustifyGap(double justifyGap) noexcept(true);
 
-    bool HasBackgroundRect() const noexcept(true);
+    bool HasBackgroundRect() const;
     RoundRectType GetRoundRectType() const noexcept(true);
     void SetRoundRectType(RoundRectType type) noexcept(true);
 
-    void SetTopInGroup(double top) noexcept(true);
-    double GetTopInGroup() const noexcept(true);
+    void SetTopInGroup(double top);
+    double GetTopInGroup() const;
 
-    void SetBottomInGroup(double bottom) noexcept(true);
-    double GetBottomInGroup() const noexcept(true);
+    void SetBottomInGroup(double bottom);
+    double GetBottomInGroup() const;
 
-    void SetMaxRoundRectRadius(double radius) noexcept(true);
-    double GetMaxRoundRectRadius() const noexcept(true);
+    void SetMaxRoundRectRadius(double radius);
+    double GetMaxRoundRectRadius() const;
 
     double GetTop() const noexcept(true);
     double GetBottom() const noexcept(true);
@@ -113,7 +113,7 @@ public:
         }
     }
 private:
-    void CheckPointer(bool nullable = false) const noexcept(false);
+    void CheckPointer(bool nullable = false) const;
 
     std::shared_ptr<TextSpan> ts_ = nullptr;
     std::shared_ptr<AnySpan> as_ = nullptr;

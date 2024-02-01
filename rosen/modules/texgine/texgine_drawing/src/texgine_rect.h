@@ -102,7 +102,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     void SetRRect(const SkRRect &rrect);
 #else
-    void SetRRect(const RSRoundRect &rect);
+    void SetRRect(const RSRoundRect &rrect);
 #endif
 
     float *fLeft_ = nullptr;

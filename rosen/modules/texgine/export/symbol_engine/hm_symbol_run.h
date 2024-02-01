@@ -79,7 +79,8 @@ public:
     void DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<TexgineTextBlob> &blob,
         const std::pair<double, double>& offset, const TexginePaint &paint, const TextStyle &style);
 
-    void SetAnimation(std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
+    void SetAnimation(
+        const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc)
     {
         if (animationFunc != nullptr) {

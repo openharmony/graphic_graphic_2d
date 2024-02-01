@@ -456,7 +456,7 @@ void TypographyImpl::ComputeRoundRect(VariantSpan& span, int& index, int& preInd
         double maxRoundRectRadius = MAX_INT_VALUE;
         double minTop = MAX_INT_VALUE;
         double maxBottom = 0;
-        for (auto &gSpan : groupSpans) {
+        for (const auto &gSpan : groupSpans) {
             maxRoundRectRadius = std::fmin(std::fmin(gSpan.GetWidth(), gSpan.GetHeight()), maxRoundRectRadius);
             minTop = std::fmin(minTop, gSpan.GetTop());
             maxBottom = std::fmax(maxBottom, gSpan.GetBottom());
