@@ -133,9 +133,12 @@ class FileArchive final : public Archive {
 public:
     explicit FileArchive(FILE* file) : Archive(reader), file_(file), external_(true) {}
 
-    explicit FileArchive(const std::string& path)
-        : Archive(reader), file_(fopen(path.data(), reader ? "rb" : "wb")), external_(false)
-    {}
+    explicit FileArchive(const std::string& path) : Archive(reader)
+    {
+        file_ = fopen(path.data(), reader ? "rb" : "wb");
+        if (!file_) {
+        }
+    }
 
     ~FileArchive() override
     {
