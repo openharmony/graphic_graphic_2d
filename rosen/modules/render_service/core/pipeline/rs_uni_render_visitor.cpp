@@ -4348,6 +4348,41 @@ bool RSUniRenderVisitor::IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, i
     return false;
 }
 
+bool RSUniRenderVisitor::UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node)
+{
+#ifndef USE_ROSEN_DRAWING
+    SkAutoCanvasRestore acr(canvas_.get(), true);
+
+    if (displayNodeMatrix_.has_value()) {
+        auto& displayNodeMatrix = displayNodeMatrix_.value();
+        canvas_->concat(displayNodeMatrix);
+    }
+    node.SetTotalMatrix(canvas_->getTotalMatrix());
+
+    auto dstRect = node.GetDstRect();
+    SkIRect dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom() };
+#else
+    Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
+
+    if (displayNodeMatrix_.has_value()) {
+        auto& displayNodeMatrix = displayNodeMatrix_.value();
+        canvas_->ConcatMatrix(displayNodeMatrix);
+    }
+    node.SetTotalMatrix(canvas_->GetTotalMatrix());
+
+    auto dstRect = node.GetDstRect();
+    Drawing::RectI dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(),
+                           dstRect.GetBottom() };
+#endif
+    bool hasRotation = false;
+    if (node.GetConsumer() != nullptr) {
+        auto rotation = RSBaseRenderUtil::GetRotateTransform(node.GetConsumer()->GetTransform());
+        hasRotation = rotation == GRAPHIC_ROTATE_90 || rotation == GRAPHIC_ROTATE_270;
+    }
+    node.UpdateSrcRect(*canvas_, dst, hasRotation);
+    return !node.IsHardwareDisabledBySrcRect();
+}
+
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (isUIFirst_ && isSubThread_) {
@@ -4560,6 +4595,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
+                node.ResetHardwareForcedDisabledBySrcRect();
                 RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: IsHardwareEnabledType:%d backgroundTransparent:%d "
                     "DisabledByFilter:%d alpha:%.2f RosenWebHardwareDisabled:%d rotation:%d "
                     "isUpdateCachedSurface_:%d IsHardwareComposerEnabled:%d node.IsHardwareForcedDisabled():%d",
@@ -4570,7 +4606,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     IsHardwareComposerEnabled(), node.IsHardwareForcedDisabled());
             }
             // if this window is in freeze state, disable hardware composer for its child surfaceView
-            if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType()) {
+            if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType() &&
+                UpdateSrcRectForHwcNode(node)) {
 #ifndef USE_ROSEN_DRAWING
                 if (!node.IsHardwareEnabledTopSurface()) {
                     canvas_->clear(SK_ColorTRANSPARENT);
@@ -4582,34 +4619,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
                 node.SetGlobalAlpha(canvas_->GetAlpha());
                 ParallelRenderEnableHardwareComposer(node);
-
-                {
-#ifndef USE_ROSEN_DRAWING
-                    SkAutoCanvasRestore acr(canvas_.get(), true);
-
-                    if (displayNodeMatrix_.has_value()) {
-                        auto& displayNodeMatrix = displayNodeMatrix_.value();
-                        canvas_->concat(displayNodeMatrix);
-                    }
-                    node.SetTotalMatrix(canvas_->getTotalMatrix());
-
-                    auto dstRect = node.GetDstRect();
-                    SkIRect dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom() };
-#else
-                    Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
-
-                    if (displayNodeMatrix_.has_value()) {
-                        auto& displayNodeMatrix = displayNodeMatrix_.value();
-                        canvas_->ConcatMatrix(displayNodeMatrix);
-                    }
-                    node.SetTotalMatrix(canvas_->GetTotalMatrix());
-
-                    auto dstRect = node.GetDstRect();
-                    Drawing::RectI dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(),
-                        dstRect.GetBottom() };
-#endif
-                    node.UpdateSrcRect(*canvas_, dst);
-                }
                 RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode src:%{public}s, dst:%{public}s name:%{public}s"
                     " id:%{public}" PRIu64 "", node.GetSrcRect().ToString().c_str(),
                     node.GetDstRect().ToString().c_str(), node.GetName().c_str(), node.GetId());
