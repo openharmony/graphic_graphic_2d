@@ -16,7 +16,9 @@
 #include "animation/rs_animation_rate_decider.h"
 
 #include <cmath>
+#include <string>
 
+#include "common/rs_optional_trace.h"
 #include "modifier/rs_render_property.h"
 
 namespace OHOS {
@@ -64,8 +66,9 @@ void RSAnimationRateDecider::MakeDecision(const FrameRateGetFunc& func)
         frameRateRange_.Set(0, RANGE_MAX_REFRESHRATE, DEFAULT_PREFERRED_FPS);
         return;
     }
-    for (const auto& [_1, element] : decisionElements_) {
+    for (const auto& [id, element] : decisionElements_) {
         FrameRateRange propertyRange;
+        RS_OPTIONAL_TRACE_BEGIN("MakeDecision property id: [" + std::to_string(id) + "]");
         if (element.first != nullptr && func != nullptr) {
             int32_t preferred = CalculatePreferredRate(element.first, func);
             if (preferred > 0) {
@@ -82,6 +85,7 @@ void RSAnimationRateDecider::MakeDecision(const FrameRateGetFunc& func)
             finalRange = element.second;
         }
         frameRateRange_.Merge(finalRange);
+        RS_OPTIONAL_TRACE_END();
     }
 }
 
