@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <cinttypes>
 #include <unistd.h>
+#include <parameters.h>
 #include <scoped_bytrace.h>
 
 #include "buffer_utils.h"
@@ -467,7 +468,8 @@ GSError BufferQueue::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
 
 void BufferQueue::DumpToFile(uint32_t sequence)
 {
-    if (access("/data/bq_dump", F_OK) == -1) {
+    static bool dumpBufferEnabled = system::GetParameter("persist.dumpbuffer.enabled", "0") != "0";
+    if (!dumpBufferEnabled || access("/data/bq_dump", F_OK) == -1) {
         return;
     }
 
@@ -534,7 +536,9 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
         static SyncFenceTracker acquireFenceThread("Acquire Fence");
         acquireFenceThread.TrackFence(fence);
     }
-    // if you need dump SurfaceBuffer to file, you should call DumpToFile(sequence) here
+    // if you need dump SurfaceBuffer to file, you should execute hdc shell param set persist.dumpbuffer.enabled 1
+    // and reboot your device
+    DumpToFile(sequence);
     return GSERROR_OK;
 }
 
