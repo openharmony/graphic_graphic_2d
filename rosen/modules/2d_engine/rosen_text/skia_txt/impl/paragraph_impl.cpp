@@ -20,6 +20,7 @@
 
 #include "include/core/SkMatrix.h"
 #include "drawing_painter_impl.h"
+#include "skia_adapter/skia_convert_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -112,6 +113,34 @@ void ParagraphImpl::Layout(double width)
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
     paragraph_->layout(width);
+}
+
+double ParagraphImpl::GetGlyphsBoundsTop()
+{
+    return paragraph_->getGlyphsBoundsTop();
+}
+
+double ParagraphImpl::GetGlyphsBoundsBottom()
+{
+    return paragraph_->getGlyphsBoundsBottom();
+}
+
+double ParagraphImpl::GetGlyphsBoundsLeft()
+{
+    return paragraph_->getGlyphsBoundsLeft();
+}
+
+double ParagraphImpl::GetGlyphsBoundsRight()
+{
+    return paragraph_->getGlyphsBoundsRight();
+}
+
+OHOS::Rosen::Drawing::FontMetrics ParagraphImpl::MeasureText()
+{
+    auto skFontMetrics = paragraph_->measureText();
+    OHOS::Rosen::Drawing::FontMetrics fontMetrics;
+    OHOS::Rosen::Drawing::SkiaConvertUtils::SkFontMetricsCastToDrawingFontMetrics(skFontMetrics, fontMetrics);
+    return fontMetrics;
 }
 
 void ParagraphImpl::Paint(SkCanvas* canvas, double x, double y)
