@@ -3446,7 +3446,8 @@ bool RSUniRenderVisitor::IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSS
     }
     // If the pointer is dirty in last frame but not in current, when gpu -> hardware composer.
     // It should also calc global dirty in current frame.
-    node->SetNodeDirty(isHardwareForcedDisabled_ || node->HasSubNodeShouldPaint());
+    node->SetNodeDirty(isHardwareForcedDisabled_ || node->HasSubNodeShouldPaint() ||
+        !node->IsLastFrameHardwareEnabled());
     return !node->IsNodeDirty();
 }
 
