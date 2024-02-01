@@ -255,7 +255,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
 }
 
 int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                                std::string valueName, std::string keyName)
+                                const std::string valueName, const std::string keyName)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;
