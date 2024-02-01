@@ -146,11 +146,11 @@ HWTEST_F(RSDisplayNodeCommandTest, SetRogSize001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-    DisplayNodeCommandHelper::SetScreenId(context, id, 1, 1);
+    DisplayNodeCommandHelper::SetScreenId(context, id, 1);
 
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
-    DisplayNodeCommandHelper::SetScreenId(context, id, 1, 1);
+    DisplayNodeCommandHelper::SetScreenId(context, id, 1);
 }
 
 /**

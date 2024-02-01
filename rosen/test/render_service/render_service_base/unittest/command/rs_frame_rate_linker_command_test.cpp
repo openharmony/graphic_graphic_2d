@@ -35,7 +35,6 @@ void RSFrameRateLinkerCommandTest::TearDownTestCase() {}
 void RSFrameRateLinkerCommandTest::SetUp() {}
 void RSFrameRateLinkerCommandTest::TearDown() {}
 
-
 /**
  * @tc.name: UpdateRange
  * @tc.desc:
@@ -44,9 +43,13 @@ void RSFrameRateLinkerCommandTest::TearDown() {}
 HWTEST_F(RSFrameRateLinkerCommandTest, UpdateRange, TestSize.Level1)
 {
     RSContext context;
-    uint64_t nodeId = 0;
-    FrameRateRange range = {0, 0, 0};
-    RSFrameRateLinkerCommandHelper::UpdateRange(context, nodeId, range);
+    FrameRateLinkerId linkId = 1;
+    FrameRateRange range = { 0, 0, 0 };
+    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkId, range);
+
+    std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkId);
+    context.GetMutableFrameRateLinkerMap().RegisterFrameRateLinker(linkerPtr);
+    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkId, range);
 }
 
 } // namespace Rosen

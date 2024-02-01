@@ -15,8 +15,8 @@
 
 #include <gtest/gtest.h>
 
-#include "property/rs_point_light_manager.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "property/rs_point_light_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -47,8 +47,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
     auto instance = RSPointLightManager::Instance();
     instance->PrepareLight();
 
-    std::weak_ptr<RSContext> context;
-    std::shared_ptr<RSRenderNode> rsRenderNode = std::make_shared<RSRenderNode>(0, context);
+    std::shared_ptr<RSRenderNode> rsRenderNode = std::make_shared<RSRenderNode>(0);
 
     instance->RegisterLightSource(rsRenderNode);
     instance->PrepareLight();
@@ -56,10 +55,12 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
     instance->RegisterIlluminated(rsRenderNode);
     instance->PrepareLight();
 
-    instance->AddDirtyIlluminated(rsRenderNode);
+    NodeId id = 1;
+    RSRenderNode node(id);
+    instance->AddDirtyIlluminated(node.weak_from_this());
     instance->PrepareLight();
 
-    instance->AddDirtyLightSource(rsRenderNode);
+    instance->AddDirtyLightSource(node.weak_from_this());
     instance->PrepareLight();
 }
 
@@ -83,19 +84,15 @@ HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated001, TestSize.L
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_0);
     auto pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
-    
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_90);
     pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
-    
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_180);
     pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
-    
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_270);
     pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
-    
 }
 } // namespace Rosen
 } // namespace OHOS

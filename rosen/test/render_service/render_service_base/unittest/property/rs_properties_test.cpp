@@ -513,7 +513,7 @@ HWTEST_F(RSPropertiesTest, IsPixelStretchPercentValid004, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetBounds001, TestSize.Level1)
 {
     RSProperties properties;
-    Vector4f bounds = {1.0, 1.0, 1.0, 1.0};
+    Vector4f bounds = { 1.0, 1.0, 1.0, 1.0 };
 
     properties.SetBoundsWidth(0);
     properties.SetBoundsHeight(0);
@@ -532,7 +532,7 @@ HWTEST_F(RSPropertiesTest, SetBounds001, TestSize.Level1)
     properties.SetBounds(bounds);
 
     auto resBounds = properties.GetBounds();
-    ASSERT_EQ(false, resBounds.IsZero());   
+    ASSERT_EQ(false, resBounds.IsZero());
 }
 
 /**
@@ -544,7 +544,7 @@ HWTEST_F(RSPropertiesTest, SetBounds001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GetBounds001, TestSize.Level1)
 {
     RSProperties properties;
-    Vector4f bounds = {1.0, 1.0, 1.0, 1.0};
+    Vector4f bounds = { 1.0, 1.0, 1.0, 1.0 };
     properties.SetBoundsWidth(1.0);
     properties.SetBoundsHeight(1.0);
     properties.SetBoundsPositionX(1.0f);
@@ -579,8 +579,8 @@ HWTEST_F(RSPropertiesTest, GetBounds001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetFrame001, TestSize.Level1)
 {
     RSProperties properties;
-    Vector4f frame = {1.0, 1.0, 1.0, 1.0};
-    
+    Vector4f frame = { 1.0, 1.0, 1.0, 1.0 };
+
     properties.SetFrame(frame);
 
     properties.SetFrameWidth(1.f);
@@ -603,7 +603,7 @@ HWTEST_F(RSPropertiesTest, SetFrame001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GetFrame001, TestSize.Level1)
 {
     RSProperties properties;
-    Vector4f frame = {1.0, 1.0, 1.0, 1.0};
+    Vector4f frame = { 1.0, 1.0, 1.0, 1.0 };
     properties.SetFrameWidth(1.f);
     properties.SetFrameHeight(1.0);
     properties.SetFramePositionX(1.0f);
@@ -651,12 +651,13 @@ HWTEST_F(RSPropertiesTest, SetGet001, TestSize.Level1)
     auto pivot = properties.GetPivot();
     ASSERT_NE(0, pivot.GetLength());
 
-    Vector4f corner = {1.0, 1.0, 1.0, 1.0};
+    Vector4f corner = { 1.0, 1.0, 1.0, 1.0 };
     properties.SetCornerRadius(corner);
     properties.GetCornerRadius();
 
     properties.SetRotationX(1.0);
     properties.SetRotationY(1.0);
+    properties.SetRotation(1.0);
     auto rotation = properties.GetRotation();
     ASSERT_NE(0, rotation);
     auto rotationX = properties.GetRotationX();
@@ -666,7 +667,7 @@ HWTEST_F(RSPropertiesTest, SetGet001, TestSize.Level1)
 
     properties.SetScaleX(1.0);
     properties.SetScaleY(1.0);
-    Vector2f scale2 = {1.0, 1.0};
+    Vector2f scale2 = { 1.0, 1.0 };
     properties.SetScale(scale2);
     auto scale = properties.GetScale();
     ASSERT_NE(0, scale.GetLength());
@@ -678,7 +679,7 @@ HWTEST_F(RSPropertiesTest, SetGet001, TestSize.Level1)
     properties.SetTranslateX(1.0);
     properties.SetTranslateY(1.0);
     properties.SetTranslateZ(1.0);
-    Vector2f translate2 = {1.0, 1.0};
+    Vector2f translate2 = { 1.0, 1.0 };
     properties.SetTranslate(translate2);
     auto translate = properties.GetTranslate();
     ASSERT_NE(0, translate.GetLength());
@@ -721,16 +722,16 @@ HWTEST_F(RSPropertiesTest, SetGet002, TestSize.Level1)
     properties.SetBackgroundColor(color);
     EXPECT_NE(0, properties.GetBackgroundColor().GetBlue());
 
-    Vector4<Color> borderColor = {color, color, color, color};
+    Vector4<Color> borderColor = { color, color, color, color };
     properties.SetBorderColor(borderColor);
     properties.GetBorderColor();
-    Vector4f zeroWidth = {0, 0, 0, 0};
-    Vector4f width = {1.0, 1.0, 1.0, 1.0};
+    Vector4f zeroWidth = { 0, 0, 0, 0 };
+    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
     properties.SetBorderWidth(zeroWidth);
     properties.SetBorderWidth(width);
     EXPECT_NE(0, properties.GetBorderWidth().GetLength());
 
-    Vector4<uint32_t> style = {1, 1, 1, 1};
+    Vector4<uint32_t> style = { 1, 1, 1, 1 };
     properties.SetBorderStyle(style);
     EXPECT_NE(0, properties.GetBorderStyle().GetLength());
 
@@ -747,18 +748,18 @@ HWTEST_F(RSPropertiesTest, SetGet003, TestSize.Level1)
 {
     RSProperties properties;
     Color color(1, 1, 1);
-    Vector4<Color> outLineColor = {color, color, color, color};
+    Vector4<Color> outLineColor = { color, color, color, color };
     properties.SetOutlineColor(outLineColor);
-    Vector4f zeroWidth = {0, 0, 0, 0};
-    Vector4f width = {1.0, 1.0, 1.0, 1.0};
+    Vector4f zeroWidth = { 0, 0, 0, 0 };
+    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
     properties.SetOutlineWidth(zeroWidth);
     properties.SetOutlineWidth(width);
 
-    Vector4<uint32_t> style = {1, 1, 1, 1};
+    Vector4<uint32_t> style = { 1, 1, 1, 1 };
     properties.SetOutlineStyle(style);
     properties.GetOutlineStyle();
 
-    Vector4f radius = {1.0, 1.0, 1.0, 1.0};
+    Vector4f radius = { 1.0, 1.0, 1.0, 1.0 };
     properties.SetOutlineRadius(radius);
     properties.GetOutlineRadius();
 
