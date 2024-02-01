@@ -352,7 +352,7 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 
     // temporary solution for drawing children
-    for (auto& child : GetSortedChildren()) {
+    for (auto& child : *GetSortedChildren()) {
         if (auto canvasChild = ReinterpretCast<RSCanvasRenderNode>(child)) {
             canvasChild->InternalDrawContent(canvas);
         }

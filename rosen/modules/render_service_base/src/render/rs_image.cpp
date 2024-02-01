@@ -323,10 +323,10 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             Media::Size realSize;
             pixelMap_->GetAstcRealSize(realSize);
             auto image = std::make_shared<Drawing::Image>();
-            image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
+            bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
                 static_cast<int>(realSize.width), static_cast<int>(realSize.height),
                 PixelFormatToCompressedType(imageInfo.pixelFormat));
-            if (image) {
+            if (result) {
                 image_ = image;
                 SKResourceManager::Instance().HoldResource(image);
                 RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());

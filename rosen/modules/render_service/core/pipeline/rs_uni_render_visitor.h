@@ -293,7 +293,7 @@ private:
     // if cache root reuses, update its subtree
     // [attention] check curSurfaceDirtyManager_ before function calls
     void UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode>& cacheRootNode,
-        const std::list<RSRenderNode::SharedPtr>& children);
+        const std::vector<RSRenderNode::SharedPtr>& children);
     // set node cacheable animation after checking whold child tree
     void SetNodeCacheChangeStatus(RSRenderNode& node);
     void DisableNodeCacheInSetting(RSRenderNode& node);
@@ -541,8 +541,13 @@ private:
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     bool CheckIfNeedResetRotate();
-    void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
 
+    // use for virtual screen app/window filtering ability
+    NodeId virtualScreenFilterAppRootId_ = INVALID_NODEID;
+    void UpdateVirtualScreenFilterAppRootId(const RSRenderNode::SharedPtr& node);
+
+    void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
+    
     // dfx for effect render node
     void DrawEffectRenderNodeForDFX();
     std::vector<RectI> nodesUseEffectFallbackForDfx_;

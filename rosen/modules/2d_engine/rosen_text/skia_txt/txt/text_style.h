@@ -71,7 +71,7 @@ public:
     bool HasShadow() const;
 
     SkColor color = SK_ColorBLACK;
-    SkPoint offset;
+    SkPoint offset{0, 0};
     double blurSigma = 0.0;
 };
 
@@ -107,7 +107,7 @@ class TextStyle {
 public:
     TextStyle();
 
-    bool operator==(TextStyle const& rhs) const;
+    bool operator==(TextStyle const& other) const;
 
     SkColor color = SK_ColorWHITE;
 

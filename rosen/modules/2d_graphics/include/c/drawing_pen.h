@@ -281,6 +281,17 @@ void OH_Drawing_PenSetJoin(OH_Drawing_Pen*, OH_Drawing_PenLineJoinStyle);
 void OH_Drawing_PenSetShaderEffect(OH_Drawing_Pen*, OH_Drawing_ShaderEffect*);
 
 /**
+ * @brief Sets the pathEffect for a pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param OH_Drawing_PathEffect Indicates the pointer to an <b>OH_Drawing_PathEffect</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen*, OH_Drawing_PathEffect*);
+
+/**
  * @brief Sets the filter for a pen.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

@@ -77,7 +77,7 @@ void RSNodeCostManager::CalcBaseRenderNodeCost(RSBaseRenderNode& node)
         return;
     }
 
-    for (auto& child : node.GetChildren()) {
+    for (auto& child : *node.GetChildren()) {
         switch (child->GetType()) {
             case RSRenderNodeType::SURFACE_NODE: {
                 auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();

@@ -108,8 +108,7 @@ void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, boo
 
 void RSRenderThreadVisitor::PrepareChildren(RSRenderNode& node)
 {
-    node.ApplyChildrenModifiers();
-    for (auto& child : node.GetSortedChildren()) {
+    for (auto& child : *node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
 }
@@ -394,8 +393,8 @@ void RSRenderThreadVisitor::ProcessShadowFirst(RSRenderNode& node)
 {
     if (RSSystemProperties::GetUseShadowBatchingEnabled()
         && (node.GetRenderProperties().GetUseShadowBatching())) {
-        auto& children = node.GetSortedChildren();
-        for (auto& child : children) {
+        auto children = node.GetSortedChildren();
+        for (auto& child : *children) {
             if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
                 node->ProcessShadowBatching(*canvas_);
             }
@@ -406,7 +405,7 @@ void RSRenderThreadVisitor::ProcessShadowFirst(RSRenderNode& node)
 void RSRenderThreadVisitor::ProcessChildren(RSRenderNode& node)
 {
     ProcessShadowFirst(node);
-    for (auto& child : node.GetSortedChildren()) {
+    for (auto& child : *node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
 }

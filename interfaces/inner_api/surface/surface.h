@@ -125,6 +125,9 @@ public:
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) = 0;
     virtual GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) = 0;
     virtual GSError RegisterReleaseListener(OnReleaseFuncWithFence func) = 0;
+    virtual GSError RegisterUserDataChangeListener(const std::string &funcName, OnUserDataChangeFunc func) = 0;
+    virtual GSError UnRegisterUserDataChangeListener(const std::string &funcName) = 0;
+    virtual GSError ClearUserDataChangeListener() = 0;
 
 protected:
     Surface() = default;

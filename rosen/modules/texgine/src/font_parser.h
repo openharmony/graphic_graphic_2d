@@ -88,7 +88,7 @@ public:
     };
 
     FontParser();
-    std::vector<FontDescriptor> GetVisibilityFonts(const std::string locale = ENGLISH);
+    std::vector<FontDescriptor> GetVisibilityFonts(const std::string locale = SIMPLIFIED_CHINESE);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,

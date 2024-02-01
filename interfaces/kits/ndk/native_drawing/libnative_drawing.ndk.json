@@ -129,6 +129,7 @@
     { "name": "OH_Drawing_PenSetJoin" },
     { "name": "OH_Drawing_PenSetFilter" },
     { "name": "OH_Drawing_PenSetShaderEffect" },
+    { "name": "OH_Drawing_PenSetPathEffect" },
     { "name": "OH_Drawing_PenSetBlendMode" },
     { "name": "OH_Drawing_PointCreate" },
     { "name": "OH_Drawing_PointDestroy" },
