@@ -22,38 +22,40 @@ namespace Rosen {
 
 class RSRenderParticleEffector {
 public:
-    RSRenderParticleEffector(const std::shared_ptr<ParticleRenderParams> particleParams);
+    RSRenderParticleEffector(const std::vector<std::shared_ptr<RSRenderParticle>> activeParticles);
 
-    void UpdateProperty(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
-    void UpdateAccelerate(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
-    void UpdateAccelerationAngle(
-        const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
-    void UpdateAccelerationValue(
-        const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
-    void UpdateColor(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
-    Color UpdateColorRandom(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, Color color);
-    int16_t CalculateRedInt(
-        const std::shared_ptr<RSRenderParticle>& particle, int16_t redInt, float redF, float redSpeed, float deltaTime);
-    int16_t CalculateGreenInt(const std::shared_ptr<RSRenderParticle>& particle, int16_t greenInt, float greenF,
-        float greenSpeed, float deltaTime);
-    int16_t CalculateBlueInt(const std::shared_ptr<RSRenderParticle>& particle, int16_t blueInt, float blueF,
-        float blueSpeed, float deltaTime);
-    int16_t CalculateAlphaInt(const std::shared_ptr<RSRenderParticle>& particle, int16_t alphaInt, float alphaF,
-        float alphaSpeed, float deltaTime);
-    Color UpdateColorCurve(int64_t activeTime, Color color);
-    void UpdateOpacity(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
-    void UpdateScale(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
-    void UpdateSpin(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
+    Vector4<int16_t> CalculateColorInt(const std::shared_ptr<RSRenderParticle>& particle, Vector4<int16_t> colorInt,
+        Vector4<float> colorF, Vector4<float> colorSpeed, float deltaTime);
+
+    float UpdateCurveValue(
+        const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& valChangeOverLife, int64_t activeTime);
+
+    Color UpdateColorCurveValue(
+        const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife, int64_t activeTime);
+
+    void UpdateColor(float deltaTime);
+
+    void UpdateOpacity(float deltaTime);
+
+    void UpdateScale(float deltaTime);
+
+    void UpdateSpin(float deltaTime);
+
+    void UpdateAccelerationAngle(float deltaTime);
+
+    void UpdateAccelerationValue(float deltaTime);
+
+    void UpdatePosition(float deltaTime);
+
+    void UpdateActiveTime(int64_t deltaTime);
+
     // Apply effector to particle
-    void ApplyEffectorToParticle(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime);
+    void ApplyEffectorToParticle(int64_t deltaTime);
 
-    template<typename T>
-    T GenerateValue(T startValue, T endValue, int startTime, int endTime, int currentTime,
-        std::shared_ptr<RSInterpolator> interpolator);
-    float GenerateValue(float startValue, float endValue, int startTime, int endTime, int currentTime);
+    void Update(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles, int64_t deltaTime);
 
 private:
-    std::shared_ptr<ParticleRenderParams> particleParams_;
+    std::vector<std::shared_ptr<RSRenderParticle>> activeParticles_;
 };
 
 } // namespace Rosen

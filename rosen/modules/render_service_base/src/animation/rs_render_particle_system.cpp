@@ -23,6 +23,7 @@ RSRenderParticleSystem::RSRenderParticleSystem(
     : particlesRenderParams_(particlesRenderParams)
 {
     CreateEmitter();
+    CreateEffector();
 }
 
 void RSRenderParticleSystem::CreateEmitter()
@@ -31,6 +32,11 @@ void RSRenderParticleSystem::CreateEmitter()
         auto particleRenderParams = particlesRenderParams_[iter];
         emitters_.push_back(std::make_shared<RSRenderParticleEmitter>(particleRenderParams));
     }
+}
+
+void RSRenderParticleSystem::CreateEffector()
+{
+    effector_ = std::make_shared<RSRenderParticleEffector>(activeParticles_);
 }
 
 void RSRenderParticleSystem::ClearEmitter()
@@ -62,15 +68,7 @@ void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
             ++it;
         }
     }
-    for (auto particle : activeParticles_) {
-        if (particle != nullptr) {
-            auto particleRenderParams = particle->GetParticleRenderParams();
-            if (particleRenderParams != nullptr) {
-                auto effect = RSRenderParticleEffector(particleRenderParams);
-                effect.ApplyEffectorToParticle(particle, deltaTime);
-            }
-        }
-    }
+    effector_->Update(activeParticles_, deltaTime);
 }
 
 bool RSRenderParticleSystem::IsFinish()

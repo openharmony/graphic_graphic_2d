@@ -499,6 +499,54 @@ const std::shared_ptr<ParticleRenderParams>& RSRenderParticle::GetParticleRender
     return particleRenderParams_;
 }
 
+ParticleUpdator RSRenderParticle::GetAccelerationValueUpdator()
+{
+    return particleRenderParams_->acceleration_.accelerationValue_.updator_;
+}
+ParticleUpdator RSRenderParticle::GetAccelerationAngleUpdator()
+{
+    return particleRenderParams_->acceleration_.accelerationAngle_.updator_;
+}
+ParticleUpdator RSRenderParticle::GetColorUpdator()
+{
+    return particleRenderParams_->color_.updator_;
+}
+ParticleUpdator RSRenderParticle::GetOpacityUpdator()
+{
+    return particleRenderParams_->opacity_.updator_;
+}
+ParticleUpdator RSRenderParticle::GetScaleUpdator()
+{
+    return particleRenderParams_->scale_.updator_;
+}
+ParticleUpdator RSRenderParticle::GetSpinUpdator()
+{
+    return particleRenderParams_->spin_.updator_;
+}
+std::vector<std::shared_ptr<ChangeInOverLife<float>>> RSRenderParticle::GetAcceValChangeOverLife()
+{
+    return particleRenderParams_->acceleration_.accelerationValue_.valChangeOverLife_;
+}
+std::vector<std::shared_ptr<ChangeInOverLife<float>>> RSRenderParticle::GetAcceAngChangeOverLife()
+{
+    return particleRenderParams_->acceleration_.accelerationAngle_.valChangeOverLife_;
+}
+std::vector<std::shared_ptr<ChangeInOverLife<float>>> RSRenderParticle::GetOpacityChangeOverLife()
+{
+    return particleRenderParams_->opacity_.valChangeOverLife_;
+}
+std::vector<std::shared_ptr<ChangeInOverLife<float>>> RSRenderParticle::GetScaleChangeOverLife()
+{
+    return particleRenderParams_->scale_.valChangeOverLife_;
+}
+std::vector<std::shared_ptr<ChangeInOverLife<float>>> RSRenderParticle::GetSpinChangeOverLife()
+{
+    return particleRenderParams_->spin_.valChangeOverLife_;
+}
+std::vector<std::shared_ptr<ChangeInOverLife<Color>>> RSRenderParticle::GetColorChangeOverLife()
+{
+    return particleRenderParams_->color_.valChangeOverLife_;
+}
 // Other methods
 void RSRenderParticle::InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams)
 {

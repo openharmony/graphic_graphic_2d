@@ -59,7 +59,7 @@ public:
     T toValue_;
     int startMillis_;
     int endMillis_;
-    std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
+    std::shared_ptr<RSInterpolator> interpolator_ = nullptr;
     ChangeInOverLife() : fromValue_(), toValue_(), startMillis_(), endMillis_(), interpolator_() {}
     ChangeInOverLife(const T& fromValue, const T& toValue, const int& startMillis, const int& endMillis,
         std::shared_ptr<RSInterpolator> interpolator)
@@ -269,7 +269,6 @@ public:
     explicit RSRenderParticle(const std::shared_ptr<ParticleRenderParams>& particleParams);
     RSRenderParticle() = default;
     ~RSRenderParticle() = default;
-
     // Set methods
     void SetPosition(const Vector2f& position);
     void SetVelocity(const Vector2f& velocity);
@@ -319,6 +318,19 @@ public:
     ParticleType GetParticleType();
     int64_t GetActiveTime();
     const std::shared_ptr<ParticleRenderParams>& GetParticleRenderParams();
+
+    ParticleUpdator GetAccelerationValueUpdator();
+    ParticleUpdator GetAccelerationAngleUpdator();
+    ParticleUpdator GetColorUpdator();
+    ParticleUpdator GetOpacityUpdator();
+    ParticleUpdator GetScaleUpdator();
+    ParticleUpdator GetSpinUpdator();
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> GetAcceValChangeOverLife();
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> GetAcceAngChangeOverLife();
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> GetOpacityChangeOverLife();
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> GetScaleChangeOverLife();
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> GetSpinChangeOverLife();
+    std::vector<std::shared_ptr<ChangeInOverLife<Color>>> GetColorChangeOverLife();
 
     // Other methods
     void InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams);
