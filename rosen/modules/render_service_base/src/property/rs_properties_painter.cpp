@@ -1273,7 +1273,18 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(false);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter, bounds, bounds);
+        auto node = properties.backref_.lock();
+        if (node == nullptr) {
+            ROSEN_LOGE("DrawBackgroundEffect::node is null");
+            return;
+        }
+        auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>();
+        if (effectNode == nullptr) {
+            ROSEN_LOGE("DrawBackgroundEffect::node reinterpret cast failed.");
+        }
+        // node is freeze or screen rotating, force cache filterred snapshot.
+        auto forceCacheFlags = std::make_tuple(false, effectNode->GetRotationChanged());
+        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter, bounds, bounds, forceCacheFlags);
         canvas.SetEffectData(data);
         return;
     }

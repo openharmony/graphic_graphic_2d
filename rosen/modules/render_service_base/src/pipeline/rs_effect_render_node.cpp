@@ -25,6 +25,9 @@
 
 namespace OHOS {
 namespace Rosen {
+
+int RSEffectRenderNode::cacheUpdateInterval_ = 1;
+
 RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSRenderNode(id, context, isTextureExportNode)
 {
@@ -132,8 +135,12 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
 #endif
 
 void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
 {
+    if (NeedForceCache()) {
+        return;
+    }
+
     // We need to check cache validity by comparing the cached image region with the filter rect
     // PLANNING: the last != condition should be reconsidered
     auto& manager = GetRenderProperties().GetFilterCacheManager(false);
@@ -152,13 +159,47 @@ void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
     }
 }
 
-void RSEffectRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
+void RSEffectRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground)
 {
     // No need to invalidate cache if background image is not null
-    if (GetRenderProperties().GetBgImage()) {
+    if (NeedForceCache()) {
         return;
     }
     RSRenderNode::UpdateFilterCacheWithDirty(dirtyManager, isForeground);
+}
+
+bool RSEffectRenderNode::NeedForceCache()
+{
+    // No need to invalidate cache if background image is not null or freezed
+    if (GetRenderProperties().GetBgImage()) {
+        ROSEN_LOGD("RSEffectRenderNode::NeedForceCache: use background image.");
+        return true;
+    }
+    if (isRotationChanged_ && invalidateTimes_ > 0) {
+        --invalidateTimes_;
+        return true;
+    }
+    if (isRotationChanged_ && invalidateTimes_ == 0 && cacheUpdateInterval_ > 0) {
+        --cacheUpdateInterval_;
+        return true;
+    }
+    cacheUpdateInterval_ = 1; // cache one frame
+    return false;
+}
+
+void RSEffectRenderNode::SetInvalidateTimesForRotation(int times)
+{
+    invalidateTimes_ = times;
+}
+
+void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)
+{
+    isRotationChanged_ = isRotationChanged;
+}
+
+bool RSEffectRenderNode::GetRotationChanged() const
+{
+    return isRotationChanged_;
 }
 } // namespace Rosen
 } // namespace OHOS

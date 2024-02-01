@@ -57,14 +57,23 @@ public:
         return isVisitedOcclusionFilterCacheEmpty_;
     }
 
+    void SetRotationChanged(bool isRotationChanged);
+    bool GetRotationChanged() const;
+    void SetInvalidateTimesForRotation(int times);
+
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheManagerWithCacheRegion(
-        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const override;
-    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const override;
+        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) override;
+    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) override;
 
 private:
+    bool NeedForceCache();
+
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
+    bool isRotationChanged_ = false;
+    int invalidateTimes_ = 0;
+    static int cacheUpdateInterval_;
 };
 } // namespace Rosen
 } // namespace OHOS
