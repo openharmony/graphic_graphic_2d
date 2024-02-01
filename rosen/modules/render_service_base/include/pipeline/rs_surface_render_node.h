@@ -209,9 +209,14 @@ public:
         return isHardwareForcedDisabledByFilter_;
     }
 
+    void ResetHardwareForcedDisabledBySrcRect()
+    {
+        isHardwareForcedDisabledBySrcRect_ = false;
+    }
+
     bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_ || isHardwareDisabledByCache_ ||
+        return isHardwareForcedDisabled_ || isHardwareDisabledByCache_ || isHardwareForcedDisabledBySrcRect_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -749,9 +754,9 @@ public:
     bool UpdateDirtyIfFrameBufferConsumed();
 
 #ifndef USE_ROSEN_DRAWING
-    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect);
+    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect, bool hasRotation = false);
 #else
-    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect);
+    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect, bool hasRotation = false);
 #endif
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
@@ -972,6 +977,8 @@ private:
     bool IsHistoryOccludedDirtyRegionNeedSubmit();
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
+    bool IsHardwareDisabledBySrcRect() const;
+    bool IsYUVBufferFormat() const;
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
@@ -1152,6 +1159,9 @@ private:
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
+    // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
+    // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight
+    bool isHardwareForcedDisabledBySrcRect_ = false;
     bool isHardwareDisabledByCache_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
