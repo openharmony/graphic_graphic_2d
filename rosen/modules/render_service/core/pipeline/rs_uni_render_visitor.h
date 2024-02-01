@@ -324,6 +324,7 @@ private:
     void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
     bool IsFirstVisitedCacheForced() const;
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
+    bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node); // return if srcRect is allowed by dss restriction
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 #else

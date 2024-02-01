@@ -83,7 +83,7 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect)
+void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect, bool hasRotation)
 {
     auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(SkRect::MakeEmpty());
     const RSProperties& properties = GetRenderProperties();
@@ -95,7 +95,8 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
     SetSrcRect(srcRect);
 }
 #else
-void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect)
+void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect,
+    bool hasRotation)
 {
     auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(Drawing::Rect());
     const RSProperties& properties = GetRenderProperties();
@@ -107,8 +108,44 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
         std::ceil(properties.GetBoundsHeight() - top));
     RectI srcRect = {left, top, width, height};
     SetSrcRect(srcRect);
+    // We allow 1px error value to avoid disable dss by mistake [this flag only used for YUV buffer format]
+    if (IsYUVBufferFormat()) {
+        isHardwareForcedDisabledBySrcRect_ =  hasRotation ?
+            (width + 1 < static_cast<int>(properties.GetBoundsWidth())) :
+            (height + 1 < static_cast<int>(properties.GetBoundsHeight()));
+#ifndef ROSEN_CROSS_PLATFORM
+        RS_OPTIONAL_TRACE_NAME_FMT("UpdateSrcRect hwcDisableBySrc:%d localClip:[%.2f, %.2f, %.2f, %.2f]" \
+            " bounds:[%.2f, %.2f] hasRotation:%d name:%s id:%llu",
+            isHardwareForcedDisabledBySrcRect_,
+            localClipRect.GetLeft(), localClipRect.GetTop(), localClipRect.GetWidth(), localClipRect.GetHeight(),
+            properties.GetBoundsWidth(), properties.GetBoundsHeight(), hasRotation,
+            GetName().c_str(), GetId());
+#endif
+    }
 }
 #endif
+
+bool RSSurfaceRenderNode::IsHardwareDisabledBySrcRect() const
+{
+    return isHardwareForcedDisabledBySrcRect_;
+}
+
+bool RSSurfaceRenderNode::IsYUVBufferFormat() const
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (GetBuffer() == nullptr) {
+        return false;
+    }
+    auto format = GetBuffer()->GetFormat();
+    if (format < GRAPHIC_PIXEL_FMT_YUV_422_I || format == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+        format > GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        return false;
+    }
+    return true;
+#else
+    return false;
+#endif
+}
 
 bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
 {
