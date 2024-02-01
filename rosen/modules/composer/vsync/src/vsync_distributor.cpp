@@ -35,7 +35,7 @@ constexpr int32_t ERRNO_OTHER = -2;
 constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
-constexpr uint32_t VSYNC_CONNECTION_MAX_SIZE = 128;
+constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 128;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -596,7 +596,7 @@ void VSyncDistributor::ChangeConnsRateLocked()
                 continue;
             }
             uint32_t refreshRate = connRefreshRate.second;
-            if ((generatorRefreshRate_ <= 0) || (refreshRate <= 0) ||
+            if ((generatorRefreshRate_ == 0) || (refreshRate == 0) ||
                 (VSYNC_MAX_REFRESHRATE % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
                 conn->refreshRate_ = 0;
                 conn->vsyncPulseFreq_ = 1;
