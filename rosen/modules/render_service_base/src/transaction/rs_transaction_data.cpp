@@ -244,7 +244,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
         } else {
-            break;
+            continue;
         }
     }
     int32_t pid;
