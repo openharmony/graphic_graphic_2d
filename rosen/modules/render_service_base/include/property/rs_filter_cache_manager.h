@@ -80,7 +80,8 @@ public:
     // cache data. This is used with effect component in RSPropertiesPainter::DrawBackgroundEffect.
     const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GeneratedCachedEffectData(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<RSSkiaFilter>& filter, const std::optional<SkIRect>& srcRect = std::nullopt,
-        const std::optional<SkIRect>& dstRect = std::nullopt);
+        const std::optional<SkIRect>& dstRect = std::nullopt,
+        const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
 
     static bool IsNearlyFullScreen(SkISize imageSize, int32_t canvasWidth, int32_t canvasHeight);
     void PostPartialFilterRenderTask(const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect);
@@ -98,7 +99,8 @@ public:
     // cache data. This is used with effect component in RSPropertiesPainter::DrawBackgroundEffect.
     const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GeneratedCachedEffectData(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<RSDrawingFilter>& filter, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
-        const std::optional<Drawing::RectI>& dstRect = std::nullopt);
+        const std::optional<Drawing::RectI>& dstRect = std::nullopt,
+        const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
 
     static bool IsNearlyFullScreen(Drawing::RectI imageSize, int32_t canvasWidth, int32_t canvasHeight);
     void PostPartialFilterRenderTask(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
@@ -287,7 +289,8 @@ private:
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const SkIRect& dstRect) const;
     // Validate the input srcRect and dstRect, and return the validated rects.
     std::tuple<SkIRect, SkIRect> ValidateParams(RSPaintFilterCanvas& canvas,
-        const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
+        const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect,
+        const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
 #else
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
@@ -298,7 +301,8 @@ private:
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;
     // Validate the input srcRect and dstRect, and return the validated rects.
     std::tuple<Drawing::RectI, Drawing::RectI> ValidateParams(RSPaintFilterCanvas& canvas,
-        const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect);
+        const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect,
+        const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
 #endif
     inline static void ClipVisibleRect(RSPaintFilterCanvas& canvas);
     // Check if the cache is valid in current GrContext, since FilterCache will never be used in multi-thread
