@@ -1080,9 +1080,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
                     doDirectComposition_ = false;
                 }
             } else { // hwc -> hwc
-                // self-drawing node do not consume buffer when gpu -> hwc
-                // so first buffer updated in hwc -> hwc, should set content dirty
-                if (surfaceNode->IsCurrentFrameBufferConsumed() && surfaceNode->GetHwcDelayDirtyFlag()) {
+                // self-drawing node don't set content dirty when gpu -> hwc
+                // so first frame in hwc -> hwc, should set content dirty
+                if (surfaceNode->GetHwcDelayDirtyFlag()) {
                     surfaceNode->SetContentDirty();
                     surfaceNode->SetHwcDelayDirtyFlag(false);
                     doDirectComposition_ = false;
