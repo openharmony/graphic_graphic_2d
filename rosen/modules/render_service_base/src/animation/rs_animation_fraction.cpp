@@ -85,6 +85,26 @@ int64_t RSAnimationFraction::GetLastFrameTime() const
     return lastFrameTime_;
 }
 
+bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs)
+{
+    float animationScale = GetAnimationScale();
+    if (direction_ == ForwardDirection::NORMAL) {
+        if (animationScale == 0.0) {
+            runningTime_ += static_cast<int64_t>(deltaTime * MAX_SPEED);
+        } else {
+            runningTime_ += static_cast<int64_t>(deltaTime * speed_ / animationScale);
+        }
+    } else {
+        if (animationScale == 0.0) {
+            runningTime_ -= static_cast<int64_t>(deltaTime * MAX_SPEED);
+        } else {
+            runningTime_ -= static_cast<int64_t>(deltaTime * speed_ / animationScale);
+        }
+    }
+
+    return runningTime_ > startDelayNs;
+}
+
 std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t time)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
@@ -100,21 +120,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
         return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
     }
     // 1. Calculates the total running fraction of animation
-    float animationScale = GetAnimationScale();
-    if (direction_ == ForwardDirection::NORMAL) {
-        if (animationScale == 0.0) {
-            runningTime_ += static_cast<int64_t>(deltaTime * MAX_SPEED);
-        } else {
-            runningTime_ += static_cast<int64_t>(deltaTime * speed_ / animationScale);
-        }
-    } else {
-        if (animationScale == 0.0) {
-            runningTime_ -= static_cast<int64_t>(deltaTime * MAX_SPEED);
-        } else {
-            runningTime_ -= static_cast<int64_t>(deltaTime * speed_ / animationScale);
-        }
-    }
-    if (runningTime_ < startDelayNs) {
+    if (!IsStartRunning(deltaTime, startDelayNs)) {
         isFinished = IsFinished();
         isInStartDelay = isFinished ? false : true;
         return { GetStartFraction(), isInStartDelay, isFinished, isRepeatFinished };
