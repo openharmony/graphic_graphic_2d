@@ -22,6 +22,7 @@
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
 #include "platform/common/rs_system_properties.h"
+#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -171,8 +172,8 @@ void RSEffectRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyM
 bool RSEffectRenderNode::NeedForceCache()
 {
     // No need to invalidate cache if background image is not null or freezed
-    if (GetRenderProperties().GetBgImage()) {
-        ROSEN_LOGD("RSEffectRenderNode::NeedForceCache: use background image.");
+    if (GetRenderProperties().GetBgImage() || IsStaticCached()) {
+        RS_OPTIONAL_TRACE_NAME("RSEffectRenderNode: background is not null or freezed");
         return true;
     }
     if (isRotationChanged_ && invalidateTimes_ > 0) {

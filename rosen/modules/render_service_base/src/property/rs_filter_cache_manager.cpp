@@ -932,7 +932,7 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
         // dst region is out of snapshot region, cache is invalid.
         // It should already be checked by UpdateCacheStateWithFilterRegion in prepare phase, we should never be here.
         ROSEN_LOGD("RSFilterCacheManager::ValidateParams Cache expired. Reason: dst region is out of snapshot region.");
-        if (!std::get<0>(forceCacheFlags) || !std::get<1>(forceCacheFlags)) {
+        if (!std::get<0>(forceCacheFlags) && !std::get<1>(forceCacheFlags)) {
             InvalidateCache();
         }
     }
