@@ -3027,17 +3027,18 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifndef USE_ROSEN_DRAWING
             int saveCount = canvas_->save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
-            auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
-            if (geoPtr != nullptr) {
-                // enable cache if screen rotation
-                canvas_->SetCacheType(isScreenRotationAnimating_ ?
-                    RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
-            }
+            
+            bool displayNodeRotationChanged = node.IsRotationChanged();
+            // enable cache if screen rotation
+            canvas_->SetCacheType((isScreenRotationAnimating_ || displayNodeRotationChanged)
+                ? RSPaintFilterCanvas::CacheType::ENABLED
+                : RSPaintFilterCanvas::CacheType::DISABLED);
+            bool needOffscreen = clipPath || displayNodeRotationChanged;
 
-            bool needOffscreen = clipPath;
             if (needOffscreen) {
                 ClearTransparentBeforeSaveLayer(); // clear transparent before concat display node's matrix
             }
+            auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
             if (geoPtr != nullptr) {
                 canvas_->concat(geoPtr->GetMatrix());
             }
@@ -3056,17 +3057,18 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #else
             int saveCount = canvas_->Save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
-            auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
-            if (geoPtr != nullptr) {
-                // enable cache if screen rotation
-                canvas_->SetCacheType(isScreenRotationAnimating_ ?
-                    RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
-            }
+            
+            bool displayNodeRotationChanged = node.IsRotationChanged();
+            // enable cache if screen rotation
+            canvas_->SetCacheType((isScreenRotationAnimating_ || displayNodeRotationChanged)
+                ? RSPaintFilterCanvas::CacheType::ENABLED
+                : RSPaintFilterCanvas::CacheType::DISABLED);
+            bool needOffscreen = clipPath || displayNodeRotationChanged;
 
-            bool needOffscreen = clipPath;
             if (needOffscreen) {
                 ClearTransparentBeforeSaveLayer(); // clear transparent before concat display node's matrix
             }
+            auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
             if (geoPtr != nullptr) {
                 canvas_->ConcatMatrix(geoPtr->GetMatrix());
             }
