@@ -166,11 +166,6 @@ Canvas* g_drawingCanvas = nullptr;
 const std::string CLASS_NAME = "Canvas";
 napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
 {
-    if (g_drawingCanvas == nullptr) {
-        ROSEN_LOGE("Drawing_napi: m_canvas is nullptr");
-        return nullptr;
-    }
-
     napi_value jsThis = nullptr;
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -180,6 +175,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (argc == 0) {
+        if (g_drawingCanvas == nullptr) {
+            ROSEN_LOGE("Drawing_napi: m_canvas is nullptr");
+            return nullptr;
+        }
         JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(g_drawingCanvas);
         status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
