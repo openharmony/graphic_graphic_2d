@@ -196,7 +196,7 @@ public:
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
-    void SetDirty();
+    void SetDirty(bool forceAddToActiveList = false);
 
     virtual void AddDirtyType(RSModifierType type)
     {
@@ -556,15 +556,16 @@ private:
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
 
-    ChildrenListSharedPtr fullChildrenList_;
-    bool isFullChildrenListValid_ = false;
-    bool isChildrenSorted_ = false;
+    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
+    ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
+    bool isFullChildrenListValid_ = true;
+    bool isChildrenSorted_ = true;
 
     void UpdateFullChildrenListIfNeeded();
     void GenerateFullChildrenList();
     void ResortChildren();
 
-    const std::weak_ptr<RSContext> context_;
+    const std::weak_ptr<RSContext> context_ = {};
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
     bool isNewOnTree_ = false;
@@ -581,7 +582,6 @@ private:
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
-    inline void AddActiveNode();
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
