@@ -145,10 +145,14 @@ double ParagraphImpl::GetGlyphsBoundsRight()
 
 OHOS::Rosen::Drawing::FontMetrics ParagraphImpl::MeasureText()
 {
+#ifndef USE_ROSEN_DRAWING
     auto skFontMetrics = paragraph_->measureText();
     OHOS::Rosen::Drawing::FontMetrics fontMetrics;
     OHOS::Rosen::Drawing::SkiaConvertUtils::SkFontMetricsCastToDrawingFontMetrics(skFontMetrics, fontMetrics);
     return fontMetrics;
+#else
+    return paragraph_->measureText();
+#endif
 }
 
 void ParagraphImpl::Paint(SkCanvas* canvas, double x, double y)

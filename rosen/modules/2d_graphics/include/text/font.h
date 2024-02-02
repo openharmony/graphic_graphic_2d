@@ -184,9 +184,10 @@ public:
      * @param text        Character storage encoded with TextEncoding
      * @param byteLength  Length of character storage in bytes
      * @param encoding    Text encoding.
+     * @param bounds      Bounding box relative to (0, 0)
      * @return            The width of text.
      */
-    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding);
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds = nullptr);
 
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const;
 

@@ -132,9 +132,9 @@ int Font::TextToGlyphs(const void* text, size_t byteLength, TextEncoding encodin
     return fontImpl_->TextToGlyphs(text, byteLength, encoding, glyphs, maxGlyphCount);
 }
 
-scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)
+scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds)
 {
-    return fontImpl_->MeasureText(text, byteLength, encoding);
+    return fontImpl_->MeasureText(text, byteLength, encoding, bounds);
 }
 
 int Font::CountText(const void* text, size_t byteLength, TextEncoding encoding) const
