@@ -190,6 +190,7 @@ void HMSymbolRun::DrawSymbol(SkCanvas* canvas, SkTextBlob* blob, const SkPoint& 
         std::pair<double, double> offsetXY(offset.x(), offset.y());
         if (symbolEffect > 1) { // 1 > has animation
             if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt.GetEffectStrategy())) {
+                ClearSymbolAnimation(symbolData, symbolId, offsetXY);
                 canvas->drawSymbol(symbolData, offset, paint);
             }
         } else {
@@ -225,6 +226,7 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
         std::pair<double, double> offsetXY(offset.GetX(), offset.GetY());
         if (symbolEffect > 1) { // 1 > has animation
             if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt.GetEffectStrategy())) {
+                ClearSymbolAnimation(symbolData, symbolId, offsetXY);
                 canvas->DrawSymbol(symbolData, offset);
             }
         } else {
@@ -250,15 +252,17 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
         return false;
     }
     AnimationSetting animationSetting;
+    int scaleType = static_cast<int>(EffectStrategy::SCALE);
 #else
     if (effectMode == RSEffectStrategy::NONE) {
         return false;
     }
     RSAnimationSetting animationSetting;
+    int scaleType = static_cast<int>(RSEffectStrategy::SCALE);
 #endif
 
     bool check = GetAnimationGroups(glyphid, effectMode, animationSetting);
-    if (!check) {
+    if ((!check) && static_cast<int>(effectMode) != scaleType) {
         return check;
     }
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
@@ -301,6 +305,9 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyphid, const EffectStrateg
     AnimationSetting& animationOut)
 {
     SymbolLayersGroups* symbolInfoOrigin = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyphid);
+    if (symbolInfoOrigin == nullptr) {
+        return false;
+    }
     std::vector<AnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
 
     AnimationType animationType = AnimationType::INVALID_ANIMATION_TYPE;
@@ -331,6 +338,9 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyphid, const RSEffectStrat
     RSAnimationSetting& animationOut)
 {
     auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphid);
+    if (symbolInfoOrigin == nullptr) {
+        return false;
+    }
     std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
 
     RSAnimationType animationType = RSAnimationType::INVALID_ANIMATION_TYPE;
