@@ -421,8 +421,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Leve
     std::vector<std::pair<float, float>> fractionStops;
     fractionStops.push_back(std::make_pair(0.f, 0.f));
     fractionStops.push_back(std::make_pair(1.f, 1.f));
-    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(
-        16, fractionStops, GradientDirection::BOTTOM);
+    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara =
+        std::make_shared<RSLinearGradientBlurPara>(16, fractionStops, GradientDirection::BOTTOM);
     RSProperties properties;
     properties.SetLinearGradientBlurPara(linearGradientBlurPara);
 

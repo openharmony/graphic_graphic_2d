@@ -60,5 +60,17 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
     NodeId targetId = static_cast<NodeId>(-1);
     std::shared_ptr<RSRenderParticleAnimation> animation = nullptr;
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
+
+    NodeId id = static_cast<NodeId>(1);
+    RSContext context2;
+
+    std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSBaseRenderNode>(id);
+    context2.GetMutableNodeMap().RegisterRenderNode(node);
+    AnimationCommandHelper::CreateParticleAnimation(context2, id, nullptr);
+
+    std::shared_ptr<RSRenderParticleAnimation> animation2 = std::make_shared<RSRenderParticleAnimation>();
+    AnimationCommandHelper::CreateParticleAnimation(context2, id, animation2);
+
+    AnimationCommandHelper::CancelAnimation(context2, id, 0);
 }
 } // namespace OHOS::Rosen
