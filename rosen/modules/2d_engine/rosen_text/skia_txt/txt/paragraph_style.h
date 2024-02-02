@@ -61,6 +61,7 @@ public:
     size_t maxLines = std::numeric_limits<size_t>::max();
     std::u16string ellipsis;
     std::string locale;
+    float textSplitRatio = 0.5;
 };
 } // namespace SPText
 } // namespace Rosen

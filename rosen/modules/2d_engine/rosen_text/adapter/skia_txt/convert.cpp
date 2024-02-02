@@ -77,6 +77,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .maxLines = style.maxLines,
         .ellipsis = style.ellipsis,
         .locale = style.locale,
+        .textSplitRatio = style.textSplitRatio,
     };
 }
 
