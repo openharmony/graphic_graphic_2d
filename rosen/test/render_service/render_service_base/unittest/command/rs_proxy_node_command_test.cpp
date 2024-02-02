@@ -41,7 +41,11 @@ void RSProxyNodeCommandTest::TearDown() {}
 HWTEST_F(RSProxyNodeCommandTest, TestRSProxyNodeCommand001, TestSize.Level1)
 {
     RSContext context;
-    NodeId id = static_cast<NodeId>(-1);
+    NodeId id = static_cast<NodeId>(1);
+    ProxyNodeCommandHelper::ResetContextVariableCache(context, id);
+
+    NodeId targetId = static_cast<NodeId>(2);
+    ProxyNodeCommandHelper::Create(context, id, targetId);
     ProxyNodeCommandHelper::ResetContextVariableCache(context, id);
 }
 } // namespace OHOS::Rosen

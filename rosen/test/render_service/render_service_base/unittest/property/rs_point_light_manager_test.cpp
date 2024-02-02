@@ -15,8 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include "common/rs_obj_abs_geometry.h"
 #include "property/rs_point_light_manager.h"
-#include "pipeline/rs_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,22 +36,63 @@ void RSPointLightManagerTest::TearDownTestCase() {}
 void RSPointLightManagerTest::SetUp() {}
 void RSPointLightManagerTest::TearDown() {}
 
-
 /**
- * @tc.name: PrepareLight
+ * @tc.name: PrepareLight001
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSPointLightManagerTest, PrepareLight, TestSize.Level1)
+HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
 {
     auto instance = RSPointLightManager::Instance();
-    std::weak_ptr<RSContext> context;
-    std::shared_ptr<RSRenderNode> rsRenderNode = std::make_shared<RSRenderNode>(0, context);
+    instance->PrepareLight();
+
+    std::shared_ptr<RSRenderNode> rsRenderNode = std::make_shared<RSRenderNode>(0);
+
     instance->RegisterLightSource(rsRenderNode);
+    instance->PrepareLight();
+
     instance->RegisterIlluminated(rsRenderNode);
-    instance->AddDirtyLightSource(rsRenderNode);
-    instance->AddDirtyIlluminated(rsRenderNode);
+    instance->PrepareLight();
+
+    NodeId id = 1;
+    RSRenderNode node(id);
+    instance->AddDirtyIlluminated(node.weak_from_this());
+    instance->PrepareLight();
+
+    instance->AddDirtyLightSource(node.weak_from_this());
+    instance->PrepareLight();
 }
+
+/**
+ * @tc.name: CalculateLightPosForIlluminated001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated001, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
+    lightSourcePtr->SetAbsLightPosition({ 20, 20, 20, 20 });
+
+    std::shared_ptr<RSObjAbsGeometry> illuminatedGeoPtr = std::make_shared<RSObjAbsGeometry>();
+
+    instance->CalculateLightPosForIlluminated(nullptr, illuminatedGeoPtr);
+
+    instance->CalculateLightPosForIlluminated(lightSourcePtr, nullptr);
+
+    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
+    auto pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
+
+    instance->SetScreenRotation(ScreenRotation::ROTATION_90);
+    pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
+
+    instance->SetScreenRotation(ScreenRotation::ROTATION_180);
+    pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
+
+    instance->SetScreenRotation(ScreenRotation::ROTATION_270);
+    pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
 }
-}
+} // namespace Rosen
+} // namespace OHOS

@@ -84,7 +84,6 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
     RSNodeCommandHelper::MarkNodeGroup(context, nodeId, isNodeGroup, true);
 }
 
-
 /**
  * @tc.name: MarkDrivenRenderTest
  * @tc.desc: MarkDrivenRender test.
@@ -134,6 +133,6 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
     RSContext context;
     NodeId inNodeId = static_cast<NodeId>(1);
     NodeId outNodeId = static_cast<NodeId>(1);
-    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);    
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
 }
 } // namespace OHOS::Rosen

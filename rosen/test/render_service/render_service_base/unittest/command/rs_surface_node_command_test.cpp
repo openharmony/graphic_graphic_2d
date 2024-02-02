@@ -290,6 +290,10 @@ HWTEST_F(RSSurfaceNodeCommandTest, FingerprintTest001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::SetFingerprint(context, id, true);
     SurfaceNodeCommandHelper::SetFingerprint(context, id, false);
+
+    NodeId id2 = static_cast<NodeId>(1);
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetFingerprint(context, id2, true);
 }
 
 /**
@@ -304,9 +308,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipLayerTest001, TestSize.Level1)
     bool isSkipLayer = false;
     SurfaceNodeCommandHelper::SetSkipLayer(context, id, isSkipLayer);
     NodeId id2 = 10;
-    auto context2 = std::make_shared<RSContext>();
-    SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::SetSkipLayer(*context2, id2, isSkipLayer);
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetSkipLayer(context, id2, isSkipLayer);
 }
 
 /**
@@ -321,9 +324,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetBootAnimation001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
     NodeId id2 = 10;
-    auto context2 = std::make_shared<RSContext>();
-    SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::SetBootAnimation(*context2, id2, true);
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetBootAnimation(context, id2, true);
 }
 
 /**
@@ -335,12 +337,12 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetBootAnimation001, TestSize.Level1)
 HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 {
     NodeId id = 10;
-    auto context = std::make_shared<RSContext>();
-    SurfaceNodeCommandHelper::Create(*context, id);
-    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, true);
-    SurfaceNodeCommandHelper::AttachToDisplay(*context, id, 0);
-    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, false);
-    SurfaceNodeCommandHelper::AttachToDisplay(*context, id, 0);
+    RSContext context;
+    SurfaceNodeCommandHelper::Create(context, id);
+    SurfaceNodeCommandHelper::SetBootAnimation(context, id, true);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, id, 0);
+    SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, id, 0);
 }
 
 /**
@@ -352,11 +354,89 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
 {
     NodeId id = 10;
-    auto context = std::make_shared<RSContext>();
-    SurfaceNodeCommandHelper::Create(*context, id);
-    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, true);
-    SurfaceNodeCommandHelper::DetachToDisplay(*context, id, 0);
-    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, false);
-    SurfaceNodeCommandHelper::DetachToDisplay(*context, id, 0);
+    RSContext context;
+    SurfaceNodeCommandHelper::Create(context, id);
+    SurfaceNodeCommandHelper::SetBootAnimation(context, id, true);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, id, 0);
+    SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, id, 0);
+}
+
+/**
+ * @tc.name: SetIsTextureExportNode001
+ * @tc.desc: DetachToDisplay test.
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetIsTextureExportNode001, TestSize.Level1)
+{
+    NodeId id = 10;
+    RSContext context;
+    SurfaceNodeCommandHelper::Create(context, id);
+    SurfaceNodeCommandHelper::SetIsTextureExportNode(context, id, true);
+    SurfaceNodeCommandHelper::SetIsTextureExportNode(context, 0, true);
+}
+
+/**
+ * @tc.name: MarkUIHidden001
+ * @tc.desc: SetIsNotifyUIBufferAvailable test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, MarkUIHidden001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = -10;
+    bool available = false;
+    SurfaceNodeCommandHelper::MarkUIHidden(context, id, available);
+    NodeId id2 = 10;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::MarkUIHidden(context, id2, available);
+}
+
+/**
+ * @tc.name: SetAnimationFinished001
+ * @tc.desc: SetIsNotifyUIBufferAvailable test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAnimationFinished001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = -10;
+    SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
+    NodeId id2 = 10;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetAnimationFinished(context, id2);
+}
+
+/**
+ * @tc.name: SetForeground001
+ * @tc.desc: SetIsNotifyUIBufferAvailable test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetForeground001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = -2;
+    bool available = false;
+    SurfaceNodeCommandHelper::SetForeground(context, id, available);
+    NodeId id2 = 2;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetForeground(context, id2, available);
+}
+
+/**
+ * @tc.name: SetSurfaceId001
+ * @tc.desc: SetIsNotifyUIBufferAvailable test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetSurfaceId001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = -2;
+    bool available = false;
+    SurfaceNodeCommandHelper::SetSurfaceId(context, id, available);
+    NodeId id2 = 2;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetSurfaceId(context, id2, available);
 }
 } // namespace OHOS::Rosen

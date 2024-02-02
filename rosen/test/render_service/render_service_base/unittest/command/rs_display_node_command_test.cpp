@@ -44,6 +44,11 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     uint64_t screenId = static_cast<uint64_t>(0);
     DisplayNodeCommandHelper::SetScreenId(context, id, screenId);
+
+    NodeId id2 = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::Create(context, id2, config);
+    DisplayNodeCommandHelper::SetScreenId(context, id2, screenId);
 }
 
 /**
@@ -54,9 +59,13 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand001, TestSize.Level1)
 HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand002, TestSize.Level1)
 {
     RSContext context;
-    NodeId id = static_cast<NodeId>(-1);
+    NodeId id = static_cast<NodeId>(1);
     int32_t offsetX = static_cast<int32_t>(1);
     int32_t offsetY = static_cast<int32_t>(1);
+    DisplayNodeCommandHelper::SetDisplayOffset(context, id, offsetX, offsetY);
+
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetDisplayOffset(context, id, offsetX, offsetY);
 }
 
@@ -68,8 +77,12 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand002, TestSize.Level1)
 HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand003, TestSize.Level1)
 {
     RSContext context;
-    NodeId id = static_cast<NodeId>(-1);
+    NodeId id = static_cast<NodeId>(1);
     bool isSecurityDisplay = false;
+    DisplayNodeCommandHelper::SetSecurityDisplay(context, id, isSecurityDisplay);
+
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetSecurityDisplay(context, id, isSecurityDisplay);
 }
 
@@ -95,8 +108,16 @@ HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-    RSDisplayNodeConfig config { 0, true, 0 };
+    RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
+
+    NodeId id2 = static_cast<NodeId>(2);
+    config.isMirrored = true;
+    DisplayNodeCommandHelper::Create(context, id2, config);
+
+    NodeId id3 = static_cast<NodeId>(3);
+    config.mirrorNodeId = id2;
+    DisplayNodeCommandHelper::Create(context, id3, config);
 }
 
 /**
@@ -112,5 +133,63 @@ HWTEST_F(RSDisplayNodeCommandTest, SetBootAnimation001, TestSize.Level1)
     RSDisplayNodeConfig config { 0, true, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetBootAnimation(context, id, true);
+
+    DisplayNodeCommandHelper::SetBootAnimation(context, 5, true);
+}
+
+/**
+ * @tc.name: SetRogSize001
+ * @tc.desc: SetScreenId test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetRogSize001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    DisplayNodeCommandHelper::SetScreenId(context, id, 1);
+
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetScreenId(context, id, 1);
+}
+
+/**
+ * @tc.name: SetScreenRotation001
+ * @tc.desc: SetScreenId test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetScreenRotation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    DisplayNodeCommandHelper::SetScreenRotation(context, id, ScreenRotation::ROTATION_0);
+
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetScreenRotation(context, id, ScreenRotation::ROTATION_0);
+}
+
+/**
+ * @tc.name: SetDisplayMode001
+ * @tc.desc: SetScreenId test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayMode001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, false, 0 };
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    config.isMirrored = true;
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    NodeId mirrorNodeId = static_cast<NodeId>(2);
+    config.mirrorNodeId = mirrorNodeId;
+    DisplayNodeCommandHelper::Create(context, mirrorNodeId, config);
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 }
 } // namespace OHOS::Rosen
