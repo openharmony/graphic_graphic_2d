@@ -3028,6 +3028,82 @@ HWTEST_F(RSUniRenderVisitorTest, SwitchColorFilterDrawing001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: FindInstanceChildOfDisplay001
+ * @tc.desc: Test FindInstanceChildOfDisplay while node is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI904G4
+ */
+HWTEST_F(RSUniRenderVisitorTest, FindInstanceChildOfDisplay001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->FindInstanceChildOfDisplay(nullptr), INVALID_NODEID);
+}
+
+/**
+ * @tc.name: FindInstanceChildOfDisplay002
+ * @tc.desc: Test FindInstanceChildOfDisplay while node's parent is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI904G4
+ */
+HWTEST_F(RSUniRenderVisitorTest, FindInstanceChildOfDisplay002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->GetParent().reset();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->FindInstanceChildOfDisplay(surfaceNode), INVALID_NODEID);
+}
+
+/**
+ * @tc.name: FindInstanceChildOfDisplay003
+ * @tc.desc: Test FindInstanceChildOfDisplay while node's parent is display node
+ * @tc.type: FUNC
+ * @tc.require: issueI904G4
+ */
+HWTEST_F(RSUniRenderVisitorTest, FindInstanceChildOfDisplay003, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->AddChild(surfaceNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->FindInstanceChildOfDisplay(surfaceNode), surfaceNode->GetId());
+}
+
+/**
+ * @tc.name: FindInstanceChildOfDisplay004
+ * @tc.desc: Test FindInstanceChildOfDisplay while node's parent isn't display node
+ * @tc.type: FUNC
+ * @tc.require: issueI904G4
+ */
+HWTEST_F(RSUniRenderVisitorTest, FindInstanceChildOfDisplay004, TestSize.Level2)
+{
+    RSDisplayNodeConfig config;
+    NodeId id = 0;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id++);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(canvasNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    displayNode->AddChild(canvasNode);
+    canvasNode->AddChild(surfaceNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->FindInstanceChildOfDisplay(surfaceNode), canvasNode->GetId());
+}
+
+/**
  * @tc.name: DrawEffectRenderNodeForDFX001
  * @tc.desc: Test RSUniRenderVisitorTest.DrawEffectRenderNodeForDFX while
  *           rect map is empty.
