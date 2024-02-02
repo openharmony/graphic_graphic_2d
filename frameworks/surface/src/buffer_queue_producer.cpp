@@ -30,7 +30,7 @@ namespace {
 constexpr int32_t BUFFER_MATRIX_SIZE = 16;
 } // namespace
 
-BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue> bufferQueue)
+BufferQueueProducer::BufferQueueProducer(const sptr<BufferQueue> &bufferQueue)
     : producerSurfaceDeathRecipient_(new ProducerSurfaceDeathRecipient(this))
 {
     bufferQueue_ = bufferQueue;

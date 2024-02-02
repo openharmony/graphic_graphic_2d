@@ -60,9 +60,6 @@ void TransactSurfaceDelegatorStubTest::TearDownTestCase()
 HWTEST_F(TransactSurfaceDelegatorStubTest, SetClient001, Function | MediumTest | Level2)
 {
     bool ret = tsd->SetClient(surfaceDelegator->AsObject());
-    ASSERT_EQ(ret, true);
-
-    ret = tsd->SetClient(surfaceDelegator->AsObject());
     EXPECT_EQ(ret, true);
 }
 

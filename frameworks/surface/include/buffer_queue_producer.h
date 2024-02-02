@@ -31,7 +31,7 @@
 namespace OHOS {
 class BufferQueueProducer : public IRemoteStub<IBufferProducer> {
 public:
-    BufferQueueProducer(sptr<BufferQueue> bufferQueue);
+    BufferQueueProducer(const sptr<BufferQueue> &bufferQueue);
     virtual ~BufferQueueProducer();
 
     virtual int OnRemoteRequest(uint32_t code, MessageParcel &arguments,
