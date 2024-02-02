@@ -215,17 +215,15 @@ const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
     RSModifierType::SCALE,
 };
-static const auto emptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
 }
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : id_(id), fullChildrenList_(emptyChildrenList), context_(context), isTextureExportNode_(isTextureExportNode)
+    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
 {}
 
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isOnTheTree_(isOnTheTree), id_(id), fullChildrenList_(emptyChildrenList), context_(context),
-      isTextureExportNode_(isTextureExportNode)
+    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
 {}
 
 bool RSRenderNode::GetIsTextureExportNode() const
@@ -723,17 +721,19 @@ void RSRenderNode::SetContentDirty()
     SetDirty();
 }
 
-void RSRenderNode::SetDirty()
+void RSRenderNode::SetDirty(bool forceAddToActiveList)
 {
-    // Sometimes dirtyStatus_ were not correctly reset, we use dirtyTypes_ to determine if we should add to active list
+    // TO avoid redundant add, only add if both: 1. on-tree node 2. newly dirty node (or forceAddToActiveList = true)
 #ifndef USE_ROSEN_DRAWING
-    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty()) {
+    if (isOnTheTree_ && (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty() || forceAddToActiveList)) {
 #else
-    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.none()) {
+    if (isOnTheTree_ && (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.none() || forceAddToActiveList)) {
 #endif
-        AddActiveNode();
-        dirtyStatus_ = NodeDirty::DIRTY;
+        if (auto context = GetContext().lock()) {
+            context->AddActiveNode(shared_from_this());
+        }
     }
+    dirtyStatus_ = NodeDirty::DIRTY;
 }
 
 void RSRenderNode::SetClean()
@@ -2167,16 +2167,9 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
 
 void RSRenderNode::OnTreeStateChanged()
 {
-    if (!isOnTheTree_) {
-        // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
-        auto prevFullChildrenList = fullChildrenList_;
-
-        // attempt to clear FullChildrenList, to avoid memory leak
-        isFullChildrenListValid_ = false;
-        isChildrenSorted_ = false;
-        std::atomic_store_explicit(&fullChildrenList_, emptyChildrenList, std::memory_order_release);
-    } else {
-        SetDirty();
+    if (isOnTheTree_) {
+        // Set dirty and force add to active node list, re-generate children list if needed
+        SetDirty(true);
     }
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!isOnTheTree_) {
@@ -2233,7 +2226,7 @@ void RSRenderNode::GenerateFullChildrenList()
         auto prevFullChildrenList = fullChildrenList_;
         isFullChildrenListValid_ = true;
         isChildrenSorted_ = true;
-        std::atomic_store_explicit(&fullChildrenList_, emptyChildrenList, std::memory_order_release);
+        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
         return;
     }
 
@@ -2735,13 +2728,6 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
 void RSRenderNode::MarkNonGeometryChanged()
 {
     geometryChangeNotPerceived_ = true;
-}
-
-inline void RSRenderNode::AddActiveNode()
-{
-    if (auto context = GetContext().lock()) {
-        context->AddActiveNode(shared_from_this());
-    }
 }
 
 bool RSRenderNode::GetIsUsedBySubThread() const
