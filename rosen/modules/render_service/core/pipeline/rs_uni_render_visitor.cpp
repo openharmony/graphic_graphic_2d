@@ -1090,8 +1090,12 @@ void RSUniRenderVisitor::ClassifyUIFirstSurfaceDirtyStatus(RSSurfaceRenderNode& 
         isCachedSurfaceReuse_ = (quickSkipPrepareType_ >= QuickSkipPrepareType::STATIC_CACHE_SURFACE) &&
             (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) &&
             CheckIfUIFirstSurfaceContentReusable(curSurfaceNode_, isSurfaceDirtyNodeLimited_);
+        // The condition of childHasFilter in QuerySubAssignable can not be used here
+        // Because child node's filter is not collected yet, so disable prepare optimization when node is transparent
+        // [planning]: detect the filter change before prepare, and use the last frame result
         isSurfaceDirtyNodeLimited_ = (quickSkipPrepareType_ == QuickSkipPrepareType::CONTENT_DIRTY_CACHE_SURFACE) &&
-            isSurfaceDirtyNodeLimited_ && node.IsOnlyBasicGeoTransform() && node.IsContentDirtyNodeLimited();
+            !node.IsTransparent() && isSurfaceDirtyNodeLimited_ &&
+            node.IsOnlyBasicGeoTransform() && node.IsContentDirtyNodeLimited();
         if (isCachedSurfaceReuse_) {
             node.SetCacheGeoPreparationDelay(dirtyFlag_);
         }

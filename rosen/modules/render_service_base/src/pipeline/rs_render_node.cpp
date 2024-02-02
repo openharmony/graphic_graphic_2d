@@ -2338,6 +2338,9 @@ bool RSRenderNode::GetTunnelHandleChange() const
 }
 bool RSRenderNode::HasChildrenOutOfRect() const
 {
+    if (GetRenderProperties().GetClipToBounds() || GetRenderProperties().GetClipToFrame()) {
+        return false;
+    }
     return hasChildrenOutOfRect_;
 }
 void RSRenderNode::UpdateChildrenOutOfRectFlag(bool flag)
