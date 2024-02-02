@@ -43,7 +43,10 @@ ohos_executable("hello_native_buffer") {
 
   deps = [ "//foundation/graphic/graphic_2d/frameworks/surface:surface" ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
