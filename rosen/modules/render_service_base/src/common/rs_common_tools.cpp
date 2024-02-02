@@ -31,7 +31,9 @@ void SavePixelmapToFile(const std::shared_ptr<Media::PixelMap>& pixelMap, const 
     uint64_t nowTime = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch())
             .count());
-    std::string fileName = dst + std::to_string(nowTime) + "_w" + std::to_string(w) + "_h" + std::to_string(h) + ".dat";
+    int32_t rowStirde = pixelMap->GetRowStride();
+    std::string fileName = dst + std::to_string(nowTime) + "_w" + std::to_string(w) + "_h" + std::to_string(h) +
+                           "_stride" + std::to_string(rowStirde) + ".dat";
     std::ofstream outfile(fileName, std::fstream::out);
     if (!outfile.is_open()) {
         RS_LOGE("SavePixelmapToFile write error, path=%{public}s", fileName.c_str());
