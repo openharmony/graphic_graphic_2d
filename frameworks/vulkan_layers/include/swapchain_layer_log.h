@@ -18,8 +18,8 @@
 #include <hilog/log.h>
 namespace OHOS {
 namespace {
-// The "0xD001402" is the domain ID for graphic module that alloted by the OS.
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001402, "VulkanSwapchainLayer" };
+// The "0xD001405" is the domain ID for graphic module that alloted by the OS.
+constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001405, "VulkanSwapchainLayer" };
 }
 
 #define SWLOGD(fmt, ...) OHOS::HiviewDFX::HiLog::Debug(LABEL, \
