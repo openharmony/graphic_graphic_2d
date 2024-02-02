@@ -100,7 +100,13 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             success = success && parcel.WriteUint64(nodeId);
             success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
         }
-        success = success && command->Marshalling(parcel);
+        if (!command) {
+            parcel.WriteUint8(0);
+            RS_LOGW("failed RSTransactionData::Marshalling, command is nullptr");
+        } else {
+            parcel.WriteUint8(1);
+            success = success && command->Marshalling(parcel);
+        }
         if (!success) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
             return false;
@@ -187,6 +193,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     }
     uint8_t followType = 0;
     NodeId nodeId = 0;
+    uint8_t hasCommand = 0;
     uint16_t commandType = 0;
     uint16_t commandSubType = 0;
 
@@ -215,23 +222,30 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                 return false;
             }
         }
-
-        if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
+        if (!parcel.ReadUint8(hasCommand)) {
+            ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read hasCommand");
             return false;
         }
-        auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(commandType, commandSubType);
-        if (func == nullptr) {
-            return false;
+        if (hasCommand) {
+            if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
+                return false;
+            }
+            auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(commandType, commandSubType);
+            if (func == nullptr) {
+                return false;
+            }
+            auto command = (*func)(parcel);
+            if (command == nullptr) {
+                ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%{public}d subtype=%{public}d",
+                    commandType, commandSubType);
+                return false;
+            }
+            payloadLock.lock();
+            payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
+            payloadLock.unlock();
+        } else {
+            continue;
         }
-        auto command = (*func)(parcel);
-        if (command == nullptr) {
-            ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%{public}d subtype=%{public}d",
-                commandType, commandSubType);
-            return false;
-        }
-        payloadLock.lock();
-        payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
-        payloadLock.unlock();
     }
     int32_t pid;
     return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
