@@ -130,8 +130,9 @@ bool RSCanvasDrawingNode::GetPixelmap(
             return false;
         }
         bool ret = false;
-        auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList]() { 
-            ret = node->GetPixelmap(pixelmap, rect, UINT32_MAX, drawCmdList); };
+        auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList]() {
+            ret = node->GetPixelmap(pixelmap, rect, UINT32_MAX, drawCmdList);
+        };
         RSRenderThread::Instance().PostSyncTask(getPixelmapTask);
         if (!ret || !pixelmap) {
             return false;
@@ -215,7 +216,8 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         }
         bool ret = false;
         auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList]() {
-            ret = node->GetPixelmap(pixelmap, rect); };
+            ret = node->GetPixelmap(pixelmap, rect);
+        };
         RSRenderThread::Instance().PostSyncTask(getPixelmapTask);
         if (!ret || !pixelmap) {
             return false;
