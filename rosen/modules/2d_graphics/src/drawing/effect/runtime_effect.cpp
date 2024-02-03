@@ -30,6 +30,12 @@ RuntimeEffect::RuntimeEffect(const std::string& sl) noexcept : RuntimeEffect()
     impl_->InitForShader(sl);
 }
 
+RuntimeEffect::RuntimeEffect(const std::string& sl, const RuntimeEffectOptions& options,
+    bool isES3) noexcept : RuntimeEffect()
+{
+    impl_->InitForES3Shader(sl);
+}
+
 RuntimeEffect::RuntimeEffect(const std::string& sl, bool isBlender) noexcept : RuntimeEffect()
 {
     impl_->InitForBlender(sl);
@@ -47,6 +53,11 @@ std::shared_ptr<RuntimeEffect> RuntimeEffect::CreateForShader(const std::string&
 std::shared_ptr<RuntimeEffect> RuntimeEffect::CreateForShader(const std::string& sl)
 {
     return std::make_shared<RuntimeEffect>(sl);
+}
+
+std::shared_ptr<RuntimeEffect> RuntimeEffect::CreateForES3Shader(const std::string& sl)
+{
+    return std::make_shared<RuntimeEffect>(sl, RuntimeEffectOptions(), true);
 }
 
 std::shared_ptr<RuntimeEffect> RuntimeEffect::CreateForBlender(const std::string& sl)

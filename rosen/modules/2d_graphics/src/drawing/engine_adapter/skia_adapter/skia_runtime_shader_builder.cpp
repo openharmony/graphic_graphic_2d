@@ -98,6 +98,23 @@ void SkiaRuntimeShaderBuilder::SetUniform(const std::string& name, float x, floa
     skRuntimeShaderBuilder_->uniform(name.c_str()) = SkV3{x, y, z};
 }
 
+void SkiaRuntimeShaderBuilder::SetUniform(const std::string& name, const float values[], size_t size)
+{
+    if (!skRuntimeShaderBuilder_) {
+        return;
+    }
+    skRuntimeShaderBuilder_->uniform(name.c_str()).set(values, size);
+}
+
+void SkiaRuntimeShaderBuilder::SetUniform(const std::string& name, const Matrix& uniformMatrix33)
+{
+    if (!skRuntimeShaderBuilder_) {
+        return;
+    }
+
+    skRuntimeShaderBuilder_->uniform(name.c_str()) = uniformMatrix33.GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+}
+
 void SkiaRuntimeShaderBuilder::SetUniform(const std::string& name, const Matrix44& uniformMatrix44)
 {
     if (!skRuntimeShaderBuilder_) {

@@ -34,6 +34,7 @@ public:
         OFFSET,
         ARITHMETIC,
         COMPOSE,
+        GRADIENT_BLUR,
     };
     /*
      * @brief         Create a filter that blurs its input by the separate X and Y sinma value.
@@ -44,7 +45,7 @@ public:
      * @return        A shared pointer to ImageFilter that its type is blur.
      */
     static std::shared_ptr<ImageFilter> CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,
-        std::shared_ptr<ImageFilter> input);
+        std::shared_ptr<ImageFilter> input, ImageBlurType blurType = ImageBlurType::GAUSS);
     /*
      * @brief        Create a filter that applies the color filter to the input filter results.
      * @param cf     The color filter that transforms the input image.
@@ -53,9 +54,9 @@ public:
      */
     static std::shared_ptr<ImageFilter> CreateColorFilterImageFilter(const ColorFilter& cf,
         std::shared_ptr<ImageFilter> input);
-    
-    static std::shared_ptr<ImageFilter> CreateColorBlurImageFilter(const ColorFilter& cf,
-        scalar sigmaX, scalar sigmaY);
+
+    static std::shared_ptr<ImageFilter> CreateColorBlurImageFilter(const ColorFilter& cf, scalar sigmaX, scalar sigmaY,
+        ImageBlurType blurType = ImageBlurType::GAUSS);
     /*
      * @brief        Create a filter that offsets the input filter by the given vector.
      * @param dx     The x offset in local space that the image is shifted.
@@ -85,13 +86,18 @@ public:
     static std::shared_ptr<ImageFilter> CreateComposeImageFilter(std::shared_ptr<ImageFilter> f1,
         std::shared_ptr<ImageFilter> f2);
 
+    static std::shared_ptr<ImageFilter> CreateGradientBlurImageFilter(float radius,
+        const std::vector<std::pair<float, float>>& fractionStops, GradientDir direction,
+        GradientBlurType blurType, std::shared_ptr<ImageFilter> input);
+
     virtual ~ImageFilter() = default;
     FilterType GetType() const;
     virtual DrawingType GetDrawingType() const
     {
         return DrawingType::COMMON;
     }
-
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
     template<typename T>
     T* GetImpl() const
     {
@@ -99,18 +105,17 @@ public:
     }
 
     ImageFilter(FilterType t, scalar x, scalar y, std::shared_ptr<ImageFilter> input) noexcept;
-    ImageFilter(FilterType t, scalar x, scalar y, TileMode mode, std::shared_ptr<ImageFilter> input) noexcept;
+    ImageFilter(FilterType t, scalar x, scalar y, TileMode mode, std::shared_ptr<ImageFilter> input,
+        ImageBlurType blurType) noexcept;
     ImageFilter(FilterType t, const ColorFilter& cf, std::shared_ptr<ImageFilter> input) noexcept;
-    ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y) noexcept;
+    ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType) noexcept;
     ImageFilter(FilterType t, const std::vector<scalar>& coefficients, bool enforcePMColor,
         std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground) noexcept;
     ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::shared_ptr<ImageFilter> f2) noexcept;
+    ImageFilter(FilterType t, float radius, const std::vector<std::pair<float, float>>& fractionStops,
+        GradientDir direction, GradientBlurType blurType, std::shared_ptr<ImageFilter> input) noexcept;
     ImageFilter(FilterType t) noexcept;
-    
-    void InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y);
-
-    std::shared_ptr<Data> Serialize() const;
-    bool Deserialize(std::shared_ptr<Data> data);
+    void InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType);
 protected:
     ImageFilter() noexcept;
 

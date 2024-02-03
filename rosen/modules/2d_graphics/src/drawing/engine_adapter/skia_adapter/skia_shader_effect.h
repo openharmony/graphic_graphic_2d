@@ -51,6 +51,7 @@ public:
     void InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
         const Matrix *matrix) override;
+    void InitWithLightUp(const float& lightUpDeg, const ShaderEffect& imageShader) override;
     sk_sp<SkShader> GetShader() const;
     /*
      * @brief  Update the member variable to skShader, adaptation layer calls.

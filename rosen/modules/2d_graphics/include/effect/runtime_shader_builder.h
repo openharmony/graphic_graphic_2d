@@ -38,6 +38,8 @@ public:
     void SetUniform(const std::string& name, float x, float y);
     void SetUniform(const std::string& name, float x, float y, float z);
     void SetUniform(const std::string& name, float x, float y, float width, float height);
+    void SetUniform(const std::string& name, const float values[], size_t size);
+    void SetUniform(const std::string& name, const Matrix& uniformMatrix33);
     void SetUniform(const std::string& name, const Matrix44& uniformMatrix44);
     void SetUniformVec4(const std::string& name, float x, float y, float z, float w);
 private:

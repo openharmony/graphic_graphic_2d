@@ -84,6 +84,13 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std:
     impl_->InitWithSweepGradient(centerPt, colors, pos, mode, startAngle, endAngle, matrix);
 }
 
+ShaderEffect::ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEffect& imageShader) noexcept
+    : ShaderEffect()
+{
+    type_ = t;
+    impl_->InitWithLightUp(lightUpDeg, imageShader);
+}
+
 ShaderEffect::ShaderEffect() noexcept
     : type_(ShaderEffect::ShaderEffectType::NO_TYPE), impl_(ImplFactory::CreateShaderEffectImpl())
 {}
@@ -149,6 +156,11 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& cen
 {
     return std::make_shared<ShaderEffect>(
         ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, centerPt, colors, pos, mode, startAngle, endAngle, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LIGHT_UP, lightUpDeg, imageShader);
 }
 
 std::shared_ptr<Data> ShaderEffect::Serialize() const

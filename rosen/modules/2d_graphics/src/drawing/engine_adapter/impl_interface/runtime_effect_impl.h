@@ -36,6 +36,7 @@ public:
 
     virtual void InitForShader(const std::string& sl, const RuntimeEffectOptions& options) = 0;
     virtual void InitForShader(const std::string& sl) = 0;
+    virtual void InitForES3Shader(const std::string& sl) = 0;
     virtual void InitForBlender(const std::string& sl) = 0;
     virtual std::shared_ptr<ShaderEffect> MakeShader(std::shared_ptr<Data> uniforms,
         std::shared_ptr<ShaderEffect> children[], size_t childCount, const Matrix* localMatrix,
