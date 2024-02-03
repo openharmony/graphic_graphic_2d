@@ -1159,7 +1159,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->GetWidth(), imageSnapshot->GetHeight())) {
         ROSEN_LOGD("DrawFilter cache image resource(width:%{public}d, height:%{public}d).",
             imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
-        as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();
+        imageSnapshot->HintCacheGpuResource();
 #endif
     }
 
@@ -1645,13 +1645,16 @@ Drawing::ColorQuad RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing
 {
     // create a 1x1 SkPixmap
     uint32_t pixel[1] = { 0 };
-    auto single_pixel_info = SkImageInfo::Make(1, 1, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    SkPixmap single_pixel(single_pixel_info, pixel, single_pixel_info.bytesPerPixel());
+    Drawing::ImageInfo single_pixel_info(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL);
+    Drawing::Bitmap single_pixel;
+    single_pixel.Build(single_pixel_info, single_pixel_info.GetBytesPerPixel());
+    single_pixel.SetPixels(pixel);
 
     // resize snapshot to 1x1 to calculate average color
     // kMedium_SkFilterQuality will do bilerp + mipmaps for down-scaling, we can easily get average color
-    imageSnapshot->ExportSkImage()->scalePixels(
-        single_pixel, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
+    imageSnapshot->ScalePixels(single_pixel,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR));
     // convert color format and return average color
     return SkColor4f::FromBytes_RGBA(pixel[0]).toSkColor();
 }
@@ -2699,7 +2702,7 @@ void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPain
         ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter image is null");
         return;
     }
-    as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();
+    imageSnapshot->HintCacheGpuResource();
     canvas.ResetMatrix();
     Drawing::SamplingOptions options(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     canvas.AttachBrush(brush);

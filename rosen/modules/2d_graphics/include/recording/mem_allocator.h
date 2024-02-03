@@ -26,6 +26,7 @@ namespace Drawing {
 class DRAWING_API MemAllocator {
 public:
     static constexpr uint32_t MEMORY_EXPANSION_FACTOR = 2;
+    static constexpr size_t ALIGN_SIZE = 4;
 
     MemAllocator();
     ~MemAllocator();

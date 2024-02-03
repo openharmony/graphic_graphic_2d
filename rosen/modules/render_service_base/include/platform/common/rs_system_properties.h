@@ -188,9 +188,6 @@ public:
     static bool GetASTCEnabled();
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
-#if defined (ENABLE_DDGR_OPTIMIZE)
-    static bool GetDDGRIntegrateEnable();
-#endif
     static bool GetSnapshotWithDMAEnabled();
     static bool IsPhoneType();
     static bool IsPcType();

@@ -52,9 +52,6 @@ public:
 #endif
 private:
     void SetNativeWindowInfo(int32_t width, int32_t height);
-#ifdef ENABLE_DDGR_OPTIMIZE
-    std::shared_ptr<DDGR::DDGRCanvasInterface> ddgrCanvas_;
-#endif
     std::unique_ptr<SurfaceFrameOhosVulkan> frame_;
     struct NativeWindow *mNativeWindow_ = nullptr;
     vulkan::VulkanWindow *mVulkanWindow_ = nullptr;

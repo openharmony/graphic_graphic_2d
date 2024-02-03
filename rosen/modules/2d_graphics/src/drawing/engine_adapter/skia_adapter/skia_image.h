@@ -95,6 +95,7 @@ public:
     bool CanPeekPixels() const override;
 
     bool IsOpaque() const override;
+    void HintCacheGpuResource() const override;
 
     const sk_sp<SkImage> GetImage() const;
 

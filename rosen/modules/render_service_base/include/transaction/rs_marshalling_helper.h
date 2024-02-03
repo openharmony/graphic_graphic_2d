@@ -63,11 +63,6 @@ struct SkSamplingOptions;
 #endif
 #endif
 
-#if defined (ENABLE_DDGR_OPTIMIZE)
-struct SkSerialProcs;
-struct SkDeserialProcs;
-#endif
-
 namespace OHOS {
 namespace Media {
 class PixelMap;
@@ -481,14 +476,6 @@ public:
     static bool UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
 #endif
 
-#if defined (ENABLE_DDGR_OPTIMIZE)
-    static int IntegrateReadDescriptor(Parcel& pacel);
-    static bool IntegrateWriteDescriptor(Parcel& parcel, int fId);
-    static bool SerializeInternal(Parcel& parcel, const sk_sp<SkTextBlob>& val,
-        const SkSerialProcs& procs);
-    static bool DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
-        const SkDeserialProcs& procs, sk_sp<SkData>& data);
-#endif
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
     static bool GetUseSharedMem(std::thread::id tid);

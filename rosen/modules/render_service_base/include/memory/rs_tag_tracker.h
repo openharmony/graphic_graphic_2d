@@ -40,6 +40,7 @@ public:
         TAG_ACQUIRE_SURFACE,
         TAG_FILTER,
         TAG_RENDER_FRAME,
+        TAG_UNTAGGED,
         TAG_CAPTURE,
     };
 #ifndef USE_ROSEN_DRAWING

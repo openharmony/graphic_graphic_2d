@@ -43,10 +43,6 @@ private:
     void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
     void ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
     RSRenderServiceSecurityUtils securityUtils_;
-
-#if defined (ENABLE_DDGR_OPTIMIZE)
-    int transDataIndex_ = 0;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

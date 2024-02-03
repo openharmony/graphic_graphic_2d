@@ -22,6 +22,7 @@ namespace Rosen {
 namespace Drawing {
 enum class AdapterType {
     SKIA_ADAPTER,
+    DDGR_ADAPTER,
     OTHER_ADAPTER,
 };
 

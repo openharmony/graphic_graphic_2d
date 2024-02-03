@@ -113,8 +113,12 @@ void* MemAllocator::Add(const void* data, size_t size)
     if (isReadOnly_ || !data || size == 0 || size > MEM_SIZE_MAX) {
         return nullptr;
     }
+    auto current = startPtr_ + size_;
+    if (auto mod = reinterpret_cast<uintptr_t>(current) % ALIGN_SIZE; mod != 0) {
+        size_ += ALIGN_SIZE - mod;
+    }
 
-    if (capacity_ == 0 || capacity_ - size_ < size) {
+    if (capacity_ == 0 || capacity_ < size_ + size) {
         // The capacity is not enough, expand the capacity
         if (Resize((capacity_ + size) * MEMORY_EXPANSION_FACTOR) == false) {
             return nullptr;
