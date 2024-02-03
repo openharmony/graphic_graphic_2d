@@ -51,8 +51,14 @@ declare_args() {
   }
 }
 
+declare_args() {
+  graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_ddgr_opinc = false
+}
+
 if (graphic_2d_feature_product == "phone") {
   graphic_2d_feature_enable_vulkan = true
+  graphic_2d_feature_enable_ddgr = false
 }
 
 gpu_defines = []
@@ -69,6 +75,14 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
     ]
+    if (graphic_2d_feature_enable_ddgr) {
+      graphic_2d_feature_enable_ddgr_opinc = true
+      gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
+      import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
+      if (graphic_2d_feature_enable_ddgr_opinc) {
+        gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
+      }
+    }
   }
   if (graphic_2d_feature_enable_opengl) {
     gpu_defines += [

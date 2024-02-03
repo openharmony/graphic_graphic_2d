@@ -167,6 +167,13 @@ std::unique_ptr<SurfaceImpl> SkiaImplFactory::CreateSurface()
     return std::make_unique<SkiaSurface>();
 }
 
+// opinc_begin
+std::unique_ptr<OpListHandleImpl> SkiaImplFactory::CreateOplistHandle()
+{
+    return nullptr;
+}
+// opinc_end
+
 std::unique_ptr<PathEffectImpl> SkiaImplFactory::CreatePathEffect()
 {
     return std::make_unique<SkiaPathEffect>();

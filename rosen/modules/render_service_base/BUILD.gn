@@ -394,6 +394,11 @@ ohos_source_set("render_service_base_src") {
   ]
   external_deps = [ "hilog:libhilog" ]
 
+  if (graphic_2d_feature_enable_ddgr_opinc) {
+    include_dirs += ddgr_adapter_opt_set.ddgr_opinc_include_set
+    sources += ddgr_adapter_opt_set.ddgr_opinc_src_set
+  }
+
   if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]
     sources += get_target_outputs(":particle_cxx_gen")
