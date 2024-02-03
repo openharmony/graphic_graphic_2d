@@ -44,8 +44,11 @@ static GpuApiType SystemGpuApiType()
         "persist.sys.graphic.GpuApitype", "-1").c_str()) == (-1)) { // -1 is invalid type
         return GpuApiType::VULKAN;
     }
-    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "0").c_str()) == 0) {
+    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "-1").c_str()) == 0) {
         return GpuApiType::OPENGL;
+    }
+    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "-1").c_str()) == 2) { // 2 is ddgr type
+        return GpuApiType::DDGR;
     }
     return GpuApiType::VULKAN;
 }
