@@ -150,6 +150,24 @@ HWTEST_F(vsyncReceiverTest, RequestNextVSync001, Function | MediumTest| Level3)
 }
 
 /*
+* Function: RequestNextVSync002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSync
+ */
+HWTEST_F(vsyncReceiverTest, RequestNextVSync002, Function | MediumTest| Level3)
+{
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    vsyncDistributor->AddConnection(conn);
+    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb, "unknown", 0), VSYNC_ERROR_OK);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
 * Function: GetVSyncPeriodAndLastTimeStamp001
 * Type: Function
 * Rank: Important(2)

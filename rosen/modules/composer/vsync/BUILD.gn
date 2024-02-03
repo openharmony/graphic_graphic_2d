@@ -24,6 +24,13 @@ config("vsync_config") {
     "-Werror",
     "-g3",
   ]
+
+  if (graphic_2d_feature_enable_dvsync) {
+    gpu_defines += [ "RS_ENABLE_DVSYNC" ]
+  }
+
+  defines = []
+  defines += gpu_defines
 }
 
 config("vsync_public_config") {
@@ -34,6 +41,9 @@ config("vsync_public_config") {
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/utils/sandbox",
   ]
+  if (graphic_2d_feature_enable_dvsync) {
+    include_dirs += [ "$graphic_2d_ext_root/dvsync/include" ]
+  }
 }
 
 ohos_shared_library("libvsync") {
@@ -64,6 +74,11 @@ ohos_shared_library("libvsync") {
     "$graphic_2d_root/utils:sandbox_utils",
     "$graphic_2d_root/utils:socketpair",
   ]
+
+  if (graphic_2d_feature_enable_dvsync) {
+    deps += [ "$graphic_2d_ext_root/dvsync:libdvsync" ]
+    include_dirs += [ "$graphic_2d_ext_root/dvsync/include" ]
+  }
 
   public_deps = [ "$graphic_2d_root/utils:scoped_bytrace" ]
   external_deps = [

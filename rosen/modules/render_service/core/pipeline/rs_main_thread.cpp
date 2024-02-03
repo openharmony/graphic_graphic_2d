@@ -273,7 +273,14 @@ void RSMainThread::Init()
 #if defined(RS_ENABLE_DRIVEN_RENDER)
         CollectInfoForDrivenRender();
 #endif
+        // may mark rsnotrendering
         Render();
+
+        // move rnv after mark rsnotrendring
+        if (needRequestNextVsyncAnimate_ && rsVSyncDistributor_->IsDVsyncOn()) {
+            RequestNextVSync("animate", timestamp_);
+        }
+
         InformHgmNodeInfo();
         ReleaseAllNodesBuffer();
         auto subThreadManager = RSSubThreadManager::Instance();
@@ -2007,7 +2014,7 @@ void RSMainThread::NotifyHardwareThreadCanExcuteTask()
     hardwareThreadTaskCond_.notify_one();
 }
 
-void RSMainThread::RequestNextVSync()
+void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSyncTS)
 {
     RS_OPTIONAL_TRACE_FUNC();
     VSyncReceiver::FrameCallback fcb = {
@@ -2019,7 +2026,7 @@ void RSMainThread::RequestNextVSync()
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
             RS_LOGW("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_);
         }
-        receiver_->RequestNextVSync(fcb);
+        receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);
     }
 }
 
@@ -2066,6 +2073,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     doDirectComposition_ = false;
     bool curWinAnim = false;
     bool needRequestNextVsync = false;
+    needRequestNextVsyncAnimate_ = false;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
@@ -2125,8 +2133,14 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
-        RequestNextVSync();
+        // Call real RequestNextVsync Later for dvsync on
+        if (!rsVSyncDistributor_->IsDVsyncOn()) {
+            RequestNextVSync("animate", timestamp_);
+        }
+        RS_TRACE_NAME("rs_RequestNextVSync");
     }
+    needRequestNextVsyncAnimate_ = needRequestNextVsync;
+
     PerfAfterAnim(needRequestNextVsync);
 }
 

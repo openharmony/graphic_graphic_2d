@@ -129,13 +129,18 @@ VSyncReceiver::~VSyncReceiver()
 
 VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback)
 {
+    return RequestNextVSync(callback, "unknown", 0);
+}
+
+VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::string &fromWhom, int64_t lastVSyncTS)
+{
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
     listener_->SetCallback(callback);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
-    return connection_->RequestNextVSync();
+    return connection_->RequestNextVSync(fromWhom, lastVSyncTS);
 }
 
 VsyncError VSyncReceiver::SetVSyncRate(FrameCallback callback, int32_t rate)

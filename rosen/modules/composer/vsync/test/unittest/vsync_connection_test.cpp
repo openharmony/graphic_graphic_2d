@@ -78,6 +78,18 @@ HWTEST_F(VSyncConnectionTest, RequestNextVSync002, Function | MediumTest| Level3
 }
 
 /*
+* Function: RequestNextVSync003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSync
+ */
+HWTEST_F(VSyncConnectionTest, RequestNextVSync003, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VSyncConnectionTest::vsyncConnection->RequestNextVSync("unknown", 0), VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
 * Function: SetVSyncRate001
 * Type: Function
 * Rank: Important(2)

@@ -78,6 +78,8 @@ public:
 
     virtual VsyncError Init();
     virtual VsyncError RequestNextVSync(FrameCallback callback);
+    virtual VsyncError RequestNextVSync(FrameCallback callback, const std::string &fromWhom,
+                                        int64_t lastVSyncTS);
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
     virtual VsyncError GetVSyncPeriod(int64_t &period);
     virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp,

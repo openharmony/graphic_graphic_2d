@@ -25,6 +25,11 @@ VSyncConnectionProxy::VSyncConnectionProxy(const sptr<IRemoteObject>& impl)
 
 VsyncError VSyncConnectionProxy::RequestNextVSync()
 {
+    return RequestNextVSync("unknown", 0);
+}
+
+VsyncError VSyncConnectionProxy::RequestNextVSync(const std::string& fromWhom, int64_t lastVSyncTS)
+{
     MessageOption opt;
     MessageParcel arg;
     MessageParcel ret;
