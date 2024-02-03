@@ -30,6 +30,7 @@ declare_args() {
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
+  graphic_2d_feature_enable_ddgr_opinc = false
   enable_text_gine = true
   use_texgine = false
   use_skia_txt = true

@@ -222,6 +222,18 @@ public:
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
 
+    // opinc_begin
+    virtual bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false);
+    virtual Drawing::OpListHandle EndOpRecording();
+    virtual void DrawOpList(Drawing::OpListHandle handle);
+    virtual int CanDrawOpList(Drawing::OpListHandle handle);
+    virtual void PreOpListDrawArea(const Matrix& matrix);
+    virtual bool CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound = nullptr);
+    virtual Drawing::OpListHandle GetOpListDrawArea();
+    virtual void OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
+        const SamplingOptions& sampling, SrcRectConstraint constraint);
+    // opinc_end
+
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
     void DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling);

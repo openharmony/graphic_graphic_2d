@@ -137,6 +137,18 @@ std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()
     return EngineImplFactory::CreateSurface();
 }
 
+// opinc_begin
+std::unique_ptr<OpListHandleImpl> ImplFactory::CreateOplistHandleImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateOplistHandle();
+    }
+#endif
+    return EngineImplFactory::CreateOplistHandle();
+}
+// opinc_end
+
 std::unique_ptr<PathEffectImpl> ImplFactory::CreatePathEffectImpl()
 {
     return EngineImplFactory::CreatePathEffect();

@@ -705,6 +705,44 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
     return singleFrameComposerCanvasNodeEnabled;
 }
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
+    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
+const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
+    static_cast<DdgrOpincDfxType>(std::atoi((
+        system::GetParameter("persist.ddgr.opinctype.debugtype", "0")).c_str()));
+
+DdgrOpincType RSSystemProperties::GetDdgrOpincType()
+{
+    return RSSystemProperties::ddgrOpincType_;
+}
+
+bool RSSystemProperties::IsDdgrOpincEnable()
+{
+    return ((GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE ||
+        GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW ||
+        GetDdgrOpincType() == DdgrOpincType::DDGR_RENDERCACHE ||
+        GetDdgrOpincType() == DdgrOpincType::DDGR_OPINCUPDATE) &&
+        (RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR)) ||
+        (GetDdgrOpincType() == DdgrOpincType::DDGR_UNRESTRICTED_MODE);
+}
+
+bool RSSystemProperties::IsOpincRealDrawCacheEnable()
+{
+    return  GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW;
+}
+
+DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
+{
+    return ddgrOpincDfxType_;
+}
+
+bool RSSystemProperties::GetAutoCacheDebugEnabled()
+{
+    return GetDdgrOpincDfxType() == DdgrOpincDfxType::DDGR_OPINC_DFX_AUTO;
+}
+#endif
+
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     static bool subSurfaceEnabled =

@@ -47,6 +47,10 @@ config("export_config") {
   if (ace_enable_gpu) {
     defines = [ "ACE_ENABLE_GPU" ]
   }
+
+  if (graphic_2d_feature_enable_ddgr_opinc) {
+    defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
+  }
 }
 
 if (enable_text_gine) {
@@ -90,6 +94,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/c/drawing_text_blob.cpp",
       "$drawing_src_dir/c/drawing_text_typography.cpp",
       "$drawing_src_dir/c/drawing_typeface.cpp",
+      "$drawing_src_dir/draw/OpListHandle.cpp",
       "$drawing_src_dir/draw/brush.cpp",
       "$drawing_src_dir/draw/color.cpp",
       "$drawing_src_dir/draw/core_canvas.cpp",
@@ -216,6 +221,10 @@ template("graphics2d_source_set") {
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
+    }
+
+    if (graphic_2d_feature_enable_ddgr_opinc) {
+      defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
     }
 
     include_dirs = [

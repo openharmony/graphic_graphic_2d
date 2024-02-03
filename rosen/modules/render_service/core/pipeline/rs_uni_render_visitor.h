@@ -36,6 +36,9 @@
 #include "system/rs_system_parameters.h"
 #include "visitor/rs_node_visitor.h"
 #include "pipeline/rs_recording_canvas.h"
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+#include "rs_auto_cache.h"
+#endif
 
 class SkPicture;
 namespace OHOS {
@@ -125,6 +128,9 @@ public:
         drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
     }
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
+#endif
     void UpdateHardwareEnabledInfoBeforeCreateLayer();
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
@@ -181,17 +187,20 @@ private:
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isMirror = false);
 #ifndef USE_ROSEN_DRAWING
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
-        const SkPaint::Style fillType, float alpha, int edgeWidth);
+        const SkPaint::Style fillType, float alpha, int edgeWidth, std::string extra = "");
 #else
     enum class RSPaintStyle {
         FILL,
         STROKE
     };
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color,
-        const RSPaintStyle fillType, float alpha, int edgeWidth);
+        const RSPaintStyle fillType, float alpha, int edgeWidth, std::string extra = "");
 #endif
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
     void DrawCacheRegionForDFX(std::vector<RectI> cacheRects);
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    void DrawAutoCacheRegionForDFX(std::vector<RectI, std::string> cacheRegionInfo);
+#endif
     void DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region);
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
@@ -421,6 +430,19 @@ private:
     std::stack<bool> isDrawingCacheChanged_ = {};
     std::vector<RectI> accumulatedDirtyRegions_ = {};
     bool isSubSurfaceEnabled_ = false;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    bool autoCacheEnable_ = false;
+    bool autoCacheChildDisable_ = false;
+    bool autoCacheDrawingEnable_ = false;
+    RSRenderNode::RSAutoCache::NodeStragyType nodeCacheType_ = RSRenderNode::RSAutoCache::CACHE_NONE;
+    bool unchangeMark_ = false;
+    bool isDiscardSurface_ = true;
+    std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
+    int opNodeDepth_ = 0;
+    bool opIncSubtreePropDirty_ = false;
+    Drawing::Rect opincRootRect_;
+    bool isOpincDropNodeExt_ = true;
+#endif
 
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

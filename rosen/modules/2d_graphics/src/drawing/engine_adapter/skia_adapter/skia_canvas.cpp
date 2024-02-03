@@ -530,6 +530,57 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     skCanvas_->drawImageLattice(img.get(), skLattice, skDst, skFilterMode, paint.get());
 }
 
+// opinc_begin
+bool SkiaCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return false;
+}
+
+Drawing::OpListHandle SkiaCanvas::EndOpRecording()
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return {};
+}
+
+void SkiaCanvas::DrawOpList(Drawing::OpListHandle handle)
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return;
+}
+
+int SkiaCanvas::CanDrawOpList(Drawing::OpListHandle handle)
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return -1;
+}
+
+void SkiaCanvas::PreOpListDrawArea(const Matrix& matrix)
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return;
+}
+
+bool SkiaCanvas::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return false;
+}
+
+Drawing::OpListHandle SkiaCanvas::GetOpListDrawArea()
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return {};
+}
+
+void SkiaCanvas::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
+    const SamplingOptions& sampling, SrcRectConstraint constraint)
+{
+    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
+    return;
+}
+// opinc_end
+
 void SkiaCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     if (!skCanvas_) {
