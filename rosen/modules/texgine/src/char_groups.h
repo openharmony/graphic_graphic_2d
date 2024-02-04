@@ -64,7 +64,7 @@ struct CharGroup {
         return maxAdvanceY;
     }
 
-    bool CheckCodePoint()
+    bool CheckCodePoint() const
     {
         if (!glyphs.size()) {
             return false;
@@ -198,7 +198,7 @@ public:
         return IsSameCharGroups(cgs) && range_ == cgs.range_;
     }
 
-    bool CheckCodePoint();
+    bool CheckCodePoint() const;
     std::string GetTypefaceName();
     double GetAllCharWidth() const;
     double GetCharWidth(const size_t index) const;

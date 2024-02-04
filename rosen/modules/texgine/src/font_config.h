@@ -106,8 +106,8 @@ private:
     void DumpFontDir() const;
     void DumpGeneric() const;
     void DumpForbak() const;
-    void DumpAlias(AliasSet &aliasSet) const;
-    void DumpAjdust(AdjustSet &adjustSet) const;
+    void DumpAlias(const AliasSet &aliasSet) const;
+    void DumpAjdust(const AdjustSet &adjustSet) const;
 
     std::shared_ptr<FontConfigJsonInfo> fontPtr = nullptr;
 };

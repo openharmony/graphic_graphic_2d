@@ -60,7 +60,7 @@ static double GetIndent(const int index, const std::vector<float> &indents)
     return indent;
 }
 
-void TextBreaker::CreateNewBoundary(CharGroups &cgs, std::vector<Boundary> &boundaries,
+void TextBreaker::CreateNewBoundary(const CharGroups &cgs, std::vector<Boundary> &boundaries,
     const TypographyStyle &ys, const double& originWidthLimit, int& index)
 {
     GenNewBoundryByHardBreak(cgs, boundaries);

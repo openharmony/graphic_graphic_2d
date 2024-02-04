@@ -120,7 +120,7 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
         }
     }
 
-    auto &textStyle = lineMetrics_.back().lineSpans.back().GetTextStyle();
+    const auto &textStyle = lineMetrics_.back().lineSpans.back().GetTextStyle();
     std::vector<LineMetrics> ellipsisMertics = CreateEllipsisSpan(tstyle, textStyle, fontProviders);
     double ellipsisWidth = 0.0;
     std::vector<VariantSpan> ellipsisSpans;
@@ -202,7 +202,7 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
     return lb.BreakLines(newSpans, tstyle, widthLimit, indents_);
 }
 
-std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
+std::vector<LineMetrics> Shaper::DoShape(const std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
     const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
 #ifdef LOGGER_ENABLE_SCOPE
@@ -606,7 +606,7 @@ void Shaper::GetAllTextSpan(std::vector<VariantSpan> &spans, int &loopNum, int &
 }
 
 bool Shaper::HaveExceedWidth(const std::vector<VariantSpan> &spans, struct SpanPosition &spanPos,
-    int &charsWidth, struct SpansWidth &spanWidth)
+    const int &charsWidth, struct SpansWidth &spanWidth)
 {
     if (charsWidth > spanPos.avalibleWidth) {
         spanPos.rightCharIndex++;
@@ -666,7 +666,7 @@ bool Shaper::CalcAvalibleWidth(const std::vector<VariantSpan> &spans, struct Spa
 }
 
 bool Shaper::CalcSpanPosition(const std::vector<VariantSpan> &spans, struct SpanPosition &spanPos,
-    int &breakPos, const int loopNum)
+    const int &breakPos, const int loopNum)
 {
     spanPos.leftSpanIndex = 0;
     spanPos.rightSpanIndex = spans.size() - 1;
@@ -725,8 +725,8 @@ void Shaper::JointCriticalLeftSpans(const std::vector<VariantSpan> &spans, std::
         }
         VariantSpan leftSpan(TextSpan::MakeFromText(subChars));
         leftSpan.SetTextStyle(spans.at(spanPos.leftSpanIndex).GetTextStyle());
-        std::vector<VariantSpan> spans = {leftSpan};
-        std::vector<LineMetrics> partlySpan = DoShapeBeforeEllipsis(spans, style, fontProviders, MAXWIDTH);
+        std::vector<VariantSpan> newSpans = {leftSpan};
+        std::vector<LineMetrics> partlySpan = DoShapeBeforeEllipsis(newSpans, style, fontProviders, MAXWIDTH);
         if (!partlySpan.empty()) {
             std::vector<VariantSpan> partlyLineSpans = partlySpan.front().lineSpans;
             leftLineSpans.insert(leftLineSpans.end(), partlyLineSpans.begin(), partlyLineSpans.end());
@@ -749,7 +749,7 @@ void Shaper::SplitJointLeftLineSpans(const std::vector<VariantSpan> &spans, std:
 void Shaper::JointRightLineSpans(const std::vector<VariantSpan> &spans, std::vector<VariantSpan> &rightLineSpans,
     struct SpanPosition &spanPos, const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders)
 {
-    auto &rightCharGroupsRange = spans.at(spanPos.curIndex).TryToTextSpan()->cgs_.GetRange();
+    const auto &rightCharGroupsRange = spans.at(spanPos.curIndex).TryToTextSpan()->cgs_.GetRange();
     auto rightEnd = rightCharGroupsRange.end;
     rightEnd--;
 
@@ -765,8 +765,8 @@ void Shaper::JointRightLineSpans(const std::vector<VariantSpan> &spans, std::vec
         }
         VariantSpan rightSpan(TextSpan::MakeFromText(subChars));
         rightSpan.SetTextStyle(spans.at(spanPos.curIndex).GetTextStyle());
-        std::vector<VariantSpan> spans = {rightSpan};
-        std::vector<LineMetrics> partlySpan = DoShapeBeforeEllipsis(spans, style, fontProviders, MAXWIDTH);
+        std::vector<VariantSpan> newSpans = {rightSpan};
+        std::vector<LineMetrics> partlySpan = DoShapeBeforeEllipsis(newSpans, style, fontProviders, MAXWIDTH);
         if (!partlySpan.empty()) {
             std::vector<VariantSpan> partlyLineSpans = partlySpan.front().lineSpans;
             rightLineSpans.insert(rightLineSpans.end(), partlyLineSpans.begin(), partlyLineSpans.end());

@@ -44,7 +44,7 @@ public:
         const std::string &script, const std::string &locale) const;
 
     void DisableFallback();
-    int DetectionScript(std::string script) const;
+    int DetectionScript(const std::string script) const;
     int DetectChinesePointUnicode(uint32_t ch) const;
 private:
     void SortTypeface(FontStyles &style) const;
