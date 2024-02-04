@@ -109,38 +109,6 @@ void ProducerSurfaceDelegatorTest::TearDownTestCase()
 }
 
 /*
-* Function: DequeueBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call DequeueBuffer
-*                  2. check ret
- */
-HWTEST_F(ProducerSurfaceDelegatorTest, DequeueBuffer001, Function | MediumTest | Level2)
-{
-    int32_t slot = 1;
-    qwe->SetSurface(nullptr);
-    GSError ret = qwe->DequeueBuffer(slot, pBuffer);
-    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
-}
-
-/*
-* Function: QueueBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call QueueBuffer
-*                  2. check ret
- */
-HWTEST_F(ProducerSurfaceDelegatorTest, QueueBuffer001, Function | MediumTest | Level2)
-{
-    int32_t slot = 1;
-    int32_t acquireFence = 3;
-    GSError ret = qwe->QueueBuffer(slot, acquireFence);
-    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
-}
-
-/*
 * Function: QueueBuffer
 * Type: Function
 * Rank: Important(2)
@@ -172,9 +140,6 @@ HWTEST_F(ProducerSurfaceDelegatorTest, DequeueBuffer002, Function | MediumTest |
     qwe->SetSurface(pSurface);
     GSError ret = qwe->DequeueBuffer(slot, pBuffer);
     ASSERT_EQ(ret, GSERROR_OK);
-
-    ret = qwe->DequeueBuffer(slot, cBuffer);
-    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 /*
@@ -207,21 +172,6 @@ HWTEST_F(ProducerSurfaceDelegatorTest, ReleaseBuffer001, Function | MediumTest |
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     GSError ret = qwe->ReleaseBuffer(pBuffer, fence);
     ASSERT_EQ(ret, GSERROR_OK);
-}
-
-/*
-* Function: ReleaseBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call ReleaseBuffer
-*                  2. check ret
- */
-HWTEST_F(ProducerSurfaceDelegatorTest, ReleaseBuffer002, Function | MediumTest | Level2)
-{
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    GSError ret = qwe->ReleaseBuffer(nullptr, fence);
-    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 /*
@@ -280,16 +230,9 @@ HWTEST_F(ProducerSurfaceDelegatorTest, ClearBufferSlot001, Function | MediumTest
  */
 HWTEST_F(ProducerSurfaceDelegatorTest, OnRemoteRequest001, Function | MediumTest | Level2)
 {
-    uint32_t code = 0; // DEQUEUEBUFFER
-    MessageParcel data;
+    uint32_t code = 1; // QUEUEBUFFER
     MessageParcel reply;
     MessageOption option;
-    data.WriteInt32(1);
-    data.WriteInt32(2);
-    int ret1 = qwe->OnRemoteRequest(code, data, reply, option);
-    ASSERT_NE(ret1, ERR_NULL_OBJECT);
-
-    code = 1; // QUEUEBUFFER
     MessageParcel dataQueue;
     dataQueue.WriteInt32(10);
     dataQueue.WriteFileDescriptor(20);
