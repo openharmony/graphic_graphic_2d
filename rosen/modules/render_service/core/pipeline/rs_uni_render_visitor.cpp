@@ -3103,20 +3103,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
             }
 #endif
-        }
-#endif
-#ifdef RS_ENABLE_VK
-        else {
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        } else {
 #ifndef USE_ROSEN_DRAWING
-                canvas_->clear(SK_ColorTRANSPARENT);
+            canvas_->clear(SK_ColorTRANSPARENT);
 #else
-                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
-            }
         }
 #endif
+
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (!isParallel_ || isUIFirst_) {
 #ifndef USE_ROSEN_DRAWING
