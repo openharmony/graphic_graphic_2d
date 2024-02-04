@@ -260,6 +260,11 @@ public:
         return mainLooping_.load();
     }
 
+    bool IsPCThreeFingerScenesListScene() const
+    {
+        return !threeFingerScenesList_.empty();
+    }
+
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
