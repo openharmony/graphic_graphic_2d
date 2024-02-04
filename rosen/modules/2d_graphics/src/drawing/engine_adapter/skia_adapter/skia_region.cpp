@@ -42,7 +42,7 @@ bool SkiaRegion::SetPath(const Path& path, const Region& clip)
     auto skPath = path.GetImpl<SkiaPath>()->GetPath();
     auto skRegion = clip.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
-        LOGE("SkiaRegion::SetPath, skRegion is nullptr");
+        LOGD("SkiaRegion::SetPath, skRegion is nullptr");
         return false;
     }
 
@@ -56,7 +56,7 @@ bool SkiaRegion::GetBoundaryPath(Path* path) const
     }
     auto skiaPath = path->GetImpl<SkiaPath>();
     if (!skiaPath) {
-        LOGE("SkiaRegion::GetBoundaryPath, skiaPath is nullptr");
+        LOGD("SkiaRegion::GetBoundaryPath, skiaPath is nullptr");
         return skRegion_->getBoundaryPath(nullptr);
     }
     SkPath skPath = skiaPath->GetPath();
@@ -69,7 +69,7 @@ bool SkiaRegion::IsIntersects(const Region& other) const
 {
     auto skRegion = other.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
-        LOGE("SkiaRegion::IsIntersects, skRegion is nullptr");
+        LOGD("SkiaRegion::IsIntersects, skRegion is nullptr");
         return false;
     }
 
@@ -90,7 +90,7 @@ bool SkiaRegion::Op(const Region& region, RegionOp op)
 {
     auto skRegion = region.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
-        LOGE("SkiaRegion::Op, skRegion is nullptr");
+        LOGD("SkiaRegion::Op, skRegion is nullptr");
         return false;
     }
     return skRegion_->op(*skRegion, static_cast<SkRegion::Op>(op));
@@ -100,7 +100,7 @@ void SkiaRegion::Clone(const Region& other)
 {
     auto skRegion = other.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
-        LOGE("SkiaRegion::Clone, skRegion is nullptr");
+        LOGD("SkiaRegion::Clone, skRegion is nullptr");
         return;
     }
     *skRegion_ = *skRegion;
@@ -120,7 +120,7 @@ std::shared_ptr<Data> SkiaRegion::Serialize() const
 bool SkiaRegion::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaRegion::Deserialize, data is invalid!");
+        LOGD("SkiaRegion::Deserialize, data is invalid!");
         return false;
     }
     SkReadBuffer reader(data->GetData(), data->GetSize());

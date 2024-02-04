@@ -41,7 +41,6 @@ std::shared_ptr<TextBlob> TextBlob::MakeFromPosText(const void* text, size_t byt
 std::shared_ptr<TextBlob> TextBlob::MakeFromString(const char* str, const Font& font, TextEncoding encoding)
 {
     if (!str) {
-        LOGE("str nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     return MakeFromText(str, strlen(str), font, encoding);
@@ -56,7 +55,6 @@ std::shared_ptr<TextBlob> TextBlob::MakeFromRSXform(const void* text, size_t byt
 std::shared_ptr<Data> TextBlob::Serialize() const
 {
     if (!textBlobImpl_) {
-        LOGE("textBlobImpl nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     return textBlobImpl_->Serialize();
