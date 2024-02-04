@@ -24,6 +24,7 @@
 #include "rs_trace.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
@@ -873,10 +874,12 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
     if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
         return displaySync_->GetAnimateResult();
     }
+    RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "]");
     auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree());
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
     }
+    RS_OPTIONAL_TRACE_END();
     return animateResult;
 }
 
