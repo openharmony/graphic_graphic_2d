@@ -45,7 +45,7 @@ bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Brush& brush) const
         OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
             if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
-                LOGE("MaskCmdList::Playback failed!");
+                LOGD("MaskCmdList::Playback failed!");
                 break;
             }
 

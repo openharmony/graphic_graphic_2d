@@ -30,7 +30,6 @@ bool Vertices::MakeCopy(VertexMode mode,
     int indexCount, const uint16_t indices[])
 {
     if (verticesImplPtr_ == nullptr) {
-        LOGE("VerticesImpl is null, can't MakeCopy");
         return false;
     }
     return verticesImplPtr_->MakeCopy(mode, vertexCount, positions, texs, colors,
@@ -41,7 +40,6 @@ bool Vertices::MakeCopy(VertexMode mode,
     int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[])
 {
     if (verticesImplPtr_ == nullptr) {
-        LOGE("VerticesImpl is null, can't MakeCopy");
         return false;
     }
     return verticesImplPtr_->MakeCopy(mode, vertexCount, positions, texs, colors);

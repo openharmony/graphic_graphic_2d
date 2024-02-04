@@ -120,7 +120,7 @@ ImageInfo Surface::GetImageInfo()
 {
     std::shared_ptr<Canvas> canvas = GetCanvas();
     if (!canvas) {
-        LOGE("canvas nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("canvas nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return ImageInfo{};
     }
     return canvas->GetImageInfo();
@@ -134,7 +134,7 @@ void Surface::FlushAndSubmit(bool syncCpu)
 void Surface::Flush(FlushInfo *drawingflushInfo)
 {
     if (!impl_) {
-        LOGE("surfaceImpl Flush failed impl nullptr");
+        LOGD("surfaceImpl Flush failed impl nullptr");
         return;
     }
     impl_->Flush(drawingflushInfo);
@@ -148,7 +148,6 @@ void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
         return;
     }
     if (!impl_) {
-        LOGE("surfaceImpl Wait failed impl nullptr");
         return;
     }
     impl_->Wait(time, semaphore);
@@ -161,7 +160,7 @@ void Surface::SetDrawingArea(const std::vector<RectI>& rects)
         return;
     }
     if (!impl_) {
-        LOGE("surfaceImpl SetDrawingArea failed impl nullptr");
+        LOGD("surfaceImpl SetDrawingArea failed impl nullptr");
         return;
     }
     impl_->SetDrawingArea(rects);
@@ -174,7 +173,7 @@ void Surface::ClearDrawingArea()
         return;
     }
     if (!impl_) {
-        LOGE("surfaceImpl ClearDrawingArea failed impl nullptr");
+        LOGD("surfaceImpl ClearDrawingArea failed impl nullptr");
         return;
     }
     impl_->ClearDrawingArea();

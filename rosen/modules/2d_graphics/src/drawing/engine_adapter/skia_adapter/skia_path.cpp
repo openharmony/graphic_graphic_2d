@@ -378,7 +378,7 @@ std::shared_ptr<Data> SkiaPath::Serialize() const
 bool SkiaPath::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaPath::Deserialize, data is invalid!");
+        LOGD("SkiaPath::Deserialize, data is invalid!");
         return false;
     }
 

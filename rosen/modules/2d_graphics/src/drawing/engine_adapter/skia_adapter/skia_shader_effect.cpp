@@ -212,7 +212,7 @@ void SkiaShaderEffect::SetSkShader(const sk_sp<SkShader>& skShader)
 std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
 {
     if (shader_ == nullptr) {
-        LOGE("SkiaShaderEffect::Serialize, shader_ is nullptr!");
+        LOGD("SkiaShaderEffect::Serialize, shader_ is nullptr!");
         return nullptr;
     }
 
@@ -222,7 +222,7 @@ std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
 bool SkiaShaderEffect::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaShaderEffect::Deserialize, data is invalid!");
+        LOGD("SkiaShaderEffect::Deserialize, data is invalid!");
         return false;
     }
 
