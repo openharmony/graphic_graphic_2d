@@ -114,9 +114,11 @@ void RSFilterCacheManager::PostPartialFilterRenderInit(const std::shared_ptr<RSD
     if (task_->isTaskRelease_.load()) {
         return;
     }
-    if (task_->cachedFirstFilter_ != nullptr && task_->isFirstInit_) {
+    if (task_->cachedFirstFilter_ != nullptr && task_->isFirstInit_ &&
+        task_->GetStatus() == CacheProcessStatus::DOING) {
         cachedFilteredSnapshot_ = task_->cachedFirstFilter_;
     } else {
+        task_->isFirstInit_ = true;
         task_->cachedFirstFilter_ = nullptr;
     }
     if (RSFilterCacheTask::FilterPartialRenderEnabled &&
@@ -192,6 +194,7 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     ROSEN_LOGD("RSFilterCacheManager::RSFilterCacheTask::Render:%{public}p", this);
     if (cacheSurface_ == nullptr) {
         SetStatus(CacheProcessStatus::WAITING);
+        ROSEN_LOGE("RSFilterCacheManager::Render: cacheSurface_ is null");
         return false;
     }
     CHECK_CACHE_PROCESS_STATUS;
@@ -234,16 +237,17 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
 #else
     surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
 #endif // RS_ENABLE_VK
-    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+    Drawing::BitmapFormat bitmapFormat = { cacheBackendTextureColorType_.load(),
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto threadImage = std::make_shared<Drawing::Image>();
     CHECK_CACHE_PROCESS_STATUS;
     {
         std::unique_lock<std::mutex> lock(grBackendTextureMutex_);
-        if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
+        if (cachedSnapshotInTask_ == nullptr ||
+            !threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
                 surfaceOrigin, bitmapFormat, nullptr)) {
             SetStatus(CacheProcessStatus::WAITING);
-            ROSEN_LOGE("RSFilterCacheManager::Render: cacheCanvas is null");
+            ROSEN_LOGE("RSFilterCacheManager::Render: BuildFromTexture is null");
             return false;
         }
     }
@@ -279,6 +283,7 @@ bool RSFilterCacheManager::RSFilterCacheTask::SaveFilteredImage()
 void RSFilterCacheManager::RSFilterCacheTask::SwapInit()
 {
     RS_OPTIONAL_TRACE_FUNC();
+    std::unique_lock<std::mutex> lock(grBackendTextureMutex_);
     std::swap(filter_, filterBefore_);
     std::swap(cachedSnapshotInTask_, cachedSnapshotBefore_);
     std::swap(snapshotSize_, snapshotSizeBefore_);
@@ -289,6 +294,7 @@ void RSFilterCacheManager::RSFilterCacheTask::SwapInit()
 #else
         cacheBackendTexture_ = cachedSnapshotInTask_->cachedImage_->GetBackendTexture(false, nullptr);
 #endif
+        cacheBackendTextureColorType_ = cachedSnapshotInTask_->cachedImage_->GetColorType();
     }
 }
 
@@ -576,11 +582,10 @@ void RSFilterCacheManager::FilterPartialRender(
     RS_OPTIONAL_TRACE_FUNC();
 #ifndef USE_ROSEN_DRAWING
     auto filteredSnapshot = SkImage::MakeFromTexture(canvas.recordingContext(), task_->GetResultTexture(),
-        kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        kBottomLeft_GrSurfaceOrigin, COLORTYPE_N32, kPremul_SkAlphaType, nullptr);
 #else
     auto filteredSnapshot = std::make_shared<Drawing::Image>();
-    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
-        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_PREMUL };
     filteredSnapshot->BuildFromTexture(*canvas.GetGPUContext(), task_->GetResultTexture().GetTextureInfo(),
         Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);
 #endif
