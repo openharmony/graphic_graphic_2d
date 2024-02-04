@@ -856,44 +856,20 @@ void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGD("DrawImageRectOpItem image is null");
         return;
     }
-    // if TextBlobOP generate cache before uifirst enable, uifirst's subthread can not use cache result,
-    // rebind the cached image to the current thread.
-    auto newImage = std::make_shared<Drawing::Image>();
-    bool useNewImage = false;
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    if (texture_.IsValid()) {
-        Drawing::BitmapFormat info = Drawing::BitmapFormat{Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
-        auto gpuContext = canvas->GetGPUContext();
-        if (gpuContext != nullptr) {
-            useNewImage =
-                newImage->BuildFromTexture(*canvas->GetGPUContext(), texture_.GetTextureInfo(), origin, info, nullptr);
-        }
-    }
     if (isForeground_) {
         AutoCanvasRestore acr(*canvas, false);
         SaveLayerOps ops;
         canvas->SaveLayer(ops);
         canvas->AttachPaint(paint_);
-        if (useNewImage) {
-            canvas->DrawImageRect(*newImage, src_, dst_, sampling_, constraint_);
-        } else {
-            canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
-        }
+        canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
         Brush brush;
         brush.SetColor(canvas->GetEnvForegroundColor());
         brush.SetBlendMode(Drawing::BlendMode::SRC_IN);
         canvas->DrawBackground(brush);
-    } else {
-        canvas->AttachPaint(paint_);
-        if (useNewImage) {
-            canvas->DrawImageRect(*newImage, src_, dst_, sampling_, constraint_);
-        } else {
-            canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
-        }
+        return;
     }
-    if (!texture_.IsValid()) {
-        texture_ = image_->GetBackendTexture(true, &origin);
-    }
+    canvas->AttachPaint(paint_);
+    canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
 }
 
 /* DrawPictureOpItem */
