@@ -15,9 +15,6 @@
 
 #include "rs_frame_rate_policy.h"
 
-#include <mutex>
-#include <unordered_map>
-
 #include "modifier/rs_modifier_type.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
@@ -28,14 +25,6 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr float INCH_2_MM = 25.4f;
-struct AnimDynamicAttribute {
-    int32_t minSpeed = 0;
-    int32_t maxSpeed = 0;
-    int32_t preferredFps = 0;
-};
-static std::unordered_map<std::string, std::unordered_map<std::string,
-    AnimDynamicAttribute>> animAttributes;
-std::mutex g_animAttributesMutex;
 }
 
 RSFrameRatePolicy* RSFrameRatePolicy::GetInstance()
@@ -46,7 +35,6 @@ RSFrameRatePolicy* RSFrameRatePolicy::GetInstance()
 
 RSFrameRatePolicy::~RSFrameRatePolicy()
 {
-    animAttributes.clear();
 }
 
 void RSFrameRatePolicy::RegisterHgmConfigChangeCallback()
@@ -76,25 +64,22 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     if (data.empty()) {
         return;
     }
-    auto ppi = configData->GetPpi();
-    auto xDpi = configData->GetXDpi();
-    auto yDpi = configData->GetYDpi();
-    RSUIDirector::PostFrameRateTask([this, data, ppi, xDpi, yDpi]() {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ppi_ = configData->GetPpi();
+        xDpi_ = configData->GetXDpi();
+        yDpi_ = configData->GetYDpi();
         for (auto item : data) {
             if (item.animType.empty() || item.animName.empty()) {
                 return;
             }
-            std::lock_guard<std::mutex> lock(g_animAttributesMutex);
-            animAttributes[item.animType][item.animName] = {item.minSpeed, item.maxSpeed, item.preferredFps};
+            animAttributes_[item.animType][item.animName] = {item.minSpeed, item.maxSpeed, item.preferredFps};
             ROSEN_LOGD("RSFrameRatePolicy: config item type = %{public}s, name = %{public}s, "\
                 "minSpeed = %{public}d, maxSpeed = %{public}d, preferredFps = %{public}d",
                 item.animType.c_str(), item.animName.c_str(), static_cast<int>(item.minSpeed),
                 static_cast<int>(item.maxSpeed), static_cast<int>(item.preferredFps));
         }
-        ppi_ = ppi;
-        xDpi_ = xDpi;
-        yDpi_ = yDpi;
-    });
+    }
 }
 
 void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode)
@@ -111,12 +96,12 @@ int32_t RSFrameRatePolicy::GetRefreshRateMode() const
 
 int32_t RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)
 {
-    std::lock_guard<std::mutex> lock(g_animAttributesMutex);
-    if (animAttributes.count(scene) == 0 || ppi_ == 0) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (animAttributes_.count(scene) == 0 || ppi_ == 0) {
         return 0;
     }
     float speedMM = speed / ppi_ * INCH_2_MM;
-    const auto& attributes = animAttributes[scene];
+    const auto& attributes = animAttributes_[scene];
     auto iter = std::find_if(attributes.begin(), attributes.end(), [&speedMM](const auto& pair) {
         return speedMM >= pair.second.minSpeed && (speedMM < pair.second.maxSpeed ||
             pair.second.maxSpeed == -1);

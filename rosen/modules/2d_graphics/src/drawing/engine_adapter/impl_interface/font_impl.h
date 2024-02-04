@@ -51,6 +51,7 @@ public:
     virtual std::shared_ptr<Typeface> GetTypeface() = 0;
 
     virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding) = 0;
+    virtual int CountText(const void* text, size_t byteLength, TextEncoding encoding) const = 0;
 
 protected:
     FontImpl() noexcept = default;

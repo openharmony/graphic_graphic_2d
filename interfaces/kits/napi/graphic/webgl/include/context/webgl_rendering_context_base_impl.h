@@ -415,7 +415,7 @@ private:
 template<class T>
 bool WebGLRenderingContextBaseImpl::AddObject(napi_env env, uint64_t key, napi_value obj)
 {
-    if (T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
+    if (T::objectType < 0 || T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
         return false;
     }
     if (objects_[T::objectType].find(key) != objects_[T::objectType].end()) {

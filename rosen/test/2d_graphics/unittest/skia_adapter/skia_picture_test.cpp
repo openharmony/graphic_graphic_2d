@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,15 +13,17 @@
  * limitations under the License.
  */
 
+#include <cstddef>
 #include "gtest/gtest.h"
-#include "animation/rs_render_particle_emitter.h"
-#include "animation/rs_render_particle.h"
+#include "skia_adapter/skia_picture.h"
 
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS::Rosen {
-class RSRenderParticleEmitterTest : public testing::Test {
+namespace OHOS {
+namespace Rosen {
+namespace Drawing {
+class SkiaPictureTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -29,22 +31,25 @@ public:
     void TearDown() override;
 };
 
-void RSRenderParticleEmitterTest::SetUpTestCase() {}
-void RSRenderParticleEmitterTest::TearDownTestCase() {}
-void RSRenderParticleEmitterTest::SetUp() {}
-void RSRenderParticleEmitterTest::TearDown() {}
+void SkiaPictureTest::SetUpTestCase() {}
+void SkiaPictureTest::TearDownTestCase() {}
+void SkiaPictureTest::SetUp() {}
+void SkiaPictureTest::TearDown() {}
 
 /**
- * @tc.name: EmitParticleTest
- * @tc.desc:
+ * @tc.name: SkiaPicture001
+ * @tc.desc: Test SkiaPicture's functions
  * @tc.type: FUNC
+ * @tc.require: I8VQSW
  */
-HWTEST_F(RSRenderParticleEmitterTest, EmitParticleTest, Level1)
+HWTEST_F(SkiaPictureTest, SkiaPicture001, TestSize.Level1)
 {
-    int64_t deltaTime = 1;
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticleEmitter rsRenderParticleEmitter(particleParams);
-    rsRenderParticleEmitter.EmitParticle(deltaTime);
-    ASSERT_NE(deltaTime, 0);
+    SkiaPicture skiaPicture;
+    skiaPicture.Deserialize(nullptr);
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    skiaPicture.Deserialize(data);
+    skiaPicture.Serialize();
 }
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

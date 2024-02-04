@@ -3293,7 +3293,7 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 {
 #ifdef RS_ENABLE_VK
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+        surfaceBufferInfo_.surfaceBuffer_->GetWidth(), surfaceBufferInfo_.surfaceBuffer_->GetHeight());
     if (!backendTexture.IsValid()) {
         LOGE("DrawSurfaceBufferOpItem::Draw backendTexture is not valid");
         return;
@@ -3316,7 +3316,11 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         return;
     }
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
-    canvas->DrawImage(*image_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
+    canvas->DrawImageRect(*image_, Rect{
+        surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
+        surfaceBufferInfo_.offSetX_ + surfaceBufferInfo_.width_,
+        surfaceBufferInfo_.offSetY_ + surfaceBufferInfo_.height_},
+        samplingOptions);
 #endif
 }
 

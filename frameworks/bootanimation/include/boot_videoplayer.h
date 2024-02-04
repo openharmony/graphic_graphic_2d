@@ -35,7 +35,9 @@ struct FrameCallback {
 class BootVideoPlayer : public std::enable_shared_from_this<BootVideoPlayer> {
 public:
     void SetVideoPath(const std::string& path);
+#ifdef PLAYER_FRAMEWORK_ENABLE
     void SetPlayerSurface(const OHOS::sptr<OHOS::Surface>& surface);
+#endif
     void SetCallback(const FrameCallback* cb)
     {
         std::lock_guard<std::mutex> locker(mtx_);
@@ -48,8 +50,8 @@ public:
 private:
 #ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> mediaPlayer_;
-#endif
     OHOS::sptr<OHOS::Surface> surface_;
+#endif
     std::string videopath_;
     VSyncCallback vsyncCallbacks_;
     void *userData_;

@@ -38,6 +38,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 namespace {
+constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
 bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
     std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas)
 {
@@ -529,7 +530,7 @@ void DrawPathOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGE("DrawPathOpItem path is null!");
+        LOGD("DrawPathOpItem path is null!");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -589,7 +590,7 @@ void DrawShadowOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawShadowOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGE("DrawShadowOpItem path is null!");
+        LOGD("DrawShadowOpItem path is null!");
         return;
     }
     canvas->DrawShadow(*path_, planeParams_, devLightPos_, lightRadius_,
@@ -621,7 +622,7 @@ void DrawRegionOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (region_ == nullptr) {
-        LOGE("DrawRegionOpItem region is nullptr!");
+        LOGD("DrawRegionOpItem region is nullptr!");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -653,7 +654,7 @@ void DrawVerticesOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawVerticesOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (vertices_ == nullptr) {
-        LOGE("DrawVerticesOpItem vertices is null");
+        LOGD("DrawVerticesOpItem vertices is null");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -713,7 +714,7 @@ void DrawImageNineOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageNineOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageNineOpItem image is null");
+        LOGD("DrawImageNineOpItem image is null");
         return;
     }
     Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
@@ -754,7 +755,7 @@ void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageNineOpItem image is null");
+        LOGD("DrawImageNineOpItem image is null");
         return;
     }
     Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
@@ -786,7 +787,7 @@ void DrawBitmapOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawBitmapOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (bitmap_ == nullptr) {
-        LOGE("DrawBitmapOpItem bitmap is null");
+        LOGD("DrawBitmapOpItem bitmap is null");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -819,7 +820,7 @@ void DrawImageOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageOpItem image is null");
+        LOGD("DrawImageOpItem image is null");
         return;
     }
     canvas->AttachPaint(paint_);
@@ -852,34 +853,47 @@ void DrawImageRectOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (image_ == nullptr) {
-        LOGE("DrawImageRectOpItem image is null");
+        LOGD("DrawImageRectOpItem image is null");
         return;
+    }
+    // if TextBlobOP generate cache before uifirst enable, uifirst's subthread can not use cache result,
+    // rebind the cached image to the current thread.
+    auto newImage = std::make_shared<Drawing::Image>();
+    bool useNewImage = false;
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    if (texture_.IsValid()) {
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+        auto gpuContext = canvas->GetGPUContext();
+        if (gpuContext != nullptr) {
+            useNewImage =
+                newImage->BuildFromTexture(*canvas->GetGPUContext(), texture_.GetTextureInfo(), origin, info, nullptr);
+        }
     }
     if (isForeground_) {
         AutoCanvasRestore acr(*canvas, false);
         SaveLayerOps ops;
         canvas->SaveLayer(ops);
         canvas->AttachPaint(paint_);
-        canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+        if (useNewImage) {
+            canvas->DrawImageRect(*newImage, src_, dst_, sampling_, constraint_);
+        } else {
+            canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+        }
         Brush brush;
         brush.SetColor(canvas->GetEnvForegroundColor());
         brush.SetBlendMode(Drawing::BlendMode::SRC_IN);
         canvas->DrawBackground(brush);
-        return;
+    } else {
+        canvas->AttachPaint(paint_);
+        if (useNewImage) {
+            canvas->DrawImageRect(*newImage, src_, dst_, sampling_, constraint_);
+        } else {
+            canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+        }
     }
-    canvas->AttachPaint(paint_);
-    // if TextBlobOP generate cache before uifirst enable, uifirst's subthread can not use cache result;
-    // rebind the cached image to the current thread;
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    auto texture = image_->GetBackendTexture(true, &origin);
-    auto newImage = std::make_shared<Drawing::Image>();
-    Drawing::BitmapFormat info = Drawing::BitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
-    bool ret = newImage->BuildFromTexture(*canvas->GetGPUContext(), texture.GetTextureInfo(), origin, info, nullptr);
-    if (ret) {
-        canvas->DrawImageRect(*newImage, src_, dst_, sampling_, constraint_);
-        return;
+    if (!texture_.IsValid()) {
+        texture_ = image_->GetBackendTexture(true, &origin);
     }
-    canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
 }
 
 /* DrawPictureOpItem */
@@ -905,7 +919,7 @@ void DrawPictureOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (picture_ == nullptr) {
-        LOGE("DrawPictureOpItem picture is null");
+        LOGD("DrawPictureOpItem picture is null");
         return;
     }
     canvas->DrawPicture(*picture_);
@@ -952,7 +966,7 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (textBlob_ == nullptr) {
-        LOGE("DrawTextBlobOpItem textBlob is null");
+        LOGD("DrawTextBlobOpItem textBlob is null");
         return;
     }
     Drawing::RectI globalClipBounds = canvas->GetDeviceClipBounds();
@@ -1022,7 +1036,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p)
 {
     if (!textBlob) {
-        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -1031,7 +1045,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
         return false;
     }
     bounds->Offset(x, y);
-
+    bounds->MakeOutset(TEXT_BLOB_CACHE_MARGIN, TEXT_BLOB_CACHE_MARGIN);
     // create CPU raster surface
     Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
@@ -1059,7 +1073,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
-        bounds->GetLeft() + image->GetWidth(), bounds->GetTop()+ image->GetHeight());
+        bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
     SamplingOptions sampling;
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
     PaintHandle fakePaintHandle;
@@ -1074,7 +1088,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cm
 {
     std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob);
     if (!textBlob_) {
-        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;
     }
 
@@ -1128,7 +1142,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cm
 std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Canvas* canvas)
 {
     if (!textBlob_) {
-        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
 
@@ -1231,7 +1245,7 @@ void DrawSymbolOpItem::InitialVariableColor()
         animation.endValue = 1; // 1 means alpha end value
         animation.speedValue = 0.08; // 0.08 means alpha change step
         animation.number = 0; // 0 means number of times that the animation to be played
-        animation.startDuration = standStartDuration - 100 * j; //100 is start time duration
+        animation.startDuration = standStartDuration - static_cast<long long>(100 * j); //100 is start time duration
         animation.curTime = standStartTime; // every group have same start timestamp
         animation_.push_back(animation);
         symbol_.symbolInfo_.renderGroups[j].color.a = animation.startValue;
@@ -1346,7 +1360,7 @@ void DrawSymbolOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (!canvas) {
-        LOGE("SymbolOpItem::Playback failed cause by canvas is nullptr");
+        LOGD("SymbolOpItem::Playback failed cause by canvas is nullptr");
         return;
     }
     SetSymbol();
@@ -1498,7 +1512,7 @@ void ClipPathOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipPathOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGE("ClipPathOpItem path is null!");
+        LOGD("ClipPathOpItem path is null!");
         return;
     }
     canvas->ClipPath(*path_, clipOp_, doAntiAlias_);
@@ -1527,7 +1541,7 @@ void ClipRegionOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (region_ == nullptr) {
-        LOGE("ClipRegionOpItem region is null!");
+        LOGD("ClipRegionOpItem region is null!");
         return;
     }
     canvas->ClipRegion(*region_, clipOp_);
@@ -1930,7 +1944,7 @@ void DrawAdaptivePixelMapOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawAdaptivePixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (pixelMap_ == nullptr) {
-        LOGE("DrawAdaptivePixelMapOpItem pixelMap is null!");
+        LOGD("DrawAdaptivePixelMapOpItem pixelMap is null!");
         return;
     }
     canvas->AttachPaint(paint_);

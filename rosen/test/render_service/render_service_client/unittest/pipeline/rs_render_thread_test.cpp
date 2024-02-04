@@ -95,4 +95,19 @@ HWTEST_F(RSRenderThreadTest, PostPreTask001, TestSize.Level1)
      */
     RSRenderThread::Instance().PostPreTask();
 }
+
+/**
+ * @tc.name: UpdateWindowStatus001
+ * @tc.desc: test results of PostPreTask
+ * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
+ */
+HWTEST_F(RSRenderThreadTest, UpdateWindowStatus001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. PrepareChildren
+     */
+    RSRenderThread::Instance().UpdateWindowStatus(false);
+    RSRenderThread::Instance().UpdateWindowStatus(true);
+}
 } // namespace OHOS::Rosen

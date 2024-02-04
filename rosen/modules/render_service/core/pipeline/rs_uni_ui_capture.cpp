@@ -89,7 +89,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 #endif
     RS_LOGD("RSUniUICapture::TakeLocalCapture: drawCallList size is %{public}zu", drawCallList->GetOpItemSize());
     drawCallList->Playback(*canvas);
-    if (!isUniRender_) {
+    if (!isUniRender_ || isUseCpuSurface_) {
         return pixelmap;
     }
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
@@ -160,7 +160,7 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     *static_cast<int32_t*>(fdPtr) = fd;
     pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
 #else
-    auto data = (uint8_t *)malloc(size);
+    auto data = static_cast<uint8_t *>(size);
     if (data == nullptr) {
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap data is nullptr");
         return false;
@@ -191,7 +191,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::CreatePixelMapByNode(std::share
 }
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> RSUniUICapture::CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const
+sk_sp<SkSurface> RSUniUICapture::CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap)
 {
     if (pixelmap == nullptr) {
         RS_LOGE("RSUniUICapture::CreateSurface: pixelmap == nullptr");
@@ -228,7 +228,7 @@ sk_sp<SkSurface> RSUniUICapture::CreateSurface(const std::shared_ptr<Media::Pixe
 }
 #else
 std::shared_ptr<Drawing::Surface> RSUniUICapture::CreateSurface(
-    const std::shared_ptr<Media::PixelMap>& pixelmap) const
+    const std::shared_ptr<Media::PixelMap>& pixelmap)
 {
     if (pixelmap == nullptr) {
         RS_LOGE("RSUniUICapture::CreateSurface: pixelmap == nullptr");
@@ -245,16 +245,23 @@ std::shared_ptr<Drawing::Surface> RSUniUICapture::CreateSurface(
     if (!isUniRender_) {
         return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
     }
+    std::shared_ptr<Drawing::Surface> surface;
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
     auto renderContext = RSOffscreenRenderThread::Instance().GetRenderContext();
     if (renderContext == nullptr) {
         RS_LOGE("RSUniUICapture::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
-    return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
+    surface = Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
 #else
-    return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    surface = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    isUseCpuSurface_ = true;
 #endif
+    if (!surface) {
+        surface = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+        isUseCpuSurface_ = true;
+    }
+    return surface;
 }
 #endif
 
@@ -350,15 +357,16 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessChildren(RSRenderNode& node)
 {
+    auto sortedChildren = node.GetSortedChildren();
     if (RSSystemProperties::GetUseShadowBatchingEnabled()
         && (node.GetRenderProperties().GetUseShadowBatching())) {
-        for (auto& child : *node.GetSortedChildren()) {
+        for (auto& child : *sortedChildren) {
             if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
                 node->ProcessShadowBatching(*canvas_);
             }
         }
     }
-    for (auto& child : *node.GetSortedChildren()) {
+    for (auto& child : *sortedChildren) {
         child->Process(shared_from_this());
     }
 }

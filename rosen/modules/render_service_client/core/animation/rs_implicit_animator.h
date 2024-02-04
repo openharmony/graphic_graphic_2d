@@ -71,9 +71,8 @@ public:
 
     bool NeedImplicitAnimation();
 
-    void CreateImplicitAnimation(const std::shared_ptr<RSNode>& target,
-        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
-        const std::shared_ptr<RSPropertyBase>& endValue);
+    void CreateImplicitAnimation(const std::shared_ptr<RSNode>& target, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue);
 
     void CreateImplicitAnimationWithInitialVelocity(const std::shared_ptr<RSNode>& target,
         const std::shared_ptr<RSPropertyBase>& property, const std::shared_ptr<RSPropertyBase>& startValue,
@@ -91,6 +90,7 @@ private:
     void BeginImplicitCancelAnimation();
 
     void CloseImplicitAnimationInner();
+    bool ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
 
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();

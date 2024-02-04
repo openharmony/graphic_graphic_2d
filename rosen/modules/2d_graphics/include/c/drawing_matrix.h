@@ -117,22 +117,35 @@ void OH_Drawing_MatrixSetMatrix(OH_Drawing_Matrix*, float scaleX, float skewX, f
     float skewY, float scaleY, float transY, float persp0, float persp1, float persp2);
 
 /**
- * @brief Sets matrix to matrix multiplied by matrix other.
+ * @brief Sets matrix total to matrix a multiplied by matrix b.
  *       Given:
  *                    | A B C |          | J K L |
- *           Matrix = | D E F |, other = | M N O |
+ *                a = | D E F |,     b = | M N O |
  *                    | G H I |          | P Q R |
- *       sets Matrix to:
+ *       sets Matrix total to:
  *                            | A B C |   | J K L |   | AJ+BM+CP AK+BN+CQ AL+BO+CR |
- *           Matrix * other = | D E F | * | M N O | = | DJ+EM+FP DK+EN+FQ DL+EO+FR |
+ *           total = a * b =  | D E F | * | M N O | = | DJ+EM+FP DK+EN+FQ DL+EO+FR |
  *                            | G H I |   | P Q R |   | GJ+HM+IP GK+HN+IQ GL+HO+IR |
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
- * @param other Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param total Indicates the pointer to an <b>OH_Drawing_Matrix</b> object that a * b.
+ * @param a Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param b Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_MatrixPreConcat(OH_Drawing_Matrix*, OH_Drawing_Matrix* other);
+void OH_Drawing_MatrixConcat(OH_Drawing_Matrix* total, const OH_Drawing_Matrix* a,
+    const OH_Drawing_Matrix* b);
+
+/**
+ * @brief Get one matrix value. Index is between the range of 0-8.
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param index one of 0-8.
+ * @return Returns value corresponding to index.Returns 0 if out of range.
+ * @since 12
+ * @version 1.0
+ */
+float OH_Drawing_MatrixGetValue(OH_Drawing_Matrix*, int index);
 
 /**
  * @brief Sets matrix to rotate by degrees about a pivot point at (px, py). The pivot point is unchanged

@@ -37,6 +37,19 @@ RSEffectNode::SharedPtr RSEffectNode::Create(bool isRenderServiceNode, bool isTe
     return node;
 }
 
+void RSEffectNode::SetFreeze(bool isFreeze)
+{
+    if (!IsUniRenderEnabled()) {
+        ROSEN_LOGE("SetFreeze is not supported in separate render");
+        return;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
 RSEffectNode::RSEffectNode(bool isRenderServiceNode, bool isTextureExportNode)
     : RSNode(isRenderServiceNode, isTextureExportNode) {}
 

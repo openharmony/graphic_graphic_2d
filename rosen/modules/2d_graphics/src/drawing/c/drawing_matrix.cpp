@@ -71,17 +71,27 @@ void OH_Drawing_MatrixSetMatrix(OH_Drawing_Matrix* cMatrix, float scaleX, float 
     matrix->SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
 }
 
-void OH_Drawing_MatrixPreConcat(OH_Drawing_Matrix* cMatrix, OH_Drawing_Matrix* other)
+void OH_Drawing_MatrixConcat(OH_Drawing_Matrix* cTotal, const OH_Drawing_Matrix* cA,
+    const OH_Drawing_Matrix* cB)
 {
+    if (cTotal == nullptr || cA == nullptr || cB == nullptr) {
+        return;
+    }
+    Matrix* total = CastToMatrix(cTotal);
+    Matrix* a = CastToMatrix(const_cast<OH_Drawing_Matrix*>(cA));
+    Matrix* b = CastToMatrix(const_cast<OH_Drawing_Matrix*>(cB));
+    *total = *a;
+    total->PreConcat(*b);
+}
+
+float OH_Drawing_MatrixGetValue(OH_Drawing_Matrix* cMatrix, int index)
+{
+    // 3x3 matrix index is between 0-8
+    if (cMatrix == nullptr || index < 0 || index > 8) {
+        return 0;
+    }
     Matrix* matrix = CastToMatrix(cMatrix);
-    if (matrix == nullptr) {
-        return;
-    }
-    Matrix* otherMatrix = CastToMatrix(other);
-    if (otherMatrix == nullptr) {
-        return;
-    }
-    matrix->PreConcat(*otherMatrix);
+    return matrix->Get(index);
 }
 
 void OH_Drawing_MatrixRotate(OH_Drawing_Matrix* cMatrix, float degree, float px, float py)

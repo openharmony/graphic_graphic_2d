@@ -30,23 +30,19 @@ void RSRenderParticleEmitter::PreEmit()
     auto particleType = particleParams_->GetParticleType();
     auto opacityUpdater = particleParams_->GetOpacityUpdator();
     auto scaleUpdater = particleParams_->GetScaleUpdator();
-    if (opacityUpdater == ParticleUpdator::NONE && particleParams_->GetOpacityStartValue() <= 0.f &&
-        particleParams_->GetOpacityEndValue() <= 0.f) {
+    if (opacityUpdater == ParticleUpdator::NONE && particleParams_->GetOpacityStartValue() <= 0.f) {
         emitFinish_ = true;
         return;
-    } else if (opacityUpdater == ParticleUpdator::RANDOM &&
-        particleParams_->GetOpacityStartValue() <= 0.f && particleParams_->GetOpacityEndValue() <= 0.f &&
-        particleParams_->GetOpacityRandomStart() <= 0.f && particleParams_->GetOpacityRandomEnd() <= 0.f) {
+    } else if (opacityUpdater == ParticleUpdator::RANDOM && particleParams_->GetOpacityStartValue() <= 0.f &&
+               particleParams_->GetOpacityRandomStart() <= 0.f) {
         emitFinish_ = true;
         return;
     }
-    if (scaleUpdater == ParticleUpdator::NONE &&
-        particleParams_->GetScaleStartValue() <= 0.f && particleParams_->GetScaleEndValue() <= 0.f) {
+    if (scaleUpdater == ParticleUpdator::NONE && particleParams_->GetScaleStartValue() <= 0.f) {
         emitFinish_ = true;
         return;
-    } else if (scaleUpdater == ParticleUpdator::RANDOM &&
-        particleParams_->GetScaleStartValue() <= 0.f && particleParams_->GetScaleEndValue() <= 0.f &&
-        particleParams_->GetScaleRandomStart() <= 0.f && particleParams_->GetScaleRandomEnd() <= 0.f) {
+    } else if (scaleUpdater == ParticleUpdator::RANDOM && particleParams_->GetScaleStartValue() <= 0.f &&
+               particleParams_->GetScaleRandomStart() <= 0.f) {
         emitFinish_ = true;
         return;
     }

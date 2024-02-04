@@ -17,7 +17,6 @@
 #include <surface.h>
 #include <buffer_extra_data_impl.h>
 #include <buffer_queue.h>
-#include <buffer_manager.h>
 #include "buffer_consumer_listener.h"
 #include "sync_fence.h"
 #include "consumer_surface.h"
@@ -118,6 +117,10 @@ HWTEST_F(BufferQueueTest, QueueSize001, Function | MediumTest | Level2)
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ASSERT_EQ(bq->GetQueueSize(), 2u);
+    BufferQueue *bqTmp = new BufferQueue("testTmp", true);
+    EXPECT_EQ(bqTmp->SetQueueSize(2), GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(bqTmp->SetQueueSize(1), GSERROR_OK);
+    bqTmp = nullptr;
 }
 
 /*
@@ -681,15 +684,21 @@ HWTEST_F(BufferQueueTest, AttachBufferUpdateStatus, Function | MediumTest | Leve
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call AttachBuffer and check ret
+* CaseDescription: 1. call AttachBuffer, DetachBuffer and check ret
  */
-HWTEST_F(BufferQueueTest, AttachBuffer001, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueTest, AttachBufferAndDetachBuffer001, Function | MediumTest | Level2)
 {
     bq->CleanCache();
     int32_t timeOut = 6;
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bq->AttachBuffer(retval.buffer, timeOut);
     ASSERT_EQ(ret, GSERROR_INVALID_OPERATING);
+    EXPECT_EQ(bq->DetachBuffer(retval.buffer), GSERROR_INVALID_ARGUMENTS);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    EXPECT_EQ(bq->DetachBuffer(buffer), GSERROR_INVALID_ARGUMENTS);
+    BufferQueue *bqTmp = new BufferQueue("testTmp", true);
+    EXPECT_EQ(bqTmp->DetachBuffer(buffer), GSERROR_INVALID_OPERATING);
+    bqTmp = nullptr;
 }
 
 /*
@@ -697,16 +706,25 @@ HWTEST_F(BufferQueueTest, AttachBuffer001, Function | MediumTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call AttachBuffer and check ret
+* CaseDescription: 1. call AttachBuffer, DetachBuffer and check ret
  */
-HWTEST_F(BufferQueueTest, AttachBuffer002, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueTest, AttachBufferAndDetachBuffer002, Function | MediumTest | Level2)
 {
     bq->CleanCache();
     int32_t timeOut = 6;
+    EXPECT_EQ(bq->SetQueueSize(SURFACE_MAX_QUEUE_SIZE), GSERROR_OK);
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     ASSERT_NE(buffer, nullptr);
     GSError ret = bq->AttachBuffer(buffer, timeOut);
+    sptr<SurfaceBuffer> buffer1 = SurfaceBuffer::Create();
+    EXPECT_EQ(bq->GetUsedSize(), 1);
     ASSERT_EQ(ret, GSERROR_OK);
+    EXPECT_EQ(bq->AttachBuffer(buffer1, timeOut), GSERROR_OK);
+    ret= bq->DetachBuffer(buffer);
+    EXPECT_EQ(ret, GSERROR_NO_ENTRY);
+    EXPECT_EQ(bq->DetachBuffer(buffer1), GSERROR_NO_ENTRY);
+    EXPECT_EQ(bq->AllocBuffer(buffer1, requestConfig), GSERROR_OK);
+    EXPECT_EQ(bq->DetachBuffer(buffer1), GSERROR_OK);
 }
 
 /*
@@ -721,5 +739,38 @@ HWTEST_F(BufferQueueTest, RegisterSurfaceDelegator001, Function | MediumTest | L
     surfaceDelegator = ProducerSurfaceDelegator::Create();
     GSError ret = bq->RegisterSurfaceDelegator(surfaceDelegator->AsObject(), csurface1);
     ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: RegisterDeleteBufferListener
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegisterDeleteBufferListener and check ret
+ */
+HWTEST_F(BufferQueueTest, RegisterDeleteBufferListener001, Function | MediumTest | Level2)
+{
+    surfaceDelegator = ProducerSurfaceDelegator::Create();
+    GSError ret = bq->RegisterDeleteBufferListener(nullptr, true);
+    ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: DumpToFile
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call DumpToFile and check ret
+ */
+HWTEST_F(BufferQueueTest, DumpToFile001, Function | MediumTest | Level2)
+{
+    bq->CleanCache();
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    GSError ret = bq->AttachBuffer(buffer, 6);
+    sptr<SurfaceBuffer> buffer1 = SurfaceBuffer::Create();
+    ASSERT_EQ(ret, GSERROR_OK);
+    bq->DumpToFile(0);
+    bq->DumpToFile(1);
 }
 }

@@ -47,6 +47,5 @@ HWTEST_F(EffectNodeCommandTest, Create, TestSize.Level1)
     EffectNodeCommandHelper::Create(context, nodeId);
 }
 
-
 } // namespace Rosen
 } // namespace OHOS

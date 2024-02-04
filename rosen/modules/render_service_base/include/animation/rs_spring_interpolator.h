@@ -28,11 +28,12 @@ public:
 
     ~RSSpringInterpolator() override {};
 
-    float Interpolate(float fraction) const override;
+    float InterpolateImpl(float fraction) const override;
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSSpringInterpolator* Unmarshalling(Parcel& parcel);
 
 private:
+    RSSpringInterpolator(uint64_t id, float response, float dampingRatio, float initialVelocity);
     float estimatedDuration_ = 0.0f;
 };
 } // namespace Rosen

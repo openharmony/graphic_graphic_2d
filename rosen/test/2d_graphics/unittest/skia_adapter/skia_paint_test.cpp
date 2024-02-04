@@ -77,10 +77,23 @@ HWTEST_F(SkiaPaintTest, ApplyPaint002, TestSize.Level1)
 }
 
 /**
- * @tc.name: BrushToSkPaint001
- * @tc.desc:
+ * @tc.name: AsBlendMode001
+ * @tc.desc: Test AsBlendMode
  * @tc.type: FUNC
- * @tc.author:
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, AsBlendMode001, TestSize.Level1)
+{
+    Brush brush;
+    SkiaPaint skiaPaint;
+    skiaPaint.AsBlendMode(brush);
+}
+
+/**
+ * @tc.name: BrushToSkPaint001
+ * @tc.desc: Test BrushToSkPaint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
  */
 HWTEST_F(SkiaPaintTest, BrushToSkPaint001, TestSize.Level1)
 {
@@ -92,10 +105,32 @@ HWTEST_F(SkiaPaintTest, BrushToSkPaint001, TestSize.Level1)
 }
 
 /**
- * @tc.name: PenToSkPaint001
- * @tc.desc:
+ * @tc.name: BrushToSkPaint002
+ * @tc.desc: Test BrushToSkPaint
  * @tc.type: FUNC
- * @tc.author:
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, BrushToSkPaint002, TestSize.Level1)
+{
+    Brush brush;
+    brush.SetAntiAlias(true);
+    Color4f color;
+    auto space = std::make_shared<ColorSpace>();
+    brush.SetColor(color, space);
+    brush.SetAlpha(100);
+    brush.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
+    auto blender = std::make_shared<Blender>();
+    brush.SetBlender(blender);
+    SkPaint skPaint;
+    SkiaPaint::BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(skPaint.isAntiAlias());
+}
+
+/**
+ * @tc.name: PenToSkPaint001
+ * @tc.desc: Test PenToSkPaint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
  */
 HWTEST_F(SkiaPaintTest, PenToSkPaint001, TestSize.Level1)
 {
@@ -107,15 +142,59 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint001, TestSize.Level1)
 }
 
 /**
- * @tc.name: PaintToSkPaint001
- * @tc.desc:
+ * @tc.name: PenToSkPaint002
+ * @tc.desc: Test PenToSkPaint
  * @tc.type: FUNC
- * @tc.author:
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, PenToSkPaint002, TestSize.Level1)
+{
+    Pen pen;
+    pen.SetAntiAlias(true);
+    pen.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
+    pen.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
+    SkPaint skPaint;
+    SkiaPaint::PenToSkPaint(pen, skPaint);
+    EXPECT_TRUE(skPaint.isAntiAlias());
+}
+
+/**
+ * @tc.name: PenToSkPaint003
+ * @tc.desc: Test PenToSkPaint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, PenToSkPaint003, TestSize.Level1)
+{
+    Pen pen;
+    pen.SetAntiAlias(true);
+    Color4f color;
+    auto space = std::make_shared<ColorSpace>();
+    pen.SetColor(color, space);
+    pen.SetBlendMode(BlendMode::CLEAR);
+    pen.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    pen.SetJoinStyle(Pen::JoinStyle::BEVEL_JOIN);
+    pen.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
+    pen.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    SkPaint skPaint;
+    SkiaPaint::PenToSkPaint(pen, skPaint);
+    EXPECT_TRUE(skPaint.isAntiAlias());
+}
+
+/**
+ * @tc.name: PaintToSkPaint001
+ * @tc.desc: Test PaintToSkPaint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
  */
 HWTEST_F(SkiaPaintTest, PaintToSkPaint001, TestSize.Level1)
 {
     Paint paint;
     paint.SetAntiAlias(true);
+    auto space = std::make_shared<ColorSpace>();
+    Color4f color;
+    paint.SetColor(color, space);
+    paint.SetBlendMode(BlendMode::CLEAR);
     SkPaint skPaint;
     SkiaPaint::PaintToSkPaint(paint, skPaint);
     EXPECT_TRUE(skPaint.isAntiAlias());
@@ -123,9 +202,9 @@ HWTEST_F(SkiaPaintTest, PaintToSkPaint001, TestSize.Level1)
 
 /**
  * @tc.name: GetSortedPaints001
- * @tc.desc:
+ * @tc.desc: Test GetSortedPaints
  * @tc.type: FUNC
- * @tc.author:
+ * @tc.require: I8VQSW
  */
 HWTEST_F(SkiaPaintTest, GetSortedPaints001, TestSize.Level1)
 {
@@ -134,6 +213,47 @@ HWTEST_F(SkiaPaintTest, GetSortedPaints001, TestSize.Level1)
     SkiaPaint skiaPaint;
     skiaPaint.ApplyPaint(paint);
     skiaPaint.GetSortedPaints();
+    EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
+}
+
+/**
+ * @tc.name: ApplyStrokeParam001
+ * @tc.desc: Test ApplyStrokeParam
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, ApplyStrokeParam001, TestSize.Level1)
+{
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    paint.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    paint.SetJoinStyle(Pen::JoinStyle::BEVEL_JOIN);
+    paint.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    SkiaPaint skiaPaint;
+    SkPaint skPaint;
+    skiaPaint.ApplyStrokeParam(paint, skPaint);
+    Paint paint2;
+    paint2.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    paint2.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
+    paint2.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
+    paint2.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    skiaPaint.ApplyStrokeParam(paint2, skPaint);
+}
+
+/**
+ * @tc.name: ComputeFastBounds001
+ * @tc.desc: Test ComputeFastBounds
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, ComputeFastBounds001, TestSize.Level1)
+{
+    Brush brush;
+    Rect rect;
+    SkiaPaint skiaPaint;
+    skiaPaint.ComputeFastBounds(brush, rect, nullptr);
+    Rect storage;
+    skiaPaint.ComputeFastBounds(brush, rect, &storage);
     EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
 }
 } // namespace Drawing

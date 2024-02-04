@@ -45,4 +45,9 @@ NativeHandleT *TransactSurfaceDelegatorStub::ReadNativeHandle(MessageParcel &inp
 {
     return nullptr;
 }
+
+NativeHandleT *TransactSurfaceDelegatorStub::ReadNativeHandleWithoutVersion(MessageParcel &input)
+{
+    return nullptr;
+}
 } // namespace OHOS

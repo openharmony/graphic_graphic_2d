@@ -83,4 +83,22 @@ HWTEST_F(RsSubThreadManagerTest, SubmitSubThreadTaskTest, TestSize.Level1)
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     rsSubThreadManager->SubmitSubThreadTask(nullptr, list);
 }
+
+/**
+ * @tc.name: AddToReleaseQueue
+ * @tc.desc: Test RsSubThreadManagerTest.AddToReleaseQueue
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsSubThreadManagerTest, AddToReleaseQueue, TestSize.Level1)
+{
+#ifdef USE_ROSEN_DRAWING
+    const Drawing::ImageInfo info =
+    Drawing::ImageInfo{200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE }; // image size 200*200
+    auto surface(Drawing::Surface::MakeRaster(info));
+    auto rsSubThreadManager = RSSubThreadManager::Instance();
+    ASSERT_NE(rsSubThreadManager, nullptr);
+    rsSubThreadManager->AddToReleaseQueue(std::move(surface), 10); // 10 is invalid
+#endif
+}
 } // namespace OHOS::Rosen

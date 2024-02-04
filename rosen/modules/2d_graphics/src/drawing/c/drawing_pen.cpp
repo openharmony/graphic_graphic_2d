@@ -36,6 +36,11 @@ static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
     return reinterpret_cast<ShaderEffect*>(cShaderEffect);
 }
 
+static PathEffect* CastToPathEffect(OH_Drawing_PathEffect* cPathEffect)
+{
+    return reinterpret_cast<PathEffect*>(cPathEffect);
+}
+
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
 {
     return reinterpret_cast<const Filter&>(cFilter);
@@ -259,6 +264,15 @@ void OH_Drawing_PenSetShaderEffect(OH_Drawing_Pen* cPen, OH_Drawing_ShaderEffect
         return;
     }
     pen->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
+}
+
+void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen* cPen, OH_Drawing_PathEffect* cPathEffect)
+{
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetPathEffect(std::shared_ptr<PathEffect>{CastToPathEffect(cPathEffect), [](auto p) {}});
 }
 
 void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)

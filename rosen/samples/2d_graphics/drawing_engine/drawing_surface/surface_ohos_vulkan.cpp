@@ -24,12 +24,10 @@
 #include "window.h"
 
 
-#ifdef ENABLE_NATIVEBUFFER
 #include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
-#endif
 
 #include "rs_vulkan_context.h"
 #include "include/gpu/GrBackendSemaphore.h"
@@ -37,11 +35,6 @@
 
 #ifdef USE_ROSEN_DRAWING
 #include "engine_adapter/skia_adapter/skia_surface.h"
-#ifdef ENABLE_DDGR_OPTIMIZE
-#include "engine_adapter/ddgr_adapter/ddgr_surface.h"
-#include "DDGRCanvasV2.h"
-#include "platform/common/rs_system_properties.h"
-#endif
 #endif
 
 namespace OHOS {
@@ -197,6 +190,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
     if (nativeSurface.drawingSurface == nullptr) {
 #endif
         nativeSurface.window = mNativeWindow_;
+        nativeSurface.graphicColorGamut = colorSpace_;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
             drContext_, nativeWindowBuffer, nativeSurface, width, height)) {
             LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
@@ -221,7 +215,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
         nativeSurface.fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface.fence->GetStatus();
         if (status != SIGNALED) {
-            auto& vkContext = RsVulkanContext::GetSingleton();
+            const auto& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore;
             CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
 #ifndef USE_ROSEN_DRAWING

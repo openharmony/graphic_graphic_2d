@@ -94,7 +94,7 @@ public:
     virtual std::shared_ptr<Image> MakeRasterImage() const = 0;
     virtual bool CanPeekPixels() const = 0;
     virtual bool IsOpaque() const = 0;
-
+    virtual void HintCacheGpuResource() const = 0;
 
     // using for recording, should to remove after using shared memory
     virtual std::shared_ptr<Data> Serialize() const = 0;

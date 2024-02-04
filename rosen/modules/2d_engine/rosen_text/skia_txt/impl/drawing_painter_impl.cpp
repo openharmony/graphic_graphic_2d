@@ -25,6 +25,15 @@
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_text_blob.h"
 
+#ifdef HM_SYMBOL_TXT_ENABLE
+#include <parameters.h>
+
+const bool G_IS_HM_SYMBOL_TXT_ENABLE =
+    (std::atoi(OHOS::system::GetParameter("persist.sys.graphic.hmsymboltxt.enable", "1").c_str()) != 0);
+#else
+const bool G_IS_HM_SYMBOL_TXT_ENABLE = true;
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
@@ -49,9 +58,58 @@ static Drawing::Rect ToDrawingRect(const SkRect& skRect)
     return rect;
 }
 
+static Drawing::RoundRect ToDrawingRoundRect(const SkRRect& skRRect)
+{
+    Drawing::Rect rect;
+    rect.SetLeft(skRRect.rect().fLeft);
+    rect.SetTop(skRRect.rect().fTop);
+    rect.SetRight(skRRect.rect().fRight);
+    rect.SetBottom(skRRect.rect().fBottom);
+    Drawing::scalar ltRadius = skRRect.radii(SkRRect::Corner::kUpperLeft_Corner).x();
+    Drawing::scalar rtRadius = skRRect.radii(SkRRect::Corner::kUpperRight_Corner).x();
+    Drawing::scalar rbRadius = skRRect.radii(SkRRect::Corner::kLowerRight_Corner).x();
+    Drawing::scalar lbRadius = skRRect.radii(SkRRect::Corner::kLowerLeft_Corner).x();
+    Drawing::Point leftTop = {ltRadius, ltRadius};
+    Drawing::Point rightTop = {rtRadius, rtRadius};
+    Drawing::Point rightBottom = {rbRadius, rbRadius};
+    Drawing::Point leftBottom = {lbRadius, lbRadius};
+    Drawing::RoundRect roundRect(rect, {leftTop, rightTop, rightBottom, leftBottom});
+    return roundRect;
+}
+
 RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, const std::vector<PaintRecord>& paints)
     : canvas_(canvas), paints_(paints)
 {}
+
+void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint& offset,
+    const PaintRecord &pr)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    symbolCount_++;
+    hmSymbolRun.SetAnimation(animationFunc_);
+    hmSymbolRun.SetSymbolId(symbolCount_);
+    if (pr.pen.has_value() && pr.brush.has_value()) {
+        canvas_->AttachBrush(pr.brush.value());
+        canvas_->AttachPen(pr.pen.value());
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        canvas_->DetachPen();
+        canvas_->DetachBrush();
+    } else if (pr.pen.has_value() && !pr.brush.has_value()) {
+        canvas_->AttachPen(pr.pen.value());
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        canvas_->DetachPen();
+    } else if (!pr.pen.has_value() && pr.brush.has_value()) {
+        canvas_->AttachBrush(pr.brush.value());
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        canvas_->DetachBrush();
+    } else {
+        Drawing::Brush brush;
+        brush.SetColor(pr.color);
+        canvas_->AttachBrush(brush);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        canvas_->DetachBrush();
+    }
+}
 
 void RSCanvasParagraphPainter::drawTextBlob(
     const sk_sp<SkTextBlob>& blob, SkScalar x, SkScalar y, const SkPaintOrID& paint)
@@ -62,7 +120,17 @@ void RSCanvasParagraphPainter::drawTextBlob(
     auto textBlobImpl = std::make_shared<Drawing::SkiaTextBlob>(blob);
     auto textBlob = std::make_shared<Drawing::TextBlob>(textBlobImpl);
 
-    if (pr.pen.has_value() && pr.brush.has_value()) {
+    if (pr.isSymbolGlyph && G_IS_HM_SYMBOL_TXT_ENABLE) {
+        std::vector<SkPoint> points;
+        GetPointsForTextBlob(blob.get(), points);
+        RSPoint offset;
+        if (points.size() > 0) {
+            offset = RSPoint{ x + points[0].x(), y + points[0].y() };
+        } else {
+            offset = RSPoint{ x, y };
+        }
+        DrawSymbolSkiaTxt(textBlob.get(), offset, pr);
+    } else if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
         canvas_->DrawTextBlob(textBlob.get(), x, y);
         canvas_->DetachPen();
@@ -83,6 +151,19 @@ void RSCanvasParagraphPainter::drawTextBlob(
         canvas_->AttachBrush(brush);
         canvas_->DrawTextBlob(textBlob.get(), x, y);
         canvas_->DetachBrush();
+    }
+}
+
+void RSCanvasParagraphPainter::SymbolAnimation(const PaintRecord &pr)
+{
+    auto painterSymbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    if (painterSymbolAnimationConfig == nullptr) {
+        return;
+    }
+    painterSymbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy(
+        pr.symbol.GetEffectStrategy());
+    if (animationFunc_ != nullptr) {
+        animationFunc_(painterSymbolAnimationConfig);
     }
 }
 
@@ -121,6 +202,17 @@ void RSCanvasParagraphPainter::drawRect(const SkRect& rect, const SkPaintOrID& p
         canvas_->DrawRect(rsRect);
         canvas_->DetachBrush();
     }
+}
+
+void RSCanvasParagraphPainter::drawRRect(const SkRRect& rrect, const SkColor color)
+{
+    Drawing::RoundRect rsRRect = ToDrawingRoundRect(rrect);
+    Drawing::Brush brush;
+    brush.SetColor(PaintRecord::ToRSColor(color));
+    brush.SetAntiAlias(false);
+    canvas_->AttachBrush(brush);
+    canvas_->DrawRoundRect(rsRRect);
+    canvas_->DetachBrush();
 }
 
 void RSCanvasParagraphPainter::drawFilledRect(const SkRect& rect, const DecorationStyle& decorStyle)

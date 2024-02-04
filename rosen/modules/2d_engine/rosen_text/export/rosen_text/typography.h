@@ -22,6 +22,7 @@
 #include "common/rs_macros.h"
 #include "draw/canvas.h"
 #include "include/core/SkCanvas.h" // SKIA
+#include "text/font_metrics.h"
 #include "utils/rect.h"
 
 #include "typography_types.h"
@@ -80,6 +81,10 @@ public:
     virtual double GetMaxIntrinsicWidth() = 0;
     virtual double GetAlphabeticBaseline() = 0;
     virtual double GetIdeographicBaseline() = 0;
+    virtual double GetGlyphsBoundsTop() = 0;
+    virtual double GetGlyphsBoundsBottom() = 0;
+    virtual double GetGlyphsBoundsLeft() = 0;
+    virtual double GetGlyphsBoundsRight() = 0;
     virtual bool DidExceedMaxLines() const = 0;
     virtual int GetLineCount() const = 0;
 
@@ -93,10 +98,12 @@ public:
     virtual std::vector<TextRect> GetTextRectsOfPlaceholders() = 0;
     virtual IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) = 0;
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;
+    virtual Boundary GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
     virtual double GetLineHeight(int lineNumber) = 0;
     virtual double GetLineWidth(int lineNumber) = 0;
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc)= 0;
+    virtual Drawing::FontMetrics MeasureText() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

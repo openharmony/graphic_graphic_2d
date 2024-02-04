@@ -249,6 +249,54 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect004, TestSize.Lev
 }
 
 /**
+ * @tc.name: GetComposerInfoSrcRect005
+ * @tc.desc: GetComposerInfoSrcRect, Bounds size != Buffer size
+ * @tc.type: FUNC
+ * @tc.require: issueI6S774
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect005, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->GetMutableRenderProperties().SetFrameGravity(Gravity::TOP_RIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH_1K);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(dstRect);
+    surfaceNode->SetDstRect(dstRect);
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
+    ASSERT_NE(info.buffer, nullptr);
+    info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
+    info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
+    composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRect006
+ * @tc.desc: GetComposerInfoSrcRect, Bounds size != Buffer size and FrameGravity != top left
+ * @tc.type: FUNC
+ * @tc.require: issueI6S774
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect006, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->GetMutableRenderProperties().SetFrameGravity(Gravity::TOP_RIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH_1K);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(dstRect);
+    surfaceNode->SetDstRect(dstRect);
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
+    ASSERT_NE(info.buffer, nullptr);
+    info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
+    info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_CROP;
+    surfaceNode->GetConsumer()->SetScalingMode(info.buffer->GetSeqNum(), scalingMode);
+    composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
+}
+
+/**
  * @tc.name: DealWithNodeGravity001
  * @tc.desc: Test RSUniRenderComposerAdapterTest.DealWithNodeGravity when frameGravity is RESIZE
  * @tc.type: FUNC
@@ -934,6 +982,25 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoNeedClient001, TestSize.
 }
 
 /**
+ * @tc.name: GetComposerInfoNeedClient002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.GetComposerInfoNeedClient with RSRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI7O6WO
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoNeedClient002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
+    ASSERT_NE(info.buffer, nullptr);
+    
+    auto node = surfaceNode->ReinterpretCastTo<RSRenderNode>();
+    info.buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    composerAdapter_->screenInfo_.colorGamut = ScreenColorGamut::COLOR_GAMUT_DISPLAY_BT2020;
+    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *node));
+}
+
+/**
  * @tc.name: SrcRectRotateTransform005
  * @tc.desc: Test RSUniRenderComposerAdapterTest.SrcRectRotateTransform for GRAPHIC_ROTATE_90
  * @tc.type: FUNC
@@ -1167,5 +1234,43 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
         ASSERT_EQ(colorSpaceInfo.matrix, MATRIX_P3);
         ASSERT_EQ(colorSpaceInfo.range, RANGE_FULL);
     }
+}
+
+/**
+ * @tc.name: SetBufferColorSpace002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.SetBufferColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issuesI8C4I9
+*/
+HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace002, TestSize.Level2)
+{
+    SetUp();
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    composerAdapter_->SetBufferColorSpace(*node);
+}
+
+/**
+ * @tc.name: SetBufferColorSpace003
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.SetBufferColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issuesI8C4I9
+*/
+HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2)
+{
+    SetUp();
+
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    composerAdapter_->SetBufferColorSpace(*node);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    Rect damage;
+    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    node->SetBuffer(buffer, acquireFence, damage, timestamp);
+    composerAdapter_->SetBufferColorSpace(*node);
 }
 } // namespace

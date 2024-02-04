@@ -26,8 +26,6 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 namespace {
-constexpr size_t axisLen = 4;
-
 SkFontStyle::Weight ConvertToSkFontWeight(FontWeight fontWeight)
 {
     constexpr int weightBase = 100;
@@ -40,6 +38,35 @@ SkFontStyle MakeSkFontStyle(FontWeight fontWeight, FontStyle fontStyle)
     auto slant = fontStyle == FontStyle::NORMAL ?
         SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant;
     return SkFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
+}
+
+SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
+{
+    constexpr size_t axisLen = 4;
+
+    std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates;
+    for (const auto& [axis, value] : fontVariations.GetAxisValues()) {
+        if (axis.length() == axisLen) {
+            coordinates.push_back({
+                SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]),
+                value,
+            });
+        }
+    }
+    SkFontArguments::VariationPosition position = { coordinates.data(), static_cast<int>(coordinates.size()) };
+
+    SkFontArguments arguments;
+    arguments.setVariationDesignPosition(position);
+    return arguments;
+}
+
+skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
+{
+    skt::TextShadow shadow;
+    shadow.fOffset = txtShadow.offset;
+    shadow.fBlurSigma = txtShadow.blurSigma;
+    shadow.fColor = txtShadow.color;
+    return shadow;
 }
 } // anonymous namespace
 
@@ -88,7 +115,9 @@ void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 
 std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 {
-    return std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
+    auto ret = std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
+    builder_->Reset();
+    return ret;
 }
 
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
@@ -113,7 +142,6 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     textStyle.setFontFamilies({ SkString(txt.fontFamily.c_str()) });
     textStyle.setLocale(SkString(txt.locale.c_str()));
     skStyle.setTextStyle(textStyle);
-
     skt::StrutStyle strutStyle;
     strutStyle.setFontStyle(MakeSkFontStyle(txt.strutFontWeight, txt.strutFontStyle));
     strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
@@ -132,12 +160,17 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
 
     skStyle.setTextAlign(static_cast<skt::TextAlign>(txt.textAlign));
     skStyle.setTextDirection(static_cast<skt::TextDirection>(txt.textDirection));
+    skStyle.setEllipsisMod(static_cast<skt::EllipsisModal>(txt.ellipsisModal));
+    if (txt.ellipsisModal != EllipsisModal::TAIL) {
+        skStyle.setEllipsis(txt.ellipsis);
+    }
     skStyle.setMaxLines(txt.maxLines);
     skStyle.setEllipsis(txt.ellipsis);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
 
     skStyle.turnHintingOff();
     skStyle.setReplaceTabCharacters(true);
+    skStyle.setTextSplitRatio(txt.textSplitRatio);
 
     return skStyle;
 }
@@ -167,6 +200,32 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     skStyle.setHalfLeading(txt.halfLeading);
 
     skStyle.setLocale(SkString(txt.locale.c_str()));
+    skStyle.setStyleId(txt.styleId);
+    skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
+        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,
+        txt.backgroundRect.leftBottomRadius });
+
+    CopyTextStylePaint(txt, skStyle);
+
+    skStyle.resetFontFeatures();
+    for (const auto& ff : txt.fontFeatures.GetFontFeatures()) {
+        skStyle.addFontFeature(SkString(ff.first.c_str()), ff.second);
+    }
+
+    if (!txt.fontVariations.GetAxisValues().empty()) {
+        skStyle.setFontArguments(MakeFontArguments(txt.fontVariations));
+    }
+
+    skStyle.resetShadows();
+    for (const TextShadow& txtShadow : txt.textShadows) {
+        skStyle.addShadow(MakeTextShadow(txtShadow));
+    }
+
+    return skStyle;
+}
+
+void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle)
+{
     if (txt.background.has_value()) {
         skStyle.setBackgroundPaintID(AllocPaintID(txt.background.value()));
     }
@@ -175,38 +234,12 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     } else {
         PaintRecord paint;
         paint.SetColor(txt.color);
+        paint.isSymbolGlyph = txt.isSymbolGlyph;
+        paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
+        paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
+        paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
-
-    skStyle.resetFontFeatures();
-    for (const auto& ff : txt.fontFeatures.GetFontFeatures()) {
-        skStyle.addFontFeature(SkString(ff.first.c_str()), ff.second);
-    }
-
-    if (!txt.fontVariations.GetAxisValues().empty()) {
-        std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates;
-        for (const auto& [axis, value] : txt.fontVariations.GetAxisValues()) {
-            if (axis.length() == axisLen) {
-                coordinates.push_back({
-                    SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]),
-                    value,
-                });
-            }
-        }
-        SkFontArguments::VariationPosition position = { coordinates.data(), static_cast<int>(coordinates.size()) };
-        skStyle.setFontArguments(SkFontArguments().setVariationDesignPosition(position));
-    }
-
-    skStyle.resetShadows();
-    for (const TextShadow& txtShadow : txt.textShadows) {
-        skt::TextShadow shadow;
-        shadow.fOffset = txtShadow.offset;
-        shadow.fBlurSigma = txtShadow.blurSigma;
-        shadow.fColor = txtShadow.color;
-        skStyle.addShadow(shadow);
-    }
-
-    return skStyle;
 }
 } // namespace SPText
 } // namespace Rosen

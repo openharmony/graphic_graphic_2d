@@ -249,6 +249,7 @@ static void HandleNativeWindowSetTransform(OHNativeWindow *window, va_list args)
 {
     int32_t transform = va_arg(args, int32_t);
     window->config.transform = static_cast<GraphicTransformType>(transform);
+    window->surface->SetTransform(static_cast<GraphicTransformType>(transform));
 }
 
 static void HandleNativeWindowSetUiTimestamp(OHNativeWindow *window, va_list args)
@@ -299,7 +300,7 @@ static void HandleNativeWindowGetColorGamut(OHNativeWindow *window, va_list args
 static void HandleNativeWindowGetTransform(OHNativeWindow *window, va_list args)
 {
     int32_t *transform = va_arg(args, int32_t*);
-    *transform = static_cast<int32_t>(window->config.transform);
+    *transform = static_cast<int32_t>(window->surface->GetTransform());
 }
 
 static std::map<int, std::function<void(OHNativeWindow*, va_list)>> operationMap = {

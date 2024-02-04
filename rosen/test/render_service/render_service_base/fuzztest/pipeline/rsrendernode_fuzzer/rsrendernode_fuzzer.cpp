@@ -80,6 +80,12 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
+struct DrawBuffer {
+    int32_t w;
+    int32_t h;
+};
+
+
 bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -141,16 +147,11 @@ bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
 
     // getdata
     NodeId id = GetData<NodeId>();
-    int w = GetData<int>();
-    int h = GetData<int>();
+    DrawBuffer drawBuffer = GetData<DrawBuffer>();
     RSModifierType type = GetData<RSModifierType>();
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<DrawCmdList> drawCmds = std::make_shared<DrawCmdList>(w, h);
-    SkCanvas tmpCanvas;
-#else
-    std::shared_ptr<Drawing::DrawCmdList> drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds = Drawing::DrawCmdList::CreateFromData(
+        { &drawBuffer, sizeof(DrawBuffer) }, true);
     Drawing::Canvas tmpCanvas;
-#endif
     float alpha = GetData<float>();
     RSPaintFilterCanvas canvas(&tmpCanvas, alpha);
     RSCanvasRenderNode node(id);
@@ -286,33 +287,21 @@ bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    int w = GetData<int>();
-    int h = GetData<int>();
+    DrawBuffer drawBuffer = GetData<DrawBuffer>();
     float fLeft = GetData<float>();
     float fTop = GetData<float>();
     float fRight = GetData<float>();
     float fBottom = GetData<float>();
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    SkRect rect = { fLeft, fTop, fRight, fBottom };
-    float alpha = GetData<float>();
-    RSPaintFilterCanvas canvas(&skCanvas, alpha);
-
-    // test
-    DrawCmdList* list = new DrawCmdList(w, h);
-    list->Playback(skCanvas, &rect);
-    list->Playback(canvas, &rect);
-#else
     Drawing::Canvas drCanvas;
     Drawing::Rect rect = { fLeft, fTop, fRight, fBottom };
     float alpha = GetData<float>();
     RSPaintFilterCanvas canvas(&drCanvas, alpha);
 
     // test
-    Drawing::DrawCmdList* list = new Drawing::DrawCmdList(w, h);
+    std::shared_ptr<Drawing::DrawCmdList> list = Drawing::DrawCmdList::CreateFromData(
+        { &drawBuffer, sizeof(DrawBuffer) }, true);
     list->Playback(drCanvas, &rect);
     list->Playback(canvas, &rect);
-#endif
     return true;
 }
 

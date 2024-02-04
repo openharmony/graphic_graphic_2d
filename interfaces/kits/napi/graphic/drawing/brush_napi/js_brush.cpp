@@ -102,7 +102,7 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetColor brush is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -110,13 +110,13 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsBrush::SetColor Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     napi_valuetype valueType = napi_undefined;
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
         ROSEN_LOGE("JsBrush::SetColor Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiGetUndefined(env);
     }
 
     napi_value tempValue = nullptr;
@@ -125,13 +125,17 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
     int32_t green = 0;
     int32_t blue = 0;
     napi_get_named_property(env, argv[0], "alpha", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
+    bool isAlphaOk = ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "red", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
+    bool isRedOk = ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "green", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
+    bool isGreenOk = ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "blue", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
+    bool isBlueOk = ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
+    if (!(isAlphaOk && isRedOk && isGreenOk && isBlueOk)) {
+        ROSEN_LOGE("JsBrush::SetColor Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
 
     Color color(Color::ColorQuadSetARGB(alpha, red, green, blue));
     brush->SetColor(color);
@@ -144,7 +148,7 @@ napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetAntiAlias brush is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -152,17 +156,15 @@ napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsBrush::SetAntiAlias Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_boolean) {
+    bool aa = true;
+    if (!ConvertFromJsValue(env, argv[0], aa)) {
         ROSEN_LOGE("JsBrush::SetAntiAlias Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiGetUndefined(env);
     }
 
-    bool aa;
-    ConvertFromJsNumber(env, argv[0], aa);
     brush->SetAntiAlias(aa);
     return NapiGetUndefined(env);
 }
@@ -173,7 +175,7 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetAlpha brush is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -181,17 +183,15 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsBrush::SetAlpha Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_number) {
-        ROSEN_LOGE("JsBrush::SetAlpha Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     int32_t alpha = 0;
-    ConvertClampFromJsValue(env, argv[0], alpha, 0, Color::RGB_MAX);
+    if (!ConvertClampFromJsValue(env, argv[0], alpha, 0, Color::RGB_MAX)) {
+        ROSEN_LOGE("JsBrush::SetAlpha Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
+
     brush->SetAlpha(alpha);
     return NapiGetUndefined(env);
 }
@@ -202,7 +202,7 @@ napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetColorFilter brush is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -210,17 +210,15 @@ napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsBrush::SetColorFilter Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
-        ROSEN_LOGE("JsBrush::SetColorFilter Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     JsColorFilter* jsColorFilter = nullptr;
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsColorFilter));
+    if (jsColorFilter == nullptr) {
+        ROSEN_LOGE("JsBrush::SetColorFilter jsColorFilter is nullptr");
+        return NapiGetUndefined(env);
+    }
 
     Filter filter = brush->GetFilter();
     filter.SetColorFilter(jsColorFilter->GetColorFilter());
@@ -234,7 +232,7 @@ napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetBlendMode brush is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -242,17 +240,14 @@ napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsBrush::SetBlendMode Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_number) {
-        ROSEN_LOGE("JsBrush::SetBlendMode Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     uint32_t mode = 0;
-    ConvertFromJsNumber(env, argv[0], mode);
+    if (!ConvertFromJsValue(env, argv[0], mode)) {
+        ROSEN_LOGE("JsBrush::SetBlendMode Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
 
     brush->SetBlendMode(static_cast<BlendMode>(mode));
     return NapiGetUndefined(env);

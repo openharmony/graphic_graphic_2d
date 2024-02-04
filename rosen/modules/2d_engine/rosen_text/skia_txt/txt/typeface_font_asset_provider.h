@@ -33,6 +33,8 @@ public:
 
     void registerTypeface(sk_sp<SkTypeface> typeface);
 
+    void unregisterTypefaces();
+
     int count() override;
 
     void getStyle(int index, SkFontStyle* style, SkString* name) override;

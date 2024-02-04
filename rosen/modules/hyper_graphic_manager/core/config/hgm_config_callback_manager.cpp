@@ -57,10 +57,10 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     auto data = std::make_shared<RSHgmConfigData>();
 
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
-    auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
+    auto settingMode = std::to_string(hgmCore.GetCurrentRefreshRateMode());
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
-        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, settingMode);
         for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
             for (auto& [animName, dynamicConfig] : dynamicSetting) {
                 data->AddAnimDynamicItem({
@@ -103,10 +103,10 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
     auto data = std::make_shared<RSHgmConfigData>();
 
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
-    auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
+    auto settingMode = std::to_string(hgmCore.GetCurrentRefreshRateMode());
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
-        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, settingMode);
         for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
             for (auto& [animName, dynamicConfig] : dynamicSetting) {
                 data->AddAnimDynamicItem({

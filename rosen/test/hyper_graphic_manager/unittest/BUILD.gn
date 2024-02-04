@@ -25,7 +25,8 @@ ohos_unittest("hyper_graphic_manager_test") {
     "-Dprotected=public",
   ]
 
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64") &&
+      enhanced_opt) {
     cflags += [ "-fwhole-program-vtables" ]
   }
 

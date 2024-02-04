@@ -232,6 +232,9 @@ void TextSpan::SymbolAnimation(const TextStyle &xs)
         return;
     }
     auto spanSymbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
+    if (spanSymbolAnimationConfig == nullptr) {
+        return;
+    }
     spanSymbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy(xs.symbol.GetEffectStrategy());
     if (spanSymbolAnimationConfig->effectStrategy == SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL) {
         animationFunc_(spanSymbolAnimationConfig);

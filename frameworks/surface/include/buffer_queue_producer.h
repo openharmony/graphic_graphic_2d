@@ -31,7 +31,7 @@
 namespace OHOS {
 class BufferQueueProducer : public IRemoteStub<IBufferProducer> {
 public:
-    BufferQueueProducer(sptr<BufferQueue>& bufferQueue);
+    BufferQueueProducer(sptr<BufferQueue> bufferQueue);
     virtual ~BufferQueueProducer();
 
     virtual int OnRemoteRequest(uint32_t code, MessageParcel &arguments,
@@ -46,7 +46,7 @@ public:
                         const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config) override;
 
     GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-        float matrix[16], int32_t matrixSize) override;
+        float matrix[16]) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) override;
@@ -71,6 +71,7 @@ public:
     GSError UnRegisterReleaseListener() override;
 
     GSError SetTransform(GraphicTransformType transform) override;
+    GSError GetTransform(GraphicTransformType &transform) override;
 
     GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
 
@@ -122,6 +123,7 @@ private:
     int32_t GetPresentTimestampRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GetLastFlushedBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t RegisterDeathRecipient(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t GetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);

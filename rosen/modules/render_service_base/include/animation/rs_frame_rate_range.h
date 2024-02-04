@@ -20,18 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class HgmModifierType {
-    TRANSLATE,
-    SCALE,
-    ROTATION
-};
-
-struct HgmModifierProfile {
-    float xSpeed;
-    float ySpeed;
-    HgmModifierType hgmModifierType;
-};
-
 class FrameRateRange {
 public:
     FrameRateRange() : min_(0), max_(0), preferred_(0) {}

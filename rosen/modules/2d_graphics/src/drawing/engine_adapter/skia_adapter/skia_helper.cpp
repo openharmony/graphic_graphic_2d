@@ -20,7 +20,7 @@ namespace Drawing {
 std::shared_ptr<Data> SkiaHelper::FlattenableSerialize(const SkFlattenable* flattenable)
 {
     if (flattenable == nullptr) {
-        LOGE("SkiaHelper::FlattenableSerialize, flattenable is nullptr!");
+        LOGD("SkiaHelper::FlattenableSerialize, flattenable is nullptr!");
         return nullptr;
     }
 

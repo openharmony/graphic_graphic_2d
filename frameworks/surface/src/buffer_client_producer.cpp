@@ -17,7 +17,6 @@
 
 #include <iremote_stub.h>
 #include "buffer_log.h"
-#include "buffer_manager.h"
 #include "buffer_utils.h"
 #include "sync_fence.h"
 #include "message_option.h"
@@ -104,7 +103,7 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
 }
 
 GSError BufferClientProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
+    sptr<SyncFence>& fence, float matrix[16])
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
@@ -124,7 +123,7 @@ GSError BufferClientProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
     fence = SyncFence::ReadFromMessageParcel(reply);
     std::vector<float> readMatrixVector;
     reply.ReadFloatVector(&readMatrixVector);
-    if (memcpy_s(matrix, matrixSize * sizeof(float),
+    if (memcpy_s(matrix, readMatrixVector.size() * sizeof(float),
         readMatrixVector.data(), readMatrixVector.size() * sizeof(float)) != EOK) {
         BLOGN_FAILURE("memcpy_s fail");
         return GSERROR_API_FAILED;
@@ -176,7 +175,7 @@ GSError BufferClientProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 GSError BufferClientProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
-    int32_t sequence = buffer->GetSeqNum();
+    uint32_t sequence = buffer->GetSeqNum();
     WriteSurfaceBufferImpl(arguments, sequence, buffer);
     arguments.WriteInt32(timeOut);
     SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_ATTACH_BUFFER, arguments, reply, option, sequence);
@@ -522,6 +521,20 @@ GSError BufferClientProducer::SendDeathRecipientObject()
         BLOGN_FAILURE("Remote return %{public}d", ret);
         return static_cast<GSError>(ret);
     }
+    return GSERROR_OK;
+}
+
+GSError BufferClientProducer::GetTransform(GraphicTransformType &transform)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    SEND_REQUEST(BUFFER_PRODUCER_GET_TRANSFORM, arguments, reply, option);
+
+    auto ret = static_cast<GSError>(reply.ReadInt32());
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", static_cast<int>(ret));
+        return ret;
+    }
+    transform = static_cast<GraphicTransformType>(reply.ReadUint32());
     return GSERROR_OK;
 }
 }; // namespace OHOS

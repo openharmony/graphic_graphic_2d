@@ -191,7 +191,7 @@ void RecordingCanvas::DrawRegion(const Region& region)
 void RecordingCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4],
     const Point texCoords[4], BlendMode mode)
 {
-    LOGE("RecordingCanvas::DrawPatch not support yet");
+    LOGD("RecordingCanvas::DrawPatch not support yet");
 }
 
 void RecordingCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
@@ -310,7 +310,6 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
     if (!blob) {
-        LOGE("blob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
     }
 #ifdef ROSEN_OHOS

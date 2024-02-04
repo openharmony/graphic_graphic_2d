@@ -64,6 +64,7 @@ public:
     std::vector<TextRect> GetTextRectsOfPlaceholders() const override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) const override;
     Boundary GetWordBoundaryByIndex(size_t index) const override;
+    Boundary GetActualTextRange(int lineNumber, bool includeSpaces) const override;
     double GetLineHeight(int lineNumber);
     double GetLineWidth(int lineNumber);
 

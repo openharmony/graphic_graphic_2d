@@ -122,9 +122,7 @@ void RSSingleFrameComposer::AddOrRemoveAppPidToMap(bool isNodeSingleFrameCompose
     if (isNodeSingleFrameComposer) {
         appPidMap_[pid] = 1;
     } else {
-        if (appPidMap_.find(pid) != appPidMap_.end()) {
-            appPidMap_.erase(pid);
-        }
+        appPidMap_.erase(pid);
     }
 }
 

@@ -42,7 +42,7 @@ Typeface* SkiaFontStyleSet::CreateTypeface(int index)
 void SkiaFontStyleSet::GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName)
 {
     if (!skFontStyleSet_) {
-        LOGE("SkiaFontStyleSet::GetStyle, skFontStyleSet_ nullptr");
+        LOGD("SkiaFontStyleSet::GetStyle, skFontStyleSet_ nullptr");
         return;
     }
     SkFontStyle skFontStyle;
@@ -65,7 +65,7 @@ void SkiaFontStyleSet::GetStyle(int32_t index, FontStyle* fontStyle, std::string
 Typeface* SkiaFontStyleSet::MatchStyle(const FontStyle& pattern)
 {
     if (!skFontStyleSet_) {
-        LOGE("SkiaFontStyleSet::MatchStyle, skFontStyleSet_ nullptr");
+        LOGD("SkiaFontStyleSet::MatchStyle, skFontStyleSet_ nullptr");
         return nullptr;
     }
     SkFontStyle skFontStyle;

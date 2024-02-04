@@ -51,15 +51,6 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             }
             break;
         }
-        case IVSYNC_CONNECTION_GET_PERIOD: {
-            int64_t period = 0;
-            int32_t ret = GetVSyncPeriod(period);
-            if (ret != VSYNC_ERROR_OK) {
-                return ret;
-            }
-            reply.WriteInt64(period);
-            break;
-        }
         case IVSYNC_CONNECTION_DESTROY: {
             return Destroy();
         }

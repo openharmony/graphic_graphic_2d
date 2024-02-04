@@ -50,9 +50,11 @@ private:
     napi_value OnMinimizeWindowWithAnimation(napi_env env, napi_callback_info info);
 
     napi_value OnGetWindowAnimationTargets(napi_env env, napi_callback_info info);
-    int32_t GetWindowId(const napi_env &env, const size_t &argc, const napi_value &object, uint32_t &windowId);
-    int32_t GetMissionIds(const napi_env &env, const size_t &argc, const napi_value &arrary,
-                          std::vector<uint32_t> &missionIds);
+
+    int32_t GetWindowId(const napi_env& env, const size_t& argc, const napi_value& object, uint32_t& windowId);
+
+    int32_t GetMissionIds(
+        const napi_env& env, const size_t& argc, const napi_value& arrary, std::vector<uint32_t>& missionIds);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -33,7 +33,7 @@ public:
     static sk_sp<T> FlattenableDeserialize(std::shared_ptr<Data> data)
     {
         if (data == nullptr) {
-            LOGE("SkiaHelper::FlattenableDeserialize, data is nullptr!");
+            LOGD("SkiaHelper::FlattenableDeserialize, data is nullptr!");
             return nullptr;
         }
 

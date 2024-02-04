@@ -69,7 +69,7 @@ void RSColorFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCa
         ROSEN_LOGD("RSColorFilterDrawable::Draw image is null");
         return;
     }
-    as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();
+    imageSnapshot->HintCacheGpuResource();
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();
     static Drawing::SamplingOptions options(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);

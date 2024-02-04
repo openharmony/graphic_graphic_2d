@@ -64,7 +64,6 @@ ohos_shared_library("surface") {
   sources = [
     "src/buffer_client_producer.cpp",
     "src/buffer_extra_data_impl.cpp",
-    "src/buffer_manager.cpp",
     "src/buffer_queue.cpp",
     "src/buffer_queue_consumer.cpp",
     "src/buffer_queue_producer.cpp",
@@ -105,6 +104,7 @@ ohos_shared_library("surface") {
     "drivers_interface_display:display_buffer_idl_headers",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "init:libbegetutil",
     "ipc:ipc_single",
   ]
 

@@ -418,9 +418,7 @@ napi_value WebGLWriteBufferArg::ToNormalArray(BufferDataType srcDataType, Buffer
     }
 
     if (srcDataType == BUFFER_DATA_FLOAT_32) {
-        if (srcDataType == BUFFER_DATA_FLOAT_32) {
-            return GenNormalArray<float, double>(napi_create_double);
-        }
+        return GenNormalArray<float, double>(napi_create_double);
     }
     return NVal::CreateNull(env_).val_;
 }
@@ -466,12 +464,12 @@ WebGLImageSource::~WebGLImageSource()
 bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuetype valueType)
 {
     uint32_t errorCode = 0;
-    bool succ = false;
     SourceOptions opts;
     std::unique_ptr<OHOS::Media::ImageSource> imageSource = nullptr;
     if (valueType == napi_string) { // File Path
         size_t ignore = 0;
         std::unique_ptr<char[]> source = nullptr;
+        bool succ = false;
         tie(succ, source, ignore) = NVal(env_, resultData).ToUTF8String();
         if (!succ) {
             return false;

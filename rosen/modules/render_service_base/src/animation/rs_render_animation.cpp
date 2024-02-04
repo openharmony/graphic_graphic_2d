@@ -341,5 +341,7 @@ const std::shared_ptr<RSRenderPropertyBase> RSRenderAnimation::GetAnimateVelocit
 {
     return animateVelocity_;
 }
+
+bool RSRenderAnimation::isCalcAnimateVelocity_ = true;
 } // namespace Rosen
 } // namespace OHOS

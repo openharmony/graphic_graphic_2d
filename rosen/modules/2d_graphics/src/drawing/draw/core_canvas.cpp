@@ -189,6 +189,22 @@ void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar 
     impl_->DrawBitmap(bitmap, px, py);
 }
 
+void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling)
+{
+    AttachPaint();
+    Image img;
+    img.BuildFromBitmap(bitmap);
+    impl_->DrawImageRect(img, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+}
+
+void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& dst, const SamplingOptions& sampling)
+{
+    AttachPaint();
+    Image img;
+    img.BuildFromBitmap(bitmap);
+    impl_->DrawImageRect(img, dst, sampling);
+}
+
 void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
@@ -200,6 +216,49 @@ void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
 {
     impl_->DrawImageLattice(image, lattice, dst, filter, brush);
 }
+
+// opinc_begin
+bool CoreCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
+{
+    return impl_->BeginOpRecording(bound, isDynamic);
+}
+
+Drawing::OpListHandle CoreCanvas::EndOpRecording()
+{
+    return impl_->EndOpRecording();
+}
+
+void CoreCanvas::DrawOpList(Drawing::OpListHandle handle)
+{
+    impl_->DrawOpList(handle);
+}
+
+int CoreCanvas::CanDrawOpList(Drawing::OpListHandle handle)
+{
+    return impl_->CanDrawOpList(handle);
+}
+
+void CoreCanvas::PreOpListDrawArea(const Matrix& matrix)
+{
+    impl_->PreOpListDrawArea(matrix);
+}
+
+bool CoreCanvas::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
+{
+    return impl_->CanUseOpListDrawArea(handle, bound);
+}
+
+Drawing::OpListHandle CoreCanvas::GetOpListDrawArea()
+{
+    return impl_->GetOpListDrawArea();
+}
+
+void CoreCanvas::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
+    const SamplingOptions& sampling, SrcRectConstraint constraint)
+{
+    impl_->OpincDrawImageRect(image, drawAreas, sampling, constraint);
+}
+// opinc_end
 
 void CoreCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
 {
@@ -440,7 +499,7 @@ void CoreCanvas::AttachPaint()
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
-        LOGE("Drawing CoreCanvas AttachPaint with Invalid Paint");
+        LOGD("Drawing CoreCanvas AttachPaint with Invalid Paint");
         return;
     }
 

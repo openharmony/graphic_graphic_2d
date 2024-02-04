@@ -36,7 +36,6 @@ public:
     void PostTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
     void CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers);
-    void ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence, sptr<IConsumerSurface> cSurface);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
@@ -47,6 +46,7 @@ public:
     uint32_t GetunExcuteTaskNum();
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
+    int GetHardwareTid() const;
     GSError ClearFrameBuffers(OutputPtr output);
 private:
     RSHardwareThread() = default;
@@ -58,8 +58,6 @@ private:
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId);
-    void ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap);
-    void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface) const;
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
@@ -75,6 +73,7 @@ private:
     UniFallbackCallback redrawCb_;
     std::mutex mutex_;
     std::atomic<uint32_t> unExcuteTaskNum_ = 0;
+    int hardwareTid_ = -1;
 
     HgmRefreshRates hgmRefreshRates_;
 

@@ -272,7 +272,7 @@ void OH_Drawing_PathTransform(OH_Drawing_Path*, const OH_Drawing_Matrix*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_SetFillStyle(OH_Drawing_Path*, OH_Drawing_PathFillType);
+void OH_Drawing_PathSetFillType(OH_Drawing_Path*, OH_Drawing_PathFillType);
 
 /**
  * @brief Closes a path. A line segment from the start point to the last point of the path is added.

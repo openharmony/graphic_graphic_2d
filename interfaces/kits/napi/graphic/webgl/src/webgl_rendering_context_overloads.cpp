@@ -45,9 +45,9 @@ static WebGLRenderingContext* GetWebGLRenderingContextBase(napi_env env, napi_va
 
 static int64_t GetOffset(napi_env env, napi_value data, WebGLRenderingContext* context)
 {
-    int64_t srcOffset = 0;
-    bool succ = false;
     if (!NVal(env, data).IsNull()) {
+        int64_t srcOffset = 0;
+        bool succ = false;
         tie(succ, srcOffset) = NVal(env, data).ToInt64();
         if (!succ || srcOffset < 0) {
             context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);

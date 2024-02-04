@@ -35,6 +35,7 @@ constexpr int32_t INVAILD_TIMESTAMP = -1;
 constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 constexpr int64_t MAX_IDLE_TIME_THRESHOLD = 900000000; // 900000000ns == 900ms
+constexpr int64_t SAMPLE_VARIANCE_THRESHOLD = 250000000000; // 500 usec squared
 }
 sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::GetInstance() noexcept
 {
@@ -181,8 +182,7 @@ void VSyncSampler::UpdateModeLocked()
             sum += diff;
         }
         variance /= (int64_t)(numSamples_ - SAMPLES_INTERVAL_DIFF_NUMS);
-        // 1/2 is a empirical value
-        if (variance > g_errorThreshold / 2) {
+        if (variance > SAMPLE_VARIANCE_THRESHOLD) {
             // keep only the latest 5 samples, and sample the next timestamp.
             firstSampleIndex_ = (firstSampleIndex_ + numSamples_ - MIN_SAMPLES_FOR_UPDATE + 1) % MAX_SAMPLES;
             numSamples_ = MIN_SAMPLES_FOR_UPDATE - 1;

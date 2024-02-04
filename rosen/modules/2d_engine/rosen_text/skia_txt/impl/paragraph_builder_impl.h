@@ -40,6 +40,7 @@ private:
     skia::textlayout::ParagraphPainter::PaintID AllocPaintID(const PaintRecord& paint);
     skia::textlayout::ParagraphStyle TextStyleToSkStyle(const ParagraphStyle& txt);
     skia::textlayout::TextStyle TextStyleToSkStyle(const TextStyle& txt);
+    void CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle);
 
     std::shared_ptr<skia::textlayout::ParagraphBuilder> builder_;
     TextStyle baseStyle_;

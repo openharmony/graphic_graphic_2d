@@ -25,6 +25,7 @@
 #include "include/core/SkPoint.h"
 #include "paint_record.h"
 #include "text_types.h"
+#include "symbol_engine/hm_symbol_txt.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,8 +71,34 @@ public:
     bool HasShadow() const;
 
     SkColor color = SK_ColorBLACK;
-    SkPoint offset;
+    SkPoint offset{0, 0};
     double blurSigma = 0.0;
+};
+
+struct RectStyle {
+    SkColor color = 0;
+    SkScalar leftTopRadius = 0.0f;
+    SkScalar rightTopRadius = 0.0f;
+    SkScalar rightBottomRadius = 0.0f;
+    SkScalar leftBottomRadius = 0.0f;
+
+    bool operator ==(const RectStyle& rhs) const
+    {
+        return color == rhs.color &&
+            leftTopRadius == rhs.leftTopRadius &&
+            rightTopRadius == rhs.rightTopRadius &&
+            rightBottomRadius == rhs.rightBottomRadius &&
+            leftBottomRadius == rhs.leftBottomRadius;
+    }
+
+    bool operator !=(const RectStyle& rhs) const
+    {
+        return color != rhs.color ||
+            leftTopRadius != rhs.leftTopRadius ||
+            rightTopRadius != rhs.rightTopRadius ||
+            rightBottomRadius != rhs.rightBottomRadius ||
+            leftBottomRadius != rhs.leftBottomRadius;
+    }
 };
 
 // TextStyle is a collection of parameters that control how text is displayed,
@@ -80,7 +107,7 @@ class TextStyle {
 public:
     TextStyle();
 
-    bool operator==(TextStyle const& rhs) const;
+    bool operator==(TextStyle const& other) const;
 
     SkColor color = SK_ColorWHITE;
 
@@ -101,12 +128,19 @@ public:
     double height = 1.0;
     bool heightOverride = false;
     std::string locale;
+    RectStyle backgroundRect = {0, 0.0f, 0.0f, 0.0f, 0.0f};
+    int styleId = 0;
+
     std::optional<PaintRecord> background;
     std::optional<PaintRecord> foreground;
 
     std::vector<TextShadow> textShadows;
     FontFeatures fontFeatures;
     FontVariations fontVariations;
+
+    // symbol glyph
+    bool isSymbolGlyph = false;
+    HMSymbolTxt symbol;
 };
 
 } // namespace SPText

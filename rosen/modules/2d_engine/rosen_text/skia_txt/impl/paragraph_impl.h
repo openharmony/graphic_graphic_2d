@@ -46,6 +46,14 @@ public:
 
     double GetIdeographicBaseline() override;
 
+    double GetGlyphsBoundsTop() override;
+
+    double GetGlyphsBoundsBottom() override;
+
+    double GetGlyphsBoundsLeft() override;
+
+    double GetGlyphsBoundsRight() override;
+
     bool DidExceedMaxLines() override;
 
     size_t GetLineCount() const override;
@@ -67,17 +75,32 @@ public:
 
     Range<size_t> GetWordBoundary(size_t offset) override;
 
+    Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
+
     std::vector<LineMetrics>& GetLineMetrics() override;
 
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
 
+    void SetAnimation(
+        std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc
+    ) override
+    {
+        if (animationFunc != nullptr) {
+            animationFunc_ = animationFunc;
+        }
+    }
+
+    OHOS::Rosen::Drawing::FontMetrics MeasureText() override;
+
 private:
-    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skia);
+    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);
 
     std::unique_ptr<skia::textlayout::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;
     std::vector<TextStyle> lineMetricsStyles_;
+    std::function<bool(
+        const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
 };
 } // namespace SPText
 } // namespace Rosen

@@ -323,10 +323,10 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             Media::Size realSize;
             pixelMap_->GetAstcRealSize(realSize);
             auto image = std::make_shared<Drawing::Image>();
-            image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
+            bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
                 static_cast<int>(realSize.width), static_cast<int>(realSize.height),
                 PixelFormatToCompressedType(imageInfo.pixelFormat));
-            if (image) {
+            if (result) {
                 image_ = image;
                 SKResourceManager::Instance().HoldResource(image);
                 RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
@@ -415,6 +415,10 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
                 RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
             }
             if (image_) {
+                if (canvas.GetTotalMatrix().HasPerspective()) {
+                    // In case of perspective transformation, make dstRect 1px outset to anti-alias
+                    dst_.MakeOutset(1, 1);
+                }
                 canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
                     Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
             }

@@ -125,7 +125,7 @@ private:
     std::function<void()> vsyncRequestFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
-    std::mutex activeNodesInRootmutex_;
+    std::mutex activeNodesInRootMutex_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

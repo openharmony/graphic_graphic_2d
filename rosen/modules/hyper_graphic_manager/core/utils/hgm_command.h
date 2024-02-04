@@ -27,12 +27,6 @@ namespace OHOS::Rosen {
 
 constexpr int UNI_APP_PID = -1;
 
-const std::unordered_map<int, std::string> HGM_MODIFIER_TYPE_MAP = {
-    {0, "TRANSLATE"},
-    {1, "SCALE"},
-    {2, "ROTATION"}
-};
-
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
     OLED_MIN_HZ = 1,
@@ -72,24 +66,12 @@ enum HgmXmlNode {
     HGM_XML_PARAMS,
 };
 
-enum Animation {
-    HGM_ANIMATION_ZOOM = 0,
-    HGM_ANIMAION_TRANS,
-    HGM_ANIMAION_UI,
-    HGM_ANIMAION_OTHERS,
-};
-
 enum RefreshRateMode {
     HGM_REFRESHRATE_MODE_AUTO = -1,
     HGM_REFRESHRATE_MODE_NULL = 0,
     HGM_REFRESHRATE_MODE_LOW = 1,
     HGM_REFRESHRATE_MODE_MEDIUM,
     HGM_REFRESHRATE_MODE_HIGH,
-};
-
-enum class SpeedTransType {
-    TRANS_PIXEL_TO_MM,
-    TRANS_MM_TO_PIXEL,
 };
 
 enum class SceneType {
@@ -137,21 +119,6 @@ public:
         SceneConfigMap sceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
-
-        DynamicSetting GetAnimationDynamicSetting(HgmModifierType hgmModifierType)
-        {
-            if (!animationDynamicSettings.size()) {
-                return {};
-            }
-            switch (hgmModifierType) {
-                case HgmModifierType::TRANSLATE:
-                    return animationDynamicSettings.find("translate")->second;
-                case HgmModifierType::SCALE:
-                    return animationDynamicSettings.find("scale")->second;
-                case HgmModifierType::ROTATION:
-                    return animationDynamicSettings.find("rotation")->second;
-            }
-        }
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;
@@ -169,21 +136,24 @@ public:
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
 
-    DynamicSetting GetAnimationDynamicSetting(std::string screenType,
-                                              std::string screenSettingType, HgmModifierType hgmModifierType)
+    DynamicSetting GetRSAnimateRateConfig(const std::string& screenType, const std::string& settingMode,
+        const std::string& animateType)
     {
-        if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(screenSettingType)) {
-            return screenConfigs_[screenType][screenSettingType].GetAnimationDynamicSetting(hgmModifierType);
+        if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode) &&
+            screenConfigs_[screenType][settingMode].animationDynamicSettings.count(animateType)) {
+            return screenConfigs_[screenType][settingMode].animationDynamicSettings[animateType];
+        } else {
+            return {};
         }
-        return {};
     }
 
-    DynamicSettingMap GetAceSceneDynamicSettingMap(std::string screenType, std::string screenSettingType)
+    DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {
-        if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(screenSettingType)) {
-            return screenConfigs_[screenType][screenSettingType].aceSceneDynamicSettings;
+        if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode)) {
+            return screenConfigs_[screenType][settingMode].aceSceneDynamicSettings;
+        } else {
+            return {};
         }
-        return {};
     }
 };
 } // namespace OHOS

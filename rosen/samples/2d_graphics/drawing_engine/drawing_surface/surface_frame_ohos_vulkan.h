@@ -27,9 +27,6 @@
 
 #ifdef USE_ROSEN_DRAWING
 #include "engine_adapter/skia_adapter/skia_surface.h"
-#ifdef ENABLE_DDGR_OPTIMIZE
-#include "engine_adapter/ddgr_adapter/ddgr_surface.h"
-#endif
 #endif
 
 namespace OHOS {

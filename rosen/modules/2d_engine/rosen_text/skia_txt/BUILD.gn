@@ -60,6 +60,9 @@ template("skia_libtxt") {
       "$txt_root/impl/drawing_painter_impl.cpp",
       "$txt_root/impl/paragraph_builder_impl.cpp",
       "$txt_root/impl/paragraph_impl.cpp",
+      "$txt_root/symbol_engine/hm_symbol_node_build.cpp",
+      "$txt_root/symbol_engine/hm_symbol_run.cpp",
+      "$txt_root/symbol_engine/hm_symbol_txt.cpp",
       "$txt_root/txt/asset_font_manager.cpp",
       "$txt_root/txt/font_asset_provider.cpp",
       "$txt_root/txt/font_collection.cpp",
@@ -70,6 +73,12 @@ template("skia_libtxt") {
       "$txt_root/txt/text_style.cpp",
       "$txt_root/txt/typeface_font_asset_provider.cpp",
     ]
+
+    external_deps = []
+    if (platform == "ohos" || platform == "ohos_ng") {
+      external_deps += [ "init:libbegetutil" ]
+      defines += [ "HM_SYMBOL_TXT_ENABLE" ]
+    }
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
@@ -86,7 +95,7 @@ template("skia_libtxt") {
       "//third_party/skia:skia_$platform",
     ]
 
-    external_deps = [ "hilog:libhilog" ]
+    external_deps += [ "hilog:libhilog" ]
   }
 }
 

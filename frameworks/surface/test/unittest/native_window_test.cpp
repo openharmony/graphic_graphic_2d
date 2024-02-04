@@ -282,6 +282,31 @@ HWTEST_F(NativeWindowTest, HandleOpt007, Function | MediumTest | Level2)
 }
 
 /*
+* Function: OH_NativeWindow_NativeWindowHandleOpt
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeWindow_NativeWindowHandleOpt by different param
+*                  2. check ret
+ */
+HWTEST_F(NativeWindowTest, HandleOpt008, Function | MediumTest | Level1)
+{
+    int code = GET_TRANSFORM;
+    int32_t transform = 0;
+    ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, &transform), OHOS::GSERROR_OK);
+    transform = GraphicTransformType::GRAPHIC_ROTATE_90;
+    code = SET_TRANSFORM;
+    ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, transform), OHOS::GSERROR_OK);
+    int32_t transformTmp = 0;
+    code = GET_TRANSFORM;
+    ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, &transformTmp), OHOS::GSERROR_OK);
+    ASSERT_EQ(transformTmp, GraphicTransformType::GRAPHIC_ROTATE_90);
+    nativeWindow->surface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
+    ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, &transformTmp), OHOS::GSERROR_OK);
+    ASSERT_EQ(transformTmp, GraphicTransformType::GRAPHIC_ROTATE_180);
+}
+
+/*
 * Function: OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer
 * Type: Function
 * Rank: Important(2)
@@ -510,7 +535,7 @@ HWTEST_F(NativeWindowTest, GetLastFlushedBuffer001, Function | MediumTest | Leve
 HWTEST_F(NativeWindowTest, GetLastFlushedBuffer002, Function | MediumTest | Level2)
 {
     int code = SET_USAGE;
-    uint64_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_PROTECTED;
+    uint64_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_PROTECTED;
     ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, usage), OHOS::GSERROR_OK);
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;

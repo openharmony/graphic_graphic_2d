@@ -73,6 +73,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
+    "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_render_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
@@ -123,6 +124,7 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",
     "src/common/rs_common_tools.cpp",
+    "src/common/rs_gpu_dirty_region.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
@@ -391,6 +393,11 @@ ohos_source_set("render_service_base_src") {
     "$rosen_root/modules/platform:ipc_core",
   ]
   external_deps = [ "hilog:libhilog" ]
+
+  if (graphic_2d_feature_enable_ddgr_opinc) {
+    include_dirs += ddgr_adapter_opt_set.ddgr_opinc_include_set
+    sources += ddgr_adapter_opt_set.ddgr_opinc_src_set
+  }
 
   if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]

@@ -40,7 +40,9 @@
 #include <ui/rs_surface_extractor.h>
 
 #include "boot_animationconfig.h"
+#ifdef PLAYER_FRAMEWORK_ENABLE
 #include "boot_videoplayer.h"
+#endif
 #include "event_handler.h"
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include "player.h"
@@ -54,11 +56,13 @@ public:
     void Init(Rosen::ScreenId defaultId, int32_t width, int32_t height);
     void Draw();
     bool CheckExitAnimation();
+#ifdef PLAYER_FRAMEWORK_ENABLE
     void PlaySound();
     void PlayVideo();
+    void CloseVideoPlayer();
+#endif
     void Run(Rosen::ScreenId id, int screenWidth, int screenHeight);
     ~BootAnimation();
-    void CloseVideoPlayer();
 private:
     void OnVsync();
     void OnDraw(SkCanvas* canvas, int32_t curNo);
@@ -90,14 +94,14 @@ private:
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
 #ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> soundPlayer_;
+    std::shared_ptr<BootVideoPlayer> bootVideoPlayer_;
+    OHOS::FrameCallback fcb_;
 #endif
     ImageStructVec imageVector_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_;
     bool isAnimationEnd_ = false;
-    std::shared_ptr<BootVideoPlayer> bootVideoPlayer_;
     BootAnimationConfig animationConfig_;
-    OHOS::FrameCallback fcb_;
 };
 } // namespace OHOS
 

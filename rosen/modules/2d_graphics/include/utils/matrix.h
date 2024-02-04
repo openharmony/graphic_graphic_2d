@@ -49,11 +49,20 @@ public:
     Matrix(const Matrix& matrix);
     Matrix& operator=(const Matrix& matrix);
     virtual ~Matrix() {}
+    static Matrix Skew(scalar kx, scalar ky)
+    {
+        Matrix m;
+        m.SetSkew(kx, ky);
+        return m;
+    }
+
     void Rotate(scalar degree, scalar px, scalar py);
     void Translate(scalar dx, scalar dy);
     void Scale(scalar sx, scalar sy, scalar px, scalar py);
     void SetScale(scalar sx, scalar sy);
     void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy);
+    void SetSkew(scalar kx, scalar ky);
+    void SetSkew(scalar kx, scalar ky, scalar px, scalar py);
     /*
      * @brief         Sets Matrix to Matrix multiplied by Matrix constructed
      *                from rotating by degrees about pivot point(0,0).
@@ -90,7 +99,7 @@ public:
     void PreScale(scalar sx, scalar sy);
 
     void PostScale(scalar sx, scalar sy);
-    
+
     /*
      * @brief         Sets Matrix to Matrix constructed from scaling by (sx, sy)
      *                about pivot point(px,py), multiplied by Matrix.
@@ -100,6 +109,42 @@ public:
      * @param px      pivot on y-axis
      */
     void PostScale(scalar sx, scalar sy, scalar px, scalar py);
+
+    /*
+     * @brief     Sets Matrix to Matrix multiplied by Matrix constructed
+     *            from skewing by (kx, ky) about pivot point (0, 0).
+     * @param kx  Horizontal skew factor.
+     * @param ky  Vertical skew factor.
+     */
+    void PreSkew(scalar kx, scalar ky);
+
+    /*
+     * @brief     Sets Matrix to Matrix constructed from skewing by (kx, ky)
+     *            about pivot point(0, 0), multiplied by Matrix.
+     * @param kx  Horizontal skew factor.
+     * @param ky  Vertical skew factor.
+     */
+    void PostSkew(scalar kx, scalar ky);
+
+    /*
+     * @brief         Sets Matrix to Matrix multiplied by Matrix constructed
+     *                from skewing by (kx, ky) about pivot point (px, py).
+     * @param sx      horizontal skew factor
+     * @param sy      vertical skew factor
+     * @param kx      pivot on x-axis
+     * @param ky      pivot on y-axis
+     */
+    void PreSkew(scalar kx, scalar ky, scalar px, scalar py);
+
+    /*
+     * @brief         Sets Matrix to Matrix constructed from skewing by (kx, ky)
+     *                about pivot point(px,py), multiplied by Matrix.
+     * @param sx      horizontal skew factor
+     * @param sy      vertical skew factor
+     * @param kx      pivot on x-axis
+     * @param ky      pivot on y-axis
+     */
+    void PostSkew(scalar kx, scalar ky, scalar px, scalar py);
 
     /*
      * @brief         Sets Matrix to Matrix other multiplied by Matrix.
@@ -196,6 +241,8 @@ public:
     void Reset();
 
     bool GetMinMaxScales(scalar scaleFactors[2]);
+    bool HasPerspective() const;
+
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;
 };

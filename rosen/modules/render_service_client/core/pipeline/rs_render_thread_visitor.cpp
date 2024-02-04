@@ -108,7 +108,6 @@ void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, boo
 
 void RSRenderThreadVisitor::PrepareChildren(RSRenderNode& node)
 {
-    node.ApplyChildrenModifiers();
     for (auto& child : *node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
@@ -760,6 +759,33 @@ void RSRenderThreadVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
+int RSRenderThreadVisitor::CacRotationFromTransformType(GraphicTransformType transform)
+{
+    GraphicTransformType rotation;
+    switch (transform) {
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_90;
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_180;
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_270;
+            break;
+        default:
+            rotation = transform;
+            break;
+    }
+    static const std::map<GraphicTransformType, int> transformTypeEnumToIntMap = {
+        {GraphicTransformType::GRAPHIC_ROTATE_NONE, 0}, {GraphicTransformType::GRAPHIC_ROTATE_90, 270},
+        {GraphicTransformType::GRAPHIC_ROTATE_180, 180}, {GraphicTransformType::GRAPHIC_ROTATE_270, 90}};
+    auto iter = transformTypeEnumToIntMap.find(rotation);
+    return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
+}
+
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
 #ifdef ROSEN_OHOS
@@ -787,6 +813,11 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     if (fence != nullptr) {
         fence->Wait(3000); // wait at most 3000ms
     }
+    Drawing::Matrix transfromMatrix;
+    auto transform = surface->GetTransform();
+    int rotation = CacRotationFromTransformType(transform);
+    transfromMatrix.PreRotate(rotation, property.GetBoundsWidth() * 0.5f, property.GetBoundsHeight() * 0.5f);
+    canvas_->ConcatMatrix(transfromMatrix);
 #ifndef USE_ROSEN_DRAWING
     auto recordingCanvas = std::make_shared<RSRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
     RSSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(), property.GetBoundsPositionY(),

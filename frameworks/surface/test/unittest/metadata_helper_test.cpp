@@ -37,6 +37,7 @@ public:
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
     };
     static inline sptr<SurfaceBuffer> buffer_ = nullptr;
+    static inline sptr<SurfaceBuffer> nullBuffer_ = nullptr;
 };
 
 void MetadataManagerTest::SetUpTestCase()
@@ -44,6 +45,43 @@ void MetadataManagerTest::SetUpTestCase()
     buffer_ = new SurfaceBufferImpl(0);
     auto ret = buffer_->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: MetadataManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test ConvertMetadataToVec
+*/
+HWTEST_F(MetadataManagerTest, ConvertMetadataToVecTest, Function | SmallTest | Level2)
+{
+    uint32_t metadata = 0;
+    std::vector<uint8_t> vec;
+    ASSERT_EQ(MetadataHelper::ConvertMetadataToVec(metadata, vec), GSERROR_OK);
+
+    ASSERT_EQ(vec.size(), 4);
+    for (uint32_t i = 0; i < vec.size(); ++i) {
+        ASSERT_EQ(vec[i], 0);
+    }
+}
+
+/*
+* Function: MetadataManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test ConvertVecToMetadata
+*/
+HWTEST_F(MetadataManagerTest, ConvertVecToMetadataTest, Function | SmallTest | Level2)
+{
+    std::vector<uint8_t> vec;
+    uint32_t metadata = 1;
+    ASSERT_EQ(MetadataHelper::ConvertVecToMetadata(vec, metadata), GSERROR_NOT_SUPPORT);
+
+    vec.assign(4, 0);
+    ASSERT_EQ(MetadataHelper::ConvertVecToMetadata(vec, metadata), GSERROR_OK);
+    ASSERT_EQ(metadata, 0);
 }
 
 /*
@@ -114,6 +152,9 @@ HWTEST_F(MetadataManagerTest, ColorSpaceInfoTest, Function | SmallTest | Level2)
         ASSERT_EQ(infoSet.matrix, infoGet.matrix);
         ASSERT_EQ(infoSet.range, infoGet.range);
     }
+
+    ASSERT_EQ(MetadataHelper::SetColorSpaceInfo(nullBuffer_, infoSet), GSERROR_NO_BUFFER);
+    ASSERT_EQ(MetadataHelper::GetColorSpaceInfo(nullBuffer_, infoGet), GSERROR_NO_BUFFER);
 }
 
 /*
@@ -135,6 +176,9 @@ HWTEST_F(MetadataManagerTest, ColorSpaceTypeTest, Function | SmallTest | Level2)
     if (retSet == GSERROR_OK && retGet == GSERROR_OK) {
         ASSERT_EQ(colorSpaceType, CM_SRGB_FULL);
     }
+
+    ASSERT_EQ(MetadataHelper::SetColorSpaceType(nullBuffer_, CM_SRGB_FULL), GSERROR_NO_BUFFER);
+    ASSERT_EQ(MetadataHelper::GetColorSpaceType(nullBuffer_, colorSpaceType), GSERROR_NO_BUFFER);
 }
 
 /*
@@ -156,6 +200,9 @@ HWTEST_F(MetadataManagerTest, HDRMetadataTypeTest, Function | SmallTest | Level2
     if (retSet == GSERROR_OK && retGet == GSERROR_OK) {
         ASSERT_EQ(hdrMetadataType, CM_VIDEO_HDR_VIVID);
     }
+
+    ASSERT_EQ(MetadataHelper::SetHDRMetadataType(nullBuffer_, CM_VIDEO_HDR_VIVID), GSERROR_NO_BUFFER);
+    ASSERT_EQ(MetadataHelper::GetHDRMetadataType(nullBuffer_, hdrMetadataType), GSERROR_NO_BUFFER);
 }
 
 /*
@@ -203,6 +250,9 @@ HWTEST_F(MetadataManagerTest, HDRStaticMetadataTest, Function | SmallTest | Leve
         ASSERT_EQ(metadataSet.cta861.maxContentLightLevel, metadataGet.cta861.maxContentLightLevel);
         ASSERT_EQ(metadataSet.cta861.maxFrameAverageLightLevel, metadataGet.cta861.maxFrameAverageLightLevel);
     }
+
+    ASSERT_EQ(MetadataHelper::SetHDRStaticMetadata(nullBuffer_, metadataSet), GSERROR_NO_BUFFER);
+    ASSERT_EQ(MetadataHelper::GetHDRStaticMetadata(nullBuffer_, metadataGet), GSERROR_NO_BUFFER);
 }
 
 /*
@@ -230,5 +280,53 @@ HWTEST_F(MetadataManagerTest, HDRDynamicMetadataTest, Function | SmallTest | Lev
             ASSERT_EQ(metadataSet[i], metadataGet[i]);
         }
     }
+
+    ASSERT_EQ(MetadataHelper::SetHDRDynamicMetadata(nullBuffer_, metadataSet), GSERROR_NO_BUFFER);
+    ASSERT_EQ(MetadataHelper::GetHDRDynamicMetadata(nullBuffer_, metadataGet), GSERROR_NO_BUFFER);
+}
+
+/*
+* Function: MetadataManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test SetHDRStaticMetadata and GetHDRStaticMetadata
+*/
+HWTEST_F(MetadataManagerTest, HDRStaticMetadataVecTest, Function | SmallTest | Level2)
+{
+    HdrStaticMetadata metadata = {
+        .smpte2086 = {
+            .displayPrimaryRed = {0.1f, 0.1f},
+            .displayPrimaryGreen = {0.2f, 0.2f},
+            .displayPrimaryBlue = {0.3f, 0.3f},
+            .whitePoint = {0.4f, 0.4f},
+            .maxLuminance = 1000.0f,
+            .minLuminance = 0.1f,
+        },
+        .cta861 = {
+            .maxContentLightLevel = 500.0f,
+            .maxFrameAverageLightLevel = 300.0f,
+        },
+    };
+
+    std::vector<uint8_t> metadataSet;
+    ASSERT_EQ(MetadataHelper::ConvertMetadataToVec(metadata, metadataSet), GSERROR_OK);
+
+    auto retSet = MetadataHelper::SetHDRStaticMetadata(buffer_, metadataSet);
+    ASSERT_TRUE(retSet == GSERROR_OK || GSErrorStr(retSet) == "<500 api call failed>with low error <Not supported>");
+
+    std::vector<uint8_t> metadataGet;
+    auto retGet = MetadataHelper::GetHDRStaticMetadata(buffer_, metadataGet);
+    ASSERT_TRUE(retGet == GSERROR_OK || GSErrorStr(retGet) == "<500 api call failed>with low error <Not supported>");
+
+    if (retSet == GSERROR_OK && retGet == GSERROR_OK) {
+        ASSERT_EQ(metadataSet.size(), metadataGet.size());
+        for (uint32_t i = 0; i < metadataSet.size(); i++) {
+            ASSERT_EQ(metadataSet[i], metadataGet[i]);
+        }
+    }
+
+    ASSERT_EQ(MetadataHelper::SetHDRStaticMetadata(nullBuffer_, metadataSet), GSERROR_NO_BUFFER);
+    ASSERT_EQ(MetadataHelper::GetHDRStaticMetadata(nullBuffer_, metadataGet), GSERROR_NO_BUFFER);
 }
 }

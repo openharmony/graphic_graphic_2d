@@ -40,6 +40,7 @@ public:
     int32_t GetScreenSupportedModes(std::vector<GraphicDisplayModeInfo> &modes) const;
     int32_t GetScreenMode(uint32_t &modeId) const;
     int32_t SetScreenMode(uint32_t modeId) const;
+    int32_t SetScreenOverlayResolution(uint32_t width, uint32_t height) const;
     int32_t GetScreenPowerStatus(GraphicDispPowerStatus &status) const;
     int32_t SetScreenPowerStatus(GraphicDispPowerStatus status) const;
     int32_t GetScreenBacklight(uint32_t &level) const;

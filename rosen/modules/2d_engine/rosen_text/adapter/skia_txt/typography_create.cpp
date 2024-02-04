@@ -17,6 +17,7 @@
 
 #include "convert.h"
 #include "typography.h"
+#include <unicode/utf8.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -51,8 +52,27 @@ void TypographyCreate::AppendText(const std::u16string& text)
     builder_->AddText(text);
 }
 
+std::vector<uint16_t> TypographyCreate::SymbolToUTF16(const std::vector<uint32_t> &utf32Text)
+{
+    size_t utf32Index = 0;
+    size_t codePoint = 0;
+    int error = 0;
+    std::vector<uint16_t> utf16Text;
+    while (utf32Index < utf32Text.size()) {
+        UTF32_NEXT_CHAR_SAFE(utf32Text.data(), utf32Index, utf32Text.size(), codePoint, error);
+        utf16Text.push_back(U16_LEAD(codePoint));
+        utf16Text.push_back(U16_TRAIL(codePoint));
+    }
+    return utf16Text;
+}
+
 void TypographyCreate::AppendSymbol(const uint32_t& symbolId)
 {
+    std::vector<uint32_t> symbolUnicode = {symbolId};
+    std::vector<uint16_t> symbolUnicode16 = SymbolToUTF16(symbolUnicode);
+    std::u16string text;
+    std::copy(symbolUnicode16.begin(), symbolUnicode16.end(), std::back_inserter(text));
+    builder_->AddText(text);
 }
 
 void TypographyCreate::AppendPlaceholder(const PlaceholderSpan& span)

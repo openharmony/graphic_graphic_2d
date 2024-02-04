@@ -32,7 +32,7 @@ xmlNodePtr XMLReader::FindNode(const xmlNodePtr& src, const std::string& index)
         }
         startPtr = startPtr->next;
     }
-    RS_LOGE("[%{public}s] can not found node %{public}s! \n", __func__, index.c_str());
+    RS_LOGD("[%{public}s] can not found node %{public}s! \n", __func__, index.c_str());
     return nullptr;
 }
 

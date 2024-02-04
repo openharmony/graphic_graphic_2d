@@ -17,7 +17,9 @@
 
 #include "skia_adapter/skia_static_factory.h"
 #include "utils/system_properties.h"
-
+#ifdef ENABLE_DDGR_OPTIMIZE
+#include "ddgr_static_factory.h"
+#endif
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -26,6 +28,11 @@ using EngineStaticFactory = SkiaStaticFactory;
 std::shared_ptr<TextBlob> StaticFactory::MakeFromText(const void* text, size_t byteLength,
     const Font& font, TextEncoding encoding)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromText(text, byteLength, font, encoding);
+    }
+#endif
     return EngineStaticFactory::MakeFromText(text, byteLength, font, encoding);
 }
 
@@ -38,26 +45,51 @@ std::shared_ptr<TextBlob> StaticFactory::MakeFromPosText(const void* text, size_
 std::shared_ptr<TextBlob> StaticFactory::MakeFromRSXform(const void* text, size_t byteLength,
     const RSXform xform[], const Font& font, TextEncoding encoding)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromRSXform(text, byteLength, xform, font, encoding);
+    }
+#endif
     return EngineStaticFactory::MakeFromRSXform(text, byteLength, xform, font, encoding);
 }
 
 std::shared_ptr<Typeface> StaticFactory::MakeDefault()
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeDefault();
+    }
+#endif
     return EngineStaticFactory::MakeDefault();
 }
 
 std::shared_ptr<Typeface> StaticFactory::MakeFromFile(const char path[], int index)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromFile(path, index);
+    }
+#endif
     return EngineStaticFactory::MakeFromFile(path, index);
 }
 
 std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromStream(std::move(memoryStream), index);
+    }
+#endif
     return EngineStaticFactory::MakeFromStream(std::move(memoryStream), index);
 }
 
 std::shared_ptr<Typeface> StaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromName(familyName, fontStyle);
+    }
+#endif
     return EngineStaticFactory::MakeFromName(familyName, fontStyle);
 }
 
@@ -71,6 +103,12 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* 
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin,
+            colorType, colorSpace, deleteVkImage, cleanHelper);
+    }
+#endif
     return EngineStaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin,
         colorType, colorSpace, deleteVkImage, cleanHelper);
 }
@@ -82,6 +120,12 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendTexture(GPUContext* gpuCo
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
+            colorSpace, deleteVkImage, cleanHelper);
+    }
+#endif
     return EngineStaticFactory::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
         colorSpace, deleteVkImage, cleanHelper);
 }
@@ -89,89 +133,175 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendTexture(GPUContext* gpuCo
 std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
     bool budgeted, const ImageInfo& imageInfo)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
+    }
+#endif
     return EngineStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
 }
 #endif
 
 std::shared_ptr<Surface> StaticFactory::MakeRaster(const ImageInfo& imageInfo)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeRaster(imageInfo);
+    }
+#endif
     return EngineStaticFactory::MakeRaster(imageInfo);
 }
 
 std::shared_ptr<Surface> StaticFactory::MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeRasterDirect(imageInfo, pixels, rowBytes);
+    }
+#endif
     return EngineStaticFactory::MakeRasterDirect(imageInfo, pixels, rowBytes);
 }
 
 std::shared_ptr<Surface> StaticFactory::MakeRasterN32Premul(int32_t width, int32_t height)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeRasterN32Premul(width, height);
+    }
+#endif
     return EngineStaticFactory::MakeRasterN32Premul(width, height);
 }
 
 std::shared_ptr<Image> StaticFactory::MakeFromRaster(const Pixmap& pixmap,
     RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
+    }
+#endif
     return EngineStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
 }
 
 std::shared_ptr<Image> StaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
     size_t rowBytes)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeRasterData(info, pixels, rowBytes);
+    }
+#endif
     return EngineStaticFactory::MakeRasterData(info, pixels, rowBytes);
 }
 
 std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, size_t size)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::DeserializeTextBlob(data, size);
+    }
+#endif
     return EngineStaticFactory::DeserializeTextBlob(data, size);
 }
 
 bool StaticFactory::CanComputeFastBounds(const Brush& brush)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::CanComputeFastBounds(brush);
+    }
+#endif
     return EngineStaticFactory::CanComputeFastBounds(brush);
 }
 
 const Rect& StaticFactory::ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::ComputeFastBounds(brush, orig, storage);
+    }
+#endif
     return EngineStaticFactory::ComputeFastBounds(brush, orig, storage);
 }
 
 bool StaticFactory::AsBlendMode(const Brush& brush)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::AsBlendMode(brush);
+    }
+#endif
     return EngineStaticFactory::AsBlendMode(brush);
 }
+
 std::shared_ptr<Data> StaticFactory::MakeDataFromFileName(const char path[])
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeDataFromFileName(path);
+    }
+#endif
     return EngineStaticFactory::MakeDataFromFileName(path);
 }
 
 void StaticFactory::PathOutlineDecompose(const Path& path, std::vector<Path>& paths)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::PathOutlineDecompose(path, paths);
+    }
+#endif
     EngineStaticFactory::PathOutlineDecompose(path, paths);
 }
 
 void StaticFactory::MultilayerPath(const std::vector<std::vector<size_t>>& multMap,
     const std::vector<Path>& paths, std::vector<Path>& multPaths)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MultilayerPath(multMap, paths, multPaths);
+    }
+#endif
     EngineStaticFactory::MultilayerPath(multMap, paths, multPaths);
 }
 
 void StaticFactory::GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetDrawingGlyphIDforTextBlob(blob, glyphIds);
+    }
+#endif
     EngineStaticFactory::GetDrawingGlyphIDforTextBlob(blob, glyphIds);
 }
 
 Path StaticFactory::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetDrawingPathforTextBlob(glyphId, blob);
+    }
+#endif
     return EngineStaticFactory::GetDrawingPathforTextBlob(glyphId, blob);
 }
 
 std::shared_ptr<DrawingSymbolLayersGroups> StaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetSymbolLayersGroups(glyphId);
+    }
+#endif
     return EngineStaticFactory::GetSymbolLayersGroups(glyphId);
 }
 
 FontStyleSet* StaticFactory::CreateEmpty()
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::CreateEmpty();
+    }
+#endif
     return EngineStaticFactory::CreateEmpty();
 }
 } // namespace Drawing

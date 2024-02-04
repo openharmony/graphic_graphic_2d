@@ -93,7 +93,7 @@ std::array<float, 16> SurfaceUtils::MatrixProduct(const std::array<float, 16>& l
                                   lMat[3] * rMat[12] + lMat[7] * rMat[13] + lMat[11] * rMat[14] + lMat[15] * rMat[15]};
 }
 
-void SurfaceUtils::ComputeTransformMatrix(float matrix[16], int32_t matrixSize,
+void SurfaceUtils::ComputeTransformMatrix(float matrix[16],
     sptr<SurfaceBuffer>& buffer, GraphicTransformType& transform, Rect& crop)
 {
     const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> rotate90 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
@@ -118,7 +118,7 @@ void SurfaceUtils::ComputeTransformMatrix(float matrix[16], int32_t matrixSize,
     static const std::array<float, 16> cropMatrix = {sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1};
     transformMatrix = MatrixProduct(cropMatrix, transformMatrix);
 
-    auto ret = memcpy_s(matrix, matrixSize * sizeof(float),
+    auto ret = memcpy_s(matrix, sizeof(transformMatrix),
                         transformMatrix.data(), sizeof(transformMatrix));
     if (ret != EOK) {
         BLOGE("ComputeTransformMatrix: transformMatrix memcpy_s failed");

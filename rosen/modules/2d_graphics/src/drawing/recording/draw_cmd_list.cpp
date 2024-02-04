@@ -105,13 +105,18 @@ std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data
     return cmdList;
 }
 
-DrawCmdList::DrawCmdList(DrawCmdList::UnmarshalMode mode) : mode_(mode) {}
+DrawCmdList::DrawCmdList(DrawCmdList::UnmarshalMode mode) : width_(0), height_(0), mode_(mode) {}
 
 DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMode mode)
     : width_(width), height_(height), mode_(mode)
 {
     opAllocator_.Add(&width_, sizeof(int32_t));
     opAllocator_.Add(&height_, sizeof(int32_t));
+}
+
+DrawCmdList::~DrawCmdList()
+{
+    ClearOp();
 }
 
 bool DrawCmdList::AddDrawOp(std::shared_ptr<DrawOpItem>&& drawOpItem)
@@ -208,9 +213,9 @@ void DrawCmdList::MarshallingDrawOps()
     }
     std::vector<uint32_t> opIndexForCache(replacedOpListForVector_.size());
     uint32_t opReplaceIndex = 0;
-    for (auto index = 0u; index < drawOpItems_.size(); index++) {
+    for (size_t index = 0; index < drawOpItems_.size(); index++) {
         drawOpItems_[index]->Marshalling(*this);
-        if (index == replacedOpListForVector_[opReplaceIndex].first) {
+        if (index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
             opIndexForCache[opReplaceIndex] = lastOpItemOffset_.value();
             ++opReplaceIndex;
         }
@@ -364,7 +369,7 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
     if (drawOpItems_.size() == 0) {
         return;
     }
-    for (int i = 0; i < drawOpItems_.size(); ++i) {
+    for (size_t i = 0; i < drawOpItems_.size(); ++i) {
         auto opItem = drawOpItems_[i];
         if (!opItem) {
             continue;
@@ -508,7 +513,9 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
         lastOpGenSize_ = opAllocator_.GetSize();
     }
     for (auto op : drawOpItems_) {
-        op->Playback(&canvas, rect);
+        if (op) {
+            op->Playback(&canvas, rect);
+        }
     }
     canvas.DetachPaint();
 }

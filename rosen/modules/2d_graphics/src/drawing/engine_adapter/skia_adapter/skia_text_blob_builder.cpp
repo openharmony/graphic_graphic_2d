@@ -37,7 +37,7 @@ const TextBlobBuilder::RunBuffer& SkiaTextBlobBuilder::AllocRunPos(const Font& f
 {
     auto skiaFont = font.GetImpl<SkiaFont>();
     if (!skiaFont) {
-        LOGE("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return drawingRunBuffer_;
     }
     if (!bounds) {

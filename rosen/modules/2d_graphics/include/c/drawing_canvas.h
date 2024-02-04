@@ -213,6 +213,21 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
 void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas*, const OH_Drawing_Bitmap*, float left, float top);
 
 /**
+ * @brief Draw the specified area of the bitmap to the specified area of the canvas.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @param src the area of source bitmap, can be nullptr.
+ * @param dst the area of destination canvas.
+ * @param OH_Drawing_SamplingOptions the sampling mode.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas*, const OH_Drawing_Bitmap*, const OH_Drawing_Rect* src,
+    const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions*);
+
+/**
  * @brief Draws a rect.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -366,17 +381,6 @@ void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas*, float dx, float dy);
 void OH_Drawing_CanvasScale(OH_Drawing_Canvas*, float sx, float sy);
 
 /**
- * @brief Clears a canvas by using a specified color.
- *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @param color Indicates the color, which is a 32-bit (ARGB) variable.
- * @since 8
- * @version 1.0
- */
-void OH_Drawing_CanvasClear(OH_Drawing_Canvas*, uint32_t color);
-
-/**
  * @brief Get the width of a canvas.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -401,23 +405,22 @@ int32_t OH_Drawing_CanvasGetHeight(OH_Drawing_Canvas*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @return The pointer to an <b>OH_Drawing_Rect</b> object, represents the boundar of clip,
- * transformed by inverse of matrix.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_Rect* OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas*);
+void OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas*, OH_Drawing_Rect*);
 
 /**
- * @brief Get a 3x3 matrix of the transform from local coordinates to 'device'
+ * @brief Get a 3x3 matrix of the transform from local coordinates to 'device'.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @return The pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_Matrix* OH_Drawing_CanvasGetLocalToDevice(OH_Drawing_Canvas*);
+void OH_Drawing_CanvasGetTotalMatrix(OH_Drawing_Canvas*, OH_Drawing_Matrix*);
 
 /**
  * @brief Use the passed matrix to transforming the geometry, then use existing matrix.
@@ -462,10 +465,9 @@ typedef enum {
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
  * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object, use to generate shadows.
- * @param OH_Drawing_Point3 Indicates the pointer to an <b>OH_Drawing_Point3</b> object.
- * represents the value of the function which returns Z offset of the occluder from the canvas based on x and y.
- * @param OH_Drawing_Point3 Indicates the pointer to an <b>OH_Drawing_Point3</b> object.
- * represents the position of the light relative to the canvas.
+ * @param planeParams Represents the value of the function which returns Z offset of the occluder from the
+ * canvas based on x and y.
+ * @param devLightPos Represents the position of the light relative to the canvas.
  * @param lightRadius The radius of the circular light.
  * @param ambientColor Ambient shadow's color.
  * @param spotColor Spot shadow's color.
@@ -473,9 +475,20 @@ typedef enum {
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas*, OH_Drawing_Path*, OH_Drawing_Point3*,
-    OH_Drawing_Point3*, float lightRadius, uint32_t ambientColor, uint32_t spotColor,
+void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas*, OH_Drawing_Path*, OH_Drawing_Point3D planeParams,
+    OH_Drawing_Point3D devLightPos, float lightRadius, uint32_t ambientColor, uint32_t spotColor,
     OH_Drawing_CanvasShadowFlags flag);
+
+/**
+ * @brief Clears a canvas by using a specified color.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param color Indicates the color, which is a 32-bit (ARGB) variable.
+ * @since 8
+ * @version 1.0
+ */
+void OH_Drawing_CanvasClear(OH_Drawing_Canvas*, uint32_t color);
 
 /**
  * @brief Sets matrix of canvas.

@@ -16,86 +16,35 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_CUBIC_BEZIER_INTERPOLATOR_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_CUBIC_BEZIER_INTERPOLATOR_H
 
-#include "animation/rs_interpolator.h"
 #include <cinttypes>
+
+#include "animation/rs_interpolator.h"
 #include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSCubicBezierInterpolator : public RSInterpolator {
+class RSB_EXPORT RSCubicBezierInterpolator : public RSInterpolator {
 public:
-    explicit RSCubicBezierInterpolator(float ctrx1, float ctry1, float ctrx2, float ctry2)
-        : controllx1_(ctrx1), controlly1_(ctry1), controllx2_(ctrx2), controlly2_(ctry2)
-    {}
-    ~RSCubicBezierInterpolator() = default;
+    RSCubicBezierInterpolator(float ctlX1, float ctlY1, float ctlX2, float ctlY2);
+    ~RSCubicBezierInterpolator() override = default;
 
-    float Interpolate(float input) const override
-    {
-        constexpr float ONE = 1.0f;
-        if (ROSEN_EQ(input, ONE, 1e-6f)) {
-            return ONE;
-        }
-        return GetCubicBezierValue(SEARCH_STEP * BinarySearch(input), controlly1_, controlly2_);
-    }
-    bool Marshalling(Parcel& parcel) const override
-    {
-        if (!parcel.WriteUint16(InterpolatorType::CUBIC_BEZIER)) {
-            return false;
-        }
-        if (!(parcel.WriteFloat(controllx1_) && parcel.WriteFloat(controlly1_) && parcel.WriteFloat(controllx2_) &&
-                parcel.WriteFloat(controlly2_))) {
-            return false;
-        }
-        return true;
-    }
-    [[nodiscard]] static RSCubicBezierInterpolator* Unmarshalling(Parcel& parcel)
-    {
-        float x1 = 0;
-        float y1 = 0;
-        float x2 = 0;
-        float y2 = 0;
-        if (!(parcel.ReadFloat(x1) && parcel.ReadFloat(y1) && parcel.ReadFloat(x2) && parcel.ReadFloat(y2))) {
-            return nullptr;
-        }
-        return new RSCubicBezierInterpolator(x1, y1, x2, y2);
-    }
+    float InterpolateImpl(float input) const override;
+
+    bool Marshalling(Parcel& parcel) const override;
+    [[nodiscard]] static RSCubicBezierInterpolator* Unmarshalling(Parcel& parcel);
 
 private:
-    float GetCubicBezierValue(const float time, const float ctr1, const float ctr2) const
-    {
-        return THIRD_RDER * (1.0f - time) * (1.0f - time) * time * ctr1 +
-               THIRD_RDER * (1.0f - time) * time * time * ctr2 + time * time * time;
-    }
+    RSCubicBezierInterpolator(uint64_t id, float ctlX1, float ctlY1, float ctlX2, float ctlY2);
 
-    int BinarySearch(float key) const
-    {
-        int low = 0;
-        int high = MAX_RESOLUTION;
-        int middle;
-        float approximation;
-        while (low <= high) {
-            middle = (low + high) / 2;
-            approximation = GetCubicBezierValue(SEARCH_STEP * middle, controllx1_, controllx2_);
-            if (approximation < key) {
-                low = middle + 1;
-            } else {
-                high = middle - 1;
-            }
-            if (fabs(approximation - key) <= 1e-6) {
-                return middle;
-            }
-        }
-        return low;
-    }
+    int BinarySearch(float key) const;
 
     constexpr static int MAX_RESOLUTION = 4000;
     constexpr static float SEARCH_STEP = 1.0f / MAX_RESOLUTION;
-    constexpr static int THIRD_RDER = 3.0;
 
-    float controllx1_;
-    float controlly1_;
-    float controllx2_;
-    float controlly2_;
+    float controlX1_;
+    float controlY1_;
+    float controlX2_;
+    float controlY2_;
 };
 } // namespace Rosen
 } // namespace OHOS

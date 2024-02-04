@@ -55,6 +55,7 @@ public:
     std::shared_ptr<Typeface> GetTypeface() override;
 
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding) override;
+    int CountText(const void* text, size_t byteLength, TextEncoding encoding) const override;
 
     const SkFont& GetFont() const;
 

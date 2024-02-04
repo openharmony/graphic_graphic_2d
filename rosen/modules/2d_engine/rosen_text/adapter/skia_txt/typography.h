@@ -33,6 +33,10 @@ public:
     double GetMaxIntrinsicWidth() override;
     double GetAlphabeticBaseline() override;
     double GetIdeographicBaseline() override;
+    double GetGlyphsBoundsTop() override;
+    double GetGlyphsBoundsBottom() override;
+    double GetGlyphsBoundsLeft() override;
+    double GetGlyphsBoundsRight() override;
     bool DidExceedMaxLines() const override;
     int GetLineCount() const override;
 
@@ -46,11 +50,13 @@ public:
     std::vector<TextRect> GetTextRectsOfPlaceholders() override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
+    Boundary GetActualTextRange(int lineNumber, bool includeSpaces) override;
     double GetLineHeight(int lineNumber) override;
     double GetLineWidth(int lineNumber) override;
     void SetAnimation(
         std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
     ) override;
+    Drawing::FontMetrics MeasureText() override;
 
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;

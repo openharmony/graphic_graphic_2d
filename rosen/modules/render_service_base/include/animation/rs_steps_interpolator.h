@@ -28,14 +28,14 @@ enum class StepsCurvePosition {
 
 class RSB_EXPORT RSStepsInterpolator : public RSInterpolator {
 public:
-    explicit RSStepsInterpolator(int32_t steps, StepsCurvePosition position = StepsCurvePosition::START);
+    RSStepsInterpolator(int32_t steps, StepsCurvePosition position = StepsCurvePosition::START);
+    ~RSStepsInterpolator() override = default;
 
-    ~RSStepsInterpolator() override {};
-
-    float Interpolate(float fraction) const override;
+    float InterpolateImpl(float fraction) const override;
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSStepsInterpolator* Unmarshalling(Parcel& parcel);
 private:
+    RSStepsInterpolator(uint64_t id, int32_t steps, StepsCurvePosition position = StepsCurvePosition::START);
     int32_t steps_;
     const StepsCurvePosition position_;
     float fractionMin = 0.0f;

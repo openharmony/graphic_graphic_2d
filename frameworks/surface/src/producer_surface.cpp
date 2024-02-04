@@ -18,7 +18,6 @@
 #include <cinttypes>
 
 #include "buffer_log.h"
-#include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
 #include "buffer_producer_listener.h"
 #include "sync_fence.h"
@@ -171,9 +170,9 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<Syn
 }
 
 GSError ProducerSurface::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
+    sptr<SyncFence>& fence, float matrix[16])
 {
-    auto ret = producer_->GetLastFlushedBuffer(buffer, fence, matrix, matrixSize);
+    auto ret = producer_->GetLastFlushedBuffer(buffer, fence, matrix);
     return ret;
 }
 
@@ -337,15 +336,31 @@ uint32_t ProducerSurface::GetDefaultUsage()
 
 GSError ProducerSurface::SetUserData(const std::string &key, const std::string &val)
 {
+    std::lock_guard<std::mutex> lockGuard(lockMutex_);
     if (userData_.size() >= SURFACE_MAX_USER_DATA_COUNT) {
+        BLOGE("SetUserData failed: userData_ size out");
         return GSERROR_OUT_OF_RANGE;
     }
+
+    auto iterUserData = userData_.find(key);
+    if (iterUserData != userData_.end() && iterUserData->second == val) {
+        BLOGE("SetUserData failed: key:%{public}s, val:%{public}s exist", key.c_str(), val.c_str());
+        return GSERROR_API_FAILED;
+    }
+    
     userData_[key] = val;
+    auto iter = onUserDataChange_.begin();
+    while (iter != onUserDataChange_.end()) {
+        iter->second(key, val);
+        iter++;
+    }
+
     return GSERROR_OK;
 }
 
 std::string ProducerSurface::GetUserData(const std::string &key)
 {
+    std::lock_guard<std::mutex> lockGuard(lockMutex_);
     if (userData_.find(key) != userData_.end()) {
         return userData_[key];
     }
@@ -402,6 +417,36 @@ GSError ProducerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func, b
     return GSERROR_NOT_SUPPORT;
 }
 
+GSError ProducerSurface::RegisterUserDataChangeListener(const std::string &funcName, OnUserDataChangeFunc func)
+{
+    std::lock_guard<std::mutex> lockGuard(lockMutex_);
+    if (onUserDataChange_.find(funcName) != onUserDataChange_.end()) {
+        BLOGND("func already register");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    
+    onUserDataChange_[funcName] = func;
+    return GSERROR_OK;
+}
+
+GSError ProducerSurface::UnRegisterUserDataChangeListener(const std::string &funcName)
+{
+    std::lock_guard<std::mutex> lockGuard(lockMutex_);
+    if (onUserDataChange_.erase(funcName) == 0) {
+        BLOGND("func doesn't register");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    return GSERROR_OK;
+}
+
+GSError ProducerSurface::ClearUserDataChangeListener()
+{
+    std::lock_guard<std::mutex> lockGuard(lockMutex_);
+    onUserDataChange_.clear();
+    return GSERROR_OK;
+}
+
 bool ProducerSurface::IsRemote()
 {
     return producer_->AsObject()->IsProxyObject();
@@ -450,18 +495,17 @@ uint64_t ProducerSurface::GetUniqueId() const
 
 GSError ProducerSurface::SetTransform(GraphicTransformType transform)
 {
-    GSError ret = producer_->SetTransform(transform);
-    if (ret == GSERROR_OK) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        transform_ = transform;
-    }
-    return ret;
+    return producer_->SetTransform(transform);
 }
 
 GraphicTransformType ProducerSurface::GetTransform() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return transform_;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    if (producer_->GetTransform(transform) != GSERROR_OK) {
+        BLOGNE("Warning ProducerSurface GetTransform failed.");
+        return GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    }
+    return transform;
 }
 
 GSError ProducerSurface::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,

@@ -105,6 +105,31 @@ void Typography::Layout(double width)
     return paragraph_->Layout(width);
 }
 
+double Typography::GetGlyphsBoundsTop()
+{
+    return paragraph_->GetGlyphsBoundsTop();
+}
+
+double Typography::GetGlyphsBoundsBottom()
+{
+    return paragraph_->GetGlyphsBoundsBottom();
+}
+
+double Typography::GetGlyphsBoundsLeft()
+{
+    return paragraph_->GetGlyphsBoundsLeft();
+}
+
+double Typography::GetGlyphsBoundsRight()
+{
+    return paragraph_->GetGlyphsBoundsRight();
+}
+
+Drawing::FontMetrics Typography::MeasureText()
+{
+    return paragraph_->MeasureText();
+}
+
 void Typography::Paint(SkCanvas *canvas, double x, double y)
 {
     return paragraph_->Paint(canvas, x, y);
@@ -159,10 +184,16 @@ Boundary Typography::GetWordBoundaryByIndex(size_t index)
     return Convert(range);
 }
 
+Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
+{
+    auto range = paragraph_->GetActualTextRange(lineNumber, includeSpaces);
+    return Convert(range);
+}
+
 double Typography::GetLineHeight(int lineNumber)
 {
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < lines.size()) {
+    if (lineNumber < static_cast<int>(lines.size())) {
         return lines[lineNumber].height;
     }
     return 0.0;
@@ -171,7 +202,7 @@ double Typography::GetLineHeight(int lineNumber)
 double Typography::GetLineWidth(int lineNumber)
 {
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < lines.size()) {
+    if (lineNumber < static_cast<int>(lines.size())) {
         return lines[lineNumber].width;
     }
     return 0.0;
@@ -181,6 +212,9 @@ void Typography::SetAnimation(
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
 )
 {
+    if (animationFunc != nullptr && paragraph_ != nullptr) {
+        paragraph_->SetAnimation(animationFunc);
+    }
 }
 } // namespace AdapterTxt
 } // namespace Rosen

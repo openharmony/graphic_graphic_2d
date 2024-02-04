@@ -64,9 +64,6 @@ private:
 #endif
     SkSurface* skSurface_ = nullptr;
     Drawing::Surface* drSurface_ = nullptr;
-#ifdef ENABLE_DDGR_OPTIMIZE
-    std::shared_ptr<DDGR::Surface> dSurface_ = nullptr;
-#endif
 };
 }
 }

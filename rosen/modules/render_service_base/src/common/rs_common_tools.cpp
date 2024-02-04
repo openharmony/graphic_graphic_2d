@@ -14,6 +14,9 @@
  */
 
 #include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 #include "common/rs_common_tools.h"
 #include "fstream"
@@ -23,15 +26,29 @@
 namespace OHOS {
 namespace Rosen {
 namespace CommonTools {
+std::string GetLocalTime()
+{
+    // time string : "year-month-day hour_minute_second.millisecond"
+    auto now = std::chrono::system_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()) % 1000;
+    std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm tm = *std::localtime(&t);
+
+    std::stringstream ss;
+    int millSecondWidth = 3; // millsecond width
+    ss << std::put_time(&tm, "%Y-%m-%d %H_%M_%S.") << std::setfill('0') << std::setw(millSecondWidth) << ms.count();
+    return ss.str();
+}
+
 void SavePixelmapToFile(const std::shared_ptr<Media::PixelMap>& pixelMap, const std::string& dst)
 {
     int32_t w = pixelMap->GetWidth();
     int32_t h = pixelMap->GetHeight();
     int32_t totalSize = pixelMap->GetByteCount();
-    uint64_t nowTime = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch())
-            .count());
-    std::string fileName = dst + std::to_string(nowTime) + "_w" + std::to_string(w) + "_h" + std::to_string(h) + ".dat";
+    std::string localTime = GetLocalTime();
+    int32_t rowStirde = pixelMap->GetRowStride();
+    std::string fileName = dst + localTime + "_w" + std::to_string(w) + "_h" + std::to_string(h) +
+                           "_stride" + std::to_string(rowStirde) + ".dat";
     std::ofstream outfile(fileName, std::fstream::out);
     if (!outfile.is_open()) {
         RS_LOGE("SavePixelmapToFile write error, path=%{public}s", fileName.c_str());

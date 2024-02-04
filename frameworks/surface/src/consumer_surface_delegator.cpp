@@ -20,19 +20,41 @@
 #include "sync_fence.h"
 
 namespace OHOS {
-GSError ConsumerSurfaceDelegator::DequeueBuffer()
+sptr<ConsumerSurfaceDelegator> ConsumerSurfaceDelegator::Create()
+{
+    return sptr<ConsumerSurfaceDelegator>(new ConsumerSurfaceDelegator());
+}
+
+GSError ConsumerSurfaceDelegator::DequeueBuffer(const BufferRequestConfig& config, sptr<BufferExtraData>& bedata,
+                                                struct IBufferProducer::RequestBufferReturnValue& retval)
 {
     return GSERROR_OK;
 }
 
-GSError ConsumerSurfaceDelegator::QueueBuffer()
+GSError ConsumerSurfaceDelegator::QueueBuffer(sptr<SurfaceBuffer>& buffer, int32_t fenceFd)
 {
     return GSERROR_OK;
 }
 
-GSError ConsumerSurfaceDelegator::ReleaseBuffer()
+GSError ConsumerSurfaceDelegator::ReleaseBuffer(int slot, int releaseFenceFd)
 {
     return GSERROR_OK;
+}
+
+GSError ConsumerSurfaceDelegator::CancelBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    return GSERROR_OK;
+}
+
+GSError ConsumerSurfaceDelegator::DetachBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    return GSERROR_OK;
+}
+
+bool ConsumerSurfaceDelegator::SetBufferQueue(BufferQueue* bufferQueue)
+{
+    bufferQueue_ = bufferQueue;
+    return true;
 }
 
 int ConsumerSurfaceDelegator::OnRemoteRequest(uint32_t code,

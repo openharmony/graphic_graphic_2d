@@ -35,6 +35,8 @@ void Bitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, in
 
 void Bitmap::Build(const ImageInfo& imageInfo, int32_t stride)
 {
+    format_.alphaType = imageInfo.GetAlphaType();
+    format_.colorType = imageInfo.GetColorType();
     imageInfo_ = imageInfo;
     bmpImplPtr->Build(imageInfo_, stride);
 }
@@ -98,6 +100,9 @@ void Bitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const
 bool Bitmap::InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
     ReleaseProc releaseProc, void* context)
 {
+    format_.alphaType = info.GetAlphaType();
+    format_.colorType = info.GetColorType();
+    imageInfo_ = info;
     return bmpImplPtr->InstallPixels(info, pixels, rowBytes, releaseProc, context);
 }
 

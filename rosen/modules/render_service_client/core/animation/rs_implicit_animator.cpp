@@ -102,6 +102,31 @@ void RSImplicitAnimator::CloseImplicitAnimationInner()
     EndImplicitAnimation();
 }
 
+bool RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback)
+{
+    // If finish callback either 1. is null or 2. is referenced by any animation or implicitly parameters, we don't
+    // do anything.
+    if (finishCallback.use_count() != 1) {
+        CloseImplicitAnimationInner();
+        return false;
+    }
+    // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
+    // execute it asynchronously, in order to avoid timing issues.
+    if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE) {
+        ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
+                   "callback asynchronously");
+        RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
+        CloseImplicitAnimationInner();
+        return false;
+    }
+    // we are the only one who holds the finish callback, and the callback is timing sensitive, we need to create an
+    // empty animation that act like a timer, in order to execute it on the right time.
+    ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, creating empty 'timer' "
+               "animation.");
+    CreateEmptyAnimation();
+    return true;
+}
+
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
@@ -119,26 +144,9 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     auto& currentKeyframeAnimations = keyframeAnimations_.top();
     // if no implicit animation created by current implicit animation param, we need to take care of finish callback
     if (currentAnimations.empty() && currentKeyframeAnimations.empty()) {
-        // If finish callback either 1. is null or 2. is referenced by any animation or implicitly parameters, we don't
-        // do anything.
-        if (finishCallback.use_count() != 1) {
-            CloseImplicitAnimationInner();
+        if (!ProcessEmptyAnimations(finishCallback)) {
             return {};
         }
-        // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
-        // execute it asynchronously, in order to avoid timing issues.
-        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE) {
-            ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
-                       "callback asynchronously");
-            RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
-            CloseImplicitAnimationInner();
-            return {};
-        }
-        // we are the only one who holds the finish callback, and the callback is timing sensitive, we need to create an
-        // empty animation that act like a timer, in order to execute it on the right time.
-        ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, creating empty 'timer' "
-                   "animation.");
-        CreateEmptyAnimation();
     }
     std::vector<std::shared_ptr<RSAnimation>> resultAnimations;
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();

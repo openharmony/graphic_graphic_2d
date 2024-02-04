@@ -49,17 +49,29 @@ public:
     void ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheTask> colorPickerTask);
 #ifndef USE_ROSEN_DRAWING
 #else
-    void AddToReleaseQueue(std::shared_ptr<Drawing::Image> && cacheImage,
-        std::shared_ptr<Drawing::Surface> && cacheSurface,
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler);
-    void ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue);
-    void ReleaseSurface();
-    void ReleaseImageAndSurfaces();
-    void SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Image> && cacheImage,
-        std::shared_ptr<Drawing::Surface> && cacheSurface,
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler);
+#ifdef IS_OHOS
+    void AddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
+        std::shared_ptr<Drawing::Surface>&& cacheSurface,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler);
+    void PreAddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
+        std::shared_ptr<Drawing::Surface>&& cacheSurface,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler,
+        std::weak_ptr<std::mutex> grBackendTextureMutex);
+    void ResetWaitRelease(std::weak_ptr<std::atomic<bool>> waitRelease);
+    void ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue,
+        std::weak_ptr<std::atomic<bool>> waitRelease);
+    void PreReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue,
+        std::weak_ptr<std::atomic<bool>> waitRelease,
+        std::weak_ptr<std::mutex> grBackendTextureMutex);
+    void ReleaseSurface(std::weak_ptr<std::atomic<bool>> waitRelease);
+    void ReleaseImageAndSurfaces(std::weak_ptr<std::atomic<bool>> waitRelease,
+        std::weak_ptr<std::mutex> grBackendTextureMutex);
+    void SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Image>&& cacheImage,
+        std::shared_ptr<Drawing::Surface>&& cacheSurface,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler,
+        std::weak_ptr<std::atomic<bool>> waitRelease,
+        std::weak_ptr<std::mutex> grBackendTextureMutex);
+#endif
 #endif
 
     void ResetGrContext();
@@ -100,7 +112,10 @@ private:
 #else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaceResources_;
-    std::map<std::shared_ptr<OHOS::AppExecFwk::EventHandler>, std::queue<std::shared_ptr<Drawing::Image>>> tmpImageResources_;
+    std::map<std::string, std::queue<std::shared_ptr<Drawing::Image>>> tmpImageResources_;
+#ifdef IS_OHOS
+    std::map<std::string, std::shared_ptr<OHOS::AppExecFwk::EventHandler>> handlerMap_;
+#endif
 #endif
 };
 } // namespace OHOS::Rosen

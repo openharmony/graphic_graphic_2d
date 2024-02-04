@@ -57,7 +57,7 @@ public:
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                         const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
     GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-        sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize) override;
+        sptr<SyncFence>& fence, float matrix[16]) override;
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
                         BufferFlushConfigWithDamages &config) override;
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
@@ -126,6 +126,9 @@ public:
     sptr<NativeSurface> GetNativeSurface() override;
     GSError SetWptrNativeWindowToPSurface(void* nativeWindow) override;
     virtual GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) override;
+    GSError RegisterUserDataChangeListener(const std::string &funcName, OnUserDataChangeFunc func) override;
+    GSError UnRegisterUserDataChangeListener(const std::string &funcName) override;
+    GSError ClearUserDataChangeListener() override;
 private:
     bool IsRemote();
     void CleanAllLocked();
@@ -141,7 +144,8 @@ private:
     sptr<IProducerListener> listener_;
     wptr<NativeWindow> wpNativeWindow_ = nullptr;
     wptr<ProducerSurfaceDelegator> wpPSurfaceDelegator_ = nullptr;
-    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    std::map<std::string, OnUserDataChangeFunc> onUserDataChange_;
+    std::mutex lockMutex_;
 };
 } // namespace OHOS
 

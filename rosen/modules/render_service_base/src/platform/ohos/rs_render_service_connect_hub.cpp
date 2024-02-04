@@ -42,7 +42,7 @@ sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::GetInstance()
 
 void RSRenderServiceConnectHub::Init()
 {
-    RS_LOGI("RSRenderServiceConnectHub::Init");
+    RS_LOGD("RSRenderServiceConnectHub::Init");
     instance_ = new RSRenderServiceConnectHub();
     ::atexit(&RSRenderServiceConnectHub::Destroy);
 }
@@ -55,7 +55,7 @@ void RSRenderServiceConnectHub::Destroy()
 
 RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 {
-    RS_LOGI("RSRenderServiceConnectHub: ctor");
+    RS_LOGD("RSRenderServiceConnectHub: ctor");
 }
 
 RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
@@ -89,7 +89,7 @@ sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderServiceConn
 
 bool RSRenderServiceConnectHub::Connect()
 {
-    RS_LOGI("RSRenderServiceConnectHub::Connect");
+    RS_LOGD("RSRenderServiceConnectHub::Connect");
     int tryCnt = 0;
     sptr<RSIRenderService> renderService = nullptr;
     do {
@@ -98,7 +98,7 @@ bool RSRenderServiceConnectHub::Connect()
         ++tryCnt;
         // try most 5 times to get render service.
         if (tryCnt == 5) {
-            ROSEN_LOGE("RSRenderServiceConnectHub::Connect failed, tried %{public}d times.", tryCnt);
+            ROSEN_LOGD("RSRenderServiceConnectHub::Connect failed, tried %{public}d times.", tryCnt);
             break;
         }
 
@@ -106,7 +106,7 @@ bool RSRenderServiceConnectHub::Connect()
         if (samgr == nullptr) {
             continue;
         }
-        auto remoteObject = samgr->CheckSystemAbility(RENDER_SERVICE);
+        auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
         if (remoteObject == nullptr || !remoteObject->IsProxyObject()) {
             continue;
         }
@@ -117,7 +117,7 @@ bool RSRenderServiceConnectHub::Connect()
     } while (true);
 
     if (renderService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to get render service proxy.");
+        ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to get render service proxy.");
         return false;
     }
     wptr<RSRenderServiceConnectHub> rsConnhub = this;
@@ -132,7 +132,7 @@ bool RSRenderServiceConnectHub::Connect()
     sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token_);
 
     if (conn == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
+        ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
         return false;
     }
 

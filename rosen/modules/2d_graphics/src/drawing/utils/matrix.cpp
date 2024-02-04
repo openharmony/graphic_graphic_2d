@@ -45,6 +45,16 @@ void Matrix::Scale(scalar sx, scalar sy, scalar px, scalar py)
     matrixImplPtr->Scale(sx, sy, px, py);
 }
 
+void Matrix::SetSkew(scalar kx, scalar ky)
+{
+    matrixImplPtr->SetSkew(kx, ky);
+}
+
+void Matrix::SetSkew(scalar kx, scalar ky, scalar px, scalar py)
+{
+    matrixImplPtr->SetSkew(kx, ky, px, py);
+}
+
 void Matrix::SetScale(scalar sx, scalar sy)
 {
     matrixImplPtr->SetScale(sx, sy);
@@ -93,6 +103,26 @@ void Matrix::PostScale(scalar sx, scalar sy)
 void Matrix::PostScale(scalar sx, scalar sy, scalar px, scalar py)
 {
     matrixImplPtr->PostScale(sx, sy, px, py);
+}
+
+void Matrix::PreSkew(scalar kx, scalar ky)
+{
+    matrixImplPtr->PreSkew(kx, ky);
+}
+
+void Matrix::PreSkew(scalar kx, scalar ky, scalar px, scalar py)
+{
+    matrixImplPtr->PreSkew(kx, ky, px, py);
+}
+
+void Matrix::PostSkew(scalar kx, scalar ky)
+{
+    matrixImplPtr->PostSkew(kx, ky);
+}
+
+void Matrix::PostSkew(scalar kx, scalar ky, scalar px, scalar py)
+{
+    matrixImplPtr->PostSkew(kx, ky, px, py);
 }
 
 void Matrix::PreConcat(const Matrix& other)
@@ -190,6 +220,11 @@ void Matrix::Reset()
 bool Matrix::GetMinMaxScales(scalar scaleFactors[2])
 {
     return matrixImplPtr->GetMinMaxScales(scaleFactors);
+}
+
+bool Matrix::HasPerspective() const
+{
+    return matrixImplPtr->HasPerspective();
 }
 } // namespace Drawing
 } // namespace Rosen

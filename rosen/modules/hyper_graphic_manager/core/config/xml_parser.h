@@ -52,7 +52,7 @@ private:
     int32_t ParseStrategyConfig(xmlNode &node);
     int32_t ParseScreenConfig(xmlNode &node);
     int32_t ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                         std::string valueName = "value", std::string keyName = "name");
+                         const std::string valueName = "value", const std::string keyName = "name");
     int32_t ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap);
     int32_t ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList);
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);

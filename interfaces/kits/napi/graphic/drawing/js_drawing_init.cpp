@@ -15,14 +15,14 @@
 
 #include "js_drawing_init.h"
 
+#include "brush_napi/js_brush.h"
 #include "canvas_napi/js_canvas.h"
+#include "color_filter_napi/js_color_filter.h"
+#include "enum_napi/js_enum.h"
 #include "font_napi/js_font.h"
 #include "font_napi/js_typeface.h"
 #include "path_napi/js_path.h"
 #include "pen_napi/js_pen.h"
-#include "brush_napi/js_brush.h"
-#include "enum_napi/js_enum.h"
-#include "color_filter_napi/js_color_filter.h"
 #include "text_blob_napi/js_text_blob.h"
 
 namespace OHOS::Rosen {

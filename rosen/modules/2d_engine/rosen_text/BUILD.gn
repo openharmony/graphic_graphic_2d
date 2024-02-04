@@ -150,6 +150,7 @@ if (enable_text_gine) {
     include_dirs = [
       "$rosen_root/modules/render_service_base/include",
       "$rosen_root/modules/2d_engine/rosen_text/skia_txt",
+      "$rosen_root/modules/2d_engine/rosen_text/skia_txt/txt/src",
     ]
 
     defines += [

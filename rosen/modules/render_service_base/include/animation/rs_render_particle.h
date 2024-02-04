@@ -59,7 +59,7 @@ public:
     T toValue_;
     int startMillis_;
     int endMillis_;
-    std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
+    std::shared_ptr<RSInterpolator> interpolator_ = nullptr;
     ChangeInOverLife() : fromValue_(), toValue_(), startMillis_(), endMillis_(), interpolator_() {}
     ChangeInOverLife(const T& fromValue, const T& toValue, const int& startMillis, const int& endMillis,
         std::shared_ptr<RSInterpolator> interpolator)
@@ -199,15 +199,15 @@ public:
     ~ParticleRenderParams() = default;
 
     int GetEmitRate() const;
-    ShapeType GetEmitShape() const;
-    Vector2f GetEmitPosition() const;
-    Vector2f GetEmitSize() const;
+    const ShapeType& GetEmitShape() const;
+    const Vector2f& GetEmitPosition() const;
+    const Vector2f& GetEmitSize() const;
     int32_t GetParticleCount() const;
     int64_t GetParticleLifeTime() const;
-    ParticleType GetParticleType() const;
+    const ParticleType& GetParticleType() const;
     float GetParticleRadius() const;
-    std::shared_ptr<RSImage> GetParticleImage();
-    Vector2f GetImageSize() const;
+    const std::shared_ptr<RSImage>& GetParticleImage();
+    const Vector2f& GetImageSize() const;
 
     float GetVelocityStartValue() const;
     float GetVelocityEndValue() const;
@@ -218,16 +218,16 @@ public:
     float GetAccelerationEndValue() const;
     float GetAccelerationStartAngle() const;
     float GetAccelerationEndAngle() const;
-    ParticleUpdator GetAccelerationValueUpdator();
-    ParticleUpdator GetAccelerationAngleUpdator();
+    const ParticleUpdator& GetAccelerationValueUpdator();
+    const ParticleUpdator& GetAccelerationAngleUpdator();
     float GetAccelRandomValueStart() const;
     float GetAccelRandomValueEnd() const;
     float GetAccelRandomAngleStart() const;
     float GetAccelRandomAngleEnd() const;
 
-    Color GetColorStartValue();
-    Color GetColorEndValue();
-    ParticleUpdator GetColorUpdator();
+    const Color& GetColorStartValue();
+    const Color& GetColorEndValue();
+    const ParticleUpdator& GetColorUpdator();
     float GetRedRandomStart() const;
     float GetRedRandomEnd() const;
     float GetGreenRandomStart() const;
@@ -239,19 +239,19 @@ public:
 
     float GetOpacityStartValue();
     float GetOpacityEndValue();
-    ParticleUpdator GetOpacityUpdator();
+    const ParticleUpdator& GetOpacityUpdator();
     float GetOpacityRandomStart() const;
     float GetOpacityRandomEnd() const;
 
     float GetScaleStartValue();
     float GetScaleEndValue();
-    ParticleUpdator GetScaleUpdator();
+    const ParticleUpdator& GetScaleUpdator();
     float GetScaleRandomStart() const;
     float GetScaleRandomEnd() const;
 
     float GetSpinStartValue();
     float GetSpinEndValue();
-    ParticleUpdator GetSpinUpdator();
+    const ParticleUpdator& GetSpinUpdator();
     float GetSpinRandomStart() const;
     float GetSpinRandomEnd() const;
 
@@ -269,7 +269,6 @@ public:
     explicit RSRenderParticle(const std::shared_ptr<ParticleRenderParams>& particleParams);
     RSRenderParticle() = default;
     ~RSRenderParticle() = default;
-
     // Set methods
     void SetPosition(const Vector2f& position);
     void SetVelocity(const Vector2f& velocity);
@@ -291,12 +290,12 @@ public:
     void SetAlphaF(float alphaF);
 
     // Get methods
-    Vector2f GetPosition();
-    Vector2f GetVelocity();
-    Vector2f GetAcceleration();
+    const Vector2f& GetPosition();
+    const Vector2f& GetVelocity();
+    const Vector2f& GetAcceleration();
     float GetSpin();
     float GetOpacity();
-    Color GetColor();
+    const Color& GetColor();
     float GetScale();
     float GetRadius();
     float GetAccelerationValue();
@@ -314,11 +313,24 @@ public:
     float GetGreenF();
     float GetBlueF();
     float GetAlphaF();
-    std::shared_ptr<RSImage> GetImage();
-    Vector2f GetImageSize();
-    ParticleType GetParticleType();
+    const std::shared_ptr<RSImage>& GetImage();
+    const Vector2f& GetImageSize();
+    const ParticleType& GetParticleType();
     int64_t GetActiveTime();
     const std::shared_ptr<ParticleRenderParams>& GetParticleRenderParams();
+
+    const ParticleUpdator& GetAccelerationValueUpdator();
+    const ParticleUpdator& GetAccelerationAngleUpdator();
+    const ParticleUpdator& GetColorUpdator();
+    const ParticleUpdator& GetOpacityUpdator();
+    const ParticleUpdator& GetScaleUpdator();
+    const ParticleUpdator& GetSpinUpdator();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetAcceValChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetAcceAngChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetOpacityChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetScaleChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& GetSpinChangeOverLife();
+    const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& GetColorChangeOverLife();
 
     // Other methods
     void InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams);

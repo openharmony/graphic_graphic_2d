@@ -15,11 +15,6 @@
 
 #include "rs_surface_ohos_vulkan.h"
 
-#ifndef ENABLE_NATIVEBUFFER
-#include <vulkan_proc_table.h>
-#include <vulkan_native_surface_ohos.h>
-#include "rs_trace.h"
-#else // ENABLE_NATIVEBUFFER
 #include <memory>
 #include "memory/rs_tag_tracker.h"
 #include "SkColor.h"
@@ -27,7 +22,6 @@
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
 #include "include/gpu/GrBackendSemaphore.h"
-#endif // ENABLE_NATIVEBUFFER
 #include "include/gpu/GrDirectContext.h"
 #include "platform/common/rs_log.h"
 #include "window.h"
@@ -58,17 +52,10 @@ RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurf
 
 RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 {
-#ifdef ENABLE_NATIVEBUFFER
     mSurfaceMap.clear();
     mSurfaceList.clear();
-#endif // ENABLE_NATIVEBUFFER
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
-#ifndef ENABLE_NATIVEBUFFER
-    if (mVulkanWindow) {
-        delete mVulkanWindow;
-    }
-#endif // ENABLE_NATIVEBUFFER
 }
 
 void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC)
@@ -98,7 +85,6 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
 }
 
 
-#ifdef ENABLE_NATIVEBUFFER
 void RSSurfaceOhosVulkan::CreateVkSemaphore(
     VkSemaphore* semaphore, const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
 {
@@ -164,6 +150,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 #endif
         NativeObjectReference(mNativeWindow);
         nativeSurface.window = mNativeWindow;
+        nativeSurface.graphicColorGamut = colorSpace_;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
             mSkContext, nativeWindowBuffer, nativeSurface, width, height)) {
             ROSEN_LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
@@ -226,61 +213,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
     return ret;
 }
-#else // ENABLE_NATIVEBUFFER
-std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(int32_t width, int32_t height,
-    uint64_t uiTimestamp, bool useAFBC)
-{
-    if (mNativeWindow == nullptr) {
-        mNativeWindow = CreateNativeWindowFromSurface(&producer_);
-        ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
-    }
-
-    SetNativeWindowInfo(width, height, useAFBC);
-    NativeWindowHandleOpt(mNativeWindow, SET_UI_TIMESTAMP, uiTimestamp);
-
-    if (mVulkanWindow == nullptr) {
-        auto vulkanSurface = std::make_unique<vulkan::VulkanNativeSurfaceOHOS>(mNativeWindow);
-        mVulkanWindow = new vulkan::VulkanWindow(std::move(vulkanSurface));
-        ROSEN_LOGD("RSSurfaceOhosVulkan: create vulkan window");
-    }
-
-    if (mVulkanWindow == nullptr) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: Invalid VulkanWindow, return");
-        return nullptr;
-    }
-
-    sk_sp<SkSurface> skSurface = mVulkanWindow->AcquireSurface();
-    if (!skSurface) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: skSurface is null, return");
-        return nullptr;
-    }
-
-    std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
-        std::make_unique<RSSurfaceFrameOhosVulkan>(skSurface, width, height);
-
-    std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
-
-    return ret;
-}
-#endif // ENABLE_NATIVEBUFFER
 
 void RSSurfaceOhosVulkan::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
-#ifndef ENABLE_NATIVEBUFFER
-    if (mNativeWindow == nullptr) {
-        mNativeWindow = CreateNativeWindowFromSurface(&producer_);
-        ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
-    }
-
-    struct timespec curTime = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &curTime);
-    // 1000000000 is used for transfer second to nsec
-    uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
-    NativeWindowHandleOpt(mNativeWindow, SET_UI_TIMESTAMP, duration);
-#endif // ENABLE_NATIVEBUFFER
 }
 
-#ifdef ENABLE_NATIVEBUFFER
 bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     if (mSurfaceList.empty()) {
@@ -352,20 +289,6 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     mPresentCount++;
     return true;
 }
-#else // ENABLE_NATIVEBUFFER
-bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
-{
-    if (mVulkanWindow == nullptr) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: Invalid VulkanWindow, return");
-        return false;
-    }
-
-    mVulkanWindow->SwapBuffers();
-    surface.lastPresentedCount = mPresentCount;
-    mPresentCount++;
-    return true;
-}
-#endif // ENABLE_NATIVEBUFFER
 
 void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
 {
@@ -385,6 +308,12 @@ void RSSurfaceOhosVulkan::SetSurfaceBufferUsage(uint64_t usage)
 
 void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
 {
+    if (pixelFormat != pixelFormat_) {
+        for (auto &[key, val] : mSurfaceMap) {
+            NativeWindowCancelBuffer(mNativeWindow, key);
+        }
+        mSurfaceMap.clear();
+    }
     pixelFormat_ = pixelFormat;
 }
 

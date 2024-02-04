@@ -25,7 +25,6 @@
 #include <unistd.h>
 
 #include "common/rs_macros.h"
-#include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
 class Surface;
@@ -61,18 +60,6 @@ enum class FollowType : uint8_t {
 
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
 #define UNLIKELY(exp) (__builtin_expect((exp) != 0, false))
-
-static inline const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
-    {RSUINodeType::UNKNOW,              "UNKNOW"},
-    {RSUINodeType::DISPLAY_NODE,        "DisplayNode"},
-    {RSUINodeType::RS_NODE,             "RsNode"},
-    {RSUINodeType::SURFACE_NODE,        "SurfaceNode"},
-    {RSUINodeType::PROXY_NODE,          "ProxyNode"},
-    {RSUINodeType::CANVAS_NODE,         "CanvasNode"},
-    {RSUINodeType::ROOT_NODE,           "RootNode"},
-    {RSUINodeType::EFFECT_NODE,         "EffectNode"},
-    {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
-};
 
 // types for RenderNode
 enum class RSRenderNodeType : uint32_t {
@@ -182,6 +169,7 @@ struct RSSurfaceRenderNodeConfig {
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
+    bool isSync = false;
 };
 
 // types for RSSurfaceExt

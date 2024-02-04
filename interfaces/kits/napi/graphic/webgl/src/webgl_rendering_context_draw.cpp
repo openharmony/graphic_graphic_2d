@@ -1092,7 +1092,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
     }
 
     // check count
-    if (size * count > static_cast<uint32_t>(webGLBuffer->GetBufferSize())) {
+    if (static_cast<uint32_t>(size * count) > static_cast<uint32_t>(webGLBuffer->GetBufferSize())) {
         LOGE("WebGL drawElements Insufficient buffer size %{public}d", count);
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }

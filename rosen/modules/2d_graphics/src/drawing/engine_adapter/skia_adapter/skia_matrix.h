@@ -43,6 +43,8 @@ public:
     void Scale(scalar sx, scalar sy, scalar px, scalar py) override;
     void SetScale(scalar sx, scalar sy) override;
     void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy) override;
+    void SetSkew(scalar kx, scalar ky) override;
+    void SetSkew(scalar kx, scalar ky, scalar px, scalar py) override;
     const SkMatrix& ExportSkiaMatrix() const;
 
     void PreRotate(scalar degree) override;
@@ -53,6 +55,10 @@ public:
     void PreScale(scalar sx, scalar sy) override;
     void PostScale(scalar sx, scalar sy) override;
     void PostScale(scalar sx, scalar sy, scalar px, scalar py) override;
+    void PreSkew(scalar kx, scalar ky) override;
+    void PostSkew(scalar kx, scalar ky) override;
+    void PreSkew(scalar kx, scalar ky, scalar px, scalar py) override;
+    void PostSkew(scalar kx, scalar ky, scalar px, scalar py) override;
     void PreConcat(const Matrix& other) override;
     void PreConcat(const Matrix44& other) override;
     void PostConcat(const Matrix& other) override;
@@ -80,6 +86,7 @@ public:
     void Reset() override;
 
     bool GetMinMaxScales(scalar scaleFactors[2]) override;
+    bool HasPerspective() const override;
 
 private:
     SkMatrix skMatrix_;

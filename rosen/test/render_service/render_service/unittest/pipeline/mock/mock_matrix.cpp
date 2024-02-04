@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,12 +13,19 @@
  * limitations under the License.
  */
 
-#include <cstdint>
-#include <unistd.h>
-#include <climits>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
+#include "mock_matrix.h"
 
-#define FUZZ_PROJECT_NAME "rssurfaceohos_fuzzer"
+namespace OHOS {
+namespace Rosen {
+namespace Mock {
+MatrixMock::MatrixMock() = default;
+MatrixMock::~MatrixMock() = default;
 
+MatrixMock* MatrixMock::GetInstance()
+{
+    static MatrixMock instance;
+    return &instance;
+}
+} // namespace Mock
+} // namespace Rosen
+} // namespace OHOS

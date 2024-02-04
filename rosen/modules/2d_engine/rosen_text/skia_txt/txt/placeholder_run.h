@@ -39,8 +39,8 @@ public:
 
     double width = 0;
     double height = 0;
-    PlaceholderAlignment alignment;
-    TextBaseline baseline;
+    PlaceholderAlignment alignment = PlaceholderAlignment::BASELINE;
+    TextBaseline baseline = TextBaseline::ALPHABETIC;
     double baselineOffset = 0;
 };
 } // namespace SPText

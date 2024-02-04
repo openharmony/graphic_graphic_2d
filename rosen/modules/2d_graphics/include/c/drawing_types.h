@@ -94,12 +94,27 @@ typedef struct OH_Drawing_Bitmap OH_Drawing_Bitmap;
 typedef struct OH_Drawing_Point OH_Drawing_Point;
 
 /**
- * @brief Defines a point of 3x3, which is used to describe the coordinate point.
+ * @brief Defines a point of 2d.
  *
  * @since 12
  * @version 1.0
  */
-typedef struct OH_Drawing_Point3 OH_Drawing_Point3;
+typedef struct {
+    float x;
+    float y;
+} OH_Drawing_Point2D;
+
+/**
+ * @brief Defines a point of 3d, which is used to describe the coordinate point.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct {
+    float x;
+    float y;
+    float z;
+} OH_Drawing_Point3D;
 
 /**
  * @brief Defines a pathEffect, which is used to affects stroked paths.
@@ -368,6 +383,22 @@ typedef struct {
     /** storage for alpha formats */
     OH_Drawing_AlphaFormat alphaType;
 } OH_Drawing_Image_Info;
+
+/**
+ * @brief Enumerates text encoding types.
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /** uses bytes to represent UTF-8 or ASCII */
+    TEXT_ENCODING_UTF8,
+    /** uses two byte words to represent most of Unicode */
+    TEXT_ENCODING_UTF16,
+    /** uses four byte words to represent all of Unicode */
+    TEXT_ENCODING_UTF32,
+    /** uses two byte words to represent glyph indices */
+    TEXT_ENCODING_GLYPH_ID,
+} OH_Drawing_TextEncoding;
 
 #ifdef __cplusplus
 }

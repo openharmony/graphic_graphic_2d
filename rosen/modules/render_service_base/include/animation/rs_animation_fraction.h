@@ -64,6 +64,7 @@ private:
     bool IsInRepeat() const;
     bool IsFinished() const;
     void UpdateReverseState(bool finish);
+    bool IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs);
 
     static std::atomic<float> animationScale_;
     static bool isInitialized_;

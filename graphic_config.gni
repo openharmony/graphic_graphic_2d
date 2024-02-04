@@ -40,6 +40,7 @@ declare_args() {
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
+  graphic_2d_feature_enable_dvsync = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -50,8 +51,14 @@ declare_args() {
   }
 }
 
+declare_args() {
+  graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_ddgr_opinc = false
+}
+
 if (graphic_2d_feature_product == "phone") {
   graphic_2d_feature_enable_vulkan = true
+  graphic_2d_feature_enable_ddgr = false
 }
 
 gpu_defines = []
@@ -68,6 +75,14 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
     ]
+    if (graphic_2d_feature_enable_ddgr) {
+      graphic_2d_feature_enable_ddgr_opinc = true
+      gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
+      import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
+      if (graphic_2d_feature_enable_ddgr_opinc) {
+        gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
+      }
+    }
   }
   if (graphic_2d_feature_enable_opengl) {
     gpu_defines += [
@@ -149,6 +164,10 @@ if (defined(use_new_render_context) && use_new_render_context) {
   gpu_defines -= [ "RS_ENABLE_PARALLEL_RENDER" ]
 }
 
+if (graphic_2d_feature_enable_dvsync) {
+  gpu_defines += [ "RS_ENABLE_DVSYNC" ]
+}
+
 tp_defines = []
 tp_feature_enable = false
 if (graphic_2d_feature_tp_switch_enbale) {
@@ -201,6 +220,7 @@ if (exec_script(check_graphic_ext_file_script,
 flutter_root = "//third_party/flutter"
 ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
+graphic_2d_ext_root = "//foundation/graphic/graphic_2d_ext"
 hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"

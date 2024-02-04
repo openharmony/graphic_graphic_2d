@@ -95,7 +95,7 @@ void RSJankStats::SetEndTime()
             ReportEventJankFrame(jankFrames, false);
         }
         if (jankFrames.isReportEventResponse_ && !jankFrames.isAnimationEnded_) {
-            SetAnimationTraceBegin(jankFrames);
+            SetAnimationTraceBegin(animationId, jankFrames);
         }
         if (jankFrames.isReportEventJankFrame_) {
             RecordAnimationDynamicFrameRate(jankFrames, false);
@@ -514,7 +514,7 @@ void RSJankStats::RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool i
     jankFrames.isFrameRateRecorded_ = true;
 }
 
-void RSJankStats::SetAnimationTraceBegin(const JankFrames& jankFrames)
+void RSJankStats::SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, const JankFrames& jankFrames)
 {
     const int32_t traceId = jankFrames.traceId_;
     if (traceId == TRACE_ID_INITIAL) {
@@ -526,7 +526,8 @@ void RSJankStats::SetAnimationTraceBegin(const JankFrames& jankFrames)
     }
     const auto &info = jankFrames.info_;
     const std::string traceName = GetSceneDescription(info);
-    AnimationTraceStats traceStat = {.traceName_ = traceName,
+    AnimationTraceStats traceStat = {.animationId_ = animationId,
+                                     .traceName_ = traceName,
                                      .traceCreateTimeSteady_ = endTimeSteady_,
                                      .isDisplayAnimator_ = info.isDisplayAnimator};
     animationAsyncTraces_.emplace(traceId, traceStat);
@@ -572,6 +573,7 @@ void RSJankStats::CheckAnimationTraceTimeout()
             } else {
                 implicitAnimationTotal_--;
             }
+            animateJankFrames_.erase(pair.second.animationId_);
         }
         return needErase;
     });

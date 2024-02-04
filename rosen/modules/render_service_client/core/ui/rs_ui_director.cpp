@@ -283,6 +283,14 @@ bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
     return hasRunningAnimation;
 }
 
+void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        modifierManager->FlushStartAnimation(timeStamp);
+    }
+}
+
 void RSUIDirector::FlushModifier()
 {
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());

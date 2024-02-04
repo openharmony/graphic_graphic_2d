@@ -105,8 +105,7 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrix(currentTransformMatrix_, TRANSFORM_MATRIX_ELE_COUNT,
-        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_, currentTransformType_, currentCrop_);
 
     // wait on this acquireFence.
     if (acquireFence != nullptr) {

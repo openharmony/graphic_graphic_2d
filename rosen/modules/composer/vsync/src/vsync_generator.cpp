@@ -427,8 +427,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
-    // just correct period / 2 time
-    listener.lastTime_ = GetSysTimeNs() - period_ / 2 + phase_;
+    listener.lastTime_ = GetSysTimeNs() - period_ + phase_;
 
     listeners_.push_back(listener);
 

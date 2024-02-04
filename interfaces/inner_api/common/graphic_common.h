@@ -30,6 +30,7 @@ namespace OHOS {
 #include "graphic_common_c.h"
 
 #ifdef __cplusplus
+namespace {
 const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_OK,                    "<200 ok>"},
     {GSERROR_INVALID_ARGUMENTS,     "<400 invalid arguments>"},
@@ -55,6 +56,7 @@ const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_NOT_SUPPORT,           "<501 not support>"},
     {GSERROR_BINDER,                "<504 binder occur error>"},
 };
+}
 
 inline std::string LowErrorStrSpecial(GSError err)
 {

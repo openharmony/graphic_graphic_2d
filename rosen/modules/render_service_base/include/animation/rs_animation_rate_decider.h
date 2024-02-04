@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_RATE_DECIDER_H
 
 #include "common/rs_common_def.h"
+#include "modifier/rs_modifier_type.h"
 #include "rs_frame_rate_range.h"
 
 namespace OHOS {
@@ -30,6 +31,11 @@ public:
     RSAnimationRateDecider() = default;
     ~RSAnimationRateDecider() = default;
 
+    void SetEnable(bool enabled)
+    {
+        isEnabled_ = enabled;
+    }
+    void SetScaleReferenceSize(float width, float height);
     void Reset();
     void AddDecisionElement(PropertyId id, const PropertyValue& velocity, FrameRateRange range);
     void MakeDecision(const FrameRateGetFunc& func);
@@ -37,7 +43,11 @@ public:
 private:
     int32_t CalculatePreferredRate(const PropertyValue& property, const FrameRateGetFunc& func);
     int32_t ProcessVector4f(const PropertyValue& property, const FrameRateGetFunc& func);
+    int32_t ProcessVector2f(const PropertyValue& property, const FrameRateGetFunc& func);
 
+    bool isEnabled_ = true;
+    float scaleWidth_ = 0.0f;
+    float scaleHeight_ = 0.0f;
     FrameRateRange frameRateRange_;
     std::unordered_map<PropertyId, std::pair<PropertyValue, FrameRateRange>> decisionElements_;
 };

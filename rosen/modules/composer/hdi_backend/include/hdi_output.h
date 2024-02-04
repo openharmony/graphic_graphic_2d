@@ -44,7 +44,7 @@ public:
     HdiOutput(uint32_t screenId);
     virtual ~HdiOutput();
 
-    static constexpr uint32_t COMPOSITION_RECORDS_NUM = 128;
+    static constexpr uint32_t COMPOSITION_RECORDS_NUM = HdiLayer::FRAME_RECORDS_NUM;
 
     /* for RS begin */
     void SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos);
@@ -65,7 +65,8 @@ public:
 
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);
     RosenError Init();
-    const std::unordered_map<uint32_t, LayerPtr>& GetLayers();
+    void GetLayerInfos(std::vector<LayerInfoPtr>& layerInfos);
+    void GetComposeClientLayers(std::vector<LayerPtr>& clientLayers);
     const std::vector<GraphicIRect>& GetOutputDamages();
     sptr<Surface> GetFrameBufferSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
@@ -89,6 +90,7 @@ public:
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
+    void ReleaseLayers();
 
 private:
     HdiDevice *device_ = nullptr;
@@ -111,12 +113,14 @@ private:
 
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
+    std::mutex layerMutex_;
 
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();
     void ResetLayerStatus();
     void ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
     void UpdatePrevLayerInfo();
+    void ReleaseSurfaceBuffer();
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);

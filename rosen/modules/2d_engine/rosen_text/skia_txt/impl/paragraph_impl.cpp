@@ -20,6 +20,7 @@
 
 #include "include/core/SkMatrix.h"
 #include "drawing_painter_impl.h"
+#include "skia_adapter/skia_convert_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -104,6 +105,7 @@ size_t ParagraphImpl::GetLineCount() const
 
 void ParagraphImpl::SetIndents(const std::vector<float>& indents)
 {
+    paragraph_->setIndents(indents);
 }
 
 void ParagraphImpl::Layout(double width)
@@ -111,6 +113,34 @@ void ParagraphImpl::Layout(double width)
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
     paragraph_->layout(width);
+}
+
+double ParagraphImpl::GetGlyphsBoundsTop()
+{
+    return paragraph_->getGlyphsBoundsTop();
+}
+
+double ParagraphImpl::GetGlyphsBoundsBottom()
+{
+    return paragraph_->getGlyphsBoundsBottom();
+}
+
+double ParagraphImpl::GetGlyphsBoundsLeft()
+{
+    return paragraph_->getGlyphsBoundsLeft();
+}
+
+double ParagraphImpl::GetGlyphsBoundsRight()
+{
+    return paragraph_->getGlyphsBoundsRight();
+}
+
+OHOS::Rosen::Drawing::FontMetrics ParagraphImpl::MeasureText()
+{
+    auto skFontMetrics = paragraph_->measureText();
+    OHOS::Rosen::Drawing::FontMetrics fontMetrics;
+    OHOS::Rosen::Drawing::SkiaConvertUtils::SkFontMetricsCastToDrawingFontMetrics(skFontMetrics, fontMetrics);
+    return fontMetrics;
 }
 
 void ParagraphImpl::Paint(SkCanvas* canvas, double x, double y)
@@ -121,6 +151,7 @@ void ParagraphImpl::Paint(SkCanvas* canvas, double x, double y)
 void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
 {
     RSCanvasParagraphPainter painter(canvas, paints_);
+    painter.SetAnimation(animationFunc_);
     paragraph_->paint(&painter, x, y);
 }
 
@@ -148,6 +179,16 @@ Range<size_t> ParagraphImpl::GetWordBoundary(size_t offset)
 {
     skt::SkRange<size_t> range = paragraph_->getWordBoundary(offset);
     return Range<size_t>(range.start, range.end);
+}
+
+Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpaces)
+{
+    if (lineNumber >=0 && lineNumber <= static_cast<int>(paragraph_->lineNumber())) {
+        skt::SkRange<size_t> range = paragraph_->getActualTextRange(lineNumber, includeSpaces);
+        return Range<size_t>(range.start, range.end);
+    } else {
+        return Range<size_t>(0, 0);
+    }
 }
 
 std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()

@@ -423,7 +423,10 @@ ohos_unittest("RSUniRenderUtilTest") {
 ## Build RSUniRenderVisitorTest
 ohos_unittest("RSUniRenderVisitorTest") {
   module_out_path = module_output_path
-  sources = [ "rs_uni_render_visitor_test.cpp" ]
+  sources = [
+    "mock/mock_matrix.cpp",
+    "rs_uni_render_visitor_test.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
@@ -454,13 +457,18 @@ ohos_unittest("RSUniRenderVisitorTest") {
 ohos_unittest("RSUniUiCaptureTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_ui_capture_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "../../../../../modules/render_service_base:render_service_base_src",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+    external_deps += [ "accessibility:accessibilityconfig" ]
   }
   defines = []
   defines += gpu_defines

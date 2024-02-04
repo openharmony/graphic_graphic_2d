@@ -22,12 +22,15 @@
 #include "paragraph_style.h"
 #include "line_metrics.h"
 
+#include "rosen_text/symbol_animation_config.h"
+
 class SkCanvas;
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class Canvas;
+struct FontMetrics;
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -113,6 +116,22 @@ public:
     // of the first line.Used for ideographic fonts (Chinese, Japanese, Korean, etc.)
     virtual double GetIdeographicBaseline() = 0;
 
+    // Returns the distance from the horizontal line indicated by the baseline
+    // attribute to the top of the bounding rectangle of the given text.
+    virtual double GetGlyphsBoundsTop() = 0;
+
+    // Returns the distance from the horizontal line indicated by the baseline
+    // attribute to the bottom of the bounding rectangle of the given text.
+    virtual double GetGlyphsBoundsBottom() = 0;
+
+    // Returns the distance parallel to the baseline from the alignment point given by the
+    // textAlign attribute to the left side of the bounding rectangle of the given text.
+    virtual double GetGlyphsBoundsLeft() = 0;
+
+    // Returns the distance parallel to the baseline from the alignment point given by the
+    // textAlign attribute to the right side of the bounding rectangle of the given text.
+    virtual double GetGlyphsBoundsRight() = 0;
+
     // Returns true if Paragraph exceeds max lines, it also means that
     // some content was replaced by an ellipsis.
     virtual bool DidExceedMaxLines() = 0;
@@ -151,9 +170,16 @@ public:
     // Returns the word range of a given glyph in a paragraph.
     virtual Range<size_t> GetWordBoundary(size_t offset) = 0;
 
+    virtual Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
+
     virtual std::vector<LineMetrics>& GetLineMetrics() = 0;
 
     virtual bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const = 0;
+
+    virtual void SetAnimation(
+        std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) = 0;
+
+    virtual OHOS::Rosen::Drawing::FontMetrics MeasureText() = 0;
 };
 } // namespace SPText
 } // namespace Rosen

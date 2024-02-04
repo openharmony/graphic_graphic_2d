@@ -29,7 +29,7 @@ void SkiaTraceMemoryDump::DumpNumericValue(const char* dumpName,
     const char* valueName, const char* units, uint64_t value)
 {
     if (skiaMemoryTrace_ == nullptr) {
-        LOGE("SkiaTraceMemoryDump::DumpNumericValue, skiaMemoryTrace_ is nullptr");
+        LOGD("SkiaTraceMemoryDump::DumpNumericValue, skiaMemoryTrace_ is nullptr");
         return;
     }
 
@@ -39,7 +39,7 @@ void SkiaTraceMemoryDump::DumpNumericValue(const char* dumpName,
 void SkiaTraceMemoryDump::DumpStringValue(const char* dumpName, const char* valueName, const char* value)
 {
     if (skiaMemoryTrace_ == nullptr) {
-        LOGE("SkiaTraceMemoryDump::DumpStringValue, skiaMemoryTrace_ is nullptr");
+        LOGD("SkiaTraceMemoryDump::DumpStringValue, skiaMemoryTrace_ is nullptr");
         return;
     }
 
@@ -49,7 +49,7 @@ void SkiaTraceMemoryDump::DumpStringValue(const char* dumpName, const char* valu
 void SkiaTraceMemoryDump::LogOutput(OHOS::Rosen::DfxString& log)
 {
     if (skiaMemoryTrace_ == nullptr) {
-        LOGE("SkiaTraceMemoryDump::LogOutput, skiaMemoryTrace_ is nullptr");
+        LOGD("SkiaTraceMemoryDump::LogOutput, skiaMemoryTrace_ is nullptr");
         return;
     }
 
@@ -59,7 +59,7 @@ void SkiaTraceMemoryDump::LogOutput(OHOS::Rosen::DfxString& log)
 void SkiaTraceMemoryDump::LogTotals(OHOS::Rosen::DfxString& log)
 {
     if (skiaMemoryTrace_ == nullptr) {
-        LOGE("SkiaTraceMemoryDump::LogTotals, skiaMemoryTrace_ is nullptr");
+        LOGD("SkiaTraceMemoryDump::LogTotals, skiaMemoryTrace_ is nullptr");
         return;
     }
 
@@ -69,7 +69,7 @@ void SkiaTraceMemoryDump::LogTotals(OHOS::Rosen::DfxString& log)
 float SkiaTraceMemoryDump::GetGpuMemorySizeInMB()
 {
     if (skiaMemoryTrace_ == nullptr) {
-        LOGE("SkiaTraceMemoryDump::GetGpuMemorySizeInMB, skiaMemoryTrace_ is nullptr");
+        LOGD("SkiaTraceMemoryDump::GetGpuMemorySizeInMB, skiaMemoryTrace_ is nullptr");
         return 0.0f;
     }
 
@@ -79,7 +79,7 @@ float SkiaTraceMemoryDump::GetGpuMemorySizeInMB()
 float SkiaTraceMemoryDump::GetGLMemorySize()
 {
     if (skiaMemoryTrace_ == nullptr) {
-        LOGE("SkiaTraceMemoryDump::GetGLMemorySize, skiaMemoryTrace_ is nullptr");
+        LOGD("SkiaTraceMemoryDump::GetGLMemorySize, skiaMemoryTrace_ is nullptr");
         return 0.0f;
     }
 

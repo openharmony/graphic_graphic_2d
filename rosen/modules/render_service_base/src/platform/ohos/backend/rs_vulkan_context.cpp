@@ -27,6 +27,7 @@
 #define ACQUIRE_PROC(name, context)                         \
     if (!(vk##name = AcquireProc("vk" #name, context))) {   \
         ROSEN_LOGE("Could not acquire proc: vk" #name);     \
+        return false;                                       \
     }
 
 namespace OHOS {
@@ -39,8 +40,6 @@ thread_local std::shared_ptr<Drawing::GPUContext> RsVulkanContext::drawingContex
 #endif
 
 static std::vector<const char*> gInstanceExtensions = {
-    VK_KHR_SURFACE_EXTENSION_NAME,
-    VK_OHOS_SURFACE_EXTENSION_NAME,
     VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 };
 
@@ -51,7 +50,9 @@ static std::vector<const char*> gDeviceExtensions = {
     VK_KHR_MAINTENANCE2_EXTENSION_NAME,
     VK_KHR_MAINTENANCE3_EXTENSION_NAME,
     VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-    VK_KHR_BIND_MEMORY_2_EXTENSION_NAME
+    VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+    VK_OHOS_NATIVE_BUFFER_EXTENSION_NAME,
+    VK_OHOS_EXTERNAL_MEMORY_EXTENSION_NAME,
 };
 
 static const int GR_CACHE_MAX_COUNT = 8192;
@@ -169,12 +170,6 @@ bool RsVulkanContext::CreateInstance()
     ACQUIRE_PROC(EnumeratePhysicalDevices, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceQueueFamilyProperties, instance_);
-    ACQUIRE_PROC(GetPhysicalDeviceSurfaceCapabilitiesKHR, instance_);
-    ACQUIRE_PROC(GetPhysicalDeviceSurfaceFormatsKHR, instance_);
-    ACQUIRE_PROC(GetPhysicalDeviceSurfacePresentModesKHR, instance_);
-    ACQUIRE_PROC(GetPhysicalDeviceSurfaceSupportKHR, instance_);
-    ACQUIRE_PROC(DestroySurfaceKHR, instance_);
-    ACQUIRE_PROC(CreateSurfaceOHOS, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceMemoryProperties, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceMemoryProperties2, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures2, instance_);
@@ -338,11 +333,6 @@ bool RsVulkanContext::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(ResetCommandBuffer, device_);
     ACQUIRE_PROC(ResetFences, device_);
     ACQUIRE_PROC(WaitForFences, device_);
-    ACQUIRE_PROC(AcquireNextImageKHR, device_);
-    ACQUIRE_PROC(CreateSwapchainKHR, device_);
-    ACQUIRE_PROC(DestroySwapchainKHR, device_);
-    ACQUIRE_PROC(GetSwapchainImagesKHR, device_);
-    ACQUIRE_PROC(QueuePresentKHR, device_);
     ACQUIRE_PROC(GetNativeBufferPropertiesOHOS, device_);
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);

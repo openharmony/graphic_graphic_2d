@@ -190,6 +190,10 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
   }
 
+  if (graphic_2d_feature_enable_ddgr_opinc) {
+    include_dirs += ddgr_adapter_opt_set.ddgr_opinc_include_set
+  }
+
   deps = [
     "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
@@ -288,6 +292,7 @@ ohos_shared_library("librender_service") {
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+    defines += [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
   }
 
   if (accessibility_enable) {

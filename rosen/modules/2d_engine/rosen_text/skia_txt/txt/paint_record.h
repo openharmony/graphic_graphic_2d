@@ -22,6 +22,7 @@
 
 #include "draw/brush.h"
 #include "draw/pen.h"
+#include "symbol_engine/hm_symbol_txt.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +35,9 @@ struct PaintRecord {
     RSColor color;
     std::optional<RSBrush> brush;
     std::optional<RSPen> pen;
+    // hm symbol feature
+    bool isSymbolGlyph = false;
+    HMSymbolTxt symbol;
 
     PaintRecord() {}
     PaintRecord(RSBrush brush, RSPen pen) : brush(brush), pen(pen) {}

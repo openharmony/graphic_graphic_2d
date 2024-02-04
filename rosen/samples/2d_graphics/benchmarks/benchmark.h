@@ -23,9 +23,6 @@
 #include "include/core/SkImage.h"
 #include "recording/draw_cmd_list.h"
 #include "benchmark_result.h"
-#ifdef ENABLE_DDGR_OPTIMIZE
-#include "ddgr/DDGRCanvasInterface.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {

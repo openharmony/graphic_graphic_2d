@@ -16,6 +16,9 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_uni_ui_capture.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "common/rs_singleton.h"
+#include "limit_number.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -206,5 +209,141 @@ HWTEST_F(RSUniUiCaptureTest, PrepareEffectRenderNodeTest, TestSize.Level1)
     float scaleY = 0.0;
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
     rsUniUICaptureVisitor.PrepareEffectRenderNode(node);
+}
+
+/**
+ * @tc.name: CreateSurface
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSUniUiCaptureTest, CreateSurface, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelmap));
+
+    const uint32_t color[8] = { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
+    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
+    const int32_t offset = 0;
+    Media::InitializationOptions opts;
+    int32_t stride = 3;
+    std::shared_ptr<Media::PixelMap> pixelMap1 = Media::PixelMap::Create(color, colorLength, offset, stride, opts);
+    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelMap1));
+}
+
+/**
+ * @tc.name: PostTaskToRSRecord
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSUniUiCaptureTest, PostTaskToRSRecord, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
+    EXPECT_NE(rsUniUICaptureVisitor, nullptr);
+    
+#ifndef USE_ROSEN_DRAWING
+    std::shared_ptr<RSRecordingCanvas> canvas = nullptr;
+#else
+    std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
+#endif
+    rsUniUICapture.PostTaskToRSRecord(canvas, node, rsUniUICaptureVisitor);
+}
+
+/**
+ * @tc.name: SetPaintFilterCanvas
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSUniUiCaptureTest, SetPaintFilterCanvas, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+
+    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
+
+#ifndef USE_ROSEN_DRAWING
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+#else
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+#endif
+    EXPECT_NE(recordingCanvas, nullptr);
+    rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);
+
+    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas1 = nullptr;
+    rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas1);
+}
+
+/**
+ * @tc.name: ProcessRootRenderNode
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNode, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+
+    constexpr NodeId nodeId1 = TestSrc::limitNumber::Uint64[1];
+    constexpr NodeId nodeId2 = TestSrc::limitNumber::Uint64[2];
+    RSRootRenderNode node1(nodeId1);
+    RSCanvasRenderNode node2(nodeId2);
+    rsUniUICaptureVisitor.ProcessRootRenderNode(node1);
+    rsUniUICaptureVisitor.ProcessCanvasRenderNode(node2);
+}
+
+/**
+ * @tc.name: ProcessSurfaceRenderNodeWithUni
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+
+    RSUniUICapture rsUniUICapture(nodeId, scaleX, scaleY);
+    std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
+
+#ifndef USE_ROSEN_DRAWING
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+#else
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+#endif
+    rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);
+    
+    std::weak_ptr<RSContext> context;
+    RSSurfaceRenderNode node(nodeId, context);
+    rsUniUICaptureVisitor->ProcessSurfaceRenderNodeWithUni(node);
 }
 } // namespace OHOS::Rosen

@@ -127,7 +127,6 @@ HWTEST_F(RSDrivenRenderVisitorTest, ProcessChildren, TestSize.Level1)
     // secondItemNode id = 4
     auto secondItemNode = std::make_shared<RSCanvasRenderNode>(4, rsContext->weak_from_this());
     secondItemNode->SetItemIndex(1);
-    rsDrivenRenderVisitor->ProcessDrivenCanvasRenderNode(*secondItemNode);
     drivenContentNode->AddChild(secondItemNode, -1);
     drivenBackgroundNode->AddChild(drivenContentNode, -1);
     rsDrivenRenderVisitor->PrepareChildren(*drivenBackgroundNode);

@@ -21,12 +21,23 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
   module_out_path = module_output_path
 
   sources = [
+    "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_mask_filter.cpp",
+    "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_picture.cpp",
     "skia_canvas_test.cpp",
     "skia_color_filter_test.cpp",
+    "skia_helper_test.cpp",
+    "skia_image_filter_test.cpp",
+    "skia_image_info_test.cpp",
     "skia_image_test.cpp",
+    "skia_mask_filter_test.cpp",
+    "skia_matrix44_test.cpp",
     "skia_matrix_test.cpp",
     "skia_paint_test.cpp",
     "skia_path_effect_test.cpp",
+    "skia_path_test.cpp",
+    "skia_picture_test.cpp",
+    "skia_pixmap_test.cpp",
+    "skia_region_test.cpp",
     "skia_shader_effect_test.cpp",
   ]
 

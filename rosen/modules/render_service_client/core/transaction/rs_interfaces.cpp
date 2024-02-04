@@ -264,7 +264,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
+    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -493,6 +493,11 @@ void RSInterfaces::DisableCacheForRotation()
 void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
+}
+
+GpuDirtyRegionInfo RSInterfaces::GetCurrentDirtyRegionInfo(ScreenId id)
+{
+    return renderServiceClient_->GetCurrentDirtyRegionInfo(id);
 }
 
 #ifdef TP_FEATURE_ENABLE

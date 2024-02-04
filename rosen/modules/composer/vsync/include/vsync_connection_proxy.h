@@ -29,9 +29,9 @@ public:
     virtual ~VSyncConnectionProxy() = default;
 
     virtual VsyncError RequestNextVSync() override;
+    virtual VsyncError RequestNextVSync(const std::string& fromWhom, int64_t lastVSyncTS) override;
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
-    virtual VsyncError GetVSyncPeriod(int64_t &period) override;
     virtual VsyncError Destroy() override;
 
 private:

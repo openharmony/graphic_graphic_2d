@@ -101,11 +101,14 @@ void BootAnimation::Init(Rosen::ScreenId defaultId, int32_t width, int32_t heigh
     InitPicCoordinates();
     InitRsDisplayNode();
     InitRsSurfaceNode();
+#ifdef PLAYER_FRAMEWORK_ENABLE
     if (animationConfig_.IsBootVideoEnabled()) {
         LOGI("Init end");
         return;
     }
-
+#endif
+    LOGI("Playing boot animation using sequence frames.");
+    system::SetParameter("bootevent.bootanimation.started", "true");
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     while (receiver_ == nullptr) {
         receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", mainHandler_);
@@ -121,6 +124,7 @@ void BootAnimation::Init(Rosen::ScreenId defaultId, int32_t width, int32_t heigh
     if (animationConfig_.ReadPicZipFile(imageVector_, freq_)) {
         imgVecSize_ = imageVector_.size();
     } else {
+        LOGE("Read PicZipFile failed");
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return;
     }
@@ -148,13 +152,15 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     if (animationConfig_.GetRotateScreenId() >= 0) {
         id = interface.GetActiveScreenId();
+        LOGI("GetActiveScreenId: " BPUBU64 "", id);
         Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(id);
         screenWidth = modeinfo.GetScreenWidth();
         screenHeight = modeinfo.GetScreenHeight();
+        LOGI("screenWidth: %{public}d, screenHeight: %{public}d", screenWidth, screenHeight);
         if (id > 0) {
             LOGI("SetScreenPowerStatus POWER_STATUS_OFF_FAKE: 0");
             interface.SetScreenPowerStatus(0, Rosen::ScreenPowerStatus::POWER_STATUS_OFF_FAKE);
-            LOGI("SetScreenPowerStatus POWER_STATUS_ON: %{public}llu", id);
+            LOGI("SetScreenPowerStatus POWER_STATUS_ON: " BPUBU64 "", id);
             interface.SetScreenPowerStatus(id, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
         }
     } else if (interface.GetScreenPowerStatus(id) != Rosen::ScreenPowerStatus::POWER_STATUS_ON) {
@@ -164,11 +170,18 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     mainHandler_->PostTask(std::bind(&BootAnimation::Init, this, id, screenWidth, screenHeight));
+    LOGI("PostTask Init");
+#ifdef PLAYER_FRAMEWORK_ENABLE
     if (animationConfig_.IsBootVideoEnabled()) {
         mainHandler_->PostTask(std::bind(&BootAnimation::PlayVideo, this));
+        LOGI("PostTask PlayVideo");
     } else {
         mainHandler_->PostTask(std::bind(&BootAnimation::PlaySound, this));
+        LOGI("PostTask PlaySound");
     }
+#else
+    LOGI("player_framework part is not enabled.");
+#endif
     runner_->Run();
 }
 
@@ -177,6 +190,7 @@ void BootAnimation::InitRsSurfaceNode()
     LOGI("Init RsSurfaceNode enter");
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
     rsSurfaceNodeConfig.SurfaceNodeName = "BootAnimationNode";
+    rsSurfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
     if (!rsSurfaceNode_) {
@@ -196,8 +210,6 @@ void BootAnimation::InitRsSurfaceNode()
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
     rsSurfaceNode_->AttachToDisplay(defaultId_);
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
-    system::SetParameter("bootevent.bootanimation.started", "true");
-    LOGI("Set bootevent.bootanimation.started true");
 }
 
 void BootAnimation::InitRsSurface()
@@ -286,9 +298,9 @@ bool BootAnimation::CheckExitAnimation()
     return false;
 }
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 void BootAnimation::PlaySound()
 {
-#ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlaySound start");
     bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
     if (bootSoundEnabled == true) {
@@ -303,11 +315,10 @@ void BootAnimation::PlaySound()
         soundPlayer_->Play();
     }
     LOGI("PlaySound end");
-#else
-    LOGI("player_framework part is not enabled.");
-#endif
 }
+#endif
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 void BootAnimation::PlayVideo()
 {
     LOGI("PlayVideo start w:%{public}d h:%{public}d", windowWidth_, windowHeight_);
@@ -329,7 +340,9 @@ void BootAnimation::PlayVideo()
         CloseVideoPlayer();
     }
 }
+#endif
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 void BootAnimation::CloseVideoPlayer()
 {
     LOGI("Close video player.");
@@ -338,6 +351,7 @@ void BootAnimation::CloseVideoPlayer()
     }
     LOGI("Check Exit Animation end.");
 }
+#endif
 
 void BootAnimation::InitRsDisplayNode()
 {

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <mutex>
 #define EGL_EGLEXT_PROTOTYPES
 #include "rs_filter_sub_thread.h"
 
@@ -117,11 +118,12 @@ void RSFilterSubThread::StartColorPicker()
 #else
 #ifdef IS_OHOS
     RSColorPickerCacheTask::saveImgAndSurToRelease =
-        [this](std::shared_ptr<Drawing::Image> && cacheImage, std::shared_ptr<Drawing::Surface> && cacheSurface,
-            std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
-            std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler) {
+        [this](std::shared_ptr<Drawing::Image>&& cacheImage, std::shared_ptr<Drawing::Surface>&& cacheSurface,
+            std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler,
+            std::weak_ptr<std::atomic<bool>> waitRelease,
+            std::weak_ptr<std::mutex> grBackendTextureMutex) {
         SaveAndReleaseCacheResource(std::move(cacheImage), std::move(cacheSurface),
-            std::move(initHandler), std::move(colorPickerThreadhandler));
+            initHandler, waitRelease, grBackendTextureMutex);
     };
 #endif
 #endif
@@ -136,70 +138,121 @@ void RSFilterSubThread::PostTask(const std::function<void()>& task)
 
 #ifndef USE_ROSEN_DRAWING
 #else
-void RSFilterSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Image> && cacheImage,
-    std::shared_ptr<Drawing::Surface> && cacheSurface,
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler)
+#ifdef IS_OHOS
+void RSFilterSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
+    std::shared_ptr<Drawing::Surface>&& cacheSurface,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (tmpImageResources_.find(initHandler) != tmpImageResources_.end()) {
-        tmpImageResources_[initHandler].push(std::move(cacheImage));
-    } else {
-        std::queue<std::shared_ptr<Drawing::Image>> imageQueue;
-        imageQueue.push(std::move(cacheImage));
-        tmpImageResources_[initHandler] = imageQueue;
+    if (initHandler != nullptr) {
+        auto runner = initHandler->GetEventRunner();
+        std::string handlerName = runner->GetRunnerThreadName();
+        handlerMap_[handlerName] = initHandler;
+        if (tmpImageResources_.find(handlerName) != tmpImageResources_.end()) {
+            tmpImageResources_[handlerName].push(std::move(cacheImage));
+        } else {
+            std::queue<std::shared_ptr<Drawing::Image>> imageQueue;
+            imageQueue.push(std::move(cacheImage));
+            tmpImageResources_[handlerName] = imageQueue;
+        }
     }
     tmpSurfaceResources_.push(std::move(cacheSurface));
 }
 
-void RSFilterSubThread::ReleaseSurface()
+void RSFilterSubThread::PreAddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
+    std::shared_ptr<Drawing::Surface>&& cacheSurface,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler,
+    std::weak_ptr<std::mutex> grBackendTextureMutex)
+{
+    ROSEN_LOGD("RSFilterSubThread::AddToReleaseQueue");
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto backendTextureMutex = grBackendTextureMutex.lock();
+    if (backendTextureMutex != nullptr) {
+        std::unique_lock<std::mutex> lock(*backendTextureMutex);
+        AddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface), initHandler);
+    } else {
+        AddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface), initHandler);
+    }
+}
+
+void RSFilterSubThread::ResetWaitRelease(std::weak_ptr<std::atomic<bool>> waitRelease)
+{
+    auto wait = waitRelease.lock();
+    if (wait != nullptr) {
+        wait->store(false);
+    }
+}
+
+void RSFilterSubThread::ReleaseSurface(std::weak_ptr<std::atomic<bool>> waitRelease)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     while (tmpSurfaceResources_.size() > 0) {
         auto tmp = tmpSurfaceResources_.front();
         tmpSurfaceResources_.pop();
         if (tmp == nullptr) {
+            ResetWaitRelease(waitRelease);
             return;
         }
         tmp = nullptr;
     }
+    ResetWaitRelease(waitRelease);
 }
 
-void RSFilterSubThread::ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue)
+void RSFilterSubThread::ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue,
+    std::weak_ptr<std::atomic<bool>> waitRelease)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     while (queue.size() > 0) {
         auto tmp = queue.front();
         queue.pop();
         if (tmp == nullptr) {
+            ResetWaitRelease(waitRelease);
             return;
         }
         tmp.reset();
     }
+    PostTask([this, waitRelease]() { ReleaseSurface(waitRelease); });
 }
 
-void RSFilterSubThread::ReleaseImageAndSurfaces()
+void RSFilterSubThread::PreReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue,
+    std::weak_ptr<std::atomic<bool>> waitRelease,
+    std::weak_ptr<std::mutex> grBackendTextureMutex)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto backendTextureMutex = grBackendTextureMutex.lock();
+    if (backendTextureMutex != nullptr) {
+        std::unique_lock<std::mutex> lock(*backendTextureMutex);
+        ReleaseImage(queue, waitRelease);
+    } else {
+        ReleaseImage(queue, waitRelease);
+    }
+}
+
+void RSFilterSubThread::ReleaseImageAndSurfaces(std::weak_ptr<std::atomic<bool>> waitRelease,
+    std::weak_ptr<std::mutex> grBackendTextureMutex)
+{
+    ROSEN_LOGD("ReleaseImageAndSurfaces tmpImageResources_.size %{public}d",
+        static_cast<int>(tmpImageResources_.size()));
     for (auto& item : tmpImageResources_) {
-        auto& initHandler = item.first;
+        auto& initHandler = handlerMap_[item.first];
         auto& imageQueue = item.second;
-        if (initHandler != nullptr) {
+        if (imageQueue.size() != 0) {
             initHandler->PostTask(
-                [this, &imageQueue]() { ReleaseImage(imageQueue); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+                [this, &imageQueue, waitRelease, grBackendTextureMutex]() {
+                    PreReleaseImage(imageQueue, waitRelease, grBackendTextureMutex);
+                }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
     }
-    PostTask([this]() { ReleaseSurface(); });
 }
 
-void RSFilterSubThread::SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Image> && cacheImage,
-    std::shared_ptr<Drawing::Surface> && cacheSurface,
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler)
+void RSFilterSubThread::SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Image>&& cacheImage,
+    std::shared_ptr<Drawing::Surface>&& cacheSurface,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler,
+    std::weak_ptr<std::atomic<bool>> waitRelease,
+    std::weak_ptr<std::mutex> grBackendTextureMutex)
 {
-    AddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface),
-        std::move(initHandler), std::move(colorPickerThreadhandler));
-    ReleaseImageAndSurfaces();
+    PreAddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface), initHandler, grBackendTextureMutex);
+    ReleaseImageAndSurfaces(waitRelease, grBackendTextureMutex);
 }
+#endif
 #endif
 
 void RSFilterSubThread::PostSyncTask(const std::function<void()>& task)

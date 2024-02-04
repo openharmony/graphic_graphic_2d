@@ -29,15 +29,15 @@ int ParticleRenderParams::GetEmitRate() const
 {
     return emitterConfig_.emitRate_;
 }
-ShapeType ParticleRenderParams::GetEmitShape() const
+const ShapeType& ParticleRenderParams::GetEmitShape() const
 {
     return emitterConfig_.emitShape_;
 }
-Vector2f ParticleRenderParams::GetEmitPosition() const
+const Vector2f& ParticleRenderParams::GetEmitPosition() const
 {
     return emitterConfig_.position_;
 }
-Vector2f ParticleRenderParams::GetEmitSize() const
+const Vector2f& ParticleRenderParams::GetEmitSize() const
 {
     return emitterConfig_.emitSize_;
 }
@@ -49,7 +49,7 @@ int64_t ParticleRenderParams::GetParticleLifeTime() const
 {
     return emitterConfig_.lifeTime_ * NS_PER_MS;
 }
-ParticleType ParticleRenderParams::GetParticleType() const
+const ParticleType& ParticleRenderParams::GetParticleType() const
 {
     return emitterConfig_.type_;
 }
@@ -57,11 +57,11 @@ float ParticleRenderParams::GetParticleRadius() const
 {
     return emitterConfig_.radius_;
 }
-std::shared_ptr<RSImage> ParticleRenderParams::GetParticleImage()
+const std::shared_ptr<RSImage>& ParticleRenderParams::GetParticleImage()
 {
     return emitterConfig_.image_;
 }
-Vector2f ParticleRenderParams::GetImageSize() const
+const Vector2f& ParticleRenderParams::GetImageSize() const
 {
     return emitterConfig_.imageSize_;
 }
@@ -99,11 +99,11 @@ float ParticleRenderParams::GetAccelerationEndAngle() const
 {
     return acceleration_.accelerationAngle_.val_.end_;
 }
-ParticleUpdator ParticleRenderParams::GetAccelerationValueUpdator()
+const ParticleUpdator& ParticleRenderParams::GetAccelerationValueUpdator()
 {
     return acceleration_.accelerationValue_.updator_;
 }
-ParticleUpdator ParticleRenderParams::GetAccelerationAngleUpdator()
+const ParticleUpdator& ParticleRenderParams::GetAccelerationAngleUpdator()
 {
     return acceleration_.accelerationAngle_.updator_;
 }
@@ -124,15 +124,15 @@ float ParticleRenderParams::GetAccelRandomAngleEnd() const
     return acceleration_.accelerationAngle_.random_.end_;
 }
 
-Color ParticleRenderParams::GetColorStartValue()
+const Color& ParticleRenderParams::GetColorStartValue()
 {
     return color_.colorVal_.start_;
 }
-Color ParticleRenderParams::GetColorEndValue()
+const Color& ParticleRenderParams::GetColorEndValue()
 {
     return color_.colorVal_.end_;
 }
-ParticleUpdator ParticleRenderParams::GetColorUpdator()
+const ParticleUpdator& ParticleRenderParams::GetColorUpdator()
 {
     return color_.updator_;
 }
@@ -177,7 +177,7 @@ float ParticleRenderParams::GetOpacityEndValue()
 {
     return opacity_.val_.end_;
 }
-ParticleUpdator ParticleRenderParams::GetOpacityUpdator()
+const ParticleUpdator& ParticleRenderParams::GetOpacityUpdator()
 {
     return opacity_.updator_;
 }
@@ -198,7 +198,7 @@ float ParticleRenderParams::GetScaleEndValue()
 {
     return scale_.val_.end_;
 }
-ParticleUpdator ParticleRenderParams::GetScaleUpdator()
+const ParticleUpdator& ParticleRenderParams::GetScaleUpdator()
 {
     return scale_.updator_;
 }
@@ -219,7 +219,7 @@ float ParticleRenderParams::GetSpinEndValue()
 {
     return spin_.val_.end_;
 }
-ParticleUpdator ParticleRenderParams::GetSpinUpdator()
+const ParticleUpdator& ParticleRenderParams::GetSpinUpdator()
 {
     return spin_.updator_;
 }
@@ -359,17 +359,17 @@ void RSRenderParticle::SetAlphaF(float alphaF)
 }
 
 // Get methods
-Vector2f RSRenderParticle::GetPosition()
+const Vector2f& RSRenderParticle::GetPosition()
 {
     return position_;
 }
 
-Vector2f RSRenderParticle::GetVelocity()
+const Vector2f& RSRenderParticle::GetVelocity()
 {
     return velocity_;
 }
 
-Vector2f RSRenderParticle::GetAcceleration()
+const Vector2f& RSRenderParticle::GetAcceleration()
 {
     return acceleration_;
 }
@@ -384,7 +384,7 @@ float RSRenderParticle::GetOpacity()
     return opacity_;
 }
 
-Color RSRenderParticle::GetColor()
+const Color& RSRenderParticle::GetColor()
 {
     return color_;
 }
@@ -474,17 +474,17 @@ float RSRenderParticle::GetAlphaF()
     return alphaF_;
 }
 
-std::shared_ptr<RSImage> RSRenderParticle::GetImage()
+const std::shared_ptr<RSImage>& RSRenderParticle::GetImage()
 {
     return image_;
 }
 
-Vector2f RSRenderParticle::GetImageSize()
+const Vector2f& RSRenderParticle::GetImageSize()
 {
     return imageSize_;
 }
 
-ParticleType RSRenderParticle::GetParticleType()
+const ParticleType& RSRenderParticle::GetParticleType()
 {
     return particleType_;
 }
@@ -499,6 +499,54 @@ const std::shared_ptr<ParticleRenderParams>& RSRenderParticle::GetParticleRender
     return particleRenderParams_;
 }
 
+const ParticleUpdator& RSRenderParticle::GetAccelerationValueUpdator()
+{
+    return particleRenderParams_->acceleration_.accelerationValue_.updator_;
+}
+const ParticleUpdator& RSRenderParticle::GetAccelerationAngleUpdator()
+{
+    return particleRenderParams_->acceleration_.accelerationAngle_.updator_;
+}
+const ParticleUpdator& RSRenderParticle::GetColorUpdator()
+{
+    return particleRenderParams_->color_.updator_;
+}
+const ParticleUpdator& RSRenderParticle::GetOpacityUpdator()
+{
+    return particleRenderParams_->opacity_.updator_;
+}
+const ParticleUpdator& RSRenderParticle::GetScaleUpdator()
+{
+    return particleRenderParams_->scale_.updator_;
+}
+const ParticleUpdator& RSRenderParticle::GetSpinUpdator()
+{
+    return particleRenderParams_->spin_.updator_;
+}
+const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetAcceValChangeOverLife()
+{
+    return particleRenderParams_->acceleration_.accelerationValue_.valChangeOverLife_;
+}
+const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetAcceAngChangeOverLife()
+{
+    return particleRenderParams_->acceleration_.accelerationAngle_.valChangeOverLife_;
+}
+const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetOpacityChangeOverLife()
+{
+    return particleRenderParams_->opacity_.valChangeOverLife_;
+}
+const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetScaleChangeOverLife()
+{
+    return particleRenderParams_->scale_.valChangeOverLife_;
+}
+const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& RSRenderParticle::GetSpinChangeOverLife()
+{
+    return particleRenderParams_->spin_.valChangeOverLife_;
+}
+const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& RSRenderParticle::GetColorChangeOverLife()
+{
+    return particleRenderParams_->color_.valChangeOverLife_;
+}
 // Other methods
 void RSRenderParticle::InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams)
 {
@@ -581,9 +629,13 @@ float RSRenderParticle::GetRandomValue(float min, float max)
         std::swap(min, max);
     }
     std::random_device rd;
-    std::mt19937_64 gen(rd());
-    std::uniform_real_distribution<float> dis(min, max);
-    return dis(gen);
+    if (rd.entropy() > 0) {
+        std::mt19937_64 gen(rd());
+        std::uniform_real_distribution<float> dis(min, max);
+        return dis(gen);
+    } else {
+        return min + (max - min) / 2.0f;
+    }
 }
 
 Vector2f RSRenderParticle::CalculateParticlePosition(

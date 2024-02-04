@@ -42,6 +42,8 @@ public:
     virtual void Scale(scalar sx, scalar sy, scalar px, scalar py) = 0;
     virtual void SetScale(scalar sx, scalar sy) = 0;
     virtual void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy) = 0;
+    virtual void SetSkew(scalar kx, scalar ky) = 0;
+    virtual void SetSkew(scalar kx, scalar ky, scalar px, scalar py) = 0;
 
     virtual void PreRotate(scalar degree) = 0;
     virtual void PostRotate(scalar degree) = 0;
@@ -51,6 +53,10 @@ public:
     virtual void PreScale(scalar sx, scalar sy) = 0;
     virtual void PostScale(scalar sx, scalar sy) = 0;
     virtual void PostScale(scalar sx, scalar sy, scalar px, scalar py) = 0;
+    virtual void PreSkew(scalar kx, scalar ky) = 0;
+    virtual void PostSkew(scalar kx, scalar ky) = 0;
+    virtual void PreSkew(scalar kx, scalar ky, scalar px, scalar py) = 0;
+    virtual void PostSkew(scalar kx, scalar ky, scalar px, scalar py) = 0;
     virtual void PreConcat(const Matrix& other) = 0;
     virtual void PreConcat(const Matrix44& other) = 0;
     virtual void PostConcat(const Matrix& other) = 0;
@@ -74,6 +80,7 @@ public:
     virtual void Reset() = 0;
 
     virtual bool GetMinMaxScales(scalar scaleFactors[2]) = 0;
+    virtual bool HasPerspective() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

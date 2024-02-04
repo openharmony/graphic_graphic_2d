@@ -21,11 +21,6 @@
 #include "surface_frame.h"
 #include "surface_type.h"
 #include "draw/canvas.h"
-#ifdef ENABLE_DDGR_OPTIMIZE
-#include "ddgr/DDGRCanvasInterface.h"
-#include "DDGRCanvasV2.h"
-#include "ddgr/Surface.h"
-#endif
 
 class SkCanvas;
 

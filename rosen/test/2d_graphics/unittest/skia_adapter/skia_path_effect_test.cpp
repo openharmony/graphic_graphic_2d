@@ -39,9 +39,9 @@ void SkiaPathEffectTest::TearDown() {}
 
 /**
  * @tc.name: InitWithPathDash001
- * @tc.desc:
+ * @tc.desc: Test InitWithPathDash
  * @tc.type: FUNC
- * @tc.author:
+ * @tc.require: I8VQSW
  */
 HWTEST_F(SkiaPathEffectTest, InitWithPathDash001, TestSize.Level1)
 {
@@ -52,6 +52,61 @@ HWTEST_F(SkiaPathEffectTest, InitWithPathDash001, TestSize.Level1)
     skiaPathEffect.InitWithPathDash(path, advance, phase, PathDashStyle::TRANSLATE);
 }
 
+/**
+ * @tc.name: InitWithDiscrete001
+ * @tc.desc: Test InitWithDiscrete
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathEffectTest, InitWithDiscrete001, TestSize.Level1)
+{
+    SkiaPathEffect skiaPathEffect;
+    skiaPathEffect.InitWithDiscrete(200, 3, 1); //200: egLength, 3: dev, 1: seedAssist
+    skiaPathEffect.SetSkPathEffect(nullptr);
+    skiaPathEffect.Serialize();
+    skiaPathEffect.Deserialize(nullptr);
+    EXPECT_TRUE(skiaPathEffect.GetPathEffect() != nullptr);
+}
+
+/**
+ * @tc.name: InitWithDiscrete002
+ * @tc.desc: Test InitWithDiscrete
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathEffectTest, InitWithDiscrete002, TestSize.Level1)
+{
+    SkiaPathEffect skiaPathEffect;
+    skiaPathEffect.InitWithDiscrete(200, 3, 1); //200: egLength, 3: dev, 1: seedAssist
+}
+
+/**
+ * @tc.name: InitWithSum001
+ * @tc.desc: Test InitWithSum
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathEffectTest, InitWithSum001, TestSize.Level1)
+{
+    auto pathEffect1 = PathEffect::CreateCornerPathEffect(10); // 10: radius
+    auto pathEffect2 = PathEffect::CreateCornerPathEffect(10); // 10: radius
+    SkiaPathEffect skiaPathEffect3;
+    skiaPathEffect3.InitWithSum(*pathEffect1, *pathEffect2);
+}
+
+/**
+ * @tc.name: InitWithCompose001
+ * @tc.desc: Test InitWithCompose
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathEffectTest, InitWithCompose001, TestSize.Level1)
+{
+    auto pathEffect1 = PathEffect::CreateCornerPathEffect(10); // 10: radius
+    auto pathEffect2 = PathEffect::CreateCornerPathEffect(10); // 10: radius
+    SkiaPathEffect skiaPathEffect3;
+    skiaPathEffect3.InitWithCompose(*pathEffect1, *pathEffect2);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

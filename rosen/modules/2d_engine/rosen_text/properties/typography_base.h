@@ -53,6 +53,7 @@ public:
     virtual TypographyProperties::PositionAndAffinity GetGlyphPositionAtCoordinateWithCluster(double dx,
         double dy);
     virtual TypographyProperties::Range<size_t> GetWordBoundary(size_t offset);
+    virtual TypographyProperties::Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces);
     virtual size_t GetLineCount();
 };
 } // namespace rosen

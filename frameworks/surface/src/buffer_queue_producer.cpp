@@ -20,7 +20,6 @@
 
 #include "buffer_extra_data_impl.h"
 #include "buffer_log.h"
-#include "buffer_manager.h"
 #include "buffer_producer_listener.h"
 #include "buffer_utils.h"
 #include "frame_report.h"
@@ -31,10 +30,10 @@ namespace {
 constexpr int32_t BUFFER_MATRIX_SIZE = 16;
 } // namespace
 
-BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
+BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue> bufferQueue)
     : producerSurfaceDeathRecipient_(new ProducerSurfaceDeathRecipient(this))
 {
-    bufferQueue_ = bufferQueue;
+    bufferQueue_ = std::move(bufferQueue);
     if (bufferQueue_ != nullptr) {
         bufferQueue_->GetName(name_);
     }
@@ -67,10 +66,14 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
         &BufferQueueProducer::UnRegisterReleaseListenerRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER] = &BufferQueueProducer::GetLastFlushedBufferRemote;
     memberFuncMap_[BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT] = &BufferQueueProducer::RegisterDeathRecipient;
+    memberFuncMap_[BUFFER_PRODUCER_GET_TRANSFORM] = &BufferQueueProducer::GetTransformRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
 {
+    if (token_ && producerSurfaceDeathRecipient_) {
+        token_->RemoveDeathRecipient(producerSurfaceDeathRecipient_);
+    }
 }
 
 GSError BufferQueueProducer::CheckConnectLocked()
@@ -195,7 +198,7 @@ int32_t BufferQueueProducer::GetLastFlushedBufferRemote(MessageParcel &arguments
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> fence;
     float matrix[BUFFER_MATRIX_SIZE];
-    GSError sret = GetLastFlushedBuffer(buffer, fence, matrix, BUFFER_MATRIX_SIZE);
+    GSError sret = GetLastFlushedBuffer(buffer, fence, matrix);
     reply.WriteInt32(sret);
     if (sret == GSERROR_OK) {
         uint32_t sequence = buffer->GetSeqNum();
@@ -218,7 +221,7 @@ int32_t BufferQueueProducer::AttachBufferRemote(MessageParcel &arguments, Messag
         reply.WriteInt32(ret);
         return 0;
     }
-    timeOut = arguments.ReadUint32();
+    timeOut = arguments.ReadInt32();
 
     ret = AttachBuffer(buffer, timeOut);
     reply.WriteInt32(ret);
@@ -432,6 +435,22 @@ int32_t BufferQueueProducer::RegisterDeathRecipient(MessageParcel &arguments, Me
     return 0;
 }
 
+int32_t BufferQueueProducer::GetTransformRemote(
+    MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    auto ret = GetTransform(transform);
+    if (ret != GSERROR_OK) {
+        reply.WriteInt32(static_cast<int32_t>(ret));
+        return -1;
+    }
+
+    reply.WriteInt32(GSERROR_OK);
+    reply.WriteUint32(static_cast<uint32_t>(transform));
+
+    return 0;
+}
+
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -470,12 +489,12 @@ GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExt
 }
 
 GSError BufferQueueProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
+    sptr<SyncFence>& fence, float matrix[16])
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    return bufferQueue_->GetLastFlushedBuffer(buffer, fence, matrix, matrixSize);
+    return bufferQueue_->GetLastFlushedBuffer(buffer, fence, matrix);
 }
 
 GSError BufferQueueProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
@@ -614,6 +633,17 @@ GSError BufferQueueProducer::SetTransform(GraphicTransformType transform)
     return bufferQueue_->SetTransform(transform);
 }
 
+GSError BufferQueueProducer::GetTransform(GraphicTransformType &transform)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (bufferQueue_ == nullptr) {
+        transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    transform = bufferQueue_->GetTransform();
+    return GSERROR_OK;
+}
+
 GSError BufferQueueProducer::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                               std::vector<bool> &supporteds)
 {
@@ -704,11 +734,19 @@ GSError BufferQueueProducer::GetPresentTimestamp(uint32_t sequence, GraphicPrese
 
 bool BufferQueueProducer::GetStatus() const
 {
+    if (bufferQueue_ == nullptr) {
+        BLOGNE("BufferQueueProducer::bufferQueue is nullptr.");
+        return false;
+    }
     return bufferQueue_->GetStatus();
 }
 
 void BufferQueueProducer::SetStatus(bool status)
 {
+    if (bufferQueue_ == nullptr) {
+        BLOGNE("BufferQueueProducer::bufferQueue is nullptr.");
+        return;
+    }
     bufferQueue_->SetStatus(status);
 }
 

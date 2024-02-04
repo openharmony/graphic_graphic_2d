@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -403,7 +404,7 @@ static bool IsUtf8(const char* text)
     int n;
     for (int i = 0; i < len; i++) {
         uint32_t c = text[i];
-        if (0x00 <= c && c <= 0x7F) { // 0x00 and 0x7F is the range of utf-8
+        if (c <= 0x7F) { // 0x00 and 0x7F is the range of utf-8
             n = 0;
         } else if ((c & 0xE0) == 0xC0) { // 0xE0 and 0xC0 is the range of utf-8
             n = 1;
@@ -1058,4 +1059,17 @@ double OH_Drawing_TypographyGetLineWidth(OH_Drawing_Typography* typography, int 
 {
     Typography* typographyInner = ConvertToOriginalText<Typography>(typography);
     return typographyInner->GetLineWidth(lineNumber);
+}
+
+OH_Drawing_Range* OH_Drawing_TypographyGetLineTextRange(OH_Drawing_Typography* typography,
+    int lineNumber, bool includeSpaces)
+{
+#ifndef USE_GRAPHIC_TEXT_GINE
+    TypographyProperties::Range<size_t>* originalRange = new TypographyProperties::Range<size_t>;
+    *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
+#else
+    Boundary* originalRange = new Boundary(0, 0);
+    *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
+#endif
+    return (OH_Drawing_Range*)originalRange;
 }

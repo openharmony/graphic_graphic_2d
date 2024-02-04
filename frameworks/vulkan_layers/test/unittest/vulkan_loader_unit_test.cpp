@@ -153,6 +153,10 @@ VkSwapchainCreateInfoKHR VulkanLoaderUnitTest::GetSwapchainCreateInfo(
         swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         swapchainCI.surface = surface_;
         uint32_t desiredNumberOfSwapchainImages = surfCaps_.minImageCount + 1;
+        if ((surfCaps_.maxImageCount > 0) &&
+            (desiredNumberOfSwapchainImages > surfCaps_.maxImageCount)) {
+            desiredNumberOfSwapchainImages = surfCaps_.maxImageCount;
+        }
         swapchainCI.minImageCount = desiredNumberOfSwapchainImages;
         swapchainCI.imageFormat = imageFormat;
         swapchainCI.imageColorSpace = imageColorSpace;

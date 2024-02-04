@@ -106,7 +106,7 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetColor pen is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -114,13 +114,13 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsPen::SetColor Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     napi_valuetype valueType = napi_undefined;
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
         ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiGetUndefined(env);
     }
 
     napi_value tempValue = nullptr;
@@ -129,13 +129,17 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
     int32_t green = 0;
     int32_t blue = 0;
     napi_get_named_property(env, argv[0], "alpha", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
+    bool isAlphaOk = ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "red", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
+    bool isRedOk = ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "green", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
+    bool isGreenOk = ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "blue", &tempValue);
-    ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
+    bool isBlueOk = ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
+    if (!(isAlphaOk && isRedOk && isGreenOk && isBlueOk)) {
+        ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
 
     Color color(Color::ColorQuadSetARGB(alpha, red, green, blue));
     pen->SetColor(color);
@@ -148,7 +152,7 @@ napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetStrokeWidth pen is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -156,17 +160,15 @@ napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsPen::SetStrokeWidth Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_number) {
+    double width = 0.0;
+    if (!ConvertFromJsValue(env, argv[0], width)) {
         ROSEN_LOGE("JsPen::SetStrokeWidth Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiGetUndefined(env);
     }
 
-    double width;
-    ConvertFromJsNumber(env, argv[0], width);
     pen->SetWidth(static_cast<float>(width));
     return NapiGetUndefined(env);
 }
@@ -178,7 +180,7 @@ napi_value JsPen::SetAntiAlias(napi_env env, napi_callback_info info)
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAntiAlias pen is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -186,17 +188,15 @@ napi_value JsPen::SetAntiAlias(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsPen::SetAntiAlias Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_boolean) {
+    bool aa = true;
+    if (!ConvertFromJsValue(env, argv[0], aa)) {
         ROSEN_LOGE("JsPen::SetAntiAlias Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiGetUndefined(env);
     }
 
-    bool aa;
-    ConvertFromJsNumber(env, argv[0], aa);
     pen->SetAntiAlias(aa);
     return NapiGetUndefined(env);
 }
@@ -207,7 +207,7 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -215,17 +215,15 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsPen::SetAlpha Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_number) {
-        ROSEN_LOGE("JsPen::SetAlpha Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     int32_t alpha = 0;
-    ConvertClampFromJsValue(env, argv[0], alpha, 0, Color::RGB_MAX);
+    if (!ConvertClampFromJsValue(env, argv[0], alpha, 0, Color::RGB_MAX)) {
+        ROSEN_LOGE("JsPen::SetAlpha Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
+
     pen->SetAlpha(alpha);
     return NapiGetUndefined(env);
 }
@@ -236,7 +234,7 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -244,17 +242,15 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsPen::SetBlendMode Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_number) {
-        ROSEN_LOGE("JsPen::SetBlendMode Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     uint32_t mode = 0;
-    ConvertFromJsNumber(env, argv[0], mode);
+    if (!ConvertFromJsValue(env, argv[0], mode)) {
+        ROSEN_LOGE("JsPen::SetBlendMode Argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
+
     pen->SetBlendMode(static_cast<BlendMode>(mode));
     return NapiGetUndefined(env);
 }
@@ -265,7 +261,7 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_NULLPTR);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     size_t argc = ARGC_ONE;
@@ -273,17 +269,15 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsPen::SetColorFilter Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
-        ROSEN_LOGE("JsPen::SetColorFilter Argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     JsColorFilter* jsColorFilter = nullptr;
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsColorFilter));
+    if (jsColorFilter == nullptr) {
+        ROSEN_LOGE("JsPen::SetColorFilter jsColorFilter is nullptr");
+        return NapiGetUndefined(env);
+    }
 
     Filter filter = pen->GetFilter();
     filter.SetColorFilter(jsColorFilter->GetColorFilter());
@@ -298,17 +292,15 @@ napi_value JsPen::SetDither(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
         ROSEN_LOGE("JsPen::SetDither Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_valuetype valueType = napi_undefined;
-    if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_boolean) {
-        ROSEN_LOGE("JsPen::SetDither Argv[0]");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+    bool dither = false;
+    if (!ConvertFromJsValue(env, argv[0], dither)) {
+        ROSEN_LOGE("JsPen::SetDither Argv[0] is invalid");
+        return NapiGetUndefined(env);
     }
 
-    bool dither;
-    ConvertFromJsNumber(env, argv[0], dither);
     return NapiGetUndefined(env);
 }
 

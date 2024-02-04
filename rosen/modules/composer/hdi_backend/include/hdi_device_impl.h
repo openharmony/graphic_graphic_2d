@@ -34,6 +34,7 @@ public:
     int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) override;
     int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) override;
     int32_t SetScreenMode(uint32_t screenId, uint32_t modeId) override;
+    int32_t SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height) override;
     int32_t GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status) override;
     int32_t SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status) override;
     int32_t GetScreenBacklight(uint32_t screenId, uint32_t &level) override;

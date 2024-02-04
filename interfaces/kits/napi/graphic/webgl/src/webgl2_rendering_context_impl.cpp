@@ -641,7 +641,7 @@ napi_value WebGL2RenderingContextImpl::GetTransformFeedbackVarying(napi_env env,
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    webGLActiveInfo->SetActiveName(name);
+    webGLActiveInfo->SetActiveName(name, WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH);
     webGLActiveInfo->SetActiveSize(size);
     webGLActiveInfo->SetActiveType(type);
     return objActiveInfo;

@@ -85,6 +85,13 @@ enum TextHeightBehavior {
     DISABLE_LAST_DESCENT = 0X2,
     DISABLE_ALL = 0X1 | 0X2,
 };
+
+//Add different mode ellipses in the appropriate position of the text
+enum class EllipsisModal {
+    HEAD = 0,
+    MIDDLE = 1,
+    TAIL = 2,
+};
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

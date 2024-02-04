@@ -87,7 +87,7 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
 void RSDisplayNode::OnBoundsSizeChanged() const
 {
     auto bounds = GetStagingProperties().GetBounds();
-    ROSEN_LOGI("RSDisplayNode::OnBoundsSizeChanged, w: %{public}d, h: %{public}d.",
+    ROSEN_LOGD("RSDisplayNode::OnBoundsSizeChanged, w: %{public}d, h: %{public}d.",
         (uint32_t)bounds.z_, (uint32_t)bounds.w_);
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetRogSize>(GetId(), bounds.z_, bounds.w_);
     auto transactionProxy = RSTransactionProxy::GetInstance();

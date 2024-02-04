@@ -41,8 +41,8 @@ public:
 
 private:
     napi_value OnBounds(napi_env env, napi_callback_info info);
-    static void OnMakeDrawingRect(napi_env& env, napi_value& argv, Rect& drawingRect, napi_valuetype& isRectNullptr);
-    static void OnMakeRunBuffer(napi_env& env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, napi_value& array);
+    static bool OnMakeDrawingRect(napi_env& env, napi_value& argv, Rect& drawingRect, napi_valuetype& isRectNullptr);
+    static bool OnMakeRunBuffer(napi_env& env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, napi_value& array);
     std::shared_ptr<TextBlob> m_textBlob = nullptr;
     static thread_local napi_ref constructor_;
 };

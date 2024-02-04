@@ -63,12 +63,23 @@ void TypefaceFontAssetProvider::RegisterTypeface(sk_sp<SkTypeface> typeface, std
 
     std::string canonicalName = CanonicalFamilyName(familyNameAlias);
     auto iter = registeredFamilies_.find(canonicalName);
-    if (iter == registeredFamilies_.end()) {
-        familyNames_.push_back(familyNameAlias);
-        auto value = std::make_pair(canonicalName, sk_make_sp<TypefaceFontStyleSet>());
-        iter = registeredFamilies_.emplace(value).first;
+    if (typeface != nullptr) {
+        if (iter == registeredFamilies_.end()) {
+            familyNames_.push_back(familyNameAlias);
+            auto value = std::make_pair(canonicalName, sk_make_sp<TypefaceFontStyleSet>());
+            iter = registeredFamilies_.emplace(value).first;
+        }
+        iter->second->registerTypeface(std::move(typeface));
+    } else if (iter != registeredFamilies_.end()) {
+        iter->second->unregisterTypefaces();
+        registeredFamilies_.erase(iter);
+        for (auto it = familyNames_.begin(); it != familyNames_.end(); it++) {
+            if (*it == familyNameAlias) {
+                familyNames_.erase(it);
+                break;
+            }
+        }
     }
-    iter->second->registerTypeface(std::move(typeface));
 }
 
 TypefaceFontStyleSet::TypefaceFontStyleSet() = default;
@@ -80,6 +91,11 @@ void TypefaceFontStyleSet::registerTypeface(sk_sp<SkTypeface> typeface)
     if (typeface != nullptr) {
         typefaces_.emplace_back(std::move(typeface));
     }
+}
+
+void TypefaceFontStyleSet::unregisterTypefaces()
+{
+    typefaces_.erase(typefaces_.begin(), typefaces_.end());
 }
 
 int TypefaceFontStyleSet::count()
@@ -100,7 +116,7 @@ void TypefaceFontStyleSet::getStyle(int index, SkFontStyle* style, SkString* nam
 
 SkTypeface* TypefaceFontStyleSet::createTypeface(int index)
 {
-    if (index < typefaces_.size()) {
+    if (index < static_cast<int>(typefaces_.size())) {
         return SkRef(typefaces_[index].get());
     }
     return nullptr;

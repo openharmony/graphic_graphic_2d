@@ -40,6 +40,9 @@ public:
 
     void PostProcess(RSPaintFilterCanvas& canvas) override {};
     std::string GetDescription() override;
+    void setDirectionBias(uint8_t directionBias) override {
+        directionBias_ = directionBias;
+    }
 
 #ifndef USE_ROSEN_DRAWING
     void DrawImageRect(
@@ -69,13 +72,13 @@ private:
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     inline static float imageScale_ = 1.f;
     inline static bool useMaskLinearGradientBlur_ = true;
+    inline static uint8_t directionBias_ = 0;
 
 #ifndef USE_ROSEN_DRAWING
     static bool GetGradientDirectionPoints(SkPoint (&pts)[2],
                                 const SkRect& clipBounds, GradientDirection direction);
     static sk_sp<SkShader> MakeAlphaGradientShader(const SkRect& clipBounds,
                                 const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias);
-    static uint8_t CalcDirectionBias(const SkMatrix& mat);
     static void DrawMaskLinearGradientBlur(const sk_sp<SkImage>& image, SkCanvas& canvas,
         std::shared_ptr<RSSkiaFilter>& blurFilter, sk_sp<SkShader> alphaGradientShader, const SkRect& dst);
     static sk_sp<SkShader> MakeMaskLinearGradientBlurShader(sk_sp<SkShader> srcImageShader,
@@ -91,7 +94,6 @@ private:
         Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GradientDirection direction);
     static std::shared_ptr<Drawing::ShaderEffect> MakeAlphaGradientShader(const Drawing::Rect& clipBounds,
         const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias);
-    static uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
     static void DrawMaskLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image, Drawing::Canvas& canvas,
         std::shared_ptr<RSDrawingFilter>& blurFilter, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
         const Drawing::Rect& dst);

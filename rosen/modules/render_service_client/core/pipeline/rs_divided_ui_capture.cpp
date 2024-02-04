@@ -357,7 +357,6 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareChildren(RSRenderNode& node)
 {
-    node.ApplyChildrenModifiers();
     for (auto& child : *node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }

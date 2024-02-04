@@ -402,6 +402,26 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
 }
 
 /**
+ * @tc.name: CreateLayersTest010
+ * @tc.desc: CreateLayers (DisplayNode)
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSComposerAdapterTest, CreateLayersTest010, Function | SmallTest | Level2)
+{
+    uint32_t width = 2160;
+    uint32_t height = 1080;
+    CreateComposerAdapterWithScreenInfo(
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    composerAdapter_->output_ = nullptr;
+    RSDisplayNodeConfig config;
+    NodeId id = 1;
+    RSDisplayRenderNode node(id, config);
+    auto infoPtr = composerAdapter_->CreateLayer(node);
+    composerAdapter_ = nullptr;
+}
+
+/**
  * @tc.name: CreateLayer
  * @tc.desc: RSComposerAdapter.CreateLayer test
  * @tc.type: FUNC
@@ -409,8 +429,10 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
 {
+    uint32_t width = 2160;
+    uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
-        2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     RSDisplayNodeConfig config;
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     RSDisplayRenderNode node(nodeId, config);
@@ -425,21 +447,64 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
 }
 
 /**
- * @tc.name: LayerPresentTimestamp
- * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test
+ * @tc.name: LayerPresentTimestamp001
+ * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test, not SupportedPresentTimestamp
  * @tc.type: FUNC
  * @tc.require: issueI7HDVG
  */
-HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp, Function | SmallTest | Level2)
+HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp001, Function | SmallTest | Level2)
 {
+    uint32_t width = 2160;
+    uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
-        2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetBuffer();
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    layer->IsSupportedPresentTimestamp_ = false;
+    composerAdapter_->LayerPresentTimestamp(layer, consumer);
+}
+
+/**
+ * @tc.name: LayerPresentTimestamp002
+ * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test, SupportedPresentTimestamp
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp002, Function | SmallTest | Level2)
+{
+    uint32_t width = 2160;
+    uint32_t height = 1080;
+    CreateComposerAdapterWithScreenInfo(
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetBuffer();
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    layer->IsSupportedPresentTimestamp_ = true;
+    composerAdapter_->LayerPresentTimestamp(layer, consumer);
+}
+
+/**
+ * @tc.name: LayerPresentTimestamp003
+ * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test with null buffer
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp003, Function | SmallTest | Level2)
+{
+    uint32_t width = 2160;
+    uint32_t height = 1080;
+    CreateComposerAdapterWithScreenInfo(
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    layer->IsSupportedPresentTimestamp_ = true;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
 }
 
@@ -451,8 +516,10 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp, Function | SmallTest | Le
  */
 HWTEST_F(RSComposerAdapterTest, OnPrepareComplete, Function | SmallTest | Level2)
 {
+    uint32_t width = 2160;
+    uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
-        2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     PrepareCompleteParam para;
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();

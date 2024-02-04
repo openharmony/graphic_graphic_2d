@@ -2400,7 +2400,7 @@ static napi_value CreateWebGLActiveInfo(napi_env env, napi_callback_info info,
     GLenum type = 0;
     GLchar name[WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH + 1] = { 0 };
     handleActiveInfo(static_cast<GLuint>(programId), static_cast<GLuint>(index), size, type, name);
-    webGLActiveInfo->SetActiveName(name);
+    webGLActiveInfo->SetActiveName(name, WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH);
     webGLActiveInfo->SetActiveType(type);
     webGLActiveInfo->SetActiveSize(size);
     return objActiveInfo;

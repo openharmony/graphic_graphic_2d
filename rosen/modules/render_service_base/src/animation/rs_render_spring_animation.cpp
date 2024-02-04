@@ -152,8 +152,8 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
         calculateAnimationValue_ = false;
         return;
     } else if (ROSEN_EQ(fraction, 1.0f, FRACTION_THRESHOLD)) {
-        SetAnimationValue(endValue_);
         prevMappedTime_ = GetDuration() * MILLISECOND_TO_SECOND;
+        SetAnimationValue(endValue_);
         return;
     }
     auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
@@ -286,15 +286,15 @@ std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderProper
 RSRenderSpringAnimation::GetSpringStatus() const
 {
     // if animation is never started, return start value and initial velocity
-    if (ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD)) {
+    // fraction_threshold will change with animationScale.
+    if (ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD / animationFraction_.GetAnimationScale())) {
         return { startValue_, endValue_, initialVelocity_ };
     }
 
     auto displacement = lastValue_ - endValue_;
 
     // use average velocity over a small time interval to estimate instantaneous velocity
-    constexpr double TIME_INTERVAL = 1e-6f; // 1e-6f : 1 microsecond to seconds
-    auto velocity = (CalculateDisplacement(prevMappedTime_ + TIME_INTERVAL) - displacement) * (1 / TIME_INTERVAL);
+    auto velocity = CalculateVelocity(prevMappedTime_);
 
     // return current position and velocity
     return { lastValue_, endValue_, velocity };
@@ -307,12 +307,14 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
     }
 
     auto [lastValue, endValue, velocity] = from->GetSpringStatus();
-    if (startValue_ == nullptr || lastValue == nullptr || endValue == nullptr || velocity == nullptr) {
-        ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus, unexpected null pointer!");
+    if (lastValue == nullptr) {
+        ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus, unexpected lastValue null pointer!");
         return false;
     }
-    if (!startValue_->IsEqual(endValue) && !(from == this)) {
+    if (startValue_ && !startValue_->IsEqual(endValue) && !(from == this)) {
         // means property values may change due to direct setting or other animations
+        ROSEN_LOGD(
+            "RSRenderSpringAnimation::InheritSpringStatus, current animation can't continue with last animation");
         return false;
     }
 

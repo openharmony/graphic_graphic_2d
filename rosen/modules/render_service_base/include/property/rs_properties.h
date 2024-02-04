@@ -133,6 +133,9 @@ public:
     float GetTranslateX() const;
     float GetTranslateY() const;
     float GetTranslateZ() const;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    bool GetOpincPropDirty() const;
+#endif
 
     void SetScale(Vector2f scale);
     void SetScaleX(float sx);
@@ -151,6 +154,8 @@ public:
 
     bool GetUseShadowBatching() const;
     void SetUseShadowBatching(bool useShadowBatching);
+    bool GetNeedSkipShadow() const;
+    void SetNeedSkipShadow(bool needSkipShadow);
 
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
@@ -383,10 +388,14 @@ private:
     bool isDrawn_ = false;
     bool alphaNeedApply_ = false;
     bool systemBarEffect_ = false;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    bool isOpincPropDirty_ = false;
+#endif
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
     bool useShadowBatching_ = false;
+    bool needSkipShadow_ = false;
 
     int colorBlendMode_ = 0;
     int colorBlendApplyType_ = 0;

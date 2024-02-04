@@ -19,7 +19,17 @@
 #include <hilog/log.h>
 
 namespace OHOS {
-static OHOS::HiviewDFX::HiLogLabel label_boot = { LOG_CORE, 0xD001800, "BootAnimation" };
+#if (defined(__aarch64__) || defined(__x86_64__))
+#define BPUBI64  "%{public}ld"
+#define BPUB_SIZE "%{public}lu"
+#define BPUBU64  "%{public}lu"
+#else
+#define BPUBI64  "%{public}lld"
+#define BPUB_SIZE "%{public}u"
+#define BPUBU64  "%{public}llu"
+#endif
+
+static OHOS::HiviewDFX::HiLogLabel label_boot = { LOG_CORE, 0xD001400, "BootAnimation" };
 #define LOGD(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
 #define LOGI(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
 #define LOGW(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)

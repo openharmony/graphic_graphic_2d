@@ -41,10 +41,6 @@ napi_value RSWindowAnimationManager::Init(napi_env env, napi_value exportObj)
         WALOGE("Env or exportObj is null!");
         return nullptr;
     }
-    if (exportObj == nullptr) {
-        WALOGE("exportObj is null");
-        return nullptr;
-    }
     auto windowAnimationManager = std::make_unique<RSWindowAnimationManager>();
     napi_wrap(env, exportObj, windowAnimationManager.release(), RSWindowAnimationManager::Finalizer, nullptr, nullptr);
     const char *moduleName = "RSWindowAnimationManager";
@@ -119,9 +115,13 @@ napi_value RSWindowAnimationManager::OnSetController(napi_env env, napi_callback
     return nullptr;
 }
 
-int32_t RSWindowAnimationManager::GetWindowId(const napi_env &env, const size_t &argc, const napi_value &object,
-                                              uint32_t &windowId)
+int32_t RSWindowAnimationManager::GetWindowId(
+    const napi_env& env, const size_t& argc, const napi_value& object, uint32_t& windowId)
 {
+    if (env == nullptr || object == nullptr) {
+        WALOGE("RSWindowAnimationManager::GetWindowId, param is invalid");
+        return ERR_NOT_OK;
+    }
     int32_t errCode = ERR_OK;
     if (argc < ARGC_ONE || argc > ARGC_TWO) {
         WALOGE("No enough params!");
@@ -178,11 +178,10 @@ napi_value RSWindowAnimationManager::OnMinimizeWindowWithAnimation(napi_env env,
             }
 
             WALOGD("Resolve minimize window with animation!");
-            task.Resolve(env,
-                RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env, finishedCallback));
+            task.Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env, finishedCallback));
         };
 
-    napi_value lastParam =  nullptr;
+    napi_value lastParam = nullptr;
     if (argc > 1) {
         napi_valuetype type;
         napi_typeof(env, argv[1], &type);
@@ -196,9 +195,13 @@ napi_value RSWindowAnimationManager::OnMinimizeWindowWithAnimation(napi_env env,
     return result;
 }
 
-int32_t RSWindowAnimationManager::GetMissionIds(const napi_env &env, const size_t &argc, const napi_value &array,
-                                                std::vector<uint32_t> &missionIds)
+int32_t RSWindowAnimationManager::GetMissionIds(
+    const napi_env& env, const size_t& argc, const napi_value& array, std::vector<uint32_t>& missionIds)
 {
+    if (env == nullptr || array == nullptr) {
+        WALOGE("RSWindowAnimationManager::GetMissionIds, param is invalid");
+        return ERR_NOT_OK;
+    }
     int32_t errCode = ERR_OK;
     if (argc < ARGC_ONE || argc > ARGC_TWO) {
         WALOGE("No enough params!");

@@ -34,6 +34,7 @@ void BootVideoPlayer::SetVideoPath(const std::string& path)
     videopath_ = path;
 }
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 void BootVideoPlayer::SetPlayerSurface(const sptr<Surface>& surface)
 {
     if (surface == nullptr) {
@@ -42,6 +43,7 @@ void BootVideoPlayer::SetPlayerSurface(const sptr<Surface>& surface)
     }
     surface_ = surface;
 }
+#endif
 
 bool BootVideoPlayer::PlayVideo()
 {
@@ -166,6 +168,7 @@ void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, co
         }
         case Media::INFO_TYPE_MESSAGE:
             LOGI("PlayerCallback: OnMessage is:%{public}d", extra);
+            system::SetParameter("bootevent.bootanimation.started", "true");
             break;
         case Media::INFO_TYPE_RESOLUTION_CHANGE:
             LOGI("PlayerCallback: Resolution Change");

@@ -16,11 +16,21 @@
 #include "animation/rs_animation_rate_decider.h"
 
 #include <cmath>
+#include <string>
 
+#include "common/rs_optional_trace.h"
 #include "modifier/rs_render_property.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr int32_t DEFAULT_PREFERRED_FPS = 120;
+
+void RSAnimationRateDecider::SetScaleReferenceSize(float width, float height)
+{
+    scaleWidth_ = width;
+    scaleHeight_ = height;
+}
+
 void RSAnimationRateDecider::Reset()
 {
     frameRateRange_.Reset();
@@ -29,6 +39,9 @@ void RSAnimationRateDecider::Reset()
 
 void RSAnimationRateDecider::AddDecisionElement(PropertyId id, const PropertyValue& velocity, FrameRateRange range)
 {
+    if (!isEnabled_) {
+        return;
+    }
     if (!velocity && !range.IsValid()) {
         return;
     }
@@ -49,8 +62,13 @@ void RSAnimationRateDecider::AddDecisionElement(PropertyId id, const PropertyVal
 
 void RSAnimationRateDecider::MakeDecision(const FrameRateGetFunc& func)
 {
-    for (const auto& [_1, element] : decisionElements_) {
+    if (!isEnabled_) {
+        frameRateRange_.Set(0, RANGE_MAX_REFRESHRATE, DEFAULT_PREFERRED_FPS);
+        return;
+    }
+    for (const auto& [id, element] : decisionElements_) {
         FrameRateRange propertyRange;
+        RS_OPTIONAL_TRACE_BEGIN("MakeDecision property id: [" + std::to_string(id) + "]");
         if (element.first != nullptr && func != nullptr) {
             int32_t preferred = CalculatePreferredRate(element.first, func);
             if (preferred > 0) {
@@ -67,6 +85,7 @@ void RSAnimationRateDecider::MakeDecision(const FrameRateGetFunc& func)
             finalRange = element.second;
         }
         frameRateRange_.Merge(finalRange);
+        RS_OPTIONAL_TRACE_END();
     }
 }
 
@@ -81,6 +100,7 @@ int32_t RSAnimationRateDecider::CalculatePreferredRate(const PropertyValue& prop
         case RSRenderPropertyType::PROPERTY_VECTOR4F:
             return ProcessVector4f(property, func);
         case RSRenderPropertyType::PROPERTY_VECTOR2F:
+            return ProcessVector2f(property, func);
         case RSRenderPropertyType::PROPERTY_FLOAT:
             return func(property->GetPropertyUnit(), property->ToFloat());
         default:
@@ -98,8 +118,26 @@ int32_t RSAnimationRateDecider::ProcessVector4f(const PropertyValue& property, c
     auto data = animatableProperty->Get();
     // Vector4f data include data[0], data[1], data[2], data[3]
     int32_t positionRate = func(propertyUnit, sqrt(data[0] * data[0] + data[1] * data[1]));
-    int32_t sizeRate = func(propertyUnit, sqrt(data[2] * data[2] + data[3] * data[3]));
+    int32_t sizeRate = func(RSPropertyUnit::PIXEL_SIZE, sqrt(data[2] * data[2] + data[3] * data[3]));
     return std::max(positionRate, sizeRate);
+}
+
+int32_t RSAnimationRateDecider::ProcessVector2f(const PropertyValue& property, const FrameRateGetFunc& func)
+{
+    float velocity = 0.0f;
+    if (property->GetPropertyUnit() == RSPropertyUnit::RATIO_SCALE) {
+        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(property);
+        if (animatableProperty != nullptr) {
+            auto data = animatableProperty->Get();
+            // Vector2f data include data[0], data[1]
+            float velocityX = data[0] * scaleWidth_;
+            float velocityY = data[1] * scaleHeight_;
+            velocity = sqrt(velocityX * velocityX + velocityY * velocityY);
+        }
+    } else {
+        velocity = property->ToFloat();
+    }
+    return func(property->GetPropertyUnit(), velocity);
 }
 } // namespace Rosen
 } // namespace OHOS

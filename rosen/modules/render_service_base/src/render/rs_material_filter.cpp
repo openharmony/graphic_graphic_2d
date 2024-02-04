@@ -451,15 +451,7 @@ void RSMaterialFilter::ReleaseColorPickerFilter()
     if (colorPickerTask_ == nullptr) {
         return;
     }
-    #ifdef IS_OHOS
-    auto initHandler = colorPickerTask_->GetInitHandler();
-        if (initHandler != nullptr) {
-            auto task = colorPickerTask_;
-            task->SetWaitRelease(true);
-            initHandler->PostTask(
-                [task]() { task->ReleaseColorPicker(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        }
-    #endif
+    colorPickerTask_->ReleaseColorPicker();
 }
 
 } // namespace Rosen

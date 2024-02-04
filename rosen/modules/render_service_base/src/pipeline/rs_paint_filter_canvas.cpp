@@ -322,6 +322,70 @@ void RSPaintFilterCanvasBase::DrawVertices(const Drawing::Vertices& vertices, Dr
 #endif
 }
 
+// opinc_begin
+bool RSPaintFilterCanvasBase::BeginOpRecording(const Drawing::Rect* bound, bool isDynamic)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->BeginOpRecording(bound, isDynamic);
+    }
+    return false;
+}
+
+Drawing::OpListHandle RSPaintFilterCanvasBase::EndOpRecording()
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->EndOpRecording();
+    }
+    return {};
+}
+
+void RSPaintFilterCanvasBase::DrawOpList(Drawing::OpListHandle handle)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawOpList(handle);
+    }
+}
+
+int RSPaintFilterCanvasBase::CanDrawOpList(Drawing::OpListHandle handle)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->CanDrawOpList(handle);
+    }
+    return -1;
+}
+
+void RSPaintFilterCanvasBase::PreOpListDrawArea(const Matrix& matrix)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->PreOpListDrawArea(matrix);
+    }
+}
+
+bool RSPaintFilterCanvasBase::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->CanUseOpListDrawArea(handle, bound);
+    }
+    return false;
+}
+
+Drawing::OpListHandle RSPaintFilterCanvasBase::GetOpListDrawArea()
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->GetOpListDrawArea();
+    }
+    return {};
+}
+
+void RSPaintFilterCanvasBase::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
+    const SamplingOptions& sampling, SrcRectConstraint constraint)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->OpincDrawImageRect(image, drawAreas, sampling, constraint);
+    }
+}
+// opinc_end
+
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
 #ifdef ENABLE_RECORDING_DCL
