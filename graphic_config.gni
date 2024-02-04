@@ -169,6 +169,11 @@ check_ddgr_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),
 ]
+check_igraphics_core_file_args = [
+  "--filename",
+  rebase_path(
+      "//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni"),
+]
 check_delegator_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
@@ -187,6 +192,12 @@ if (exec_script(check_graphic_ext_file_script,
   ddgr_ext_configs = {
     import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
   }
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_igraphics_core_file_args,
+                "string") == "True") {
+  graphic_2d_feature_use_igraphics_extend_hooks = true
+  import("//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni")
 }
 
 graphic_2d_delegator_configs = {

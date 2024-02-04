@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include <dlfcn.h>
+#include <string>
+
 #include "../hook.h"
 #include "../thread_private_data_ctl.h"
 #include "../wrapper_log.h"
-
-#include <string>
-#include <dlfcn.h>
 
 using GetGlHookTableFunc = OHOS::GlHookTable* (*)();
 template<typename Func = void*>

@@ -100,9 +100,9 @@ private:
         bool isAfterHook = false, EglWrapperContext *curCtx = nullptr);
 
 #if USE_IGRAPHICS_EXTENDS_HOOKS
-    void ChooseHookTable(bool isAfterHook, EglWrapperContext *ctx, EglWrapperContext *curCtx,
+    void ChooseHookTable(bool isAfterHook, const EglWrapperContext *ctx, const EglWrapperContext *curCtx,
         GlHookTable **ppHookTable);
-    int ChooseGlesVersion(const EGLint *attribList);
+    static int ChooseGlesVersion(const EGLint *attribList);
 #endif
 
     static EglWrapperDisplay wrapperDisp_;
