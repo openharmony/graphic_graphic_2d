@@ -44,7 +44,12 @@ group("unittest") {
 ohos_unittest("producer_surface_delegator_test") {
   module_out_path = module_out_path
 
-  sources = [ "producer_surface_delegator_test.cpp" ]
+  sources = []
+  if (defined(graphic_2d_delegator_configs.libsurface_ext_test_producer_delegator_src)) {
+    sources += graphic_2d_delegator_configs.libsurface_ext_test_producer_delegator_src
+  } else {
+    sources += [ "producer_surface_delegator_test.cpp" ]
+  }
 
   deps = [ ":surface_test_common" ]
 
@@ -60,7 +65,12 @@ ohos_unittest("producer_surface_delegator_test") {
 ohos_unittest("transact_surface_delegator_stub_test") {
   module_out_path = module_out_path
 
-  sources = [ "transact_surface_delegator_stub_test.cpp" ]
+  sources = []
+  if (defined(graphic_2d_delegator_configs.libsurface_ext_test_transact_delegator_src)) {
+    sources += graphic_2d_delegator_configs.libsurface_ext_test_transact_delegator_src
+  } else {
+    sources += [ "transact_surface_delegator_stub_test.cpp" ]
+  }
 
   deps = [ ":surface_test_common" ]
 
@@ -323,6 +333,7 @@ ohos_unittest("native_image_test") {
 config("surface_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/frameworks/surface/test/unittest",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//base/security/access_token/interfaces/innerkits/nativetoken/include",
     "//base/security/access_token/interfaces/innerkits/accesstoken/include",
