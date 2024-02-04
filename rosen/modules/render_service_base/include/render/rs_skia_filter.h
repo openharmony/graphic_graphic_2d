@@ -46,7 +46,7 @@ public:
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
     virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
     virtual bool CanSkipFrame() const { return false; };
-    virtual void setDirectionBias(uint8_t directionBias) {};
+    virtual void setCanvasChange(SkMatrix& mat, float surfaceWidth, float surfaceHeight) {};
 
 protected:
     sk_sp<SkImageFilter> imageFilter_ = nullptr;
@@ -65,7 +65,7 @@ public:
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
     virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
     virtual bool CanSkipFrame() const { return false; };
-    virtual void setDirectionBias(uint8_t directionBias) {};
+    virtual void setCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) {};
 
 protected:
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
