@@ -79,7 +79,7 @@ std::shared_ptr<Data> SkiaData::MakeFromFileName(const char path[])
 {
     sk_sp<SkData> skData = SkData::MakeFromFileName(path);
     if (!skData) {
-        LOGE("SkiaData::MakeFromFileName, skData is nullptr!");
+        LOGD("SkiaData::MakeFromFileName, skData is nullptr!");
         return nullptr;
     }
     std::shared_ptr<Data> data = std::make_shared<Data>();
@@ -106,7 +106,7 @@ std::shared_ptr<Data> SkiaData::Serialize() const
 {
 #ifdef ROSEN_OHOS
     if (skData_ == nullptr) {
-        LOGE("SkiaData::Serialize, skData_ is nullptr!");
+        LOGD("SkiaData::Serialize, skData_ is nullptr!");
         return nullptr;
     }
 

@@ -45,7 +45,7 @@ void ColorMatrix::SetArray(const scalar src[MATRIX_SIZE])
 {
     auto ret = memcpy_s(array_, sizeof(array_), src, sizeof(array_));
     if (ret != EOK) {
-        LOGE("Drawing: ColorMatrix memcpy_s failed");
+        LOGD("Drawing: ColorMatrix memcpy_s failed");
     }
 }
 
@@ -53,7 +53,7 @@ void ColorMatrix::GetArray(scalar (&dst)[MATRIX_SIZE]) const
 {
     auto ret = memcpy_s(dst, sizeof(array_), array_, sizeof(array_));
     if (ret != EOK) {
-        LOGE("Drawing: ColorMatrix memcpy_s failed");
+        LOGD("Drawing: ColorMatrix memcpy_s failed");
     }
 }
 
@@ -81,7 +81,7 @@ void ColorMatrix::SetConcat(const ColorMatrix& m1, const ColorMatrix& m2)
     if (target != array_) {
         auto ret = memcpy_s(array_, sizeof(array_), target, sizeof(array_));
         if (ret != EOK) {
-            LOGE("Drawing: ColorMatrix memcpy_s failed");
+            LOGD("Drawing: ColorMatrix memcpy_s failed");
         }
     }
 }
@@ -100,7 +100,7 @@ void ColorMatrix::SetScale(scalar sr, scalar sg, scalar sb, scalar sa)
 {
     auto ret = memset_s(array_, sizeof(array_), 0, sizeof(array_));
     if (ret != EOK) {
-        LOGE("Drawing: ColorMatrix memset_s failed");
+        LOGD("Drawing: ColorMatrix memset_s failed");
         return;
     }
     array_[0] = sr;  // red vector scale
@@ -113,7 +113,7 @@ void ColorMatrix::SetSaturation(scalar sat)
 {
     auto ret = memset_s(array_, sizeof(array_), 0, sizeof(array_));
     if (ret != EOK) {
-        LOGE("Drawing: ColorMatrix memset_s failed");
+        LOGD("Drawing: ColorMatrix memset_s failed");
         return;
     }
 

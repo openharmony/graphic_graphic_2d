@@ -99,7 +99,7 @@ void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients
     bool enforcePMColor, const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2)
 {
     if (coefficients.size() != numberOfCoefficients) {
-        LOGE("SkiaImageFilter::InitWithArithmetic: the number of coefficients must be 4");
+        LOGD("SkiaImageFilter::InitWithArithmetic: the number of coefficients must be 4");
         return;
     }
 
@@ -150,7 +150,7 @@ std::shared_ptr<Data> SkiaImageFilter::Serialize() const
 bool SkiaImageFilter::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaImageFilter::Deserialize, data is invalid!");
+        LOGD("SkiaImageFilter::Deserialize, data is invalid!");
         return false;
     }
 
