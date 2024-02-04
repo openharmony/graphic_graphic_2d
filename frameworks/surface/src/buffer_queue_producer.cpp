@@ -20,7 +20,6 @@
 
 #include "buffer_extra_data_impl.h"
 #include "buffer_log.h"
-#include "buffer_manager.h"
 #include "buffer_producer_listener.h"
 #include "buffer_utils.h"
 #include "frame_report.h"
@@ -31,10 +30,10 @@ namespace {
 constexpr int32_t BUFFER_MATRIX_SIZE = 16;
 } // namespace
 
-BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
+BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue> bufferQueue)
     : producerSurfaceDeathRecipient_(new ProducerSurfaceDeathRecipient(this))
 {
-    bufferQueue_ = bufferQueue;
+    bufferQueue_ = std::move(bufferQueue);
     if (bufferQueue_ != nullptr) {
         bufferQueue_->GetName(name_);
     }
@@ -735,11 +734,19 @@ GSError BufferQueueProducer::GetPresentTimestamp(uint32_t sequence, GraphicPrese
 
 bool BufferQueueProducer::GetStatus() const
 {
+    if (bufferQueue_ == nullptr) {
+        BLOGNE("BufferQueueProducer::bufferQueue is nullptr.");
+        return false;
+    }
     return bufferQueue_->GetStatus();
 }
 
 void BufferQueueProducer::SetStatus(bool status)
 {
+    if (bufferQueue_ == nullptr) {
+        BLOGNE("BufferQueueProducer::bufferQueue is nullptr.");
+        return;
+    }
     bufferQueue_->SetStatus(status);
 }
 

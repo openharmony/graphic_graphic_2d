@@ -25,7 +25,6 @@
 
 #include "buffer_utils.h"
 #include "buffer_log.h"
-#include "buffer_manager.h"
 #include "hitrace_meter.h"
 #include "sandbox_utils.h"
 #include "surface_buffer_impl.h"
@@ -63,7 +62,6 @@ BufferQueue::BufferQueue(const std::string &name, bool isShared)
     : name_(name), uniqueId_(GetUniqueIdImpl()), isShared_(isShared), isLocalRender_(IsLocalRender())
 {
     BLOGND("ctor, Queue id: %{public}" PRIu64 " isShared: %{public}d", uniqueId_, isShared);
-    bufferManager_ = BufferManager::GetInstance();
     if (isShared_ == true) {
         queueSize_ = 1;
     }
@@ -1096,11 +1094,16 @@ GraphicTransformType BufferQueue::GetTransform() const
 GSError BufferQueue::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                       std::vector<bool> &supporteds) const
 {
-    GSError ret = bufferManager_->IsSupportedAlloc(infos, supporteds);
-    if (ret != GSERROR_OK) {
-        BLOGN_FAILURE_API(IsSupportedAlloc, ret);
+    supporteds.clear();
+    for (uint32_t index = 0; index < infos.size(); index++) {
+        if (infos[index].format == GRAPHIC_PIXEL_FMT_RGBA_8888 ||
+            infos[index].format == GRAPHIC_PIXEL_FMT_YCRCB_420_SP) {
+            supporteds.push_back(true);
+        } else {
+            supporteds.push_back(false);
+        }
     }
-    return ret;
+    return GSERROR_OK;
 }
 
 GSError BufferQueue::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)

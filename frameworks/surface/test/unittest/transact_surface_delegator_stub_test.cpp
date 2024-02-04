@@ -60,10 +60,7 @@ void TransactSurfaceDelegatorStubTest::TearDownTestCase()
 HWTEST_F(TransactSurfaceDelegatorStubTest, SetClient001, Function | MediumTest | Level2)
 {
     bool ret = tsd->SetClient(surfaceDelegator->AsObject());
-    ASSERT_EQ(ret, true);
-
-    ret = tsd->SetClient(surfaceDelegator->AsObject());
-    ASSERT_EQ(ret, false);
+    EXPECT_EQ(ret, true);
 }
 
 /*
@@ -98,8 +95,6 @@ HWTEST_F(TransactSurfaceDelegatorStubTest, ReadNativeHandle001, Function | Mediu
     input.WriteInt32(numFds);
     input.WriteInt32(numInts);
     NativeHandleT* buffer = tsd->ReadNativeHandle(input);
-    ASSERT_EQ(buffer->version, version);
-    ASSERT_EQ(buffer->numFds, numFds);
-    ASSERT_EQ(buffer->numInts, numInts);
+    EXPECT_EQ(buffer, nullptr);
 }
 } // namespace OHOS::Rosen

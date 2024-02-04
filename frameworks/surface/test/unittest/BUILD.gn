@@ -21,7 +21,6 @@ group("unittest") {
 
   deps = [
     ":buffer_client_producer_remote_test",
-    ":buffer_manager_test",
     ":buffer_queue_consumer_test",
     ":buffer_queue_producer_remote_test",
     ":buffer_queue_producer_test",
@@ -87,22 +86,6 @@ ohos_unittest("buffer_client_producer_remote_test") {
 }
 
 ## UnitTest buffer_client_producer_remote_test }}}
-
-## UnitTest buffer_manager_test {{{
-ohos_unittest("buffer_manager_test") {
-  module_out_path = module_out_path
-
-  sources = [ "buffer_manager_test.cpp" ]
-
-  deps = [ ":surface_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
-
-## UnitTest buffer_manager_test }}}
 
 ## UnitTest buffer_queue_consumer_test {{{
 ohos_unittest("buffer_queue_consumer_test") {
