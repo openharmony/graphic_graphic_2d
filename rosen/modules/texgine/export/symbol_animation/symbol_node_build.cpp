@@ -19,12 +19,12 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #ifndef USE_ROSEN_DRAWING
-static void MergePath(SkPath& multPath, std::vector<GroupInfo>& groupInfos, std::vector<SkPath>& pathLayers)
+static void MergePath(SkPath& multPath, const std::vector<GroupInfo>& groupInfos, std::vector<SkPath>& pathLayers)
 #else
-static void MergePath(RSPath& multPath, std::vector<RSGroupInfo>& groupInfos, std::vector<RSPath>& pathLayers)
+static void MergePath(RSPath& multPath, const std::vector<RSGroupInfo>& groupInfos, std::vector<RSPath>& pathLayers)
 #endif
 {
-    for (auto& groupInfo : groupInfos) {
+    for (const auto& groupInfo : groupInfos) {
 #ifndef USE_ROSEN_DRAWING
         SkPath pathTemp;
 #else
@@ -79,10 +79,10 @@ SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting animationSetting, cons
 }
 
 #ifndef USE_ROSEN_DRAWING
-void SymbolNodeBuild::AddWholeAnimation(HMSymbolData &symbolData, const Vector4f &nodeBounds,
+void SymbolNodeBuild::AddWholeAnimation(const HMSymbolData &symbolData, const Vector4f &nodeBounds,
     std::shared_ptr<SymbolAnimationConfig> symbolAnimationConfig)
 #else
-void SymbolNodeBuild::AddWholeAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
+void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
     std::shared_ptr<SymbolAnimationConfig> symbolAnimationConfig)
 #endif
 {

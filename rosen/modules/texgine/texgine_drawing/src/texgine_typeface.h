@@ -88,7 +88,7 @@ public:
      */
     static std::shared_ptr<TexgineTypeface> MakeFromFile(const std::string &path, int index = 0);
 
-    bool DetectRawInformation();
+    bool DetectRawInformation() const;
 
     void InputOriginalStyle(bool primitivism);
 

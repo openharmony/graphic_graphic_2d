@@ -442,7 +442,7 @@ int FontConfigJson::ParseFallbackItem(const Json::Value& root, FallbackInfo &fal
     return SUCCESSED;
 }
 
-void FontConfigJson::DumpAlias(AliasSet &aliasSet) const
+void FontConfigJson::DumpAlias(const AliasSet &aliasSet) const
 {
     if (!aliasSet.empty()) {
         const std::string space = "    ";
@@ -457,7 +457,7 @@ void FontConfigJson::DumpAlias(AliasSet &aliasSet) const
     }
 }
 
-void FontConfigJson::DumpAjdust(AdjustSet &adjustSet) const
+void FontConfigJson::DumpAjdust(const AdjustSet &adjustSet) const
 {
     if (!adjustSet.empty()) {
         LOGSO_FUNC_LINE(INFO) << "  \"adjust\": [";

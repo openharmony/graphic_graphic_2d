@@ -62,7 +62,7 @@ bool VariantSpan::operator !=(const VariantSpan &rhs) const noexcept(false)
     return !(*this == rhs);
 }
 
-double VariantSpan::GetWidth() const noexcept(false)
+double VariantSpan::GetWidth() const
 {
     CheckPointer();
     if (as_) {
@@ -300,7 +300,7 @@ void VariantSpan::SetJustifyGap(double justifyGap) noexcept(true)
     justifyGap_ = justifyGap;
 }
 
-void VariantSpan::CheckPointer(bool nullable) const noexcept(false)
+void VariantSpan::CheckPointer(bool nullable) const
 {
     if (!nullable && as_ == nullptr && ts_ == nullptr) {
         throw TEXGINE_EXCEPTION(NULLPTR);
@@ -311,7 +311,7 @@ void VariantSpan::CheckPointer(bool nullable) const noexcept(false)
     }
 }
 
-bool VariantSpan::HasBackgroundRect() const noexcept(true)
+bool VariantSpan::HasBackgroundRect() const
 {
     return xs_.backgroundRect.color != 0 && GetWidth() > 0;
 }
@@ -326,7 +326,7 @@ void VariantSpan::SetRoundRectType(RoundRectType type) noexcept(true)
     roundRectType_ = type;
 }
 
-void VariantSpan::SetTopInGroup(double top) noexcept(true)
+void VariantSpan::SetTopInGroup(double top)
 {
     CheckPointer();
     if (as_) {
@@ -338,7 +338,7 @@ void VariantSpan::SetTopInGroup(double top) noexcept(true)
     }
 }
 
-double VariantSpan::GetTopInGroup() const noexcept(true)
+double VariantSpan::GetTopInGroup() const
 {
     double top = 0.0;
     CheckPointer();
@@ -350,7 +350,7 @@ double VariantSpan::GetTopInGroup() const noexcept(true)
     return top;
 }
 
-void VariantSpan::SetBottomInGroup(double bottom) noexcept(true)
+void VariantSpan::SetBottomInGroup(double bottom)
 {
     CheckPointer();
     if (as_) {
@@ -362,7 +362,7 @@ void VariantSpan::SetBottomInGroup(double bottom) noexcept(true)
     }
 }
 
-double VariantSpan::GetBottomInGroup() const noexcept(true)
+double VariantSpan::GetBottomInGroup() const
 {
     double bottom = 0.0;
     CheckPointer();
@@ -374,7 +374,7 @@ double VariantSpan::GetBottomInGroup() const noexcept(true)
     return bottom;
 }
 
-void VariantSpan::SetMaxRoundRectRadius(double radius) noexcept(true)
+void VariantSpan::SetMaxRoundRectRadius(double radius)
 {
     CheckPointer();
     if (as_) {
@@ -386,7 +386,7 @@ void VariantSpan::SetMaxRoundRectRadius(double radius) noexcept(true)
     }
 }
 
-double VariantSpan::GetMaxRoundRectRadius() const noexcept(true)
+double VariantSpan::GetMaxRoundRectRadius() const
 {
     double maxRoundRectRadius = 0.0;
     CheckPointer();

@@ -205,6 +205,9 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(const double widthLimi
         throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
 
+    if (breaks.empty()) {
+        return {};
+    }
     if (breaks.front() != 0) {
         breaks.insert(breaks.begin(), 0);
     }

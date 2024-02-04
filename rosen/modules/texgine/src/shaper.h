@@ -51,7 +51,7 @@ public:
      * @param fontProviders The font providers setting by user
      * @param widthLimit The maximum display width set by the user
      */
-    std::vector<LineMetrics> DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
+    std::vector<LineMetrics> DoShape(const std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
         const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit);
     bool DidExceedMaxLines() const;
     double GetMinIntrinsicWidth() const;
@@ -90,11 +90,11 @@ private:
         int &loopNum, int &breakPos, bool &haveAnySpan);
     void GetAllTextSpan(std::vector<VariantSpan> &spans, int &loopNum, int &breakPos);
     bool HaveExceedWidth(const std::vector<VariantSpan> &spans, struct SpanPosition &spanPos,
-        int &charsWidth, struct SpansWidth &spanWidth);
+        const int &charsWidth, struct SpansWidth &spanWidth);
     bool CalcAvalibleWidth(const std::vector<VariantSpan> &spans, struct SpanPosition &spanPos,
         bool &isLeft, int &charsWidth, struct SpansWidth &spanWidth);
     bool CalcSpanPosition(const std::vector<VariantSpan> &spans, struct SpanPosition &spanPos,
-        int &breakPos, const int loopNum);
+        const int &breakPos, const int loopNum);
     void JointCriticalLeftSpans(const std::vector<VariantSpan> &spans, std::vector<VariantSpan> &leftLineSpans,
         struct SpanPosition &spanPos, const TypographyStyle &style,
         const std::shared_ptr<FontProviders> &fontProviders);

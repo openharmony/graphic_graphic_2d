@@ -154,7 +154,7 @@ void TexgineTypeface::InputOriginalStyle(bool primitivism)
     rawInformation_ = primitivism;
 }
 
-bool TexgineTypeface::DetectRawInformation()
+bool TexgineTypeface::DetectRawInformation() const
 {
     return rawInformation_;
 }
