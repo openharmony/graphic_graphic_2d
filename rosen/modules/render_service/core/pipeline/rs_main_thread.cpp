@@ -2094,6 +2094,7 @@ void RSMainThread::Animate(uint64_t timestamp)
             return true;
         }
         if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
+            rsCurrRange_.Merge(node->animationManager_.GetDecideFrameRateRange());
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }

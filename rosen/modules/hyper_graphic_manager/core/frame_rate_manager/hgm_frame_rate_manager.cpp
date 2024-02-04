@@ -384,7 +384,7 @@ int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velo
         return velocity >= pair.second.min && (velocity < pair.second.max || pair.second.max == -1);
     });
     if (iter != config.end()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %d, speed: %f, rate: %d",
+        RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, rate: %d",
             type.c_str(), velocity, iter->second.preferred_fps);
         return iter->second.preferred_fps;
     }
