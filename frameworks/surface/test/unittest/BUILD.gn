@@ -47,7 +47,7 @@ ohos_unittest("producer_surface_delegator_test") {
   sources = []
   if (defined(
       graphic_2d_delegator_configs.libsurface_ext_test_producer_delegator_src)) {
-    sources += 
+    sources +=
         graphic_2d_delegator_configs.libsurface_ext_test_producer_delegator_src
   } else {
     sources += [ "producer_surface_delegator_test.cpp" ]
@@ -70,7 +70,7 @@ ohos_unittest("transact_surface_delegator_stub_test") {
   sources = []
   if (defined(
       graphic_2d_delegator_configs.libsurface_ext_test_transact_delegator_src)) {
-    sources += 
+    sources +=
         graphic_2d_delegator_configs.libsurface_ext_test_transact_delegator_src
   } else {
     sources += [ "transact_surface_delegator_stub_test.cpp" ]
