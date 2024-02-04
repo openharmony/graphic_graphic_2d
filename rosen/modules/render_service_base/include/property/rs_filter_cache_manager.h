@@ -136,6 +136,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
         bool InitSurface(GrRecordingContext* grContext) override;
 #else
+        std::atomic<Drawing::ColorType> cacheBackendTextureColorType_;
         bool InitSurface(Drawing::GPUContext* grContext) override;
 #endif
         bool Render() override;
