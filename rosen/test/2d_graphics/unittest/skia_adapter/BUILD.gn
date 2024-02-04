@@ -25,6 +25,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_picture.cpp",
     "skia_canvas_test.cpp",
     "skia_color_filter_test.cpp",
+    "skia_font_test.cpp",
     "skia_helper_test.cpp",
     "skia_image_filter_test.cpp",
     "skia_image_info_test.cpp",
