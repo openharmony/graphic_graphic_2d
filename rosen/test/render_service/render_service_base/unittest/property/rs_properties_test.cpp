@@ -60,6 +60,8 @@ HWTEST_F(RSPropertiesTest, SetBackgroundShader001, TestSize.Level1)
     RSProperties properties;
     properties.SetBackgroundShader(RSShader::CreateRSShader());
     properties.SetBackgroundShader(RSShader::CreateRSShader());
+
+    properties.SetBackgroundShader(nullptr);
 }
 
 /**
@@ -142,6 +144,9 @@ HWTEST_F(RSPropertiesTest, SetBgImage001, TestSize.Level1)
     std::shared_ptr<RSImage> image2 = std::make_shared<RSImage>();
     properties.SetBgImage(image2);
     ASSERT_TRUE(properties.GetBgImage() == image2);
+
+    properties.SetBgImage(nullptr);
+    ASSERT_TRUE(properties.GetBgImage() == nullptr);
 }
 
 /**
@@ -497,6 +502,268 @@ HWTEST_F(RSPropertiesTest, IsPixelStretchPercentValid004, TestSize.Level1)
     properties.SetPixelStretchPercent(stretchPercent);
     properties.OnApplyModifiers();
     EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
+}
+
+/**
+ * @tc.name: SetBounds001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetBounds001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds = { 1.0, 1.0, 1.0, 1.0 };
+
+    properties.SetBoundsWidth(0);
+    properties.SetBoundsHeight(0);
+    properties.SetBounds(bounds);
+
+    properties.SetBoundsWidth(1.0);
+    properties.SetBoundsHeight(0);
+    properties.SetBounds(bounds);
+
+    properties.SetBoundsWidth(0);
+    properties.SetBoundsHeight(1.0);
+    properties.SetBounds(bounds);
+
+    properties.SetBoundsWidth(1.0);
+    properties.SetBoundsHeight(1.0);
+    properties.SetBounds(bounds);
+
+    auto resBounds = properties.GetBounds();
+    ASSERT_EQ(false, resBounds.IsZero());
+}
+
+/**
+ * @tc.name: GetBounds001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, GetBounds001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetBoundsWidth(1.0);
+    properties.SetBoundsHeight(1.0);
+    properties.SetBoundsPositionX(1.0f);
+    properties.SetBoundsPositionY(1.0f);
+    properties.SetBounds(bounds);
+
+    auto size = properties.GetBoundsSize();
+    ASSERT_NE(0, size.GetLength());
+
+    auto width = properties.GetBoundsWidth();
+    ASSERT_EQ(1.0, width);
+
+    auto height = properties.GetBoundsHeight();
+    ASSERT_EQ(1.0, height);
+
+    auto positionX = properties.GetBoundsPositionX();
+    ASSERT_EQ(1.0, positionX);
+
+    auto positionY = properties.GetBoundsPositionY();
+    ASSERT_EQ(1.0, positionY);
+
+    auto position = properties.GetBoundsPosition();
+    ASSERT_NE(0, position.GetLength());
+}
+
+/**
+ * @tc.name: SetFrame001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetFrame001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f frame = { 1.0, 1.0, 1.0, 1.0 };
+
+    properties.SetFrame(frame);
+
+    properties.SetFrameWidth(1.f);
+    properties.SetFrame(frame);
+
+    properties.SetFrameHeight(1.f);
+    properties.SetFrame(frame);
+
+    properties.SetFramePositionX(1.f);
+    properties.SetFramePositionY(1.f);
+    properties.SetFrame(frame);
+}
+
+/**
+ * @tc.name: GetFrame001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, GetFrame001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f frame = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetFrameWidth(1.f);
+    properties.SetFrameHeight(1.0);
+    properties.SetFramePositionX(1.0f);
+    properties.SetFramePositionY(1.0f);
+    properties.SetFrame(frame);
+
+    auto size = properties.GetFrameSize();
+    ASSERT_NE(0, size.GetLength());
+
+    auto width = properties.GetFrameWidth();
+    ASSERT_EQ(1.0, width);
+
+    auto height = properties.GetFrameHeight();
+    ASSERT_EQ(1.0, height);
+
+    auto positionX = properties.GetFramePositionX();
+    ASSERT_EQ(1.0, positionX);
+
+    auto positionY = properties.GetFramePositionY();
+    ASSERT_EQ(1.0, positionY);
+
+    auto position = properties.GetFramePosition();
+    ASSERT_NE(0, position.GetLength());
+}
+
+/**
+ * @tc.name: SetGet001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetGet001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetPositionZ(1.0);
+    auto positionZ = properties.GetPositionZ();
+    ASSERT_EQ(1.0, positionZ);
+
+    properties.SetPivotX(1.0);
+    properties.SetPivotY(1.0);
+    properties.SetPivotZ(1.0);
+    ASSERT_EQ(1.0, properties.GetPivotX());
+    ASSERT_EQ(1.0, properties.GetPivotY());
+    ASSERT_EQ(1.0, properties.GetPivotZ());
+    auto pivot = properties.GetPivot();
+    ASSERT_NE(0, pivot.GetLength());
+
+    Vector4f corner = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetCornerRadius(corner);
+    properties.GetCornerRadius();
+
+    properties.SetRotationX(1.0);
+    properties.SetRotationY(1.0);
+    properties.SetRotation(1.0);
+    auto rotation = properties.GetRotation();
+    ASSERT_NE(0, rotation);
+    auto rotationX = properties.GetRotationX();
+    auto rotationY = properties.GetRotationY();
+    ASSERT_NE(0, rotationX);
+    ASSERT_NE(0, rotationY);
+
+    properties.SetScaleX(1.0);
+    properties.SetScaleY(1.0);
+    Vector2f scale2 = { 1.0, 1.0 };
+    properties.SetScale(scale2);
+    auto scale = properties.GetScale();
+    ASSERT_NE(0, scale.GetLength());
+    auto scaleX = properties.GetScaleX();
+    auto scaleY = properties.GetScaleY();
+    ASSERT_NE(0, scaleX);
+    ASSERT_NE(0, scaleY);
+
+    properties.SetTranslateX(1.0);
+    properties.SetTranslateY(1.0);
+    properties.SetTranslateZ(1.0);
+    Vector2f translate2 = { 1.0, 1.0 };
+    properties.SetTranslate(translate2);
+    auto translate = properties.GetTranslate();
+    ASSERT_NE(0, translate.GetLength());
+    auto translateX = properties.GetTranslateX();
+    auto translateY = properties.GetTranslateY();
+    auto translateZ = properties.GetTranslateZ();
+    ASSERT_NE(0, translateX);
+    ASSERT_NE(0, translateY);
+    ASSERT_NE(0, translateZ);
+}
+
+/**
+ * @tc.name: SetGet002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetGet002, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSRenderParticleVector particles2;
+    properties.SetParticles(particles2);
+
+    properties.SetAlpha(0.f);
+    float alpha = properties.GetAlpha();
+    ASSERT_EQ(0.f, alpha);
+    properties.SetAlpha(1.f);
+    alpha = properties.GetAlpha();
+    ASSERT_EQ(1.f, alpha);
+
+    properties.SetAlphaOffscreen(true);
+    bool offScreen = properties.GetAlphaOffscreen();
+    ASSERT_EQ(true, offScreen);
+
+    Color color(1, 1, 1);
+    properties.SetForegroundColor(color);
+    EXPECT_EQ(true, properties.IsContentDirty());
+    EXPECT_NE(0, properties.GetForegroundColor().GetBlue());
+    properties.SetBackgroundColor(color);
+    EXPECT_NE(0, properties.GetBackgroundColor().GetBlue());
+
+    Vector4<Color> borderColor = { color, color, color, color };
+    properties.SetBorderColor(borderColor);
+    properties.GetBorderColor();
+    Vector4f zeroWidth = { 0, 0, 0, 0 };
+    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetBorderWidth(zeroWidth);
+    properties.SetBorderWidth(width);
+    EXPECT_NE(0, properties.GetBorderWidth().GetLength());
+
+    Vector4<uint32_t> style = { 1, 1, 1, 1 };
+    properties.SetBorderStyle(style);
+    EXPECT_NE(0, properties.GetBorderStyle().GetLength());
+
+    EXPECT_NE(nullptr, properties.GetBorder());
+}
+
+/**
+ * @tc.name: SetGet003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetGet003, TestSize.Level1)
+{
+    RSProperties properties;
+    Color color(1, 1, 1);
+    Vector4<Color> outLineColor = { color, color, color, color };
+    properties.SetOutlineColor(outLineColor);
+    Vector4f zeroWidth = { 0, 0, 0, 0 };
+    Vector4f width = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetOutlineWidth(zeroWidth);
+    properties.SetOutlineWidth(width);
+
+    Vector4<uint32_t> style = { 1, 1, 1, 1 };
+    properties.SetOutlineStyle(style);
+    properties.GetOutlineStyle();
+
+    Vector4f radius = { 1.0, 1.0, 1.0, 1.0 };
+    properties.SetOutlineRadius(radius);
+    properties.GetOutlineRadius();
+
+    EXPECT_NE(nullptr, properties.GetOutline());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -43,10 +43,14 @@ HWTEST_F(RSMessageProcessorTest, testing, TestSize.Level1)
 {
     uint32_t pid = 1;
     RSMessageProcessor::Instance().AddUIMessage(pid, nullptr);
+    RSMessageProcessor::Instance().AddUIMessage(pid, nullptr);
     EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
+
     RSMessageProcessor::Instance().HasTransaction(pid);
     EXPECT_NE(nullptr, RSMessageProcessor::Instance().GetTransaction(pid));
     RSMessageProcessor::Instance().GetAllTransactions();
+
+    RSMessageProcessor::Instance().GetTransaction(0);
 }
 
 } // namespace Rosen
