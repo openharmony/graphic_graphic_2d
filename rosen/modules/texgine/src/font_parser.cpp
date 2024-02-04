@@ -37,7 +37,8 @@ namespace TextEngine {
 
 // "weight" and "italic" will assigned value 0 and 1, -1 used to exclude unassigned
 FontParser::FontDescriptor::FontDescriptor(): path(""), postScriptName(""), fullName(""),
-    fontFamily(""), fontSubfamily(""), weight(-1), width(0), italic(-1), monoSpace(0), symbolic(0)
+    fontFamily(""), fontSubfamily(""), postScriptNameLid(0), fullNameLid(0), fontFamilyLid(0),
+    fontSubfamilyLid(0), requestedLid(0), weight(-1), width(0), italic(-1), monoSpace(0), symbolic(0)
 {
 }
 
