@@ -126,6 +126,8 @@ constexpr uint64_t MAX_SYSTEM_SCENE_STATUS_TIME = 800000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
+constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
+constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
@@ -1235,49 +1237,51 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
     this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
-    PostTask([this, moment, deeply]() {
+    PostTask(
+        [this, moment, deeply]() {
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
-        auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+            auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
 #else
-        auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+            auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
 #endif
-        if (!grContext) {
-            return;
-        }
-        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
-        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
-        SKResourceManager::Instance().ReleaseResource();
-        grContext->flush();
-        SkGraphics::PurgeAllCaches(); // clear cpu cache
-        if (deeply || this->deviceType_ != DeviceType::PHONE) {
-            MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
-        } else {
-            MemoryManager::ReleaseUnlockGpuResource(grContext);
-        }
-        grContext->flushAndSubmit(true);
+            if (!grContext) {
+                return;
+            }
+            RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
+            RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+            SKResourceManager::Instance().ReleaseResource();
+            grContext->flush();
+            SkGraphics::PurgeAllCaches(); // clear cpu cache
+            if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+            } else {
+                MemoryManager::ReleaseUnlockGpuResource(grContext);
+            }
+            grContext->flushAndSubmit(true);
 #else
-        auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-        if (!grContext) {
-            return;
-        }
-        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
-        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
-        SKResourceManager::Instance().ReleaseResource();
-        grContext->Flush();
-        SkGraphics::PurgeAllCaches(); // clear cpu cache
-        if (deeply || this->deviceType_ != DeviceType::PHONE) {
-            MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
-        } else {
-            MemoryManager::ReleaseUnlockGpuResource(grContext);
-        }
-        grContext->FlushAndSubmit(true);
+            auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+            if (!grContext) {
+                return;
+            }
+            RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
+            RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+            SKResourceManager::Instance().ReleaseResource();
+            grContext->Flush();
+            SkGraphics::PurgeAllCaches(); // clear cpu cache
+            if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+            } else {
+                MemoryManager::ReleaseUnlockGpuResource(grContext);
+            }
+            grContext->FlushAndSubmit(true);
 #endif
-        this->clearMemoryFinished_ = true;
-        this->clearMemDeeply_ = false;
-        this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
-    },
-    CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? 8000 : 1000) / GetRefreshRate());
+            this->clearMemoryFinished_ = true;
+            this->clearMemDeeply_ = false;
+            this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
+        },
+        CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
+            / GetRefreshRate());
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -3070,23 +3074,24 @@ void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
 
 void RSMainThread::SubscribeAppState()
 {
-    PostTask([this]() {
-        rsAppStateListener_ = std::make_shared<RSAppStateListener>();
-        if (Memory::MemMgrClient::GetInstance().SubscribeAppState(*rsAppStateListener_) != -1) {
-            RS_LOGD("Subscribe MemMgr Success");
-            subscribeFailCount_ = 0;
-            return;
-        } else {
-            RS_LOGE("Subscribe Failed, try again");
-            subscribeFailCount_++;
-            if (subscribeFailCount_ < 10) { // The maximum number of failures is 10
-                SubscribeAppState();
+    PostTask(
+        [this]() {
+            rsAppStateListener_ = std::make_shared<RSAppStateListener>();
+            if (Memory::MemMgrClient::GetInstance().SubscribeAppState(*rsAppStateListener_) != -1) {
+                RS_LOGD("Subscribe MemMgr Success");
+                subscribeFailCount_ = 0;
+                return;
             } else {
-                RS_LOGE("Subscribe Failed 10 times, exiting");
+                RS_LOGE("Subscribe Failed, try again");
+                subscribeFailCount_++;
+                if (subscribeFailCount_ < 10) { // The maximum number of failures is 10
+                    SubscribeAppState();
+                } else {
+                    RS_LOGE("Subscribe Failed 10 times, exiting");
+                }
             }
-        }
-    },
-    MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
+        },
+        MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
 }
 
 void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
