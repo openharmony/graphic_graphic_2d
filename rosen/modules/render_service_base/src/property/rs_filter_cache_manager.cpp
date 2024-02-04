@@ -420,11 +420,12 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 #ifndef USE_ROSEN_DRAWING
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManager::GeneratedCachedEffectData(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const std::optional<SkIRect>& srcRect,
-    const std::optional<SkIRect>& dstRect)
+    const std::optional<SkIRect>& dstRect, const std::tuple<bool, bool>& forceCacheFlags)
 #else
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManager::GeneratedCachedEffectData(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-    const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect)
+    const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect,
+    const std::tuple<bool, bool>& forceCacheFlags)
 #endif
 {
     RS_OPTIONAL_TRACE_FUNC();
@@ -435,7 +436,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
 #endif
         return nullptr;
     }
-    const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
+    const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect, forceCacheFlags);
 #ifndef USE_ROSEN_DRAWING
     if (src.isEmpty() || dst.isEmpty()) {
 #else
@@ -462,6 +463,9 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     // Keep a reference to the cached image, since CompactCache may invalidate it.
     auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
     // To reduce the memory consumption, we only keep either the cached snapshot or the filtered image.
+    if (std::get<0>(forceCacheFlags) || std::get<1>(forceCacheFlags)) {
+        shouldClearFilteredCache = false;
+    }
     CompactCache(shouldClearFilteredCache);
     return cachedFilteredSnapshot;
 }
@@ -882,7 +886,8 @@ void RSFilterCacheManager::CheckCachedImages(RSPaintFilterCanvas& canvas)
 
 #ifndef USE_ROSEN_DRAWING
 std::tuple<SkIRect, SkIRect> RSFilterCacheManager::ValidateParams(
-    RSPaintFilterCanvas& canvas, const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect)
+    RSPaintFilterCanvas& canvas, const std::optional<SkIRect>& srcRect,
+    const std::optional<SkIRect>& dstRect, const std::tuple<bool, bool>& forceCacheFlags)
 {
     SkIRect src;
     SkIRect dst;
@@ -909,7 +914,8 @@ std::tuple<SkIRect, SkIRect> RSFilterCacheManager::ValidateParams(
 }
 #else
 std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(RSPaintFilterCanvas& canvas,
-    const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect)
+    const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect,
+    const std::tuple<bool, bool>& forceCacheFlags)
 {
     Drawing::RectI src;
     Drawing::RectI dst;
@@ -931,7 +937,9 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
         // dst region is out of snapshot region, cache is invalid.
         // It should already be checked by UpdateCacheStateWithFilterRegion in prepare phase, we should never be here.
         ROSEN_LOGD("RSFilterCacheManager::ValidateParams Cache expired. Reason: dst region is out of snapshot region.");
-        InvalidateCache();
+        if (!std::get<0>(forceCacheFlags) || !std::get<1>(forceCacheFlags)) {
+            InvalidateCache();
+        }
     }
     return { src, dst };
 }

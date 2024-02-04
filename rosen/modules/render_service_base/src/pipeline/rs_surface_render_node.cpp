@@ -36,6 +36,7 @@
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -1132,7 +1133,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
 #endif
 }
 
-void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect)
+void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged)
 {
     if (!dirtyManager_) {
         return;
@@ -1141,6 +1142,11 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
     for (auto node : filterNodes_) {
         if (node == nullptr || !node->IsOnTheTree() || !node->GetRenderProperties().NeedFilter()) {
             continue;
+        }
+        if (node->IsInstanceOf<RSEffectRenderNode>()) {
+            if (auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>()) {
+                effectNode->SetRotationChanged(isRotationChanged);
+            }
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);

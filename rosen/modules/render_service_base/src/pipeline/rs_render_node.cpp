@@ -1095,7 +1095,7 @@ bool RSRenderNode::IsBackgroundFilterCacheValid() const
     return backgroundFilterCacheValid;
 }
 
-void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
+void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground)
 {
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::FilterCacheEnabled) {
@@ -2126,7 +2126,7 @@ void RSRenderNode::UpdateFullScreenFilterCacheRect(
 }
 
 void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
 {
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::FilterCacheEnabled) {

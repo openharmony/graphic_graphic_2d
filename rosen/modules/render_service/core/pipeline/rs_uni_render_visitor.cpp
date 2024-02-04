@@ -352,6 +352,7 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     }
     auto effectRegion = effectRegion_;
     effectRegion_ = effectNode->InitializeEffectRegion();
+    effectNode->SetRotationChanged(curDisplayNode_->IsRotationChanged());
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
@@ -912,7 +913,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
         if (node.IsTransparent()) {
             dirtyManager->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
         }
-        node.UpdateFilterCacheStatusIfNodeStatic(prepareClipRect_);
+        node.UpdateFilterCacheStatusIfNodeStatic(prepareClipRect_, curDisplayNode_->IsRotationChanged());
     }
     node.ResetDrawingCacheStatusIfNodeStatic(allCacheFilterRects_);
     // Attention: curSurface info would be reset as upper surfaceParent if it has
@@ -1765,6 +1766,11 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 
     effectRegion_ = node.InitializeEffectRegion();
     auto parentNode = node.GetParent().lock();
+    node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
+    if (curDisplayNode_->IsRotationChanged()) {
+        int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
+        node.SetInvalidateTimesForRotation(invalidateTimes);
+    }
     node.SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);
 

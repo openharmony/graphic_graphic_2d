@@ -853,7 +853,7 @@ public:
     void UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
     // update static node's back&front-ground filter cache status
     void UpdateFilterCacheStatusWithVisible(bool visible);
-    void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect);
+    void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged);
     void UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
     // reset static node's drawing cache status as not changed and get filter rects
     void ResetDrawingCacheStatusIfNodeStatic(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects);
