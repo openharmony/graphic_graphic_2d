@@ -136,6 +136,12 @@ int32_t HdiScreen::SetScreenMode(uint32_t modeId) const
     return device_->SetScreenMode(screenId_, modeId);
 }
 
+int32_t HdiScreen::SetScreenOverlayResolution(uint32_t width, uint32_t height) const
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->SetScreenOverlayResolution(screenId_, width, height);
+}
+
 int32_t HdiScreen::GetScreenPowerStatus(GraphicDispPowerStatus &status) const
 {
     CHECK_DEVICE_NULL(device_);

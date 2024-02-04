@@ -341,6 +341,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #else
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
 #endif
+    // override redraw frame buffer with physical screen resolution.
+    renderFrameConfig.width = screenInfo.phyWidth;
+    renderFrameConfig.height = screenInfo.phyHeight;
     auto renderFrame = uniRenderEngine_->RequestFrame(surface, renderFrameConfig, forceCPU);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread::Redraw failed to request frame.");
