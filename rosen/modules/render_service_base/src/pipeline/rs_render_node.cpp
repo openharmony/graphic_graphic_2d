@@ -725,9 +725,9 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
 {
     // TO avoid redundant add, only add if both: 1. on-tree node 2. newly dirty node (or forceAddToActiveList = true)
 #ifndef USE_ROSEN_DRAWING
-    if (isOnTheTree_ && (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty() || forceAddToActiveList)) {
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty() || forceAddToActiveList) {
 #else
-    if (isOnTheTree_ && (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.none() || forceAddToActiveList)) {
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.none() || forceAddToActiveList) {
 #endif
         if (auto context = GetContext().lock()) {
             context->AddActiveNode(shared_from_this());
