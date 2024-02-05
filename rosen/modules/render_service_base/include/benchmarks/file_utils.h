@@ -30,7 +30,7 @@ RSB_EXPORT bool WriteToFile(uintptr_t data, size_t size, const std::string& file
 RSB_EXPORT bool WriteStringToFile(int fd, const std::string& str);
 RSB_EXPORT bool WriteStringToFile(const std::string& str, const std::string& filePath);
 RSB_EXPORT bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel,
-    std::string& opsDescription, int frameNum, std::string& fileDir);
+    const std::string& opsDescription, int frameNum, const std::string& fileDir);
 } // namespace Benchmarks
 } // namespace Rosen
 } // namespace OHOS
