@@ -195,7 +195,7 @@ public:
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
-    void DeleteMultiInstancePid(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+    void SetMultiInstancePidVSyncRate(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
     SystemAnimatedScenes GetSystemAnimatedScenes();
