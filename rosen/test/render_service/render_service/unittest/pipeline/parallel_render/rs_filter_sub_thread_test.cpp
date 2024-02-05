@@ -115,7 +115,11 @@ HWTEST_F(RsFilterSubThreadTest, RSFilterTaskTest, TestSize.Level1)
 {
     class RSFilterCacheTask : public RSFilter::RSFilterTask {
     public:
+#ifndef USE_ROSEN_DRAWING
         bool InitSurface(GrRecordingContext* grContext) override
+#else
+        bool InitSurface(Drawing::GPUContext* grContext) override
+#endif
         {
             return true;
         }
@@ -125,7 +129,11 @@ HWTEST_F(RsFilterSubThreadTest, RSFilterTaskTest, TestSize.Level1)
         }
     };
     RSFilterCacheTask task;
+#ifndef USE_ROSEN_DRAWING
     GrRecordingContext* grContext = nullptr;
+#else
+    Drawing::GPUContext* grContext = nullptr;
+#endif
     ASSERT_TRUE(task.InitSurface(grContext));
     ASSERT_TRUE(task.Render());
 }
