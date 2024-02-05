@@ -905,6 +905,7 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
             return StatusCode::INVALID_ARGUMENTS;
         }
         curIdx = std::distance(supportedVirtualColorGamuts_.begin(), it);
+        currentVirtualColorGamutIdx_ = curIdx;
         return StatusCode::SUCCESS;
     }
     std::vector<GraphicColorGamut> hdiMode;
