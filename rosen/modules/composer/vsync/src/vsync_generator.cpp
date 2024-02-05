@@ -365,8 +365,8 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
 VsyncError VSyncGenerator::UpdatePeriodLocked(int64_t period)
 {
     VsyncError ret = VSYNC_ERROR_OK;
+    uint32_t refreshRate = JudgeRefreshRateLocked(period);
     if ((pendingVsyncMode_ == VSYNC_MODE_LTPO) || (vsyncMode_ == VSYNC_MODE_LTPO)) {
-        uint32_t refreshRate = JudgeRefreshRateLocked(period);
         if ((refreshRate != 0) && ((currRefreshRate_ == refreshRate) || currRefreshRate_ == 0)) {
             period_ = period;
         } else {
@@ -477,14 +477,17 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 {
     ScopedBytrace func("ChangeGeneratorRefreshRateModel:" + std::to_string(generatorRefreshRate));
     std::lock_guard<std::mutex> locker(mutex_);
-    if (vsyncMode_ != VSYNC_MODE_LTPO) {
+    if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
+        ScopedBytrace trace("it's not ltpo mode.");
         return VSYNC_ERROR_NOT_SUPPORT;
     }
     if (pulse_ == 0) {
+        ScopedBytrace trace("pulse is not ready!!!");
         VLOGE("pulse is not ready!!!");
         return VSYNC_ERROR_API_FAILED;
     }
     if ((generatorRefreshRate <= 0 || (VSYNC_MAX_REFRESHRATE % generatorRefreshRate != 0))) {
+        ScopedBytrace trace("Not support this refresh rate: " + std::to_string(generatorRefreshRate));
         VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
         return VSYNC_ERROR_NOT_SUPPORT;
     }
