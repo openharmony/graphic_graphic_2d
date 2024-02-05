@@ -25,6 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
 } // namespace
 
@@ -38,7 +39,8 @@ std::shared_ptr<Drawing::RuntimeEffect> RSLinearGradientBlurFilter::verticalMean
 std::shared_ptr<Drawing::RuntimeEffect> RSLinearGradientBlurFilter::maskBlurShaderEffect_ = nullptr;
 #endif
 
-RSLinearGradientBlurFilter::RSLinearGradientBlurFilter(const std::shared_ptr<RSLinearGradientBlurPara>& para)
+RSLinearGradientBlurFilter::RSLinearGradientBlurFilter(const std::shared_ptr<RSLinearGradientBlurPara>& para,
+    const float geoWidth, const float geoHeight)
 #ifndef USE_ROSEN_DRAWING
     : RSSkiaFilter(nullptr),
 #else
@@ -46,6 +48,8 @@ RSLinearGradientBlurFilter::RSLinearGradientBlurFilter(const std::shared_ptr<RSL
 #endif
       linearGradientBlurPara_(para)
 {
+    geoWidth_ = geoWidth;
+    geoHeight_ = geoHeight;
     type_ = FilterType::LINEAR_GRADIENT_BLUR;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), hash_);
@@ -67,17 +71,18 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
     }
 
     RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur");
-    auto clipIPadding = dst;
+    uint8_t directionBias = CalcDirectionBias(mat_);
+    auto clipIPadding = ComputeRectBeforeClip(directionBias, dst);
 #ifndef USE_ROSEN_DRAWING
     ComputeScale(clipIPadding.width(), clipIPadding.height(), para->useMaskAlgorithm_);
     auto scaledClipIPadding = SkRect::MakeLTRB(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() +
         clipIPadding.GetWidth() * imageScale_, clipIPadding.GetTop() + clipIPadding.GetHeight() * imageScale_);
-    auto alphaGradientShader = MakeAlphaGradientShader(SkRect::Make(scaledClipIPadding), para, directionBias_);
+    auto alphaGradientShader = MakeAlphaGradientShader(SkRect::Make(scaledClipIPadding), para, directionBias);
 #else
     ComputeScale(clipIPadding.GetWidth(), clipIPadding.GetHeight(), para->useMaskAlgorithm_);
     auto scaledClipIPadding = Drawing::Rect(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() +
         clipIPadding.GetWidth() * imageScale_, clipIPadding.GetTop() + clipIPadding.GetHeight() * imageScale_);
-    auto alphaGradientShader = MakeAlphaGradientShader(scaledClipIPadding, para, directionBias_);
+    auto alphaGradientShader = MakeAlphaGradientShader(scaledClipIPadding, para, directionBias);
 #endif
     if (alphaGradientShader == nullptr) {
         ROSEN_LOGE("RSLinearGradientBlurFilter::DrawImageRect alphaGradientShader null");
@@ -110,13 +115,63 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
+SkRect::Rect RSLinearGradientBlurFilter::ComputeRectBeforeClip(const uint8_t directionBias, const SkRect& dst)
+#else
+Drawing::Rect RSLinearGradientBlurFilter::ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst)
+#endif
+{
+    auto clipIPadding = dst;
+    float width = geoWidth_;
+    float height = geoHeight_;
+    if (directionBias == 1 || directionBias == 3) { // 1 3: rotation 0 270
+        width = geoHeight_;
+        height = geoWidth_;
+    }
+
+#ifndef USE_ROSEN_DRAWING
+    if (height - dst.GetHeight() > 1) {
+        if (mat_.getTranslateY() > surfaceHeight_ / 2) {  // 2 half of height
+            clipIPadding = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetTop() + height);
+        } else {
+            clipIPadding = SkRect::MakeLTRB(dst.GetLeft(), dst.GetBottom() - height, dst.GetRight(), dst.GetBottom());
+        }
+    }
+    if (width - dst.GetWidth() > 1) {
+        if (mat_.getTranslateX() > surfaceWidth_ / 2) {   // 2 half of width
+            clipIPadding = SkRect::MakeLTRB(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() +
+                width, clipIPadding.GetBottom());
+        } else {
+            clipIPadding = SkRect::MakeLTRB(clipIPadding.GetRight() - width, clipIPadding.GetTop(),
+                clipIPadding.GetRight(), clipIPadding.GetBottom());
+        }
+    }
+#else
+    if (height - dst.GetHeight() > 1) {
+        if (mat_.Get(Drawing::Matrix::TRANS_Y) > surfaceHeight_ / 2) {  // 2 half of height
+            clipIPadding = Drawing::Rect(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetTop() + height);
+        } else {
+            clipIPadding = Drawing::Rect(dst.GetLeft(), dst.GetBottom() - height, dst.GetRight(), dst.GetBottom());
+        }
+    }
+    if (width - dst.GetWidth() > 1) {
+        if (mat_.Get(Drawing::Matrix::TRANS_X) > surfaceWidth_ / 2) {   // 2 half of width
+            clipIPadding = Drawing::Rect(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() + width,
+                clipIPadding.GetBottom());
+        } else {
+            clipIPadding = Drawing::Rect(clipIPadding.GetRight() - width, clipIPadding.GetTop(),
+                clipIPadding.GetRight(), clipIPadding.GetBottom());
+        }
+    }
+#endif
+    return clipIPadding;
+}
+
 void RSLinearGradientBlurFilter::ComputeScale(float width, float height, bool useMaskAlgorithm)
 {
     if (RSSystemProperties::GetMaskLinearBlurEnabled() && useMaskAlgorithm) {
-        useMaskLinearGradientBlur_ = true;
         imageScale_ = 1.f;
     } else {
-        useMaskLinearGradientBlur_ = false;
         if (width * height < 10000) {   // 10000 for 100 * 100 resolution
             imageScale_ = 0.7f;         // 0.7 for scale
         } else {
@@ -124,6 +179,40 @@ void RSLinearGradientBlurFilter::ComputeScale(float width, float height, bool us
         }
     }
 }
+
+#ifndef USE_ROSEN_DRAWING
+uint8_t RSLinearGradientBlurFilter::CalcDirectionBias(const SkMatrix& mat)
+{
+    uint8_t directionBias = 0;
+    // 1 and 3 represents rotate matrix's index
+    if ((mat.get(1) > FLOAT_ZERO_THRESHOLD) && (mat.get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        directionBias = 1; // 1 represents rotate 90 degree
+    // 0 and 4 represents rotate matrix's index
+    } else if ((mat.get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        directionBias = 2; // 2 represents rotate 180 degree
+    // 1 and 3 represents rotate matrix's index
+    } else if ((mat.get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(3) > FLOAT_ZERO_THRESHOLD)) {
+        directionBias = 3; // 3 represents rotate 270 degree
+    }
+    return directionBias;
+}
+#else
+uint8_t RSLinearGradientBlurFilter::CalcDirectionBias(const Drawing::Matrix& mat)
+{
+    uint8_t directionBias = 0;
+    // 1 and 3 represents rotate matrix's index
+    if ((mat.Get(1) > FLOAT_ZERO_THRESHOLD) && (mat.Get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        directionBias = 1; // 1 represents rotate 90 degree
+    // 0 and 4 represents rotate matrix's index
+    } else if ((mat.Get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        directionBias = 2; // 2 represents rotate 180 degree
+    // 1 and 3 represents rotate matrix's index
+    } else if ((mat.Get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(3) > FLOAT_ZERO_THRESHOLD)) {
+        directionBias = 3; // 3 represents rotate 270 degree
+    }
+    return directionBias;
+}
+#endif
 
 void RSLinearGradientBlurFilter::TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias)
 {
@@ -445,6 +534,7 @@ void RSLinearGradientBlurFilter::DrawMeanLinearGradientBlur(const sk_sp<SkImage>
     }
 
     SkMatrix blurMatrix = SkMatrix::Scale(imageScale_, imageScale_);
+    blurMatrix.postConcat(SkMatrix::Translate(dst.fLeft, dst.fTop));
     auto width = image->width();
     auto height = image->height();
     SkImageInfo scaledInfo = image->imageInfo().makeWH(std::ceil(width * imageScale_), std::ceil(height * imageScale_));
@@ -473,7 +563,7 @@ void RSLinearGradientBlurFilter::DrawMeanLinearGradientBlur(const sk_sp<SkImage>
 
     SkPaint paint;
     paint.setShader(blurShader);
-    canvas.drawRect(SkRect::Make(dst.makeOffset(-dst.left(), -dst.top())), paint);
+    canvas.drawRect(dst, paint);
 }
 #else
 void RSLinearGradientBlurFilter::DrawMeanLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image,
@@ -485,6 +575,8 @@ void RSLinearGradientBlurFilter::DrawMeanLinearGradientBlur(const std::shared_pt
     Drawing::Matrix m;
     Drawing::Matrix blurMatrix;
     blurMatrix.PostScale(imageScale_, imageScale_);
+    blurMatrix.PostTranslate(dst.GetLeft(), dst.GetTop());
+
     auto width = image->GetWidth();
     auto height = image->GetHeight();
     auto originImageInfo = image->GetImageInfo();
@@ -527,9 +619,7 @@ void RSLinearGradientBlurFilter::DrawMeanLinearGradientBlur(const std::shared_pt
     Drawing::Brush brush;
     brush.SetShaderEffect(blurShader);
     canvas.AttachBrush(brush);
-    Drawing::Rect rect = dst;
-    rect.Offset(-dst.GetLeft(), -dst.GetTop());
-    canvas.DrawRect(rect);
+    canvas.DrawRect(dst);
     canvas.DetachBrush();
 }
 #endif
@@ -543,19 +633,20 @@ void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const sk_sp<SkImage>
         return;
     }
 
-    blurFilter->DrawImageRect(canvas, image, SkRect::Make(image->bounds().makeOutset(-1, -1)), dst);
+    blurFilter->DrawImageRect(canvas, image, SkRect::Make(image->bounds()), dst);
     auto offscreenSurface = canvas.GetSurface();
     if (offscreenSurface == nullptr) {
         return;
     }
     auto filteredSnapshot = offscreenSurface->makeImageSnapshot();
-    auto srcImageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    SkMatrix inputMatrix = SkMatrix::Translate(dst.fLeft, dst.fTop);
+    auto srcImageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear), inputMatrix);
     auto blurImageShader = filteredSnapshot->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
     auto shader = MakeMaskLinearGradientBlurShader(srcImageShader, blurImageShader, alphaGradientShader);
 
     SkPaint paint;
     paint.setShader(shader);
-    canvas.drawRect(SkRect::Make(dst.makeOffset(-dst.left(), -dst.top())), paint);
+    canvas.drawRect(dst, paint);
 }
 #else
 void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image,
@@ -576,11 +667,8 @@ void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_pt
     }
     std::shared_ptr<Drawing::Image> filteredSnapshot = offscreenSurface->GetImageSnapshot();
     Drawing::Matrix matrix;
-    Drawing::Matrix matrix2;
-    matrix2.Translate(dst.GetLeft(), dst.GetTop());
     Drawing::Matrix inputMatrix;
-    inputMatrix.Translate(-srcRect.GetLeft(), -srcRect.GetTop());
-    inputMatrix.PostConcat(matrix2);
+    inputMatrix.Translate(dst.GetLeft(), dst.GetTop());
 
     auto srcImageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), inputMatrix);
