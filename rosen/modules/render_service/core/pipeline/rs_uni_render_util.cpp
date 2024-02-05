@@ -754,7 +754,11 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
                     surface->SetIsMainThreadNode(true);
                     surface->SetTextureValidFlag(false);
                 } else {
-                    ClearCacheSurface(*surface, UNI_MAIN_THREAD_INDEX, false);
+                    if (RSMainThread::Instance()->IsPCThreeFingerScenesListScene()) {
+                        ClearCacheSurface(*surface, UNI_MAIN_THREAD_INDEX, false);
+                    } else {
+                        ClearCacheSurface(*surface, UNI_MAIN_THREAD_INDEX);
+                    }
                 }
             }
         }
