@@ -180,7 +180,7 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
 {
     float startFraction = 0;
     float endFraction = 0;
-    for (uint32_t i = 0; i < keyframeSize; i++) {
+    for (int i = 0; i < keyframeSize; i++) {
         if (!(parcel.ReadFloat(startFraction)) || !(parcel.ReadFloat(endFraction))) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling duration value failed");
             return false;
