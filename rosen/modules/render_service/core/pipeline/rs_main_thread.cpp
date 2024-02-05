@@ -924,8 +924,11 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     }
     if (isNeedCloseSync) {
         syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
+        syncTransactionCount_ += syncTransactionCountExt_;
+        syncTransactionCountExt_ = 0;
     } else {
         syncTransactionCount_ -= 1;
+        syncTransactionCountExt_ += rsTransactionData->GetSyncTransactionNum();
     }
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
     if (syncTransactionCount_ == 0) {
@@ -944,6 +947,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
     }
     syncTransactionData_.clear();
     syncTransactionCount_ = 0;
+    syncTransactionCountExt_ = 0;
     RequestNextVSync();
 }
 

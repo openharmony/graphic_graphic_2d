@@ -69,6 +69,7 @@ void RSTransaction::Commit()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME_FMT("CommitSyncTransaction syncId: %lu", syncId_);
+        transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();
