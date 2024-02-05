@@ -46,7 +46,8 @@ void SkiaImageFilterTest::TearDown() {}
 HWTEST_F(SkiaImageFilterTest, InitWithBlur001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
-    skiaImageFilter->InitWithBlur(5.0f, 5.0f, TileMode::REPEAT, nullptr); // 5.0f: sigmaX and sigmaY
+    skiaImageFilter->InitWithBlur(
+        5.0f, 5.0f, TileMode::REPEAT, nullptr, ImageBlurType::GAUSS); // 5.0f: sigmaX and sigmaY
 }
 
 /**
@@ -58,7 +59,9 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur001, TestSize.Level1)
 HWTEST_F(SkiaImageFilterTest, InitWithBlur002, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
-    skiaImageFilter->InitWithBlur(5.0f, 5.0f, TileMode::MIRROR, nullptr); // 5.0f: sigmaX and sigmaY
+
+    skiaImageFilter->InitWithBlur(
+        5.0f, 5.0f, TileMode::MIRROR, nullptr, ImageBlurType::GAUSS); // 5.0f: sigmaX and sigmaY
 }
 
 /**
@@ -70,7 +73,8 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur002, TestSize.Level1)
 HWTEST_F(SkiaImageFilterTest, InitWithBlur003, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
-    skiaImageFilter->InitWithBlur(5.0f, 5.0f, TileMode::DECAL, nullptr); // 5.0f: sigmaX and sigmaY
+    skiaImageFilter->InitWithBlur(
+        5.0f, 5.0f, TileMode::DECAL, nullptr, ImageBlurType::GAUSS); // 5.0f: sigmaX and sigmaY
 }
 
 /**

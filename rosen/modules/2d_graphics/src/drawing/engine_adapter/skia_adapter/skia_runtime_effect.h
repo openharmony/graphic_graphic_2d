@@ -17,6 +17,7 @@
 #define SKIA_RUNTIME_EFFECT_H
 
 #include "include/effects/SkRuntimeEffect.h"
+#include "src/core/SkRuntimeEffectPriv.h"
 
 #include "effect/blender.h"
 #include "effect/shader_effect.h"
@@ -30,6 +31,7 @@ namespace Drawing {
 class SkiaRuntimeEffect : public RuntimeEffectImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+    static void GlslToSksl(std::string& sksl, std::string& glsl);
 
     SkiaRuntimeEffect() noexcept;
     ~SkiaRuntimeEffect() override {};
@@ -41,6 +43,7 @@ public:
 
     void InitForShader(const std::string& sl, const RuntimeEffectOptions& options) override;
     void InitForShader(const std::string& sl) override;
+    void InitForES3Shader(const std::string& sl) override;
     void InitForBlender(const std::string& sl) override;
     std::shared_ptr<ShaderEffect> MakeShader(std::shared_ptr<Data> uniforms,
         std::shared_ptr<ShaderEffect> children[], size_t childCount,

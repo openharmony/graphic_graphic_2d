@@ -37,10 +37,12 @@ public:
     static std::shared_ptr<RuntimeEffect> CreateForShader(const std::string& sl,
         const RuntimeEffectOptions&);
     static std::shared_ptr<RuntimeEffect> CreateForShader(const std::string& sl);
+    static std::shared_ptr<RuntimeEffect> CreateForES3Shader(const std::string& sl);
     static std::shared_ptr<RuntimeEffect> CreateForBlender(const std::string& sl);
 
     explicit RuntimeEffect(const std::string& sl) noexcept;
     RuntimeEffect(const std::string& sl, const RuntimeEffectOptions&) noexcept;
+    RuntimeEffect(const std::string& sl, const RuntimeEffectOptions&, bool isES3) noexcept;
     RuntimeEffect(const std::string& sl, bool isBlender) noexcept;
     std::shared_ptr<ShaderEffect> MakeShader(std::shared_ptr<Data> uniforms,
                                              std::shared_ptr<ShaderEffect> children[],

@@ -42,6 +42,7 @@ public:
         RADIAL_GRADIENT,
         CONICAL_GRADIENT,
         SWEEP_GRADIENT,
+        LIGHT_UP,
     };
 
     static std::shared_ptr<ShaderEffect> CreateColorShader(ColorQuad color);
@@ -59,7 +60,8 @@ public:
         TileMode mode, const Matrix *matrix);
     static std::shared_ptr<ShaderEffect> CreateSweepGradient(const Point& centerPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
-        scalar endAngle, const Matrix *matrix);
+        scalar endAngle, const Matrix* matrix);
+    static std::shared_ptr<ShaderEffect> CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader);
 
     virtual ~ShaderEffect() = default;
     ShaderEffectType GetType() const;
@@ -90,6 +92,7 @@ public:
     ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
         const Matrix *matrix) noexcept;
+    ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEffect& imageShader) noexcept;
     ShaderEffect(ShaderEffectType t) noexcept;
     ShaderEffect() noexcept;
 

@@ -89,6 +89,38 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
         return;
     }
 
+    #ifdef USE_ROSEN_DRAWING
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        uint8_t direction = static_cast<uint8_t>(para->direction_);
+        TransformGradientBlurDirection(direction, directionBias);
+        float radius = para->blurRadius_;
+
+        Drawing::Brush brush;
+        Drawing::Filter imageFilter;
+        Drawing::GradientBlurType blurType;
+        if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
+            blurType = Drawing::GradientBlurType::AlPHA_BLEND;
+            radius /= 2; // 2: half radius.
+        } else {
+            radius -= para->originalBase_;
+            radius = std::clamp(radius, 0.0f, 60.0f); // 60.0 represents largest blur radius
+            blurType = Drawing::GradientBlurType::RADIUS_GRADIENT;
+        }
+        imageFilter.SetImageFilter(Drawing::ImageFilter::CreateGradientBlurImageFilter(
+            radius, para->fractionStops_, static_cast<Drawing::GradientDir>(direction),
+            blurType, nullptr));
+        brush.SetFilter(imageFilter);
+
+        canvas.AttachBrush(brush);
+        Drawing::Rect rect = clipIPadding;
+        rect.Offset(-clipIPadding.GetLeft(), -clipIPadding.GetTop());
+        canvas.DrawImageRect(
+            *image, rect, clipIPadding, Drawing::SamplingOptions(),
+            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        canvas.DetachBrush();
+        return;
+    }
+#endif
     if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
         // use faster LinearGradientBlur if valid
         RS_OPTIONAL_TRACE_NAME("LinearGradientBlur_mask");
@@ -96,6 +128,7 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
             ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlur blurFilter null");
             return;
         }
+
         auto& RSFilter = para->LinearGradientBlurFilter_;
 #ifndef USE_ROSEN_DRAWING
         auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);

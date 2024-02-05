@@ -61,6 +61,16 @@ void RuntimeShaderBuilder::SetUniform(const std::string& name, float x, float y,
     impl_->SetUniform(name, x, y, width, height);
 }
 
+void RuntimeShaderBuilder::SetUniform(const std::string& name, const float values[], size_t size)
+{
+    impl_->SetUniform(name, values, size);
+}
+
+void RuntimeShaderBuilder::SetUniform(const std::string& name, const Matrix& uniformMatrix33)
+{
+    impl_->SetUniform(name, uniformMatrix33);
+}
+
 void RuntimeShaderBuilder::SetUniform(const std::string& name, const Matrix44& uniformMatrix44)
 {
     impl_->SetUniform(name, uniformMatrix44);

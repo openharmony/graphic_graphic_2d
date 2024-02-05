@@ -36,13 +36,18 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
-    void InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f) override;
+    void InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f,
+        ImageBlurType blurType) override;
     void InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f) override;
-    void InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY) override;
+    void InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY,
+        ImageBlurType blurType) override;
     void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f) override;
     void InitWithArithmetic(const std::vector<scalar>& coefficients, bool enforcePMColor,
         const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) override;
     void InitWithCompose(const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) override;
+    void InitWithGradientBlur(float radius, const std::vector<std::pair<float, float>>& fractionStops,
+        GradientDir direction, GradientBlurType blurType,
+        const std::shared_ptr<ImageFilter> f) override;
     sk_sp<SkImageFilter> GetImageFilter() const;
     /*
      * @brief  Update the member variable to filter, adaptation layer calls.

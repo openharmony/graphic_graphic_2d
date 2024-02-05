@@ -21,6 +21,9 @@
 #include "include/core/SkMatrix.h"
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkGradientShader.h"
+#include "include/effects/SkRuntimeEffect.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
 #include "src/shaders/SkShaderBase.h"
 #if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
 #include "include/core/SkSamplingOptions.h"
@@ -118,17 +121,21 @@ void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point&
     pts[0].set(startPt.GetX(), startPt.GetY());
     pts[1].set(endPt.GetX(), endPt.GetY());
 
-    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
-    if (count == 0) {
+    if (colors.empty()) {
         return;
     }
+    size_t colorsCount = colors.size();
+
     std::vector<SkColor> c;
     std::vector<SkScalar> p;
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < colorsCount; ++i) {
         c.emplace_back(colors[i]);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
         p.emplace_back(pos[i]);
     }
-    shader_ = SkGradientShader::MakeLinear(pts, &c[0], &p[0], count, static_cast<SkTileMode>(mode));
+    shader_ = SkGradientShader::MakeLinear(pts, &c[0], pos.empty() ? nullptr : &p[0],
+        colorsCount, static_cast<SkTileMode>(mode));
 }
 
 void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radius,
@@ -137,17 +144,21 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
     SkPoint center;
     center.set(centerPt.GetX(), centerPt.GetY());
 
-    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
-    if (count == 0) {
+    if (colors.empty()) {
         return;
     }
+    size_t colorsCount = colors.size();
+
     std::vector<SkColor> c;
     std::vector<SkScalar> p;
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < colorsCount; ++i) {
         c.emplace_back(colors[i]);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
         p.emplace_back(pos[i]);
     }
-    shader_ = SkGradientShader::MakeRadial(center, radius, &c[0], &p[0], count, static_cast<SkTileMode>(mode));
+    shader_ = SkGradientShader::MakeRadial(center, radius, &c[0],
+        pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode));
 }
 
 void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt,
@@ -159,14 +170,17 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
     start.set(startPt.GetX(), startPt.GetY());
     end.set(endPt.GetX(), endPt.GetY());
 
-    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
-    if (count == 0) {
+    if (colors.empty()) {
         return;
     }
+    size_t colorsCount = colors.size();
+
     std::vector<SkColor> c;
     std::vector<SkScalar> p;
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < colorsCount; ++i) {
         c.emplace_back(colors[i]);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
         p.emplace_back(pos[i]);
     }
     const SkMatrix *skMatrix = nullptr;
@@ -174,29 +188,73 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
         skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
     }
 
-    shader_ = SkGradientShader::MakeTwoPointConical(
-        start, startRadius, end, endRadius, &c[0], &p[0], count, static_cast<SkTileMode>(mode), 0, skMatrix);
+    shader_ = SkGradientShader::MakeTwoPointConical(start, startRadius, end, endRadius,
+        &c[0], pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
 void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
     const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix)
 {
-    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
-    if (count == 0) {
+    if (colors.empty()) {
         return;
     }
+    size_t colorsCount = colors.size();
+
     std::vector<SkColor> c;
     std::vector<SkScalar> p;
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < colorsCount; ++i) {
         c.emplace_back(colors[i]);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
         p.emplace_back(pos[i]);
     }
     const SkMatrix *skMatrix = nullptr;
     if (matrix != nullptr) {
         skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
     }
-    shader_ = SkGradientShader::MakeSweep(centerPt.GetX(), centerPt.GetY(), &c[0], &p[0], count,
+    shader_ = SkGradientShader::MakeSweep(centerPt.GetX(), centerPt.GetY(), &c[0],
+        pos.empty() ? nullptr : &p[0], colorsCount,
         static_cast<SkTileMode>(mode), startAngle, endAngle, 0, skMatrix);
+}
+
+void SkiaShaderEffect::InitWithLightUp(const float& lightUpDeg, const ShaderEffect& imageShader)
+{
+    auto imageShaderImpl_ = imageShader.GetImpl<SkiaShaderEffect>();
+    if (imageShaderImpl_ != nullptr) {
+        static constexpr char prog[] = R"(
+            uniform half lightUpDeg;
+            uniform shader imageShader;
+            vec3 rgb2hsv(in vec3 c)
+            {
+                vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+                vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+                vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+                float d = q.x - min(q.w, q.y);
+                float e = 1.0e-10;
+                return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+            }
+            vec3 hsv2rgb(in vec3 c)
+            {
+                vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+                return c.z * mix(vec3(1.0), rgb, c.y);
+            }
+            half4 main(float2 coord)
+            {
+                vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
+                float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
+                hsv.y = mix(satUpper, hsv.y, lightUpDeg);
+                hsv.z += lightUpDeg - 1.0;
+                return vec4(hsv2rgb(hsv), 1.0);
+            }
+        )";
+        auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
+        sk_sp<SkShader> children[] = {imageShaderImpl_->GetShader()};
+        size_t childCount = 1;
+        shader_ = effect->makeShader(SkData::MakeWithCopy(
+            &lightUpDeg, sizeof(lightUpDeg)), children, childCount, nullptr, false);
+    } else {
+        LOGE("SkiaShaderEffect::InitWithLightUp: imageShader is nullptr");
+    }
 }
 
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const
@@ -216,7 +274,13 @@ std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
         return nullptr;
     }
 
-    return SkiaHelper::FlattenableSerialize(shader_.get());
+    SkBinaryWriteBuffer writer;
+    writer.writeFlattenable(shader_.get());
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
 }
 
 bool SkiaShaderEffect::Deserialize(std::shared_ptr<Data> data)
@@ -225,8 +289,8 @@ bool SkiaShaderEffect::Deserialize(std::shared_ptr<Data> data)
         LOGD("SkiaShaderEffect::Deserialize, data is invalid!");
         return false;
     }
-
-    shader_ = SkiaHelper::FlattenableDeserialize<SkShaderBase>(data);
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    shader_ = reader.readShader();
     return true;
 }
 
