@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 
+#include "platform/common/rs_log.h"
+
 namespace OHOS::Rosen {
 
 class Archive {
@@ -149,8 +151,8 @@ public:
         }
 
         if (!file_) {
-            std::cout << "FileArchive: File " << canonicalPath << " cannot be opened for "
-                      << (reader ? "reading" : "writing");
+            RS_LOGE("FileArchive: File %{public}s cannot be opened for %{public}s", canonicalPath.c_str(),
+                (reader ? "reading" : "writing"));
         }
     }
 
