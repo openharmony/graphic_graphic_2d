@@ -654,7 +654,7 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
     if (subThreadNodes_.empty() &&
-        (deviceType_ == DeviceType::PHONE || (LeashWindowCount_ > 0 && isUiFirstOn_ == false))) {
+        (deviceType_ == DeviceType::PHONE || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
         RSSubThreadManager::Instance()->ResetSubThreadGrContext();
         return false;
     }
