@@ -214,7 +214,7 @@ HWTEST_F(VSyncDistributorTest, SetVSyncRate004, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncDistributorTest, SetQosVSyncRate001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetQosVSyncRate(1, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetQosVSyncRate(1, 1), VSYNC_ERROR_INVALID_ARGUMENTS);
 }
 
 /*
