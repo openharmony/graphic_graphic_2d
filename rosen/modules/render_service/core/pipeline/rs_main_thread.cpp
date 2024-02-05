@@ -1826,7 +1826,7 @@ void RSMainThread::CalcOcclusion()
     SurfaceOcclusionCallback();
 }
 
-void RSMainThread::DeleteMultiInstancePid(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+void RSMainThread::SetMultiInstancePidVSyncRate(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
     std::map<uint32_t, int> multiInstancePidMap;
@@ -1840,7 +1840,7 @@ void RSMainThread::DeleteMultiInstancePid(std::map<uint32_t, RSVisibleLevel>& pi
     }
     for (auto& iter : multiInstancePidMap) {
         if (iter.second > MAX_MULTI_INSTANCE_PID_COUNT) {
-            pidVisMap.erase(iter.first);
+            pidVisMap[iter.first] = RSVisibleLevel::RS_ALL_VISIBLE;
         }
     }
 }
@@ -1860,7 +1860,7 @@ bool RSMainThread::CheckSurfaceVisChanged(std::map<uint32_t, RSVisibleLevel>& pi
         }
         isReduceVSyncBySystemAnimatedScenes_ = true;
     } else {
-        DeleteMultiInstancePid(pidVisMap, curAllSurfaces);
+        SetMultiInstancePidVSyncRate(pidVisMap, curAllSurfaces);
     }
     bool isVisibleChanged = pidVisMap.size() != lastPidVisMap_.size();
     if (!isVisibleChanged) {
