@@ -1039,6 +1039,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
                 return;
             }
+            if (surfaceNode->IsLeashWindow() && surfaceNode->GetForceUIFirstChanged()) {
+                forceUIFirstChanged_ = true;
+                surfaceNode->SetForceUIFirstChanged(false);
+            }
             if (surfaceNode->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
             }
@@ -1472,7 +1476,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
         uniVisitor->SetAnimateState(doWindowAnimate_);
-        uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_);
+        uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_ || forceUIFirstChanged_);
+        forceUIFirstChanged_ = false;
         isAccessibilityConfigChanged_ = false;
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);

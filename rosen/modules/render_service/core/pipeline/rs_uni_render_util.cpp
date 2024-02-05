@@ -515,12 +515,12 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
     bool isPhoneType = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     bool isNeedAssignToSubThread = false;
     if (isPhoneType && node->IsLeashWindow()) {
-        isNeedAssignToSubThread = (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f)) && !node->HasFilter();
-        std::string logInfo = "[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]"
-            + "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", "
-            + std::to_string(node->HasFilter()) + ", " + std::to_string(node->IsScale()) + ", "
-            + std::to_string(isNeedAssignToSubThread) + " )";
-        RS_TRACE_NAME("assign info: " + logInfo);
+        isNeedAssignToSubThread = (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) ||
+            node->GetForceUIFirst()) && !node->HasFilter();
+        RS_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
+            " status:%d filter:%d isScale:%d forceUIFirst:%d isNeedAssign:%d",
+            node->GetName().c_str(), node->GetId(), node->GetCacheSurfaceProcessedStatus(),
+            node->HasFilter(), node->IsScale(), node->GetForceUIFirst(), isNeedAssignToSubThread);
     }
     std::string surfaceName = node->GetName();
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||

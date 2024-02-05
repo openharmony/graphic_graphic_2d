@@ -526,6 +526,7 @@ private:
     uint32_t LeashWindowCount_ = 0;
 
     std::atomic_bool mainLooping_ = false;
+    bool forceUIFirstChanged_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
