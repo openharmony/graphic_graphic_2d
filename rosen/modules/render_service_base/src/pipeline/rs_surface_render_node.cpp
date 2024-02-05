@@ -621,6 +621,27 @@ bool RSSurfaceRenderNode::GetFingerprint() const
     return hasFingerprint_;
 }
 
+void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
+{
+    if (forceUIFirst) {
+        forceUIFirstChanged_ = true;
+    }
+    forceUIFirst_ = forceUIFirst;
+}
+bool RSSurfaceRenderNode::GetForceUIFirst() const
+{
+    return forceUIFirst_;
+}
+
+void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
+{
+    forceUIFirstChanged_ = forceUIFirstChanged;
+}
+bool RSSurfaceRenderNode::GetForceUIFirstChanged()
+{
+    return forceUIFirstChanged_;
+}
+
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
