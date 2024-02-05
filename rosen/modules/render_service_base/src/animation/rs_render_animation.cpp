@@ -48,6 +48,30 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
     return true;
 }
 
+void RSRenderAnimation::DumpAnimation(std::string& out) const
+{
+    out += "Animation: [id:" + std::to_string(id_) + ", ";
+    DumpAnimationType(out);
+    out += ", AnimationState:" + std::to_string(static_cast<int>(state_));
+    out += ", StartDelay:" + std::to_string(animationFraction_.GetDuration());
+    out += ", Duration:" + std::to_string(animationFraction_.GetStartDelay());
+    out += ", Speed:" + std::to_string(animationFraction_.GetSpeed());
+    out += ", RepeatCount:" + std::to_string(animationFraction_.GetRepeatCount());
+    out += ", AutoReverse:" + std::to_string(animationFraction_.GetAutoReverse());
+    out += ", Direction:" + std::to_string(animationFraction_.GetDirection());
+    out += ", FillMode:" + std::to_string(static_cast<int>(animationFraction_.GetFillMode()));
+    out += ", RepeatCallbackEnable:" + std::to_string(animationFraction_.GetRepeatCallbackEnable());
+    out += ", FrameRateRange_min:" + std::to_string(animationFraction_.GetFrameRateRange().min_);
+    out += ", FrameRateRange_max:" + std::to_string(animationFraction_.GetFrameRateRange().max_);
+    out += ", FrameRateRange_prefered:" + std::to_string(animationFraction_.GetFrameRateRange().preferred_);
+    out += "]";
+}
+
+void RSRenderAnimation::DumpAnimationType(std::string& out) const
+{
+    out += "Type:Unknown";
+}
+
 bool RSRenderAnimation::ParseParam(Parcel& parcel)
 {
     int32_t duration = 0;

@@ -35,6 +35,7 @@
 #include "rs_trace.h"
 
 #include "animation/rs_animation_fraction.h"
+#include "benchmarks/file_utils.h"
 #include "command/rs_message_processor.h"
 #include "common/rs_background_thread.h"
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
@@ -1539,7 +1540,19 @@ void RSMainThread::Render()
     if (focusAppBundleName_.find(DESKTOP_NAME_FOR_ROTATION) != std::string::npos) {
         desktopPidForRotationScene_ = focusAppPid_;
     }
-
+    if (RSSystemProperties::GetDumpRSTreeCount()) {
+        std::string rsTreeStr;
+        RenderServiceTreeDump(rsTreeStr);
+        RS_TRACE_NAME("WriteDumpTree");
+        std::string dumpFilePath = "/data/RSTree";
+        if (access(dumpFilePath.c_str(), F_OK) != 0) {
+            constexpr int directoryPermission = 0755; // drwxr-xr-x
+            mkdir(dumpFilePath.c_str(), directoryPermission);
+        }
+        dumpFilePath += "/rsTree_" + std::to_string(frameCount_) + ".txt";
+        OHOS::Rosen::Benchmarks::WriteStringToFile(rsTreeStr, dumpFilePath);
+        RSSystemProperties::SetDumpRSTreeCount(RSSystemProperties::GetDumpRSTreeCount() - 1);
+    }
     if (isUniRender_) {
         UniRender(rootNode);
     } else {
@@ -2334,6 +2347,7 @@ void RSMainThread::QosStateDump(std::string& dumpString)
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
 {
+    RS_TRACE_NAME("GetDumpTree");
     dumpString.append("Animating Node: [");
     for (auto& [nodeId, _]: context_->animatingNodeList_) {
         dumpString.append(std::to_string(nodeId) + ", ");

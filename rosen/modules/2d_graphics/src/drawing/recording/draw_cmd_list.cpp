@@ -27,6 +27,7 @@ namespace Rosen {
 namespace Drawing {
 
 std::unordered_map<uint32_t, std::string> typeOpDes = {
+    { DrawOpItem::OPITEM_HEAD,              "OPITEM_HEAD"},
     { DrawOpItem::POINT_OPITEM,             "POINT_OPITEM" },
     { DrawOpItem::POINTS_OPITEM,            "POINTS_OPITEM" },
     { DrawOpItem::LINE_OPITEM,              "LINE_OPITEM" },
@@ -68,7 +69,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::SAVE_LAYER_OPITEM,        "SAVE_LAYER_OPITEM" },
     { DrawOpItem::RESTORE_OPITEM,           "RESTORE_OPITEM" },
     { DrawOpItem::DISCARD_OPITEM,           "DISCARD_OPITEM" },
-    { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, "CLIP_ADAPTIVE_ROUND_RECT_OPITEM" },
+    { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM,  "CLIP_ADAPTIVE_ROUND_RECT_OPITEM" },
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    "ADAPTIVE_IMAGE_OPITEM" },
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, "ADAPTIVE_PIXELMAP_OPITEM" },
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
@@ -79,6 +80,8 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::EDGEAAQUAD_OPITEM,        "EDGEAAQUAD_OPITEM" },
     { DrawOpItem::VERTICES_OPITEM,          "VERTICES_OPITEM" },
     { DrawOpItem::IMAGE_SNAPSHOT_OPITEM,    "IMAGE_SNAPSHOT_OPITEM" },
+    { DrawOpItem::SURFACEBUFFER_OPITEM,     "SURFACEBUFFER_OPITEM"},
+    { DrawOpItem::DRAW_FUNC_OPITEM,         "DRAW_FUNC_OPITEM"},
 };
 
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)

@@ -30,6 +30,11 @@ RSRenderKeyframeAnimation::RSRenderKeyframeAnimation(AnimationId id, const Prope
     : RSRenderPropertyAnimation(id, propertyId, originValue)
 {}
 
+void RSRenderKeyframeAnimation::DumpAnimationType(std::string& out) const
+{
+    out += "Type:RSRenderKeyframeAnimation";
+}
+
 void RSRenderKeyframeAnimation::AddKeyframe(float fraction, const std::shared_ptr<RSRenderPropertyBase>& value,
     const std::shared_ptr<RSInterpolator>& interpolator)
 {

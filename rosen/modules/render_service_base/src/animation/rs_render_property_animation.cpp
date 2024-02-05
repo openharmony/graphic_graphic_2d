@@ -27,6 +27,11 @@ RSRenderPropertyAnimation::RSRenderPropertyAnimation(AnimationId id, const Prope
     originValue_(originValue->Clone()), lastValue_(originValue->Clone())
 {}
 
+void RSRenderPropertyAnimation::DumpAnimationType(std::string& out) const
+{
+    out += "Type:RSRenderPropertyAnimation";
+}
+
 PropertyId RSRenderPropertyAnimation::GetPropertyId() const
 {
     return propertyId_;

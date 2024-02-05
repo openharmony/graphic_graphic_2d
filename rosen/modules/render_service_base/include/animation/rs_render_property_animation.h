@@ -29,6 +29,8 @@ class RSB_EXPORT RSRenderPropertyAnimation : public RSRenderAnimation {
 public:
     virtual ~RSRenderPropertyAnimation() = default;
 
+    void DumpAnimationType(std::string& out) const override;
+
     PropertyId GetPropertyId() const override;
 
     void SetAdditive(bool isAdditive);
