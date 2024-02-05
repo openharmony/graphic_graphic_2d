@@ -18,17 +18,18 @@
 
 #include <string>
 #include "message_parcel.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Benchmarks {
-bool IsValidFile(const std::string& realPathStr, const std::string& validPath = "/data/");
-std::string GetRealAndValidPath(const std::string& filePath);
-bool CreateFile(const std::string& filePath);
-bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath);
-bool WriteStringToFile(int fd, const std::string& str);
-bool WriteStringToFile(const std::string& str, const std::string& filePath);
-bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel,
+RSB_EXPORT bool IsValidFile(const std::string& realPathStr, const std::string& validPath = "/data/");
+RSB_EXPORT std::string GetRealAndValidPath(const std::string& filePath);
+RSB_EXPORT bool CreateFile(const std::string& filePath);
+RSB_EXPORT bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath);
+RSB_EXPORT bool WriteStringToFile(int fd, const std::string& str);
+RSB_EXPORT bool WriteStringToFile(const std::string& str, const std::string& filePath);
+RSB_EXPORT bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel,
     std::string& opsDescription, int frameNum, std::string& fileDir);
 } // namespace Benchmarks
 } // namespace Rosen
