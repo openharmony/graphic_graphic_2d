@@ -39,9 +39,6 @@ const char* RSFilterCacheManager::GetCacheState() const
         return "No valid cache found.";
     }
 }
-namespace {
-constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
-} // namespace
 
 #define CHECK_CACHE_PROCESS_STATUS                      \
     do {                                                \
@@ -381,10 +378,18 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     auto surface = canvas.getSurface();
     auto width = surface->width();
     auto height = surface->height();
+    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+        SkMatrix mat = canvas.getTotalMatrix();
+        filter->setCanvasChange(mat, width, height);
+    }
 #else
     auto surface = canvas.GetSurface();
     auto width = surface->Width();
     auto height = surface->Height();
+    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+        Drawing::Matrix mat = canvas.GetTotalMatrix();
+        filter->setCanvasChange(mat, width, height);
+    }
 #endif
     PostPartialFilterRenderInit(filter, dst, width, height);
     bool shouldClearFilteredCache = false;
@@ -637,22 +642,6 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     auto dst = SkRect::MakeSize(SkSize::Make(offscreenRect.size()));
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
-    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        uint8_t directionBias = 0;
-        SkMatrix mat = canvas.getTotalMatrix();
-         // 1 and 3 represents rotate matrix's index
-        if ((mat.get(1) > FLOAT_ZERO_THRESHOLD) && (mat.get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
-            directionBias = 1; // 1 represents rotate 90 degree
-        // 0 and 4 represents rotate matrix's index
-        } else if ((mat.get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
-            directionBias = 2; // 2 represents rotate 180 degree
-        // 1 and 3 represents rotate matrix's index
-        } else if ((mat.get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(3) > FLOAT_ZERO_THRESHOLD)) {
-            directionBias = 3; // 3 represents rotate 270 degree
-        }
-        filter->setDirectionBias(directionBias);
-    }
-
     filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
     filter->PostProcess(offscreenCanvas);
 
@@ -695,22 +684,6 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     auto dst = Drawing::Rect(0, 0, offscreenRect.GetWidth(), offscreenRect.GetHeight());
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
-    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        uint8_t directionBias = 0;
-        Drawing::Matrix mat = canvas.GetTotalMatrix();
-        // 1 and 3 represents rotate matrix's index
-        if ((mat.Get(1) > FLOAT_ZERO_THRESHOLD) && (mat.Get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
-            directionBias = 1; // 1 represents rotate 90 degree
-        // 0 and 4 represents rotate matrix's index
-        } else if ((mat.Get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
-            directionBias = 2; // 2 represents rotate 180 degree
-        // 1 and 3 represents rotate matrix's index
-        } else if ((mat.Get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(3) > FLOAT_ZERO_THRESHOLD)) {
-            directionBias = 3; // 3 represents rotate 270 degree
-        }
-        filter->setDirectionBias(directionBias);
-    }
-
     filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
     filter->PostProcess(offscreenCanvas);
 
