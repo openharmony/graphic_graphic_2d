@@ -36,6 +36,7 @@ group("test") {
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssurfaceohos_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
