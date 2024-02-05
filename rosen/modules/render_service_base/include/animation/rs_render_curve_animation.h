@@ -31,6 +31,8 @@ public:
 
     virtual ~RSRenderCurveAnimation() = default;
 
+    void DumpAnimationType(std::string& out) const override;
+
     void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator);
 
     const std::shared_ptr<RSInterpolator>& GetInterpolator() const;

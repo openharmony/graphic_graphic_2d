@@ -29,6 +29,8 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& originValue);
     ~RSRenderKeyframeAnimation() {}
 
+    void DumpAnimationType(std::string& out) const override;
+
     void AddKeyframe(float fraction, const std::shared_ptr<RSRenderPropertyBase>& value,
         const std::shared_ptr<RSInterpolator>& interpolator);
 

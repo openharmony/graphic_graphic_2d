@@ -112,8 +112,8 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
     return result;
 }
 
-bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, std::string& opsDescription,
-    int frameNum, std::string& fileDir)
+bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, const std::string& opsDescription,
+    int frameNum, const std::string& fileDir)
 {
     // file name
     std::string drawCmdListFile = fileDir + "/frame" + std::to_string(frameNum) + ".drawing";
