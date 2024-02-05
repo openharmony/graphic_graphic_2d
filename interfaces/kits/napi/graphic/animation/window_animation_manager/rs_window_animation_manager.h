@@ -54,7 +54,7 @@ private:
     int32_t GetWindowId(const napi_env& env, const size_t& argc, const napi_value& object, uint32_t& windowId);
 
     int32_t GetMissionIds(
-        const napi_env& env, const size_t& argc, const napi_value& arrary, std::vector<uint32_t>& missionIds);
+        const napi_env& env, const size_t& argc, const napi_value& array, std::vector<uint32_t>& missionIds);
 };
 } // namespace Rosen
 } // namespace OHOS
