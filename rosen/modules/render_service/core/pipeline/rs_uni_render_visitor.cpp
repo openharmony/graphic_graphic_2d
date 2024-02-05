@@ -435,7 +435,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         }
         for (auto& child : *children) {
             if (child && UNLIKELY(child->GetSharedTransitionParam().has_value())) {
-                firstVisitedCache_ = INVALID_NODEID;
                 PrepareSharedTransitionNode(*child);
             }
             SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
