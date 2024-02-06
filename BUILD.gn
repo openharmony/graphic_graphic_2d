@@ -20,6 +20,7 @@ group("default") {
 
   if (graphic_2d_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
+    public_deps += [ "frameworks/bootanimation:bootanimation_para" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_video" ]
