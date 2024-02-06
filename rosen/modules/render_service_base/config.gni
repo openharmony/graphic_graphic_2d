@@ -38,7 +38,7 @@ if (rosen_cross_platform) {
   }
 }
 
-if (use_rosen_drawing) {
+if (use_rosen_drawing && defined(is_arkui_x) && is_arkui_x) {
   rs_common_define += [ "USE_ROSEN_DRAWING" ]
 }
 
