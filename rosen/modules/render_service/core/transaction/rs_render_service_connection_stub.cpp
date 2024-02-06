@@ -1236,7 +1236,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             std::vector<std::string> packageList;
-            for (auto i = 0; i < listSize; i++) {
+            for (uint32_t i = 0; i < listSize; i++) {
                 packageList.push_back(data.ReadString());
             }
             NotifyPackageEvent(listSize, packageList);
