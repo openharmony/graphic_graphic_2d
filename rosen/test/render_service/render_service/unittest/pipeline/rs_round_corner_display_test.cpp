@@ -650,6 +650,7 @@ HWTEST_F(RSRoundCornerDisplayTest, XMLReader, TestSize.Level1)
     auto okResult = reader.Init(rs_rcd::PATH_CONFIG_FILE);
     if (okResult == false) {
         std::cout << "OS less roundcorner resource" << std::endl;
+        return;
     }
     reader.ReadNode({"a", "b"});
     reader.Read({"a", "b"});
