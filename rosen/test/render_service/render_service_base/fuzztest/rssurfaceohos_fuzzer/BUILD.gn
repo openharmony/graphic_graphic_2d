@@ -23,7 +23,7 @@ ohos_fuzztest("RSSurfaceOhosFuzzTest") {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
   module_out_path = module_output_path
-  fuzz_config_file = "../."
+  fuzz_config_file = "../rssurfaceohos_fuzzer"
   include_dirs = [
     "../../../../../modules/2d_graphics/src",
     "../../../../../modules/render_service_base/src",
