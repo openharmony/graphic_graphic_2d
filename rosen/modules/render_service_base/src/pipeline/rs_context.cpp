@@ -58,4 +58,10 @@ void RSContext::MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType)
     clearMoment_ = moment;
     purgeType_ = purgeType;
 }
+
+void RSContext::Initialize()
+{
+    nodeMap.Initialize(weak_from_this());
+    globalRootRenderNode_->OnRegister(weak_from_this());
+}
 } // namespace OHOS::Rosen
