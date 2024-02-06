@@ -26,7 +26,7 @@ pid_t GetRealPid(void)
 {
 #ifdef _WIN32
     return GetCurrentProcessId();
-#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__)
+#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__) || defined(ROSEN_CROSS_PLATFORM)
     return getpid();
 #else
     return getprocpid();

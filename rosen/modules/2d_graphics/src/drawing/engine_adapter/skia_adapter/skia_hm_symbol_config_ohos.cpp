@@ -15,7 +15,9 @@
 
 #include "skia_hm_symbol_config_ohos.h"
 
+#ifndef CROSS_PLATFORM
 #include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
+#endif
 #include "utils/log.h"
 namespace OHOS {
 namespace Rosen {
@@ -23,6 +25,7 @@ namespace Drawing {
 
 std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
 {
+#ifndef CROSS_PLATFORM
     SymbolLayersGroups* groups = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyphId);
     if (!groups) {
         return nullptr;
@@ -55,6 +58,8 @@ std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLaye
     drawingGroups->renderModeGroups = drawingRenderModeGroups;
 
     return drawingGroups;
+#endif
+    return nullptr;
 }
 
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)
