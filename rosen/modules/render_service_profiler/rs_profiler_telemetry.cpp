@@ -153,7 +153,7 @@ static void GetGPULoad(GPUInfo& gpu)
     gpu.load = std::stof(splits.empty() ? load : splits[0]);
 }
 
-const DeviceInfo& Telemetry::GetDeviceInfo()
+const DeviceInfo& RSTelemetry::GetDeviceInfo()
 {
     static DeviceInfo info;
 
@@ -196,7 +196,7 @@ static std::string FrequencyLoadToString(float frequency, float load)
     return std::to_string(frequency) + " GHz (" + std::to_string(load) + " %)";
 }
 
-std::string Telemetry::GetDeviceInfoString()
+std::string RSTelemetry::GetDeviceInfoString()
 {
     const DeviceInfo info = GetDeviceInfo();
 

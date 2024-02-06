@@ -43,7 +43,7 @@ struct DeviceInfo {
     GPUInfo gpu;
 };
 
-class Telemetry final {
+class RSTelemetry final {
 public:
     static const DeviceInfo& GetDeviceInfo();
     static std::string GetDeviceInfoString();
