@@ -247,6 +247,7 @@ RSMainThread* RSMainThread::Instance()
 RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id())
 {
     context_ = std::make_shared<RSContext>();
+    context_->Initialize();
 }
 
 RSMainThread::~RSMainThread() noexcept

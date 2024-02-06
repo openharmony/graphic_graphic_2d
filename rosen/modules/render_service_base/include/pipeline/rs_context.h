@@ -112,9 +112,13 @@ public:
     }
 
 private:
+    // This function is used for initialization, should be called once after constructor.
+    void Initialize();
     RSRenderNodeMap nodeMap;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    // The root of render node tree, Note: this node is not the animation fallback node.
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
+    // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     PurgeType purgeType_ = PurgeType::NONE;
     ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;

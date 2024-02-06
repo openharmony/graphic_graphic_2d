@@ -83,6 +83,9 @@ private:
     NodeId wallpaperViewNodeId_ = 0;
     NodeId screenLockWindowNodeId_ = 0;
 
+    void Initialize(const std::weak_ptr<RSContext>& context);
+    std::weak_ptr<RSContext> context_;
+
     friend class RSContext;
     friend class RSMainThread;
 };

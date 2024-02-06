@@ -562,6 +562,9 @@ private:
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
 
+    // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
+    // `for (auto child : *GetSortedChildren()) { ... }` will crash.
+    // When an empty list is needed, use EmptyChildrenList instead.
     static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     bool isFullChildrenListValid_ = true;
@@ -571,7 +574,7 @@ private:
     void GenerateFullChildrenList();
     void ResortChildren();
 
-    const std::weak_ptr<RSContext> context_ = {};
+    std::weak_ptr<RSContext> context_ = {};
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
     bool isNewOnTree_ = false;
@@ -701,10 +704,11 @@ private:
 
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
-    void OnRegister();
+    void OnRegister(const std::weak_ptr<RSContext>& context);
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
+    friend class RSContext;
     friend class RSMainThread;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
