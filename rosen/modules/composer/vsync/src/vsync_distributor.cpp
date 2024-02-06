@@ -59,7 +59,7 @@ void VSyncConnection::VSyncConnectionDeathRecipient::OnRemoteDied(const wptr<IRe
         VLOGI("%{public}s: token doesn't match, ignore it.", __func__);
         return;
     }
-    VLOGW("%{public}s: clear socketPair, conn name:%{public}s.", __func__, vsyncConn->info_.name_.c_str());
+    VLOGD("%{public}s: clear socketPair, conn name:%{public}s.", __func__, vsyncConn->info_.name_.c_str());
     VsyncError ret = vsyncConn->Destroy();
     if (ret != VSYNC_ERROR_OK) {
         VLOGE("vsync connection clearAll failed!");
