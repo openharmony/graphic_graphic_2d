@@ -534,6 +534,7 @@ private:
     bool needRequestNextVsyncAnimate_ = false;
 
     std::atomic_bool mainLooping_ = false;
+    bool forceUIFirstChanged_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

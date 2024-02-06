@@ -243,5 +243,12 @@ void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, S
         node->SetSurfaceId(surfaceId);
     }
 }
+
+void SurfaceNodeCommandHelper::SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetForceUIFirst(forceUIFirst);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -370,6 +370,12 @@ public:
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
 
+    void SetForceUIFirst(bool forceUIFirst);
+    bool GetForceUIFirst() const;
+
+    void SetForceUIFirstChanged(bool forceUIFirstChanged);
+    bool GetForceUIFirstChanged();
+
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
@@ -723,33 +729,6 @@ public:
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
-#ifndef USE_ROSEN_DRAWING
-    void SetCachedImage(sk_sp<SkImage> image)
-#else
-    void SetCachedImage(std::shared_ptr<Drawing::Image> image)
-#endif
-    {
-        SetContentDirty();
-        std::lock_guard<std::mutex> lock(cachedImageMutex_);
-        cachedImage_ = image;
-    }
-
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> GetCachedImage() const
-#else
-    std::shared_ptr<Drawing::Image> GetCachedImage() const
-#endif
-    {
-        std::lock_guard<std::mutex> lock(cachedImageMutex_);
-        return cachedImage_;
-    }
-
-    void ClearCachedImage()
-    {
-        std::lock_guard<std::mutex> lock(cachedImageMutex_);
-        cachedImage_ = nullptr;
-    }
-
     // if surfacenode's buffer has been consumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
 
@@ -1139,12 +1118,6 @@ private:
     ContainerConfig containerConfig_;
 
     bool startAnimationFinished_ = false;
-    mutable std::mutex cachedImageMutex_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> cachedImage_;
-#else
-    std::shared_ptr<Drawing::Image> cachedImage_;
-#endif
 
     // only used in hardware enabled pointer window, when gpu -> hardware composer
     bool isNodeDirtyInLastFrame_ = true;
@@ -1197,6 +1170,8 @@ private:
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     bool hasTransparentSurface_ = false;
+    bool forceUIFirst_ = false;
+    bool forceUIFirstChanged_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
