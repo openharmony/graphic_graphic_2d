@@ -163,7 +163,7 @@ void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, co
             LOGI("PlayerCallback: State Change");
             break;
         case Media::INFO_TYPE_POSITION_UPDATE: {
-            LOGI("PlayerCallback: Position Update");
+            LOGD("PlayerCallback: Position Update");
             break;
         }
         case Media::INFO_TYPE_MESSAGE:

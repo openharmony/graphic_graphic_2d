@@ -70,7 +70,6 @@ static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncC
 
     napi_get_undefined(env, &result[NUM_0]);
     napi_get_undefined(env, &result[NUM_1]);
-    EFFECT_LOG_I("Create ColorPicker Common Callback Routine");
 
     if (asyncContext->status == SUCCESS) {
         result[NUM_1] = valueParam;
@@ -167,7 +166,6 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_get_undefined(env, &thisVar);
 
-    EFFECT_LOG_I("Constructor IN");
     IMG_JS_NO_ARGS(env, info, status, thisVar);
 
     IMG_NAPI_CHECK_RET(IMG_IS_READY(status, thisVar), undefineVar);
@@ -204,7 +202,6 @@ void ColorPickerNapi::Destructor(napi_env env, void* nativeObject, void* finaliz
 
 static void CreateColorPickerFromPixelmapExecute(napi_env env, void* data)
 {
-    EFFECT_LOG_I("create ColorPicker Execute");
     auto context = static_cast<ColorPickerAsyncContext*>(data);
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     if (context->regionFlag) {
@@ -224,7 +221,6 @@ void ColorPickerNapi::CreateColorPickerFromPixelmapComplete(napi_env env, napi_s
     napi_value constructor = nullptr;
     napi_value result = nullptr;
 
-    EFFECT_LOG_I("Create ColorPicker Complete");
     auto context = static_cast<ColorPickerAsyncContext*>(data);
     status = napi_get_reference_value(env, sConstructor_, &constructor);
     if (IMG_IS_OK(status)) {
@@ -700,7 +696,6 @@ ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
 
     ret = napi_instanceof(env, argv, constructor, &isInstance);
     if (ret == napi_ok && isInstance) {
-        EFFECT_LOG_I("This is PixelMapNapi type!");
         return ImageType::TYPE_PIXEL_MAP;
     }
 
