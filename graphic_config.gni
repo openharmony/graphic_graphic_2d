@@ -95,7 +95,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
   libvulkan = []
   if (graphic_2d_feature_enable_vulkan) {
-    libvulkan += [ "//third_party/vulkan-loader/openharmony:vulkan_loader" ]
+    libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
   }
 } else {
   gpu_defines = [ "ACE_DISABLE_GL" ]

@@ -79,7 +79,8 @@
           "memmgr_plugin",
           "sensor",
           "qos_manager",
-          "video_processing_engine"
+          "video_processing_engine",
+          "vulkan-headers"
         ],
         "third_party": [
           "flutter",
@@ -95,13 +96,15 @@
           "jsoncpp",
           "egl",
           "opengles",
-          "vulkan-headers"
+          "vulkan-headers",
+          "vulkan-loader"
         ]
       },
       "build": {
         "group_type": {
           "base_group": [
             "//third_party/libpng:libpng",
+            "//third_party/vulkan-loader:vulkan_loader",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
@@ -116,7 +119,6 @@
             "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
             "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
-            "//third_party/vulkan-loader/openharmony:vulkan_loader",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json"
           ],
