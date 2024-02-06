@@ -25,6 +25,7 @@ class PixelMap;
 }
 namespace Rosen {
 namespace CommonTools {
+std::string GetLocalTime();
 void SavePixelmapToFile(const std::shared_ptr<Media::PixelMap>& pixelMap, const std::string& dst);
 } // namespace CommonTools
 } // namespace Rosen
