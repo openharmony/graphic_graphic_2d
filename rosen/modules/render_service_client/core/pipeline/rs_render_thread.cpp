@@ -118,6 +118,7 @@ RSRenderThread::RSRenderThread()
         RS_TRACE_END();
     };
     context_ = std::make_shared<RSContext>();
+    context_->Initialize();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
