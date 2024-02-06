@@ -76,7 +76,7 @@ if (is_arkui_x) {
 
     deps = [
       "../../../../../rosen/modules/2d_graphics:2d_graphics",
-      "//foundation/arkui/napi:ace_napi"
+      "//foundation/arkui/napi:ace_napi",
     ]
     defines += [ "MODULE_DRAWING" ]
     cflags_cc = [ "-std=c++17" ]
