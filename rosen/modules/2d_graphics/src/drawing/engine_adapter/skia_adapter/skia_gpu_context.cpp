@@ -86,6 +86,8 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    // fix svg antialiasing bug
+    grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
@@ -125,6 +127,8 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    // fix svg antialiasing bug
+    grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
