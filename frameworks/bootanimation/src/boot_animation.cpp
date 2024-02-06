@@ -210,6 +210,8 @@ void BootAnimation::InitRsSurfaceNode()
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
     rsSurfaceNode_->AttachToDisplay(defaultId_);
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+    system::SetParameter("bootevent.bootanimation.ready", "true");
+    LOGI("Set bootevent.bootanimation.ready true");
 }
 
 void BootAnimation::InitRsSurface()
