@@ -15,8 +15,7 @@
 
 #include "pipeline/rs_render_node_map.h"
 #include "common/rs_common_def.h"
-#include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -31,8 +30,13 @@ constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
 };
 RSRenderNodeMap::RSRenderNodeMap()
 {
-    // add animation fallback node
-    renderNodeMap_.emplace(0, new RSCanvasRenderNode(0));
+    // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
+    renderNodeMap_.emplace(0, new RSRenderNode(0));
+}
+
+void RSRenderNodeMap::Initialize(const std::weak_ptr<RSContext>& context)
+{
+    context_ = context;
 }
 
 void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
@@ -95,7 +99,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         return false;
     }
     renderNodeMap_.emplace(id, nodePtr);
-    nodePtr->OnRegister();
+    nodePtr->OnRegister(context_);
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);
@@ -116,6 +120,7 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
     }
     renderNodeMap_.emplace(id, nodePtr);
     displayNodeMap_.emplace(id, nodePtr);
+    nodePtr->OnRegister(context_);
     return true;
 }
 
@@ -250,6 +255,5 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
     }
     return itr->second;
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -186,10 +186,12 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
 namespace OHOS {
 namespace Rosen {
-void RSRenderNode::OnRegister()
+void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
+    context_ = context;
     renderContent_->type_ = GetType();
     renderContent_->renderProperties_.backref_ = weak_from_this();
+    SetDirty(true);
 }
 
 bool RSRenderNode::IsPureContainer() const
@@ -1297,6 +1299,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
     if (!modifier) {
         return;
     }
+    SetDirty();
     if (RSSystemProperties::GetSingleFrameComposerEnabled() &&
         GetNodeIsSingleFrameComposer() && isSingleFrameComposer) {
         if (singleFrameComposer_ == nullptr) {
@@ -1314,7 +1317,6 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
         renderContent_->drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
     modifier->GetProperty()->Attach(shared_from_this());
-    SetDirty();
 }
 
 void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier)
@@ -1341,6 +1343,7 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& 
 
 void RSRenderNode::RemoveModifier(const PropertyId& id)
 {
+    SetDirty();
     auto it = modifiers_.find(id);
     if (it != modifiers_.end()) {
         if (it->second) {
@@ -2421,7 +2424,7 @@ void RSRenderNode::GenerateFullChildrenList()
             fullChildrenList->emplace_back(disappearingChild);
         }
     });
-    
+
     // Step 3: Sort all children by z-order
     std::stable_sort(
         fullChildrenList->begin(), fullChildrenList->end(), [](const auto& first, const auto& second) -> bool {
