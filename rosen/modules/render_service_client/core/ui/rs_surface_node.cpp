@@ -736,5 +736,15 @@ void RSSurfaceNode::SetForeground(bool isForeground)
         transactionProxy->AddCommand(commandRT, false);
     }
 }
+
+void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetForceUIFirst>(GetId(), forceUIFirst);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
