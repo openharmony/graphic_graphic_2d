@@ -52,6 +52,8 @@ public:
                     int32_t srcX, int32_t srcY) const;
     bool PeekPixels(Pixmap& pixmap) const;
 
+    size_t ComputeByteSize() const;
+
     /*
      * @brief  Gets the pointer to Bitmap buffer.
      */

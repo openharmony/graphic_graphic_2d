@@ -50,6 +50,7 @@ public:
     virtual bool InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
                                ReleaseProc releaseProc, void* context) = 0;
     virtual bool PeekPixels(Pixmap& pixmap) const = 0;
+    virtual size_t ComputeByteSize() const = 0;
     virtual bool IsImmutable() = 0;
     virtual void SetImmutable() = 0;
     virtual void ClearWithColor(const ColorQuad& color) const = 0;

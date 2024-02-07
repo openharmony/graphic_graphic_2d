@@ -71,6 +71,11 @@ bool Bitmap::PeekPixels(Pixmap& pixmap) const
     return bmpImplPtr->PeekPixels(pixmap);
 }
 
+size_t Bitmap::ComputeByteSize() const
+{
+    return bmpImplPtr->ComputeByteSize();
+}
+
 void Bitmap::SetPixels(void* pixel)
 {
     bmpImplPtr->SetPixels(pixel);

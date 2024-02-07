@@ -115,6 +115,11 @@ bool SkiaBitmap::PeekPixels(Pixmap& pixmap) const
     return skiaBitmap_.peekPixels(const_cast<SkPixmap*>(&skiaPixmap));
 }
 
+size_t SkiaBitmap::ComputeByteSize() const
+{
+    return skiaBitmap_.computeByteSize();
+}
+
 const SkBitmap& SkiaBitmap::ExportSkiaBitmap() const
 {
     return skiaBitmap_;
