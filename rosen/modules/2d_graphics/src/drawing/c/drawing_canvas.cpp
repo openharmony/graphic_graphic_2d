@@ -252,10 +252,12 @@ void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawin
     if (canvas == nullptr || cBitmap == nullptr || dst == nullptr || sampling == nullptr) {
         return;
     }
+    Image image;
+    image.BuildFromBitmap(CastToBitmap(*cBitmap));
     if (src == nullptr) {
-        canvas->DrawBitmap(CastToBitmap(*cBitmap), CastToRect(*dst), CastToSamplingOptions(*sampling));
+        canvas->DrawImageRect(image, CastToRect(*dst), CastToSamplingOptions(*sampling));
     } else {
-        canvas->DrawBitmap(CastToBitmap(*cBitmap), CastToRect(*src),
+        canvas->DrawImageRect(image, CastToRect(*src),
             CastToRect(*dst), CastToSamplingOptions(*sampling));
     }
 }
