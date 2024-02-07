@@ -300,7 +300,7 @@ template("graphics2d_source_set") {
       deps = []
       cflags = [ "-std=c++17" ]
       deps += [ "$rosen_root/modules/platform:hilog" ]
-      
+
       if (defined(use_rosen_drawing) && use_rosen_drawing) {
         defines += [ "USE_ROSEN_DRAWING" ]
 
