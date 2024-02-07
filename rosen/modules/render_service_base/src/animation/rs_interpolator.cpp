@@ -33,14 +33,6 @@ const std::shared_ptr<RSInterpolator> RSInterpolator::DEFAULT =
 
 RSInterpolator::RSInterpolator() : id_(GenerateId()) {}
 
-RSInterpolator::~RSInterpolator()
-{
-    if (id_) {
-        std::unique_lock<std::mutex> lock(cachedInterpolatorsMutex_);
-        cachedInterpolators_.erase(id_);
-    }
-}
-
 uint64_t RSInterpolator::GenerateId()
 {
     static pid_t pid_ = GetRealPid();
@@ -91,17 +83,33 @@ std::shared_ptr<RSInterpolator> RSInterpolator::Unmarshalling(Parcel& parcel)
     if (ret == nullptr) {
         return nullptr;
     }
-    // if we already have this id in cache, return it
-    std::unique_lock<std::mutex> lock(cachedInterpolatorsMutex_);
-    if (auto it = cachedInterpolators_.find(ret->id_); it != cachedInterpolators_.end() && !it->second.expired()) {
-        // avoid the destructor unregister the id from cache
-        ret->id_ = 0;
-        delete ret;
-        return it->second.lock();
+
+    static std::mutex cachedInterpolatorsMutex_;
+    static std::unordered_map<uint32_t, std::weak_ptr<RSInterpolator>> cachedInterpolators_;
+    static const auto Destructor = [](RSInterpolator* ptr) {
+        std::unique_lock<std::mutex> lock(cachedInterpolatorsMutex_);
+        cachedInterpolators_.erase(ptr->id_); // Unregister interpolator from cache before destruction.
+        delete ptr;
+    };
+
+    {
+        // All cache operations should be performed under lock to prevent race conditions
+        std::unique_lock<std::mutex> lock(cachedInterpolatorsMutex_);
+        // Check if there is an existing valid interpolator in the cache, return it if found.
+        if (auto it = cachedInterpolators_.find(ret->id_); it != cachedInterpolators_.end()) {
+            if (auto sharedPtr = it->second.lock()) { // Check if weak pointer is valid
+                delete ret;                           // Destroy the newly created object
+                return sharedPtr;
+            } else { // If the weak pointer has expired, erase it from the cache. This should never happen.
+                ROSEN_LOGE("RSInterpolator::Unmarshalling, cached weak pointer expired.");
+                cachedInterpolators_.erase(it);
+            }
+        }
+        // No existing interpolator in the cache, create a new one and register it in the cache.
+        std::shared_ptr<RSInterpolator> sharedPtr(ret, Destructor);
+        cachedInterpolators_.emplace(ret->id_, sharedPtr);
+        return sharedPtr;
     }
-    std::shared_ptr<RSInterpolator> ptr(ret);
-    cachedInterpolators_.emplace(ret->id_, ptr);
-    return ptr;
 }
 
 bool LinearInterpolator::Marshalling(Parcel& parcel) const
