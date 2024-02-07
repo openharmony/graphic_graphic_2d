@@ -446,6 +446,8 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
 
         GrContextOptions options = {};
         options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+        // fix svg antialiasing bug
+        options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
         options.fPreferExternalImagesOverES3 = true;
         options.fDisableDistanceFieldPaths = true;
 

@@ -62,6 +62,8 @@ bool GLESRenderBackend::SetUpGrContext()
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    // fix svg antialiasing bug
+    options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
 #if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {
