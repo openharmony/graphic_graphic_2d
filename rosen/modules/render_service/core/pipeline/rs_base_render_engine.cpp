@@ -828,6 +828,11 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             contextVk, backendTexture, surfaceOrigin, colorType, kPremul_SkAlphaType,
             skColorSpace, NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper());
 
+        if (image == nullptr) {
+            RS_LOGE("SkImage is nullptr");
+            return;
+        }
+
         canvas.drawImageRect(image, params.srcRect, params.dstRect,
             SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
@@ -850,12 +855,12 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #else
         auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
 #endif
-        auto contextGL = canvas.GetGPUContext();
-        if (contextGl == nullptr) {
-            RS_LOGE("contextGL is nullptr.");
+        auto contextDrawingVk = canvas.GetGPUContext();
+        if (contextDrawingVk == nullptr || image == nullptr || imageCache == nullptr) {
+            RS_LOGE("contextDrawingVk or image or imageCache is nullptr.");
             return;
         }
-        if (!image->BuildFromTexture(*contextGL, backendTexture.GetTextureInfo(),
+        if (!image->BuildFromTexture(*contextDrawingVk, backendTexture.GetTextureInfo(),
             surfaceOrigin, bitmapFormat, nullptr,
             NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
             ROSEN_LOGE("RSBaseRenderEngine::DrawImage: backendTexture is not valid!!!");
