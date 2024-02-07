@@ -70,6 +70,20 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brush002, TestSize.Level
     OH_Drawing_BrushSetAlpha(brush1, alpha);
     EXPECT_EQ(OH_Drawing_BrushGetAlpha(brush1), alpha);
 }
+
+/*
+ * @tc.name: NativeDrawingBrushTest_SetBlendMode001
+ * @tc.desc: test for SetBlendMode.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_SetBlendMode001, TestSize.Level1)
+{
+    OH_Drawing_BrushSetBlendMode(nullptr, OH_Drawing_BlendMode::BLEND_MODE_CLEAR);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_BrushSetBlendMode(brush, OH_Drawing_BlendMode::BLEND_MODE_CLEAR);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

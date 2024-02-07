@@ -114,6 +114,34 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap005, TestSize.Le
     EXPECT_EQ(width, OH_Drawing_BitmapGetWidth(bitmap_));
     EXPECT_EQ(height, OH_Drawing_BitmapGetHeight(bitmap_));
 }
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmap006
+ * @tc.desc: test for OH_Drawing_BitmapCreateFromPixels.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap006, TestSize.Level1)
+{
+    OH_Drawing_Image_Info imageInfo;
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    EXPECT_NE(bitmap, nullptr);
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    constexpr uint32_t width = 200;
+    constexpr uint32_t height = 200;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    void* pixels = OH_Drawing_BitmapGetPixels(bitmap);
+    EXPECT_NE(pixels, nullptr);
+    uint32_t rowBytes = width * height * 4;
+    bitmap_ = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    EXPECT_NE(bitmap_, nullptr);
+    bitmap_ = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, 0);
+    EXPECT_EQ(bitmap_, nullptr);
+    bitmap_ = OH_Drawing_BitmapCreateFromPixels(&imageInfo, nullptr, 0);
+    EXPECT_EQ(bitmap_, nullptr);
+    bitmap_ = OH_Drawing_BitmapCreateFromPixels(nullptr, nullptr, 0);
+    EXPECT_EQ(bitmap_, nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -22,12 +22,15 @@
 #include "c/drawing_color_filter.h"
 #include "c/drawing_filter.h"
 #include "c/drawing_font.h"
+#include "c/drawing_image.h"
 #include "c/drawing_mask_filter.h"
+#include "c/drawing_matrix.h"
 #include "c/drawing_path.h"
 #include "c/drawing_pen.h"
 #include "c/drawing_point.h"
 #include "c/drawing_rect.h"
 #include "c/drawing_round_rect.h"
+#include "c/drawing_sampling_options.h"
 #include "c/drawing_shader_effect.h"
 #include "c/drawing_text_blob.h"
 #include "c/drawing_typeface.h"
@@ -491,6 +494,208 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawBitmap, TestSize.L
     OH_Drawing_CanvasDrawBitmap(canvas_, bitmap, 0, 0);
     OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawBitmapRect
+ * @tc.desc: test for DrawBitmapRect
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawBitmapRect, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    EXPECT_NE(bitmap, nullptr);
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    constexpr uint32_t width = 200;
+    constexpr uint32_t height = 200;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_Rect* src = OH_Drawing_RectCreate(0, 0, 200, 200);
+    EXPECT_NE(src, nullptr);
+    OH_Drawing_Rect* dst = OH_Drawing_RectCreate(0, 0, 200, 200);
+    EXPECT_NE(dst, nullptr);
+    OH_Drawing_SamplingOptions* options = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(options, nullptr);
+    OH_Drawing_CanvasDrawBitmapRect(canvas_, bitmap, src, dst, options);
+    OH_Drawing_CanvasDrawBitmapRect(canvas_, bitmap, src, dst, nullptr);
+    OH_Drawing_CanvasDrawBitmapRect(canvas_, bitmap, src, nullptr, nullptr);
+    OH_Drawing_CanvasDrawBitmapRect(canvas_, bitmap, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawBitmapRect(canvas_, nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawBitmapRect(nullptr, nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_SetMatrix
+ * @tc.desc: test for SetMatrix
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_SetMatrix, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    EXPECT_NE(matrix, nullptr);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    OH_Drawing_CanvasSetMatrix(canvas_, matrix);
+    OH_Drawing_CanvasSetMatrix(canvas_, nullptr);
+    OH_Drawing_CanvasSetMatrix(nullptr, nullptr);
+    OH_Drawing_MatrixDestroy(matrix);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawImageRect
+ * @tc.desc: test for DrawImageRect
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawImageRect, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 200, 200);
+    EXPECT_NE(rect, nullptr);
+    OH_Drawing_Image* image = OH_Drawing_ImageCreate();
+    EXPECT_NE(image, nullptr);
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    EXPECT_NE(bitmap, nullptr);
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    constexpr uint32_t width = 200;
+    constexpr uint32_t height = 200;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_ImageBuildFromBitmap(image, bitmap);
+    OH_Drawing_SamplingOptions* options = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(options, nullptr);
+    OH_Drawing_CanvasDrawImageRect(canvas_, image, rect, options);
+    OH_Drawing_CanvasDrawImageRect(canvas_, image, rect, nullptr);
+    OH_Drawing_CanvasDrawImageRect(canvas_, image, nullptr, nullptr);
+    OH_Drawing_CanvasDrawImageRect(canvas_, nullptr, nullptr, nullptr);
+    OH_Drawing_CanvasDrawImageRect(nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_SamplingOptionsDestroy(options);
+    OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_ImageDestroy(image);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ReadPixelsToBitmap
+ * @tc.desc: test for ReadPixelsToBitmap
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ReadPixelsToBitmap, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    EXPECT_NE(bitmap, nullptr);
+    EXPECT_TRUE(!OH_Drawing_CanvasReadPixelsToBitmap(canvas_, bitmap, 100, 100));
+    EXPECT_TRUE(!OH_Drawing_CanvasReadPixelsToBitmap(canvas_, nullptr, 100, 100));
+    EXPECT_TRUE(!OH_Drawing_CanvasReadPixelsToBitmap(nullptr, nullptr, 100, 100));
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ReadPixels
+ * @tc.desc: test for ReadPixels
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ReadPixels, TestSize.Level1)
+{
+    OH_Drawing_Image_Info imageInfo;
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    EXPECT_NE(bitmap, nullptr);
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    constexpr uint32_t width = 200;
+    constexpr uint32_t height = 200;
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    void* pixels = OH_Drawing_BitmapGetPixels(bitmap);
+    EXPECT_TRUE(!OH_Drawing_CanvasReadPixels(canvas_, &imageInfo, pixels, 0, 0, 0));
+    EXPECT_TRUE(!OH_Drawing_CanvasReadPixels(canvas_, &imageInfo, nullptr, 0, 0, 0));
+    EXPECT_TRUE(!OH_Drawing_CanvasReadPixels(canvas_, nullptr, nullptr, 0, 0, 0));
+    EXPECT_TRUE(!OH_Drawing_CanvasReadPixels(nullptr, nullptr, nullptr, 0, 0, 0));
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_GetWidth
+ * @tc.desc: test for GetWidth
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_GetWidth, TestSize.Level1)
+{
+    EXPECT_TRUE(OH_Drawing_CanvasGetWidth(nullptr) == 0);
+    EXPECT_TRUE(OH_Drawing_CanvasGetWidth(canvas_) >= 0);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_GetHeight
+ * @tc.desc: test for GetHeight
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_GetHeight, TestSize.Level1)
+{
+    EXPECT_TRUE(OH_Drawing_CanvasGetHeight(nullptr) == 0);
+    EXPECT_TRUE(OH_Drawing_CanvasGetHeight(canvas_) >= 0);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_GetLocalClipBounds
+ * @tc.desc: test for GetLocalClipBounds
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_GetLocalClipBounds, TestSize.Level1)
+{
+    OH_Drawing_CanvasGetLocalClipBounds(nullptr, nullptr);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 1, 1);
+    EXPECT_NE(rect, nullptr);
+    OH_Drawing_CanvasGetLocalClipBounds(nullptr, rect);
+    OH_Drawing_CanvasGetLocalClipBounds(canvas_, rect);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ConcatMatrix
+ * @tc.desc: test for ConcatMatrix
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ConcatMatrix, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    EXPECT_NE(matrix, nullptr);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    OH_Drawing_CanvasConcatMatrix(canvas_, matrix);
+    OH_Drawing_CanvasConcatMatrix(canvas_, nullptr);
+    OH_Drawing_CanvasConcatMatrix(nullptr, nullptr);
+    OH_Drawing_MatrixDestroy(matrix);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawShadow
+ * @tc.desc: test for DrawShadow
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawShadow, TestSize.Level1)
+{
+    OH_Drawing_Point3D p1{0.0, 0.0, 0.0};
+    OH_Drawing_Point3D p2{10.0, 10.0, 10.0};
+    OH_Drawing_CanvasDrawShadow(nullptr, nullptr, p1, p2, 0, 0xFF000000,
+        0xFF000000, OH_Drawing_CanvasShadowFlags::SHADOW_FLAGS_ALL);
+
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    EXPECT_NE(path, nullptr);
+    OH_Drawing_CanvasDrawShadow(canvas_, path, p1, p2, 10, 0xFF000000, 0xFF000000,
+        OH_Drawing_CanvasShadowFlags::SHADOW_FLAGS_ALL);
 }
 
 /*

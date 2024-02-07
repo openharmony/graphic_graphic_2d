@@ -143,6 +143,21 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_pen007, TestSize.Level1)
     EXPECT_EQ(OH_Drawing_PenGetJoin(pen6), OH_Drawing_PenLineJoinStyle::LINE_BEVEL_JOIN);
     OH_Drawing_PenDestroy(pen6);
 }
+
+/*
+ * @tc.name: NativeDrawingPenTest_SetBlendMode008
+ * @tc.desc: test for the get and set methods about the line join style for a pen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_SetBlendMode008, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen8 = OH_Drawing_PenCreate();
+    EXPECT_NE(pen8, nullptr);
+    OH_Drawing_PenSetBlendMode(pen8, OH_Drawing_BlendMode::BLEND_MODE_SRC);
+    OH_Drawing_PenSetBlendMode(nullptr, OH_Drawing_BlendMode::BLEND_MODE_SRC);
+    OH_Drawing_PenDestroy(pen8);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
