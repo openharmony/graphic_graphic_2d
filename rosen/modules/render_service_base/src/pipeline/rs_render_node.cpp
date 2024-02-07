@@ -2146,6 +2146,11 @@ void RSRenderNode::GetFilterRectsInCache(std::unordered_map<NodeId, std::unorder
     }
 }
 
+bool RSRenderNode::IsFilterRectsInCache() const
+{
+    return !curCacheFilterRects_.empty();
+}
+
 RectI RSRenderNode::GetFilterRect() const
 {
     auto& properties = GetRenderProperties();
