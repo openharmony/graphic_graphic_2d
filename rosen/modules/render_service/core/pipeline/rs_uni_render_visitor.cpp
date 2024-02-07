@@ -355,9 +355,6 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
         if (child->GetRenderProperties().NeedFilter() || child->GetRenderProperties().GetUseEffect()) {
             child->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
         }
-        if (child->GetRenderProperties().GetUseEffect()) {
-            child->UpdateEffectRegion(effectRegion_);
-        }
         if (child->GetRenderProperties().NeedFilter()) {
             UpdateForegroundFilterCacheWithDirty(*child, *curSurfaceDirtyManager_);
             if (curSurfaceNode_ && curSurfaceNode_->GetId() == child->GetInstanceRootNodeId()) {
@@ -530,6 +527,7 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         // [planning] static subcache could be skip and reuse
         if ((quickSkipPrepareType_ >= QuickSkipPrepareType::STATIC_CACHE) &&
             (firstVisitedCache_ == INVALID_NODEID) && IsDrawingCacheStatic(node)) {
+            isStaticDrawingCacheUsingEffect_ = isStaticDrawingCacheUsingEffect_ || node.IsFilterRectsInCache();
             return false;
         }
         // For rootnode, init drawing changes only if there is any content dirty
@@ -1830,6 +1828,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
 
+    auto prevEffectRegion = node.GetEffectRegion();
     effectRegion_ = node.InitializeEffectRegion();
     auto parentNode = node.GetParent().lock();
     node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
@@ -1843,8 +1842,19 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareChildren(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
-    node.SetEffectRegion(effectRegion_);
-
+    // static drawing cache must keep all effectnode valid
+    if (isStaticDrawingCacheUsingEffect_ && prevEffectRegion.has_value()) {
+#ifndef USE_ROSEN_DRAWING
+        effectRegion_->join(prevEffectRegion.value());
+#else
+        effectRegion_->Join(prevEffectRegion.value());
+#endif
+        node.GetMutableRenderProperties().SetHaveEffectRegion(true);
+        isStaticDrawingCacheUsingEffect_ = false;
+    } else {
+        node.SetEffectRegion(effectRegion_);
+    }
+    
     if (node.GetRenderProperties().NeedFilter()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
