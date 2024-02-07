@@ -41,6 +41,11 @@ public:
 
     void PostProcess(RSPaintFilterCanvas& canvas) override {};
     std::string GetDescription() override;
+    void SetBoundsGeometry(float geoWidth, float geoHeight) override
+    {
+        geoWidth_ = geoWidth;
+        geoHeight_ = geoHeight;
+    }
 
 #ifndef USE_ROSEN_DRAWING
     void DrawImageRect(
@@ -50,7 +55,7 @@ public:
     {
         return nullptr;
     }
-    void setCanvasChange(SkMatrix& mat, float surfaceWidth, float surfaceHeight) override
+    void SetCanvasChange(SkMatrix& mat, float surfaceWidth, float surfaceHeight) override
     {
         mat_ = mat;
         surfaceWidth_ = surfaceWidth;
@@ -64,7 +69,7 @@ public:
     {
         return nullptr;
     }
-    void setCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) override
+    void SetCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) override
     {
         mat_ = mat;
         surfaceWidth_ = surfaceWidth;
