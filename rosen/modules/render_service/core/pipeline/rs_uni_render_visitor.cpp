@@ -2682,6 +2682,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
 #endif
         } else {
+            mirrorNode->SetOriginScreenRotation(node.GetOriginScreenRotation());
             processor_->ProcessDisplaySurface(*mirrorNode);
         }
     } else if (node.GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
@@ -5603,8 +5604,8 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
         }
     } else {
         if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) ||
-            node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90 ||
-            node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_270) {
+            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
+            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270) {
             std::swap(mainWidth, mainHeight);
         }
         if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0 &&

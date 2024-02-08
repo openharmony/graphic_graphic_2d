@@ -40,7 +40,8 @@ public:
 private:
     void CanvasRotation(ScreenRotation screenRotation, float width, float height);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node);
-    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node);
+    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation);
+    void CanvasAdjustment(RSDisplayRenderNode& node, bool canvasRotation);
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
