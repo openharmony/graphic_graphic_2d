@@ -55,7 +55,10 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "image_framework:image_native",
+  ]
 
   include_dirs += [
     "//third_party/skia",
