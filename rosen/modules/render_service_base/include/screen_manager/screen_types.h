@@ -35,6 +35,8 @@ constexpr uint32_t LAYER_COMPOSITION_CAPACITY = 12;
 
 constexpr uint32_t DEFAULT_SKIP_FRAME_INTERVAL = 1;
 
+constexpr int32_t SCREEN_ROTATION_NUM = 4;
+
 inline constexpr ScreenId ToScreenId(ScreenPhysicalId physicalId)
 {
     return static_cast<ScreenId>(physicalId);
