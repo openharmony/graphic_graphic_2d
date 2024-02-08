@@ -380,7 +380,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     auto height = surface->height();
     if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
         SkMatrix mat = canvas.getTotalMatrix();
-        filter->setCanvasChange(mat, width, height);
+        filter->SetCanvasChange(mat, width, height);
     }
 #else
     auto surface = canvas.GetSurface();
@@ -388,7 +388,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     auto height = surface->Height();
     if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
         Drawing::Matrix mat = canvas.GetTotalMatrix();
-        filter->setCanvasChange(mat, width, height);
+        filter->SetCanvasChange(mat, width, height);
     }
 #endif
     PostPartialFilterRenderInit(filter, dst, width, height);
