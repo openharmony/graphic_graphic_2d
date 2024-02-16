@@ -263,8 +263,8 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     // SAVE LAYER PROPERTY
     uint32_t recordSize = propertyData.size();
     Utils::FileWrite(&recordSize, sizeof(recordSize), 1, file_);
-    ROSEN_LOGD( // NOLINT
-        "RSMainThread::MainLoop Server REPLAY WRITE Layer prop_data_size=%d foff=%d", (int)recordSize, (int)ftell(file_));
+    ROSEN_LOGD("RSMainThread::MainLoop Server REPLAY WRITE Layer " // NOLINT
+               "prop_data_size=%d foff=%d", (int)recordSize, (int)ftell(file_));
     Utils::FileWrite(propertyData.data(), propertyData.size(), 1, file_);
 
     LayerWriteHeaderOfTrack(layerData.rsData);
@@ -273,8 +273,9 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     LayerWriteHeaderOfTrack(layerData.oglMetrics);
     LayerWriteHeaderOfTrack(layerData.gfxMetrics);
 
-    ROSEN_LOGD("RSMainThread::MainLoop Server REPLAY WRITE Layer offset=%d len=%d", (int)layerHeaderOff, // NOLINT
-        (int)(ftell(file_) - layerHeaderOff));
+    const int layerLen = ftell(file_) - layerHeaderOff;
+    ROSEN_LOGD("RSMainThread::MainLoop Server REPLAY WRITE Layer offset=%d len=%d", // NOLINT
+               (int)layerHeaderOff, layerLen);
     layerData.layerHeader = { layerHeaderOff, ftell(file_) - layerHeaderOff }; // position of layer table
 
     writeDataOff_ = ftell(file_);
@@ -313,17 +314,22 @@ void RSFile::LayerReadHeader(uint32_t layer)
 
 void RSFile::ReadTextureFromFile()
 {
-    uint64_t key;
-    uint32_t dataSize;
-    uint32_t skipBytes;
-    uint8_t* data;
+    uint64_t key = 0;
+    uint32_t dataSize = 0;
+    uint32_t skipBytes = 0;
+    uint8_t* data = nullptr;
     Utils::FileRead(&key, sizeof(key), 1, file_);
     Utils::FileRead(&skipBytes, sizeof(skipBytes), 1, file_);
     Utils::FileRead(&dataSize, sizeof(dataSize), 1, file_);
-    data = new uint8_t[dataSize];
-    if (data == nullptr) {
-        RS_LOGE("Can't allocate %d bytes", dataSize); // NOLINT
+    if (dataSize > 0) {
+        data = new uint8_t[dataSize];
+        if (data == nullptr) {
+            RS_LOGE("Can't allocate %d bytes", dataSize); // NOLINT
+        }
+    } else {
+        RS_LOGE("Invalid dataSize read: %d", dataSize); // NOLINT
     }
+
     Utils::FileRead(data, dataSize, 1, file_);
     const std::shared_ptr<void> ptr(data);
     if (imageMapPtr_ != nullptr) {
@@ -503,8 +509,6 @@ bool RSFile::RSDataEOF()
     }
 
     const RSFileLayer& layerData = layerData_[0];
-    // ROSEN_LOGD("RSMainThread::MainLoop Server REPLAY readindex_RSData=%d layer_data.RSData.size()=%d",
-    // (int)layer_data.readindex_RSData, (int)layer_data.RSData.size());
     return layerData.readindexRsData >= layerData.rsData.size();
 }
 
