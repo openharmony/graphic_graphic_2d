@@ -20,38 +20,6 @@
 #include <string>
 #include <vector>
 
-// expansion macro for enum value definition
-#define ENUM_VALUE(name) name,
-
-// expansion macro for enum to string conversion
-#define ENUM_CASE(name) \
-    case T::name:       \
-        return #name;
-
-#define DEFINE_ENUM(EnumName, ENUM_DEF)             \
-    enum class EnumName { ENUM_DEF(ENUM_VALUE) };   \
-    inline std::string str(EnumName value)          \
-    {                                               \
-        using T = EnumName;                         \
-        switch (value) {                            \
-            ENUM_DEF(ENUM_CASE)                     \
-            default:                                \
-                return "unknown";                   \
-        }                                           \
-    }
-    
-#define DEFINE_ENUM_WITH_TYPE(EnumName, UnderlyingType, ENUM_DEF)   \
-    enum EnumName : UnderlyingType { ENUM_DEF(ENUM_VALUE) };        \
-    inline std::string str(EnumName value)                          \
-    {                                                               \
-        using T = EnumName;                                         \
-        switch (value) {                                            \
-            ENUM_DEF(ENUM_CASE)                                     \
-            default:                                                \
-                return "unknown";                                   \
-        }                                                           \
-    }
-
 #define HGM_EFUNC OHOS::HiviewDFX::HiLog::Error
 #define HGM_CPRINTF(func, fmt, ...) func({ LOG_CORE, 0xD001400, "RRI2D" }, fmt, ##__VA_ARGS__)
 #define HGM_LOGE(fmt, ...) HGM_CPRINTF(HGM_EFUNC, fmt, ##__VA_ARGS__)
@@ -62,6 +30,32 @@ uint64_t RawNowNano();
 uint64_t NowNano();
 double Now();
 std::vector<std::string> Split(const std::string& input);
+
+constexpr float milli = 1e-3f;
+constexpr float micro = 1e-6f;
+constexpr float nano = 1e-9f;
+
+void FileRead(void* data, size_t size, size_t count, FILE* file);
+
+template <typename T>
+void FileRead(T* data, size_t size, size_t count, FILE* file)
+{
+    FileRead(reinterpret_cast<void*>(data), size, count, file);
+}
+
+void FileWrite(const void* data, size_t size, size_t count, FILE* file);
+
+template <typename T>
+void FileWrite(const T* data, size_t size, size_t count, FILE* file)
+{
+    FileWrite(reinterpret_cast<const void*>(data), size, count, file);
+}
+
+void FileSeek(FILE *stream, int64_t offset, int origin);
+
+FILE* FileOpen(const std::string& path, const std::string& openOptions);
+
+void FileClose(FILE *file);
 
 } // namespace OHOS::Rosen::Utils
 
