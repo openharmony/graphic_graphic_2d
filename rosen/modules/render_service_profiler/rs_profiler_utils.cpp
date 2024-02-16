@@ -21,6 +21,7 @@
 
 #ifndef REPLAY_TOOL_CLIENT
 #include "rs_profiler_base.h"
+
 #include "platform/common/rs_log.h"
 #else
 #include "../rs_log.h"
@@ -76,24 +77,21 @@ std::vector<std::string> Split(const std::string& input)
 
 void FileRead(void* data, size_t size, size_t count, FILE* file)
 {
-    if (fread(data, size, count, file) < count)
-    {
+    if (fread(data, size, count, file) < count) {
         RS_LOGE("Error while reading from file"); // NOLINT
     }
 }
 
 void FileWrite(const void* data, size_t size, size_t count, FILE* file)
 {
-    if (fwrite(data, size, count, file) < count)
-    {
+    if (fwrite(data, size, count, file) < count) {
         RS_LOGE("Error while writing to file"); // NOLINT
     }
 }
 
-void FileSeek(FILE *stream, int64_t offset, int origin )
+void FileSeek(FILE* stream, int64_t offset, int origin)
 {
-    if (fseek(stream, offset, origin) != 0)
-    {
+    if (fseek(stream, offset, origin) != 0) {
         RS_LOGE("Failed fseek in file"); // NOLINT
     }
 }
@@ -102,9 +100,8 @@ FILE* FileOpen(const std::string& path, const std::string& openOptions)
 {
     const std::filesystem::path canonicalPath = std::filesystem::weakly_canonical(std::filesystem::path(path));
     if (std::filesystem::exists(canonicalPath)) {
-        auto file = fopen(canonicalPath.c_str(),  openOptions.c_str());
-        if (file == nullptr)
-        {
+        auto file = fopen(canonicalPath.c_str(), openOptions.c_str());
+        if (file == nullptr) {
             RS_LOGE("Cant open file '%s'!", path.c_str()); // NOLINT
         }
         return file;
@@ -113,10 +110,9 @@ FILE* FileOpen(const std::string& path, const std::string& openOptions)
     return nullptr;
 }
 
-void FileClose(FILE *file)
+void FileClose(FILE* file)
 {
-    if (fclose(file) != 0)
-    {
+    if (fclose(file) != 0) {
         RS_LOGE("File close failed"); // NOLINT
     }
 }

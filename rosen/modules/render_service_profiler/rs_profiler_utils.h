@@ -31,13 +31,13 @@ uint64_t NowNano();
 double Now();
 std::vector<std::string> Split(const std::string& input);
 
-constexpr float milli = 1e-3f;
-constexpr float micro = 1e-6f;
-constexpr float nano = 1e-9f;
+constexpr float MILLI = 1e-3f; // NOLINT
+constexpr float MICRO = 1e-6f; // NOLINT
+constexpr float NANO = 1e-9f; // NOLINT
 
 void FileRead(void* data, size_t size, size_t count, FILE* file);
 
-template <typename T>
+template<typename T>
 void FileRead(T* data, size_t size, size_t count, FILE* file)
 {
     FileRead(reinterpret_cast<void*>(data), size, count, file);
@@ -45,17 +45,17 @@ void FileRead(T* data, size_t size, size_t count, FILE* file)
 
 void FileWrite(const void* data, size_t size, size_t count, FILE* file);
 
-template <typename T>
+template<typename T>
 void FileWrite(const T* data, size_t size, size_t count, FILE* file)
 {
     FileWrite(reinterpret_cast<const void*>(data), size, count, file);
 }
 
-void FileSeek(FILE *stream, int64_t offset, int origin);
+void FileSeek(FILE* stream, int64_t offset, int origin);
 
 FILE* FileOpen(const std::string& path, const std::string& openOptions);
 
-void FileClose(FILE *file);
+void FileClose(FILE* file);
 
 } // namespace OHOS::Rosen::Utils
 
