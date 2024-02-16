@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include "rs_profiler_socket.h"
-
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -23,6 +21,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "rs_profiler_socket.h"
 #include "rs_profiler_utils.h"
 
 namespace OHOS::Rosen {
@@ -111,7 +110,7 @@ void Socket::Open(uint16_t port)
     address.sun_family = AF_UNIX;
     address.sun_path[0] = 0;
     ::memmove_s(address.sun_path + 1, sizeof(address.sun_path) - 1, socketName.data(), socketName.size());
-    
+
     const size_t addressSize = offsetof(sockaddr_un, sun_path) + socketName.size() + 1;
     if (bind(socket_, reinterpret_cast<sockaddr*>(&address), addressSize) == -1) {
         Shutdown();
@@ -138,7 +137,6 @@ void Socket::AcceptClient()
         if ((err != EWOULDBLOCK) && (err != EAGAIN) && (err != EINTR)) {
             Shutdown();
         }
-
     } else {
         SetBlocking(clientSocket_, false);
         SetCloseOnExec(clientSocket_, true);
