@@ -37,12 +37,14 @@ public:
     static void Stop();
 
     static std::vector<NetworkStats> GetStats(const std::string& interface);
+    static void SendRdc(const std::string& path);
     static void SendBinary(const void* data, size_t size);
     static void SendMessage(const std::string& message);
 
     static void PopCommand(std::string& command, std::vector<std::string>& args);
 
 private:
+    static void ReportStats();
     static void PushCommand(const std::vector<std::string>& args);
     static void ProcessCommand(const char* data, size_t size);
     static void ProcessBinary(const char* data, size_t size);

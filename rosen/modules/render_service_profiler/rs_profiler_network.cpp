@@ -127,6 +127,16 @@ std::vector<NetworkStats> Network::GetStats(const std::string& interface)
     return results;
 }
 
+void Network::SendRdc(const std::string& path)
+{
+    if (!path.empty()) {
+        std::string out;
+        out += static_cast<char>(PackageID::RS_PROFILER_RDC_BINARY);
+        out += path;
+        SendBinary(out.data(), out.size());
+    }
+}
+
 void Network::SendBinary(const void* data, size_t size)
 {
     if (data && (size > 0)) {
@@ -348,6 +358,21 @@ void Network::ProcessIncoming(Socket& socket)
         const std::lock_guard<std::mutex> guard(outgoingMutex_);
         outgoing_.emplace_back(acknowledgement.Release());
     }
+}
+
+void Network::ReportStats()
+{
+    constexpr uint32_t bytesToBits = 8u;
+    const std::string interface("wlan0");
+    const std::vector<NetworkStats> stats = Network::GetStats(interface);
+
+    std::string out = "Interface: " + interface;
+    for (const NetworkStats& stat : stats) {
+        out += "Transmitted: " + std::to_string(stat.transmittedBytes * bytesToBits);
+        out += "Received: " + std::to_string(stat.transmittedBytes * bytesToBits);
+    }
+
+    SendMessage(out);
 }
 
 } // namespace OHOS::Rosen
