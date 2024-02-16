@@ -17,7 +17,7 @@
 #define RS_PROFILER_SOCKET_H
 
 #include <cstdint>
-#include <stddef.h>
+#include <cstddef>
 
 namespace OHOS::Rosen {
 

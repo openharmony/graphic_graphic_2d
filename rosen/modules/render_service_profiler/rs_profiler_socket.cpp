@@ -113,7 +113,6 @@ void Socket::Open(uint16_t port)
     ::memmove_s(address.sun_path + 1, sizeof(address.sun_path) - 1, socketName.data(), socketName.size());
     
     const size_t addressSize = offsetof(sockaddr_un, sun_path) + socketName.size() + 1;
-
     if (bind(socket_, reinterpret_cast<sockaddr*>(&address), addressSize) == -1) {
         Shutdown();
         return;
@@ -134,7 +133,6 @@ void Socket::Open(uint16_t port)
 void Socket::AcceptClient()
 {
     clientSocket_ = accept4(socket_, nullptr, nullptr, SOCK_CLOEXEC);
-
     if (clientSocket_ == -1) {
         const int err = errno;
         if ((err != EWOULDBLOCK) && (err != EAGAIN) && (err != EINTR)) {
@@ -239,7 +237,6 @@ bool Socket::ReceiveWhenReady(void* data, size_t size)
 int Socket::Select()
 {
     int32_t status = 0;
-
     if (clientSocket_ == -1) {
         return status;
     }
@@ -254,7 +251,6 @@ int Socket::Select()
 
     const uint32_t timeoutMilliseconds = 10;
     timeval timeout = GetTimeoutDesc(timeoutMilliseconds);
-
     if (select(clientSocket_ + 1, &read, &write, nullptr, &timeout) == 0) {
         status |= static_cast<int>(SocketState::TIMEOUT);
     }
