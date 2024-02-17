@@ -105,10 +105,10 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         }
     }
     ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
-        ", period:" + std::to_string(period_) + ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
+        ", period:" + std::to_string(periodRecord_) + ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
         ", vsyncMode_:" + std::to_string(vsyncMode_));
     for (uint32_t i = 0; i < listeners.size(); i++) {
-        listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, period_, currRefreshRate_, vsyncMode_);
+        listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
     }
 }
 
@@ -125,6 +125,8 @@ void VSyncGenerator::ThreadLoop()
             std::unique_lock<std::mutex> locker(mutex_);
             UpdateVSyncModeLocked();
             occurReferenceTime = referenceTime_;
+            phaseRecord_ = phase_;
+            periodRecord_ = period_;
             if (period_ == 0) {
                 ScopedBytrace func("VSyncGenerator: period not valid");
                 if (vsyncThreadRunning_ == true) {
@@ -305,28 +307,29 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     }
 
     now -= referenceTime;
-    int64_t phase = phase_ + listener.phase_;
+    int64_t phase = phaseRecord_ + listener.phase_;
     now -= phase;
     if (now < 0) {
         if (vsyncMode_ == VSYNC_MODE_LTPO) {
-            now -= period_;
+            now -= periodRecord_;
         } else {
-            now = -period_;
+            now = -periodRecord_;
         }
     }
-    int64_t numPeriod = now / period_;
-    int64_t nextTime = (numPeriod + 1) * period_ + phase;
+    int64_t numPeriod = now / periodRecord_;
+    int64_t nextTime = (numPeriod + 1) * periodRecord_ + phase;
     nextTime += referenceTime;
 
     // 3 / 5 and 1 / 10 are just empirical value
-    int64_t threshold = refreshRateIsChanged_ ? (1 * period_ / 10) : (3 * period_ / 5);
-    if (!refreshRateIsChanged_ && period_ > 8000000 && period_ < 8500000) { // between 8000000(8ms) and 8500000(8.5ms)
-        threshold = 4 * period_ / 5; // 4 / 5 is an empirical value
+    int64_t threshold = refreshRateIsChanged_ ? (1 * periodRecord_ / 10) : (3 * periodRecord_ / 5);
+    // between 8000000(8ms) and 8500000(8.5ms)
+    if (!refreshRateIsChanged_ && periodRecord_ > 8000000 && periodRecord_ < 8500000) {
+        threshold = 4 * periodRecord_ / 5; // 4 / 5 is an empirical value
     }
     // 3 / 5 just empirical value
-    if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * period_ / 5))) ||
+    if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * periodRecord_ / 5))) ||
         ((vsyncMode_ == VSYNC_MODE_LTPO) && (nextTime - listener.lastTime_ < threshold))) {
-        nextTime += period_;
+        nextTime += periodRecord_;
     }
 
     nextTime -= wakeupDelay_;
@@ -336,7 +339,7 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
 std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(int64_t now, int64_t referenceTime)
 {
     std::vector<VSyncGenerator::Listener> ret;
-    int64_t onePeriodAgo = now - period_;
+    int64_t onePeriodAgo = now - periodRecord_;
 
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], onePeriodAgo, referenceTime);

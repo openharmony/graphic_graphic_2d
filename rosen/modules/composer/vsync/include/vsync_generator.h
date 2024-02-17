@@ -163,6 +163,8 @@ private:
     int64_t pendingPeriod_ = 0;
     int64_t pendingReferenceTime_ = 0;
     bool startRefresh_ = false;
+    int64_t phaseRecord_ = 0;
+    int64_t periodRecord_ = 0;
 };
 } // impl
 } // namespace Rosen
