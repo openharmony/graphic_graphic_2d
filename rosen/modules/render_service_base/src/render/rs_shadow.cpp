@@ -125,7 +125,7 @@ int RSShadow::GetColorStrategy() const
 
 bool RSShadow::IsValid() const
 {
-    return (GetElevation() > 0.f && GetAlpha() > 0.f) || (GetRadius() > 0.f);
+    return (ROSEN_GNE(GetElevation(), 0.f) && ROSEN_GNE(GetAlpha(), 0.f)) || (ROSEN_GNE(GetRadius(), 0.f));
 }
 
 } // namespace Rosen
