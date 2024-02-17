@@ -47,7 +47,7 @@ public:
     void Commit();
 
     void SetDuration(int32_t duration) { duration_ = duration; }
-    int32_t GetDuration() { return duration_; }
+    int32_t GetDuration() const { return duration_; }
 
 private:
     uint64_t GenerateSyncId();
