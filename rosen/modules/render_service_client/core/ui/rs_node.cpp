@@ -324,9 +324,6 @@ void RSNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
-    if (animations_.size() > 0 && getpid() != gettid()) {
-        ROSEN_LOGE("Node shouldn't be release in subThread!");
-    }
     for (auto& [unused, animation] : animations_) {
         if (animation && animation->GetRepeatCount() == -1) {
             continue;
