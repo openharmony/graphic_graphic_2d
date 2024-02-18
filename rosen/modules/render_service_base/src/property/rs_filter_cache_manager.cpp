@@ -115,7 +115,6 @@ void RSFilterCacheManager::PostPartialFilterRenderInit(const std::shared_ptr<RSD
         task_->GetStatus() == CacheProcessStatus::DOING) {
         cachedFilteredSnapshot_ = task_->cachedFirstFilter_;
     } else {
-        task_->isFirstInit_ = true;
         task_->cachedFirstFilter_ = nullptr;
     }
     if (RSFilterCacheTask::FilterPartialRenderEnabled &&
