@@ -73,7 +73,16 @@ void RSClipBoundsDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
     }
 #else
     if (properties.GetClipBounds() != nullptr) {
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::OPENGL) {
+            canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
+        } else if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+            canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, false);
+        }
+#else
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
+#endif
     } else if (properties.GetClipToRRect()) {
         canvas.ClipRoundRect(
             RSPropertiesPainter::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, false);
