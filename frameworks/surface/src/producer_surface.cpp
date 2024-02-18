@@ -351,7 +351,9 @@ GSError ProducerSurface::SetUserData(const std::string &key, const std::string &
     userData_[key] = val;
     auto iter = onUserDataChange_.begin();
     while (iter != onUserDataChange_.end()) {
-        iter->second(key, val);
+        if (iter->second != nullptr) {
+            iter->second(key, val);
+        }
         iter++;
     }
 

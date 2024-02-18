@@ -292,6 +292,7 @@ HWTEST_F(ConsumerSurfaceTest, UserDataChangeListen001, Function | MediumTest | L
     };
     csTestUserData->RegisterUserDataChangeListener("func1", func1);
     csTestUserData->RegisterUserDataChangeListener("func2", func2);
+    csTestUserData->RegisterUserDataChangeListener("func3", nullptr);
     ASSERT_EQ(csTestUserData->RegisterUserDataChangeListener("func2", func2), OHOS::GSERROR_INVALID_ARGUMENTS);
 
     if (csTestUserData->SetUserData("Regist", "OK") == OHOS::GSERROR_OK) {
