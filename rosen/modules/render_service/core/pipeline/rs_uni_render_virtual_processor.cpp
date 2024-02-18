@@ -73,7 +73,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
         if (isPhone_) {
-            node.setFirstTimeScreenRotation(mainScreenRotation_);
+            node.SetOriginScreenRotation(mainScreenRotation_);
         } else {
             auto boundsGeoPtr = (mirrorNode->GetRenderProperties().GetBoundsGeometry());
             if (boundsGeoPtr != nullptr) {
@@ -85,9 +85,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
 #ifndef USE_ROSEN_DRAWING
     if (mirrorNode && isPhone_) {
         if (!(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) &&
-            (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90 ||
-            node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_270)) {
-            CanvasRotation(node.getFirstTimeScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
+            (node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
+            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270)) {
+            CanvasRotation(node.GetOriginScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
             canvas_->translate(-(renderFrameConfig_.height / 2.0f), -(renderFrameConfig_.width / 2.0f));
         }
     } else {
@@ -100,9 +100,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
 #else
     if (mirrorNode && isPhone_) {
         if (!(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) &&
-            (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90 ||
-            node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_270)) {
-            CanvasRotation(node.getFirstTimeScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
+            (node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
+            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270)) {
+            CanvasRotation(node.GetOriginScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
             canvas_->Translate(-(renderFrameConfig_.height / 2.0f), -(renderFrameConfig_.width / 2.0f));
         }
     } else {
@@ -141,15 +141,15 @@ void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, 
 #endif
 }
 
-void RSUniRenderVirtualProcessor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node)
+void RSUniRenderVirtualProcessor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation)
 {
-    auto rotation = node.GetScreenRotation();
+    if (!canvasRotation && !RSSystemProperties::IsFoldScreenFlag()) {
+        return;
+    }
+    auto rotation = canvasRotation ? node.GetScreenRotation() : node.GetOriginScreenRotation();
     if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) {
-        if (rotation == ScreenRotation::ROTATION_270) {
-            rotation = ScreenRotation::ROTATION_0;
-        } else {
-            rotation = static_cast<ScreenRotation>(static_cast<int>(rotation) + 1);
-        }
+        // set rotation 0->90 90->180 180->270 270->0
+        rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + 1) % SCREEN_ROTATION_NUM);
     }
 #ifndef USE_ROSEN_DRAWING
     if (rotation != ScreenRotation::ROTATION_0) {
@@ -212,6 +212,28 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
     }
 }
 
+void RSUniRenderVirtualProcessor::CanvasAdjustment(RSDisplayRenderNode& node, bool canvasRotation)
+{
+    const auto& property = node.GetRenderProperties();
+    auto geoPtr = property.GetBoundsGeometry();
+    if (geoPtr) {
+        // if need rotation, canvas shouid be set to original absolute position
+#ifndef USE_ROSEN_DRAWING
+        if (canvasRotation) {
+            canvas_->setMatrix(geoPtr->GetAbsMatrix());
+        } else {
+            canvas_->concatMatrix(geoPtr->GetMatrix());
+        }
+#else
+        if (canvasRotation) {
+            canvas_->SetMatrix(geoPtr->GetAbsMatrix());
+        } else {
+            canvas_->ConcatMatrix(geoPtr->GetMatrix());
+        }
+#endif
+    }
+}
+
 void RSUniRenderVirtualProcessor::PostProcess(RSDisplayRenderNode* node)
 {
     if (producerSurface_ == nullptr) {
@@ -235,21 +257,16 @@ void RSUniRenderVirtualProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
     if (!isExpand_) {
-        RS_TRACE_NAME("RSUniRenderVirtualProcessor::ProcessDisplaySurface");
         if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
             RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
             return;
         }
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ProcessDisplaySurface:(%f, %f, %f, %f), " \
+            "rotation:%d, oriRotation:%d",
+            mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_,
+            static_cast<int>(node.GetScreenRotation()), static_cast<int>(node.GetOriginScreenRotation()));
 
-        const auto& property = node.GetRenderProperties();
-        auto geoPtr = (property.GetBoundsGeometry());
-        if (geoPtr) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->setMatrix(geoPtr->GetAbsMatrix());
-#else
-            canvas_->SetMatrix(geoPtr->GetAbsMatrix());
-#endif
-        }
+        CanvasAdjustment(node, canvasRotation_);
 
 #ifndef USE_ROSEN_DRAWING
         canvas_->save();
@@ -274,15 +291,16 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
             std::swap(mainWidth_, mainHeight_);
         }
-        if (mainScreenRotation_ == ScreenRotation::ROTATION_90 ||
-            mainScreenRotation_ == ScreenRotation::ROTATION_270) {
+        
+        auto rotation = canvasRotation_ ? node.GetScreenRotation() : node.GetOriginScreenRotation();
+        if (rotation == ScreenRotation::ROTATION_90 ||
+            rotation == ScreenRotation::ROTATION_270) {
             std::swap(mainWidth_, mainHeight_);
         }
         
         ScaleMirrorIfNeed(node);
-        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) || canvasRotation_) {
-            RotateMirrorCanvasIfNeed(node);
-        }
+        RotateMirrorCanvasIfNeed(node, canvasRotation_);
+
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
 #ifndef USE_ROSEN_DRAWING
         canvas_->restore();
