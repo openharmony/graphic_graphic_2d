@@ -57,6 +57,8 @@ HWTEST_F(RSInterpolatorTest, RSStepInterpolatorTest001, TestSize.Level1)
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel3;
+    parcel3.WriteUint16(InterpolatorType::STEPS);
+    parcel3.WriteUint64(123123);
     parcel3.WriteInt32(1);
     parcel3.WriteInt32(0);
     interpolator.reset(RSStepsInterpolator::Unmarshalling(parcel3));
@@ -90,6 +92,8 @@ HWTEST_F(RSInterpolatorTest, RSSpringInterpolatorTest001, TestSize.Level1)
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel4;
+    parcel4.WriteUint16(InterpolatorType::SPRING);
+    parcel4.WriteUint64(123124);
     parcel4.WriteFloat(1.0f);
     parcel4.WriteFloat(1.0f);
     parcel4.WriteFloat(1.0f);
@@ -156,29 +160,25 @@ HWTEST_F(RSInterpolatorTest, Convert001, TestSize.Level1)
 HWTEST_F(RSInterpolatorTest, Interpolate001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInterpolatorTest Interpolate001 start";
-    std::vector<float> times = { 5.0f, 7.0f };
-    std::vector<float> values = { 5.0f, 7.0f };
+    std::vector<float> times = { 1.0f, 3.0f };
+    std::vector<float> values = { 1.0f, 3.0f };
     Parcel parcel;
+    parcel.WriteUint64(123125);
     parcel.WriteFloatVector(times);
     parcel.WriteFloatVector(values);
     std::shared_ptr<RSInterpolator> interpolator(RSCustomInterpolator::Unmarshalling(parcel));
     EXPECT_TRUE(interpolator != nullptr);
-
-    float input = 1.0f;
-    float result = interpolator->Interpolate(input);
-    EXPECT_EQ(result, 5.0f);
-
-    std::vector<float> times1 = { 5.0f, 7.0f };
-    std::vector<float> values1 = { 5.0f, 7.0f };
-    Parcel parcel1;
-    parcel1.WriteFloatVector(times1);
-    parcel1.WriteFloatVector(values1);
-
-    std::shared_ptr<RSInterpolator> interpolator1(RSCustomInterpolator::Unmarshalling(parcel1));
-    EXPECT_TRUE(interpolator1 != nullptr);
-    float input1 = 6.0f;
-    float result1 = interpolator1->Interpolate(input1);
-    EXPECT_EQ(result1, 6.0f);
+    if (interpolator != nullptr) {
+        float input = -1.0f;
+        float result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, -1.0f);
+        input = 2.0f;
+        result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, 2.0f);
+        input = 4.0f;
+        result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, 3.0f);
+    }
     GTEST_LOG_(INFO) << "RSInterpolatorTest Interpolate001 end";
 }
 } // namespace Rosen
