@@ -248,12 +248,12 @@ public:
         return isFirstTimeToProcessor_;
     }
 
-    void setFirstTimeScreenRotation(const ScreenRotation& rotate) {
-        firstTimeScreenRotation_ = rotate;
+    void SetOriginScreenRotation(const ScreenRotation& rotate) {
+        originScreenRotation_ = rotate;
         isFirstTimeToProcessor_ = false;
     }
-    ScreenRotation getFirstTimeScreenRotation() const {
-        return firstTimeScreenRotation_;
+    ScreenRotation GetOriginScreenRotation() const {
+        return originScreenRotation_;
     }
 
 #ifndef USE_ROSEN_DRAWING
@@ -303,7 +303,7 @@ public:
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
-    ScreenRotation firstTimeScreenRotation_ = ScreenRotation::ROTATION_0;
+    ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
     uint64_t screenId_;
     int32_t offsetX_;
     int32_t offsetY_;
