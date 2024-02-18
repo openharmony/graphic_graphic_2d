@@ -41,7 +41,7 @@ enum InterpolatorType : uint16_t {
 class RSB_EXPORT RSInterpolator : public Parcelable {
 public:
     static RSB_EXPORT const std::shared_ptr<RSInterpolator> DEFAULT;
-    ~RSInterpolator() override;
+    ~RSInterpolator() override = default;
 
     bool Marshalling(Parcel& parcel) const override = 0;
     [[nodiscard]] static RSB_EXPORT std::shared_ptr<RSInterpolator> Unmarshalling(Parcel& parcel);
@@ -58,8 +58,6 @@ private:
     static uint64_t GenerateId();
     float prevInput_ { -1.0f };
     float prevOutput_ { -1.0f };
-    inline static std::mutex cachedInterpolatorsMutex_;
-    inline static std::unordered_map<uint32_t, std::weak_ptr<RSInterpolator>> cachedInterpolators_;
 };
 
 class RSB_EXPORT LinearInterpolator : public RSInterpolator {
