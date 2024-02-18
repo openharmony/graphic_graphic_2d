@@ -737,9 +737,9 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
     }
 
     auto bufferPixelFormat = buffer->GetFormat();
-    if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+    if ((bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
         bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
-        bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) && !IsHardwareComposerEnabled()) {
         newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat pixelformat is set to 1010102 for 10bit buffer");
     }
@@ -4387,6 +4387,15 @@ bool RSUniRenderVisitor::IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, i
     return false;
 }
 
+bool RSUniRenderVisitor::ForceHardwareComposer(RSSurfaceRenderNode& node) const
+{
+    auto bufferPixelFormat = node.GetBuffer()->GetFormat();
+    return (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+         bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
+         bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) && !node.IsHardwareForcedDisabledByFilter() &&
+         !isUpdateCachedSurface_;
+}
+
 bool RSUniRenderVisitor::UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node)
 {
 #ifndef USE_ROSEN_DRAWING
@@ -4645,8 +4654,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     IsHardwareComposerEnabled(), node.IsHardwareForcedDisabled());
             }
             // if this window is in freeze state, disable hardware composer for its child surfaceView
-            if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType() &&
-                UpdateSrcRectForHwcNode(node)) {
+            if (IsHardwareComposerEnabled() && node.IsHardwareEnabledType() && (!node.IsHardwareForcedDisabled() ||
+                ForceHardwareComposer(node)) && UpdateSrcRectForHwcNode(node)) {
 #ifndef USE_ROSEN_DRAWING
                 if (!node.IsHardwareEnabledTopSurface()) {
                     canvas_->clear(SK_ColorTRANSPARENT);
