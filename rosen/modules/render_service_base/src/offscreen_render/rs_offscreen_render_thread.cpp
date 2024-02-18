@@ -21,8 +21,28 @@
 #endif
 
 namespace OHOS::Rosen {
+#ifndef ROSEN_CROSS_PLATFORM
+namespace {
+    constexpr int32_t SCHED_PRIORITY = 2;
+    void SetThreadPriority()
+    {
+        struct sched_param param = {0};
+        param.sched_priority = SCHED_PRIORITY;
+        if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
+            RS_LOGE("RSOffscreenRender Couldn't set SCHED_FIFO.");
+        } else {
+            RS_LOGI("RSOffscreenRender set SCHED_FIFO succeed.");
+        }
+        return;
+    }
+}
+#endif
+
 RSOffscreenRenderThread& RSOffscreenRenderThread::Instance()
 {
+#ifndef ROSEN_CROSS_PLATFORM
+    SetThreadPriority();
+#endif
     static RSOffscreenRenderThread instance;
     return instance;
 }
