@@ -255,12 +255,10 @@ void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
 
 void RecordingCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
-    if (!addDrawOpImmediate_) {
-        AddDrawOpDeferred<DrawBitmapOpItem>(bitmap, px, py);
-        return;
+    auto image = bitmap.MakeImage();
+    if (image) {
+        DrawImage(*image, px, py, SamplingOptions());
     }
-    auto bitmapHandle = CmdListHelper::AddBitmapToCmdList(*cmdList_, bitmap);
-    AddDrawOpImmediate<DrawBitmapOpItem::ConstructorHandle>(bitmapHandle, px, py);
 }
 
 void RecordingCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
