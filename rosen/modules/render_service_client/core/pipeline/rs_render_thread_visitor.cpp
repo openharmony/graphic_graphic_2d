@@ -1127,8 +1127,6 @@ void RSRenderThreadVisitor::ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& n
         return;
     }
     node.SetContextClipRegion(clipRect);
-    // temporary workaround since ContextAlpha/ContextClipRegion happens after ApplyModifiers
-    node.ApplyModifiers();
 
     // clip hole
     ClipHoleForSurfaceNode(node);
