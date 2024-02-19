@@ -19,7 +19,6 @@
 #include <functional>
 #include <event_handler.h>
 #include <mutex>
-#include <sched.h>
 
 #include "common/rs_macros.h"
 
