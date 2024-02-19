@@ -221,7 +221,7 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
     auto& symbolFistNode = symbolAnimationConfig->SymbolNodes[0];
     Vector4f offsets = CalculateOffset(symbolFistNode.symbolData.path_,
-        symbolFistNode.nodeBoundary[0], symbolFistNode.nodeBoundary[1]); //index 0 offsetX and 1 offsetY of layout
+        symbolFistNode.nodeBoundary[0], symbolFistNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
