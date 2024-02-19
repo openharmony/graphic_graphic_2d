@@ -38,7 +38,7 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
-constexpr int64_t MAX_TIMESTAMP_THRESHOLD = 500000; // 500000ns == 0.5ms
+constexpr int64_t MAX_TIMESTAMP_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 
 static void SetThreadHighPriority()
 {
