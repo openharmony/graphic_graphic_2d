@@ -385,6 +385,16 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/hdr_capability:hdr_capability_utils",
+            "header": {
+              "header_files": [
+                  "js_hdr_format_utils.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/hdr_capability/hdr_capability_utils"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
             "header": {
               "header_files": [
