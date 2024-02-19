@@ -452,9 +452,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         }
 
 #ifndef USE_ROSEN_DRAWING
-        auto saveCount = canvas->getSaveCount();
-
-        canvas->save();
+        RSAutoCanvasRestore acr(canvas_);
         auto dstRect = layer->GetLayerSize();
         SkRect clipRect = SkRect::MakeXYWH(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
             static_cast<float>(dstRect.w), static_cast<float>(dstRect.h));
@@ -464,7 +462,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         canvas->concat(params.matrix);
 #else
-        auto saveCount = canvas->Save();
+        Drawing::AutoCanvasRestore acr(*canvas, true);
         auto dstRect = layer->GetLayerSize();
         Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
             static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
@@ -701,13 +699,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         } else {
             uniRenderEngine_->DrawBuffer(*canvas, params);
         }
-#endif
-#ifndef USE_ROSEN_DRAWING
-        canvas->restore();
-        canvas->restoreToCount(saveCount);
-#else
-        canvas->Restore();
-        canvas->RestoreToCount(saveCount);
 #endif
     }
 
