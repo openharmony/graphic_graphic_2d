@@ -101,6 +101,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<SkIRect>& effectReg
         GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
+    effectRegion_ = effectRegion;
 
     const auto& properties = GetRenderProperties();
     const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
@@ -120,6 +121,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
         GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
+    effectRegion_ = effectRegion;
 
     const auto& properties = GetRenderProperties();
     const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();

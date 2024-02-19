@@ -358,6 +358,7 @@ public:
     RSDrawingCacheType GetDrawingCacheType() const;
     void ResetFilterRectsInCache(const std::unordered_set<NodeId>& curRects);
     void GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects) const;
+    bool IsFilterRectsInCache() const;
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
     void ResetDrawingCacheNeedUpdate();
