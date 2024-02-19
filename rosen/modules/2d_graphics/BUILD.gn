@@ -190,22 +190,6 @@ template("graphics2d_source_set") {
       sources += [ "$drawing_src_dir/utils/system_properties.cpp" ]
     }
 
-    if (is_arkui_x) {
-      defines += [ "CROSS_PLATFORM" ]
-
-      #not needed for arkuix on current version,may need next version
-      sources -= [
-        "$drawing_src_dir/c/drawing_bitmap.cpp",
-        "$drawing_src_dir/c/drawing_brush.cpp",
-        "$drawing_src_dir/c/drawing_canvas.cpp",
-        "$drawing_src_dir/c/drawing_color.cpp",
-        "$drawing_src_dir/c/drawing_font_collection.cpp",
-        "$drawing_src_dir/c/drawing_path.cpp",
-        "$drawing_src_dir/c/drawing_pen.cpp",
-        "$drawing_src_dir/c/drawing_text_typography.cpp",
-        "$drawing_src_dir/engine_adapter/skia_adapter/rs_skia_memory_tracer.cpp",
-      ]
-    }
     if (ace_enable_gpu) {
       sources += [
         "$drawing_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
@@ -315,10 +299,7 @@ template("graphics2d_source_set") {
     } else {
       deps = []
       cflags = [ "-std=c++17" ]
-
-      if (!is_arkui_x) {
-        deps += [ "$rosen_root/modules/platform:hilog" ]
-      }
+      deps += [ "$rosen_root/modules/platform:hilog" ]
 
       if (defined(use_rosen_drawing) && use_rosen_drawing) {
         defines += [ "USE_ROSEN_DRAWING" ]
@@ -326,6 +307,10 @@ template("graphics2d_source_set") {
         deps += [ "//third_party/bounds_checking_function:libsec_static" ]
       }
       defines += [ "MODULE_DRAWING" ]
+      if (is_arkui_x) {
+        defines += [ "CROSS_PLATFORM" ]
+        deps += [ "//foundation/graphic/graphic_2d/rosen/build/icu:rosen_libicu_$platform" ]
+      }
 
       deps += [ "//third_party/skia:skia_$platform" ]
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
@@ -413,6 +398,16 @@ if (!is_arkui_x) {
       part_name = "graphic_2d"
       subsystem_name = "graphic"
     }
+  }
+} else {
+  ohos_source_set("2d_graphics") {
+    platform = current_os
+
+    deps = [ ":2d_graphics_source_$platform" ]
+    public_configs = [ ":export_config" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
 }
 
