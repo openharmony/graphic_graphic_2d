@@ -52,8 +52,8 @@ private:
     static void ProcessOutgoing(Socket& socket);
 
 public:
-    static std::mutex commandMutex_;
-    static std::vector<std::string> commandData_;
+    static std::mutex incomingMutex_;
+    static std::vector<std::string> incoming_;
 
 private:
     static bool isRunning_;

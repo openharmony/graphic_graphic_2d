@@ -31,8 +31,8 @@ namespace OHOS::Rosen {
 
 bool Network::isRunning_ = false;
 
-std::mutex Network::commandMutex_ {};
-std::vector<std::string> Network::commandData_ {};
+std::mutex Network::incomingMutex_ {};
+std::vector<std::string> Network::incoming_ {};
 
 std::mutex Network::outgoingMutex_ {};
 std::list<std::vector<char>> Network::outgoing_ {};
@@ -157,10 +157,10 @@ void Network::SendMessage(const std::string& message)
     }
 }
 
-void Network::PushCommand(const std::vector<std::string>& command)
+void Network::PushCommand(const std::vector<std::string>& args)
 {
-    const std::lock_guard<std::mutex> guard(commandMutex_);
-    commandData_ = command;
+    const std::lock_guard<std::mutex> guard(incomingMutex_);
+    incoming_ = args;
 }
 
 void Network::PopCommand(std::string& command, std::vector<std::string>& args)
@@ -168,13 +168,13 @@ void Network::PopCommand(std::string& command, std::vector<std::string>& args)
     command.clear();
     args.clear();
 
-    const std::lock_guard<std::mutex> guard(commandMutex_);
-    if (!commandData_.empty()) {
-        command = commandData_[0];
-        if (commandData_.size() > 1) {
-            args = std::vector<std::string>(commandData_.begin() + 1, commandData_.end());
+    const std::lock_guard<std::mutex> guard(incomingMutex_);
+    if (!incoming_.empty()) {
+        command = incoming_[0];
+        if (incoming_.size() > 1) {
+            args = std::vector<std::string>(incoming_.begin() + 1, incoming_.end());
         }
-        commandData_.clear();
+        incoming_.clear();
     }
 }
 
