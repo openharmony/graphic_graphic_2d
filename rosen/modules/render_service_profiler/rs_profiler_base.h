@@ -86,7 +86,6 @@ public:
     static std::string ReplayImagePrintList();
 
     static uint64_t TimePauseApply(uint64_t time);
-    static uint64_t TimePauseApply2(uint64_t time);
     static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime);
     static void TimePauseResume(uint64_t curTime);
     static void TimePauseClear();
