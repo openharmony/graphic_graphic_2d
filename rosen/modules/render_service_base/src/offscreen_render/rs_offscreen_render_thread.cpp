@@ -21,24 +21,8 @@
 #endif
 
 namespace OHOS::Rosen {
-namespace {
-    constexpr int32_t SCHED_PRIORITY = 2;
-    void SetThreadPriority()
-    {
-        struct sched_param param = {0};
-        param.sched_priority = SCHED_PRIORITY;
-        if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
-            RS_LOGE("RSOffscreenRender Couldn't set SCHED_FIFO.");
-        } else {
-            RS_LOGE("RSOffscreenRender set SCHED_FIFO succeed.");
-        }
-        return;
-    }
-}
-
 RSOffscreenRenderThread& RSOffscreenRenderThread::Instance()
 {
-    SetThreadPriority();
     static RSOffscreenRenderThread instance;
     return instance;
 }
