@@ -213,7 +213,7 @@ ADD_COMMAND(RSUpdatePropertySkMatrix,
         NodeId, SkMatrix, PropertyId, PropertyUpdateType))
 #else
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifier<Drawing::DrawCmdListPtr>,
+    ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifierDrawCmdList,
         NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX, RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>,
