@@ -35,13 +35,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
-const Vector2f CENTER_NODE_COORDINATE = {0.5f, 0.5f}; //scale center node
-const unsigned int UNIT_GROUP = 0;  // AnimationSubType is UNIT
-const unsigned int UNIT_PERIOD = 0;  // AnimationSubType is UNIT
-const unsigned int UNIT_NODE = 0;  // AnimationSubType is UNIT
-
-
 class RSC_EXPORT RSSymbolAnimation {
 public:
     RSSymbolAnimation();

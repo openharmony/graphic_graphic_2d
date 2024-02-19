@@ -53,7 +53,7 @@ bool RoundCornerDisplay::SeletedLcdModel(const char* lcdModelName)
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
     lcdModel_ = rcdCfg.GetLcdModel(lcdModelName);
     if (lcdModel_ == nullptr) {
-        RS_LOGE("[%{public}s] No lcdModel found in config file with name %{public}s \n", __func__, lcdModelName);
+        RS_LOGD("[%{public}s] No lcdModel found in config file with name %{public}s \n", __func__, lcdModelName);
         return false;
     }
     supportTopSurface_ = lcdModel_->surfaceConfig.topSurface.support;
@@ -207,7 +207,7 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
     std::lock_guard<std::mutex> lock(resourceMut_);
 
     if (lcdModel_ == nullptr) {
-        RS_LOGE("[%{public}s] No lcdModel selected in config file \n", __func__);
+        RS_LOGD("[%{public}s] No lcdModel selected in config file \n", __func__);
         return false;
     }
     rog_ = lcdModel_->GetRog(width, height);
