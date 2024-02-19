@@ -326,7 +326,13 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    isFullChildrenListValid_ = false;
+    if (!children_.empty() || !disappearingChildren_.empty()) {
+        isFullChildrenListValid_ = false;
+    } else { // directly clear children list
+        isFullChildrenListValid_ = true;
+        isChildrenSorted_ = true;
+        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+    }
 }
 
 void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId, NodeId cacheNodeId)
@@ -431,7 +437,13 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     }
     children_.erase(it);
     SetContentDirty();
-    isFullChildrenListValid_ = false;
+    if (!children_.empty() || !disappearingChildren_.empty()) {
+        isFullChildrenListValid_ = false;
+    } else { // directly clear children list
+        isFullChildrenListValid_ = true;
+        isChildrenSorted_ = true;
+        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+    }
 }
 
 void RSRenderNode::RemoveFromTree(bool skipTransition)
@@ -477,7 +489,13 @@ void RSRenderNode::ClearChildren()
     }
     children_.clear();
     SetContentDirty();
-    isFullChildrenListValid_ = false;
+    if (!disappearingChildren_.empty()) {
+        isFullChildrenListValid_ = false;
+    } else { // directly clear children list
+        isFullChildrenListValid_ = true;
+        isChildrenSorted_ = true;
+        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+    }
 }
 
 void RSRenderNode::SetParent(WeakPtr parent)
