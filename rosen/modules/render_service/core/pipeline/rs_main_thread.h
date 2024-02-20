@@ -260,6 +260,16 @@ public:
         return mainLooping_.load();
     }
 
+    bool GetDiscardJankFrames() const
+    {
+        return discardJankFrames_.load();
+    }
+
+    void SetDiscardJankFrames(bool discardJankFrames)
+    {
+        discardJankFrames_.store(discardJankFrames);
+    }
+
     bool IsPCThreeFingerScenesListScene() const
     {
         return !threeFingerScenesList_.empty();
@@ -534,6 +544,7 @@ private:
     bool needRequestNextVsyncAnimate_ = false;
 
     std::atomic_bool mainLooping_ = false;
+    std::atomic_bool discardJankFrames_ = false;
     bool forceUIFirstChanged_ = false;
 };
 } // namespace OHOS::Rosen

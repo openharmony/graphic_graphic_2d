@@ -64,7 +64,7 @@ void RSJankStats::SetStartTime()
     isFirstSetStart_ = false;
 }
 
-void RSJankStats::SetEndTime()
+void RSJankStats::SetEndTime(bool discardJankFrames)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (startTime_ == TIMESTAMP_INITIAL || startTimeSteady_ == TIMESTAMP_INITIAL) {
@@ -72,6 +72,9 @@ void RSJankStats::SetEndTime()
         return;
     }
     UpdateEndTime();
+    if (discardJankFrames) {
+        ClearAllAnimation();
+    }
     SetRSJankStats();
     RecordJankFrameInit();
     RecordJankFrame();
@@ -272,25 +275,17 @@ void RSJankStats::SetReportEventComplete(const DataBaseRs& info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RS_TRACE_NAME("RSJankStats::SetReportEventComplete receive notification: " + GetSceneDescription(info));
-    int64_t setTimeSteady = GetCurrentSteadyTimeMs();
     const auto animationId = GetAnimationId(info);
     if (animateJankFrames_.find(animationId) == animateJankFrames_.end()) {
         ROSEN_LOGD("RSJankStats::SetReportEventComplete Not find exited animationId");
-        JankFrames jankFrames;
-        jankFrames.info_ = info;
-        jankFrames.isSetReportEventComplete_ = true;
-        jankFrames.setTimeSteady_ = setTimeSteady;
-        jankFrames.traceId_ = GetTraceIdInit(info, setTimeSteady);
-        jankFrames.isDisplayAnimator_ = info.isDisplayAnimator;
-        animateJankFrames_.emplace(animationId, jankFrames);
     } else {
         animateJankFrames_[animationId].info_ = info;
         animateJankFrames_[animationId].isSetReportEventComplete_ = true;
         if (animateJankFrames_.at(animationId).isDisplayAnimator_ != info.isDisplayAnimator) {
             ROSEN_LOGW("RSJankStats::SetReportEventComplete isDisplayAnimator not consistent");
         }
+        HandleImplicitAnimationEndInAdvance(animateJankFrames_[animationId], false);
     }
-    HandleImplicitAnimationEndInAdvance(animateJankFrames_[animationId], false);
 }
 
 void RSJankStats::SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed)
@@ -578,6 +573,18 @@ void RSJankStats::CheckAnimationTraceTimeout()
         return needErase;
     });
     animationTraceCheckCnt_ = 0;
+}
+
+void RSJankStats::ClearAllAnimation()
+{
+    RS_TRACE_NAME("RSJankStats::ClearAllAnimation");
+    EraseIf(animationAsyncTraces_, [](const auto& pair) -> bool {
+        RS_ASYNC_TRACE_END(pair.second.traceName_, pair.first);
+        return true;
+    });
+    explicitAnimationTotal_ = 0;
+    implicitAnimationTotal_ = 0;
+    animateJankFrames_.clear();
 }
 
 std::string RSJankStats::GetSceneDescription(const DataBaseRs& info) const
