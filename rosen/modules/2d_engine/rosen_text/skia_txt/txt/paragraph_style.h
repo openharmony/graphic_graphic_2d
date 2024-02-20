@@ -55,7 +55,7 @@ public:
     bool strutHalfLeading = false;
     double strutLeading = -1;
     bool forceStrutHeight = false;
-
+    bool textOverflower = false;
     TextAlign textAlign = TextAlign::START;
     TextDirection textDirection = TextDirection::LTR;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;

@@ -77,6 +77,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .ellipsisModal = static_cast<SPText::EllipsisModal>(style.ellipsisModal),
         .maxLines = style.maxLines,
         .ellipsis = style.ellipsis,
+        .textOverflower = style.Ellipsized(),
         .locale = style.locale,
         .textSplitRatio = style.textSplitRatio,
     };

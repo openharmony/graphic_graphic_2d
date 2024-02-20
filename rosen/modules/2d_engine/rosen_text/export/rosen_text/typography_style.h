@@ -61,6 +61,10 @@ struct TypographyStyle {
     TextAlign GetEffectiveAlign() const;
     bool IsUnlimitedLines() const;
     bool IsEllipsized() const;
+    bool Ellipsized() const
+    {
+        return !ellipsis.empty();
+    }
 };
 } // namespace Rosen
 } // namespace OHOS
