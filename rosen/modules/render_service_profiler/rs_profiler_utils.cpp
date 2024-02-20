@@ -40,8 +40,6 @@ uint64_t RawNowNano()
 
 uint64_t NowNano()
 {
-    // return std::chrono::duration<double>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    //  steady_clock is used everywhere for some reason
     uint64_t curTimeNano = RawNowNano();
     curTimeNano = RSProfilerBase::TimePauseApply(curTimeNano);
     return curTimeNano;
