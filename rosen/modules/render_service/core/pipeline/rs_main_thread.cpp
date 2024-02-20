@@ -2050,6 +2050,7 @@ void RSMainThread::RequestNextVSync()
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     RSJankStats::GetInstance().SetStartTime();
+    SetDiscardJankFrames(false);
     timestamp_ = timestamp;
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -2070,7 +2071,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
             PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
         }
     }
-    RSJankStats::GetInstance().SetEndTime();
+    RSJankStats::GetInstance().SetEndTime(GetDiscardJankFrames());
 }
 
 void RSMainThread::Animate(uint64_t timestamp)
