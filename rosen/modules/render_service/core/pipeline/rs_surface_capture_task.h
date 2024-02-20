@@ -142,8 +142,8 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
 
 class RSSurfaceCaptureTask {
 public:
-    explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
+    explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread) {}
     ~RSSurfaceCaptureTask() = default;
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
@@ -175,6 +175,9 @@ private:
     float scaleY_;
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
+
+    // if true, do surfaceCapture on background thread
+    bool isProcOnBgThread_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
