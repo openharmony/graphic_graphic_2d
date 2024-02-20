@@ -173,6 +173,11 @@ Pixmap Bitmap::GetPixmap() const
     return bmpImplPtr->GetPixmap();
 }
 
+std::shared_ptr<Image> Bitmap::MakeImage() const
+{
+    return bmpImplPtr->MakeImage();
+}
+
 bool Bitmap::TryAllocPixels(const ImageInfo& info)
 {
     return bmpImplPtr->TryAllocPixels(info);
