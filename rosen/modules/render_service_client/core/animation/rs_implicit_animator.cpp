@@ -457,6 +457,12 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         return;
     }
 
+    [[maybe_unused]] const auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
+    if (protocol.GetRepeatCount() == -1 && property->id_ == 0) {
+        ROSEN_LOGE("Failed to create infinite empty animation!");
+        return;
+    }
+
     std::shared_ptr<RSAnimation> animation;
     auto params = implicitAnimationParams_.top();
     auto& repeatCallback = std::get<std::shared_ptr<AnimationRepeatCallback>>(globalImplicitParams_.top());
