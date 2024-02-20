@@ -114,7 +114,7 @@ private:
     ~VSyncGenerator() noexcept override;
 
     int64_t ComputeNextVSyncTimeStamp(int64_t now, int64_t referenceTime);
-    std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t referenceTime);
+    std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t occurTimestamp, int64_t referenceTime);
     int64_t ComputeListenerNextVSyncTimeStamp(const Listener &listen, int64_t now, int64_t referenceTime);
     void ThreadLoop();
     void UpdateWakeupDelay(int64_t occurTimestamp, int64_t nextTimeStamp);
