@@ -46,7 +46,7 @@ public:
     std::vector<std::pair<uint32_t, uint32_t>> oglMetrics;
     std::vector<std::pair<uint32_t, uint32_t>> gfxMetrics;
 
-    uint32_t readindexRsData = 0;
+    uint32_t readindexRsData_ = 0;
     uint32_t readindexOglData = 0;
     uint32_t readindexRsMetrics = 0;
     uint32_t readindexOglMetrics = 0;
