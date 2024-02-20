@@ -101,7 +101,7 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         if (vsyncMode_ == VSYNC_MODE_LTPO) {
             listeners = GetListenerTimeoutedLTPO(occurTimestamp, occurReferenceTime);
         } else {
-            listeners = GetListenerTimeouted(newOccurTimestamp, occurReferenceTime);
+            listeners = GetListenerTimeouted(newOccurTimestamp, occurTimestamp, occurReferenceTime);
         }
     }
     ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
@@ -336,13 +336,12 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     return nextTime;
 }
 
-std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(int64_t now, int64_t referenceTime)
+std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(
+    int64_t now, int64_t occurTimestamp, int64_t referenceTime)
 {
     std::vector<VSyncGenerator::Listener> ret;
-    int64_t onePeriodAgo = now - periodRecord_;
-
     for (uint32_t i = 0; i < listeners_.size(); i++) {
-        int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], onePeriodAgo, referenceTime);
+        int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], occurTimestamp, referenceTime);
         if (t < now || (t - now < errorThreshold)) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
