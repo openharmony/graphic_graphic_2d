@@ -74,7 +74,7 @@ public:
     };
     enum class Header { TYPE = 0, LENGTH = 1 };
 
-    static constexpr size_t headerSize = sizeof(uint32_t) + sizeof(uint8_t);
+    static constexpr size_t HEADER_SIZE = sizeof(uint32_t) + sizeof(uint8_t);
 
     explicit Packet(PacketType type);
     Packet(const Packet&) = default;
@@ -136,8 +136,8 @@ private:
     void InitData(PacketType type);
 
 private:
-    size_t readPointer_ = headerSize;
-    size_t writePointer_ = headerSize;
+    size_t readPointer_ = HEADER_SIZE;
+    size_t writePointer_ = HEADER_SIZE;
     std::vector<char> data_ = { 0, 0, 0, 0, 0 };
 };
 

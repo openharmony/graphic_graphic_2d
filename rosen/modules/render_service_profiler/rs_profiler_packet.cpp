@@ -59,7 +59,7 @@ uint32_t Packet::GetLength() const
 
 uint32_t Packet::GetPayloadLength() const
 {
-    return GetLength() - Packet::headerSize;
+    return GetLength() - Packet::HEADER_SIZE;
 }
 
 std::vector<char> Packet::Release()
@@ -76,11 +76,11 @@ void Packet::SetLength(uint32_t length)
 
 void Packet::InitData(PacketType type)
 {
-    data_.resize(headerSize);
+    data_.resize(HEADER_SIZE);
     SetType(type);
-    SetLength(headerSize);
-    readPointer_ = headerSize;
-    writePointer_ = headerSize;
+    SetLength(HEADER_SIZE);
+    readPointer_ = HEADER_SIZE;
+    writePointer_ = HEADER_SIZE;
 }
 
 } // namespace OHOS::Rosen
