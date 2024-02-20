@@ -90,11 +90,11 @@ public:
     uint32_t AddLayer();
     void LayerAddHeaderProperty(uint32_t layer, const std::string& name, const std::string& value);
 
-    void WriteRSData(double time, void* data, int dataLen);
-    void WriteOGLData(uint32_t layer, double time, void* data, int dataLen);
-    void WriteRSMetrics(uint32_t layer, double time, void* data, int dataLen);
-    void WriteOGLMetrics(uint32_t layer, double time, uint32_t frame, void* data, int dataLen);
-    void WriteGFXMetrics(uint32_t layer, double time, uint32_t frame, void* data, int dataLen);
+    void WriteRSData(double time, const void* data, size_t size);
+    void WriteOGLData(uint32_t layer, double time, const void* data, size_t size);
+    void WriteRSMetrics(uint32_t layer, double time, const void* data, size_t size);
+    void WriteOGLMetrics(uint32_t layer, double time, uint32_t frame, const void* data, size_t size);
+    void WriteGFXMetrics(uint32_t layer, double time, uint32_t frame, const void* data, size_t size);
 
     void ReadRSDataRestart();
     void ReadOGLDataRestart(uint32_t layer);

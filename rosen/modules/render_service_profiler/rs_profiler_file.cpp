@@ -343,7 +343,7 @@ void RSFile::ReadTextureFromFile()
 
 // XXX: static std::map<uint64_t, std::pair<std::shared_ptr<void>, int>> ImageMap;
 
-void RSFile::WriteRSData(double time, void* data, int dataLen)
+void RSFile::WriteRSData(double time, const void* data, size_t size)
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
@@ -352,15 +352,15 @@ void RSFile::WriteRSData(double time, void* data, int dataLen)
     }
 
     RSFileLayer& layerData = layerData_[0];
-    layerData.rsData.emplace_back(writeDataOff_, dataLen + sizeof(time));
+    layerData.rsData.emplace_back(writeDataOff_, size + sizeof(time));
 
     Utils::FileSeek(file_, writeDataOff_, SEEK_SET);
     Utils::FileWrite(&time, sizeof(time), 1, file_);
-    Utils::FileWrite(data, dataLen, 1, file_);
+    Utils::FileWrite(data, size, 1, file_);
     writeDataOff_ = ftell(file_);
 }
 
-void RSFile::WriteOGLData(uint32_t layer, double time, void* data, int dataLen)
+void RSFile::WriteOGLData(uint32_t layer, double time, const void* data, size_t size)
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
@@ -369,15 +369,15 @@ void RSFile::WriteOGLData(uint32_t layer, double time, void* data, int dataLen)
     }
 
     RSFileLayer& layerData = layerData_[layer];
-    layerData.oglData.emplace_back(writeDataOff_, dataLen + sizeof(time));
+    layerData.oglData.emplace_back(writeDataOff_, size + sizeof(time));
 
     Utils::FileSeek(file_, writeDataOff_, SEEK_SET);
     Utils::FileWrite(&time, sizeof(time), 1, file_);
-    Utils::FileWrite(data, dataLen, 1, file_);
+    Utils::FileWrite(data, size, 1, file_);
     writeDataOff_ = ftell(file_);
 }
 
-void RSFile::WriteRSMetrics(uint32_t layer, double time, void* data, int dataLen)
+void RSFile::WriteRSMetrics(uint32_t layer, double time, const void* data, size_t size)
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
@@ -386,15 +386,15 @@ void RSFile::WriteRSMetrics(uint32_t layer, double time, void* data, int dataLen
     }
 
     RSFileLayer& layerData = layerData_[layer];
-    layerData.rsMetrics.emplace_back(writeDataOff_, dataLen + sizeof(time));
+    layerData.rsMetrics.emplace_back(writeDataOff_, size + sizeof(time));
 
     Utils::FileSeek(file_, writeDataOff_, SEEK_SET);
     Utils::FileWrite(&time, sizeof(time), 1, file_);
-    Utils::FileWrite(data, dataLen, 1, file_);
+    Utils::FileWrite(data, size, 1, file_);
     writeDataOff_ = ftell(file_);
 }
 
-void RSFile::WriteOGLMetrics(uint32_t layer, double time, uint32_t /*frame*/, void* data, int dataLen)
+void RSFile::WriteOGLMetrics(uint32_t layer, double time, uint32_t /*frame*/, const void* data, size_t size)
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
@@ -403,15 +403,15 @@ void RSFile::WriteOGLMetrics(uint32_t layer, double time, uint32_t /*frame*/, vo
     }
 
     RSFileLayer& layerData = layerData_[layer];
-    layerData.oglMetrics.emplace_back(writeDataOff_, dataLen + sizeof(time));
+    layerData.oglMetrics.emplace_back(writeDataOff_, size + sizeof(time));
 
     Utils::FileSeek(file_, writeDataOff_, SEEK_SET);
     Utils::FileWrite(&time, sizeof(time), 1, file_);
-    Utils::FileWrite(data, dataLen, 1, file_);
+    Utils::FileWrite(data, size, 1, file_);
     writeDataOff_ = ftell(file_);
 }
 
-void RSFile::WriteGFXMetrics(uint32_t layer, double time, uint32_t /*frame*/, void* data, int dataLen)
+void RSFile::WriteGFXMetrics(uint32_t layer, double time, uint32_t /*frame*/, const void* data, size_t size)
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
@@ -420,11 +420,11 @@ void RSFile::WriteGFXMetrics(uint32_t layer, double time, uint32_t /*frame*/, vo
     }
 
     RSFileLayer& layerData = layerData_[layer];
-    layerData.gfxMetrics.emplace_back(writeDataOff_, dataLen + sizeof(time));
+    layerData.gfxMetrics.emplace_back(writeDataOff_, size + sizeof(time));
 
     Utils::FileSeek(file_, writeDataOff_, SEEK_SET);
     Utils::FileWrite(&time, sizeof(time), 1, file_);
-    Utils::FileWrite(data, dataLen, 1, file_);
+    Utils::FileWrite(data, size, 1, file_);
     writeDataOff_ = ftell(file_);
 }
 
