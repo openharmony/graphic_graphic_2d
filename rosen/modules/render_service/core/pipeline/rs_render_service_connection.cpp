@@ -526,7 +526,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
-
+        mainThread_->SetDiscardJankFrames(true);
         OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
     } else {
         mainThread_->ScheduleTask(

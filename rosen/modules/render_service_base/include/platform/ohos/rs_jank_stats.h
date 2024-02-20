@@ -89,7 +89,7 @@ class RSJankStats {
 public:
     static RSJankStats& GetInstance();
     void SetStartTime();
-    void SetEndTime();
+    void SetEndTime(bool discardJankFrames);
     void ReportJankStats();
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
@@ -118,6 +118,7 @@ private:
     void SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, const JankFrames& jankFrames);
     void SetAnimationTraceEnd(const JankFrames& jankFrames);
     void CheckAnimationTraceTimeout();
+    void ClearAllAnimation();
     std::string GetSceneDescription(const DataBaseRs& info) const;
     std::pair<int64_t, std::string> GetAnimationId(const DataBaseRs& info) const;
     int32_t GetTraceIdInit(const DataBaseRs& info, int64_t setTimeSteady);
