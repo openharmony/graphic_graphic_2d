@@ -49,7 +49,7 @@ struct RSFileLayer final {
     TrackMarkup oglMetrics;
     TrackMarkup gfxMetrics;
 
-    uint32_t readindexRsData_ = 0;
+    uint32_t readindexRsData = 0;
     uint32_t readindexOglData = 0;
     uint32_t readindexRsMetrics = 0;
     uint32_t readindexOglMetrics = 0;
