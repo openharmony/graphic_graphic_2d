@@ -1023,6 +1023,11 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     canvas_->Save();
     Drawing::Rect originRect = Drawing::Rect(x, y, width + x, height + y);
     canvas_->ClipRect(originRect, Drawing::ClipOp::INTERSECT, false);
+    auto iter = surfaceCallbacks_.find(node.GetId());
+    if (iter != surfaceCallbacks_.end()) {
+        (iter->second)(canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X),
+            canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y), width, height);
+    }
     if (node.IsNotifyRTBufferAvailable() == true) {
         ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             "clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
