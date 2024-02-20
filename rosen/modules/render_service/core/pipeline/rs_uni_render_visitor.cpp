@@ -358,13 +358,10 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     if (effectNode == nullptr || curSurfaceDirtyManager_ == nullptr) {
         return;
     }
-    auto effectRegion = effectRegion_;
-    effectRegion_ = effectNode->InitializeEffectRegion();
     effectNode->SetRotationChanged(curDisplayNode_->IsRotationChanged());
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
-    effectNode->SetEffectRegion(effectRegion_);
     if (effectNode->GetRenderProperties().NeedFilter()) {
         UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
         if (curSurfaceNode_ && curSurfaceNode_->GetId() == effectNode->GetInstanceRootNodeId()) {
@@ -372,7 +369,6 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
                 effectNode->IsBackgroundFilterCacheValid());
         }
     }
-    effectRegion_ = effectRegion;
 }
 
 void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
@@ -404,13 +400,17 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     } else if (curSurfaceDirtyManager_ != nullptr && curDisplayNode_ != nullptr &&
         (isCachedSurfaceReuse_ || isSurfaceDirtyNodeLimited_ || !UpdateCacheChangeStatus(node))) {
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus node %llu simply update subtree, isCachedSurfaceReuse_ %d,"
-            " isSurfaceDirtyNodeLimited_ %d", node.GetId(), isCachedSurfaceReuse_, isSurfaceDirtyNodeLimited_);
+            " isSurfaceDirtyNodeLimited_ %d, hasUseEffect %d", node.GetId(), isCachedSurfaceReuse_,
+            isSurfaceDirtyNodeLimited_, node.HasUseEffectNodes());
         UpdateSubTreeInCache(node.ReinterpretCastTo<RSRenderNode>(), *children);
+        node.UpdateEffectRegion(effectRegion_,
+            (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && node.HasUseEffectNodes()));
     } else {
         // Get delay flag to restore geo changes
         if (node.GetCacheGeoPreparationDelay()) {
             dirtyFlag_ = true;
         }
+        node.SetUseEffectNodes(false);
         for (auto& child : *children) {
             if (child && UNLIKELY(child->GetSharedTransitionParam().has_value())) {
                 PrepareSharedTransitionNode(*child);
@@ -418,6 +418,9 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
             SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
+            if (child->HasUseEffectNodes()) {
+                node.SetUseEffectNodes(true);
+            }
             RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
         }
         // Reset delay flag
@@ -508,7 +511,6 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         // [planning] static subcache could be skip and reuse
         if ((quickSkipPrepareType_ >= QuickSkipPrepareType::STATIC_CACHE) &&
             (firstVisitedCache_ == INVALID_NODEID) && IsDrawingCacheStatic(node)) {
-            isStaticDrawingCacheUsingEffect_ = isStaticDrawingCacheUsingEffect_ || node.IsFilterRectsInCache();
             return false;
         }
         // For rootnode, init drawing changes only if there is any content dirty
@@ -645,9 +647,9 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
     }
     bool isDrawingCacheChanged = isDrawingCacheChanged_.empty() ? true : isDrawingCacheChanged_.top();
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
-        "staticCache %d, cacheChange %d, childHasFilter: %d, outofparent: %d, visitedCacheNodeIds num: %lu",
+        "staticCache %d, cacheChange %d, childHasFilter|effect: %d|%d, outofparent: %d, visitedCacheNodeIds num: %lu",
         node.GetId(), static_cast<int>(node.GetDrawingCacheType()), node.IsStaticCached(),
-        static_cast<int>(isDrawingCacheChanged), static_cast<int>(node.ChildHasFilter()),
+        static_cast<int>(isDrawingCacheChanged), node.ChildHasFilter(), node.HasUseEffectNodes(),
         static_cast<int>(node.HasChildrenOutOfRect()), visitedCacheNodeIds_.size());
     if (node.IsStaticCached()) {
         node.SetDrawingCacheChanged(false);
@@ -1059,8 +1061,6 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         node.SetFilterCacheFullyCovered(false);
         node.ResetFilterNodes();
-        effectNodeNum_ = 0;
-        node.SetUseEffectNodes(0);
         // [planning] check if it is not reset recursively
         firstVisitedCache_ = INVALID_NODEID;
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -1162,7 +1162,6 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
     } else if (node.IsMainWindowType()) {
         isCachedSurfaceReuse_ = false;
         isSurfaceDirtyNodeLimited_ = false;
-        node.SetUseEffectNodes(effectNodeNum_);
         bool hasFilter = node.IsTransparent() && properties.NeedFilter();
         bool hasHardwareNode = !node.GetChildHardwareEnabledNodes().empty();
         bool hasAbilityComponent = !node.GetAbilityNodeIds().empty();
@@ -1732,9 +1731,12 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     PrepareChildren(node);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());
-    if (node.GetRenderProperties().GetUseEffect()) {
-        effectNodeNum_++;
+    if (property.GetUseEffect()) {
+        if (auto directParent = node.GetParent().lock()) {
+            directParent->SetUseEffectNodes(true);
+        }
     }
+
     node.UpdateEffectRegion(effectRegion_);
     if (property.NeedFilter()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
@@ -1772,7 +1774,6 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
 
-    auto prevEffectRegion = node.GetEffectRegion();
     effectRegion_ = node.InitializeEffectRegion();
     auto parentNode = node.GetParent().lock();
     node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
@@ -1786,18 +1787,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareChildren(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
-    // static drawing cache must keep all effectnode valid
-    if (isStaticDrawingCacheUsingEffect_ && prevEffectRegion.has_value()) {
-#ifndef USE_ROSEN_DRAWING
-        effectRegion_->join(prevEffectRegion.value());
-#else
-        effectRegion_->Join(prevEffectRegion.value());
-#endif
-        node.GetMutableRenderProperties().SetHaveEffectRegion(true);
-        isStaticDrawingCacheUsingEffect_ = false;
-    } else {
-        node.SetEffectRegion(effectRegion_);
-    }
+    node.SetEffectRegion(effectRegion_);
     
     if (node.GetRenderProperties().NeedFilter()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion

@@ -436,8 +436,6 @@ private:
     // check each surface could be reused per frame
     // currently available to uiFirst
     bool isCachedSurfaceReuse_ = false;
-    bool isStaticDrawingCacheUsingEffect_ = false;
-    uint32_t effectNodeNum_ = 0;
     bool isSurfaceDirtyNodeLimited_ = false;
 
     bool isDirtyRegionAlignedEnable_ = false;
