@@ -74,6 +74,11 @@ public:
     void SetInfo(const ImageInfo& info);
     ImageInfo GetImageInfo() const;
     Pixmap GetPixmap() const;
+    /*
+     * @brief  Make new image from Bitmap but never copy Pixels
+     * @note the function never copy Pixels, make sure Pixels is available during using the image
+     */
+    std::shared_ptr<Image> MakeImage() const;
     bool TryAllocPixels(const ImageInfo& info);
     template<typename T>
     T* GetImpl() const
