@@ -1454,16 +1454,16 @@ void RSRenderNode::UpdateDrawableVec()
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSRenderNode::UpdateEffectRegion(std::optional<SkIRect>& region)
+void RSRenderNode::UpdateEffectRegion(std::optional<SkIRect>& region, bool isForced)
 #else
-void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region)
+void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
 #endif
 {
     if (!region.has_value()) {
         return;
     }
     const auto& property = GetRenderProperties();
-    if (!property.GetUseEffect()) {
+    if (!isForced && !property.GetUseEffect()) {
         return;
     }
 
@@ -2607,7 +2607,7 @@ bool RSRenderNode::GetCacheGeoPreparationDelay() const
 
 void RSRenderNode::StoreMustRenewedInfo()
 {
-    mustRenewedInfo_ = hasHardwareNode_ || hasFilter_ || effectNodeNum_ > 0;
+    mustRenewedInfo_ = hasHardwareNode_ || hasFilter_ || hasEffectNode_;
 }
 
 bool RSRenderNode::HasMustRenewedInfo() const
@@ -2615,9 +2615,14 @@ bool RSRenderNode::HasMustRenewedInfo() const
     return mustRenewedInfo_;
 }
 
-void RSRenderNode::SetUseEffectNodes(uint32_t val)
+void RSRenderNode::SetUseEffectNodes(bool val)
 {
-    effectNodeNum_ = val;
+    hasEffectNode_ = val;
+}
+
+bool RSRenderNode::HasUseEffectNodes() const
+{
+    return hasEffectNode_;
 }
 
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)

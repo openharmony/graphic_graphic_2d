@@ -268,7 +268,8 @@ public:
     virtual void StoreMustRenewedInfo();
     bool HasMustRenewedInfo() const;
     // collect all subnodes using effect
-    void SetUseEffectNodes(uint32_t val);
+    void SetUseEffectNodes(bool val);
+    bool HasUseEffectNodes() const;
     bool HasSubSurface() const;
 
     bool NeedInitCacheSurface() const;
@@ -430,9 +431,9 @@ public:
     OutOfParentType GetOutOfParent() const;
 
 #ifndef USE_ROSEN_DRAWING
-    void UpdateEffectRegion(std::optional<SkIRect>& region);
+    void UpdateEffectRegion(std::optional<SkIRect>& region, bool isForced = false);
 #else
-    void UpdateEffectRegion(std::optional<Drawing::RectI>& region);
+    void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
 #endif
     bool IsBackgroundFilterCacheValid() const;
     virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = true);
@@ -646,7 +647,8 @@ private:
     // since cache preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool cacheGeoPreparationDelay_ = false;
-    uint32_t effectNodeNum_ = 0;
+    // specify if any subnode uses effect, not including itself
+    bool hasEffectNode_ = false;
 
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
