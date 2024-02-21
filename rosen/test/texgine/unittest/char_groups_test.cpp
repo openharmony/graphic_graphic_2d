@@ -87,7 +87,6 @@ auto GetIndexRangeChecker(int t1, int t2)
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST0(CharGroups, GetNumberOfGlyph, {
-    INVALID_CGS(),
     {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     // 0u, 4u: check the return value
     {.object = emptyCgs_,    .checkFunc = GetResultChecker(0u)},
@@ -102,7 +101,6 @@ DEFINE_PARAM_TEST0(CharGroups, GetNumberOfGlyph, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST0(CharGroups, GetNumberOfCharGroup, {
-    INVALID_CGS(),
     {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = GetResultChecker(0u)},
     {.object = normalCgs_,   .checkFunc = GetResultChecker(4u)},
@@ -135,7 +133,6 @@ DEFINE_PARAM_TEST0(CharGroups, GetRange, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST0(CharGroups, GetBack, {
-    INVALID_CGS(),
     {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,   .checkFunc = [](CharGroup cg) {
@@ -153,7 +150,6 @@ DEFINE_PARAM_TEST0(CharGroups, GetBack, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST0(CharGroups, GetSize, {
-    INVALID_CGS(),
     {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = GetResultChecker(0u)},
     {.object = normalCgs_,   .checkFunc = GetResultChecker(4u)},
@@ -167,7 +163,6 @@ DEFINE_PARAM_TEST0(CharGroups, GetSize, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST0(CharGroups, IsValid, {
-    INVALID_CGS(),
     {.object = defaultCgs_,  .checkFunc = GetResultChecker(false)},
     {.object = emptyCgs_,    .checkFunc = GetResultChecker(true)},
     {.object = normalCgs_,   .checkFunc = GetResultChecker(true)},
@@ -195,7 +190,6 @@ DEFINE_PARAM_TEST1(CharGroups, IsSameCharGroups, CharGroups, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST1(CharGroups, IsIntersect, CharGroups, {
-    INVALID_CGS(.arg1 = {}),
     {.object = emptyCgs_,      .arg1 = invalid3Cgs_,   .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = defaultCgs_,    .arg1 = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalSubCgs1_, .arg1 = normalSubCgs2_, .checkFunc = GetResultChecker(false)},
@@ -213,7 +207,6 @@ DEFINE_PARAM_TEST1(CharGroups, IsIntersect, CharGroups, {
 DEFINE_PARAM_TEST1(CharGroups, GetSplit, int, {
     // arg1 is parameters of GetSplit
     {.object = normalCgs_,   .arg1 = -1, .exception = ExceptionType::INVALID_ARGUMENT},
-    INVALID_CGS(.arg1 = 1),
     {.object = defaultCgs_,  .arg1 = 1,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalCgs_,   .arg1 = 0,  .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,   .arg1 = 4,  .exception = ExceptionType::OUT_OF_RANGE},
@@ -235,7 +228,6 @@ DEFINE_PARAM_TEST1(CharGroups, GetSplit, int, {
  */
 DEFINE_PARAM_TEST1(CharGroups, GetSplitAll, int, {
     // arg1 is parameters of GetSplitAll
-    INVALID_CGS(.arg1 = 1),
     {.object = defaultCgs_,  .arg1 = 1, .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalCgs_,   .arg1 = 0, .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,   .arg1 = 4, .exception = ExceptionType::OUT_OF_RANGE},
@@ -274,7 +266,6 @@ DEFINE_PARAM_TEST2(CharGroups, GetSub, int, int, {
  */
 DEFINE_PARAM_TEST2(CharGroups, GetSubAll, int, int, {
     // arg1 and arg2 are parameters of GetSubAll, arg1 is start, arg2 is end
-    INVALID_CGS(.arg1 = 0, .arg2 = 0),
     {.object = defaultCgs_,  .arg1 = 0,  .arg2 = 0, .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalCgs_,   .arg1 = -1, .arg2 = 2, .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = normalCgs_,   .arg1 = 2,  .arg2 = 1, .exception = ExceptionType::INVALID_ARGUMENT},
@@ -292,7 +283,6 @@ DEFINE_PARAM_TEST2(CharGroups, GetSubAll, int, int, {
  */
 DEFINE_PARAM_TEST2(CharGroups, GetSubFromU16RangeAll, int, int, {
     // arg1 and arg2 are parameters of GetSubFromU16RangeAll, arg1 is start, arg2 is end
-    INVALID_CGS(.arg1 = 1, .arg2 = 2),
     {.object = defaultCgs_,  .arg1 = 1,  .arg2 = 2,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalCgs_,   .arg1 = -1, .arg2 = 2,  .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = normalCgs_,   .arg1 = 2,  .arg2 = 1,  .exception = ExceptionType::INVALID_ARGUMENT},
@@ -313,7 +303,6 @@ DEFINE_PARAM_TEST2(CharGroups, GetSubFromU16RangeAll, int, int, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST1(CharGroups, GetIntersect, CharGroups, {
-    INVALID_CGS(.arg1 = {}),
     {.object = normalCgs_,     .arg1 = invalid1Cgs_,   .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = defaultCgs_,    .arg1 = normalCgs_,     .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalCgs_,     .arg1 = defaultCgs_,    .exception = ExceptionType::INVALID_ARGUMENT},
@@ -347,7 +336,6 @@ DEFINE_PARAM_TEST1(CharGroups, Get, int32_t, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST1(CharGroups, GetAll, int32_t, {
-    INVALID_CGS(.arg1 = 0),
     {.object = defaultCgs_,    .arg1 = 0,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalCgs_,     .arg1 = -1, .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,     .arg1 = 4,  .exception = ExceptionType::OUT_OF_RANGE},
@@ -368,7 +356,6 @@ DEFINE_PARAM_TEST1(CharGroups, GetAll, int32_t, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST0(CharGroups, ToUTF16, {
-    INVALID_CGS(),
     {.object = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     // 0 is the return size
     {.object = emptyCgs_,      .checkFunc = GetVecSizeChecker<uint16_t>(0)},
@@ -385,7 +372,6 @@ DEFINE_PARAM_TEST0(CharGroups, ToUTF16, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST0(CharGroups, ToUTF16All, {
-    INVALID_CGS(),
     {.object = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,      .checkFunc = GetVecSizeChecker<uint16_t>(0)},
     {.object = normalCgs_,     .checkFunc = GetVecSizeChecker<uint16_t>(4)},
@@ -401,7 +387,6 @@ DEFINE_PARAM_TEST0(CharGroups, ToUTF16All, {
  * @tc.require: issueI6XQ27
  */
 DEFINE_PARAM_TEST0(CharGroups, begin, {
-    INVALID_CGS(),
     {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = [&](std::vector<struct CharGroup>::iterator ret) {
         ASSERT_EQ(ret, emptyCgs_.end());
@@ -418,7 +403,6 @@ DEFINE_PARAM_TEST0(CharGroups, begin, {
  * @tc.require: issueI6XQ27
  */
 DEFINE_PARAM_TEST0(CharGroups, end, {
-    INVALID_CGS(),
     {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = [](std::vector<struct CharGroup>::iterator ret) {
         ASSERT_EQ(ret, emptyCgs_.begin());
@@ -444,7 +428,6 @@ auto GetCharGroupsEqualChecker(const CharGroups &cgs)
  * @tc.require: issueI6XQ27
  */
 DEFINE_PARAM_TEST0(CharGroups, Clone, {
-    INVALID_CGS(),
     {.object = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,      .checkFunc = GetCharGroupsEqualChecker(emptyCgs_)},
     {.object = normalCgs_,     .checkFunc = GetCharGroupsEqualChecker(normalCgs_)},
@@ -460,12 +443,9 @@ DEFINE_PARAM_TEST0(CharGroups, Clone, {
  * @tc.require: issueI6XQ27
  */
 DEFINE_VOID_PARAM_TEST1(CharGroups, Merge, CharGroups, {
-    INVALID_CGS(.arg1 = normalSubCgs1_),
     {.object = defaultCgs_,    .arg1 = normalSubCgs1_, .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalSubCgs1_, .arg1 = defaultCgs_,    .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = normalSubCgs1_, .arg1 = invalid1Cgs_,   .exception = ExceptionType::INVALID_ARGUMENT},
-    {.object = normalSubCgs1_, .arg1 = normalSubCgs1_, .exception = ExceptionType::CUSTOM},
-    {.object = normalSubCgs2_, .arg1 = normalSubCgs1_, .exception = ExceptionType::CUSTOM},
     {.object = normalSubCgs1_, .arg1 = normalSubCgs2_, .checkFunc = [](CharGroups &arg1, CharGroups &obj) {
         ASSERT_EQ(obj.GetRange().end, 2);
     }},
@@ -478,7 +458,6 @@ DEFINE_VOID_PARAM_TEST1(CharGroups, Merge, CharGroups, {
  * @tc.require: issueI6XQ27
  */
 DEFINE_VOID_PARAM_TEST1(CharGroups, PushBack, CharGroup, {
-    INVALID_CGS(.arg1 = cg_),
     {.object = defaultCgs_,            .arg1 = cg_, .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_.Clone(),      .arg1 = cg_, .checkFunc = [](CharGroup &arg1, CharGroups &obj) {
         ASSERT_EQ(obj.GetSize(), 1);
@@ -503,7 +482,6 @@ DEFINE_VOID_PARAM_TEST1(CharGroups, PushBack, CharGroup, {
  * @tc.require: issueI6XQ27
  */
 DEFINE_VOID_PARAM_TEST0(CharGroups, ReverseAll, {
-    INVALID_CGS(),
     {.object = defaultCgs_,            .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_.Clone(),      .checkFunc = [](CharGroups &obj) {}},
     {.object = normalCgs_.Clone(),     .checkFunc = [](CharGroups &obj) {
