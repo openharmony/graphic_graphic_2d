@@ -130,7 +130,8 @@ public:
     }
 
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
-    static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced);
+    static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
+        bool includeProperty);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
 
     static void MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag);
@@ -223,7 +224,7 @@ ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
 ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
 ADD_COMMAND(RSMarkNodeGroup,
-    ARG(RS_NODE, MARK_NODE_GROUP, RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool))
+    ARG(RS_NODE, MARK_NODE_GROUP, RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
     ARG(RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER, RSNodeCommandHelper::MarkNodeSingleFrameComposer,
         NodeId, bool, pid_t))

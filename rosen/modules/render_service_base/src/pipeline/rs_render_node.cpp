@@ -2097,7 +2097,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
     }
     if (isAnimAdd) {
         if (GROUPABLE_ANIMATION_TYPE.count(target->second->GetType())) {
-            MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true);
+            MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true, false);
         } else if (CACHEABLE_ANIMATION_TYPE.count(target->second->GetType())) {
             hasCacheableAnim_ = true;
         }
@@ -2116,7 +2116,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
         hasGroupableAnim = (hasGroupableAnim || (GROUPABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
         hasCacheableAnim_ = (hasCacheableAnim_ || (CACHEABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
     }
-    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim);
+    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim, false);
 }
 
 bool RSRenderNode::IsForcedDrawInGroup() const
@@ -2129,7 +2129,7 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
     return nodeGroupType_ != NodeGroupType::NONE;
 }
 
-void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
+void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
     if (type >= nodeGroupType_) {
         if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
@@ -2142,10 +2142,16 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
             nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
             SetDirty();
         }
+        nodeGroupIncludeProperty_ = includeProperty;
         if (type == NodeGroupType::GROUPED_BY_USER) {
             GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
         }
     }
+}
+
+bool RSRenderNode::IsNodeGroupIncludeProperty() const
+{
+    return nodeGroupIncludeProperty_;
 }
 
 void RSRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid)

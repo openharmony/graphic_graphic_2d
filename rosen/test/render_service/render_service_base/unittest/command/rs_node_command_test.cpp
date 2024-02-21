@@ -81,7 +81,7 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     bool isNodeGroup = false;
-    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, isNodeGroup, true);
+    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, isNodeGroup, true, false);
 }
 
 /**

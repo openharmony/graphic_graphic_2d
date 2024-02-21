@@ -56,7 +56,7 @@ public:
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override;
-    void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty) override;
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override;
@@ -86,7 +86,7 @@ private:
     void DrawDrivenContent(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [end]
 
-    void PropertyDrawableRender(RSPaintFilterCanvas& canvas);
+    void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);
     void DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas);
 
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
