@@ -29,6 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float PARALLEL_FILTER_RATIO_THRESHOLD = 0.8f;
+constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
 const char* RSFilterCacheManager::GetCacheState() const
 {
     if (cachedFilteredSnapshot_ != nullptr) {
@@ -141,22 +142,35 @@ void RSFilterCacheManager::UpdateCacheStateWithFilterRegion()
     InvalidateCache();
 }
 
-void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion()
+bool RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RSDirtyRegionManager& dirtyManager)
 {
     if (!IsCacheValid()) {
-        return;
+        return false;
     }
     RS_OPTIONAL_TRACE_FUNC();
-
-    // The underlying image is affected by the dirty region, determine if the cache should be invalidated by cache age.
-    // [PLANNING]: also take into account the filter radius / cache size / percentage of intersected area.
-    if (cacheUpdateInterval_ > 0) {
-        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
-                   "invalidation for %{public}d frames.",
+    auto& cachedImageRect = GetCachedImageRegion();
+    if (dirtyManager.currentFrameDirtyRegion_.Intersect(cachedImageRect) ||
+        std::any_of(dirtyManager.visitedDirtyRegions_.begin(), dirtyManager.visitedDirtyRegions_.end(),
+            [&cachedImageRect](const RectI& rect) { return rect.Intersect(cachedImageRect); })) {
+        // The underlying image is affected by the dirty region, determine if the cache should be invalidated by cache
+        // age. [PLANNING]: also take into account the filter radius / cache size / percentage of intersected area.
+        if (cacheUpdateInterval_ > 0) {
+            ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
+                       "invalidation for %{public}d frames.",
+                cacheUpdateInterval_);
+            pendingPurge_ = true;
+        } else {
+            InvalidateCache();
+        }
+        return false;
+    }
+    if (pendingPurge_) {
+        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion MergeDirtyRect at %{public}d frames",
             cacheUpdateInterval_);
-        pendingPurge_ = true;
-    } else {
         InvalidateCache();
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -515,7 +529,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // Note: the cache will be invalidated immediately if the cached region cannot fully cover the filter region.
     if (filter->GetFilterType() == RSFilter::AIBAR) {
         // when dirty region change, delay 5 frames to update
-        cacheUpdateInterval_ = 5;
+        cacheUpdateInterval_ = AIBAR_CACHE_UPDATE_INTERVAL;
     } else {
         bool isLargeArea = IsLargeArea(srcRect.width(), srcRect.height());
         cacheUpdateInterval_ =
@@ -564,7 +578,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // Note: the cache will be invalidated immediately if the cached region cannot fully cover the filter region.
     if (filter->GetFilterType() == RSFilter::AIBAR) {
         // when dirty region change, delay 5 frames to update
-        cacheUpdateInterval_ = 5;
+        cacheUpdateInterval_ = AIBAR_CACHE_UPDATE_INTERVAL;
     } else {
         bool isLargeArea = IsLargeArea(srcRect.GetWidth(), srcRect.GetHeight());
         cacheUpdateInterval_ =
