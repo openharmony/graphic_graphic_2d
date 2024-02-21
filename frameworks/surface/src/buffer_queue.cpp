@@ -595,9 +595,6 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
     GSError ret = PopFromDirtyList(buffer);
     if (ret == GSERROR_OK) {
         uint32_t sequence = buffer->GetSeqNum();
-        if (isShared_ == false && bufferQueueCache_[sequence].state != BUFFER_STATE_FLUSHED) {
-            BLOGNW("Warning [%{public}d], Reason: state is not BUFFER_STATE_FLUSHED", sequence);
-        }
         bufferQueueCache_[sequence].state = BUFFER_STATE_ACQUIRED;
 
         fence = bufferQueueCache_[sequence].fence;
@@ -1345,7 +1342,12 @@ void BufferQueue::DumpCache(std::string &result)
             std::to_string(element.config.strideAlignment) + ", " +
             std::to_string(element.config.format) +", " +
             std::to_string(element.config.usage) + ", " +
-            std::to_string(element.config.timeout) + "],";
+            std::to_string(element.config.timeout) + ", " +
+            std::to_string(element.config.colorGamut) + ", " +
+            std::to_string(element.config.transform) + "],";
+
+        result += " scalingMode = " + std::to_string(element.scalingMode) + ",";
+        result += " HDR = " + std::to_string(element.hdrMetaDataType) + ", ";
 
         double bufferMemSize = 0;
         if (element.buffer != nullptr) {
@@ -1353,6 +1355,7 @@ void BufferQueue::DumpCache(std::string &result)
                     ", bufferHeight = " + std::to_string(element.buffer->GetHeight());
             bufferMemSize = static_cast<double>(element.buffer->GetSize()) / BUFFER_MEMSIZE_RATE;
         }
+
         std::ostringstream ss;
         ss.precision(BUFFER_MEMSIZE_FORMAT);
         ss.setf(std::ios::fixed);
