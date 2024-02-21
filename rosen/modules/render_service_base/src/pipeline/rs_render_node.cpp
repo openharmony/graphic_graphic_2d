@@ -1468,7 +1468,25 @@ void RSRenderNode::UpdateDrawableVec()
 #ifndef ROSEN_ARKUI_X
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
-    // initialize necessary save/clip/restore
+    if (!GetIsUsedBySubThread()) {
+        UpdateDrawableVecInternal(dirtySlots);
+    } else if (auto context = context_.lock()) {
+        context->PostTask([weakPtr = weak_from_this(), dirtySlots]() {
+            if (auto node = weakPtr.lock()) {
+                node->UpdateDrawableVecInternal(dirtySlots);
+            }
+        });
+    } else {
+        ROSEN_LOGI("%{public}s GetIsUsedBySubThread[%{public}d].", __func__, GetIsUsedBySubThread());
+        UpdateDrawableVecInternal(dirtySlots);
+    }
+#endif
+}
+
+void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
+{
+#ifndef ROSEN_ARKUI_X
+     // initialize necessary save/clip/restore
     if (drawableVecStatus_ == 0) {
         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
     }

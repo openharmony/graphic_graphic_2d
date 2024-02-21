@@ -2321,10 +2321,12 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     const auto children = node.GetSortedChildren();
 
     if (isSubThread_) {
+        node.SetIsUsedBySubThread(true);
         ProcessShadowFirst(node, isSubThread_);
         for (auto child : *children) {
             ProcessChildInner(node, child);
         }
+        node.SetIsUsedBySubThread(false);
     } else {
         ProcessShadowFirst(node, isSubThread_);
         for (auto child : *children) {
