@@ -379,12 +379,4 @@ void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sp
         RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
     }
 }
-
-void RSHardwareThread::CleanRenderFrame(uint64_t id)
-{
-    ScheduleTask(
-        [this, id]() {
-        uniRenderEngine_->UnMapRsSurface(id);
-    }).wait();
-}
 }

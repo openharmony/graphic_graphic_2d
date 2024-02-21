@@ -83,8 +83,8 @@ void RSVirtualScreenProcessor::PostProcess()
         RS_LOGE("RSVirtualScreenProcessor::PostProcess surface is null!");
         return;
     }
-    auto surfaceId = producerSurface_->GetUniqueId();
-    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceId);
+    auto surfaceOhos = renderFrame_->GetSurface();
+    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
 
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::PostProcess renderFrame_ is null.");

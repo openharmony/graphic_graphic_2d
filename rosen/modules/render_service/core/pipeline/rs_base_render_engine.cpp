@@ -260,45 +260,37 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         return nullptr;
     }
 
-    auto surfaceId = targetSurface->GetUniqueId();
-    if (rsSurfaces_.count(surfaceId) == 0) {
 #if defined(NEW_RENDER_CONTEXT)
-        std::shared_ptr<RSRenderSurface> renderSurface = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS,
-            targetSurface);
-        rsSurfaces_[surfaceId] = std::static_pointer_cast<RSRenderSurfaceOhos>(renderSurface);
+    std::shared_ptr<RSRenderSurfaceOhos> rsSurface = nullptr;
+    std::shared_ptr<RSRenderSurface> renderSurface = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS,
+        targetSurface);
+    rsSurface = std::static_pointer_cast<RSRenderSurfaceOhos>(renderSurface);
 #else
+    std::shared_ptr<RSSurfaceOhos> rsSurface = nullptr;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-        if (forceCPU) {
-            rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
-        } else {
-            rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosGl>(targetSurface);
-        }
+    if (forceCPU) {
+        rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
+    } else {
+        rsSurface = std::make_shared<RSSurfaceOhosGl>(targetSurface);
+    }
 #elif defined(RS_ENABLE_VK)
-        rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
+    rsSurface = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
 #else
-        rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
+    rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
 #endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
 #endif
-    }
-
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU, useAFBC);
+    return RequestFrame(rsSurface, config, forceCPU, useAFBC);
 }
 
-void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId)
-{
 #ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurfaceOhos> surfaceOhos = nullptr;
+void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
+    std::shared_ptr<RSRenderSurfaceOhos> surfaceOhos)
 #else
-    std::shared_ptr<RSSurfaceOhos> surfaceOhos = nullptr;
+void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
+    std::shared_ptr<RSSurfaceOhos> surfaceOhos)
 #endif
-    for (auto it = rsSurfaces_.begin(); it != rsSurfaces_.end(); ++it) {
-        if (it->first == surfaceId) {
-            surfaceOhos = it->second;
-            break;
-        }
-    }
-
+{
     if (surfaceOhos == nullptr) {
         RS_LOGE("RSBaseRenderEngine::SetUiTimeStamp: surfaceOhos is null!");
         return;
@@ -472,16 +464,6 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
         eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
     }
 #endif // RS_ENABLE_EGLIMAGE
-
-    while (rsSurfaces_.size() > MAX_RS_SURFACE_SIZE) {
-        auto it = rsSurfaces_.begin();
-        (void)rsSurfaces_.erase(it);
-    }
-}
-
-void RSBaseRenderEngine::UnMapRsSurface(uint64_t id)
-{
-    rsSurfaces_.erase(id);
 }
 } // namespace Rosen
 } // namespace OHOS

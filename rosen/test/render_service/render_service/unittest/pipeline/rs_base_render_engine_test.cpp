@@ -140,28 +140,6 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
     renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
 }
 
-/**
- * @tc.name: ShrinkCachesIfNeeded001
- * @tc.desc: Test ShrinkCachesIfNeeded
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeeded001, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->ShrinkCachesIfNeeded(true);
-    renderEngine->ShrinkCachesIfNeeded(false);
-    renderEngine->Init();
-    renderEngine->ShrinkCachesIfNeeded(true);
-    renderEngine->ShrinkCachesIfNeeded(false);
-
-    for (int i = 0; i <= static_cast<int>(renderEngine->MAX_RS_SURFACE_SIZE); i++) {
-        renderEngine->rsSurfaces_[i] = nullptr;
-    }
-    renderEngine->ShrinkCachesIfNeeded();
-    ASSERT_EQ(renderEngine->rsSurfaces_.size(), renderEngine->MAX_RS_SURFACE_SIZE);
-}
-
 #ifdef RS_ENABLE_EGLIMAGE
 /**
  * @tc.name: CreateEglImageFromBuffer001
