@@ -671,6 +671,9 @@ void RSCanvasDrawingRenderNode::ClearOp()
 
 void RSCanvasDrawingRenderNode::ResetSurface()
 {
+    if (preThreadInfo_.second && surface_) {
+        preThreadInfo_.second(std::move(surface_));
+    }
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
 }
