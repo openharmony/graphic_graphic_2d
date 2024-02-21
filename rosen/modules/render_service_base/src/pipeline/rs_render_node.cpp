@@ -1201,8 +1201,8 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         return;
     }
     auto& cachedImageRect = manager->GetCachedImageRegion();
-    if (dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
-        manager->UpdateCacheStateWithDirtyRegion();
+    if (manager->UpdateCacheStateWithDirtyRegion(dirtyManager)) {
+        dirtyManager.MergeDirtyRect(cachedImageRect);
     }
 #endif
 }
