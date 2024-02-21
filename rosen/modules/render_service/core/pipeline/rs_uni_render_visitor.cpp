@@ -4266,6 +4266,9 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         }
         node.ProcessAnimatePropertyBeforeChildren(*canvas_);
     }
+    if (node.IsNodeGroupIncludeProperty()) {
+        node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+    }
     if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         node.SetDrawingCacheRootId(node.GetId());
     }
@@ -4423,7 +4426,11 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
             break;
         }
         case CacheType::CONTENT: {
-            node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+            if (node.IsNodeGroupIncludeProperty()) {
+                node.ProcessAnimatePropertyBeforeChildren(*canvas_, false);
+            } else {
+                node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+            }
             node.DrawCacheSurface(*canvas_, threadIndex_, false);
             node.ProcessAnimatePropertyAfterChildren(*canvas_);
             cacheRenderNodeMapRects_.push_back(node.GetOldDirtyInSurface());
@@ -5056,8 +5063,8 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             }
             if (updateTimes >= CACHE_MAX_UPDATE_TIME) {
                 node.SetCacheType(CacheType::NONE);
-                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_UI, false);
-                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_ANIM, false);
+                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_UI, false, false);
+                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_ANIM, false, false);
                 RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
                 cacheRenderNodeMap.erase(node.GetId());
                 groupedTransitionNodes.erase(node.GetId());

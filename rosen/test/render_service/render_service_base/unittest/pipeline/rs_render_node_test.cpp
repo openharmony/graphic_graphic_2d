@@ -196,7 +196,7 @@ HWTEST_F(RSRenderNodeTest, MarkNodeGroupTest, TestSize.Level1)
     auto nodeGruopType = node.GetNodeGroupType();
     RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
     if (type >= nodeGruopType) {
-        node.MarkNodeGroup(type, isNodeGruop);
+        node.MarkNodeGroup(type, isNodeGruop, false);
         ASSERT_EQ(node.GetNodeGroupType(), type);
     }
 }
