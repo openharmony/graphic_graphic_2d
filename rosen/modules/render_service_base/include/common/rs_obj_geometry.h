@@ -291,10 +291,6 @@ public:
     {
         return width_ <= 0 && height_ <= 0;
     }
-    bool IsValidOffset() const
-    {
-        return (x_ > 0.0f || x_ < 0.0f || y_ > 0.0f || y_  < 0.0f) && x_ > -INFINITY && y_ > -INFINITY;
-    }
     void Round()
     {
         x_ = std::floor(x_);
