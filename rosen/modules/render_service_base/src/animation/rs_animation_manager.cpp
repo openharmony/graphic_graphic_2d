@@ -97,6 +97,11 @@ void RSAnimationManager::FilterAnimationByPid(pid_t pid)
     });
 }
 
+uint32_t RSAnimationManager::GetAnimationsSize()
+{
+    return animations_.size();
+}
+
 std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree)
 {
     // process animation
