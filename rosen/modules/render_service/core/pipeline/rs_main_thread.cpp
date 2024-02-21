@@ -2101,9 +2101,11 @@ void RSMainThread::Animate(uint64_t timestamp)
         receiver_->GetVSyncPeriod(period);
     }
     RSRenderAnimation::isCalcAnimateVelocity_ = isRateDeciderEnabled;
+    uint32_t totalAnimationSize = 0;
+    uint32_t animatingNodeSize = context_->animatingNodeList_.size();
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
-        [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled,
+        [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
         &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
@@ -2115,6 +2117,7 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }
+        totalAnimationSize += node->animationManager_.GetAnimationsSize();
         auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t {
             return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
         };
@@ -2140,6 +2143,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         return !hasRunningAnimation;
     });
+    RS_TRACE_NAME_FMT("Animate [nodeSize, totalAnimationSize] is [%lu, %lu]", animatingNodeSize, totalAnimationSize);
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
         RSQosThread::ResetQosPid();
     }
