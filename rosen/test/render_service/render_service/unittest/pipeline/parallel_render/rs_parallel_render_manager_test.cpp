@@ -518,6 +518,9 @@ HWTEST_F(RSParallelRenderManagerTest, IsSecurityDisplayTest, TestSize.Level1)
 HWTEST_F(RSParallelRenderManagerTest, PackParallelCompositionTask, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
+    NodeId id = 1;
+    RSDisplayNodeConfig mainNodeConfig;
+    auto mainDisplayNode = std::make_shared<RSDisplayRenderNode>(id, mainNodeConfig, rsContext->weak_from_this());
     auto rsBaseRenderNode = std::make_shared<RSBaseRenderNode>(11, rsContext->weak_from_this());
     RSDisplayNodeConfig displayConfig1 = {
         .screenId = 0,
@@ -542,6 +545,7 @@ HWTEST_F(RSParallelRenderManagerTest, PackParallelCompositionTask, TestSize.Leve
     ASSERT_EQ(status, ParallelStatus::FIRSTFLUSH);
     auto visitor = parallelRenderManager->GetUniParallelCompositionVisitor();
     ASSERT_EQ(visitor, nullptr);
+    parallelRenderManager->mainDisplayNode_ = mainDisplayNode;
     parallelRenderManager->PackParallelCompositionTask(rsUniRenderVisitor, rsBaseRenderNode);
     visitor = parallelRenderManager->GetUniParallelCompositionVisitor();
     ASSERT_NE(visitor, nullptr);
@@ -552,6 +556,7 @@ HWTEST_F(RSParallelRenderManagerTest, PackParallelCompositionTask, TestSize.Leve
     parallelRenderManager->SetParallelMode(false);
     status = parallelRenderManager->GetParallelRenderingStatus();
     ASSERT_EQ(status, ParallelStatus::FIRSTFLUSH);
+    parallelRenderManager->mainDisplayNode_ = nullptr;
 }
 
 #ifdef USE_ROSEN_DRAWING

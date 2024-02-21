@@ -1491,9 +1491,9 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel, TestSize.Level1)
     mainThread->systemAnimatedScenesList_.clear();
     mainThread->vsyncControlEnabled_ = true;
     auto generator = CreateVSyncGenerator();
-    auto appVSyncController = std::make_shared<VSyncController>(generator, 0);
-    auto appVSyncDistributor = std::make_shared<VSyncDistributor>(appVSyncController.get(), "app");
-    mainThread->SetAppVSyncDistributor(appVSyncDistributor.get());
+    auto appVSyncController = new VSyncController(generator, 0);
+    auto appVSyncDistributor = new VSyncDistributor(appVSyncController, "app");
+    mainThread->SetAppVSyncDistributor(appVSyncDistributor);
     std::map<uint32_t, RSVisibleLevel> pidVisMap;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     // pidVisMap init

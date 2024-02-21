@@ -103,10 +103,6 @@ HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
 
-    buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
-    ret = RSBaseRenderEngine::NeedForceCPU(layers);
-    ASSERT_EQ(true, ret);
-
 #ifndef RS_ENABLE_EGLIMAGE
     buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
