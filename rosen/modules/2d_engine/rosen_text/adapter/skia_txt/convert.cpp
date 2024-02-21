@@ -76,10 +76,10 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .textDirection = static_cast<SPText::TextDirection>(style.textDirection),
         .ellipsisModal = static_cast<SPText::EllipsisModal>(style.ellipsisModal),
         .maxLines = style.maxLines,
-        .textOverflower = style.Ellipsized(),
         .ellipsis = style.ellipsis,
         .locale = style.locale,
         .textSplitRatio = style.textSplitRatio,
+        .textOverflower = style.Ellipsized(),
     };
 }
 
