@@ -701,7 +701,7 @@ private:
 
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
-
+    void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;
 
