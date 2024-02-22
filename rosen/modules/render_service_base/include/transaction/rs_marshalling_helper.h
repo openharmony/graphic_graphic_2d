@@ -141,6 +141,15 @@ public:
         return false;
     }
 
+    static bool Marshalling(Parcel& parcel, const std::string& val)
+    {
+        return parcel.WriteString(val);
+    }
+    static bool Unmarshalling(Parcel& parcel, std::string& val)
+    {
+        return parcel.ReadString(val);
+    }
+
     template<typename T>
     static bool MarshallingArray(Parcel& parcel, const T* val, int count)
     {
