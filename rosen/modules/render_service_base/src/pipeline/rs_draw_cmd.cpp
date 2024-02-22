@@ -3250,9 +3250,6 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawSurfaceBufferOpItem::Clear()
 {
-#ifdef RS_ENABLE_VK
-    image_ = nullptr;
-#endif
 #ifdef RS_ENABLE_GL
     if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (texId_ != 0U) {
@@ -3304,11 +3301,9 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
     }
     Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
         Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (!image_) {
-        image_ = std::make_shared<Drawing::Image>();
-    }
+    auto image = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
-    if (!vkTextureInfo || !image_->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
+    if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
         new NativeBufferUtils::VulkanCleanupHelper(
             RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
@@ -3316,7 +3311,7 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         return;
     }
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
-    canvas->DrawImageRect(*image_, Rect{
+    canvas->DrawImageRect(*image, Rect{
         surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
         surfaceBufferInfo_.offSetX_ + surfaceBufferInfo_.width_,
         surfaceBufferInfo_.offSetY_ + surfaceBufferInfo_.height_},
