@@ -29,6 +29,8 @@ enum class AdapterType {
 enum class DrawingType {
     COMMON,
     RECORDING,
+    OVER_DRAW,
+    NO_DRAW
 };
 } // namespace Drawing
 } // namespace Rosen

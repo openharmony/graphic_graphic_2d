@@ -44,7 +44,7 @@ RSGPUOverdrawCanvasListener::RSGPUOverdrawCanvasListener(Drawing::Canvas& canvas
     auto surface = std::make_shared<Drawing::Surface>();
     surface->Bind(image);
     listenedSurface_ = surface;
-    overdrawCanvas_ = surface->GetCanvas();
+    overdrawCanvas_ = std::make_shared<Drawing::OverDrawCanvas>(surface->GetCanvas());
 }
 
 RSGPUOverdrawCanvasListener::~RSGPUOverdrawCanvasListener()
@@ -59,6 +59,11 @@ void RSGPUOverdrawCanvasListener::Draw()
         return;
     }
     Drawing::Brush brush;
+    auto overdrawColors = RSOverdrawController::GetInstance().GetColorArray();
+    auto colorFilter = Drawing::ColorFilter::CreateOverDrawColorFilter(overdrawColors.data());
+    Drawing::Filter filter;
+    filter.SetColorFilter(colorFilter);
+    brush.SetFilter(filter);
     canvas_.AttachBrush(brush);
     canvas_.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
     canvas_.DetachBrush();
@@ -242,45 +247,22 @@ void RSGPUOverdrawCanvasListener::Clear(Drawing::ColorQuad color)
     // need know canvas rect region
 }
 
-static constexpr Drawing::scalar overdrawColorMatix[Drawing::ColorMatrix::MATRIX_SIZE] = {
-    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 0.0f, 1.0f/255,
-};
-
 void RSGPUOverdrawCanvasListener::AttachPen(const Drawing::Pen& pen)
 {
-    if (overdrawPen_ == nullptr) {
-        overdrawPen_ = std::make_shared<Drawing::Pen>();
-
-        Drawing::Filter filter;
-        filter.SetColorFilter(Drawing::ColorFilter::CreateFloatColorFilter(overdrawColorMatix));
-        overdrawPen_->SetFilter(filter);
-        overdrawPen_->SetBlendMode(Drawing::BlendMode::PLUS);
-    }
     if (overdrawCanvas_ == nullptr) {
         ROSEN_LOGE("RSGPUOverdrawCanvasListener::AttachPen overdrawCanvas_ is nullptr");
         return;
     }
-    overdrawCanvas_->AttachPen(*overdrawPen_);
+    overdrawCanvas_->AttachPen(pen);
 }
 
 void RSGPUOverdrawCanvasListener::AttachBrush(const Drawing::Brush& brush)
 {
-    if (overdrawBrush_ == nullptr) {
-        overdrawBrush_ = std::make_shared<Drawing::Brush>();
-
-        Drawing::Filter filter;
-        filter.SetColorFilter(Drawing::ColorFilter::CreateFloatColorFilter(overdrawColorMatix));
-        overdrawBrush_->SetFilter(filter);
-        overdrawBrush_->SetBlendMode(Drawing::BlendMode::PLUS);
-    }
     if (overdrawCanvas_ == nullptr) {
         ROSEN_LOGE("RSGPUOverdrawCanvasListener::AttachBrush overdrawCanvas_ is nullptr");
         return;
     }
-    overdrawCanvas_->AttachBrush(*overdrawBrush_);
+    overdrawCanvas_->AttachBrush(brush);
 }
 
 void RSGPUOverdrawCanvasListener::DetachPen()

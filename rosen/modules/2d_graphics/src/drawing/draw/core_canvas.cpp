@@ -518,6 +518,23 @@ void CoreCanvas::AttachPaint()
         impl_->AttachPaint(paintPen_);
     }
 }
+
+void CoreCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
+{
+    if (impl_ && canvas) {
+        impl_->BuildOverDraw(canvas);
+    }
+}
+
+void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
+{
+    impl_->BuildNoDraw(width, height);
+}
+
+void CoreCanvas::Reset(int32_t width, int32_t height)
+{
+    impl_->Reset(width, height);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

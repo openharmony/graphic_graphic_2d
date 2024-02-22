@@ -44,6 +44,7 @@ public:
     void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE]) override;
     void Compose(const ColorFilter& f) override;
     void InitWithLuma() override;
+    void InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM]) override;
     sk_sp<SkColorFilter> GetColorFilter() const;
 
     /*

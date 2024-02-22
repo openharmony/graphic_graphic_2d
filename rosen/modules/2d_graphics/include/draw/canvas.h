@@ -77,6 +77,32 @@ protected:
     bool recordingState_ = false;
 };
 
+class DRAWING_API OverDrawCanvas : public Canvas {
+public:
+    OverDrawCanvas(std::shared_ptr<Drawing::Canvas> canvas)
+    {
+        BuildOverDraw(canvas);
+    }
+    virtual ~OverDrawCanvas() {}
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::OVER_DRAW;
+    }
+};
+
+class DRAWING_API NoDrawCanvas : public Canvas {
+public:
+    NoDrawCanvas(int32_t width, int32_t height)
+    {
+        BuildNoDraw(width, height);
+    }
+    ~NoDrawCanvas() override = default;
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::NO_DRAW;
+    }
+};
+
 class AutoCanvasRestore {
 public:
     AutoCanvasRestore(Canvas& canvas, bool doSave) : canvas_(canvas)

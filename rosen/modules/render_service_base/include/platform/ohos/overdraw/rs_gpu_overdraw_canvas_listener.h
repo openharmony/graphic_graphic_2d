@@ -71,10 +71,8 @@ public:
     void DetachBrush() override;
 
 private:
-    std::shared_ptr<Drawing::Pen> overdrawPen_ = nullptr;
-    std::shared_ptr<Drawing::Brush> overdrawBrush_ = nullptr;
     std::shared_ptr<Drawing::Surface> listenedSurface_ = nullptr;
-    std::shared_ptr<Drawing::Canvas> overdrawCanvas_ = nullptr;
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

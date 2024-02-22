@@ -61,6 +61,7 @@ class SaveLayerOps;
 enum class PointMode;
 enum class QuadAAFlags;
 struct Lattice;
+class Canvas;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -170,6 +171,12 @@ public:
 
     // paint
     virtual void AttachPaint(const Paint& paint) = 0;
+
+    virtual void BuildOverDraw(std::shared_ptr<Canvas> canvas) = 0;
+
+    virtual void BuildNoDraw(int32_t width, int32_t height) = 0;
+
+    virtual void Reset(int32_t width, int32_t height) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
