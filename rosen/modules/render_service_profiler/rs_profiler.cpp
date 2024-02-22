@@ -50,6 +50,13 @@ static NodeId g_playbackParentNodeId = 0;
 static int g_playbackPid = 0;
 static bool g_playbackShouldBeTerminated = false;
 
+#pragma pack(push, 1)
+struct AlignedMessageParcel {
+    uint8_t pad = 0u;
+    MessageParcel parcel;
+};
+#pragma pack(pop)
+
 namespace {
 pid_t GetPid(const std::shared_ptr<RSRenderNode>& node)
 {
@@ -114,10 +121,7 @@ void RSProfiler::Init(RSRenderService* renderService)
 {
     g_renderService = renderService;
     g_renderServiceThread = renderService ? RSMainThread::Instance() : nullptr;
-
-    if (g_renderServiceThread) {
-        g_renderServiceContext = &g_renderServiceThread->GetContext();
-    }
+    g_renderServiceContext = g_renderServiceThread ? &g_renderServiceThread->GetContext() : nullptr;
 
     static std::thread const THREAD(Network::Run);
 }
@@ -445,11 +449,10 @@ void RSProfiler::KillNode(const ArgList& args)
 void RSProfiler::AttachChild(const ArgList& args)
 {
     constexpr size_t parentIndex = 0;
-    auto parent = GetRenderNode(Utils::ComposeNodeId(args.Pid(parentIndex), args.Node(parentIndex + 1)));
-
     constexpr size_t childIndex = parentIndex + 2;
-    auto child = GetRenderNode(Utils::ComposeNodeId(args.Pid(childIndex), args.Node(childIndex + 1)));
 
+    auto parent = GetRenderNode(Utils::ComposeNodeId(args.Pid(parentIndex), args.Node(parentIndex + 1)));
+    auto child = GetRenderNode(Utils::ComposeNodeId(args.Pid(childIndex), args.Node(childIndex + 1)));
     if (parent && child) {
         parent->AddChild(child);
         AwakeRenderServiceThread();
@@ -485,19 +488,19 @@ void RSProfiler::GetRoot(const ArgList& /*args*/)
         std::string type;
         const RSRenderNodeType nodeType = node->GetType();
         if (nodeType == RSRenderNodeType::UNKNOW) {
-            type = "UNKNOWN";
+            type = "RS_UNKNOWN";
         } else if (nodeType == RSRenderNodeType::RS_NODE) {
             type = "RS_NONE";
         } else if (nodeType == RSRenderNodeType::DISPLAY_NODE) {
-            type = "DISPLAY_NODE";
+            type = "RS_DISPLAY_NODE";
         } else if (nodeType == RSRenderNodeType::SURFACE_NODE) {
-            type = "SURFACE_NODE";
+            type = "RS_SURFACE_NODE";
         } else if (nodeType == RSRenderNodeType::EFFECT_NODE) {
-            type = "EFFECT_NODE";
+            type = "RS_EFFECT_NODE";
         } else if (nodeType == RSRenderNodeType::ROOT_NODE) {
-            type = "ROOT_NODE";
+            type = "RS_ROOT_NODE";
         } else if (nodeType == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-            type = "CANVAS_DRAWING_NODE";
+            type = "RS_CANVAS_DRAWING_NODE";
         }
 
         if (!type.empty()) {
@@ -690,7 +693,7 @@ void RSProfiler::PlaybackUpdate()
         uint32_t code = 0;
         stream.read(reinterpret_cast<char*>(&code), sizeof(code));
 
-        int dataSize = 0;
+        int32_t dataSize = 0;
         stream.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
 
         auto* data = new uint8_t[dataSize];
@@ -702,13 +705,7 @@ void RSProfiler::PlaybackUpdate()
         int32_t waitTime = 0;
         stream.read(reinterpret_cast<char*>(&waitTime), sizeof(waitTime));
 
-#pragma pack(push, 1)
-        struct {
-            uint8_t dummy = 0u;
-            MessageParcel parcel;
-        } parcel;
-#pragma pack(pop)
-
+        AlignedMessageParcel parcel;
         parcel.parcel.WriteBuffer(data, dataSize);
 
         MessageOption option;
