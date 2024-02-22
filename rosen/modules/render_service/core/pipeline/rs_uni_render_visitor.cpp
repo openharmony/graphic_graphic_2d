@@ -2666,6 +2666,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                     RotateMirrorCanvasIfNeed(node);
                 }
                 PrepareOffscreenRender(*mirrorNode);
+                canvas_->SetDisableFilterCache(true);
                 ProcessChildren(*mirrorNode);
                 FinishOffscreenRender(true);
                 DrawWatermarkIfNeed(*mirrorNode, true);
@@ -2714,6 +2715,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                     RotateMirrorCanvasIfNeed(node);
                 }
                 PrepareOffscreenRender(*mirrorNode);
+                canvas_->SetDisableFilterCache(true);
                 ProcessChildren(*mirrorNode);
                 FinishOffscreenRender(true);
                 DrawWatermarkIfNeed(*mirrorNode, true);
