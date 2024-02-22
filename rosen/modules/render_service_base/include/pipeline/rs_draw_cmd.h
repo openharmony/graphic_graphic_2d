@@ -1967,9 +1967,6 @@ private:
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
 #endif
-#ifdef RS_ENABLE_VK
-    mutable std::shared_ptr<Image> image_ = nullptr;
-#endif
 #ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;

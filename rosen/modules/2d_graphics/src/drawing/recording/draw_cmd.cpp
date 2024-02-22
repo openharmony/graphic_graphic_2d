@@ -55,6 +55,13 @@ bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
 }
 }
 
+std::function<void (std::shared_ptr<Drawing::Image> image)> DrawOpItem::holdDrawingImagefunc_ = nullptr;
+void DrawOpItem::SetBaseCallback(
+    std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc)
+{
+    holdDrawingImagefunc_ = holdDrawingImagefunc;
+}
+
 void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush)
 {
     brush.SetBlendMode(brushHandle.mode);
@@ -690,6 +697,9 @@ DrawImageNineOpItem::DrawImageNineOpItem(const DrawCmdList& cmdList, DrawImageNi
     hasBrush_(handle->hasBrush)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(image_);
+    }
     if (hasBrush_) {
         BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
     }
@@ -730,6 +740,9 @@ DrawImageLatticeOpItem::DrawImageLatticeOpItem(
     hasBrush_(handle->hasBrush)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(image_);
+    }
     if (hasBrush_) {
         BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
     }
@@ -802,6 +815,9 @@ DrawImageOpItem::DrawImageOpItem(const DrawCmdList& cmdList, DrawImageOpItem::Co
       samplingOptions_(handle->samplingOptions)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(image_);
+    }
 }
 
 std::shared_ptr<DrawOpItem> DrawImageOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -835,6 +851,20 @@ DrawImageRectOpItem::DrawImageRectOpItem(const DrawCmdList& cmdList, DrawImageRe
       sampling_(handle->sampling), constraint_(handle->constraint), isForeground_(handle->isForeground)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(image_);
+    }
+}
+
+DrawImageRectOpItem::DrawImageRectOpItem(const Image& image, const Rect& src,
+    const Rect& dst, const SamplingOptions& sampling,
+    SrcRectConstraint constraint, const Paint& paint, bool isForeground)
+    : DrawWithPaintOpItem(paint, DrawOpItem::IMAGE_RECT_OPITEM), src_(src), dst_(dst), sampling_(sampling),
+    constraint_(constraint), image_(std::make_shared<Image>(image)), isForeground_(isForeground)
+{
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(image_);
+    }
 }
 
 std::shared_ptr<DrawOpItem> DrawImageRectOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -1854,6 +1884,9 @@ DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem(
 {
     if (isImage_) {
         image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+        if (DrawOpItem::holdDrawingImagefunc_) {
+            DrawOpItem::holdDrawingImagefunc_(image_);
+        }
     } else {
         data_ = CmdListHelper::GetCompressDataFromCmdList(cmdList, handle->image);
     }
