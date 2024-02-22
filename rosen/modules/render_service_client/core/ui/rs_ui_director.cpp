@@ -144,7 +144,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         if (surfaceNode) {
             surfaceNode->MarkUIHidden(true);
         }
-        if (isTextureExport) {
+        if (isTextureExport || isUniRenderEnabled_) {
             return;
         }
         // clean bufferQueue cache
