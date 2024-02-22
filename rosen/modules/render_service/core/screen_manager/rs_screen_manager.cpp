@@ -872,7 +872,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (screens_.count(id) == 0) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        RS_LOGW("[UL_POWER]RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return;
     }
     screens_.at(id)->SetPowerStatus(static_cast<uint32_t>(status));
@@ -896,7 +896,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
             mainThread->RequestNextVSync();
         }
 
-        RS_LOGD("RSScreenManager %{public}s: Set system power on, request a frame", __func__);
+        RS_LOGD("[UL_POWER]RSScreenManager %{public}s: Set system power on, request a frame", __func__);
     }
     screenPowerStatus_[id] = status;
 }

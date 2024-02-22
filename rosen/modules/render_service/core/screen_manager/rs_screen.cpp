@@ -331,12 +331,12 @@ int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
 void RSScreen::SetPowerStatus(uint32_t powerStatus)
 {
     if (IsVirtual()) {
-        RS_LOGW("RSScreen %{public}s: virtual screen not support SetPowerStatus.", __func__);
+        RS_LOGW("[UL_POWER]RSScreen %{public}s: virtual screen not support SetPowerStatus.", __func__);
         return;
     }
 
-    RS_LOGD("RSScreen_%{public}" PRIu64 " SetPowerStatus, status is %{public}u", id_, powerStatus);
-    RS_TRACE_NAME_FMT("Screen_%llu SetPowerStatus %u", id_, powerStatus);
+    RS_LOGI("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus, status is %{public}u", id_, powerStatus);
+    RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         return;
     }
