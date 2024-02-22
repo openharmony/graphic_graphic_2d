@@ -276,7 +276,11 @@ EGLint EglGetErrorImpl(void)
 
 static __eglMustCastToProperFunctionPointerType findBuiltinWrapper(const char* procname)
 {
+#if (defined(__aarch64__) || defined(__x86_64__))
     static void* dlglv3Handle = dlopen("/system/lib64/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+#else
+    static void* dlglv3Handle = dlopen("/system/lib/platformsdk/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+#endif
     void* proc = dlsym(dlglv3Handle, procname);
     if (proc) {
         return (__eglMustCastToProperFunctionPointerType)proc;
