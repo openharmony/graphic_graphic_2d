@@ -53,7 +53,7 @@ config("hdr_capability_napi_config") {
   ]
 }
 
-ohos_shared_library("hdr_capability_napi") {
+ohos_shared_library("hdrcapability_napi") {
   sources = [
     "hdr_capability_napi/hdr_capability_module.cpp",
     "hdr_capability_napi/js_hdr_capability.cpp",
