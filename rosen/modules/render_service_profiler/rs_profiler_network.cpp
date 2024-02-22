@@ -158,9 +158,8 @@ void Network::SendTelemetry(double startTime)
         }
     }
 
-    const double deltaTime = Utils::Now() - startTime;
     RSCaptureData captureData;
-    captureData.SetTime(deltaTime);
+    captureData.SetTime(Utils::Now() - startTime);
     captureData.SetProperty(RSCaptureData::KEY_CPU_TEMP, deviceInfo.cpu.temperature);
     captureData.SetProperty(RSCaptureData::KEY_CPU_CURRENT, deviceInfo.cpu.current);
     captureData.SetProperty(RSCaptureData::KEY_CPU_LOAD, load.str());
@@ -169,8 +168,8 @@ void Network::SendTelemetry(double startTime)
     captureData.SetProperty(RSCaptureData::KEY_GPU_FREQ, deviceInfo.gpu.frequency);
 
     std::vector<char> out;
-    const char headerType = 3; // TYPE: GFX METRICS
     captureData.Serialize(out);
+    const char headerType = 3; // TYPE: GFX METRICS
     out.insert(out.begin(), headerType);
     SendBinary(out.data(), out.size());
 }
@@ -218,31 +217,10 @@ void Network::PopCommand(std::string& command, std::vector<std::string>& args)
 
 void Network::ProcessCommand(const char* data, size_t size)
 {
-    std::vector<std::string> args;
-    int32_t end = size;
-    bool quote = false;
-    int32_t index = size - 1;
-    do {
-        if (data[index] == '\"') {
-            quote = !quote;
-        } else if (!quote && (data[index] == ' ')) {
-            if (end != (index + 1)) {
-                args.emplace_back(&data[index + 1], &data[end]);
-            }
-            end = index;
-        }
-        index--;
-    } while (index != -1);
-
-    if (index == -1) {
-        args.emplace_back(&data[index + 1], &data[end]);
-    }
-
+    const std::vector<std::string> args = Utils::Split({ data, size });
     if (args.empty()) {
         return;
     }
-
-    std::reverse(args.begin(), args.end());
 
     PushCommand(args);
     AwakeRenderServiceThread();
@@ -304,10 +282,10 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
     uint32_t imageCount = 0u;
     stream.read(reinterpret_cast<char*>(&imageCount), sizeof(imageCount));
     for (uint32_t i = 0; i < imageCount; i++) {
-        ImageCacheRecord record;
         uint64_t key = 0u;
-
         stream.read(reinterpret_cast<char*>(&key), sizeof(key));
+        
+        ImageCacheRecord record;
         stream.read(reinterpret_cast<char*>(&record.skipBytes), sizeof(record.skipBytes));
         stream.read(reinterpret_cast<char*>(&record.imageSize), sizeof(record.imageSize));
 
@@ -320,8 +298,8 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
 
 static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
 {
-    if (file.IsOpen() && (size > 0)) {
-        constexpr size_t timeOffset = 8 + 1;
+    constexpr size_t timeOffset = 8 + 1;
+    if (file.IsOpen() && (size >= timeOffset)) {
         const double time = *(reinterpret_cast<const double*>(data + 1));
         file.WriteRSData(time, const_cast<char*>(data) + timeOffset, size - timeOffset);
     }
