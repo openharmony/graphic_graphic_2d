@@ -18,7 +18,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -159,23 +161,24 @@ pid_t RSProfilerBase::SpecParsePidReplaceGet()
 
 void RSProfilerBase::ReplayImageAdd(uint64_t uniqueId, void* image, uint32_t imageSize, uint32_t skipBytes)
 {
-    if (g_mode != SpecParseMode::WRITE) {
+    if ((g_mode != SpecParseMode::WRITE) || (g_imageMap.count(uniqueId) > 0)) {
         return;
     }
 
-    if (g_imageMap.count(uniqueId) > 0) {
+    if (!image || !imageSize) {
         return;
     }
 
-    const std::shared_ptr<void> imageSaveData(new uint8_t[imageSize]);
-    memmove(imageSaveData.get(), image, imageSize);
+    if (auto imageData = new uint8_t[imageSize]) {
+        memmove_s(imageData, imageSize, image, imageSize);
 
-    ImageCacheRecord record;
-    record.image = imageSaveData;
-    record.imageSize = imageSize;
-    record.skipBytes = skipBytes;
+        ImageCacheRecord record;
+        record.image.reset(imageData);
+        record.imageSize = imageSize;
+        record.skipBytes = skipBytes;
 
-    g_imageMap.insert({ uniqueId, record });
+        g_imageMap.insert({ uniqueId, record });
+    }
 }
 
 ImageCacheRecord* RSProfilerBase::ReplayImageGet(uint64_t uniqueId)
@@ -258,7 +261,7 @@ Vector4f RSProfilerBase::GetScreenRect()
 
 void RSProfilerBase::TransactionDataOnProcess(RSContext& context)
 {
-    if (RSProfilerBase::SpecParseModeGet() != SpecParseMode::READ) { 
+    if (RSProfilerBase::SpecParseModeGet() != SpecParseMode::READ) {
         return;
     }
 
