@@ -230,7 +230,7 @@ public:
     void ApplyBoundsGeometry(RSPaintFilterCanvas& canvas);
     void ApplyAlpha(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
-    virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty = true) {}
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
 
     virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
@@ -449,8 +449,9 @@ public:
         GROUPED_BY_UI,
         GROUPED_BY_USER,
     };
-    void MarkNodeGroup(NodeGroupType type, bool isNodeGroup);
+    void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     NodeGroupType GetNodeGroupType();
+    bool IsNodeGroupIncludeProperty() const;
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
@@ -682,6 +683,7 @@ private:
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     NodeGroupType nodeGroupType_ = NodeGroupType::NONE;
+    bool nodeGroupIncludeProperty_ = false;
 
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;

@@ -322,7 +322,7 @@ public:
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     // Mark preferentially draw node and childrens
-    void MarkNodeGroup(bool isNodeGroup, bool isForced = true);
+    void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 

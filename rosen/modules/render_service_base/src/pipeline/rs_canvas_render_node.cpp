@@ -163,24 +163,36 @@ void RSCanvasRenderNode::DrawShadow(RSModifierContext& context, RSPaintFilterCan
     }
 }
 
-void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas)
+void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty)
 {
     auto parent = GetParent().lock();
     if (RSSystemProperties::GetUseShadowBatchingEnabled() && parent &&
         parent->GetRenderProperties().GetUseShadowBatching()) {
         DrawPropertyDrawableRange(
             RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::BG_SAVE_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        if (includeProperty) {
+            DrawPropertyDrawableRange(
+                RSPropertyDrawableSlot::BG_SAVE_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        } else {
+            DrawPropertyDrawableRange(
+                RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        }
     } else {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        if (includeProperty) {
+            DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::CLIP_TO_FRAME,
+                canvas);
+        } else {
+            DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::OUTLINE, canvas);
+            DrawPropertyDrawableRange(
+                RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        }
     }
 }
 
-void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas)
+void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        PropertyDrawableRender(canvas);
+        PropertyDrawableRender(canvas, includeProperty);
         return;
     }
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
@@ -248,7 +260,7 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
         return;
     }
     ProcessTransitionBeforeChildren(canvas);
-    ProcessAnimatePropertyBeforeChildren(canvas);
+    ProcessAnimatePropertyBeforeChildren(canvas, true);
 }
 
 void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)
