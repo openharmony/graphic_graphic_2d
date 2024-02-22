@@ -14,7 +14,8 @@
  */
 
 #include <securec.h>
-#include <surface.h>
+#include <surface_buffer.h>
+#include <message_parcel.h>
 #include <sys/mman.h>
 
 #include "ipc_file_descriptor.h"
@@ -28,12 +29,12 @@ namespace OHOS::Media {
 struct ImageSourceContext {
     ImageSourceContext(uint64_t id, Parcel& parcel) : id { id }, parcel { parcel } {}
 
-    static constexpr int HEADER_LENGTH = 24;
-    static constexpr int MAX_PICTURE_SIZE = 600 * 1024 * 1024;
+    static constexpr int headerLength = 24; // NOLINT
+    static constexpr int maxPictureSize = 600 * 1024 * 1024; // NOLINT
 
     bool GatherImageFromFile(Rosen::ImageCacheRecord* file)
     {
-        if (bufferSize <= 0 || bufferSize > ImageSourceContext::MAX_PICTURE_SIZE) {
+        if (bufferSize <= 0 || bufferSize > ImageSourceContext::maxPictureSize) {
             return false;
         }
         base = static_cast<uint8_t*>(malloc(bufferSize));
@@ -42,6 +43,7 @@ struct ImageSourceContext {
         }
         if (memmove_s(base, bufferSize, file->image.get(), bufferSize) != 0) {
             delete base;
+            base = nullptr;
             return false;
         }
 
@@ -149,8 +151,7 @@ bool ImageSource::UnmarshallingInitContext(ImageSourceContext& context)
     context.pixelMap->SetAstc(isAstc);
 
     context.allocType = static_cast<AllocatorType>(context.parcel.ReadInt32());
-    // helper.parcel.SkipBytes(sizeof(int32_t)); // unused csm
-    context.parcel.ReadInt32();
+    context.parcel.SkipBytes(sizeof(int32_t)); // unused csm
     int32_t rowDataSize = context.parcel.ReadInt32();
     context.bufferSize = context.parcel.ReadInt32();
     int32_t bytesPerPixel = GetPixelBytes(context.imgInfo.pixelFormat);
@@ -174,7 +175,7 @@ bool ImageSource::UnmarshallFromSharedMem(ImageSourceContext& context)
             if (!context.GatherImageFromFile(ptr)) {
                 return false;
             }
-            context.parcel.SkipBytes(ImageSourceContext::HEADER_LENGTH);
+            context.parcel.SkipBytes(ImageSourceContext::headerLength);
         } else {
             return false;
         }
@@ -188,7 +189,7 @@ bool ImageSource::UnmarshallFromSharedMem(ImageSourceContext& context)
             }
         }
 
-        Rosen::RSProfilerBase::ReplayImageAdd(context.id, ptr, context.bufferSize, context.HEADER_LENGTH);
+        Rosen::RSProfilerBase::ReplayImageAdd(context.id, ptr, context.bufferSize, context.headerLength);
 
         context.context = new int32_t();
         if (context.context == nullptr) {
