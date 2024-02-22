@@ -277,6 +277,10 @@ public:
 
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
+    void NotifySurfaceCapProcFinish();
+    void WaitUntilSurfaceCapProcFinished();
+    void SetSurfaceCapProcFinished(bool flag);
+
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
     bool GetParallelCompositionEnabled();
     std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
@@ -405,6 +409,10 @@ private:
     std::mutex unmarshalMutex_;
     int32_t unmarshalFinishedCount_ = 0;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
+
+    std::condition_variable surfaceCapProcTaskCond_;
+    std::mutex surfaceCapProcMutex_;
+    bool surfaceCapProcFinished_ = true;
 
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
     RSTaskMessage::RSTask uploadTextureBarrierTask_;

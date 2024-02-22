@@ -54,11 +54,13 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 {
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
         RS_LOGE("RSSurfaceCaptureTask::Run: SurfaceCapture scale is invalid.");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: node is nullptr");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
@@ -73,10 +75,12 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         visitor_->IsDisplayNode(true);
     } else {
         RS_LOGE("RSSurfaceCaptureTask::Run: Invalid RSRenderNodeType!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     if (pixelmap == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: pixelmap == nullptr!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -122,6 +126,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     auto skSurface = CreateSurface(pixelmap);
     if (skSurface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     visitor_->SetSurface(skSurface.get());
@@ -129,11 +134,13 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     auto surface = CreateSurface(pixelmap);
     if (surface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     visitor_->SetSurface(surface.get());
 #endif
     node->Process(visitor_);
+    RSMainThread::Instance()->NotifySurfaceCapProcFinish();
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_UNI_RENDER

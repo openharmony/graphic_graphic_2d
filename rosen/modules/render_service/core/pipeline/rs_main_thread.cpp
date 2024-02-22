@@ -131,6 +131,7 @@ constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
+constexpr uint32_t WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT = 1000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
@@ -264,6 +265,9 @@ void RSMainThread::Init()
     mainLoop_ = [&]() {
         mainLooping_.store(true);
         RenderFrameStart(timestamp_);
+#if defined(RS_ENABLE_UNI_RENDER)
+        WaitUntilSurfaceCapProcFinished();
+#endif
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
@@ -1361,6 +1365,36 @@ void RSMainThread::NotifyDisplayNodeBufferReleased()
     std::lock_guard<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = true;
     displayNodeBufferReleasedCond_.notify_one();
+}
+
+void RSMainThread::NotifySurfaceCapProcFinish()
+{
+    RS_TRACE_NAME("RSMainThread::NotifySurfaceCapProcFinish");
+    std::lock_guard<std::mutex> lock(surfaceCapProcMutex_);
+    surfaceCapProcFinished_ = true;
+    surfaceCapProcTaskCond_.notify_one();
+}
+
+void RSMainThread::WaitUntilSurfaceCapProcFinished()
+{
+    if (GetDeviceType() != DeviceType::PHONE) {
+        return;
+    }
+    std::unique_lock<std::mutex> lock(surfaceCapProcMutex_);
+    if (surfaceCapProcFinished_) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilSurfaceCapProcFinished");
+    surfaceCapProcTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT),
+        [this]() { return surfaceCapProcFinished_; });
+    RS_OPTIONAL_TRACE_END();
+}
+
+void RSMainThread::SetSurfaceCapProcFinished(bool flag)
+{
+    std::lock_guard<std::mutex> lock(surfaceCapProcMutex_);
+    surfaceCapProcFinished_ = flag;
 }
 
 void RSMainThread::NotifyDrivenRenderFinish()
