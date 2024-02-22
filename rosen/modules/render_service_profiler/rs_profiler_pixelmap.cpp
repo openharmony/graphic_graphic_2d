@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include "rs_profiler_pixelmap.h"
-
 #include <securec.h>
 #include <surface.h>
 #include <sys/mman.h>
@@ -23,8 +21,43 @@
 #include "media_errors.h"
 #include "pixel_map.h"
 #include "rs_profiler_base.h"
+#include "rs_profiler_utils.h"
 
 namespace OHOS::Media {
+
+struct ImageSourceContext {
+    ImageSourceContext(uint64_t id, Parcel& parcel) : id { id }, parcel { parcel } {}
+
+    static constexpr int HEADER_LENGTH = 24;
+    static constexpr int MAX_PICTURE_SIZE = 600 * 1024 * 1024;
+
+    bool GatherImageFromFile(Rosen::ImageCacheRecord* file)
+    {
+        if (bufferSize <= 0 || bufferSize > ImageSourceContext::MAX_PICTURE_SIZE) {
+            return false;
+        }
+        base = static_cast<uint8_t*>(malloc(bufferSize));
+        if (!base) {
+            return false;
+        }
+        if (memmove_s(base, bufferSize, file->image.get(), bufferSize) != 0) {
+            delete base;
+            return false;
+        }
+
+        context = nullptr;
+        return true;
+    }
+
+    uint64_t id = 0;
+    Parcel& parcel;
+    std::unique_ptr<PixelMap> pixelMap = std::make_unique<Media::PixelMap>();
+    ImageInfo imgInfo;
+    AllocatorType allocType = AllocatorType::DEFAULT;
+    int32_t bufferSize = 0;
+    uint8_t* base = nullptr;
+    void* context = nullptr;
+};
 
 // This class has to be 'reimplemented' here to get access to the PixelMap's private functions.
 // It works ONLY thanks to the 'friend class ImageSource' in PixelMap.
@@ -36,8 +69,13 @@ public:
 
 private:
     // See foundation/multimedia/image_framework/frameworks/innerkitsimpl/utils/include/image_utils.h
-    static int32_t SurfaceBufferReference(void* buffer);
     static int32_t GetPixelBytes(const PixelFormat& pixelFormat);
+    static int32_t SurfaceBufferReference(void* buffer);
+
+    static bool UnmarshallingInitContext(ImageSourceContext& context);
+    static bool UnmarshallFromSharedMem(ImageSourceContext& context);
+    static bool UnmarshallFromDMA(ImageSourceContext& context);
+    static PixelMap* UnmarshallingFinalize(ImageSourceContext& context);
 };
 
 int32_t ImageSource::GetPixelBytes(const PixelFormat& pixelFormat)
@@ -95,146 +133,161 @@ int32_t ImageSource::SurfaceBufferReference(void* buffer)
     return SUCCESS;
 }
 
+bool ImageSource::UnmarshallingInitContext(ImageSourceContext& context)
+{
+    if (!context.pixelMap) {
+        return false;
+    }
+
+    if (!context.pixelMap->ReadImageInfo(context.parcel, context.imgInfo)) {
+        return false;
+    }
+
+    context.pixelMap->SetEditable(context.parcel.ReadBool());
+
+    const bool isAstc = context.parcel.ReadBool();
+    context.pixelMap->SetAstc(isAstc);
+
+    context.allocType = static_cast<AllocatorType>(context.parcel.ReadInt32());
+    // helper.parcel.SkipBytes(sizeof(int32_t)); // unused csm
+    context.parcel.ReadInt32();
+    int32_t rowDataSize = context.parcel.ReadInt32();
+    context.bufferSize = context.parcel.ReadInt32();
+    int32_t bytesPerPixel = GetPixelBytes(context.imgInfo.pixelFormat);
+    if (bytesPerPixel == 0) {
+        return false;
+    }
+    if ((!isAstc) && context.bufferSize != rowDataSize * context.imgInfo.size.height) {
+        return false;
+    }
+
+    return true;
+}
+
+bool ImageSource::UnmarshallFromSharedMem(ImageSourceContext& context)
+{
+    int fd = context.pixelMap->ReadFileDescriptor(context.parcel);
+    if (fd < 0) {
+        Rosen::ImageCacheRecord* ptr = Rosen::RSProfilerBase::ReplayImageGet(context.id);
+
+        if (ptr != nullptr && static_cast<uint32_t>(context.bufferSize) == ptr->imageSize) {
+            if (!context.GatherImageFromFile(ptr)) {
+                return false;
+            }
+            context.parcel.SkipBytes(ImageSourceContext::HEADER_LENGTH);
+        } else {
+            return false;
+        }
+    } else {
+        void* ptr = ::mmap(nullptr, context.bufferSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        if (ptr == MAP_FAILED) { // NOLINT
+            ptr = ::mmap(nullptr, context.bufferSize, PROT_READ, MAP_SHARED, fd, 0);
+            if (ptr == MAP_FAILED) { // NOLINT
+                ::close(fd);
+                return false;
+            }
+        }
+
+        Rosen::RSProfilerBase::ReplayImageAdd(context.id, ptr, context.bufferSize, context.HEADER_LENGTH);
+
+        context.context = new int32_t();
+        if (context.context == nullptr) {
+            ::munmap(ptr, context.bufferSize);
+            ::close(fd);
+            return false;
+        }
+        *static_cast<int32_t*>(context.context) = fd;
+        context.base = static_cast<uint8_t*>(ptr);
+    }
+    return true;
+}
+
+bool ImageSource::UnmarshallFromDMA(ImageSourceContext& context)
+{
+    Rosen::ImageCacheRecord* ptr = Rosen::RSProfilerBase::ReplayImageGet(context.id);
+
+    if (ptr == nullptr) {
+        const size_t size1 = context.parcel.GetReadableBytes();
+
+        // original code
+        sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+        surfaceBuffer->ReadFromMessageParcel(static_cast<MessageParcel&>(context.parcel));
+        auto* virAddr = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
+        void* nativeBuffer = surfaceBuffer.GetRefPtr();
+        SurfaceBufferReference(nativeBuffer);
+        context.base = virAddr;
+        context.context = nativeBuffer;
+
+        const size_t size2 = context.parcel.GetReadableBytes();
+
+        Rosen::RSProfilerBase::ReplayImageAdd(context.id, virAddr, context.bufferSize, size1 - size2);
+    } else {
+        context.allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+        context.parcel.SkipBytes(ptr->skipBytes);
+        if (!context.GatherImageFromFile(ptr)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+PixelMap* ImageSource::UnmarshallingFinalize(ImageSourceContext& context)
+{
+    uint32_t ret = context.pixelMap->SetImageInfo(context.imgInfo);
+    if (ret != SUCCESS) {
+        if (context.pixelMap->freePixelMapProc_ != nullptr) {
+            context.pixelMap->freePixelMapProc_(context.base, context.context, context.bufferSize);
+        }
+        context.pixelMap->ReleaseMemory(context.allocType, context.base, context.context, context.bufferSize);
+        if (context.allocType == AllocatorType::SHARE_MEM_ALLOC && context.context != nullptr) {
+            delete static_cast<int32_t*>(context.context);
+        }
+
+        return nullptr;
+    }
+    context.pixelMap->SetPixelsAddr(context.base, context.context, context.bufferSize, context.allocType, nullptr);
+    if (!context.pixelMap->ReadTransformData(context.parcel, context.pixelMap.get())) {
+        return nullptr;
+    }
+    if (!context.pixelMap->ReadAstcRealSize(context.parcel, context.pixelMap.get())) {
+        return nullptr;
+    }
+
+    return context.pixelMap.release();
+}
+
 PixelMap* ImageSource::Unmarshalling(uint64_t id, Parcel& parcel)
 {
-    auto* pixelMap = new PixelMap();
-    if (!pixelMap) {
+    ImageSourceContext context { id, parcel };
+
+    if (!UnmarshallingInitContext(context)) {
         return nullptr;
     }
 
-    ImageInfo imgInfo;
-    if (!pixelMap->ReadImageInfo(parcel, imgInfo)) {
-        delete pixelMap;
-        return nullptr;
-    }
-
-    pixelMap->SetEditable(parcel.ReadBool());
-
-    const bool isAstc = parcel.ReadBool();
-    pixelMap->SetAstc(isAstc);
-
-    auto allocType = static_cast<AllocatorType>(parcel.ReadInt32());
-    /*int32_t csm =*/parcel.ReadInt32();
-    int32_t rowDataSize = parcel.ReadInt32();
-    int32_t bufferSize = parcel.ReadInt32();
-    int32_t bytesPerPixel = GetPixelBytes(imgInfo.pixelFormat);
-    if (bytesPerPixel == 0) {
-        delete pixelMap;
-        return nullptr;
-    }
-    if ((!isAstc) && bufferSize != rowDataSize * imgInfo.size.height) {
-        delete pixelMap;
-        return nullptr;
-    }
-    uint8_t* base = nullptr;
-    void* context = nullptr;
 #if !defined(_WIN32) && !defined(_APPLE) && !defined(IOS_PLATFORM) && !defined(A_PLATFORM)
-    constexpr int headerLength = 24;
-    if (allocType == AllocatorType::SHARE_MEM_ALLOC) {
-        int fd = pixelMap->ReadFileDescriptor(parcel);
-        if (fd < 0) {
-            Rosen::ReplayImageCacheRecord* ptr = Rosen::RSProfilerBase::ReplayImageGet(id);
-
-            if (ptr != nullptr && static_cast<uint32_t>(bufferSize) == ptr->imageSize) {
-                // get image from file
-                base = static_cast<uint8_t*>(malloc(bufferSize));
-                memmove(base, ptr->image.get(), bufferSize);
-                context = nullptr;
-
-                parcel.SkipBytes(headerLength);
-            } else {
-                delete pixelMap;
-                return nullptr;
-            }
-        } else {
-            void* ptr = ::mmap(nullptr, bufferSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-            if (ptr == MAP_FAILED) { // NOLINT
-                ptr = ::mmap(nullptr, bufferSize, PROT_READ, MAP_SHARED, fd, 0);
-                if (ptr == MAP_FAILED) { // NOLINT
-                    ::close(fd);
-                    delete pixelMap;
-                    return nullptr;
-                }
-            }
-
-            Rosen::RSProfilerBase::ReplayImageAdd(id, ptr, bufferSize, headerLength);
-
-            context = new int32_t();
-            if (context == nullptr) {
-                ::munmap(ptr, bufferSize);
-                ::close(fd);
-                delete pixelMap;
-                return nullptr;
-            }
-            *static_cast<int32_t*>(context) = fd;
-            base = static_cast<uint8_t*>(ptr);
+    if (context.allocType == AllocatorType::SHARE_MEM_ALLOC) {
+        if (!UnmarshallFromSharedMem(context)) {
+            return nullptr;
         }
-    } else if (allocType == AllocatorType::DMA_ALLOC) {
-        Rosen::ReplayImageCacheRecord* ptr = Rosen::RSProfilerBase::ReplayImageGet(id);
-
-        if (ptr == nullptr) {
-            const size_t size1 = parcel.GetReadableBytes();
-
-            // original code
-            sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
-            surfaceBuffer->ReadFromMessageParcel(static_cast<MessageParcel&>(parcel));
-            auto* virAddr = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
-            void* nativeBuffer = surfaceBuffer.GetRefPtr();
-            SurfaceBufferReference(nativeBuffer);
-            base = virAddr;
-            context = nativeBuffer;
-
-            const size_t size2 = parcel.GetReadableBytes();
-
-            Rosen::RSProfilerBase::ReplayImageAdd(id, virAddr, bufferSize, size1 - size2);
-
-        } else {
-            allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
-
-            parcel.SkipBytes(ptr->skipBytes);
-
-            base = static_cast<uint8_t*>(malloc(bufferSize));
-            memmove(base, ptr->image.get(), bufferSize);
-            context = nullptr;
+    } else if (context.allocType == AllocatorType::DMA_ALLOC) {
+        if (!UnmarshallFromDMA(context)) {
+            return nullptr;
         }
-
     } else {
-        base = pixelMap->ReadImageData(parcel, bufferSize);
-        if (base == nullptr) {
-            delete pixelMap;
+        context.base = context.pixelMap->ReadImageData(parcel, context.bufferSize);
+        if (context.base == nullptr) {
             return nullptr;
         }
     }
 #else
     base = ReadImageData(parcel, bufferSize);
     if (base == nullptr) {
-        delete pixelMap;
-        return nullptr;
+        return false;
     }
 #endif
 
-    uint32_t ret = pixelMap->SetImageInfo(imgInfo);
-    if (ret != SUCCESS) {
-        if (pixelMap->freePixelMapProc_ != nullptr) {
-            pixelMap->freePixelMapProc_(base, context, bufferSize);
-        }
-        pixelMap->ReleaseMemory(allocType, base, context, bufferSize);
-        if (allocType == AllocatorType::SHARE_MEM_ALLOC && context != nullptr) {
-            delete static_cast<int32_t*>(context);
-        }
-        delete pixelMap;
-        return nullptr;
-    }
-    pixelMap->SetPixelsAddr(base, context, bufferSize, allocType, nullptr);
-    if (!pixelMap->ReadTransformData(parcel, pixelMap)) {
-        delete pixelMap;
-        return nullptr;
-    }
-    if (!pixelMap->ReadAstcRealSize(parcel, pixelMap)) {
-        delete pixelMap;
-        return nullptr;
-    }
-    return pixelMap;
+    return UnmarshallingFinalize(context);
 }
 
 } // namespace OHOS::Media
@@ -243,14 +296,9 @@ namespace OHOS::Rosen {
 
 using PixelMapHelper = OHOS::Media::ImageSource;
 
-OHOS::Media::PixelMap* RSProfilerPixelMap::Unmarshalling(Parcel& parcel)
+OHOS::Media::PixelMap* RSProfilerBase::PixelMapUnmarshalling(Parcel& parcel)
 {
-    constexpr uint32_t bits32 = 32u;
-
-    const uint32_t high = parcel.ReadInt32();
-    const uint32_t low = parcel.ReadInt32();
-    const uint64_t id = (static_cast<uint64_t>(high) << bits32) | low;
-
+    const uint64_t id = Utils::ComposeNodeId(parcel.ReadInt32(), parcel.ReadInt32());
     return PixelMapHelper::Unmarshalling(id, parcel);
 }
 
