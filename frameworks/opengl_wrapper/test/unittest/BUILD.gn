@@ -21,6 +21,12 @@ group("unittest") {
   deps = [ ":opengl_wrapper_unit_test" ]
 }
 
+group("blobunittest") {
+  testonly = true
+
+  deps = [ ":opengl_wrapper_blob_unit_test" ]
+}
+
 ohos_unittest("opengl_wrapper_unit_test") {
   module_out_path = module_out_path
   sources = [
@@ -32,6 +38,12 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "egl_wrapper_loader_test.cpp",
     "thread_private_data_ctl_test.cpp",
   ]
+  deps = [ ":opengl_wrapper_test_common" ]
+}
+
+ohos_unittest("opengl_wrapper_blob_unit_test") {
+  module_out_path = module_out_path
+  sources = [ "egl_blob_test.cpp" ]
   deps = [ ":opengl_wrapper_test_common" ]
 }
 
