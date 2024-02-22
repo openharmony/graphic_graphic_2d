@@ -62,6 +62,10 @@ public:
     void SetStatus(bool status);
     GSError OnConsumerDied();
     GSError GoBackground();
+    void ConsumerRequestCpuAccess(bool on)
+    {
+        bufferQueue_->ConsumerRequestCpuAccess(on);
+    }
 
 private:
     sptr<BufferQueue> bufferQueue_ = nullptr;

@@ -261,6 +261,7 @@ using SurfaceBufferUsage = enum {
     BUFFER_USAGE_VIDEO_ENCODER = (1ULL << 14),  /**< For encode case */
     BUFFER_USAGE_VIDEO_DECODER = (1ULL << 15),  /**< For decode case */
     BUFFER_USAGE_CPU_READ_OFTEN = (1ULL << 16), /**< CPU read often buffer */
+    BUFFER_USAGE_CPU_HW_BOTH = (1ULL << 17), /**< CPU read often buffer */
     BUFFER_USAGE_VENDOR_PRI0 = (1ULL << 44),    /**< Reserverd for vendor */
     BUFFER_USAGE_VENDOR_PRI1 = (1ULL << 45),    /**< Reserverd for vendor */
     BUFFER_USAGE_VENDOR_PRI2 = (1ULL << 46),    /**< Reserverd for vendor */

@@ -126,6 +126,7 @@ public:
     GSError RegisterUserDataChangeListener(const std::string &funcName, OnUserDataChangeFunc func) override;
     GSError UnRegisterUserDataChangeListener(const std::string &funcName) override;
     GSError ClearUserDataChangeListener() override;
+    void ConsumerRequestCpuAccess(bool on) override;
 
 private:
     std::map<std::string, std::string> userData_;
