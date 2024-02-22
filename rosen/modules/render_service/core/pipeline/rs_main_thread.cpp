@@ -303,6 +303,14 @@ void RSMainThread::Init()
 #endif
         mainLooping_.store(false);
     };
+    static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
+        [] (std::shared_ptr<Drawing::Image> image) -> void {
+            if (image) {
+                SKResourceManager::Instance().HoldResource(image);
+            }
+        };
+    Drawing::DrawOpItem::SetBaseCallback(holdDrawingImagefunc);
+
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     qosPidCal_ = deviceType_ == DeviceType::PC;
