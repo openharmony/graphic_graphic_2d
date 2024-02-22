@@ -67,6 +67,8 @@ enum RSNodeCommandType : uint16_t {
 
     MARK_NODE_GROUP,
     MARK_NODE_SINGLE_FRAME_COMPOSER,
+
+    SET_NODE_NAME,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -130,6 +132,7 @@ public:
     }
 
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
+    static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
@@ -223,6 +226,8 @@ ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
 
 ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
+ADD_COMMAND(RSSetNodeName,
+    ARG(RS_NODE, SET_NODE_NAME, RSNodeCommandHelper::SetNodeName, NodeId, std::string))
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(RS_NODE, MARK_NODE_GROUP, RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,

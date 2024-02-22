@@ -1229,6 +1229,7 @@ void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
+        RSPropertyTrace::GetInstance().TracePropertiesByNodeName(GetId(), GetNodeName(), GetRenderProperties());
     }
 }
 
@@ -2622,6 +2623,14 @@ void RSRenderNode::SetStaticCached(bool isStaticCached)
 bool RSRenderNode::IsStaticCached() const
 {
     return isStaticCached_;
+}
+void RSRenderNode::SetNodeName(const std::string& nodeName)
+{
+    nodeName_ = nodeName;
+}
+const std::string& RSRenderNode::GetNodeName() const
+{
+    return nodeName_;
 }
 void RSRenderNode::UpdateCompletedCacheSurface()
 {
