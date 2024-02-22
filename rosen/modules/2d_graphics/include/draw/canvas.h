@@ -77,6 +77,19 @@ protected:
     bool recordingState_ = false;
 };
 
+class DRAWING_API OverDrawCanvas : public Canvas {
+public:
+    OverDrawCanvas(std::shared_ptr<Drawing::Canvas> canvas)
+    {
+        BuildOverDraw(canvas);
+    }
+    virtual ~OverDrawCanvas() {}
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::OVER_DRAW;
+    }
+};
+
 class AutoCanvasRestore {
 public:
     AutoCanvasRestore(Canvas& canvas, bool doSave) : canvas_(canvas)
