@@ -35,6 +35,7 @@ namespace Rosen {
 
 enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_CREATE,
+    SURFACE_NODE_CREATE_WITH_CONFIG,
     SURFACE_NODE_SET_CONTEXT_MATRIX,
     SURFACE_NODE_SET_CONTEXT_ALPHA,
     SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
@@ -66,6 +67,8 @@ class RSB_EXPORT SurfaceNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId nodeId,
         RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::DEFAULT, bool isTextureExportNode = false);
+    static void CreateWithConfig(
+        RSContext& context, NodeId nodeId, std::string name, uint8_t type, std::string bundleName);
 #ifndef USE_ROSEN_DRAWING
     static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<SkMatrix>& matrix);
 #else
@@ -105,6 +108,9 @@ public:
 
 ADD_COMMAND(RSSurfaceNodeCreate,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
+ADD_COMMAND(RSSurfaceNodeCreateWithConfig,
+    ARG(SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG, SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string,
+        uint8_t, std::string))
 #ifndef USE_ROSEN_DRAWING
 ADD_COMMAND(
     RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,

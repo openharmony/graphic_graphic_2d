@@ -78,9 +78,15 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         "isWindow %{public}d %{public}d ", config.name.c_str(), config.bundleName.c_str(),
         config.nodeType, isWindow, node->IsRenderServiceNode());
 
-    if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {
-        ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
-        return nullptr;
+    if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
+            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.bundleName);
+        transactionProxy->AddCommand(command, isWindow);
+    } else {
+        if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {
+            ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
+            return nullptr;
+        }
     }
 
     node->SetClipToFrame(true);
