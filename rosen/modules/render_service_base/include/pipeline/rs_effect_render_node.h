@@ -72,8 +72,9 @@ private:
 
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;
+    bool preRotationStatus_ = false;
     int invalidateTimes_ = 0;
-    static int cacheUpdateInterval_;
+    int cacheUpdateInterval_ = 1;
 };
 } // namespace Rosen
 } // namespace OHOS

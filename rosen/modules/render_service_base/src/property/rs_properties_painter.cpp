@@ -1296,6 +1296,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
         auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>();
         if (effectNode == nullptr) {
             ROSEN_LOGE("DrawBackgroundEffect::node reinterpret cast failed.");
+            return;
         }
         // node is freeze or screen rotating, force cache filterred snapshot.
         auto forceCacheFlags = std::make_tuple(effectNode->IsStaticCached(), effectNode->GetRotationChanged());
