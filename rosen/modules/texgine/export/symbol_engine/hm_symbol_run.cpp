@@ -98,6 +98,7 @@ bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrate
     std::vector<RSRenderGroup>& renderGroups)
 #endif
 {
+#if !defined(BUILD_SDK_ANDROID) && !defined(BUILD_SDK_IOS)
 #ifndef USE_ROSEN_DRAWING
     AnimationSetting animationSetting;
 #else
@@ -124,6 +125,7 @@ bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrate
             return true;
         }
     }
+#endif
     return false;
 }
 
