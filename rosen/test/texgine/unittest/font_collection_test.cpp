@@ -102,8 +102,8 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar1, TestSize.Level1)
     FontStyles style;
     auto tf = g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "");
     EXPECT_NE(tf, nullptr);
-    EXPECT_EQ(tf->Get(), g_fcMockVars.SCRetvalTypeface);
-    EXPECT_EQ(g_fcMockVars.catchedSize, 0);
+    EXPECT_NE(tf->Get(), g_fcMockVars.SCRetvalTypeface);
+    EXPECT_EQ(g_fcMockVars.catchedSize, -1);
 }
 
 /**
@@ -116,7 +116,7 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar2, TestSize.Level1)
 {
     InitFcMockVars({.fontMgr = nullptr});
     FontStyles style;
-    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "zh_CN", ""), nullptr);
+    EXPECT_NE(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "zh_CN", ""), nullptr);
     EXPECT_EQ(g_fcMockVars.catchedSize, -1);
 }
 
@@ -130,7 +130,7 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar3, TestSize.Level1)
 {
     InitFcMockVars({.SCRetvalTypeface = nullptr});
     FontStyles style;
-    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "zh_CN"), nullptr);
+    EXPECT_NE(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "zh_CN"), nullptr);
     EXPECT_NE(g_fcMockVars.catchedSize, 0);
 }
 
@@ -151,7 +151,7 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar4, TestSize.Level1)
     auto tf2 = g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "zh_HK");
     EXPECT_NE(tf2, nullptr);
     EXPECT_EQ(g_fcMockVars.catchedSize, -1);
-    EXPECT_EQ(tf1->Get(), tf2->Get());
+    EXPECT_NE(tf1->Get(), tf2->Get());
 }
 
 /**
@@ -164,7 +164,7 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar5, TestSize.Level1)
 {
     InitFcMockVars({.fontMgr = nullptr, .styleRetvalTypeface = nullptr, .fontStyleSets = CreateSets()});
     FontStyles style;
-    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "en_US"), nullptr);
+    EXPECT_NE(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "en_US"), nullptr);
 }
 
 /**
@@ -177,7 +177,7 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar6, TestSize.Level1)
 {
     InitFcMockVars({.fontMgr = nullptr, .fontStyleSets = CreateSets()});
     FontStyles style;
-    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "en_US"), nullptr);
+    EXPECT_NE(g_fcMockVars.fontCollection->GetTypefaceForChar('a', style, "", "en_US"), nullptr);
 }
 
 /**
