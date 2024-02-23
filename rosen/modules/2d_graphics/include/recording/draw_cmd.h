@@ -126,7 +126,7 @@ public:
     const DrawCmdList& cmdList_;
 
 private:
-    static std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
+    static std::unordered_map<uint32_t, UnmarshallingFunc>* opUnmarshallingFuncLUT_;
 };
 
 class GenerateCachedOpItemPlayer {
