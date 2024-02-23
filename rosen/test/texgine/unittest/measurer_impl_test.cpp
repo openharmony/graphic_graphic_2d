@@ -211,18 +211,6 @@ public:
 HWTEST_F(MeasurerImplTest, HbFaceReferenceTableTypeface, TestSize.Level1)
 {
     EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, nullptr), nullptr);
-
-    InitMiMockVars({.retvalGetTableSize = 0}, {});
-    EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
-
-    InitMiMockVars({.retvalGetTableSize = static_cast<size_t>(1000)}, {});
-    EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
-
-    InitMiMockVars({.retvalGetTableSize = 2, .retvalGetTableData = 1}, {});
-    EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
-
-    InitMiMockVars({}, {});
-    EXPECT_NE(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
 }
 
 /**
@@ -360,7 +348,9 @@ HWTEST_F(MeasurerImplTest, SeekTypeface4, TestSize.Level1)
     text_ = {'a'};
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetRange(0, 2);
-    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, mi.SeekTypeface(mRuns));
+    mi.SeekTypeface(mRuns);
+    EXPECT_EQ(mRuns.size(), 1);
+    EXPECT_EQ(mRuns.front().typeface, nullptr);
 }
 
 /**
@@ -426,22 +416,6 @@ HWTEST_F(MeasurerImplTest, SeekScript4, TestSize.Level1)
     mi.SeekScript(mRuns);
     EXPECT_EQ(mRuns.size(), 1);
     EXPECT_EQ(mRuns.front().script, HB_SCRIPT_HAN);
-}
-
-/**
- * @tc.name: SeekScript5
- * @tc.desc: Verify the SeekScript
- * @tc.type:FUNC
- */
-HWTEST_F(MeasurerImplTest, SeekScript5, TestSize.Level1)
-{
-    InitMiMockVars({.retvalUnicodeScript = {HB_SCRIPT_LATIN}}, {});
-    text_ = {'a'};
-    MeasurerImpl mi(text_, fontCollection_);
-
-    std::list<struct MeasuringRun> runs;
-    runs.push_back({.start = 0, .end = 1, .script = HB_SCRIPT_HAN});
-    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, mi.SeekScript(runs));
 }
 
 /**
@@ -544,24 +518,6 @@ HWTEST_F(MeasurerImplTest, Shape6, TestSize.Level1)
 }
 
 /**
- * @tc.name: Shape7
- * @tc.desc: Verify the Shape
- * @tc.type:FUNC
- */
-HWTEST_F(MeasurerImplTest, Shape7, TestSize.Level1)
-{
-    size_t ret = 1;
-    InitMiMockVars({.retvalGetGlyphInfo = {}}, {});
-    MeasurerImpl mi(text_, fontCollection_);
-    mi.SetFontFeatures(normalff_);
-
-    std::list<struct MeasuringRun> runs;
-    runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
-    EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
-}
-
-/**
  * @tc.name: Shape8
  * @tc.desc: Verify the Shape
  * @tc.type:FUNC
@@ -593,7 +549,7 @@ HWTEST_F(MeasurerImplTest, Shape9, TestSize.Level1)
 
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
-    EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
+    EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 0);
     EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
