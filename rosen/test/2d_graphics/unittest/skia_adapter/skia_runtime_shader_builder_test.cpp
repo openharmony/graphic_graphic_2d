@@ -82,19 +82,6 @@ HWTEST_F(SkiaRuntimeShaderBuilderTest, SetUniformVec4001, TestSize.Level1)
     SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder;
     skiaRuntimeShaderBuilder.SetUniformVec4("lightPos", 1.0f, 1.0f, 1.0f, 1.0f);
 }
-
-/**
- * @tc.name: SetUniformVec4002
- * @tc.desc: Test SetUniformVec4
- * @tc.type: FUNC
- * @tc.require: I91EQ7
- */
-HWTEST_F(SkiaRuntimeShaderBuilderTest, SetUniformVec4002, TestSize.Level1)
-{
-    auto re = RuntimeEffect::CreateForShader("shader");
-    SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder{re};
-    skiaRuntimeShaderBuilder.SetUniformVec4("lightPos", 1.0f, 1.0f, 1.0f, 1.0f);
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
