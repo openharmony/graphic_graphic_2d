@@ -799,7 +799,7 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
                 if ((*iter)->GetTimestamp() >= timestamp_) {
 #ifdef ROSEN_EMULATOR
                     transactionFlags += "cache [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
-                    RequestNextVsync();
+                    RequestNextVSync();
 #endif
                     break;
                 }
