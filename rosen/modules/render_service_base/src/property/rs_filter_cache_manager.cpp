@@ -95,7 +95,7 @@ void RSFilterCacheManager::PostPartialFilterRenderInit(
     const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect, int32_t canvasWidth, int32_t canvasHeight)
 #else
 void RSFilterCacheManager::PostPartialFilterRenderInit(const std::shared_ptr<RSDrawingFilter>& filter,
-    const Drawing::RectI& dstRect, int32_t canvasWidth, int32_t canvasHeight)
+    const Drawing::RectI& dstRect, int32_t canvasWidth, int32_t canvasHeight, bool& shouldClearFilteredCache)
 #endif
 {
     RS_OPTIONAL_TRACE_FUNC();
@@ -115,6 +115,7 @@ void RSFilterCacheManager::PostPartialFilterRenderInit(const std::shared_ptr<RSD
     if (task_->cachedFirstFilter_ != nullptr && task_->isFirstInit_ &&
         task_->GetStatus() == CacheProcessStatus::DOING) {
         cachedFilteredSnapshot_ = task_->cachedFirstFilter_;
+        shouldClearFilteredCache = IsClearFilteredCache(filter, dstRect);
     } else {
         task_->cachedFirstFilter_ = nullptr;
     }
@@ -126,6 +127,7 @@ void RSFilterCacheManager::PostPartialFilterRenderInit(const std::shared_ptr<RSD
 #else
         IsNearlyFullScreen(cachedSnapshot_->cachedRect_, canvasWidth, canvasHeight)) {
 #endif
+        task_->isLastRender_ = false;
         PostPartialFilterRenderTask(filter, dstRect);
     }
 }
@@ -404,10 +406,9 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         filter->SetCanvasChange(mat, width, height);
     }
 #endif
-    PostPartialFilterRenderInit(filter, dst, width, height);
     bool shouldClearFilteredCache = false;
+    PostPartialFilterRenderInit(filter, dst, width, height, shouldClearFilteredCache);
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        auto previousFilterHash = cachedFilterHash_;
         if (RSFilterCacheTask::FilterPartialRenderEnabled && task_->IsCompleted()) {
             FilterPartialRender(canvas, filter, dst);
         } else {
@@ -416,9 +417,15 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         newCache_ = true;
         // If 1. the filter hash matches, 2. the filter region is whole snapshot region, we can safely clear original
         // snapshot, else we need to clear the filtered snapshot.
-        shouldClearFilteredCache = previousFilterHash != cachedFilterHash_ || !isEqualRect(dst, snapshotRegion_);
+        shouldClearFilteredCache = IsClearFilteredCache(filter, dst);
     } else if (RSFilterCacheTask::FilterPartialRenderEnabled && task_->IsCompleted()) {
         FilterPartialRender(canvas, filter, dst);
+        if (!task_->isLastRender_) {
+            cachedSnapshot_ = task_->cachedSnapshotInTask_;
+            PostPartialFilterRenderTask(filter, dst);
+            cachedSnapshot_ = nullptr;
+            task_->isLastRender_ = true;
+        }
     } else {
         newCache_ = false;
     }
@@ -629,7 +636,6 @@ void RSFilterCacheManager::FilterPartialRender(
         cachedFilteredSnapshot_.reset();
         cachedFilteredSnapshot_ =
             std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), task_->GetDstRect());
-        cachedFilterHash_ = filter->Hash();
     }
 }
 
@@ -673,7 +679,6 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     }
     cachedFilteredSnapshot_ =
         std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect);
-    cachedFilterHash_ = filter->Hash();
 }
 #else
 void RSFilterCacheManager::GenerateFilteredSnapshot(
@@ -716,7 +721,6 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     }
     cachedFilteredSnapshot_ =
         std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect);
-    cachedFilterHash_ = filter->Hash();
 }
 #endif
 
@@ -928,6 +932,15 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
         }
     }
     return { src, dst };
+}
+
+inline bool RSFilterCacheManager::IsClearFilteredCache(
+    const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dst)
+{
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::ShouldClearFilteredCache::");
+    auto previousFilterHash = cachedFilterHash_;
+    cachedFilterHash_ = filter->Hash();
+    return previousFilterHash != cachedFilterHash_ || !isEqualRect(dst, snapshotRegion_);
 }
 #endif
 

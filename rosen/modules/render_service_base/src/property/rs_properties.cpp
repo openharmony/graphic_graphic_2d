@@ -1201,7 +1201,7 @@ const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradient
 void RSProperties::IfLinearGradientBlurInvalid()
 {
     if (linearGradientBlurPara_ != nullptr) {
-        bool isValid = ROSEN_GNE(linearGradientBlurPara_->blurRadius_, 0.0);
+        bool isValid = ROSEN_GE(linearGradientBlurPara_->blurRadius_, 0.0);
         if (!isValid) {
             linearGradientBlurPara_.reset();
         }
