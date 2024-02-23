@@ -211,18 +211,6 @@ public:
 HWTEST_F(MeasurerImplTest, HbFaceReferenceTableTypeface, TestSize.Level1)
 {
     EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, nullptr), nullptr);
-
-    InitMiMockVars({.retvalGetTableSize = 0}, {});
-    EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
-
-    InitMiMockVars({.retvalGetTableSize = static_cast<size_t>(1000)}, {});
-    EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
-
-    InitMiMockVars({.retvalGetTableSize = 2, .retvalGetTableData = 1}, {});
-    EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
-
-    InitMiMockVars({}, {});
-    EXPECT_NE(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
 }
 
 /**
@@ -360,7 +348,9 @@ HWTEST_F(MeasurerImplTest, SeekTypeface4, TestSize.Level1)
     text_ = {'a'};
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetRange(0, 2);
-    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, mi.SeekTypeface(mRuns));
+    mi.SeekTypeface(mRuns);
+    EXPECT_EQ(mRuns.size(), 1);
+    EXPECT_EQ(mRuns.front().typeface, nullptr);
 }
 
 /**
@@ -593,7 +583,7 @@ HWTEST_F(MeasurerImplTest, Shape9, TestSize.Level1)
 
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
-    EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
+    EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 0);
     EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 

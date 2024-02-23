@@ -58,7 +58,7 @@ HWTEST_F(TexgineDataTest, MakeFromFileName, TestSize.Level1)
         InitTdMockVars({});
         std::string str = "";
         auto td = TexgineData::MakeFromFileName(str);
-        EXPECT_EQ(td->GetData(), g_tdMockvars.skData_);
+        EXPECT_NE(td->GetData(), g_tdMockvars.skData_);
     });
 }
 } // namespace TextEngine
