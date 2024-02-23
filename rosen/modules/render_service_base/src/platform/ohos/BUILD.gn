@@ -109,6 +109,7 @@ ohos_source_set("rosen_ohos_sources") {
     "//drivers/peripheral/display/interfaces/include/",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/utils/log",
+    "//third_party/openGLES/api",
   ]
 
   public_deps = [
@@ -116,6 +117,8 @@ ohos_source_set("rosen_ohos_sources") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/utils:sync_fence",
+    "//third_party/EGL:libEGL",
+    "//third_party/openGLES:libGLES",
   ]
   if (defined(use_new_skia) && use_new_skia) {
     public_deps += [ "//third_party/skia:skia_ohos" ]

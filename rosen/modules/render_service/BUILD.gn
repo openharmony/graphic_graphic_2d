@@ -183,6 +183,13 @@ ohos_shared_library("librender_service") {
     defines += accessibility_defines
   }
 
+  cflags = [
+    "-Wall",
+    "-Wno-unused-const-variable",
+  ]
+
+  cflags_cc = [ "-Wno-unused-const-variable" ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

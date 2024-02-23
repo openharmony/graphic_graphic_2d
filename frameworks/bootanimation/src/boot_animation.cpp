@@ -20,11 +20,12 @@
 #include "transaction/rs_transaction.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "render_context_factory.h"
-#include "rs_surface_factory.h"
+#include "render_backend/rs_surface_factory.h"
 #endif
 #include <display_manager.h>
 
 using namespace OHOS;
+using namespace Rosen;
 
 constexpr float MAX_ZORDER = 100000.0f;
 
