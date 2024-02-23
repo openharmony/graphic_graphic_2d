@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_NODE_H
 
 #include <atomic>
+#include <bitset>
 #include <cstdint>
 #include <functional>
 #include <list>
@@ -25,19 +26,20 @@
 #include <unordered_set>
 #include <variant>
 #include <vector>
-#include <bitset>
+
+#include "drawable/rs_property_drawable_ng.h"
+#include "memory/rs_dfx_string.h"
 
 #include "animation/rs_animation_manager.h"
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
-#include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
+#include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "property/rs_property_drawable.h"
@@ -734,6 +736,13 @@ private:
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+
+    // Test pipeline
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
+    std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
+    RSPropertyDrawableNG::DrawableVec drawableVec_;
+
+    void Sync();
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
