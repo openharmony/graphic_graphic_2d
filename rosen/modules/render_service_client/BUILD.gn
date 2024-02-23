@@ -24,6 +24,7 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "//drivers/peripheral/display/interfaces/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include/render_backend",
     "//drivers/peripheral/base",
   ]
   defines = rs_common_define

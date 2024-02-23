@@ -117,7 +117,8 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
 #if defined(NEW_RENDER_CONTEXT)
 std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
-    std::shared_ptr<RSRenderSurface> producer = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS, surface);
+    std::shared_ptr<RSRenderSurface> producer = 
+	Rosen::RSSurfaceFactory::CreateRSSurface(Rosen::PlatformName::OHOS, surface);
     return producer;
 }
 #else

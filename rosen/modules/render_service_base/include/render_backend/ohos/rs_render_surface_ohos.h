@@ -23,8 +23,8 @@
 
 #include "common/rs_rect.h"
 
-#include "rs_render_surface.h"
-#include "rs_render_surface_frame.h"
+#include "render_backend/rs_render_surface.h"
+#include "render_backend/rs_render_surface_frame.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -32,7 +32,7 @@
 #include "platform/drawing/rs_vsync_client.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "render_backend/render_context_factory.h"
-#include "drawing_context.h"
+#include "render_backend/drawing_context.h"
 #else
 #include "render_context/render_context.h"
 #endif

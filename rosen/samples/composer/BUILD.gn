@@ -37,7 +37,7 @@ config("hello_composer_public_config") {
 
 ohos_executable("hello_composer") {
   install_enable = true
-
+  install_images = [ chipset_base_dir ]
   sources = [
     "hello_composer.cpp",
     "layer_context.cpp",

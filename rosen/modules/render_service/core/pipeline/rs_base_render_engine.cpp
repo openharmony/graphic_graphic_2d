@@ -33,6 +33,21 @@
 #endif
 #include "render/rs_skia_filter.h"
 
+#include "drawing_context.h"
+#include "rs_render_surface_frame.h"
+#include "render_context_base.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkSurface.h"
+
+#ifndef ROSEN_CROSS_PLATFORM
+#include "surface_type.h"
+#endif
+#include "pipeline/rs_egl_image_manager.h"
+
+#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_main_thread.h"
+#include "render_context/render_context.h"
+
 namespace OHOS {
 namespace Rosen {
 RSBaseRenderEngine::RSBaseRenderEngine()
@@ -85,6 +100,7 @@ void RSBaseRenderEngine::Init()
 
 bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
 {
+#ifdef RS_ENABLE_GL
     bool forceCPU = false;
     for (const auto& layer: layers) {
         if (layer == nullptr) {
@@ -113,6 +129,9 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
     }
 
     return forceCPU;
+#else
+    return true;
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
