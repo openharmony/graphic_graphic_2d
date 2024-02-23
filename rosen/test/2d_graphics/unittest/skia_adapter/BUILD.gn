@@ -71,6 +71,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//third_party/jsoncpp:jsoncpp_static",
   ]
 
   external_deps = [
