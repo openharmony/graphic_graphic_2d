@@ -34,9 +34,11 @@
 #include "skia_text_blob.h"
 
 #include "draw/core_canvas.h"
+#include "draw/canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
 #include "utils/log.h"
+#include "SkOverdrawCanvas.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1128,6 +1130,13 @@ bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymb
     }
     skSymbol.symbolInfo_.renderGroups = groups;
     return true;
+}
+
+void SkiaCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
+{
+    auto skiaCanvas = canvas->GetImpl<SkiaCanvas>();
+    skiaCanvas_ = std::make_shared<SkOverdrawCanvas>(skiaCanvas->ExportSkCanvas());
+    skCanvas_ = skiaCanvas_.get();
 }
 } // namespace Drawing
 } // namespace Rosen

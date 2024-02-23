@@ -154,6 +154,8 @@ public:
     SkCanvas* ExportSkCanvas() const;
     void ImportSkCanvas(SkCanvas* skCanvas);
 
+    void BuildOverDraw(std::shared_ptr<Canvas> canvas) override;
+
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);

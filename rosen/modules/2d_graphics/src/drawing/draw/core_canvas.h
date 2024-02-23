@@ -141,6 +141,8 @@ public:
     virtual ~CoreCanvas() {}
     void Bind(const Bitmap& bitmap);
 
+    void BuildOverDraw(std::shared_ptr<Canvas> canvas);
+
     virtual DrawingType GetDrawingType() const
     {
         return DrawingType::COMMON;
