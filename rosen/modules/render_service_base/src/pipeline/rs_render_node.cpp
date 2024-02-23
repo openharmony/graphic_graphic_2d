@@ -2182,9 +2182,9 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER || nodeGroupType_ == NodeGroupType::GROUPED_BY_AUTO;
+    return nodeGroupType_ & NodeGroupType::GROUPED_BY_USER || nodeGroupType_ & NodeGroupType::GROUPED_BY_AUTO;
 #else
-    return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER;
+    return nodeGroupType_ & NodeGroupType::GROUPED_BY_USER;
 #endif
 }
 
@@ -2195,27 +2195,29 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
-    if (type >= nodeGroupType_) {
-        if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
-            auto context = GetContext().lock();
-            if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
-                nodeGroupType_ = type;
-                SetDirty();
-            }
-        } else {
-            nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (nodeGroupType_ != NodeGroupType::GROUPED_BY_AUTO) {
-                SetDirty();
-            }
-#else
+    if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
+        auto context = GetContext().lock();
+        if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
+            nodeGroupType_ |= type;
             SetDirty();
+        }
+    } else {
+        if (isNodeGroup) {
+            nodeGroupType_ |= type;
+        } else {
+            nodeGroupType_ &= ~type;
+        }
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        if (!(nodeGroupType_ & NodeGroupType::GROUPED_BY_AUTO)) {
+            SetDirty();
+        }
+#else
+        SetDirty();
 #endif
-        }
-        nodeGroupIncludeProperty_ = includeProperty;
-        if (type == NodeGroupType::GROUPED_BY_USER) {
-            GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
-        }
+    }
+    nodeGroupIncludeProperty_ = includeProperty;
+    if (type == NodeGroupType::GROUPED_BY_USER) {
+        GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
     }
 }
 
@@ -2242,7 +2244,7 @@ void RSRenderNode::CheckDrawingCacheType()
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     } else if (IsForcedDrawInGroup()) {
 #else
-    } else if (nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) {
+    } else if (nodeGroupType_ & NodeGroupType::GROUPED_BY_USER) {
 #endif
         SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     } else {
@@ -2930,7 +2932,15 @@ OutOfParentType RSRenderNode::GetOutOfParent() const
 }
 RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
 {
-    return nodeGroupType_;
+    uint8_t type = NodeGroupType::GROUP_TYPE_BUTT;
+    while (type != NodeGroupType::NONE) {
+        if (nodeGroupType_ & type) {
+            return static_cast<NodeGroupType>(type);
+        } else {
+            type = type >> 1;
+        }
+    }
+    return NodeGroupType::NONE;
 }
 
 void RSRenderNode::MarkNonGeometryChanged()

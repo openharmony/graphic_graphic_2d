@@ -453,14 +453,17 @@ public:
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
-    enum NodeGroupType {
+    enum NodeGroupType : uint8_t {
         NONE = 0,
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        GROUPED_BY_AUTO,
+        GROUPED_BY_AUTO = 1,
+        GROUPED_BY_ANIM = GROUPED_BY_AUTO << 1,
+#else
+        GROUPED_BY_ANIM = 1,
 #endif
-        GROUPED_BY_ANIM,
-        GROUPED_BY_UI,
-        GROUPED_BY_USER,
+        GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
+        GROUPED_BY_USER = GROUPED_BY_UI << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_USER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     NodeGroupType GetNodeGroupType();
@@ -706,7 +709,7 @@ private:
     std::optional<SharedTransitionParam> sharedTransitionParam_;
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
-    NodeGroupType nodeGroupType_ = NodeGroupType::NONE;
+    uint8_t nodeGroupType_ = NodeGroupType::NONE;
     bool nodeGroupIncludeProperty_ = false;
 
     // shadowRectOffset means offset between shadowRect and absRect of node
