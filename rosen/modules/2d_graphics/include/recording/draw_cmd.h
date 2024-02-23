@@ -107,6 +107,10 @@ public:
 
     virtual void SetSymbol() {}
     virtual void SetNodeId(NodeId id) {}
+
+    static void SetBaseCallback(
+        std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc);
+    static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc_;
 };
 
 class UnmarshallingPlayer {
@@ -680,9 +684,7 @@ public:
     };
     DrawImageRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawImageRectOpItem(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
-        SrcRectConstraint constraint, const Paint& paint, bool isForeground = false)
-        : DrawWithPaintOpItem(paint, DrawOpItem::IMAGE_RECT_OPITEM), src_(src), dst_(dst), sampling_(sampling),
-          constraint_(constraint), image_(std::make_shared<Image>(image)), isForeground_(isForeground) {}
+        SrcRectConstraint constraint, const Paint& paint, bool isForeground = false);
     ~DrawImageRectOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
