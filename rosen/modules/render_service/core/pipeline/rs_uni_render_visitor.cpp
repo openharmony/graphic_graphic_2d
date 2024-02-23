@@ -2974,6 +2974,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifdef ENABLE_RECORDING_DCL
         tryCapture(node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
 #endif
+        StartOverDraw();
 
         int saveLayerCnt = 0;
 #ifndef USE_ROSEN_DRAWING
@@ -3229,9 +3230,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode  unpairedTransitionNodes_ is not empty.");
             ProcessUnpairedSharedTransitionNode();
         }
-        if (overdrawListener != nullptr) {
-            overdrawListener->Draw();
-        }
         DrawWatermarkIfNeed(node);
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
         if (isPartialRenderEnabled_) {
@@ -3282,6 +3280,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifdef ENABLE_RECORDING_DCL
         endCapture();
 #endif
+        FinishOverDraw();
         if ((screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) &&
             RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable() &&
             (!RSSingleton<RoundCornerDisplay>::GetInstance().IsSupportHardware())) {
@@ -3556,38 +3555,11 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
     }
 #endif
 #endif
-    // if listenedCanvas is nullptr, that means disabled or listen failed
-    std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
-
-    if (RSOverdrawController::GetInstance().IsEnabled()) {
-        auto &oc = RSOverdrawController::GetInstance();
 #ifndef USE_ROSEN_DRAWING
-        listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
 #else
-        listenedCanvas = std::make_shared<RSListenedCanvas>(*drSurface.get());
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
 #endif
-        overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
-        if (overdrawListener == nullptr) {
-            overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
-        }
-
-        if (overdrawListener != nullptr) {
-            listenedCanvas->SetListener(overdrawListener);
-        } else {
-            // create listener failed
-            listenedCanvas = nullptr;
-        }
-    }
-
-    if (listenedCanvas != nullptr) {
-        canvas_ = listenedCanvas;
-    } else {
-#ifndef USE_ROSEN_DRAWING
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
-#else
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
-#endif
-    }
 }
 
 bool RSUniRenderVisitor::IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const
@@ -5382,6 +5354,57 @@ void RSUniRenderVisitor::FinishOffscreenRender(bool isMirror)
     // restore current canvas and cleanup
     offscreenSurface_ = nullptr;
     canvas_ = std::move(canvasBackup_);
+}
+
+void RSUniRenderVisitor::StartOverDraw()
+{
+    if (!RSOverdrawController::GetInstance().IsEnabled()) {
+        return;
+    }
+    auto gpuContext = canvas_->GetGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: need gpu canvas");
+        return;
+    }
+
+    auto width = canvas_->GetWidth();
+    auto height = canvas_->GetHeight();
+    Drawing::ImageInfo info =
+        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+    if (!overdrawSurface_) {
+        RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: surface is nullptr");
+        return;
+    }
+    overdrawCanvas_ = std::make_shared<Drawing::OverDrawCanvas>(overdrawSurface_->GetCanvas());
+    canvas_->AddCanvas(overdrawCanvas_.get());
+}
+
+void RSUniRenderVisitor::FinishOverDraw()
+{
+    if (!RSOverdrawController::GetInstance().IsEnabled()) {
+        return;
+    }
+    if (!overdrawSurface_) {
+        RS_LOGE("RSRenderThreadVisitor::FinishOverDraw overdrawSurface is nullptr");
+        return;
+    }
+    auto image = overdrawSurface_->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSRenderThreadVisitor::FinishOverDraw image is nullptr");
+        return;
+    }
+    Drawing::Brush brush;
+    auto overdrawColors = RSOverdrawController::GetInstance().GetColorArray();
+    auto colorFilter = Drawing::ColorFilter::CreateOverDrawColorFilter(overdrawColors.data());
+    Drawing::Filter filter;
+    filter.SetColorFilter(colorFilter);
+    brush.SetFilter(filter);
+    canvas_->AttachBrush(brush);
+    canvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    canvas_->DetachBrush();
+    overdrawSurface_ = nullptr;
+    overdrawCanvas_ = nullptr;
 }
 
 bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)

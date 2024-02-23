@@ -351,6 +351,10 @@ private:
     void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
     void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 
+    // used to catch overdraw
+    void StartOverDraw();
+    void FinishOverDraw();
+
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
 #else
@@ -361,6 +365,10 @@ private:
     // Use in vulkan parallel rendering
     void ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node);
     bool IsOutOfScreenRegion(RectI rect);
+
+    // used to catch overdraw
+    std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
