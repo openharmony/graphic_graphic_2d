@@ -229,23 +229,28 @@ bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handl
 }
 
 /* UnmarshallingPlayer */
-std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> UnmarshallingPlayer::opUnmarshallingFuncLUT_ = {};
+std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc>*
+    UnmarshallingPlayer::opUnmarshallingFuncLUT_ = nullptr;
 
 bool UnmarshallingPlayer::RegisterUnmarshallingFunc(uint32_t type, UnmarshallingPlayer::UnmarshallingFunc func)
 {
-    return opUnmarshallingFuncLUT_.emplace(type, func).second;
+    if (!opUnmarshallingFuncLUT_) {
+        static std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> opUnmarshallingFuncLUT = {};
+        opUnmarshallingFuncLUT_ = &opUnmarshallingFuncLUT;
+    }
+    return opUnmarshallingFuncLUT_->emplace(type, func).second;
 }
 
 UnmarshallingPlayer::UnmarshallingPlayer(const DrawCmdList& cmdList) : cmdList_(cmdList) {}
 
 std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* handle)
 {
-    if (type == DrawOpItem::OPITEM_HEAD) {
+    if (type == DrawOpItem::OPITEM_HEAD || !opUnmarshallingFuncLUT_) {
         return nullptr;
     }
 
-    auto it = opUnmarshallingFuncLUT_.find(type);
-    if (it == opUnmarshallingFuncLUT_.end() || it->second == nullptr) {
+    auto it = opUnmarshallingFuncLUT_->find(type);
+    if (it == opUnmarshallingFuncLUT_->end() || it->second == nullptr) {
         return nullptr;
     }
 
