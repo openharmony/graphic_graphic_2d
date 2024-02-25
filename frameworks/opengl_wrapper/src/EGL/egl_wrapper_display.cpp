@@ -20,6 +20,7 @@
 #include "egl_wrapper_surface.h"
 #include "../thread_private_data_ctl.h"
 #include "../wrapper_log.h"
+#include "egl_blob_cache.h"
 namespace OHOS {
 EglWrapperDisplay EglWrapperDisplay::wrapperDisp_;
 
@@ -65,6 +66,13 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
                 *minor = table->minor;
             }
             refCnt_++;
+
+            if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
+                BlobCache::Get()->Init();
+                table->egl.eglSetBlobCacheFuncsANDROID(disp_, BlobCache::setBlobFunc, BlobCache::getBlobFunc);
+            } else {
+                WLOGE("eglSetBlobCacheFuncsANDROID not found.");
+            }
         } else {
             WLOGE("eglInitialize Error.");
         }
