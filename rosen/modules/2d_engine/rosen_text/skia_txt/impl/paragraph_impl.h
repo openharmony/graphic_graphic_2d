@@ -60,6 +60,8 @@ public:
 
     void SetIndents(const std::vector<float>& indents) override;
 
+    float DetectIndents(size_t index) override;
+
     void Layout(double width) override;
 
     void Paint(SkCanvas* canvas, double x, double y) override;
@@ -90,10 +92,25 @@ public:
         }
     }
 
-    OHOS::Rosen::Drawing::FontMetrics MeasureText() override;
+    void CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle);
 
-private:
+    SkFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle);
+
+    SkFontStyle::Weight ConvertToSkFontWeight(FontWeight fontWeight);
+
+    skia::textlayout::ParagraphPainter::PaintID AllocPaintID(const PaintRecord& paint);
+
+    skia::textlayout::TextShadow MakeTextShadow(const TextShadow& txtShadow);
+
+    SkFontArguments MakeFontArguments(const FontVariations& fontVariations);
+
     TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);
+
+    Drawing::FontMetrics MeasureText() override;
+
+    Drawing::FontMetrics GetFontMetricsResult(const SPText::TextStyle& textStyle) override;
+private:
+    skia::textlayout::TextStyle TXTTextStyleToSKStyle(const OHOS::Rosen::SPText::TextStyle& txt);
 
     std::unique_ptr<skia::textlayout::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;

@@ -52,6 +52,10 @@ public:
     double baseline = 0.0;
 
     size_t lineNumber = 0;
+   // Width include spaces
+    double widthWithSpaces = 0.0;
+    // Height from the top
+    double topHeight = 0.0;
 
     std::map<size_t, RunMetrics> runMetrics;
 };

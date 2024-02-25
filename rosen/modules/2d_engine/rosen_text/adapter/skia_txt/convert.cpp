@@ -79,6 +79,8 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .ellipsis = style.ellipsis,
         .locale = style.locale,
         .textSplitRatio = style.textSplitRatio,
+        .spTextStyle = Convert(style.insideTextStyle),
+        .customSpTextStyle = style.customTextStyle,
     };
 }
 

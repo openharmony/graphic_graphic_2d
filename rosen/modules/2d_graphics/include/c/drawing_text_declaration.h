@@ -106,6 +106,22 @@ typedef struct OH_Drawing_PositionAndAffinity OH_Drawing_PositionAndAffinity;
  */
 typedef struct OH_Drawing_Range OH_Drawing_Range;
 
+/**
+ * @brief Defines an <b>OH_Drawing_FontParser</b>, which is used to parse system font files.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontParser OH_Drawing_FontParser;
+
+/**
+ * @brief Defines an <b>OH_Drawing_TextShadow</b>, which is used to create an <b>OH_Drawing_TextShadow</b> object.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_TextShadow OH_Drawing_TextShadow;
+
 #ifdef __cplusplus
 }
 #endif

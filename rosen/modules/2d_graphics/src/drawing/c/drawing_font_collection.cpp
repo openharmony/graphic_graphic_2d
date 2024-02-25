@@ -25,6 +25,7 @@
 #endif
 #endif
 #include "utils/object_mgr.h"
+#include "utils/log.h"
 
 using namespace OHOS::Rosen::Drawing;
 
@@ -40,11 +41,14 @@ OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
 #ifndef USE_GRAPHIC_TEXT_GINE
     OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new rosen::FontCollection;
+    LOGE(" zhf clp  OH_Drawing_CreateFontCollection 00 fc = %p", fc);
 #else
 #ifndef USE_TEXGINE
     OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTxt::FontCollection;
+    LOGE(" zhf clp  OH_Drawing_CreateFontCollection 01 fc = %p", fc);
 #else
     OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTextEngine::FontCollection;
+    LOGE(" zhf clp  OH_Drawing_CreateFontCollection 02 fc = %p", fc);
 #endif
 #endif
     objectMgr->AddObject(fc);
@@ -70,4 +74,12 @@ void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
     delete ConvertToFontCollection<OHOS::Rosen::AdapterTextEngine::FontCollection>(fontCollection);
 #endif
 #endif
+}
+
+void  OH_Drawing_DisableFontCollectionFallback(OH_Drawing_FontCollection* fontCollection)
+{
+}
+
+void  OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection* fontCollection)
+{
 }

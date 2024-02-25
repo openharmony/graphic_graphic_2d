@@ -21,6 +21,7 @@
 #include "include/core/SkMatrix.h"
 #include "drawing_painter_impl.h"
 #include "skia_adapter/skia_convert_utils.h"
+#include "text/font_metrics.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -106,6 +107,11 @@ size_t ParagraphImpl::GetLineCount() const
 void ParagraphImpl::SetIndents(const std::vector<float>& indents)
 {
     paragraph_->setIndents(indents);
+}
+
+float ParagraphImpl::DetectIndents(size_t index)
+{
+    return paragraph_->detectIndents(index);
 }
 
 void ParagraphImpl::Layout(double width)
@@ -215,6 +221,8 @@ std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
             txtm.left = skm.fLeft;
             txtm.baseline = skm.fBaseline;
             txtm.lineNumber = skm.fLineNumber;
+            txtm.widthWithSpaces = skm.fWidthWithSpaces;
+            txtm.topHeight = skm.fTopHeight;
 
             for (const auto& [index, styleMtrics] : skm.fLineMetrics) {
                 lineMetricsStyles_.push_back(SkStyleToTextStyle(*styleMtrics.text_style));
@@ -275,6 +283,136 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     }
 
     return txt;
+}
+
+SkFontStyle ParagraphImpl::MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
+{
+    auto weight = ConvertToSkFontWeight(fontWeight);
+    auto slant = fontStyle == FontStyle::NORMAL ?
+        SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant;
+    return SkFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
+}
+
+SkFontStyle::Weight ParagraphImpl::ConvertToSkFontWeight(FontWeight fontWeight)
+{
+    constexpr int weightBase = 100; // fontWeight default value = 100
+    return static_cast<SkFontStyle::Weight>(static_cast<int>(fontWeight) * weightBase + weightBase);
+}
+
+skt::ParagraphPainter::PaintID ParagraphImpl::AllocPaintID(const PaintRecord& paint)
+{
+    paints_.push_back(paint);
+    return paints_.size() - 1;
+}
+
+void ParagraphImpl::CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle)
+{
+    if (txt.background.has_value()) {
+        skStyle.setBackgroundPaintID(AllocPaintID(txt.background.value()));
+    }
+    if (txt.foreground.has_value()) {
+        skStyle.setForegroundPaintID(AllocPaintID(txt.foreground.value()));
+    } else {
+        PaintRecord paint;
+        paint.SetColor(txt.color);
+        paint.isSymbolGlyph = txt.isSymbolGlyph;
+        paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
+        paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
+        paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
+        skStyle.setForegroundPaintID(AllocPaintID(paint));
+    }
+}
+
+skt::TextShadow ParagraphImpl::MakeTextShadow(const TextShadow& txtShadow)
+{
+    skt::TextShadow shadow;
+    shadow.fOffset = txtShadow.offset;
+    shadow.fBlurSigma = txtShadow.blurSigma;
+    shadow.fColor = txtShadow.color;
+    return shadow;
+}
+
+SkFontArguments ParagraphImpl::MakeFontArguments(const FontVariations& fontVariations)
+{
+    constexpr size_t axisLen = 4;
+    std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates;
+    for (const auto& [axis, value] : fontVariations.GetAxisValues()) {
+        if (axis.length() == axisLen) {
+            coordinates.push_back({
+                SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]),
+                value,
+            });
+        }
+    }
+    SkFontArguments::VariationPosition position = { coordinates.data(), static_cast<int>(coordinates.size()) };
+    SkFontArguments arguments;
+    arguments.setVariationDesignPosition(position);
+    return arguments;
+}
+
+skia::textlayout::TextStyle ParagraphImpl::TXTTextStyleToSKStyle(const SPText::TextStyle& txt)
+{
+    skt::TextStyle skStyle;
+    skStyle.setColor(txt.color);
+    skStyle.setDecoration(static_cast<skt::TextDecoration>(txt.decoration));
+    skStyle.setDecorationColor(txt.decorationColor);
+    skStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(txt.decorationStyle));
+    skStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(txt.decorationThicknessMultiplier));
+    skStyle.setFontStyle(this->MakeFontStyle(txt.fontWeight, txt.fontStyle));
+    skStyle.setTextBaseline(static_cast<skt::TextBaseline>(txt.baseline));
+    std::vector<SkString> fonts;
+    std::transform(txt.fontFamilies.begin(), txt.fontFamilies.end(), std::back_inserter(fonts),
+        [](const std::string& f) { return SkString(f.c_str()); });
+    skStyle.setFontFamilies(fonts);
+    skStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
+    skStyle.setLetterSpacing(SkDoubleToScalar(txt.letterSpacing));
+    skStyle.setWordSpacing(SkDoubleToScalar(txt.wordSpacing));
+    skStyle.setHeight(SkDoubleToScalar(txt.height));
+    skStyle.setHeightOverride(txt.heightOverride);
+    skStyle.setHalfLeading(txt.halfLeading);
+    skStyle.setLocale(SkString(txt.locale.c_str()));
+    skStyle.setStyleId(txt.styleId);
+    skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
+        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,
+        txt.backgroundRect.leftBottomRadius });
+    CopyTextStylePaint(txt, skStyle);
+    skStyle.resetFontFeatures();
+    for (const auto& ff : txt.fontFeatures.GetFontFeatures()) {
+        skStyle.addFontFeature(SkString(ff.first.c_str()), ff.second);
+    }
+    if (!txt.fontVariations.GetAxisValues().empty()) {
+        skStyle.setFontArguments(MakeFontArguments(txt.fontVariations));
+    }
+    skStyle.resetShadows();
+    for (const TextShadow& txtShadow : txt.textShadows) {
+        skStyle.addShadow(MakeTextShadow(txtShadow));
+    }
+    return skStyle;
+}
+
+Drawing::FontMetrics ParagraphImpl::GetFontMetricsResult(const SPText::TextStyle& textStyle)
+{
+    skia::textlayout::TextStyle skTextStyle = this->TXTTextStyleToSKStyle(textStyle);
+    SkFontMetrics skfontMetrics;
+    skTextStyle.getFontMetrics(&skfontMetrics);
+    OHOS::Rosen::Drawing::FontMetrics fontMetrics;
+    fontMetrics.fFlags = skfontMetrics.fFlags;
+    fontMetrics.fTop = skfontMetrics.fTop;
+    fontMetrics.fAscent = skfontMetrics.fAscent;
+    fontMetrics.fDescent = skfontMetrics.fDescent;
+    fontMetrics.fBottom = skfontMetrics.fBottom;
+    fontMetrics.fLeading = skfontMetrics.fLeading;
+    fontMetrics.fAvgCharWidth = skfontMetrics.fAvgCharWidth;
+    fontMetrics.fMaxCharWidth = skfontMetrics.fMaxCharWidth;
+    fontMetrics.fXMin = skfontMetrics.fXMin;
+    fontMetrics.fXMax = skfontMetrics.fXMax;
+    fontMetrics.fXHeight = skfontMetrics.fXHeight;
+    fontMetrics.fCapHeight = skfontMetrics.fCapHeight;
+    fontMetrics.fUnderlineThickness = skfontMetrics.fUnderlineThickness;
+    fontMetrics.fUnderlinePosition = skfontMetrics.fUnderlinePosition;
+    fontMetrics.fStrikeoutThickness = skfontMetrics.fStrikeoutThickness;
+    fontMetrics.fStrikeoutPosition = skfontMetrics.fStrikeoutPosition;
+    return fontMetrics;
 }
 } // namespace SPText
 } // namespace Rosen
