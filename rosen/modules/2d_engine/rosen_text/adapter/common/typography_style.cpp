@@ -83,6 +83,12 @@ bool TypographyStyle::IsUnlimitedLines() const
 #endif
 }
 
+void TypographyStyle::SetTextStyle(TextStyle& textstyle)
+{
+    customTextStyle = true;
+    insideTextStyle = textstyle;
+}
+
 bool TypographyStyle::IsEllipsized() const
 {
 #ifndef USE_GRAPHIC_TEXT_GINE

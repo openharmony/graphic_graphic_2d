@@ -25,9 +25,9 @@
 #include "text/font_metrics.h"
 #include "utils/rect.h"
 
+#include "text_style.h"
 #include "typography_types.h"
 #include "symbol_animation_config.h"
-
 
 namespace OHOS {
 namespace Rosen {
@@ -70,6 +70,37 @@ struct Boundary {
     bool operator ==(const Boundary& rhs) const;
 };
 
+struct LineMetrics {
+    /** Text ascender height */
+    double ascender;
+    /** Tex descender height */
+    double descender;
+    /** The height of a capital letter */
+    double capHeight;
+    /** The height of a lowercase letter */
+    double xHeight;
+    /** Text width */
+    double width;
+    /** Line height */
+    double height;
+    /**
+     * The distance from the left end of the text to the left end of the container,
+     * aligned to 0, is the width of the container minus the width of the line of text
+     */
+    double x;
+    /**
+     * The height from the top of the text to the top of the container, the first line is 0,
+     *  and the second line is the height of the first line
+     */
+    double y;
+    /** Start Index */
+    size_t startIndex;
+    /** End Index */
+    size_t endIndex;
+
+    Drawing::FontMetrics firstCharMetrics;
+};
+
 class Typography {
 public:
     virtual ~Typography() = default;
@@ -89,6 +120,7 @@ public:
     virtual int GetLineCount() const = 0;
 
     virtual void SetIndents(const std::vector<float>& indents) = 0;
+    virtual float DetectIndents(size_t index) = 0;
     virtual void Layout(double width) = 0;
     virtual void Paint(SkCanvas *canvas, double x, double y) = 0; // SKIA
     virtual void Paint(Drawing::Canvas *canvas, double x, double y) = 0; // DRAWING
@@ -104,6 +136,10 @@ public:
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc)= 0;
     virtual Drawing::FontMetrics MeasureText() = 0;
+    virtual bool GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics) = 0;
+    virtual std::vector<LineMetrics> GetLineMetrics() = 0;
+    virtual bool GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics) = 0;
+    virtual Drawing::FontMetrics GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

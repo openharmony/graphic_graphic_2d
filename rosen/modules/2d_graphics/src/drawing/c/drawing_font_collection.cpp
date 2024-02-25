@@ -71,3 +71,11 @@ void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
 #endif
 #endif
 }
+
+void  OH_Drawing_DisableFontCollectionFallback(OH_Drawing_FontCollection* fontCollection)
+{
+}
+
+void  OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection* fontCollection)
+{
+}

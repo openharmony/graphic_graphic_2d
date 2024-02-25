@@ -58,9 +58,12 @@ struct TypographyStyle {
     float textSplitRatio = 0.5f;
 
     TextStyle GetTextStyle() const;
+    void SetTextStyle(TextStyle& textstyle);
     TextAlign GetEffectiveAlign() const;
     bool IsUnlimitedLines() const;
     bool IsEllipsized() const;
+    TextStyle insideTextStyle;
+    bool customTextStyle = false;
 };
 } // namespace Rosen
 } // namespace OHOS

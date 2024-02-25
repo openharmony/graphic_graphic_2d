@@ -239,6 +239,7 @@ template("graphics2d_source_set") {
       "//third_party/skia/include/private",
       "//third_party/skia/src/core",
       "//third_party/skia/src/ports",
+      "$rosen_root/modules/texgine/src",
       "$rosen_root/modules/texgine/texgine_drawing/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
     ]

@@ -63,6 +63,8 @@ public:
     std::u16string ellipsis = u"\u2026";
     std::string locale;
     float textSplitRatio = 0.5;
+    TextStyle spTextStyle;
+    bool customSpTextStyle = false;
 };
 } // namespace SPText
 } // namespace Rosen
