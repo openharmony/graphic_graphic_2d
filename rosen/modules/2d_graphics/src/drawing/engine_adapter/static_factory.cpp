@@ -285,11 +285,6 @@ Path StaticFactory::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* 
     return EngineStaticFactory::GetDrawingPathforTextBlob(glyphId, blob);
 }
 
-void StaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
-{
-    return EngineStaticFactory::GetDrawingPointsForTextBlob(blob, points);
-}
-
 std::shared_ptr<DrawingSymbolLayersGroups> StaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

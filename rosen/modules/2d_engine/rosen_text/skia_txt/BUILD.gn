@@ -81,10 +81,7 @@ template("skia_libtxt") {
     }
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
-      defines += [
-        "USE_ROSEN_DRAWING",
-        "USE_SKIA_TXT",
-      ]
+      defines += [ "USE_ROSEN_DRAWING" ]
       if (ace_enable_gpu) {
         defines += [ "ACE_ENABLE_GPU" ]
       }
@@ -130,11 +127,6 @@ ohos_source_set("skia_paragraph") {
 
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = [
-    "$rosen_root/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//third_party/skia",
     "//third_party/skia/modules",
     "//third_party/skia/modules/skparagraph",
@@ -160,10 +152,7 @@ ohos_source_set("skia_paragraph") {
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [
-      "USE_ROSEN_DRAWING",
-      "USE_SKIA_TXT",
-    ]
+    defines += [ "USE_ROSEN_DRAWING" ]
     if (ace_enable_gpu) {
       defines += [ "ACE_ENABLE_GPU" ]
     }
@@ -216,26 +205,11 @@ ohos_source_set("skia_shaper") {
 
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = [
-    "$rosen_root/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//third_party/skia",
     "//third_party/skia/modules",
     "//third_party/skia/modules/skshaper",
   ]
   defines = []
-
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [
-      "USE_ROSEN_DRAWING",
-      "USE_SKIA_TXT",
-    ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
-    }
-  }
 
   defines += [ "SKSHAPER_IMPLEMENTATION=1" ]
   sources = skia_shaper_primitive_sources

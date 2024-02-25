@@ -96,45 +96,9 @@ std::shared_ptr<Typeface> Font::GetTypeface()
     return fontImpl_->GetTypeface();
 }
 
-FontEdging Font::GetEdging() const
+scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)
 {
-    return fontImpl_->GetEdging();
-}
-
-FontHinting Font::GetHinting() const
-{
-    return fontImpl_->GetHinting();
-}
-
-scalar Font::GetScaleX() const
-{
-    return fontImpl_->GetScaleX();
-}
-
-scalar Font::GetSkewX() const
-{
-    return fontImpl_->GetSkewX();
-}
-
-bool Font::IsSubpixel() const
-{
-    return fontImpl_->IsSubpixel();
-}
-
-uint16_t Font::UnicharToGlyph(int32_t uni) const
-{
-    return fontImpl_->UnicharToGlyph(uni);
-}
-
-int Font::TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
-    uint16_t glyphs[], int maxGlyphCount) const
-{
-    return fontImpl_->TextToGlyphs(text, byteLength, encoding, glyphs, maxGlyphCount);
-}
-
-scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds)
-{
-    return fontImpl_->MeasureText(text, byteLength, encoding, bounds);
+    return fontImpl_->MeasureText(text, byteLength, encoding);
 }
 
 int Font::CountText(const void* text, size_t byteLength, TextEncoding encoding) const

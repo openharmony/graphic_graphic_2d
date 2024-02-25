@@ -53,7 +53,6 @@ public:
     static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
-    static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
 
     std::shared_ptr<Rect> Bounds() const override;
 

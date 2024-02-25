@@ -48,57 +48,33 @@ void FontCollection::SetupDefaultFontManager()
     sktFontCollection_.reset();
 }
 
-#ifndef USE_ROSEN_DRAWING
 void FontCollection::SetDefaultFontManager(sk_sp<SkFontMgr> fontManager)
-#else
-void FontCollection::SetDefaultFontManager(std::shared_ptr<RSFontMgr> fontManager)
-#endif
 {
     defaultFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
-#ifndef USE_ROSEN_DRAWING
 void FontCollection::SetAssetFontManager(sk_sp<SkFontMgr> fontManager)
-#else
-void FontCollection::SetAssetFontManager(std::shared_ptr<RSFontMgr> fontManager)
-#endif
 {
     assetFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
-#ifndef USE_ROSEN_DRAWING
 void FontCollection::SetDynamicFontManager(sk_sp<SkFontMgr> fontManager)
-#else
-void FontCollection::SetDynamicFontManager(std::shared_ptr<RSFontMgr> fontManager)
-#endif
 {
     dynamicFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
-#ifndef USE_ROSEN_DRAWING
 void FontCollection::SetTestFontManager(sk_sp<SkFontMgr> fontManager)
-#else
-void FontCollection::SetTestFontManager(std::shared_ptr<RSFontMgr> fontManager)
-#endif
 {
     testFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
-#ifndef USE_ROSEN_DRAWING
 std::vector<sk_sp<SkFontMgr>> FontCollection::GetFontManagerOrder() const
-#else
-std::vector<std::shared_ptr<RSFontMgr>> FontCollection::GetFontManagerOrder() const
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
     std::vector<sk_sp<SkFontMgr>> order;
-#else
-    std::vector<std::shared_ptr<RSFontMgr>> order;
-#endif
     if (dynamicFontManager_)
         order.push_back(dynamicFontManager_);
     if (assetFontManager_)

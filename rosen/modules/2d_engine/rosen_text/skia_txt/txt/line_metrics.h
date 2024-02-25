@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "include/core/SkFontMetrics.h"
-#include "text/font_metrics.h"
 #include "text_style.h"
 
 namespace OHOS {
@@ -29,20 +28,10 @@ class RunMetrics {
 public:
     explicit RunMetrics(const TextStyle* style) : textStyle(style) {}
 
-#ifndef USE_ROSEN_DRAWING
-    RunMetrics(const TextStyle* style, const SkFontMetrics& metrics)
-        : textStyle(style), fontMetrics(metrics) {}
-#else
-    RunMetrics(const TextStyle* style, const Drawing::FontMetrics& metrics)
-        : textStyle(style), fontMetrics(metrics) {}
-#endif
+    RunMetrics(const TextStyle* style, const SkFontMetrics& metrics) : textStyle(style), fontMetrics(metrics) {}
 
     const TextStyle* textStyle;
-#ifndef USE_ROSEN_DRAWING
     SkFontMetrics fontMetrics;
-#else
-    Drawing::FontMetrics fontMetrics;
-#endif
 };
 
 class LineMetrics {

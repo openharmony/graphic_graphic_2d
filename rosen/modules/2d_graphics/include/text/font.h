@@ -132,62 +132,13 @@ public:
     std::shared_ptr<Typeface> GetTypeface();
 
     /*
-     * @brief         Get font edge pixels pattern.
-     * @return        Edge pixels pattern.
-     */
-    FontEdging GetEdging() const;
-
-    /*
-     * @brief               Get font hinting pattern.
-     * @return              Font hinting level.
-     */
-    FontHinting GetHinting() const;
-
-    /*
-     * @brief         Returns text scale on x-axis.
-     * @return        Text horizontal scale.
-     */
-    scalar GetScaleX() const;
-
-    /*
-     * @brief         Returns text skew on x-axis.
-     * @return        Additional shear on x-axis relative to y-axis.
-     */
-    scalar GetSkewX() const;
-
-    /*
-     * @brief         Returns true if glyphs may be drawn at sub-pixel offsets.
-     * @return        True if glyphs may be drawn at sub-pixel offsets.
-     */
-    bool IsSubpixel() const;
-
-    /*
-     * @brief         Returns glyph index for Unicode character.
-     * @param uni     Unicode character.
-     * @return        Glyph index.
-     */
-    uint16_t UnicharToGlyph(int32_t uni) const;
-
-    /*
-     * @brief               Converts text into glyph indices.
-     * @param text          Character storage encoded with TextEncoding.
-     * @param byteLength    Length of character storage in bytes.
-     * @param glyphs        Storage for glyph indices; may be nullptr.
-     * @param maxGlyphCount Storage capacity.
-     * @return              Number of glyphs represented by text of length byteLength.
-     */
-    int TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
-        uint16_t glyphs[], int maxGlyphCount) const;
-
-    /*
      * @brief             Measure the width of text.
      * @param text        Character storage encoded with TextEncoding
      * @param byteLength  Length of character storage in bytes
      * @param encoding    Text encoding.
-     * @param bounds      Bounding box relative to (0, 0)
      * @return            The width of text.
      */
-    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds = nullptr);
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding);
 
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const;
 
