@@ -20,7 +20,6 @@
 #include "impl/paragraph_impl.h"
 
 #include "convert.h"
-#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
