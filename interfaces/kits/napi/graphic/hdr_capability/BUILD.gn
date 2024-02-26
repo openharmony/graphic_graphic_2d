@@ -32,8 +32,6 @@ ohos_shared_library("hdr_capability_utils") {
 
   configs = [ ":hdr_capability_object_config" ]
 
-  deps = []
-
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",
