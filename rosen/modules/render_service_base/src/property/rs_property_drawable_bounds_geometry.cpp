@@ -1298,37 +1298,29 @@ RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 
 bool IsFastDangerousMode(int blendMode)
 {
-    static std::vector<int> dangerousFastBlendModeList{
-        static_cast<int>(Drawing::BlendMode::CLEAR),
-        static_cast<int>(Drawing::BlendMode::SRC_OUT),
-        static_cast<int>(Drawing::BlendMode::DST_OUT),
-        static_cast<int>(Drawing::BlendMode::XOR),
-    };
-    if (std::find(dangerousFastBlendModeList.begin(), dangerousFastBlendModeList.end(), blendMode) !=
-        dangerousFastBlendModeList.end()) {
-        return true;
-    }
-    return false;
+    static const int fastDangerousBit =
+        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::XOR));
+    int tmp = 1 << blendMode;
+    return tmp & fastDangerousBit;
 }
 
 bool IsOffscreenDangerousMode(int blendMode)
 {
-    static std::vector<int> dangerousOffscreenBlendModeList{
-        static_cast<int>(Drawing::BlendMode::CLEAR),
-        static_cast<int>(Drawing::BlendMode::SRC),
-        static_cast<int>(Drawing::BlendMode::SRC_IN),
-        static_cast<int>(Drawing::BlendMode::DST_IN),
-        static_cast<int>(Drawing::BlendMode::SRC_OUT),
-        static_cast<int>(Drawing::BlendMode::DST_OUT),
-        static_cast<int>(Drawing::BlendMode::DST_ATOP),
-        static_cast<int>(Drawing::BlendMode::XOR),
-        static_cast<int>(Drawing::BlendMode::MODULATE),
-    };
-    if (std::find(dangerousOffscreenBlendModeList.begin(), dangerousOffscreenBlendModeList.end(), blendMode) !=
-        dangerousOffscreenBlendModeList.end()) {
-        return true;
-    }
-    return false;
+    static const int offscreenDangerousBit =
+        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_IN)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_IN)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_ATOP)) +
+        (1 << static_cast<int>(Drawing::BlendMode::XOR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::MODULATE));
+    int tmp = 1 << blendMode;
+    return tmp & offscreenDangerousBit;
 }
 
 void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
@@ -1337,7 +1329,7 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
         IsOffscreenDangerousMode(static_cast<int>(blendBrush_.GetBlendMode()))) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
         canvas.SaveLayer(maskLayerRec);
-        canvas.AddBlendOffscreenLayer();
+        canvas.AddBlendOffscreenLayer(true);
         ROSEN_LOGW("Dangerous offscreen blendmode may produce transparent pixels, add extra offscreen here.");
     }
 #ifndef USE_ROSEN_DRAWING
@@ -1358,7 +1350,7 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, 0);
     canvas.SaveLayer(maskLayerRec);
 #endif
-    canvas.AddBlendOffscreenLayer();
+    canvas.AddBlendOffscreenLayer(false);
     canvas.SaveBlendMode();
     canvas.SetBlendMode(std::nullopt);
     canvas.SaveAlpha();
@@ -1370,7 +1362,7 @@ void RSBlendFastDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanv
     if (canvas.GetBlendOffscreenLayerCnt() == 0 && IsFastDangerousMode(blendMode_ - 1)) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
         canvas.SaveLayer(maskLayerRec);
-        canvas.AddBlendOffscreenLayer();
+        canvas.AddBlendOffscreenLayer(true);
         ROSEN_LOGW("Dangerous fast blendmode may produce transparent pixels, add extra offscreen here.");
     }
     canvas.SaveBlendMode();
@@ -1388,9 +1380,7 @@ void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& content, RSPai
     canvas.Restore();
 #endif
     canvas.MinusBlendOffscreenLayer();
-    auto blendModePtr = canvas.GetBlendMode();
-    if (canvas.GetBlendOffscreenLayerCnt() == 1 && blendModePtr.has_value() &&
-        IsOffscreenDangerousMode(blendModePtr.value())) {
+    if (canvas.IsBlendOffscreenExtraLayer()) {
         canvas.Restore();
         canvas.MinusBlendOffscreenLayer();
     }
@@ -1399,9 +1389,7 @@ void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& content, RSPai
 void RSBlendFastRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     canvas.RestoreBlendMode();
-    auto blendModePtr = canvas.GetBlendMode();
-    if (canvas.GetBlendOffscreenLayerCnt() == 1 && blendModePtr.has_value() &&
-        IsFastDangerousMode(blendModePtr.value())) {
+    if (canvas.IsBlendOffscreenExtraLayer()) {
         canvas.Restore();
         canvas.MinusBlendOffscreenLayer();
     }
