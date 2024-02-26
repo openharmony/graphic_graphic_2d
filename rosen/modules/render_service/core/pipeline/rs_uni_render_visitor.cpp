@@ -3279,7 +3279,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifdef ENABLE_RECORDING_DCL
         endCapture();
 #endif
-        FinishOverDraw();
         if ((screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) &&
             RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable() &&
             (!RSSingleton<RoundCornerDisplay>::GetInstance().IsSupportHardware())) {
@@ -3299,6 +3298,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         }
 #endif
+        FinishOverDraw();
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
