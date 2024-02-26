@@ -142,7 +142,7 @@ void DrawingSampleReplayer::RenderLoop()
         int rdcnum = 0;
         std::string path = "/data/autocaps";
         // Checks if the folder exists
-        if (!fs::exists(path)){
+        if (!fs::exists(path)) {
             continue;
         }
         for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path)) {
@@ -154,7 +154,6 @@ void DrawingSampleReplayer::RenderLoop()
         if (rdcnum > 0) {
             return;
         }
-        
     }
 }
 

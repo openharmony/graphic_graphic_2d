@@ -107,7 +107,7 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCaptureSKP(float width, float heig
 }
 
 void RSCaptureRecorder::EndInstantCaptureSKP()
-{   
+{
     if (!RSSystemProperties::GetInstantRecording()) {
         return;
     }
