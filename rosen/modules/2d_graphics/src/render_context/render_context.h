@@ -210,9 +210,7 @@ private:
 #endif
     EGLConfig config_;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#ifndef ROSEN_CROSS_PLATFORM
     int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
-#endif
 
     bool isUniRenderMode_ = false;
     const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";
