@@ -59,8 +59,8 @@ private:
     void PrepareNativeEGLSetup();
 
     enum CaptureMode captureMode_ = CaptureMode::RDC;
-    uint32_t drawingWidth_ = 0;
-    uint32_t drawingHeight_ = 0;
+    uint32_t width_ = 0;
+    uint32_t height_ = 0;
     std::shared_ptr<RSSurfaceNode> surfaceNode_;
     std::shared_ptr<RenderContext> renderContext_;
     OHNativeWindow* nativeWindow_ = nullptr;

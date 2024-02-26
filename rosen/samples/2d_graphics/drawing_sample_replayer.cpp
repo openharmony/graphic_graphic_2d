@@ -79,9 +79,9 @@ void DrawingSampleReplayer::PrepareFrame(Drawing::Canvas* canvas)
     if (captureMode_ == CaptureMode::SKP) {
         orgSkiaCanvas_ = canvas->GetImpl<Drawing::SkiaCanvas>()->ExportSkCanvas();
         recorder_ = std::make_unique<SkPictureRecorder>();
-        pictureCanvas_ = recorder_->beginRecording(drawingWidth_, drawingHeight_);
+        pictureCanvas_ = recorder_->beginRecording(width_, height_);
         if (nwayCanvas_ == nullptr) {
-            nwayCanvas_ = std::make_unique<SkNWayCanvas>(drawingWidth_, drawingHeight_);
+            nwayCanvas_ = std::make_unique<SkNWayCanvas>(width_, height_);
         }
         nwayCanvas_->addCanvas(orgSkiaCanvas_);
         nwayCanvas_->addCanvas(pictureCanvas_);
@@ -129,7 +129,7 @@ void DrawingSampleReplayer::RenderLoop()
     int maxIter = (captureMode_ == CaptureMode::RDC) ? MAX_RENDERED_FRAMES : 1;
 
     for (int i = 0; i < maxIter; ++i) {
-        std::shared_ptr<Drawing::Surface> drawingSurface = renderContext_->AcquireSurface(drawingWidth_, drawingHeight_);
+        std::shared_ptr<Drawing::Surface> drawingSurface = renderContext_->AcquireSurface(width_, height_);
         Drawing::Canvas* canvas = drawingSurface->GetCanvas().get();
 
         std::cout << i << "\t >> new iteration" << std::endl;
@@ -142,17 +142,19 @@ void DrawingSampleReplayer::RenderLoop()
         int rdcnum = 0;
         std::string path = "/data/autocaps";
         // Checks if the folder exists
-        if (fs::exists(path)) {
-            for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path)) {
-                const std::filesystem::path& path = entry.path();
-                if (path.extension() == ".rdc") {
-                    rdcnum++;
-                }
-            }
-            if (rdcnum > 0) {
-                return;
+        if (!fs::exists(path)){
+            continue;
+        }
+        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path)) {
+            const std::filesystem::path& path = entry.path();
+            if (path.extension() == ".rdc") {
+                rdcnum++;
             }
         }
+        if (rdcnum > 0) {
+            return;
+        }
+        
     }
 }
 
@@ -162,10 +164,10 @@ void DrawingSampleReplayer::PrepareNativeEGLSetup()
     renderContext_->InitializeEglContext();
 
     auto defaultDisplay = DisplayManager::GetInstance().GetDefaultDisplay();
-    drawingWidth_ = defaultDisplay->GetWidth();
-    drawingHeight_ = defaultDisplay->GetHeight();
+    width_ = defaultDisplay->GetWidth();
+    height_ = defaultDisplay->GetHeight();
 
-    std::cout << "Width: " << drawingWidth_ << "  -  Height: " << drawingHeight_ << std::endl;
+    std::cout << "Width: " << width_ << "  -  Height: " << height_ << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig = {"DrawingEngineSample"};
     RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
@@ -177,7 +179,7 @@ void DrawingSampleReplayer::PrepareNativeEGLSetup()
 
     surfaceNode_->SetFrameGravity(Gravity::RESIZE_ASPECT_FILL);
     surfaceNode_->SetPositionZ(RSSurfaceNode::POINTER_WINDOW_POSITION_Z);
-    surfaceNode_->SetBounds(0, 0, drawingWidth_, drawingHeight_);
+    surfaceNode_->SetBounds(0, 0, width_, height_);
     surfaceNode_->AttachToDisplay(DEFAULT_DISPLAY_ID);
     RSTransaction::FlushImplicitTransaction();
 
@@ -202,7 +204,7 @@ void DrawingSampleReplayer::PrepareNativeEGLSetup()
         DestoryNativeWindow(nativeWindow_);
         return;
     }
-    NativeWindowHandleOpt(nativeWindow_, SET_BUFFER_GEOMETRY, drawingWidth_, drawingHeight_);
+    NativeWindowHandleOpt(nativeWindow_, SET_BUFFER_GEOMETRY, width_, height_);
 }
 
 void DrawingSampleReplayer::SetCaptureMode(CaptureMode mode)

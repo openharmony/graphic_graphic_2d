@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string.h>
+#include <cstring>
 
 #include "rs_profiler_capture_recorder.h"
 
@@ -63,7 +63,7 @@ void RSCaptureRecorder::EndInstantCaptureDrawing()
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();
 
     std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
-    messageParcel->SetMaxCapacity(RECORDING_PARCEL_CAPCITY);
+    messageParcel->SetMaxCapacity(recordingParcelCapacity_);
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
     RSMarshallingHelper::Marshalling(*messageParcel, drawCmdList);
     RSMarshallingHelper::EndNoSharedMem();

@@ -51,7 +51,7 @@ private:
     Drawing::Canvas* TryInstantCaptureSKP(float width, float height);
     void EndInstantCaptureSKP();
 
-    const static size_t RECORDING_PARCEL_CAPCITY = 234 * 1000 * 1024;
+    const size_t recordingParcelCapacity_ = 234 * 1000 * 1024;
     // used for .rdc capturing
     const std::string drawCmdListFilename_ = "/data/default.drawing";
     std::unique_ptr<ExtendRecordingCanvas> recordingCanvas_;
