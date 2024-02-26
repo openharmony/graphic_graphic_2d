@@ -38,10 +38,12 @@ public:
         SRGB_GAMMA_TO_LINEAR,
         COMPOSE,
         LUMA,
+        OVER_DRAW,
     };
 
     // Color matrix is a 4x5 float type matrix.
     constexpr static int MATRIX_SIZE = 20;
+    constexpr static int OVER_DRAW_COLOR_NUM = 6;
 
     static std::shared_ptr<ColorFilter> CreateBlendModeColorFilter(ColorQuad c, BlendMode mode);
     static std::shared_ptr<ColorFilter> CreateComposeColorFilter(ColorFilter& f1, ColorFilter& f2);
@@ -51,6 +53,7 @@ public:
     static std::shared_ptr<ColorFilter> CreateFloatColorFilter(const float (&f)[MATRIX_SIZE]);
     static std::shared_ptr<ColorFilter> CreateLinearToSrgbGamma();
     static std::shared_ptr<ColorFilter> CreateSrgbGammaToLinear();
+    static std::shared_ptr<ColorFilter> CreateOverDrawColorFilter(const ColorQuad colors[OVER_DRAW_COLOR_NUM]);
     /*
      * @brief   Create a ColorFilter that its type is luma.
      * @return  A shared pointer to ColorFilter that its type is luma.
@@ -82,6 +85,7 @@ public:
     ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept;
     ColorFilter(FilterType t, const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE]) noexcept;
     ColorFilter(FilterType t) noexcept;
+    ColorFilter(FilterType t, const ColorQuad colors[OVER_DRAW_COLOR_NUM]) noexcept;
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
     bool AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const;

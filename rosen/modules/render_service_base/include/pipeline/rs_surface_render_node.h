@@ -311,7 +311,7 @@ public:
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override {}
-    void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty) override;
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
 
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}

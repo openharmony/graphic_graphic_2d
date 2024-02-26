@@ -80,6 +80,8 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .locale = style.locale,
         .textSplitRatio = style.textSplitRatio,
         .textOverflower = style.Ellipsized(),
+        .spTextStyle = Convert(style.insideTextStyle),
+        .customSpTextStyle = style.customTextStyle,
     };
 }
 

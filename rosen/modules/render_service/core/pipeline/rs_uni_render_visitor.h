@@ -351,6 +351,10 @@ private:
     void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
     void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 
+    // used to catch overdraw
+    void StartOverDraw();
+    void FinishOverDraw();
+
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
 #else
@@ -361,6 +365,10 @@ private:
     // Use in vulkan parallel rendering
     void ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node);
     bool IsOutOfScreenRegion(RectI rect);
+
+    // used to catch overdraw
+    std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
@@ -418,7 +426,6 @@ private:
     bool isOcclusionEnabled_ = false;
     bool isSkipCanvasNodeOutOfScreen_ = false;
     bool isScreenRotationAnimating_ = false;
-    bool isTextNeedCached_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     QuickSkipPrepareType quickSkipPrepareType_;
@@ -458,8 +465,6 @@ private:
     // check each surface could be reused per frame
     // currently available to uiFirst
     bool isCachedSurfaceReuse_ = false;
-    bool isStaticDrawingCacheUsingEffect_ = false;
-    uint32_t effectNodeNum_ = 0;
     bool isSurfaceDirtyNodeLimited_ = false;
 
     bool isDirtyRegionAlignedEnable_ = false;

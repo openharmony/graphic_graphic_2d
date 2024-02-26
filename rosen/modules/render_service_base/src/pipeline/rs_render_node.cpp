@@ -1219,8 +1219,8 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         return;
     }
     auto& cachedImageRect = manager->GetCachedImageRegion();
-    if (dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
-        manager->UpdateCacheStateWithDirtyRegion();
+    if (manager->UpdateCacheStateWithDirtyRegion(dirtyManager)) {
+        dirtyManager.MergeDirtyRect(cachedImageRect);
     }
 #endif
 }
@@ -1244,7 +1244,7 @@ void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
     renderNodeSaveCount_ = canvas.SaveAllStatus();
 #endif
     auto boundsGeo = (GetRenderProperties().GetBoundsGeometry());
-    if (boundsGeo && (!boundsGeo->IsEmpty() || boundsGeo->IsValidOffset())) {
+    if (boundsGeo && !boundsGeo->IsEmpty()) {
 #ifndef USE_ROSEN_DRAWING
         canvas.concat(boundsGeo->GetMatrix());
 #else
@@ -1468,7 +1468,25 @@ void RSRenderNode::UpdateDrawableVec()
 #ifndef ROSEN_ARKUI_X
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
-    // initialize necessary save/clip/restore
+    if (!GetIsUsedBySubThread()) {
+        UpdateDrawableVecInternal(dirtySlots);
+    } else if (auto context = context_.lock()) {
+        context->PostTask([weakPtr = weak_from_this(), dirtySlots]() {
+            if (auto node = weakPtr.lock()) {
+                node->UpdateDrawableVecInternal(dirtySlots);
+            }
+        });
+    } else {
+        ROSEN_LOGI("%{public}s GetIsUsedBySubThread[%{public}d].", __func__, GetIsUsedBySubThread());
+        UpdateDrawableVecInternal(dirtySlots);
+    }
+#endif
+}
+
+void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
+{
+#ifndef ROSEN_ARKUI_X
+     // initialize necessary save/clip/restore
     if (drawableVecStatus_ == 0) {
         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
     }
@@ -1484,16 +1502,16 @@ void RSRenderNode::UpdateDrawableVec()
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSRenderNode::UpdateEffectRegion(std::optional<SkIRect>& region)
+void RSRenderNode::UpdateEffectRegion(std::optional<SkIRect>& region, bool isForced)
 #else
-void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region)
+void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
 #endif
 {
     if (!region.has_value()) {
         return;
     }
     const auto& property = GetRenderProperties();
-    if (!property.GetUseEffect()) {
+    if (!isForced && !property.GetUseEffect()) {
         return;
     }
 
@@ -2139,7 +2157,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
     }
     if (isAnimAdd) {
         if (GROUPABLE_ANIMATION_TYPE.count(target->second->GetType())) {
-            MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true);
+            MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true, false);
         } else if (CACHEABLE_ANIMATION_TYPE.count(target->second->GetType())) {
             hasCacheableAnim_ = true;
         }
@@ -2158,15 +2176,15 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
         hasGroupableAnim = (hasGroupableAnim || (GROUPABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
         hasCacheableAnim_ = (hasCacheableAnim_ || (CACHEABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
     }
-    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim);
+    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim, false);
 }
 
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER || nodeGroupType_ == NodeGroupType::GROUPED_BY_AUTO;
+    return nodeGroupType_ & NodeGroupType::GROUPED_BY_USER || nodeGroupType_ & NodeGroupType::GROUPED_BY_AUTO;
 #else
-    return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER;
+    return nodeGroupType_ & NodeGroupType::GROUPED_BY_USER;
 #endif
 }
 
@@ -2175,29 +2193,37 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
     return nodeGroupType_ != NodeGroupType::NONE;
 }
 
-void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
+void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
-    if (type >= nodeGroupType_) {
-        if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
-            auto context = GetContext().lock();
-            if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
-                nodeGroupType_ = type;
-                SetDirty();
-            }
-        } else {
-            nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (nodeGroupType_ != NodeGroupType::GROUPED_BY_AUTO) {
-                SetDirty();
-            }
-#else
+    if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
+        auto context = GetContext().lock();
+        if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
+            nodeGroupType_ |= type;
             SetDirty();
+        }
+    } else {
+        if (isNodeGroup) {
+            nodeGroupType_ |= type;
+        } else {
+            nodeGroupType_ &= ~type;
+        }
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        if (!(nodeGroupType_ & NodeGroupType::GROUPED_BY_AUTO)) {
+            SetDirty();
+        }
+#else
+        SetDirty();
 #endif
-        }
-        if (type == NodeGroupType::GROUPED_BY_USER) {
-            GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
-        }
     }
+    nodeGroupIncludeProperty_ = includeProperty;
+    if (type == NodeGroupType::GROUPED_BY_USER) {
+        GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
+    }
+}
+
+bool RSRenderNode::IsNodeGroupIncludeProperty() const
+{
+    return nodeGroupIncludeProperty_;
 }
 
 void RSRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid)
@@ -2218,7 +2244,7 @@ void RSRenderNode::CheckDrawingCacheType()
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     } else if (IsForcedDrawInGroup()) {
 #else
-    } else if (nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) {
+    } else if (nodeGroupType_ & NodeGroupType::GROUPED_BY_USER) {
 #endif
         SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     } else {
@@ -2695,7 +2721,7 @@ bool RSRenderNode::GetCacheGeoPreparationDelay() const
 
 void RSRenderNode::StoreMustRenewedInfo()
 {
-    mustRenewedInfo_ = hasHardwareNode_ || hasFilter_ || effectNodeNum_ > 0;
+    mustRenewedInfo_ = hasHardwareNode_ || hasFilter_ || hasEffectNode_;
 }
 
 bool RSRenderNode::HasMustRenewedInfo() const
@@ -2703,9 +2729,14 @@ bool RSRenderNode::HasMustRenewedInfo() const
     return mustRenewedInfo_;
 }
 
-void RSRenderNode::SetUseEffectNodes(uint32_t val)
+void RSRenderNode::SetUseEffectNodes(bool val)
 {
-    effectNodeNum_ = val;
+    hasEffectNode_ = val;
+}
+
+bool RSRenderNode::HasUseEffectNodes() const
+{
+    return hasEffectNode_;
 }
 
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
@@ -2901,7 +2932,15 @@ OutOfParentType RSRenderNode::GetOutOfParent() const
 }
 RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
 {
-    return nodeGroupType_;
+    uint8_t type = NodeGroupType::GROUP_TYPE_BUTT;
+    while (type != NodeGroupType::NONE) {
+        if (nodeGroupType_ & type) {
+            return static_cast<NodeGroupType>(type);
+        } else {
+            type = type >> 1;
+        }
+    }
+    return NodeGroupType::NONE;
 }
 
 void RSRenderNode::MarkNonGeometryChanged()

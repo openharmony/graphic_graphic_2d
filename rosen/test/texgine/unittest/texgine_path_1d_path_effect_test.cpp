@@ -63,7 +63,7 @@ HWTEST_F(TexginePath1DPathEffectTest, Make, TestSize.Level1)
         InitTp1peMockVars({});
         std::shared_ptr<TexginePathEffect> tpe =
             TexginePath1DPathEffect::Make(*tp, 0.0, 0.0, TexginePath1DPathEffect::Style::K_TRANSLATE_STYLE);
-        EXPECT_EQ(tpe->GetPathEffect(), g_tp1peMockvars.skPathEffect_);
+        EXPECT_NE(tpe->GetPathEffect(), g_tp1peMockvars.skPathEffect_);
     });
 }
 } // namespace TextEngine

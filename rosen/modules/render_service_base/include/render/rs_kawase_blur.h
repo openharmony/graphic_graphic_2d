@@ -92,7 +92,7 @@ private:
         const KawaseParameter& param) const;
 #else
     static Drawing::Matrix GetShaderTransform(const Drawing::Canvas* canvas, const Drawing::Rect& blurRect,
-        float scale = 1.0f);
+        float scaleW = 1.0f, float scaleH = 1.0f);
     void CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const KawaseParameter& param, std::shared_ptr<Drawing::Image>& checkedImage);
     void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,

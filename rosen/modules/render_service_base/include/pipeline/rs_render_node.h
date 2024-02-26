@@ -230,7 +230,7 @@ public:
     void ApplyBoundsGeometry(RSPaintFilterCanvas& canvas);
     void ApplyAlpha(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
-    virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty = true) {}
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
 
     virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
@@ -268,7 +268,8 @@ public:
     virtual void StoreMustRenewedInfo();
     bool HasMustRenewedInfo() const;
     // collect all subnodes using effect
-    void SetUseEffectNodes(uint32_t val);
+    void SetUseEffectNodes(bool val);
+    bool HasUseEffectNodes() const;
     bool HasSubSurface() const;
 
     bool NeedInitCacheSurface() const;
@@ -440,9 +441,9 @@ public:
     OutOfParentType GetOutOfParent() const;
 
 #ifndef USE_ROSEN_DRAWING
-    void UpdateEffectRegion(std::optional<SkIRect>& region);
+    void UpdateEffectRegion(std::optional<SkIRect>& region, bool isForced = false);
 #else
-    void UpdateEffectRegion(std::optional<Drawing::RectI>& region);
+    void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
 #endif
     bool IsBackgroundFilterCacheValid() const;
     virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = true);
@@ -452,17 +453,21 @@ public:
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
-    enum NodeGroupType {
+    enum NodeGroupType : uint8_t {
         NONE = 0,
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        GROUPED_BY_AUTO,
+        GROUPED_BY_AUTO = 1,
+        GROUPED_BY_ANIM = GROUPED_BY_AUTO << 1,
+#else
+        GROUPED_BY_ANIM = 1,
 #endif
-        GROUPED_BY_ANIM,
-        GROUPED_BY_UI,
-        GROUPED_BY_USER,
+        GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
+        GROUPED_BY_USER = GROUPED_BY_UI << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_USER,
     };
-    void MarkNodeGroup(NodeGroupType type, bool isNodeGroup);
+    void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     NodeGroupType GetNodeGroupType();
+    bool IsNodeGroupIncludeProperty() const;
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
@@ -670,7 +675,8 @@ private:
     // since cache preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool cacheGeoPreparationDelay_ = false;
-    uint32_t effectNodeNum_ = 0;
+    // specify if any subnode uses effect, not including itself
+    bool hasEffectNode_ = false;
 
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
@@ -703,7 +709,8 @@ private:
     std::optional<SharedTransitionParam> sharedTransitionParam_;
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
-    NodeGroupType nodeGroupType_ = NodeGroupType::NONE;
+    uint8_t nodeGroupType_ = NodeGroupType::NONE;
+    bool nodeGroupIncludeProperty_ = false;
 
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
@@ -723,7 +730,7 @@ private:
 
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
-
+    void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;
 

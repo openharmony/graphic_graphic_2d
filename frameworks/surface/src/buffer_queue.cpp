@@ -31,6 +31,7 @@
 #include "sync_fence.h"
 #include "sync_fence_tracker.h"
 #include "surface_utils.h"
+#include "v1_1/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
 namespace {
@@ -223,6 +224,25 @@ static void SetReturnValue(sptr<SurfaceBuffer>& buffer, sptr<BufferExtraData>& b
     retval.fence = SyncFence::INVALID_FENCE;
 }
 
+void BufferQueue::SetSurfaceBufferHebcMetaLocked(sptr<SurfaceBuffer> buffer)
+{
+    using namespace HDI::Display::Graphic::Common;
+    // usage does not contain BUFFER_USAGE_CPU_HW_BOTH, just return
+    if (!(buffer->GetUsage() & BUFFER_USAGE_CPU_HW_BOTH)) {
+        return;
+    }
+
+    V1_1::BufferHandleAttrKey key = V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE;
+    std::vector<uint8_t> values;
+    if (isCpuAccessable_) { // hebc is off
+        values.push_back(static_cast<uint8_t>(V1_1::HebcAccessType::HEBC_ACCESS_CPU_ACCESS));
+    } else { // hebc is on
+        values.push_back(static_cast<uint8_t>(V1_1::HebcAccessType::HEBC_ACCESS_HW_ONLY));
+    }
+
+    buffer->SetMetadata(key, values);
+}
+
 GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {
@@ -275,6 +295,7 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
 
     ret = AllocBuffer(buffer, config);
     if (ret == GSERROR_OK) {
+        SetSurfaceBufferHebcMetaLocked(buffer);
         SetReturnValue(buffer, bedata, retval);
         BLOGND("Success alloc Buffer[%{public}d %{public}d] id: %{public}d id: %{public}" PRIu64, config.width,
             config.height, retval.sequence, uniqueId_);
@@ -353,6 +374,7 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
     bufferQueueCache_[retval.sequence].state = BUFFER_STATE_REQUESTED;
     retval.fence = bufferQueueCache_[retval.sequence].fence;
     bedata = retval.buffer->GetExtraData();
+    SetSurfaceBufferHebcMetaLocked(retval.buffer);
 
     auto &dbs = retval.deletingBuffers;
     dbs.insert(dbs.end(), deletingList_.begin(), deletingList_.end());
@@ -595,9 +617,6 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
     GSError ret = PopFromDirtyList(buffer);
     if (ret == GSERROR_OK) {
         uint32_t sequence = buffer->GetSeqNum();
-        if (isShared_ == false && bufferQueueCache_[sequence].state != BUFFER_STATE_FLUSHED) {
-            BLOGNW("Warning [%{public}d], Reason: state is not BUFFER_STATE_FLUSHED", sequence);
-        }
         bufferQueueCache_[sequence].state = BUFFER_STATE_ACQUIRED;
 
         fence = bufferQueueCache_[sequence].fence;
@@ -1345,7 +1364,12 @@ void BufferQueue::DumpCache(std::string &result)
             std::to_string(element.config.strideAlignment) + ", " +
             std::to_string(element.config.format) +", " +
             std::to_string(element.config.usage) + ", " +
-            std::to_string(element.config.timeout) + "],";
+            std::to_string(element.config.timeout) + ", " +
+            std::to_string(element.config.colorGamut) + ", " +
+            std::to_string(element.config.transform) + "],";
+
+        result += " scalingMode = " + std::to_string(element.scalingMode) + ",";
+        result += " HDR = " + std::to_string(element.hdrMetaDataType) + ", ";
 
         double bufferMemSize = 0;
         if (element.buffer != nullptr) {
@@ -1353,6 +1377,7 @@ void BufferQueue::DumpCache(std::string &result)
                     ", bufferHeight = " + std::to_string(element.buffer->GetHeight());
             bufferMemSize = static_cast<double>(element.buffer->GetSize()) / BUFFER_MEMSIZE_RATE;
         }
+
         std::ostringstream ss;
         ss.precision(BUFFER_MEMSIZE_FORMAT);
         ss.setf(std::ios::fixed);

@@ -509,4 +509,9 @@ GSError ConsumerSurface::SetWptrNativeWindowToPSurface(void* nativeWindow)
     BLOGND("ConsumerSurface::SetWptrNativeWindowToPSurface not support.");
     return GSERROR_NOT_SUPPORT;
 }
+
+void ConsumerSurface::ConsumerRequestCpuAccess(bool on)
+{
+    consumer_->ConsumerRequestCpuAccess(on);
+}
 } // namespace OHOS

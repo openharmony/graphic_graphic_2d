@@ -16,5 +16,7 @@
     { "name": "OH_NativeWindow_NativeWindowSetScalingMode" },
     { "name": "OH_NativeWindow_NativeWindowSetMetaData" },
     { "name": "OH_NativeWindow_NativeWindowSetMetaDataSet" },
-    { "name": "OH_NativeWindow_NativeWindowSetTunnelHandle" }
+    { "name": "OH_NativeWindow_NativeWindowSetTunnelHandle" },
+    { "name": "OH_NativeWindow_GetSurfaceId"},
+    { "name": "OH_NativeWindow_CreateNativeWindowFromSurfaceId"}
 ]

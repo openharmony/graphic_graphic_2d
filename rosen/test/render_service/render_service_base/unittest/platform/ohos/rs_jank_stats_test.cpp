@@ -51,11 +51,11 @@ void RSJankStatsTest::TearDown() {}
 HWTEST_F(RSJankStatsTest, SetEndTimeTest, TestSize.Level1)
 {
     auto& rsJankStats = RSJankStats::GetInstance();
-    rsJankStats.SetEndTime();
+    rsJankStats.SetEndTime(false);
     rsJankStats.SetStartTime();
     pid_t appPid = 1;
     rsJankStats.SetAppFirstFrame(appPid);
-    rsJankStats.SetEndTime();
+    rsJankStats.SetEndTime(true);
     rsJankStats.SetSkipDisplayNode();
 }
 
@@ -69,7 +69,7 @@ HWTEST_F(RSJankStatsTest, ReportJankStatsTest, TestSize.Level1)
 {
     auto& rsJankStats = RSJankStats::GetInstance();
     rsJankStats.SetStartTime();
-    rsJankStats.SetEndTime();
+    rsJankStats.SetEndTime(false);
     rsJankStats.ReportJankStats();
 }
 
@@ -89,7 +89,7 @@ HWTEST_F(RSJankStatsTest, SetReportEventResponseTest, TestSize.Level1)
     info1.uniqueId = 1;
     rsJankStats.SetReportEventResponse(info1);
     rsJankStats.SetStartTime();
-    rsJankStats.SetEndTime();
+    rsJankStats.SetEndTime(false);
 }
 
 /**
@@ -108,7 +108,7 @@ HWTEST_F(RSJankStatsTest, SetReportEventCompleteTest, TestSize.Level1)
     info1.uniqueId = 3;
     rsJankStats.SetReportEventComplete(info1);
     rsJankStats.SetStartTime();
-    rsJankStats.SetEndTime();
+    rsJankStats.SetEndTime(false);
 }
 
 /**
@@ -126,7 +126,7 @@ HWTEST_F(RSJankStatsTest, SetReportEventJankFrameTest, TestSize.Level1)
     info1.uniqueId = 4;
     rsJankStats.SetReportEventJankFrame(info1, true);
     rsJankStats.SetStartTime();
-    rsJankStats.SetEndTime();
+    rsJankStats.SetEndTime(false);
 }
 
 /**
@@ -143,24 +143,24 @@ HWTEST_F(RSJankStatsTest, ConvertTimeToSystimeTest, TestSize.Level1)
     info1.uniqueId = 0;
     rsJankStats.SetReportEventResponse(info1);
     usleep(50*1000);
-    rsJankStats.SetEndTime();
+    rsJankStats.SetEndTime(false);
     usleep(100*1000);
-    rsJankStats.SetEndTime(); // JANK_FRAME_6_FREQ
+    rsJankStats.SetEndTime(false); // JANK_FRAME_6_FREQ
     rsJankStats.SetReportEventResponse(info1);
     usleep(100*1000);
-    rsJankStats.SetEndTime(); // JANK_FRAME_15_FREQ
+    rsJankStats.SetEndTime(false); // JANK_FRAME_15_FREQ
     usleep(100*1000);
-    rsJankStats.SetEndTime(); // JANK_FRAME_20_FREQ
+    rsJankStats.SetEndTime(false); // JANK_FRAME_20_FREQ
     usleep(300*1000);
-    rsJankStats.SetEndTime(); // JANK_FRAME_36_FREQ
+    rsJankStats.SetEndTime(false); // JANK_FRAME_36_FREQ
     usleep(250*1000);
-    rsJankStats.SetEndTime(); // JANK_FRAME_48_FREQ
+    rsJankStats.SetEndTime(false); // JANK_FRAME_48_FREQ
     usleep(1000*1000);
-    rsJankStats.SetEndTime(); // JANK_FRAME_60_FREQ
+    rsJankStats.SetEndTime(false); // JANK_FRAME_60_FREQ
     usleep(400*1000);
-    rsJankStats.SetEndTime(); // JANK_FRAME_120_FREQ
+    rsJankStats.SetEndTime(false); // JANK_FRAME_120_FREQ
     usleep(800*1000);
-    rsJankStats.SetEndTime(); // jank frames skip more than 180
+    rsJankStats.SetEndTime(false); // jank frames skip more than 180
 }
 } // namespace Rosen
 } // namespace OHOS

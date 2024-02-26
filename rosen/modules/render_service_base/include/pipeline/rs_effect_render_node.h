@@ -42,11 +42,9 @@ public:
 #ifndef USE_ROSEN_DRAWING
     std::optional<SkIRect> InitializeEffectRegion() const { return SkIRect::MakeEmpty(); }
     void SetEffectRegion(const std::optional<SkIRect>& effectRegion);
-    std::optional<SkIRect> GetEffectRegion() const { return effectRegion_; }
 #else
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
     void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
-    std::optional<Drawing::RectI> GetEffectRegion() const { return effectRegion_; }
 #endif
     // record if there is filter cache for occlusion before this effect node
     void SetVisitedFilterCacheStatus(bool isEmpty)
@@ -74,13 +72,9 @@ private:
 
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;
+    bool preRotationStatus_ = false;
     int invalidateTimes_ = 0;
-    static int cacheUpdateInterval_;
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkIRect> effectRegion_;
-#else
-    std::optional<Drawing::RectI> effectRegion_;
-#endif
+    int cacheUpdateInterval_ = 1;
 };
 } // namespace Rosen
 } // namespace OHOS

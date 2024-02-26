@@ -131,11 +131,12 @@ constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
+constexpr uint32_t WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT = 1000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
-constexpr int32_t INVISBLE_WINDOW_RATE = INT32_MAX;
+constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
 constexpr int32_t MAX_MULTI_INSTANCE_PID_COUNT = 1;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
@@ -264,6 +265,9 @@ void RSMainThread::Init()
     mainLoop_ = [&]() {
         mainLooping_.store(true);
         RenderFrameStart(timestamp_);
+#if defined(RS_ENABLE_UNI_RENDER)
+        WaitUntilSurfaceCapProcFinished();
+#endif
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
@@ -303,6 +307,14 @@ void RSMainThread::Init()
 #endif
         mainLooping_.store(false);
     };
+    static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
+        [] (std::shared_ptr<Drawing::Image> image) -> void {
+            if (image) {
+                SKResourceManager::Instance().HoldResource(image);
+            }
+        };
+    Drawing::DrawOpItem::SetBaseCallback(holdDrawingImagefunc);
+
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     qosPidCal_ = deviceType_ == DeviceType::PC;
@@ -538,11 +550,6 @@ void RSMainThread::SetFocusAppInfo(
     focusAppBundleName_ = bundleName;
     focusAppAbilityName_ = abilityName;
     focusNodeId_ = focusNodeId;
-}
-
-std::string RSMainThread::GetFocusAppBundleName() const
-{
-    return focusAppBundleName_;
 }
 
 void RSMainThread::Start()
@@ -785,6 +792,10 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
             auto curIndex = (*iter)->GetIndex();
             if (curIndex == lastIndex + 1) {
                 if ((*iter)->GetTimestamp() >= timestamp_) {
+#ifdef ROSEN_EMULATOR
+                    transactionFlags += "cache [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
+                    RequestNextVSync();
+#endif
                     break;
                 }
                 ++lastIndex;
@@ -1369,6 +1380,36 @@ void RSMainThread::NotifyDisplayNodeBufferReleased()
     displayNodeBufferReleasedCond_.notify_one();
 }
 
+void RSMainThread::NotifySurfaceCapProcFinish()
+{
+    RS_TRACE_NAME("RSMainThread::NotifySurfaceCapProcFinish");
+    std::lock_guard<std::mutex> lock(surfaceCapProcMutex_);
+    surfaceCapProcFinished_ = true;
+    surfaceCapProcTaskCond_.notify_one();
+}
+
+void RSMainThread::WaitUntilSurfaceCapProcFinished()
+{
+    if (GetDeviceType() != DeviceType::PHONE) {
+        return;
+    }
+    std::unique_lock<std::mutex> lock(surfaceCapProcMutex_);
+    if (surfaceCapProcFinished_) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilSurfaceCapProcFinished");
+    surfaceCapProcTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT),
+        [this]() { return surfaceCapProcFinished_; });
+    RS_OPTIONAL_TRACE_END();
+}
+
+void RSMainThread::SetSurfaceCapProcFinished(bool flag)
+{
+    std::lock_guard<std::mutex> lock(surfaceCapProcMutex_);
+    surfaceCapProcFinished_ = flag;
+}
+
 void RSMainThread::NotifyDrivenRenderFinish()
 {
 #if defined(RS_ENABLE_DRIVEN_RENDER)
@@ -1855,7 +1896,7 @@ void RSMainThread::CalcOcclusion()
     SurfaceOcclusionCallback();
 }
 
-void RSMainThread::DeleteMultiInstancePid(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+void RSMainThread::SetMultiInstancePidVSyncRate(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
     std::map<uint32_t, int> multiInstancePidMap;
@@ -1869,7 +1910,7 @@ void RSMainThread::DeleteMultiInstancePid(std::map<uint32_t, RSVisibleLevel>& pi
     }
     for (auto& iter : multiInstancePidMap) {
         if (iter.second > MAX_MULTI_INSTANCE_PID_COUNT) {
-            pidVisMap.erase(iter.first);
+            pidVisMap[iter.first] = RSVisibleLevel::RS_ALL_VISIBLE;
         }
     }
 }
@@ -1889,7 +1930,7 @@ bool RSMainThread::CheckSurfaceVisChanged(std::map<uint32_t, RSVisibleLevel>& pi
         }
         isReduceVSyncBySystemAnimatedScenes_ = true;
     } else {
-        DeleteMultiInstancePid(pidVisMap, curAllSurfaces);
+        SetMultiInstancePidVSyncRate(pidVisMap, curAllSurfaces);
     }
     bool isVisibleChanged = pidVisMap.size() != lastPidVisMap_.size();
     if (!isVisibleChanged) {
@@ -2056,6 +2097,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     RSJankStats::GetInstance().SetStartTime();
+    SetDiscardJankFrames(false);
     timestamp_ = timestamp;
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -2076,7 +2118,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
             PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
         }
     }
-    RSJankStats::GetInstance().SetEndTime();
+    RSJankStats::GetInstance().SetEndTime(GetDiscardJankFrames());
 }
 
 void RSMainThread::Animate(uint64_t timestamp)
@@ -2107,9 +2149,11 @@ void RSMainThread::Animate(uint64_t timestamp)
         receiver_->GetVSyncPeriod(period);
     }
     RSRenderAnimation::isCalcAnimateVelocity_ = isRateDeciderEnabled;
+    uint32_t totalAnimationSize = 0;
+    uint32_t animatingNodeSize = context_->animatingNodeList_.size();
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
-        [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled,
+        [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
         &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
@@ -2121,6 +2165,7 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }
+        totalAnimationSize += node->animationManager_.GetAnimationsSize();
         auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t {
             return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
         };
@@ -2146,6 +2191,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         return !hasRunningAnimation;
     });
+    RS_TRACE_NAME_FMT("Animate [nodeSize, totalAnimationSize] is [%lu, %lu]", animatingNodeSize, totalAnimationSize);
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
         RSQosThread::ResetQosPid();
     }

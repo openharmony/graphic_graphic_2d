@@ -194,6 +194,7 @@ ohos_unittest("consumer_surface_test") {
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers_1.1",
     "hilog:libhilog",
   ]
 }
@@ -228,7 +229,7 @@ ohos_unittest("surface_buffer_impl_test") {
 
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
+    "drivers_interface_display:display_commontype_idl_headers_1.1",
     "hilog:libhilog",
   ]
 }

@@ -22,6 +22,7 @@
 #include "producer_surface_delegator.h"
 #include "buffer_queue_consumer.h"
 #include "buffer_queue.h"
+#include "v1_1/buffer_handle_meta_key_type.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1033,6 +1034,146 @@ HWTEST_F(ConsumerSurfaceTest, RegisterSurfaceDelegator001, Function | MediumTest
     GSError ret = bq->Init();
     ASSERT_EQ(ret, GSERROR_OK);
     ret = cs->RegisterSurfaceDelegator(surfaceDelegator->AsObject());
+    ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: ConsumerRequestCpuAccess
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. usage does not contain BUFFER_USAGE_CPU_HW_BOTH
+*                  2. call ConsumerRequestCpuAccess(fasle/true)
+*                  3. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, ConsumerRequestCpuAccess001, Function | MediumTest | Level2)
+{
+    using namespace HDI::Display::Graphic::Common;
+    BufferRequestConfig config = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    auto cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> cListener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(cListener);
+    auto p = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(p);
+
+    // test default
+    sptr<SurfaceBuffer> buffer;
+    int releaseFence = -1;
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    std::vector<uint8_t> values;
+    buffer->GetMetadata(V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE, values);
+    ASSERT_EQ(values.size(), 0);
+    
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // test true
+    cSurface->ConsumerRequestCpuAccess(true);
+    ret = pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    values.clear();
+    buffer->GetMetadata(V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE, values);
+    ASSERT_EQ(values.size(), 0);
+    
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // test false
+    cSurface->ConsumerRequestCpuAccess(true);
+    ret = pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    values.clear();
+    buffer->GetMetadata(V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE, values);
+    ASSERT_EQ(values.size(), 0);
+    
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: ConsumerRequestCpuAccess
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. usage contain BUFFER_USAGE_CPU_HW_BOTH
+*                  2. call ConsumerRequestCpuAccess(true)
+*                  3. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, ConsumerRequestCpuAccess002, Function | MediumTest | Level2)
+{
+    using namespace HDI::Display::Graphic::Common;
+    BufferRequestConfig config = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_CPU_HW_BOTH,
+        .timeout = 0,
+    };
+    auto cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> cListener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(cListener);
+    auto p = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(p);
+
+    // test default
+    sptr<SurfaceBuffer> buffer;
+    int releaseFence = -1;
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    std::vector<uint8_t> values;
+    buffer->GetMetadata(V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE, values);
+    if (values.size() == 1) {
+        ASSERT_EQ(values[0], V1_1::HebcAccessType::HEBC_ACCESS_HW_ONLY);
+    }
+    
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // test true
+    cSurface->ConsumerRequestCpuAccess(true);
+    ret = pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    values.clear();
+    buffer->GetMetadata(V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE, values);
+    if (values.size() == 1) {
+        ASSERT_EQ(values[0], V1_1::HebcAccessType::HEBC_ACCESS_CPU_ACCESS);
+    }
+
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // test false
+    cSurface->ConsumerRequestCpuAccess(true);
+    ret = pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    values.clear();
+    buffer->GetMetadata(V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE, values);
+    if (values.size() == 1) {
+        ASSERT_EQ(values[0], V1_1::HebcAccessType::HEBC_ACCESS_CPU_ACCESS);
+    }
+
+    ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, GSERROR_OK);
 }
 

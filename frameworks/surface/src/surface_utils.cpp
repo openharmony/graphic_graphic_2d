@@ -31,6 +31,7 @@ SurfaceUtils* SurfaceUtils::GetInstance()
 SurfaceUtils::~SurfaceUtils()
 {
     surfaceCache_.clear();
+    nativeWindowCache_.clear();
 }
 
 sptr<Surface> SurfaceUtils::GetSurface(uint64_t uniqueId)
@@ -54,7 +55,7 @@ SurfaceError SurfaceUtils::Add(uint64_t uniqueId, const sptr<Surface> &surface)
         surfaceCache_[uniqueId] = surface;
         return GSERROR_OK;
     }
-    BLOGW("the surface by uniqueId %" PRIu64 " already existed", uniqueId);
+    BLOGD("the surface by uniqueId %" PRIu64 " already existed", uniqueId);
     return GSERROR_OK;
 }
 
@@ -62,7 +63,7 @@ SurfaceError SurfaceUtils::Remove(uint64_t uniqueId)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (surfaceCache_.count(uniqueId) == 0) {
-        BLOGE("Delete failed without surface by uniqueId %" PRIu64, uniqueId);
+        BLOGW("Delete failed without surface by uniqueId %" PRIu64, uniqueId);
         return GSERROR_INVALID_OPERATING;
     }
     surfaceCache_.erase(uniqueId);
@@ -123,5 +124,37 @@ void SurfaceUtils::ComputeTransformMatrix(float matrix[16],
     if (ret != EOK) {
         BLOGE("ComputeTransformMatrix: transformMatrix memcpy_s failed");
     }
+}
+
+void* SurfaceUtils::GetNativeWindow(uint64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (nativeWindowCache_.count(uniqueId) == 0) {
+        BLOGE("Cannot find nativeWindow by uniqueId %" PRIu64 ".", uniqueId);
+        return nullptr;
+    }
+    return nativeWindowCache_[uniqueId];
+}
+
+SurfaceError SurfaceUtils::AddNativeWindow(uint64_t uniqueId, void *nativeWidow)
+{
+    if (nativeWidow == nullptr) {
+        BLOGE("nativeWidow is nullptr.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (nativeWindowCache_.count(uniqueId) == 0) {
+        nativeWindowCache_[uniqueId] = nativeWidow;
+        return GSERROR_OK;
+    }
+    BLOGD("the nativeWidow by uniqueId %" PRIu64 " already existed", uniqueId);
+    return GSERROR_OK;
+}
+
+SurfaceError SurfaceUtils::RemoveNativeWindow(uint64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    nativeWindowCache_.erase(uniqueId);
+    return GSERROR_OK;
 }
 } // namespace OHOS

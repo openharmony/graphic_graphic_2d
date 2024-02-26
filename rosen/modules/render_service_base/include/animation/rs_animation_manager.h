@@ -49,6 +49,7 @@ public:
     void CancelAnimationByPropertyId(PropertyId id);
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void FilterAnimationByPid(pid_t pid);
+    uint32_t GetAnimationsSize();
 
     std::tuple<bool, bool, bool> Animate(int64_t time, bool nodeIsOnTheTree);
 

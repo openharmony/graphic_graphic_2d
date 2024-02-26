@@ -63,6 +63,8 @@ public:
     std::string locale;
     float textSplitRatio = 0.5;
     bool textOverflower = false;
+    TextStyle spTextStyle;
+    bool customSpTextStyle = false;
 };
 } // namespace SPText
 } // namespace Rosen

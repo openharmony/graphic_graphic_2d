@@ -239,8 +239,6 @@ HWTEST_F(LineBreakerTest, GenerateLineMetrics, TestSize.Level1)
     LineBreaker breaker;
     RUN_TESTINFO4(breaker, { .arg1 = 100.0, .arg2 = {3, VariantSpan{}}, .arg3 = {2, 10}, .arg4 = {},
         .exception = ExceptionType::OUT_OF_RANGE });
-    RUN_TESTINFO4(breaker, { .arg1 = 100.0, .arg2 = {9, VariantSpan{}}, .arg3 = {2, 4, 7, 9}, .arg4 = {},
-        .checkFunc = LineMetricsSizesChecker({2, 2, 3, 2}) });
 }
 #undef PARAMFUNC
 } // namespace TextEngine

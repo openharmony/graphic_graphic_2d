@@ -53,6 +53,13 @@ ColorFilter::ColorFilter(FilterType t, const float f1[MATRIX_SIZE],
     impl_->InitWithCompose(f1, f2);
 }
 
+ColorFilter::ColorFilter(FilterType t,
+    const ColorQuad colors[OVER_DRAW_COLOR_NUM]) noexcept : ColorFilter()
+{
+    type_ = t;
+    impl_->InitWithOverDrawColor(colors);
+}
+
 void ColorFilter::InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE])
 {
     type_ = ColorFilter::FilterType::COMPOSE;
@@ -133,6 +140,12 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateSrgbGammaToLinear()
 std::shared_ptr<ColorFilter> ColorFilter::CreateLumaColorFilter()
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::LUMA);
+}
+
+std::shared_ptr<ColorFilter> ColorFilter::CreateOverDrawColorFilter(
+    const ColorQuad colors[OVER_DRAW_COLOR_NUM])
+{
+    return std::make_shared<ColorFilter>(ColorFilter::FilterType::OVER_DRAW, colors);
 }
 
 std::shared_ptr<Data> ColorFilter::Serialize() const

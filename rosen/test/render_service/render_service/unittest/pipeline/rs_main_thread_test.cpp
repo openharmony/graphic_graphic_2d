@@ -840,19 +840,6 @@ HWTEST_F(RSMainThreadTest, SetIsCachedSurfaceUpdated, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetFocusAppBundleName
- * @tc.desc: Test RSMainThreadTest.GetFocusAppBundleName
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSMainThreadTest, GetFocusAppBundleName, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto name = mainThread->GetFocusAppBundleName();
-}
-
-/**
  * @tc.name: PrintCurrentStatus
  * @tc.desc: Test RSMainThreadTest.PrintCurrentStatus
  * @tc.type: FUNC

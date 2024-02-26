@@ -175,8 +175,12 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
             imageParameter.dstH = std::min(imageParameter.frameH, imageParameter.frameW / imageParameter.ratio);
             break;
     }
-    tempRectF.SetAll((imageParameter.frameW - imageParameter.dstW) / 2,
-        (imageParameter.frameH - imageParameter.dstH) / 2, imageParameter.dstW, imageParameter.dstH);
+    constexpr float horizontalAlignmentFactor = 2.f;
+    constexpr float verticalAlignmentFactor = 2.f;
+    tempRectF.SetAll(std::floor((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor),
+                     std::floor((imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor),
+                     std::ceil(imageParameter.dstW),
+                     std::ceil(imageParameter.dstH));
     return tempRectF;
 }
 

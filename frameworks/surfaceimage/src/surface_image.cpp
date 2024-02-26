@@ -64,7 +64,7 @@ SurfaceImage::~SurfaceImage()
             it->second.eglImage_ = EGL_NO_IMAGE_KHR;
         }
         if (it->second.eglSync_ != EGL_NO_SYNC_KHR) {
-            eglDestroySync(eglDisplay_, it->second.eglSync_);
+            eglDestroySyncKHR(eglDisplay_, it->second.eglSync_);
             it->second.eglSync_ = EGL_NO_SYNC_KHR;
         }
     }

@@ -54,11 +54,13 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 {
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
         RS_LOGE("RSSurfaceCaptureTask::Run: SurfaceCapture scale is invalid.");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: node is nullptr");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
@@ -73,10 +75,12 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         visitor_->IsDisplayNode(true);
     } else {
         RS_LOGE("RSSurfaceCaptureTask::Run: Invalid RSRenderNodeType!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     if (pixelmap == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: pixelmap == nullptr!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -122,6 +126,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     auto skSurface = CreateSurface(pixelmap);
     if (skSurface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     visitor_->SetSurface(skSurface.get());
@@ -129,11 +134,13 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     auto surface = CreateSurface(pixelmap);
     if (surface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
+        RSMainThread::Instance()->NotifySurfaceCapProcFinish();
         return false;
     }
     visitor_->SetSurface(surface.get());
 #endif
     node->Process(visitor_);
+    RSMainThread::Instance()->NotifySurfaceCapProcFinish();
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_UNI_RENDER
@@ -212,7 +219,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
                 } else if (rotation == ScreenRotation::ROTATION_270) {
                     pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
                 }
-                RS_LOGD("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
+                RS_LOGI("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
             }
             // To get dump image
             // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
@@ -325,7 +332,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
                 } else if (rotation == ScreenRotation::ROTATION_270) {
                     pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
                 }
-                RS_LOGD("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
+                RS_LOGI("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
             }
             // To get dump image
             // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
@@ -377,7 +384,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             } else if (rotation == ScreenRotation::ROTATION_270) {
                 pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
             }
-            RS_LOGD("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
+            RS_LOGI("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
         }
     }
     // To get dump image
@@ -452,7 +459,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
-    RS_LOGD("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
+    RS_LOGI("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}u], height is [%{public}u],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f],"

@@ -35,6 +35,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
@@ -65,7 +66,8 @@ public:
     // intersected with cached region, and if cached region is intersected with dirty region.
     void UpdateCacheStateWithFilterHash(const std::shared_ptr<RSFilter>& filter);
     void UpdateCacheStateWithFilterRegion(); // call when filter region out of cached region.
-    void UpdateCacheStateWithDirtyRegion(); // call when dirty region intersects with cached region.
+    bool UpdateCacheStateWithDirtyRegion(
+        const RSDirtyRegionManager& dirtyManager); // call when dirty region intersects with cached region.
     const RectI& GetCachedImageRegion() const;
 
 #ifndef USE_ROSEN_DRAWING

@@ -27,8 +27,6 @@
 namespace OHOS {
 namespace Rosen {
 
-int RSEffectRenderNode::cacheUpdateInterval_ = 1;
-
 RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSRenderNode(id, context, isTextureExportNode)
 {
@@ -102,7 +100,6 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<SkIRect>& effectReg
         GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
-    effectRegion_ = effectRegion;
 
     const auto& properties = GetRenderProperties();
     const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
@@ -122,7 +119,6 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
         GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
-    effectRegion_ = effectRegion;
 
     const auto& properties = GetRenderProperties();
     const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
@@ -150,7 +146,8 @@ void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
     if (!manager) {
         return;
     }
-    if (manager->IsCacheValid() && manager->GetCachedImageRegion() != GetFilterRect()) {
+    if (manager->IsCacheValid() &&
+        (manager->GetCachedImageRegion() != GetFilterRect() || preRotationStatus_ != isRotationChanged_)) {
         // If the cached image region is different from the filter rect, invalidate the cache
         manager->InvalidateCache();
     }
@@ -173,8 +170,12 @@ void RSEffectRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyM
 
 bool RSEffectRenderNode::NeedForceCache()
 {
+    // force update the first frame and last frame when rotating.
+    if (preRotationStatus_ != isRotationChanged_) {
+        return false;
+    }
     // No need to invalidate cache if background image is not null or freezed
-    if (GetRenderProperties().GetBgImage() || IsStaticCached()) {
+    if (GetRenderProperties().GetBgImage() || (IsStaticCached() && !isRotationChanged_)) {
         RS_OPTIONAL_TRACE_NAME("RSEffectRenderNode: background is not null or freezed");
         return true;
     }
@@ -197,6 +198,7 @@ void RSEffectRenderNode::SetInvalidateTimesForRotation(int times)
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)
 {
+    preRotationStatus_ = isRotationChanged_;
     isRotationChanged_ = isRotationChanged;
 }
 

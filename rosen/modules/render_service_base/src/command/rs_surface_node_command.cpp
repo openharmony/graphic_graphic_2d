@@ -36,6 +36,16 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
     }
 }
 
+void SurfaceNodeCommandHelper::CreateWithConfig(
+    RSContext& context, NodeId nodeId, std::string name, uint8_t type, std::string bundleName)
+{
+    RSSurfaceRenderNodeConfig config = {
+        .id = nodeId, .name = name, .bundleName = bundleName, .nodeType = static_cast<RSSurfaceNodeType>(type)
+    };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config, context.weak_from_this());
+    context.GetMutableNodeMap().RegisterRenderNode(node);
+}
+
 #ifndef USE_ROSEN_DRAWING
 void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, const std::optional<SkMatrix>& matrix)
 #else

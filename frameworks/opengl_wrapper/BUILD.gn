@@ -41,6 +41,7 @@ if (current_os != "ohos") {
   ohos_shared_library("EGL") {
     sources = [
       "src/EGL/egl.cpp",
+      "src/EGL/egl_blob_cache.cpp",
       "src/EGL/egl_core.cpp",
       "src/EGL/egl_wrapper_context.cpp",
       "src/EGL/egl_wrapper_display.cpp",

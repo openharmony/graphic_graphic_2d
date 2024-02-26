@@ -78,6 +78,11 @@ void SkiaColorFilter::InitWithCompose(const float f1[MATRIX_SIZE], const float f
     filter_ = SkColorFilters::Compose(SkColorFilters::Matrix(f1), SkColorFilters::Matrix(f2));
 }
 
+void SkiaColorFilter::InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM])
+{
+    filter_ = SkOverdrawColorFilter::MakeWithSkColors(colors);
+}
+
 void SkiaColorFilter::InitWithLuma()
 {
     filter_ = SkLumaColorFilter::Make();

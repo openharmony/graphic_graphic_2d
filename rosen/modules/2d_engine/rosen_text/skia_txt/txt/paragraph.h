@@ -143,6 +143,10 @@ public:
     // indents  The indents for multi-line text.
     virtual void SetIndents(const std::vector<float>& indents) = 0;
 
+    // Get the text indent in index.
+    // index The index of element in indents vector.
+    virtual float DetectIndents(size_t index) = 0;
+
     // Layout calculates the positioning of all the glyphs.
     // This method must be called before other methods are called.
     virtual void Layout(double width) = 0;
@@ -180,6 +184,7 @@ public:
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) = 0;
 
     virtual OHOS::Rosen::Drawing::FontMetrics MeasureText() = 0;
+    virtual OHOS::Rosen::Drawing::FontMetrics GetFontMetricsResult(const OHOS::Rosen::SPText::TextStyle& textStyle) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

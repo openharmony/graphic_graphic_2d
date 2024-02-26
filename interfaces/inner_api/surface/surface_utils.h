@@ -35,12 +35,17 @@ public:
     void ComputeTransformMatrix(float matrix[16],
         sptr<SurfaceBuffer>& buffer, GraphicTransformType& transform, Rect& crop);
 
+    void* GetNativeWindow(uint64_t uniqueId);
+    SurfaceError AddNativeWindow(uint64_t uniqueId, void *nativeWidow);
+    SurfaceError RemoveNativeWindow(uint64_t uniqueId);
+
 private:
     SurfaceUtils() = default;
     virtual ~SurfaceUtils();
     std::array<float, 16> MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat);
     std::unordered_map<uint64_t, sptr<Surface>> surfaceCache_;
     std::mutex mutex_;
+    std::unordered_map<uint64_t, void*> nativeWindowCache_;
 };
 } // namespace OHOS
 

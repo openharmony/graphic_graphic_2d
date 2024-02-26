@@ -26,6 +26,7 @@
 #include "egl_wrapper_loader.h"
 #include "../thread_private_data_ctl.h"
 #include "../wrapper_log.h"
+#include "egl_blob_cache.h"
 
 using namespace OHOS;
 namespace OHOS {
@@ -1199,6 +1200,23 @@ EGLint EglDupNativeFenceFDANDROIDImpl(EGLDisplay dpy, EGLSyncKHR sync)
     return ret;
 }
 
+void EglSetBlobCacheFuncsANDROIDImpl(EGLDisplay dpy, EGLSetBlobFuncANDROID set, EGLGetBlobFuncANDROID get)
+{
+    WLOGD("");
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return;
+    }
+
+    EglWrapperDispatchTablePtr table = &gWrapperHook;
+    if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
+        table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
+                                               BlobCache::setBlobFunc, BlobCache::getBlobFunc);
+    } else {
+        WLOGE("EglSetBlobCacheFuncsANDROIDImpl platform is not found.");
+    }
+}
+
 static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
     /* EGL_VERSION_1_0 */
     { "eglChooseConfig", (EglWrapperFuncPointer)&EglChooseConfigImpl },
@@ -1293,6 +1311,7 @@ static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
 
     { "eglSwapBuffersWithDamageKHR", (EglWrapperFuncPointer)&EglSwapBuffersWithDamageKHRImpl },
     { "eglSetDamageRegionKHR", (EglWrapperFuncPointer)&EglSetDamageRegionKHRImpl },
+    { "eglSetBlobCacheFuncsANDROID", (EglWrapperFuncPointer)&EglSetBlobCacheFuncsANDROIDImpl },
 
 };
 

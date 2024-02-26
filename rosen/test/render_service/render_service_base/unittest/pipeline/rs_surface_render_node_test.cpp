@@ -440,7 +440,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest002, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyBeforeChildrenTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->ProcessAnimatePropertyBeforeChildren(*canvas_);
+    node->ProcessAnimatePropertyBeforeChildren(*canvas_, true);
 }
 
 /**

@@ -526,7 +526,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
-
+        mainThread_->SetDiscardJankFrames(true);
         OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
     } else {
         mainThread_->ScheduleTask(
@@ -539,9 +539,13 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+        if (node == nullptr) {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture: node is nullptr");
+            return;
+        }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
-            !node->IsOnTheTree() : false;
+        auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
+            mainThread_->GetDeviceType() == DeviceType::PHONE) ? !node->IsOnTheTree() : false;
         std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
             RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
@@ -551,11 +555,12 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             }
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         };
-        if (isProcOnBgThread) {
+        std::function<void()> captureTaskOnBgThread = [=]() -> void {
+            mainThread_->SetSurfaceCapProcFinished(false);
             RSBackgroundThread::Instance().PostTask(captureTask);
-        } else {
-            mainThread_->PostTask(captureTask);
-        }
+        };
+        auto task = isProcOnBgThread ? captureTaskOnBgThread : captureTask;
+        mainThread_->PostTask(task);
     } else {
         TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY);
     }
