@@ -66,6 +66,7 @@ ohos_shared_library("libnative_image") {
     "ipc:ipc_single",
   ]
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
