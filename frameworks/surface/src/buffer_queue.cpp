@@ -243,6 +243,19 @@ void BufferQueue::SetSurfaceBufferHebcMetaLocked(sptr<SurfaceBuffer> buffer)
     buffer->SetMetadata(key, values);
 }
 
+GSError BufferQueue::RequestBufferCheckStatus()
+{
+    if (!GetStatus()) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
+    std::lock_guard<std::mutex> lockGuard(listenerMutex_);
+    if (listener_ == nullptr && listenerClazz_ == nullptr) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
+
+    return GSERROR_OK;
+}
+
 GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {
@@ -250,19 +263,15 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
         return DelegatorDequeueBuffer(wpCSurfaceDelegator_, config, bedata, retval);
     }
 
-    ScopedBytrace func(__func__);
-    if (!GetStatus()) {
-        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
-    }
-    {
-        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
-        if (listener_ == nullptr && listenerClazz_ == nullptr) {
-            BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
-        }
+    GSError ret = GSERROR_OK;
+    ret = RequestBufferCheckStatus();
+    if (ret != GSERROR_OK) {
+        return ret;
     }
 
+    ScopedBytrace func(__func__);
     // check param
-    GSError ret = CheckRequestConfig(config);
+    ret = CheckRequestConfig(config);
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE_API(CheckRequestConfig, ret);
         return ret;

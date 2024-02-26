@@ -1091,7 +1091,7 @@ HWTEST_F(ConsumerSurfaceTest, ConsumerRequestCpuAccess001, Function | MediumTest
     ASSERT_EQ(ret, GSERROR_OK);
 
     // test false
-    cSurface->ConsumerRequestCpuAccess(true);
+    cSurface->ConsumerRequestCpuAccess(false);
     ret = pSurface->RequestBuffer(buffer, releaseFence, config);
     ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
@@ -1162,7 +1162,7 @@ HWTEST_F(ConsumerSurfaceTest, ConsumerRequestCpuAccess002, Function | MediumTest
     ASSERT_EQ(ret, GSERROR_OK);
 
     // test false
-    cSurface->ConsumerRequestCpuAccess(true);
+    cSurface->ConsumerRequestCpuAccess(false);
     ret = pSurface->RequestBuffer(buffer, releaseFence, config);
     ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
@@ -1170,7 +1170,7 @@ HWTEST_F(ConsumerSurfaceTest, ConsumerRequestCpuAccess002, Function | MediumTest
     values.clear();
     buffer->GetMetadata(V1_1::BufferHandleAttrKey::ATTRKEY_REQUEST_ACCESS_TYPE, values);
     if (values.size() == 1) {
-        ASSERT_EQ(values[0], V1_1::HebcAccessType::HEBC_ACCESS_CPU_ACCESS);
+        ASSERT_EQ(values[0], V1_1::HebcAccessType::HEBC_ACCESS_HW_ONLY);
     }
 
     ret = pSurface->CancelBuffer(buffer);
