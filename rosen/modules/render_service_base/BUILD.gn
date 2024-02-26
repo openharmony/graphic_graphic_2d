@@ -210,8 +210,10 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_trace.cpp",
 
     #drawable
-    "src/drawable/rs_drawable_ng.cpp",
+    "src/drawable/rs_drawable.cpp",
+    "src/drawable/rs_render_node_drawable.cpp",
     "src/drawable/rs_property_drawable_ng.cpp",
+    "src/drawable/rs_property_draw_cmd_list.cpp",
 
     #render
     "src/render/rs_aibar_filter.cpp",
@@ -307,8 +309,10 @@ ohos_source_set("render_service_base_src") {
       "src/property/rs_property_drawable_utilities.cpp",
 
       #drawable
-      "src/property/rs_drawable_ng.cpp",
+      "src/drawable/rs_drawable.cpp",
+      "src/drawable/rs_render_node_drawable.cpp",
       "src/drawable/rs_property_drawable_ng.cpp",
+      "src/drawable/rs_property_draw_cmd_list.cpp",
 
       #transaction
       "src/transaction/rs_hgm_config_data.cpp",

@@ -27,7 +27,7 @@
 #include <variant>
 #include <vector>
 
-#include "drawable/rs_property_drawable_ng.h"
+#include "drawable/rs_property_draw_cmd_list.h"
 #include "memory/rs_dfx_string.h"
 
 #include "animation/rs_animation_manager.h"
@@ -740,7 +740,7 @@ private:
     // Test pipeline
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
-    RSPropertyDrawableNG::DrawableVec drawableVec_;
+    RSPropertyDrawCmdList::DrawCmdListVec drawableVec_;
 
     void Sync();
 

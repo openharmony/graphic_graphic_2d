@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "drawable/rs_drawable_ng.h"
+#include "drawable/rs_render_node_drawable.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
