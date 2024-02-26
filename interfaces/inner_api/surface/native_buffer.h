@@ -67,6 +67,21 @@ enum OH_NativeBuffer_Usage {
  * @version 1.0
  */
 enum OH_NativeBuffer_Format {
+    /**
+     * CLUT8 format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_CLUT8 = 0,
+    /**
+     * CLUT1 format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_CLUT1,
+    /**
+     * CLUT4 format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_CLUT4,
     NATIVEBUFFER_PIXEL_FMT_RGB_565 = 3,               /// < RGB565 format */
     NATIVEBUFFER_PIXEL_FMT_RGBA_5658,                 /// < RGBA5658 format */
     NATIVEBUFFER_PIXEL_FMT_RGBX_4444,                 /// < RGBX4444 format */
@@ -85,6 +100,81 @@ enum OH_NativeBuffer_Format {
     NATIVEBUFFER_PIXEL_FMT_BGRA_5551,                 /// < BGRA5551 format */
     NATIVEBUFFER_PIXEL_FMT_BGRX_8888,                 /// < BGRX8888 format */
     NATIVEBUFFER_PIXEL_FMT_BGRA_8888,                 /// < BGRA8888 format */
+    /**
+     * YUV422 interleaved format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YUV_422_T,
+    /**
+     * YCBCR422 semi-plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCBCR_422_SP,
+    /**
+     * YCRCR422 semi-plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCRCR_422_SP,
+    /**
+     * YCBCR420 semi-plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCBCR_420_SP,
+    /**
+     * YCRCR420 semi-plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCRCR_420_SP,
+    /**
+     * YCBCR422 plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCBCR_422_P,
+    /**
+     * YCRCR422 plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCRCR_422_P,
+    /**
+     * YCBCR420 plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCBCR_420_P,
+    /**
+     * YCRCR420 plannar format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YCRCR_420_P,
+    /**
+     * YUYV422 packed format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YUYV_422_PKG,
+    /**
+     * UYVY422 packed format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_UYVY_422_PKG,
+    /**
+     * YVYU422 packed format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_YVYU_422_PKG,
+    /**
+     * VYUY422 packed format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_VYUY_422_PKG,
+    /**
+     * RGBA_1010102 packed format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_RGBA_1010102,
+    /**
+     * vender mask format
+     * @since 12
+     */
+    NATIVEBUFFER_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,
     NATIVEBUFFER_PIXEL_FMT_BUTT = 0X7FFFFFFF          /// < Invalid pixel format */
 };
 
@@ -160,6 +250,49 @@ enum OH_NativeBuffer_ColorSpace {
     OH_COLORSPACE_DISPLAY_BT2020_HLG,
     /** equal to OH_COLORSPACE_BT2020_PQ_FULL */
     OH_COLORSPACE_DISPLAY_BT2020_PQ,
+};
+
+/**
+ * @brief Indicates the transform type of a native buffer.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
+ * @since 12
+ * @version 1.0
+ */
+enum OH_NativeBuffer_TransformType {
+    NATIVEBUFFER_ROTATE_NONE = 0,         /**< No rotation */
+    NATIVEBUFFER_ROTATE_90,               /**< Rotation by 90 degrees */
+    NATIVEBUFFER_ROTATE_180,              /**< Rotation by 180 degrees */
+    NATIVEBUFFER_ROTATE_270,              /**< Rotation by 270 degrees */
+    NATIVEBUFFER_FLIP_H,                  /**< Flip horizontally */
+    NATIVEBUFFER_FLIP_V,                  /**< Flip vertically */
+    NATIVEBUFFER_FLIP_H_ROT90,            /**< Flip horizontally and rotate 90 degrees */
+    NATIVEBUFFER_FLIP_V_ROT90,            /**< Flip vertically and rotate 90 degrees */
+    NATIVEBUFFER_FLIP_H_ROT180,           /**< Flip horizontally and rotate 180 degrees */
+    NATIVEBUFFER_FLIP_V_ROT180,           /**< Flip vertically and rotate 180 degrees */
+    NATIVEBUFFER_FLIP_H_ROT270,           /**< Flip horizontally and rotate 270 degrees */
+    NATIVEBUFFER_FLIP_V_ROT270,           /**< Flip vertically and rotate 270 degrees */
+};
+
+/**
+ * @brief Indicates the color gamut of a native buffer.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
+ * @since 12
+ * @version 1.0
+ */
+enum OH_NativeBuffer_ColorGamut {
+    NATIVEBUFFER_COLOR_GAMUT_NATIVE = 0,            /**< Native or default */
+    NATIVEBUFFER_COLOR_GAMUT_STANDARD_BT601 = 1,    /**< Standard BT601 */
+    NATIVEBUFFER_COLOR_GAMUT_STANDARD_BT709 = 2,    /**< Standard BT709 */
+    NATIVEBUFFER_COLOR_GAMUT_DCI_P3 = 3,            /**< DCI P3 */
+    NATIVEBUFFER_COLOR_GAMUT_SRGB = 4,              /**< SRGB */
+    NATIVEBUFFER_COLOR_GAMUT_ADOBE_RGB = 5,         /**< Adobe RGB */
+    NATIVEBUFFER_COLOR_GAMUT_DISPLAY_P3 = 6,        /**< Display P3 */
+    NATIVEBUFFER_COLOR_GAMUT_BT2020 = 7,            /**< BT2020 */
+    NATIVEBUFFER_COLOR_GAMUT_BT2100_PQ = 8,         /**< BT2100 PQ */
+    NATIVEBUFFER_COLOR_GAMUT_BT2100_HLG = 9,        /**< BT2100 HLG */
+    NATIVEBUFFER_COLOR_GAMUT_DISPLAY_BT2020 = 10,   /**< Display BT2020 */
 };
 
 /**
