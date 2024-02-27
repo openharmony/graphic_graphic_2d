@@ -1314,6 +1314,7 @@ void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
         SetCacheType(other.GetCacheType());
     }
     isParallelCanvas_ = other.isParallelCanvas_;
+    disableFilterCache_ = other.disableFilterCache_;
 }
 
 void RSPaintFilterCanvas::SetHighContrast(bool enabled)

@@ -2709,6 +2709,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
                 return;
             }
+            canvas_->SetDisableFilterCache(true);
             if (displayHasSecSurface_[mirrorNode->GetScreenId()]) {
 #ifndef USE_ROSEN_DRAWING
                 canvas_->clear(SK_ColorBLACK);
@@ -2717,6 +2718,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
                 processor_->PostProcess();
                 RS_LOGI("RSUniRenderVisitor::ProcessDisplayRenderNode, set canvas to black because of security layer.");
+                canvas_->SetDisableFilterCache(false);
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
@@ -2815,6 +2817,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->RestoreToCount(saveCount);
             }
 #endif
+            canvas_->SetDisableFilterCache(false);
         } else {
             mirrorNode->SetOriginScreenRotation(node.GetOriginScreenRotation());
             processor_->ProcessDisplaySurface(*mirrorNode);
