@@ -1298,18 +1298,18 @@ RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 
 static bool IsFastDangerousMode(int blendMode)
 {
-    static const int fastDangerousBit =
+    static const uint32_t fastDangerousBit =
         (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
         (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
         (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
         (1 << static_cast<int>(Drawing::BlendMode::XOR));
-    int tmp = 1 << blendMode;
+    uint32_t tmp = 1 << blendMode;
     return tmp & fastDangerousBit;
 }
 
 static bool IsOffscreenDangerousMode(int blendMode)
 {
-    static const int offscreenDangerousBit =
+    static const uint32_t offscreenDangerousBit =
         (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
         (1 << static_cast<int>(Drawing::BlendMode::SRC)) +
         (1 << static_cast<int>(Drawing::BlendMode::SRC_IN)) +
@@ -1319,7 +1319,7 @@ static bool IsOffscreenDangerousMode(int blendMode)
         (1 << static_cast<int>(Drawing::BlendMode::DST_ATOP)) +
         (1 << static_cast<int>(Drawing::BlendMode::XOR)) +
         (1 << static_cast<int>(Drawing::BlendMode::MODULATE));
-    int tmp = 1 << blendMode;
+    uint32_t tmp = 1 << blendMode;
     return tmp & offscreenDangerousBit;
 }
 
