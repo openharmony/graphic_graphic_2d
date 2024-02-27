@@ -4028,18 +4028,20 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
         if (surfaceNode == nullptr) {
             continue;
         }
+        if (!surfaceNode->IsNodeDirty()) {
+            continue;
+        }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (surfaceDirtyManager == nullptr) {
             continue;
         }
         RectI surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
-
+        auto surfaceDirtyRegion = Occlusion::Region{Occlusion::Rect{surfaceDirtyRect}};
         if (surfaceNode->HasContainerWindow()) {
             // If a surface's dirty is intersect with container region (which can be considered transparent)
             // should be added to display dirty region.
             // Note: we use containerRegion rather transparentRegion to bypass inner corner dirty problem.
             auto containerRegion = surfaceNode->GetContainerRegion();
-            auto surfaceDirtyRegion = Occlusion::Region{Occlusion::Rect{surfaceDirtyRect}};
             auto containerDirtyRegion = containerRegion.And(surfaceDirtyRegion);
             if (!containerDirtyRegion.IsEmpty()) {
                 RS_LOGD("CalcDirtyDisplayRegion merge containerDirtyRegion %{public}s region %{public}s",
@@ -4048,28 +4050,22 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
                 const auto& rect = containerRegion.GetBoundRef();
                 displayDirtyManager->MergeDirtyRect(
                     RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
-            }
-        } else {
-            // warning: if a surfacenode has transparent region and opaque region, and its dirty pattern appears in
-            // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
-            // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
-            // which include transparent region but not counted in display dirtyregion)
-            if (!surfaceNode->IsNodeDirty()) {
                 continue;
             }
-            auto transparentRegion = surfaceNode->GetTransparentRegion();
-            Occlusion::Rect tmpRect = Occlusion::Rect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
-                surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
-            Occlusion::Region surfaceDirtyRegion { tmpRect };
-            Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
-            if (!transparentDirtyRegion.IsEmpty()) {
-                RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %{public}s region %{public}s",
-                    surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
-                const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
-                for (const auto& rect : rects) {
-                    displayDirtyManager->MergeDirtyRect(
-                        RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
-                }
+        }
+        // warning: if a surfacenode has transparent region and opaque region, and its dirty pattern appears in
+        // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
+        // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
+        // which include transparent region but not counted in display dirtyregion)
+        auto transparentRegion = surfaceNode->GetTransparentRegion();
+        Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
+        if (!transparentDirtyRegion.IsEmpty()) {
+            RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %{public}s region %{public}s",
+                surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
+            const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
+            for (const auto& rect : rects) {
+                displayDirtyManager->MergeDirtyRect(
+                    RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             }
         }
     }
