@@ -186,6 +186,19 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
 namespace OHOS {
 namespace Rosen {
+void RSRenderNode::Sync()
+{
+    if (stagingDrawCmdList_) {
+        std::swap(drawCmdList_, stagingDrawCmdList_);
+        stagingDrawCmdList_.reset();
+    }
+    std::for_each(drawableVec_.begin(), drawableVec_.end(), [](auto& drawable) {
+        if (drawable) {
+            drawable->OnSync();
+        }
+    });
+}
+
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
