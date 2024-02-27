@@ -67,7 +67,7 @@ bool DrawingSampleReplayer::ReadCmds(const std::string path)
     return true;
 }
 
-bool DrawingSampleReplayer::InitCapturingSKP(Drawing::Canvas* canvas) 
+bool DrawingSampleReplayer::InitCapturingSKP(Drawing::Canvas* canvas)
 {
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     if (captureMode_ == CaptureMode::SKP) {
@@ -169,7 +169,7 @@ bool DrawingSampleReplayer::RenderLoop()
         }
         if (rdcnum > 0) {
             // it means the .rdc capture is saved succesfully and further handled by the RsProfiler
-            return true; 
+            return true;
         }
     }
     return false;
