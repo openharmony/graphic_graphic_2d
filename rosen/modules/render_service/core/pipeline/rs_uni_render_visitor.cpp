@@ -5908,17 +5908,16 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate()
 
 bool RSUniRenderVisitor::IsOutOfScreenRegion(RectI rect)
 {
-    int32_t boundWidth = static_cast<int32_t>(screenInfo_.width);
-    int32_t boundHeight = static_cast<int32_t>(screenInfo_.height);
-    ScreenRotation rotation = screenInfo_.rotation;
-    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-        std::swap(boundWidth, boundHeight);
+    if (!canvas_) {
+        return false;
     }
 
-    if (rect.GetRight() <= 0 ||
-        rect.GetLeft() >= boundWidth ||
-        rect.GetBottom() <= 0 ||
-        rect.GetTop() >= boundHeight) {
+    auto deviceClipBounds = canvas_->GetDeviceClipBounds();
+
+    if (rect.GetRight() <= deviceClipBounds.GetLeft() ||
+        rect.GetLeft() >= deviceClipBounds.GetRight() ||
+        rect.GetBottom() <= deviceClipBounds.GetTop() ||
+        rect.GetTop() >= deviceClipBounds.GetBottom()) {
         return true;
     }
 
