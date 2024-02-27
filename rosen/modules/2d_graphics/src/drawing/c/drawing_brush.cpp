@@ -113,11 +113,13 @@ void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush* cBrush, OH_Drawing_Shader
 
 void OH_Drawing_BrushSetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFilter)
 {
-    if (cFilter == nullptr) {
-        return;
-    }
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
+        return;
+    }
+    if (cFilter == nullptr) {
+        Filter filter;
+        brush->SetFilter(filter);
         return;
     }
     brush->SetFilter(CastToFilter(*cFilter));

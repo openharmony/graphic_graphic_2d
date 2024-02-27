@@ -151,7 +151,7 @@ void OH_Drawing_PathAddArc(OH_Drawing_Path* cPath,
 void OH_Drawing_PathAddPath(OH_Drawing_Path* cPath,
     const OH_Drawing_Path* src, const OH_Drawing_Matrix* matrix)
 {
-    if (src == nullptr || matrix == nullptr) {
+    if (src == nullptr) {
         return;
     }
     Path* path = CastToPath(cPath);
@@ -159,6 +159,10 @@ void OH_Drawing_PathAddPath(OH_Drawing_Path* cPath,
         return;
     }
     Path* srcPath = CastToPath(const_cast<OH_Drawing_Path*>(src));
+    if (matrix == nullptr) {
+        path->AddPath(*srcPath);
+        return;
+    }
     path->AddPath(*srcPath, *CastToMatrix(matrix));
 }
 
