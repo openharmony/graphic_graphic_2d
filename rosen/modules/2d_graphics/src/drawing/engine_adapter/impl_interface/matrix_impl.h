@@ -69,6 +69,7 @@ public:
         scalar persp0, scalar persp1, scalar persp2) = 0;
     virtual void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const;
     virtual bool MapRect(Rect& dst, const Rect& src) const;
+    virtual bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count);
     virtual void Set(int index, scalar value);
     virtual scalar Get(int index) const = 0;
     virtual void GetAll(std::array<scalar, MATRIX_SIZE>& buffer) const = 0;

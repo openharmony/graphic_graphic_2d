@@ -142,6 +142,24 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap006, TestSize.Le
     bitmap_ = OH_Drawing_BitmapCreateFromPixels(nullptr, nullptr, 0);
     EXPECT_EQ(bitmap_, nullptr);
 }
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_GetImageInfo001
+ * @tc.desc: test for drawing_bitmapGetImageInfo.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetImageInfo001, TestSize.Level1)
+{
+    const unsigned int width = 500;
+    const unsigned int height = 500;
+    OH_Drawing_BitmapFormat bitmapFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_UNPREMUL };
+    OH_Drawing_BitmapBuild(bitmap_, width, height, &bitmapFormat);
+    OH_Drawing_Image_Info* imageInfo = new OH_Drawing_Image_Info();
+    OH_Drawing_BitmapGetImageInfo(bitmap_, imageInfo);
+    EXPECT_EQ(width, imageInfo->width);
+    EXPECT_EQ(height, imageInfo->height);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

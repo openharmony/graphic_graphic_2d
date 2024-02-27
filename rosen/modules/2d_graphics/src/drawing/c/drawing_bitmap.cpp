@@ -146,3 +146,16 @@ void* OH_Drawing_BitmapGetPixels(OH_Drawing_Bitmap* cBitmap)
     }
     return bitmap->GetPixels();
 }
+
+void OH_Drawing_BitmapGetImageInfo(OH_Drawing_Bitmap* cBitmap, OH_Drawing_Image_Info* cImageInfo)
+{
+    if (cBitmap == nullptr || cImageInfo == nullptr) {
+        return;
+    }
+    ImageInfo imageInfo = CastToBitmap(cBitmap)->GetImageInfo();
+
+    cImageInfo->width = imageInfo.GetWidth();
+    cImageInfo->height = imageInfo.GetHeight();
+    cImageInfo->colorType = static_cast<OH_Drawing_ColorFormat>(imageInfo.GetColorType());
+    cImageInfo->alphaType = static_cast<OH_Drawing_AlphaFormat>(imageInfo.GetAlphaType());
+}

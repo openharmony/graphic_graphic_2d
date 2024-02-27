@@ -200,6 +200,22 @@ void OH_Drawing_MatrixScale(OH_Drawing_Matrix*, float sx, float sy, float px, fl
 bool OH_Drawing_MatrixInvert(OH_Drawing_Matrix*, OH_Drawing_Matrix* inverse);
 
 /**
+ * @brief Sets the params of matrix to map src to dst.
+ * Count must greater than or equal to zero, and less than or equal to four.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param src Points to map from.
+ * @param dst Points to map to.
+ * @param count Number of point in src and dst.
+ * @return Returns true if matrix is constructed successfully.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_MatrixSetPolyToPoly(OH_Drawing_Matrix*, const OH_Drawing_Point2D* src,
+    const OH_Drawing_Point2D* dst, uint32_t count);
+
+/**
  * @brief Returns true if the first matrix equals the second matrix.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

@@ -197,6 +197,15 @@ public:
     bool MapRect(Rect& dst, const Rect& src) const;
 
     /*
+     * @brief       Sets Matrix to map src to dst. count must be zero or greater, and four or less.
+     * @param src   Point to map from
+     * @param dst   Point to map to
+     * @param count Number of Point in src and dst
+     * @return      True if Matrix was constructed successfully
+     */
+    bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count);
+
+    /*
      * @brief         Sets Matrix value.
      * @param index   One of Index.
      * @param value   Scalar to store in Matrix.

@@ -91,8 +91,6 @@ public:
 
 private:
     std::shared_ptr<BitmapImpl> bmpImplPtr;
-    BitmapFormat format_;
-    ImageInfo imageInfo_;
 };
 } // namespace Drawing
 } // namespace Rosen

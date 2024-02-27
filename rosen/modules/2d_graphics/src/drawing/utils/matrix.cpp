@@ -177,6 +177,11 @@ bool Matrix::MapRect(Rect& dst, const Rect& src) const
     return matrixImplPtr->MapRect(dst, src);
 }
 
+bool Matrix::SetPolyToPoly(const Point src[], const Point dst[], uint32_t count)
+{
+    return matrixImplPtr->SetPolyToPoly(src, dst, count);
+}
+
 void Matrix::Set(Index index, scalar value)
 {
     matrixImplPtr->Set(index, value);
