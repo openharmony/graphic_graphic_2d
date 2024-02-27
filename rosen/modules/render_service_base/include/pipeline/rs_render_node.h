@@ -497,7 +497,7 @@ public:
     void UpdateDisplaySyncRange();
 
     void MarkNonGeometryChanged();
-    bool ApplyModifiers();
+    void ApplyModifiers();
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
@@ -518,6 +518,8 @@ public:
 #endif
 
     const std::shared_ptr<RSRenderContent> GetRenderContent() const;
+
+    void MarkParentNeedRegenerateChildren() const;
 protected:
     virtual void OnApplyModifiers() {}
 

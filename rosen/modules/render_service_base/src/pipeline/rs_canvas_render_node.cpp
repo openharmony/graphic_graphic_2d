@@ -93,6 +93,7 @@ void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    RSRenderNode::ApplyModifiers();
     visitor->PrepareCanvasRenderNode(*this);
 }
 

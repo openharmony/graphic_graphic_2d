@@ -88,6 +88,7 @@ void RSRootRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    RSRenderNode::ApplyModifiers();
     visitor->PrepareRootRenderNode(*this);
 }
 

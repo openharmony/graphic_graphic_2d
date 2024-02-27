@@ -890,6 +890,7 @@ void RSRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    ApplyModifiers();
     visitor->PrepareChildren(*this);
 }
 
@@ -1403,8 +1404,11 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 #endif
 }
 
-bool RSRenderNode::ApplyModifiers()
+void RSRenderNode::ApplyModifiers()
 {
+    if (!isFullChildrenListValid_ || !isChildrenSorted_) {
+        UpdateFullChildrenListIfNeeded();
+    }
     // quick reject test
 #ifndef USE_ROSEN_DRAWING
     if (!RSRenderNode::IsDirty() || dirtyTypes_.empty()) {
@@ -1413,7 +1417,6 @@ bool RSRenderNode::ApplyModifiers()
 #endif
         return false;
     }
-    const auto prevPositionZ = GetRenderProperties().GetPositionZ();
 
     // Reset and re-apply all modifiers
     RSModifierContext context = { GetMutableRenderProperties() };
@@ -1471,9 +1474,15 @@ bool RSRenderNode::ApplyModifiers()
     // update rate decider scale reference size.
     animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
         GetRenderProperties().GetBoundsHeight());
+}
 
-    // return true if positionZ changed
-    return GetRenderProperties().GetPositionZ() != prevPositionZ;
+void RSRenderNode::MarkParentNeedRegenerateChildren() const
+{
+    auto parent = GetParent().lock();
+    if (parent == nullptr) {
+        return;
+    }
+    parent->isChildrenSorted_ = false;
 }
 
 void RSRenderNode::UpdateDrawableVec()
