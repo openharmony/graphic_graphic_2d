@@ -212,6 +212,12 @@ bool SkiaMatrix::MapRect(Rect& dst, const Rect& src) const
     return ret;
 }
 
+bool SkiaMatrix::SetPolyToPoly(const Point src[], const Point dst[], uint32_t count)
+{
+    return skMatrix_.setPolyToPoly(
+        reinterpret_cast<const SkPoint*>(src), reinterpret_cast<const SkPoint*>(dst), count);
+}
+
 void SkiaMatrix::Set(int index, scalar value)
 {
     skMatrix_.set(index, value);
