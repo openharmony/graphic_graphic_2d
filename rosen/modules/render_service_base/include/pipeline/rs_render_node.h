@@ -497,7 +497,7 @@ public:
     void UpdateDisplaySyncRange();
 
     void MarkNonGeometryChanged();
-    bool ApplyModifiers();
+    void ApplyModifiers();
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);

@@ -1404,7 +1404,7 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 #endif
 }
 
-bool RSRenderNode::ApplyModifiers()
+void RSRenderNode::ApplyModifiers()
 {
     if (!isFullChildrenListValid_ || !isChildrenSorted_) {
         UpdateFullChildrenListIfNeeded();
@@ -1417,7 +1417,6 @@ bool RSRenderNode::ApplyModifiers()
 #endif
         return false;
     }
-    const auto prevPositionZ = GetRenderProperties().GetPositionZ();
 
     // Reset and re-apply all modifiers
     RSModifierContext context = { GetMutableRenderProperties() };
@@ -1475,18 +1474,6 @@ bool RSRenderNode::ApplyModifiers()
     // update rate decider scale reference size.
     animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
         GetRenderProperties().GetBoundsHeight());
-
-    // return true if positionZ changed
-    bool positionZChanged = GetRenderProperties().GetPositionZ() != prevPositionZ;
-    if (positionZChanged) {
-        auto parent = GetParent().lock();
-        if (parent == nullptr) {
-            return positionZChanged;
-        }
-        parent->isChildrenSorted_ = false;
-        parent->UpdateFullChildrenListIfNeeded();
-    }
-    return positionZChanged;
 }
 
 void RSRenderNode::MarkParentNeedRegenerateChildren() const
