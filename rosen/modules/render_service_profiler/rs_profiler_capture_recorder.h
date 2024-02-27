@@ -45,20 +45,19 @@ public:
     
     Drawing::Canvas* TryInstantCapture(float width, float height);
     void EndInstantCapture();
+    
+    // to check if .rdc is recorded and send the filename to client
+    static bool PullAndSendRdc();
 private:
     ExtendRecordingCanvas* TryInstantCaptureDrawing(float width, float height);
     void EndInstantCaptureDrawing();
     Drawing::Canvas* TryInstantCaptureSKP(float width, float height);
     void EndInstantCaptureSKP();
 
-    const size_t recordingParcelCapacity_ = 234 * 1000 * 1024;
     // used for .rdc capturing
-    const std::string drawCmdListFilename_ = "/data/default.drawing";
     std::unique_ptr<ExtendRecordingCanvas> recordingCanvas_;
     // used for .skp capturing
     std::unique_ptr<SkPictureRecorder> skRecorder_;
-    std::unique_ptr<SkNWayCanvas> nwayCanvas_;
-    SkCanvas* skiaCanvas_ = nullptr; // used for holding a pointer returned from SkPictureRecorder::beginRecording(...)
     std::shared_ptr<Drawing::Canvas> recordingSkpCanvas_;
 };
 

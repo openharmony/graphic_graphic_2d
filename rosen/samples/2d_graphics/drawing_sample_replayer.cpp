@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#include <string>
-#include <iostream>
 #include <filesystem>
 namespace fs = std::filesystem;
+#include <iostream>
+#include <string>
 
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <unique_fd.h>
 
 #include "window.h"
 
 #include "drawing_sample_replayer.h"
-
 
 namespace OHOS::Rosen {
 
@@ -36,26 +36,24 @@ DrawingSampleReplayer::~DrawingSampleReplayer()
     surfaceNode_->DetachToDisplay(DEFAULT_DISPLAY_ID);
 }
 
-int DrawingSampleReplayer::ReadCmds(const std::string path)
+bool DrawingSampleReplayer::ReadCmds(const std::string path)
 {
-    int32_t fd = open(path.c_str(), O_RDONLY);
+    UniqueFd fd(open(path.c_str(), O_RDONLY));
     if (fd <= 0) {
-        return -1;
+        return false;
     }
     struct stat statbuf;
-    if (fstat(fd, &statbuf) < 0) {
-        return -1;
+    if (fstat(fd.Get(), &statbuf) < 0) {
+        return false;
     }
     auto mapFile = static_cast<uint8_t*>(mmap(nullptr, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
     if (mapFile == MAP_FAILED) {
-        close(fd);
-        return -1;
+        return false;
     }
     MessageParcel messageParcel(new EmptyAllocator());
     if (!messageParcel.ParseFrom(reinterpret_cast<uintptr_t>(mapFile), statbuf.st_size)) {
         munmap(mapFile, statbuf.st_size);
-        close(fd);
-        return -1;
+        return false;
     }
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
     RSMarshallingHelper::Unmarshalling(messageParcel, dcl_);
@@ -63,23 +61,22 @@ int DrawingSampleReplayer::ReadCmds(const std::string path)
     if (dcl_ == nullptr) {
         std::cout << "dcl is nullptr" << std::endl;
         munmap(mapFile, statbuf.st_size);
-        return -1;
+        return false;
     }
     munmap(mapFile, statbuf.st_size);
-    return 0;
+    return true;
 }
 
-void DrawingSampleReplayer::PrepareFrame(Drawing::Canvas* canvas)
+bool DrawingSampleReplayer::InitCapturingSKP(Drawing::Canvas* canvas) 
 {
-    if (canvas == nullptr) {
-        return;
-    }
-
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     if (captureMode_ == CaptureMode::SKP) {
         orgSkiaCanvas_ = canvas->GetImpl<Drawing::SkiaCanvas>()->ExportSkCanvas();
         recorder_ = std::make_unique<SkPictureRecorder>();
         pictureCanvas_ = recorder_->beginRecording(width_, height_);
+        if (pictureCanvas_ == nullptr) {
+            return false;
+        }
         if (nwayCanvas_ == nullptr) {
             nwayCanvas_ = std::make_unique<SkNWayCanvas>(width_, height_);
         }
@@ -87,15 +84,14 @@ void DrawingSampleReplayer::PrepareFrame(Drawing::Canvas* canvas)
         nwayCanvas_->addCanvas(pictureCanvas_);
 
         canvas->GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(nwayCanvas_.get());
+        return true;
     }
 #endif
+    return false;
+}
 
-    if (ReadCmds("/data/default.drawing") < 0) {
-        std::cout << "Failed to load .drawing cmds" << std::endl;
-        return;
-    }
-    dcl_->Playback(*canvas);
-
+void DrawingSampleReplayer::FinilizeCapturingSKP(Drawing::Canvas* canvas)
+{
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     if (captureMode_ == CaptureMode::SKP) {
         // finishing capturing and saving skp
@@ -123,7 +119,25 @@ void DrawingSampleReplayer::PrepareFrame(Drawing::Canvas* canvas)
 #endif
 }
 
-void DrawingSampleReplayer::RenderLoop()
+bool DrawingSampleReplayer::PrepareFrame(Drawing::Canvas* canvas)
+{
+    if (canvas == nullptr) {
+        return false;
+    }
+    bool captureStarted = InitCapturingSKP(canvas);
+    // for now we capture single frame only
+    if (!ReadCmds("/data/default.drawing")) {
+        std::cout << "Failed to load .drawing cmds" << std::endl;
+        return false;
+    }
+    dcl_->Playback(*canvas);
+    if (captureStarted) {
+        FinilizeCapturingSKP(canvas);
+    }
+    return true;
+}
+
+bool DrawingSampleReplayer::RenderLoop()
 {
     PrepareNativeEGLSetup();
     int maxIter = (captureMode_ == CaptureMode::RDC) ? MAX_RENDERED_FRAMES : 1;
@@ -134,7 +148,9 @@ void DrawingSampleReplayer::RenderLoop()
 
         std::cout << i << "\t >> new iteration" << std::endl;
 
-        PrepareFrame(canvas);
+        if (!PrepareFrame(canvas)) {
+            return false;
+        }
 
         renderContext_->RenderFrame(); // which involves flush()
         renderContext_->SwapBuffers(eglSurface_);
@@ -152,12 +168,14 @@ void DrawingSampleReplayer::RenderLoop()
             }
         }
         if (rdcnum > 0) {
-            return;
+            // it means the .rdc capture is saved succesfully and further handled by the RsProfiler
+            return true; 
         }
     }
+    return false;
 }
 
-void DrawingSampleReplayer::PrepareNativeEGLSetup()
+bool DrawingSampleReplayer::PrepareNativeEGLSetup()
 {
     renderContext_ = std::make_shared<RenderContext>();
     renderContext_->InitializeEglContext();
@@ -173,7 +191,7 @@ void DrawingSampleReplayer::PrepareNativeEGLSetup()
     surfaceNode_ = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
     if (!surfaceNode_) {
         std::cout << "surfaceNode is nullptr" << std::endl;
-        return;
+        return false;
     }
 
     surfaceNode_->SetFrameGravity(Gravity::RESIZE_ASPECT_FILL);
@@ -186,14 +204,14 @@ void DrawingSampleReplayer::PrepareNativeEGLSetup()
     nativeWindow_ = CreateNativeWindowFromSurface(&ohosSurface);
     if (nativeWindow_ == nullptr) {
         std::cout << "CreateNativeWindowFromSurface Failed" << std::endl;
-        return;
+        return false;
     }
 
     eglSurface_ = renderContext_->CreateEGLSurface((EGLNativeWindowType)nativeWindow_);
     if (eglSurface_ == EGL_NO_SURFACE) {
         std::cout << "Invalid eglSurface, return" << std::endl;
         DestoryNativeWindow(nativeWindow_);
-        return;
+        return false;
     }
 
     renderContext_->MakeCurrent(eglSurface_);
@@ -201,9 +219,10 @@ void DrawingSampleReplayer::PrepareNativeEGLSetup()
     if (initRes != EGL_SUCCESS) {
         std::cout << "Fail to init egl" << std::endl;
         DestoryNativeWindow(nativeWindow_);
-        return;
+        return false;
     }
     NativeWindowHandleOpt(nativeWindow_, SET_BUFFER_GEOMETRY, width_, height_);
+    return true;
 }
 
 void DrawingSampleReplayer::SetCaptureMode(CaptureMode mode)
@@ -226,6 +245,11 @@ int32_t main(int32_t argc, char *argv[])
         }
     }
     std::cout << "Mode: " << replayType << std::endl;
-    replayer.RenderLoop();
+    if (!replayer.PrepareNativeEGLSetup()) {
+        return -1;
+    }
+    if (!replayer.RenderLoop()) {
+        return -1;
+    }
     return 0;
 }

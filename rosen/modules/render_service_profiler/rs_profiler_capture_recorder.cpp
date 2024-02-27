@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <cstring>
+#include <filesystem>
 
 #include "rs_profiler_capture_recorder.h"
 
@@ -27,6 +28,9 @@ namespace OHOS::Rosen {
 
 Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
 {
+    if (!RSSystemProperties::GetInstantRecording()) {
+        return nullptr;
+    }
     if (RSSystemProperties::GetSaveRDC()) {
         // for saving .drawing file
         return TryInstantCaptureDrawing(width, height);
@@ -37,6 +41,9 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
 
 void RSCaptureRecorder::EndInstantCapture()
 {
+    if (!RSSystemProperties::GetInstantRecording()) {
+        return;
+    }
     if (RSSystemProperties::GetSaveRDC()) {
         // for saving .drawing file
         EndInstantCaptureDrawing();
@@ -46,91 +53,98 @@ void RSCaptureRecorder::EndInstantCapture()
     EndInstantCaptureSKP();
 }
 
+bool RSCaptureRecorder::PullAndSendRdc()
+{
+    const std::string path("/data/autocaps");
+    if (!std::filesystem::exists(path)) {
+        return false;
+    }
+    std::vector<std::string> files;
+    for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path)) {
+        const std::filesystem::path& path = entry.path();
+        if (path.extension() == ".rdc") {
+            files.emplace_back(path.generic_string());
+        }
+    }
+    const size_t filesRequired = 1;
+    if (files.size() == filesRequired) {
+        Network::SendRdcPath(files[0]);
+        return true;
+    }
+    return false;
+}
+
 ExtendRecordingCanvas* RSCaptureRecorder::TryInstantCaptureDrawing(float width, float height)
 {
-    if (!RSSystemProperties::GetInstantRecording()) {
-        return nullptr;
-    }
     recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(width, height);
     return recordingCanvas_.get();
 }
 
 void RSCaptureRecorder::EndInstantCaptureDrawing()
 {
-    if (!RSSystemProperties::GetInstantRecording()) {
-        return;
-    }
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();
 
+    const size_t recordingParcelCapacity = 234 * 1000 * 1024;
     std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
-    messageParcel->SetMaxCapacity(recordingParcelCapacity_);
+    messageParcel->SetMaxCapacity(recordingParcelCapacity);
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
-    RSMarshallingHelper::Marshalling(*messageParcel, drawCmdList);
+    bool marshallingComplete = RSMarshallingHelper::Marshalling(*messageParcel, drawCmdList);
     RSMarshallingHelper::EndNoSharedMem();
+
+    if (!marshallingComplete) {
+        RSSystemProperties::SetInstantRecording(false);
+        return;
+    }
 
     size_t parcelSize = messageParcel->GetDataSize();
     uintptr_t parcelBuf = messageParcel->GetData();
 
     // Create file and write the parcel
-    FILE *f = fopen(drawCmdListFilename_.c_str(), "wbe");
-    if (f == NULL) {
-        RS_LOGE("Error while writing to file");
-    } else {
-        Utils::FileWrite(reinterpret_cast<uint8_t *>(parcelBuf), sizeof(uint8_t), parcelSize, f);
-        fclose(f);
+    const std::string drawCmdListFilename = "/data/default.drawing";
+    FILE *f = Utils::FileOpen(drawCmdListFilename, "wbe");
+    if (f == nullptr) {
+        RSSystemProperties::SetInstantRecording(false);
+        return;
     }
-    
-    const size_t minPacketSize = 2;
-    char* buf = new char[minPacketSize];
-    buf[0] = static_cast<char>(OHOS::Rosen::PackageID::RS_PROFILER_DCL_BINARY);
-    buf[1] = 't';
-    OHOS::Rosen::Network::SendBinary(buf, minPacketSize);
-    
-    OHOS::Rosen::Network::SendMessage("Saved locally");
+    Utils::FileWrite(reinterpret_cast<uint8_t *>(parcelBuf), sizeof(uint8_t), parcelSize, f);
+    Utils::FileClose(f);
+
+    Network::SendDclPath(drawCmdListFilename);
+    Network::SendMessage("Saved locally");
     RSSystemProperties::SetInstantRecording(false);
 }
 
 Drawing::Canvas* RSCaptureRecorder::TryInstantCaptureSKP(float width, float height)
 {
-    if (!RSSystemProperties::GetInstantRecording()) {
-        return nullptr;
-    }
-    OHOS::Rosen::Network::SendMessage("Starting .skp capturing.");
+    Network::SendMessage("Starting .skp capturing.");
 
     recordingSkpCanvas_ = std::make_shared<Drawing::Canvas>(width, height);
     skRecorder_.reset();
     skRecorder_ = std::make_unique<SkPictureRecorder>();
-    skiaCanvas_ = skRecorder_->beginRecording(width, height);
-
-    recordingSkpCanvas_->GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(skiaCanvas_);
+    SkCanvas* skiaCanvas = skRecorder_->beginRecording(width, height);
+    if (skiaCanvas == nullptr) {
+        return nullptr;
+    }
+    recordingSkpCanvas_->GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(skiaCanvas);
     return recordingSkpCanvas_.get();
 }
 
 void RSCaptureRecorder::EndInstantCaptureSKP()
 {
-    if (!RSSystemProperties::GetInstantRecording()) {
-        return;
-    }
-    OHOS::Rosen::Network::SendMessage("Finishing .skp capturing");
+    Network::SendMessage("Finishing .skp capturing");
 
     sk_sp<SkPicture> picture = skRecorder_->finishRecordingAsPicture();
-    if (picture->approximateOpCount() > 0) {
-        SkSerialProcs procs;
-        procs.fTypefaceProc = [](SkTypeface* tf, void* ctx) {
-            return tf->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
-        };
-        auto data = picture->serialize(&procs);
-
-        // to send to client as binary
-        const int size = 1 + data->size();
-        char* buf = new char[size];
-        buf[0] = static_cast<char>(OHOS::Rosen::PackageID::RS_PROFILER_SKP_BINARY);
-        memcpy_s(&buf[1], data->size(), data->data(), data->size());
-        
-        OHOS::Rosen::Network::SendMessage("SKP file sending");
-        OHOS::Rosen::Network::SendBinary(buf, size);
-        OHOS::Rosen::Network::SendMessage("SKP file sent");
-        delete [] buf;
+    if (picture != nullptr) {
+        if (picture->approximateOpCount() > 0) {
+            SkSerialProcs procs;
+            procs.fTypefaceProc = [](SkTypeface* tf, void* ctx) {
+                return tf->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
+            };
+            auto data = picture->serialize(&procs);
+            if (data && (data->size() > 0)) {
+                Network::SendSkp(data->data(), data->size());
+            }
+        }
     }
     RSSystemProperties::SetInstantRecording(false);
 }

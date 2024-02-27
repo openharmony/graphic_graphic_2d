@@ -51,12 +51,15 @@ public:
     DrawingSampleReplayer() = default;
     ~DrawingSampleReplayer();
 
-    void RenderLoop();
+    bool PrepareNativeEGLSetup();
+    bool RenderLoop();
     void SetCaptureMode(CaptureMode mode);
 private:
-    int ReadCmds(const std::string path);
-    void PrepareFrame(Drawing::Canvas* canvas);
-    void PrepareNativeEGLSetup();
+    bool ReadCmds(const std::string path);
+    bool PrepareFrame(Drawing::Canvas* canvas);
+    
+    bool InitCapturingSKP(Drawing::Canvas* canvas);
+    void FinilizeCapturingSKP(Drawing::Canvas* canvas);
 
     enum CaptureMode captureMode_ = CaptureMode::RDC;
     uint32_t width_ = 0;
