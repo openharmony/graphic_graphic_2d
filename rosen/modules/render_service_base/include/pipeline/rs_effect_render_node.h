@@ -73,6 +73,7 @@ private:
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;
     bool preRotationStatus_ = false;
+    bool preStaticStatus_ = false;
     int invalidateTimes_ = 0;
     int cacheUpdateInterval_ = 1;
 };
