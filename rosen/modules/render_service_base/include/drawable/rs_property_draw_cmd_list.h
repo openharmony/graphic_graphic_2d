@@ -100,19 +100,22 @@ public:
     RSPropertyDrawCmdList(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : drawCmdList_(std::move(drawCmdList)) {}
     virtual ~RSPropertyDrawCmdList() = default;
 
+    // type definition
+    using Ptr = std::shared_ptr<RSPropertyDrawCmdList>;
+    using Vec = std::array<Ptr, static_cast<size_t>(RSPropertyDrawCmdListSlot::MAX)>;
+    using Generator = std::function<Ptr(const RSRenderContent&)>;
+
     // every child class should have this
-    // static std::shared_ptr<RSPropertyDrawCmdList> Generate(const RSRenderContent& content) { return nullptr; };
+    // static RSPropertyDrawCmdList::Ptr OnGenerate(const RSRenderContent& content) { return nullptr; };
 
     // return true if this drawable can be updated thus not need to recreate, default to false
-    virtual bool Update(const RSRenderContent& content);
+    virtual bool OnUpdate(const RSRenderContent& content) { return false; }
 
+    //
     void OnSync();
 
-    using DrawCmdListPtr = std::shared_ptr<RSPropertyDrawCmdList>;
-    using DrawCmdListVec = std::array<DrawCmdListPtr, static_cast<size_t>(RSPropertyDrawCmdListSlot::MAX)>;
-    using DrawCmdListGenerator = std::function<DrawCmdListPtr(const RSRenderContent&)>;
-
 protected:
+    bool needSyncDisplayList_ = false;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
 
@@ -125,8 +128,8 @@ public:
     RSCustomModifierDrawCmdList(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList, RSModifierType type)
         : RSPropertyDrawCmdList(std::move(drawCmdList)), type_(type)
     {}
-    static std::shared_ptr<RSPropertyDrawCmdList> Generate(const RSRenderContent& content, RSModifierType type);
-    bool Update(const RSRenderContent& content) override;
+    static RSPropertyDrawCmdList::Ptr OnGenerate(const RSRenderContent& content, RSModifierType type);
+    bool OnUpdate(const RSRenderContent& content) override;
 
 private:
     RSModifierType type_;
@@ -135,15 +138,15 @@ private:
 // DEMO
 class RSBackgroundDrawCmdList : public RSPropertyDrawCmdList {
 public:
-    static std::shared_ptr<RSPropertyDrawCmdList> Generate(const RSRenderContent& content);
-    bool Update(const RSRenderContent& content) override;
+    static RSPropertyDrawCmdList::Ptr OnGenerate(const RSRenderContent& content);
+    bool OnUpdate(const RSRenderContent& content) override;
 };
 
 // DEMO
 class RSBorderDrawCmdList : public RSPropertyDrawCmdList {
 public:
-    static std::shared_ptr<RSPropertyDrawCmdList> Generate(const RSRenderContent& content);
-    bool Update(const RSRenderContent& content) override;
+    static RSPropertyDrawCmdList::Ptr OnGenerate(const RSRenderContent& content);
+    bool OnUpdate(const RSRenderContent& content) override;
 };
 
 } // namespace OHOS::Rosen

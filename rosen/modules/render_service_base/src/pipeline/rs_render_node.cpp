@@ -186,19 +186,6 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
 namespace OHOS {
 namespace Rosen {
-void RSRenderNode::Sync()
-{
-    if (stagingDrawCmdList_) {
-        std::swap(drawCmdList_, stagingDrawCmdList_);
-        stagingDrawCmdList_.reset();
-    }
-    std::for_each(drawableVec_.begin(), drawableVec_.end(), [](auto& drawable) {
-        if (drawable) {
-            drawable->OnSync();
-        }
-    });
-}
-
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
@@ -2976,6 +2963,19 @@ bool RSRenderNode::GetLastIsNeedAssignToSubThread() const
 void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread)
 {
     lastIsNeedAssignToSubThread_ = lastIsNeedAssignToSubThread;
+}
+
+void RSRenderNode::OnSync()
+{
+    if (needSyncDisplayList_) {
+        drawCmdList_ = std::move(stagingDrawCmdList_);
+    }
+    // PLANNING: use dirty mask to only sync changed properties
+    std::for_each(displayListVec_.begin(), displayListVec_.end(), [](auto& displayList) {
+        if (displayList) {
+            displayList->OnSync();
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

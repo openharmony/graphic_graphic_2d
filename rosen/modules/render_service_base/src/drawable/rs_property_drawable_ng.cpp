@@ -21,13 +21,20 @@
 
 namespace OHOS::Rosen {
 
-void RSPropertyDrawableNG::Draw(RSPaintFilterCanvas& canvas) const
+RSPropertyDrawableNG::RSPropertyDrawableNG(std::shared_ptr<RSPropertyDrawCmdList> cmdList)
+    : cmdList_(std::move(cmdList))
+{}
+
+void RSPropertyDrawableNG::OnDraw(RSPaintFilterCanvas& canvas) const
 {
-    if (cmdList_) {
-        if (const auto& drawCmdList = cmdList_->drawCmdList_) {
-            drawCmdList->Playback(canvas);
-        }
+    if (cmdList_ == nullptr) {
+        return;
     }
+    const auto& drawCmdList = cmdList_->drawCmdList_;
+    if (drawCmdList == nullptr) {
+        return;
+    }
+    drawCmdList->Playback(canvas);
 }
 
 } // namespace OHOS::Rosen

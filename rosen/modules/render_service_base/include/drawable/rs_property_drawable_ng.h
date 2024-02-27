@@ -25,10 +25,10 @@ class RSPropertyDrawCmdList;
 
 class RSPropertyDrawableNG : RSDrawable {
 public:
-    RSPropertyDrawableNG() = default;
+    RSPropertyDrawableNG(std::shared_ptr<RSPropertyDrawCmdList> cmdList);
     ~RSPropertyDrawableNG() override = default;
 
-    void Draw(RSPaintFilterCanvas& canvas) const override;
+    void OnDraw(RSPaintFilterCanvas& canvas) const override;
 
 protected:
     std::shared_ptr<RSPropertyDrawCmdList> cmdList_;

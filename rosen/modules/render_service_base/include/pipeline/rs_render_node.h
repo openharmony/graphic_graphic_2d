@@ -740,11 +740,12 @@ private:
     void OnRegister(const std::weak_ptr<RSContext>& context);
 
     // Test pipeline
+    bool needSyncDisplayList_ = false;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
-    RSPropertyDrawCmdList::DrawCmdListVec drawableVec_;
+    RSPropertyDrawCmdList::Vec displayListVec_;
 
-    void Sync();
+    void OnSync();
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
@@ -755,6 +756,7 @@ private:
     friend class RSRenderNodeMap;
     friend class RSRenderThread;
     friend class RSRenderTransition;
+    friend class RSRenderNodeDrawable;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;
