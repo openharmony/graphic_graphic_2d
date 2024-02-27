@@ -3156,6 +3156,33 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
     }
 }
 
+static bool IsFastDangerousMode(int blendMode)
+{
+    static const int fastDangerousBit =
+        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::XOR));
+    int tmp = 1 << blendMode;
+    return tmp & fastDangerousBit;
+}
+
+static bool IsOffscreenDangerousMode(int blendMode)
+{
+    static const int offscreenDangerousBit =
+        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_IN)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_IN)) +
+        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
+        (1 << static_cast<int>(Drawing::BlendMode::DST_ATOP)) +
+        (1 << static_cast<int>(Drawing::BlendMode::XOR)) +
+        (1 << static_cast<int>(Drawing::BlendMode::MODULATE));
+    int tmp = 1 << blendMode;
+    return tmp & offscreenDangerousBit;
+}
+
 void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties)
 {
     auto blendMode = properties.GetColorBlendMode();
@@ -3176,22 +3203,24 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
 
     // fast blend mode
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        if (canvas.GetBlendOffscreenLayerCnt() == 0 && IsFastDangerousMode(blendMode - 1)) {
+            Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
+            canvas.SaveLayer(maskLayerRec);
+            canvas.AddBlendOffscreenLayer(true);
+            ROSEN_LOGW("Dangerous fast blendmode may produce transparent pixels, add extra offscreen here.");
+        }
         canvas.SaveBlendMode();
         canvas.SetBlendMode({ blendMode - 1 }); // map blendMode to SkBlendMode
         return;
     }
 
+    if (canvas.GetBlendOffscreenLayerCnt() == 0 && IsOffscreenDangerousMode(blendMode - 1)) {
+        Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
+        canvas.SaveLayer(maskLayerRec);
+        canvas.AddBlendOffscreenLayer(true);
+        ROSEN_LOGW("Dangerous offscreen blendmode may produce transparent pixels, add extra offscreen here.");
+    }
     // save layer mode
-#ifndef USE_ROSEN_DRAWING
-    auto matrix = canvas.getTotalMatrix();
-    matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
-    matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
-    canvas.setMatrix(matrix);
-    SkPaint blendPaint_;
-    blendPaint_.setAlphaf(canvas.GetAlpha());
-    blendPaint_.setBlendMode(static_cast<SkBlendMode>(blendMode - 1)); // map blendMode to SkBlendMode
-    canvas.saveLayer(nullptr, &blendPaint_);
-#else
     auto matrix = canvas.GetTotalMatrix();
     matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
@@ -3201,7 +3230,8 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
     blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
     canvas.SaveLayer(maskLayerRec);
-#endif
+
+    canvas.AddBlendOffscreenLayer(false);
     canvas.SaveBlendMode();
     canvas.SetBlendMode(std::nullopt);
     canvas.SaveAlpha();
@@ -3220,20 +3250,21 @@ void RSPropertiesPainter::EndBlendMode(RSPaintFilterCanvas& canvas, const RSProp
 
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         canvas.RestoreBlendMode();
+        if (canvas.IsBlendOffscreenExtraLayer()) {
+            canvas.Restore();
+            canvas.MinusBlendOffscreenLayer();
+        }
     } else {
         canvas.RestoreBlendMode();
         canvas.RestoreAlpha();
-#ifndef USE_ROSEN_DRAWING
-        canvas.restore();
-#else
         canvas.Restore();
-#endif
+        canvas.MinusBlendOffscreenLayer();
+        if (canvas.IsBlendOffscreenExtraLayer()) {
+            canvas.Restore();
+            canvas.MinusBlendOffscreenLayer();
+        }
     }
-#ifndef USE_ROSEN_DRAWING
-        canvas.restore();
-#else
-        canvas.Restore();
-#endif
+    canvas.Restore();
 }
 } // namespace Rosen
 } // namespace OHOS

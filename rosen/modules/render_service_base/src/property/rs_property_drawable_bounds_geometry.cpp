@@ -1296,7 +1296,7 @@ RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 #endif
 }
 
-bool IsFastDangerousMode(int blendMode)
+static bool IsFastDangerousMode(int blendMode)
 {
     static const int fastDangerousBit =
         (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
@@ -1307,7 +1307,7 @@ bool IsFastDangerousMode(int blendMode)
     return tmp & fastDangerousBit;
 }
 
-bool IsOffscreenDangerousMode(int blendMode)
+static bool IsOffscreenDangerousMode(int blendMode)
 {
     static const int offscreenDangerousBit =
         (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
