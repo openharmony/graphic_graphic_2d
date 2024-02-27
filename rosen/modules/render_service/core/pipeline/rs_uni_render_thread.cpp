@@ -44,11 +44,14 @@ void RSUniRenderThread::Start()
 
 void RSUniRenderThread::Init()
 {
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (!rootNode) {
-        RS_LOGE("rootNode is nullptr");
+    if (!rootNodeDrawable_) {
+        const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+        if (!rootNode) {
+            RS_LOGE("rootNode is nullptr");
+            return;
+        }
+        rootNodeDrawable_ = RSRenderNodeDrawable::OnGenerate(rootNode);
     }
-    rootNodeDrawable_ = RSRenderNodeDrawable::Generate(rootNode);
     InitGrContext();
 }
 

@@ -20,12 +20,14 @@
 
 #include "drawable/rs_drawable.h"
 
+#include "common/rs_macros.h"
+
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSDisplayRenderNode;
 class RSCanvasRenderNode;
 
-class RSRenderNodeDrawable : public RSDrawable {
+class RSB_EXPORT RSRenderNodeDrawable : public RSDrawable {
 public:
     explicit RSRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode);
     ~RSRenderNodeDrawable() override = default;

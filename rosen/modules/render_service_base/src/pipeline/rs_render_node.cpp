@@ -1402,7 +1402,7 @@ void RSRenderNode::ApplyModifiers()
 #else
     if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
 #endif
-        return false;
+        return;
     }
 
     // Reset and re-apply all modifiers
