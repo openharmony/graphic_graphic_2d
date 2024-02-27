@@ -28,8 +28,8 @@ struct GPUInfo {
 struct CPUInfo {
     static constexpr uint32_t MAX_CORE_COUNT = 16u;
 
-    float coreFrequency[MAX_CORE_COUNT] = {};
-    float coreLoad[MAX_CORE_COUNT] = {};
+    float coreFrequency[MAX_CORE_COUNT] = {0};
+    float coreLoad[MAX_CORE_COUNT] = {0};
     uint32_t cores = 0u;
     float temperature = 0.0f;
     float current = 0.0f;

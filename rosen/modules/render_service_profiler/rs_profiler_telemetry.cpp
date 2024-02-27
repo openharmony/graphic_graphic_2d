@@ -24,39 +24,9 @@
 #include "rs_profiler_telemetry.h"
 #include "rs_profiler_utils.h"
 
+#include "platform/common/rs_log.h"
+
 namespace OHOS::Rosen {
-
-static inline std::string IncludePathDelimiter(const std::string& path)
-{
-    if (path.rfind('/') != path.size() - 1) {
-        return path + "/";
-    }
-
-    return path;
-}
-
-static void IterateDirFiles(const std::string& path, std::vector<std::string>& files)
-{
-    DIR* directory = opendir(path.data());
-    if (!directory) {
-        return;
-    }
-
-    while (const struct dirent* entry = readdir(directory)) {
-        // current dir OR parent dir
-        if ((strcmp(entry->d_name, ".") == 0) || (strcmp(entry->d_name, "..") == 0)) {
-            continue;
-        }
-
-        const std::string pathWithDelimiter = IncludePathDelimiter(path) + std::string(entry->d_name);
-        if (entry->d_type == DT_DIR) {
-            IterateDirFiles(pathWithDelimiter, files);
-        } else {
-            files.push_back(pathWithDelimiter);
-        }
-    }
-    closedir(directory);
-}
 
 static void GetCPUTemperature(CPUInfo& cpu)
 {
@@ -77,54 +47,91 @@ static void GetCPUVoltage(CPUInfo& cpu)
 static void GetCPUMemory(CPUInfo& cpu)
 {
     auto collector = HiviewDFX::UCollectUtil::MemoryCollector::Create();
+    if (!collector) {
+        return;
+    }
+
     auto freqResult = collector->CollectSysMemory();
-    cpu.ramTotal = freqResult.data.memTotal;
-    cpu.ramFree = freqResult.data.memFree;
+    if (freqResult.retCode == HiviewDFX::UCollect::SUCCESS) {
+        cpu.ramTotal = freqResult.data.memTotal;
+        cpu.ramFree = freqResult.data.memFree;
+    } else {
+        cpu.ramTotal = 0;
+        cpu.ramFree = 0;
+    }
 }
 
 static void GetCPUCores(CPUInfo& cpu)
 {
     auto collector = HiviewDFX::UCollectUtil::CpuCollector::Create();
-    auto freqResult = collector->CollectCpuFrequency();
-    auto& cpuFreq = freqResult.data;
-    auto usageResult = collector->CollectSysCpuUsage(true);
-    auto& cpuUsage = usageResult.data;
-
-    cpu.cores = std::min(CPUInfo::MAX_CORE_COUNT, static_cast<uint32_t>(cpuFreq.size()));
-
-    for (uint32_t i = 0; i < cpu.cores; i++) { // Frequency
-        const uint32_t frequencyCpuId = std::min(static_cast<uint32_t>(cpuFreq[i].cpuId), cpu.cores - 1u);
-        cpu.coreFrequency[frequencyCpuId] = cpuFreq[i].curFreq * Utils::MICRO;
+    if (!collector) {
+        return;
     }
 
-    for (auto& cpuInfo : cpuUsage.cpuInfos) { // Load
-        const uint32_t loadCpuId = std::min(static_cast<uint32_t>(std::atoi(cpuInfo.cpuId.data())), cpu.cores - 1u);
-        cpu.coreLoad[loadCpuId] = cpuInfo.userUsage + cpuInfo.niceUsage + cpuInfo.systemUsage + cpuInfo.idleUsage +
-                                  cpuInfo.ioWaitUsage + cpuInfo.irqUsage + cpuInfo.softIrqUsage;
+    auto freqResult = collector->CollectCpuFrequency();
+    if (freqResult.retCode == HiviewDFX::UCollect::SUCCESS) {
+        auto& cpuFreq = freqResult.data;
+        cpu.cores = std::min(CPUInfo::MAX_CORE_COUNT, static_cast<uint32_t>(cpuFreq.size()));
+        for (const auto& freqInfo : cpuFreq) {
+            if (freqInfo.cpuId < cpu.cores) {
+                cpu.coreFrequency[freqInfo.cpuId] = freqInfo.curFreq * Utils::MICRO;
+            }
+        }
+    }
+
+    auto usageResult = collector->CollectSysCpuUsage(true);
+    if (usageResult.retCode != HiviewDFX::UCollect::SUCCESS) {
+        return;
+    }
+
+    auto& cpuUsage = usageResult.data.cpuInfos;
+    for (const auto& cpuInfo : cpuUsage) {
+        constexpr int cpuWordLen = 3;
+        const auto& cpuId = cpuInfo.cpuId;
+        // cpu IDs are: cpu, cpu0, cpu1, ..., cpu7  but nobody knows when would it change
+        if (cpuId.rfind("cpu", 0) == 0 && cpuId.size() > cpuWordLen) {
+            const uint32_t loadCpuId = std::atoi(cpuId.data() + cpuWordLen);
+            if (loadCpuId < cpu.cores) {
+                constexpr float maxPercents = 100.0f;
+                cpu.coreLoad[loadCpuId] =
+                    maxPercents * (cpuInfo.userUsage + cpuInfo.niceUsage + cpuInfo.systemUsage + cpuInfo.idleUsage +
+                                      cpuInfo.ioWaitUsage + cpuInfo.irqUsage + cpuInfo.softIrqUsage);
+            }
+        }
     }
 }
 
 static void GetGPUFreqAndLoad(GPUInfo& gpu)
 {
     auto collector = HiviewDFX::UCollectUtil::GpuCollector::Create();
-    gpu.frequency = collector->CollectGpuFrequency().data.curFeq * Utils::NANO;
-    gpu.load = collector->CollectSysGpuLoad().data.gpuLoad;
+    if (!collector) {
+        return;
+    }
+
+    auto gpuFreq = collector->CollectGpuFrequency();
+    if (gpuFreq.retCode == HiviewDFX::UCollect::SUCCESS) {
+        gpu.frequency = gpuFreq.data.curFeq * Utils::NANO;
+    } else {
+        gpu.frequency = 0;
+    }
+
+    auto gpuLoad = collector->CollectSysGpuLoad();
+    if (gpuLoad.retCode == HiviewDFX::UCollect::SUCCESS) {
+        gpu.load = gpuLoad.data.gpuLoad;
+    } else {
+        gpu.load = 0;
+    }
 }
 
 const DeviceInfo& RSTelemetry::GetDeviceInfo()
 {
     static DeviceInfo info;
-
-    // cpu
     GetCPUTemperature(info.cpu);
     GetCPUCurrent(info.cpu);
     GetCPUVoltage(info.cpu);
     GetCPUMemory(info.cpu);
     GetCPUCores(info.cpu);
-
-    // gpu
     GetGPUFreqAndLoad(info.gpu);
-
     return info;
 }
 
