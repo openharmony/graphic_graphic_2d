@@ -72,6 +72,7 @@ public:
         const std::vector<Path>& paths, std::vector<Path>& multPaths);
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
+    static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
     static std::shared_ptr<DrawingSymbolLayersGroups> GetSymbolLayersGroups(uint32_t glyphId);
     static FontStyleSet* CreateEmpty();
 };

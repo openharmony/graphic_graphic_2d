@@ -144,10 +144,57 @@ std::shared_ptr<Typeface> SkiaFont::GetTypeface()
     return typeface_;
 }
 
-scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)
+FontEdging SkiaFont::GetEdging() const
+{
+    return static_cast<FontEdging>(skFont_.getEdging());
+}
+
+FontHinting SkiaFont::GetHinting() const
+{
+    return static_cast<FontHinting>(skFont_.getHinting());
+}
+
+scalar SkiaFont::GetScaleX() const
+{
+    return skFont_.getScaleX();
+}
+
+scalar SkiaFont::GetSkewX() const
+{
+    return skFont_.getSkewX();
+}
+
+bool SkiaFont::IsSubpixel() const
+{
+    return skFont_.isSubpixel();
+}
+
+uint16_t SkiaFont::UnicharToGlyph(int32_t uni) const
+{
+    return skFont_.unicharToGlyph(uni);
+}
+
+int SkiaFont::TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
+    uint16_t glyphs[], int maxGlyphCount) const
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
-    return skFont_.measureText(text, byteLength, skEncoding);
+    return skFont_.textToGlyphs(text, byteLength, skEncoding, glyphs, maxGlyphCount);
+}
+
+scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds)
+{
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    if (bounds) {
+        SkRect rect;
+        scalar width = skFont_.measureText(text, byteLength, skEncoding, &rect);
+        bounds->SetLeft(rect.fLeft);
+        bounds->SetTop(rect.fTop);
+        bounds->SetRight(rect.fRight);
+        bounds->SetBottom(rect.fBottom);
+        return width;
+    } else {
+        return skFont_.measureText(text, byteLength, skEncoding);
+    }
 }
 
 int SkiaFont::CountText(const void* text, size_t byteLength, TextEncoding encoding) const

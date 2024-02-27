@@ -92,25 +92,12 @@ public:
         }
     }
 
-    void CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle);
-
-    SkFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle);
-
-    SkFontStyle::Weight ConvertToSkFontWeight(FontWeight fontWeight);
-
-    skia::textlayout::ParagraphPainter::PaintID AllocPaintID(const PaintRecord& paint);
-
-    skia::textlayout::TextShadow MakeTextShadow(const TextShadow& txtShadow);
-
-    SkFontArguments MakeFontArguments(const FontVariations& fontVariations);
-
-    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);
-
     Drawing::FontMetrics MeasureText() override;
 
     Drawing::FontMetrics GetFontMetricsResult(const SPText::TextStyle& textStyle) override;
+
 private:
-    skia::textlayout::TextStyle TXTTextStyleToSKStyle(const OHOS::Rosen::SPText::TextStyle& txt);
+    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);
 
     std::unique_ptr<skia::textlayout::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;

@@ -36,10 +36,17 @@ public:
     size_t GetFontManagersCount() const;
 
     void SetupDefaultFontManager();
+#ifndef USE_ROSEN_DRAWING
     void SetDefaultFontManager(sk_sp<SkFontMgr> fontManager);
     void SetAssetFontManager(sk_sp<SkFontMgr> fontManager);
     void SetDynamicFontManager(sk_sp<SkFontMgr> fontManager);
     void SetTestFontManager(sk_sp<SkFontMgr> fontManager);
+#else
+    void SetDefaultFontManager(std::shared_ptr<RSFontMgr> fontManager);
+    void SetAssetFontManager(std::shared_ptr<RSFontMgr> fontManager);
+    void SetDynamicFontManager(std::shared_ptr<RSFontMgr> fontManager);
+    void SetTestFontManager(std::shared_ptr<RSFontMgr> fontManager);
+#endif
 
     void DisableFontFallback();
 
@@ -48,15 +55,26 @@ public:
     sk_sp<skia::textlayout::FontCollection> CreateSktFontCollection();
 
 private:
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkFontMgr> defaultFontManager_;
     sk_sp<SkFontMgr> assetFontManager_;
     sk_sp<SkFontMgr> dynamicFontManager_;
     sk_sp<SkFontMgr> testFontManager_;
+#else
+    std::shared_ptr<RSFontMgr> defaultFontManager_;
+    std::shared_ptr<RSFontMgr> assetFontManager_;
+    std::shared_ptr<RSFontMgr> dynamicFontManager_;
+    std::shared_ptr<RSFontMgr> testFontManager_;
+#endif
     bool enableFontFallback_;
 
     sk_sp<skia::textlayout::FontCollection> sktFontCollection_;
 
+#ifndef USE_ROSEN_DRAWING
     std::vector<sk_sp<SkFontMgr>> GetFontManagerOrder() const;
+#else
+    std::vector<std::shared_ptr<RSFontMgr>> GetFontManagerOrder() const;
+#endif
 
     DISALLOW_COPY_AND_ASSIGN(FontCollection);
 };
