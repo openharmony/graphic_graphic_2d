@@ -20,6 +20,8 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "drawable/rs_canvas_render_node_drawable.h"
+#include "drawable/rs_display_render_node_drawable.h"
 
 namespace OHOS::Rosen {
 RSRenderNodeDrawable::RSRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -55,27 +57,5 @@ void RSRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
         return;
     }
     drawCmdList_->Playback(canvas);
-}
-
-// =============================================================
-RSDisplayRenderNodeDrawable::RSDisplayRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode)
-    : RSRenderNodeDrawable(renderNode)
-{}
-
-void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
-{
-    // TODO
-    RSRenderNodeDrawable::OnDraw(canvas);
-}
-
-// =============================================================
-RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode)
-    : RSRenderNodeDrawable(renderNode)
-{}
-
-void RSCanvasRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
-{
-    // TODO
-    RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen

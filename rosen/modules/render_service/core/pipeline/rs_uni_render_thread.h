@@ -36,6 +36,7 @@ public:
     void Sync(std::list<std::shared_ptr<RSRenderNode>> nodes);
     void PostTask(const std::function<void()>& task);
     void Render();
+    const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

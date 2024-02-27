@@ -277,7 +277,8 @@ void RSMainThread::Init()
         CollectInfoForDrivenRender();
 #endif
         // may mark rsnotrendering
-        Render();
+        Render(); // now render is traverse tree to prepare
+        drawFrame_.PostAndWait();
 
         // move rnv after mark rsnotrendring
         if (needRequestNextVsyncAnimate_ && rsVSyncDistributor_->IsDVsyncOn()) {
@@ -343,13 +344,13 @@ void RSMainThread::Init()
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn, token->AsObject(), handler_);
     receiver_->Init();
-    if (isUniRender_) {
-        uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-        uniRenderEngine_->Init();
-    } else {
-        renderEngine_ = std::make_shared<RSRenderEngine>();
-        renderEngine_->Init();
-    }
+    // if (isUniRender_) {
+    //     uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    //     uniRenderEngine_->Init();
+    // } else {
+    //     renderEngine_ = std::make_shared<RSRenderEngine>();
+    //     renderEngine_->Init();
+    // }
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         int cacheLimitsTimes = 3;
@@ -1525,7 +1526,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             uniVisitor->DrawSurfaceLayer(displayNode, subThreadNodes);
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
-        rootNode->Process(uniVisitor);
+        //rootNode->Process(uniVisitor);
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
     }
@@ -1586,9 +1587,9 @@ void RSMainThread::Render()
         rootNode->Process(rsVisitor);
         renderEngine_->ShrinkCachesIfNeeded();
     }
-    CallbackDrawContextStatusToWMS();
-    CheckSystemSceneStatus();
-    PerfForBlurIfNeeded();
+    // CallbackDrawContextStatusToWMS();
+    // CheckSystemSceneStatus();
+    // PerfForBlurIfNeeded();
 }
 
 void RSMainThread::CheckSystemSceneStatus()

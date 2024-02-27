@@ -64,6 +64,11 @@ void RSUniRenderThread::InitGrContext()
     uniRenderEngine_->Init();
 }
 
+const std::shared_ptr<RSBaseRenderEngine> RSUniRenderThread::GetRenderEngine() const
+{
+    return uniRenderEngine_;
+}
+
 void RSUniRenderThread::PostTask(const std::function<void()>& task)
 {
     if (!handler_) {
@@ -77,7 +82,7 @@ void RSUniRenderThread::Render()
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
-    //rootNodeDrawable_->Render(canvas_); //canvas need to init
+    rootNodeDrawable_->OnDraw(*canvas_);
 }
 
 } // namespace Rosen

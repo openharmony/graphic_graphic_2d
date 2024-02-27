@@ -36,7 +36,6 @@ public:
     void RenderFrame();
     void UnblockMainThread();
     void Sync();
-    void SetBlockFlag();
     void FlushFrame();
     void Render();
     void PostProcess();

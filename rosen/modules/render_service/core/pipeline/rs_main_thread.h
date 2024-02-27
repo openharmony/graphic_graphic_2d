@@ -25,6 +25,7 @@
 
 #include "refbase.h"
 #include "rs_base_render_engine.h"
+#include "rs_draw_frame.h"
 #include "vsync_distributor.h"
 #include <event_handler.h>
 #include "vsync_receiver.h"
@@ -39,6 +40,7 @@
 #include "memory/rs_app_state_listener.h"
 #include "memory/rs_memory_graphic.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_draw_frame.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "platform/common/rs_event_manager.h"
@@ -545,6 +547,7 @@ private:
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool discardJankFrames_ = false;
     bool forceUIFirstChanged_ = false;
+    RSDrawFrame drawFrame_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

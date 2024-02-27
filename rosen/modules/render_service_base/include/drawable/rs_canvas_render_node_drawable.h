@@ -13,31 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
-#define RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
+#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_CANVAS_RENDER_NODE_DRAWABLE_H
+#define RENDER_SERVICE_BASE_DRAWABLE_RS_CANVAS_RENDER_NODE_DRAWABLE_H
 
 #include <memory>
 
-#include "drawable/rs_drawable.h"
-
-#include "common/rs_macros.h"
+#include "drawable/rs_render_node_drawable.h"
 
 namespace OHOS::Rosen {
-class RSRenderNode;
-class RSDisplayRenderNode;
 class RSCanvasRenderNode;
 
-class RSB_EXPORT RSRenderNodeDrawable : public RSDrawable {
+class RSCanvasRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode);
-    ~RSRenderNodeDrawable() override = default;
-
-    static std::shared_ptr<RSRenderNodeDrawable> OnGenerate(std::shared_ptr<RSRenderNode> node);
+    explicit RSCanvasRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode);    
+    ~RSCanvasRenderNodeDrawable() override = default;
     void OnDraw(RSPaintFilterCanvas& canvas) const override;
 
-protected:
-    std::shared_ptr<RSRenderNode> renderNode_;
+private:
+    
 };
 
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
+#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_CANVAS_RENDER_NODE_DRAWABLE_H
