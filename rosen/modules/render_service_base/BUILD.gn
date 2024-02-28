@@ -170,6 +170,9 @@ ohos_source_set("render_service_base_src") {
     "src/memory/rs_memory_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
 
+    #params
+    "src/params/rs_render_params.cpp",
+
     #pipeline
     "src/pipeline/rs_canvas_drawing_render_node.cpp",
     "src/pipeline/rs_canvas_render_node.cpp",
