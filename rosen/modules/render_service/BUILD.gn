@@ -120,6 +120,18 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_render_service_stub.cpp",
   ]
 
+  #drawable
+  sources += [
+    "core/drawable/rs_canvas_render_node_drawable.cpp",
+    "core/drawable/rs_display_render_node_drawable.cpp",
+    "core/drawable/rs_drawable.cpp",
+    "core/drawable/rs_effect_render_node_drawable.cpp",
+    "core/drawable/rs_render_node_drawable.cpp",
+    "core/drawable/rs_property_drawable_ng.cpp",
+    "core/drawable/rs_root_render_node_drawable.cpp",
+    "core/drawable/rs_surface_render_node_drawable.cpp",
+  ]
+
   if (rs_enable_driven_render) {
     sources += [
       "core/pipeline/driven_render/rs_driven_render_ext.cpp",
