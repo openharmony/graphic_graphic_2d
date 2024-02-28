@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,8 +29,10 @@
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkPath.h"
+#include "HmSymbolConfig_ohos.h"
 #else
 #include "draw/path.h"
+#include "include/text/hm_symbol_config_ohos.h"
 #endif
 
 namespace OHOS {
@@ -39,59 +41,76 @@ class RSC_EXPORT RSSymbolAnimation {
 public:
     RSSymbolAnimation();
     virtual ~RSSymbolAnimation();
-    bool SetScaleUnitAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-    void SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds);
-    bool SetVariableColorAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-
-    // set symbol animation manager
-    bool SetSymbolAnimation(
-        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-
     void SetNode(std::shared_ptr<RSNode>& rsNode)
     {
         rsNode_ = rsNode;
     }
+    bool SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds);
+
+    // set symbol animation manager
+    bool SetSymbolAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+
+    bool SetScaleUnitAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    bool SetVariableColorAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
 
 private:
-    std::shared_ptr<RSNode> rsNode_ = nullptr;
-
-    std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-        const Vector2f& scaleValueBegin = Vector2f{0.f, 0.f},
-        const Vector2f& scaleValue = Vector2f{0.f, 0.f},
-        const Vector2f& scaleValueEnd = Vector2f{0.f, 0.f},
-        const int delay = 0);
     void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, TextEngine::SymbolNode& symbolNode);
-    RSAnimationTimingCurve SetScaleSpringTimingCurve();
-
-    bool isEqual(const Vector2f val1, const Vector2f val2);
 
 #ifndef USE_ROSEN_DRAWING
-    Vector4f CalculateOffset(const SkPath &path, const float &offsetX, const float &offsetY);
+    Vector4f CalculateOffset(const SkPath& path, const float& offsetX, const float& offsetY);
+    void DrawSymbolOnCanvas(SkCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+    void DrawPathOnCanvas(SkCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+    bool CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
+        const std::vector<PiecewiseParameter>& oneGroupParas);
 #else
-    Vector4f CalculateOffset(const Drawing::Path &path, const float &offsetX, const float &offsetY);
+    Vector4f CalculateOffset(const Drawing::Path& path, const float& offsetX, const float& offsetY);
+    void DrawSymbolOnCanvas(ExtendRecordingCanvas* recordingCanvas,
+        TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+    void DrawPathOnCanvas(ExtendRecordingCanvas* recordingCanvas,
+        TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+    bool CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
+        const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas);
 #endif
 
-    template<typename T>
-    bool CreateOrSetModifierValue(std::shared_ptr<RSAnimatableProperty<T>>& property, const T& value);
+#ifndef USE_ROSEN_DRAWING
+    std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
+        const PiecewiseParameter& scaleUnitParas,
+        const Vector2f& scaleValueBegin = Vector2f{0.f, 0.f},
+        const Vector2f& scaleValue = Vector2f{0.f, 0.f},
+        const Vector2f& scaleValueEnd = Vector2f{0.f, 0.f});
+    bool GetScaleUnitAnimationParas(PiecewiseParameter& scaleUnitParas,
+        Vector2f& scaleValueBegin, Vector2f& scaleValue);
+#else
+    std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
+        const Drawing::DrawingPiecewiseParameter& scaleUnitParas,
+        const Vector2f& scaleValueBegin = Vector2f{0.f, 0.f},
+        const Vector2f& scaleValue = Vector2f{0.f, 0.f},
+        const Vector2f& scaleValueEnd = Vector2f{0.f, 0.f});
+    bool GetScaleUnitAnimationParas(Drawing::DrawingPiecewiseParameter& scaleUnitParas,
+        Vector2f& scaleValueBegin, Vector2f& scaleValue);
+#endif
+    RSAnimationTimingCurve SetScaleSpringTimingCurve(const std::map<std::string, double_t>& curveArgs);
 
-    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeFirst(const std::shared_ptr<RSNode>& rsNode);
-    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeSecond(const std::shared_ptr<RSNode>& rsNode);
-    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeThird(const std::shared_ptr<RSNode>& rsNode);
+    std::shared_ptr<RSAnimation> VariableColorSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
+        uint32_t& duration, int& delay, std::vector<float>& timePercents);
+#ifndef USE_ROSEN_DRAWING
+    bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
+        std::vector<float>& timePercents);
+#else
+    bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
+        std::vector<float>& timePercents);
+#endif
+
+    std::shared_ptr<RSNode> rsNode_ = nullptr;
 
     // scale symbol animation
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleStartProperty_;
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_;
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleEndProperty_;
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotProperty_;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleStartProperty_ = nullptr;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_ = nullptr;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleEndProperty_ = nullptr;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotProperty_ = nullptr;
 
-    // none symbol animation
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotNone1Property_;
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotNone2Property_;
-
-    // variableColor
-    std::shared_ptr<RSAnimatableProperty<float>> alphaPropertyPhase1_;
-    std::shared_ptr<RSAnimatableProperty<float>> alphaPropertyPhase2_;
-    std::shared_ptr<RSAnimatableProperty<float>> alphaPropertyPhase3_;
+    // variableColor symbol animation
+    std::vector<std::shared_ptr<RSAnimatableProperty<float>>> alphaPropertyPhases_;
 };
 } // namespace Rosen
 } // namespace OHOS
