@@ -285,7 +285,8 @@ sk_sp<GrDirectContext> RSSubThread::CreateShareGrContext()
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(RsVulkanContext::GetSingleton().GetGrVkBackendContext());
+        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
+            RsVulkanContext::GetSingleton().GetGrVkBackendContext());
         if (grContext == nullptr) {
             RS_LOGE("nullptr grContext is null");
             return nullptr;
