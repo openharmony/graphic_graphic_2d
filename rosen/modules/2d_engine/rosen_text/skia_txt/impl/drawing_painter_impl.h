@@ -69,12 +69,18 @@ public:
         }
     }
 
+    void SetParagraphId(uint32_t id)
+    {
+        paragraphId_ = id;
+    }
+
 private:
     Drawing::Canvas* canvas_;
     const std::vector<PaintRecord>& paints_;
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     uint64_t symbolCount_ = 0;
+    uint32_t paragraphId_ = 0;
 };
 } // namespace SPText
 } // namespace Rosen

@@ -135,6 +135,7 @@ public:
     virtual double GetLineWidth(int lineNumber) = 0;
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc)= 0;
+    virtual void SetParagraghId(uint32_t id) = 0;
     virtual Drawing::FontMetrics MeasureText() = 0;
     virtual bool GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics) = 0;
     virtual std::vector<LineMetrics> GetLineMetrics() = 0;

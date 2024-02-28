@@ -92,6 +92,11 @@ public:
         }
     }
 
+    void SetParagraghId(uint32_t id) override
+    {
+        id_ = id;
+    }
+
     Drawing::FontMetrics MeasureText() override;
 
     Drawing::FontMetrics GetFontMetricsResult(const SPText::TextStyle& textStyle) override;
@@ -105,6 +110,7 @@ private:
     std::vector<TextStyle> lineMetricsStyles_;
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
+    uint32_t id_ = 0;
 };
 } // namespace SPText
 } // namespace Rosen
