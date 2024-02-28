@@ -1296,37 +1296,11 @@ RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 #endif
 }
 
-static bool IsFastDangerousMode(int blendMode)
-{
-    static const uint32_t fastDangerousBit =
-        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
-        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
-        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
-        (1 << static_cast<int>(Drawing::BlendMode::XOR));
-    uint32_t tmp = 1 << blendMode;
-    return tmp & fastDangerousBit;
-}
-
-static bool IsOffscreenDangerousMode(int blendMode)
-{
-    static const uint32_t offscreenDangerousBit =
-        (1 << static_cast<int>(Drawing::BlendMode::CLEAR)) +
-        (1 << static_cast<int>(Drawing::BlendMode::SRC)) +
-        (1 << static_cast<int>(Drawing::BlendMode::SRC_IN)) +
-        (1 << static_cast<int>(Drawing::BlendMode::DST_IN)) +
-        (1 << static_cast<int>(Drawing::BlendMode::SRC_OUT)) +
-        (1 << static_cast<int>(Drawing::BlendMode::DST_OUT)) +
-        (1 << static_cast<int>(Drawing::BlendMode::DST_ATOP)) +
-        (1 << static_cast<int>(Drawing::BlendMode::XOR)) +
-        (1 << static_cast<int>(Drawing::BlendMode::MODULATE));
-    uint32_t tmp = 1 << blendMode;
-    return tmp & offscreenDangerousBit;
-}
-
 void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     if (canvas.GetBlendOffscreenLayerCnt() == 0 &&
-        IsOffscreenDangerousMode(static_cast<int>(blendBrush_.GetBlendMode()))) {
+        RSPropertiesPainter::IsDangerousBlendMode(static_cast<int>(blendBrush_.GetBlendMode()),
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER))) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
         canvas.SaveLayer(maskLayerRec);
         canvas.AddBlendOffscreenLayer(true);
@@ -1359,7 +1333,8 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
 
 void RSBlendFastDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-    if (canvas.GetBlendOffscreenLayerCnt() == 0 && IsFastDangerousMode(blendMode_ - 1)) {
+    if (canvas.GetBlendOffscreenLayerCnt() == 0 &&
+        RSPropertiesPainter::IsDangerousBlendMode(blendMode_ - 1, static_cast<int>(RSColorBlendApplyType::FAST))) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
         canvas.SaveLayer(maskLayerRec);
         canvas.AddBlendOffscreenLayer(true);
