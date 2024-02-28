@@ -1020,7 +1020,7 @@ private:
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
         visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in
-    windowmanager, qos, and web surfacenode visibility callback.
+    windowmanager, and web surfacenode visibility callback.
         These two values are the same in most cases. If there are filter cache occlusion, this two values will be
     different under filter cache surfacenode layer.
     */

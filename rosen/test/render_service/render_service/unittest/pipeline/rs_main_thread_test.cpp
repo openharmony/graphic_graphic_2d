@@ -17,7 +17,6 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_qos_thread.h"
 #include "pipeline/rs_render_engine.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -263,58 +262,6 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckSurfaceVisChanged001
- * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is empty
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::map<uint32_t, RSVisibleLevel> pidVisMap;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
-    ASSERT_EQ(false, isVisibleChanged);
-}
-
-/**
- * @tc.name: CheckSurfaceVisChanged002
- * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is not empty
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::map<uint32_t, RSVisibleLevel> pidVisMap;
-    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
-    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_INVISIBLE;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
-    ASSERT_EQ(true, isVisibleChanged);
-}
-
-/**
- * @tc.name: CheckSurfaceVisChanged003
- * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is not empty, lastPidVisMap_ equals to pidVisMap
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::map<uint32_t, RSVisibleLevel> pidVisMap;
-    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
-    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_ALL_VISIBLE;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
-    ASSERT_EQ(false, isVisibleChanged);
-}
-
-/**
  * @tc.name: Animate001
  * @tc.desc: Test RSMainThreadTest.Animate, doWindowAnimate_ is false
  * @tc.type: FUNC
@@ -353,36 +300,6 @@ HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->UnRegisterOcclusionChangeCallback(0);
-}
-
-/**
- * @tc.name: QosStateDump001
- * @tc.desc: When qosCal_ is false, QosStateDump's dump string is "QOS is disabled\n"
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, QosStateDump001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    RSQosThread::GetInstance()->SetQosCal(false);
-    std::string str = "";
-    mainThread->QosStateDump(str);
-    ASSERT_EQ(str, "QOS is disabled\n");
-}
-
-/**
- * @tc.name: QosStateDump002
- * @tc.desc: When qosCal_ is true, QosStateDump's dump string is "QOS is enabled\n"
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, QosStateDump002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    RSQosThread::GetInstance()->SetQosCal(true);
-    std::string str = "";
-    mainThread->QosStateDump(str);
-    ASSERT_EQ(str, "QOS is enabled\n");
 }
 
 /**
@@ -1463,42 +1380,6 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetVSyncRateByVisibleLevel
- * @tc.desc: SetVSyncRateByVisibleLevel test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    bool vsyncEnabled = mainThread->vsyncControlEnabled_;
-    auto systemAnimatedScenesList = mainThread->systemAnimatedScenesList_;
-    // prepare state
-    mainThread->systemAnimatedScenesList_.clear();
-    mainThread->vsyncControlEnabled_ = true;
-    auto generator = CreateVSyncGenerator();
-    auto appVSyncController = std::make_shared<VSyncController>(generator, 0);
-    auto appVSyncDistributor = std::make_shared<VSyncDistributor>(appVSyncController.get(), "app");
-    mainThread->SetAppVSyncDistributor(appVSyncDistributor.get());
-    std::map<uint32_t, RSVisibleLevel> pidVisMap;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    // pidVisMap init
-    pidVisMap.insert({0, RSVisibleLevel::RS_ALL_VISIBLE});
-    pidVisMap.insert({1, RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE});
-    pidVisMap.insert({2, RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE});
-    pidVisMap.insert({3, RSVisibleLevel::RS_INVISIBLE});
-    pidVisMap.insert({4, RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE});
-    pidVisMap.insert({5, RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL});
-    // run
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    // state recover
-    mainThread->vsyncControlEnabled_ = vsyncEnabled;
-    mainThread->appVSyncDistributor_ = nullptr;
-    mainThread->systemAnimatedScenesList_ = systemAnimatedScenesList;
-}
-
-/**
  * @tc.name: CallbackToWMS001
  * @tc.desc: CallbackToWMS test visible not changed
  * @tc.type: FUNC
@@ -1629,30 +1510,6 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion002, TestSize.Level1)
     // recover
     mainThread->doWindowAnimate_ = doWindowAnimate;
     mainThread->context_->globalRootRenderNode_ = globalRootRenderNode;
-}
-
-/**
- * @tc.name: CheckSurfaceVisChanged
- * @tc.desc: CheckSurfaceVisChanged Test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    // prepare states
-    auto systemAnimatedScenesList = mainThread->systemAnimatedScenesList_;
-    mainThread->systemAnimatedScenesList_.push_back(std::make_pair(SystemAnimatedScenes::OTHERS, 0));
-    std::map<uint32_t, RSVisibleLevel> pidVisMap;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    RSSurfaceRenderNodeConfig config;
-    auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    curAllSurfaces.push_back(node);
-    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
-    ASSERT_EQ(true, isVisibleChanged);
-    // recover
-    mainThread->systemAnimatedScenesList_ = systemAnimatedScenesList;
 }
 
 /**
