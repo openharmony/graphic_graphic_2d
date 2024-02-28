@@ -431,9 +431,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         }
         node.SetUseEffectNodes(false);
         for (auto& child : *children) {
-            if (child && UNLIKELY(child->GetSharedTransitionParam().has_value())) {
-                PrepareSharedTransitionNode(*child);
-            }
             SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
@@ -5570,6 +5567,7 @@ bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderN
 #endif
 }
 
+// [planning] sharedTransition should be updated before in case dirtyflag changes
 void RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
 {
     // set flag for surface node whose children contain shared transition node

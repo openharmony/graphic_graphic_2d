@@ -427,7 +427,7 @@ bool RSSystemProperties::GetFilterCacheEnabled()
     // Determine whether the filter cache should be enabled. The default value is 1, which means that it is enabled.
     // If dirty-region is not properly implemented, the filter cache will act as a skip-frame strategy for filters.
     static bool filterCacheEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnabled", "1")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnabled", "0")).c_str()) != 0;
     return filterCacheEnabled;
 }
 
