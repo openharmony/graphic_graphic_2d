@@ -15,13 +15,14 @@
 
 #include "drawable/rs_render_node_drawable.h"
 
-#include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_render_node.h"
 #include "drawable/rs_canvas_render_node_drawable.h"
 #include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "drawable/rs_effect_render_node_drawable.h"
+#include "drawable/rs_root_render_node_drawable.h"
 
 namespace OHOS::Rosen {
 RSRenderNodeDrawable::RSRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -37,11 +38,16 @@ std::shared_ptr<RSRenderNodeDrawable> RSRenderNodeDrawable::OnGenerate(std::shar
         case RSRenderNodeType::RS_NODE:
             return std::make_shared<RSRenderNodeDrawable>(std::move(node));
         case RSRenderNodeType::DISPLAY_NODE:
-            return std::make_shared<RSDisplayRenderNodeDrawable>(std::move(node));
-        // case RSRenderNodeType::SURFACE_NODE:
-            // return std::make_shared<RSSurfaceRenderNodeDrawable>(std::move(node));
+            return RSDisplayRenderNodeDrawable::OnGenerate(node);
+        case RSRenderNodeType::SURFACE_NODE:
+            return RSSurfaceRenderNodeDrawable::OnGenerate(node);
         case RSRenderNodeType::CANVAS_NODE:
-            return std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
+        case RSRenderNodeType::CANVAS_DRAWING_NODE:
+            return RSCanvasRenderNodeDrawable::OnGenerate(node);
+        case RSRenderNodeType::EFFECT_NODE:
+            return RSEffectRenderNodeDrawable::OnGenerate(node);
+        case RSRenderNodeType::ROOT_NODE:
+            return RSRootRenderNodeDrawable::OnGenerate(node);
         default:
             return nullptr;
     }

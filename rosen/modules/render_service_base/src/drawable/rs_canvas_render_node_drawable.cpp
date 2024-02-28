@@ -15,15 +15,18 @@
 
 #include "drawable/rs_canvas_render_node_drawable.h"
 
-#include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
 RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode)
     : RSRenderNodeDrawable(renderNode)
 {}
+
+std::shared_ptr<RSRenderNodeDrawable> RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr<RSRenderNode> node)
+{
+    return std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
+}
 
 void RSCanvasRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 {
