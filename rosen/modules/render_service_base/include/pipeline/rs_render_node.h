@@ -26,7 +26,6 @@
 #include <unordered_set>
 #include <variant>
 #include <vector>
-
 #include "animation/rs_animation_manager.h"
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
@@ -35,6 +34,7 @@
 #include "drawable/rs_drawable_content.h"
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
@@ -520,6 +520,9 @@ public:
     const std::shared_ptr<RSRenderContent> GetRenderContent() const;
 
     void MarkParentNeedRegenerateChildren() const;
+
+    const std::shared_ptr<RSRenderParams> GetRenderParams() const;
+
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -744,6 +747,9 @@ private:
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
     RSDrawableContent::Vec contentVec_;
+
+    RSRenderParams renderParams_;
+    RSRenderParams stagingRenderParams_;
 
     void OnSync();
 

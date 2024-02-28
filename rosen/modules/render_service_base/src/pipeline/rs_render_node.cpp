@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <utility>
 
 #include "rs_trace.h"
 #include "animation/rs_render_animation.h"
@@ -1001,6 +1002,11 @@ bool RSRenderNode::IsClipBound() const
 const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
 {
     return renderContent_;
+}
+
+const std::shared_ptr<RSRenderParams> RSRenderNode::GetRenderParams() const
+{
+    return renderParams_;
 }
 
 bool RSRenderNode::Update(
@@ -2971,6 +2977,7 @@ void RSRenderNode::OnSync()
     if (!needSync_) {
         return;
     }
+    renderParams_ = stagingRenderParams_;
     // Sync drawCmdList
     drawCmdList_ = std::move(stagingDrawCmdList_);
     // Sync each drawable. PLANNING: use dirty mask to only sync changed properties

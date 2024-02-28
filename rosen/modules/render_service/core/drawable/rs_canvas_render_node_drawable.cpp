@@ -30,7 +30,20 @@ RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(std::shared_ptr<const RSR
 
 void RSCanvasRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 {
-    // TODO
+    if (!renderNode_) {
+        RS_LOGE("There is no CanvasNode in drawable");
+        return;
+    }
+    auto params = renderNode_->GetRenderParams();
+    if (!params) {
+        RS_LOGE("render params is nullptr");
+        return;
+    }
+    canvas.ConcatMatrix(params->GetMatrix());
+    bool quickjected = canvas.QuickReject(params->GetBounds());
+    if (quickjected) {
+        RS_LOGE("this drawable has quickjected");
+    }
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen
