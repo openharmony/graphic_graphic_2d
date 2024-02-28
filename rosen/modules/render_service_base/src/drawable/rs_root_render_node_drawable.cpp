@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_root_render_node_drawable.h"
 
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen {
-RSDisplayRenderNodeDrawable::RSDisplayRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode)
+RSRootRenderNodeDrawable::RSRootRenderNodeDrawable(const std::shared_ptr<RSRenderNode>& renderNode)
     : RSRenderNodeDrawable(renderNode)
 {}
 
-std::shared_ptr<RSRenderNodeDrawable> RSDisplayRenderNodeDrawable::OnGenerate(std::shared_ptr<RSRenderNode> node)
+std::shared_ptr<RSRenderNodeDrawable> RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<RSRenderNode> node)
 {
-    return std::make_shared<RSDisplayRenderNodeDrawable>(std::move(node));
+    return std::make_shared<RSRootRenderNodeDrawable>(std::move(node));
 }
 
-void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSRootRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 {
     RSRenderNodeDrawable::OnDraw(canvas);
 }
