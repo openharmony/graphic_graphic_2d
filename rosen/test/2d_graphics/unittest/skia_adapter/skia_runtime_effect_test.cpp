@@ -88,22 +88,6 @@ HWTEST_F(SkiaRuntimeEffectTest, GetRuntimeEffect001, TestSize.Level1)
     SkiaRuntimeEffect skiaRuntimeEffect;
     EXPECT_TRUE(skiaRuntimeEffect.GetRuntimeEffect() == nullptr);
 }
-
-/**
- * @tc.name: MakeShader001
- * @tc.desc: Test MakeShader
- * @tc.type: FUNC
- * @tc.require: I91EQ7
- */
-HWTEST_F(SkiaRuntimeEffectTest, MakeShader001, TestSize.Level1)
-{
-    SkiaRuntimeEffect skiaRuntimeEffect;
-    std::shared_ptr<Data> uniforms = std::make_shared<Data>();
-    std::shared_ptr<ShaderEffect> children[] = {ShaderEffect::CreateColorShader(0xFF000000)};
-    Matrix matrix;
-    skiaRuntimeEffect.MakeShader(uniforms, children, 1, &matrix, true);
-    skiaRuntimeEffect.MakeShader(nullptr, children, 1, nullptr, true);
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

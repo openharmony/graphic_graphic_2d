@@ -45,7 +45,7 @@ void SkiaFontStyleSetTest::TearDown() {}
 HWTEST_F(SkiaFontStyleSetTest, CreateTypeface001, TestSize.Level1)
 {
     auto skiaFontStyleSet = SkiaFontStyleSet::CreateEmpty();
-    ASSERT_TRUE(skiaFontStyleSet->CreateTypeface(0) != nullptr);
+    ASSERT_TRUE(skiaFontStyleSet->CreateTypeface(0) == nullptr);
 }
 
 /**

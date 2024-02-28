@@ -60,8 +60,8 @@ HWTEST_F(SkiaDataTest, SkiaData001, TestSize.Level1)
 HWTEST_F(SkiaDataTest, BuildFromMalloc001, TestSize.Level1)
 {
     SkiaData skiaData;
-    auto intData = std::make_unique<int>();
-    skiaData.BuildFromMalloc(intData.get(), sizeof(*intData.get()));
+    auto intData = new int();
+    EXPECT_TRUE(skiaData.BuildFromMalloc(intData, sizeof(intData)));
 }
 
 /**
