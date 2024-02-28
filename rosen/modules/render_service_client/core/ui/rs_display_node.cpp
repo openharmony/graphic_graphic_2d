@@ -15,6 +15,8 @@
 
 #include "ui/rs_display_node.h"
 
+#include "rs_trace.h"
+
 #include "command/rs_display_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
@@ -81,7 +83,9 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetScreenId, ScreenId:%{public}" PRIu64, screenId);
+    ROSEN_LOGI(
+        "RSDisplayNode::SetScreenId, DisplayNode: %{public}" PRIu64 ", ScreenId: %{public}" PRIu64, GetId(), screenId);
+    RS_TRACE_NAME_FMT("RSDisplayNode::SetScreenId, DisplayNode: %" PRIu64 ", ScreenId: %" PRIu64, GetId(), screenId);
 }
 
 void RSDisplayNode::OnBoundsSizeChanged() const
