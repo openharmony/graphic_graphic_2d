@@ -18,6 +18,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr scalar POSITION_RIGHT = 500;
+static constexpr scalar POSITION_BOTTOM = 500;
 void CameraTest::TestCamera(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestCamera");
@@ -31,7 +33,7 @@ void CameraTest::TestCamera(Canvas& canvas, uint32_t width, uint32_t height)
     camera.RotateXDegrees(-25);      // Set camera to rotate by degrees -25 at x-aixs.
     camera.RotateYDegrees(45);       // Set camera to rotate by degrees 45 at y-aixs.
     camera.Translate(-50, 50, 50);   // Set camera to translate by (-50, 50, 50).
-    Drawing::Rect r(0, 0, 500, 500); // rect is set to (fLeft, fTop, fRight, fBottom)
+    Drawing::Rect r(0, 0, POSITION_RIGHT, POSITION_BOTTOM); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     canvas.Save();
     camera.Save();

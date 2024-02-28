@@ -18,7 +18,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-constexpr static float MARGINE_SCALE_SIZE = 10.0f;
+static constexpr float MARGINE_SCALE_SIZE = 10.0f;
+static constexpr float MATH_TWO = 2.0f;
 void PathTest::TestDrawStar(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawStar");
@@ -38,11 +39,11 @@ void PathTest::TestDrawStar(Canvas& canvas, uint32_t width, uint32_t height)
     c.SetY(d.GetY());
 
     Point b;
-    b.SetX(a.GetX() + (len / 2.0)); // half of len, for point position calculation
-    b.SetY(a.GetY() + std::sqrt((c.GetX() - d.GetX()) * (c.GetX() - d.GetX()) + (len / 2.0) * (len / 2.0)));
+    b.SetX(a.GetX() + (len / MATH_TWO)); // half of len, for point position calculation
+    b.SetY(a.GetY() + std::sqrt((c.GetX() - d.GetX()) * (c.GetX() - d.GetX()) + (len / MATH_TWO) * (len / MATH_TWO)));
 
     Point e;
-    e.SetX(a.GetX() - (len / 2.0)); // half of len, for point position calculation
+    e.SetX(a.GetX() - (len / MATH_TWO)); // half of len, for point position calculation
     e.SetY(b.GetY());
 
     Path path;

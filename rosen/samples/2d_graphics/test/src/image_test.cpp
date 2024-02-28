@@ -18,12 +18,22 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int32_t BITMAP_WIDTH = 300;
+static constexpr int32_t BITMAP_HEIGHT = 300;
+static constexpr scalar RECT1_POSITION_LEFT = 100;
+static constexpr scalar RECT1_POSITION_TOP = 100;
+static constexpr scalar RECT1_POSITION_RIGHT = 200;
+static constexpr scalar RECT1_POSITION_BOTTOM = 200;
+static constexpr scalar RECT2_POSITION_LEFT = 300;
+static constexpr scalar RECT2_POSITION_TOP = 300;
+static constexpr scalar RECT2_POSITION_RIGHT = 500;
+static constexpr scalar RECT2_POSITION_BOTTOM = 500;
 void ImageTest::TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawImage");
     Bitmap bmp;
     BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    bmp.Build(300, 300, format); // bitmap width and height
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
     Image image;
@@ -57,13 +67,13 @@ void ImageTest::TestDrawImageRect(Canvas& canvas, uint32_t width, uint32_t heigh
     LOGI("+++++++ TestDrawImageRect");
     Bitmap bmp;
     BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    bmp.Build(300, 300, format); // bitmap width and height
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
     Image image;
     image.BuildFromBitmap(bmp);
-    Drawing::Rect r1(100, 100, 200, 200); // rect is set to (fLeft, fTop, fRight, fBottom)
-    Drawing::Rect r2(300, 300, 500, 500);
+    Drawing::Rect r1(RECT1_POSITION_LEFT, RECT1_POSITION_TOP, RECT1_POSITION_RIGHT, RECT1_POSITION_BOTTOM);
+    Drawing::Rect r2(RECT2_POSITION_LEFT, RECT2_POSITION_TOP, RECT2_POSITION_RIGHT, RECT2_POSITION_BOTTOM);
     SamplingOptions sampling = SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
 
     Brush brush;
