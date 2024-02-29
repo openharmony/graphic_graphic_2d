@@ -736,7 +736,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     if (surface != nullptr) {
         uint64_t surfaceId = surface->GetUniqueId();
         for (auto &[_, screen] : screens_) {
-            if (!screen->IsVirtual()) {
+            if (screen != nullptr && !screen->IsVirtual()) {
                 continue;
             }
             auto screenSurface = screen->GetProducerSurface();
@@ -871,7 +871,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (screens_.count(id) == 0) {
+    if (screens_.count(id) == 0 || !screens_.at(id)) {
         RS_LOGW("[UL_POWER]RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return;
     }
