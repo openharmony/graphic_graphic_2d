@@ -541,6 +541,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture: node is nullptr");
+            callback->OnSurfaceCapture(id, nullptr);
             return;
         }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
