@@ -280,12 +280,6 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
     opItem2.Playback(recordingCanvas.get(), nullptr);
     opItem2.SetScale(10); // 10: scale
     opItem2.SetVariableColor(5); // 5: index
-    opItem2.SetScale(0);
-    opItem2.SetScale(10); // 10: scale
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
 }
 
 /**
@@ -658,12 +652,11 @@ HWTEST_F(DrawCmdTest, DrawCmdList002, TestSize.Level1)
     s = drawCmdList->GetOpsWithDesc();
     drawCmdList->ClearOp();
 
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(
-        10, 10, DrawCmdList::UnmarshalMode::IMMEDIATE); // 10: width, height
+    auto drawCmdList2 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     EXPECT_TRUE(drawCmdList2->IsEmpty());
-    EXPECT_TRUE(drawCmdList->GetOpItemSize() >= 0);
-    drawCmdList->AddDrawOp(nullptr);
-    EXPECT_TRUE(drawCmdList2->IsEmpty());
+    EXPECT_TRUE(drawCmdList2->GetOpItemSize() >= 0);
+    drawCmdList2->AddDrawOp(nullptr);
+    EXPECT_TRUE(!drawCmdList2->IsEmpty());
 }
 
 /**
@@ -674,7 +667,7 @@ HWTEST_F(DrawCmdTest, DrawCmdList002, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, GetOpsWithDesc001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     Brush brush;
     drawCmdList->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
     drawCmdList->AddDrawOp(nullptr);
@@ -692,16 +685,12 @@ HWTEST_F(DrawCmdTest, GetOpsWithDesc001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, MarshallingDrawOps001, TestSize.Level1)
 {
-    auto drawCmdList1 = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    drawCmdList1->MarshallingDrawOps();
-    drawCmdList1->UnmarshallingDrawOps();
-    drawCmdList1->AddDrawOp(nullptr);
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
-    drawCmdList2->MarshallingDrawOps();
-    drawCmdList2->AddDrawOp(nullptr);
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    drawCmdList->MarshallingDrawOps();
+    drawCmdList->AddDrawOp(nullptr);
     Brush brush;
-    drawCmdList2->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
-    drawCmdList2->UnmarshallingDrawOps();
+    drawCmdList->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
+    drawCmdList->UnmarshallingDrawOps();
 }
 
 /**
@@ -712,7 +701,7 @@ HWTEST_F(DrawCmdTest, MarshallingDrawOps001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     drawCmdList->SetWidth(0);
     Canvas canvas;
     Rect rect;
@@ -729,9 +718,6 @@ HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
     drawCmdList->SetCachedHighContrast(true);
     drawCmdList->Playback(canvas, &rect);
 
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(10, 10, DrawCmdList::UnmarshalMode::DEFERRED);
-    drawCmdList2->Playback(*recordingCanvas, &rect);
-
     auto drawCmdList3 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     drawCmdList3->Playback(*recordingCanvas, &rect);
 }
@@ -744,7 +730,7 @@ HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, GenerateCache001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     drawCmdList->SetIsCache(true);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     Rect rect;
@@ -769,14 +755,6 @@ HWTEST_F(DrawCmdTest, GenerateCache001, TestSize.Level1)
     drawCmdList->MarshallingDrawOps();
     drawCmdList->AddDrawOp(nullptr);
     drawCmdList->UnmarshallingDrawOps();
-    
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
-    drawCmdList2->SetIsCache(false);
-    drawCmdList2->GenerateCache(recordingCanvas.get(), &rect);
-    drawCmdList2->AddDrawOp(nullptr);
-    drawCmdList2->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
-    drawCmdList2->AddDrawOp(opItem);
-    drawCmdList2->GenerateCache(recordingCanvas.get(), &rect);
 }
 
 /**
