@@ -356,7 +356,7 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
         curDirtyManager_->UpdateDirty();
         curDirtyRegion_ = curDirtyManager_->GetDirtyRegion();
         // only set damage region if dirty region and buffer age is valid(>0)
-        if (bufferAge >= 0) {
+        if (bufferAge >= 0 && dfxDirtyType_ == DirtyRegionDebugType::DISABLED) {
             // get dirty rect coordinated from upper left to lower left corner in current surface
             RectI dirtyRectFlip = curDirtyManager_->GetRectFlipWithinSurface(curDirtyRegion_);
             // set dirty rect as eglSurfaceFrame's damage region
@@ -589,10 +589,20 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-    canvas_->clipRect(SkRect::MakeWH(bufferWidth, bufferHeight));
+    if (isOpDropped_) {
+        canvas_->clipRect(SkRect::MakeXYWH(curDirtyRegion_.GetLeft(), curDirtyRegion_.GetTop(),
+            curDirtyRegion_.GetWidth(), curDirtyRegion_.GetHeight()));
+    } else {
+        canvas_->clipRect(SkRect::MakeWH(bufferWidth, bufferHeight));
+    }
     canvas_->clear(SK_ColorTRANSPARENT);
 #else
-    canvas_->ClipRect(Drawing::Rect(0, 0, bufferWidth, bufferHeight), Drawing::ClipOp::INTERSECT, false);
+    if (isOpDropped_) {
+        canvas_->ClipRect(Drawing::Rect(curDirtyRegion_.GetLeft(), curDirtyRegion_.GetTop(),
+            curDirtyRegion_.GetRight(), curDirtyRegion_.GetBottom()), Drawing::ClipOp::INTERSECT, false);
+    } else {
+        canvas_->ClipRect(Drawing::Rect(0, 0, bufferWidth, bufferHeight), Drawing::ClipOp::INTERSECT, false);
+    }
     canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif // USE_ROSEN_DRAWING
     isIdle_ = false;
