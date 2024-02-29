@@ -27,18 +27,24 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "skia_color_filter_test.cpp",
     "skia_font_test.cpp",
     "skia_helper_test.cpp",
+    "skia_hm_symbol_config_ohos_test.cpp",
+    "skia_hm_symbol_test.cpp",
     "skia_image_filter_test.cpp",
     "skia_image_info_test.cpp",
     "skia_image_test.cpp",
     "skia_mask_filter_test.cpp",
     "skia_matrix44_test.cpp",
     "skia_matrix_test.cpp",
+    "skia_memory_tracer_test.cpp",
     "skia_paint_test.cpp",
     "skia_path_effect_test.cpp",
     "skia_path_test.cpp",
     "skia_picture_test.cpp",
     "skia_pixmap_test.cpp",
     "skia_region_test.cpp",
+    "skia_runtime_blender_builder_test.cpp",
+    "skia_runtime_effect_test.cpp",
+    "skia_runtime_shader_builder_test.cpp",
     "skia_shader_effect_test.cpp",
     "skia_surface_test.cpp",
     "skia_text_blob_test.cpp",
@@ -69,6 +75,8 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
   include_dirs += [
     "//third_party/skia",
     "//third_party/skia/include/",
+    "//third_party/skia/include/core/",
+    "//third_party/skia/third_party/externals/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/",
   ]
   deps += [ "//third_party/skia:skia_ohos" ]
 
