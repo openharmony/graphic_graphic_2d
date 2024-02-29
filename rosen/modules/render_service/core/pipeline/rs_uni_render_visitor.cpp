@@ -358,7 +358,14 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     if (effectNode == nullptr || curSurfaceDirtyManager_ == nullptr) {
         return;
     }
-    effectNode->SetRotationChanged(curDisplayNode_->IsRotationChanged());
+    // set rotationChanged true when screen is rotating or folding/expanding screen.
+    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
+        effectNode->SetRotationChanged(true);
+        int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
+        effectNode->SetInvalidateTimesForRotation(invalidateTimes);
+    } else {
+        effectNode->SetRotationChanged(false);
+    }
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
@@ -1773,14 +1780,17 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
-
     effectRegion_ = node.InitializeEffectRegion();
-    auto parentNode = node.GetParent().lock();
-    node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
-    if (curDisplayNode_->IsRotationChanged()) {
+    
+    // set rotationChanged true when screen is rotating or folding/expanding screen.
+    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
+        node.SetRotationChanged(true);
         int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
         node.SetInvalidateTimesForRotation(invalidateTimes);
+    } else {
+        node.SetRotationChanged(false);
     }
+    auto parentNode = node.GetParent().lock();
     node.SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);
 

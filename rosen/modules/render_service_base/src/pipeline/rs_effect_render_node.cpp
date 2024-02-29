@@ -58,6 +58,7 @@ void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     RSRenderNode::RenderTraceDebug();
     visitor->ProcessEffectRenderNode(*this);
+    preStaticStatus_ = IsStaticCached();
 }
 
 void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
@@ -147,7 +148,8 @@ void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
         return;
     }
     if (manager->IsCacheValid() &&
-        (manager->GetCachedImageRegion() != GetFilterRect() || preRotationStatus_ != isRotationChanged_)) {
+        (manager->GetCachedImageRegion() != GetFilterRect() ||
+            preRotationStatus_ != isRotationChanged_ || preStaticStatus_ != IsStaticCached())) {
         // If the cached image region is different from the filter rect, invalidate the cache
         manager->InvalidateCache();
     }
@@ -171,7 +173,7 @@ void RSEffectRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyM
 bool RSEffectRenderNode::NeedForceCache()
 {
     // force update the first frame and last frame when rotating.
-    if (preRotationStatus_ != isRotationChanged_) {
+    if (preRotationStatus_ != isRotationChanged_ || preStaticStatus_ != IsStaticCached()) {
         return false;
     }
     // No need to invalidate cache if background image is not null or freezed
