@@ -18,8 +18,7 @@
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
-RSSurfaceRenderParams::RSSurfaceRenderParams(Drawing::Matrix matrix, Drawing::RectF bounds) :
-    RSRenderParams(matrix, bounds)
+RSSurfaceRenderParams::RSSurfaceRenderParams()
 {
 }
 

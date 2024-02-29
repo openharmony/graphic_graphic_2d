@@ -23,7 +23,7 @@
 namespace OHOS::Rosen {
 class RSCanvasRenderParams : public RSRenderParams {
 public:
-    explicit RSCanvasRenderParams(Drawing::Matrix matrix, Drawing::RectF bounds);
+    explicit RSCanvasRenderParams();
     virtual ~RSCanvasRenderParams() = default;
 
 private:

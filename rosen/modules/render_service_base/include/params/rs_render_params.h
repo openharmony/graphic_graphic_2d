@@ -22,10 +22,12 @@
 namespace OHOS::Rosen {
 class RSB_EXPORT RSRenderParams {
 public:
-    explicit RSRenderParams(Drawing::Matrix matrix, Drawing::RectF bounds);
+    RSRenderParams() = default;
     virtual ~RSRenderParams() = default;
     const Drawing::Matrix GetMatrix() const;
     const Drawing::Rect GetBounds() const;
+    virtual void SetMatrix(Drawing::Matrix matrix);
+    virtual void SetBoundsRect(Drawing::RectF boundsRect);
 private:
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;

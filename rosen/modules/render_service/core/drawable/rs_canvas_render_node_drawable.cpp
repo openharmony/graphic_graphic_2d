@@ -14,7 +14,7 @@
  */
 
 #include "drawable/rs_canvas_render_node_drawable.h"
-
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
@@ -36,13 +36,9 @@ void RSCanvasRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
         RS_LOGE("There is no CanvasNode in drawable");
         return;
     }
-    auto params = renderNode_->GetRenderParams();
-    if (!params) {
-        RS_LOGE("render params is nullptr");
-        return;
-    }
-    canvas.ConcatMatrix(params->GetMatrix());
-    bool quickjected = canvas.QuickReject(params->GetBounds());
+    auto& params = renderNode_->GetRenderParams();
+    canvas.ConcatMatrix(params.GetMatrix());
+    bool quickjected = canvas.QuickReject(params.GetBounds());
     if (quickjected) {
         RS_LOGE("this drawable has quickjected");
     }

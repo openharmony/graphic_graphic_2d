@@ -524,7 +524,7 @@ public:
 
     void MarkParentNeedRegenerateChildren() const;
 
-    const std::shared_ptr<RSRenderParams> GetRenderParams() const;
+    const RSRenderParams GetRenderParams() const;
 
 protected:
     virtual void OnApplyModifiers() {}

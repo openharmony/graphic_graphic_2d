@@ -23,7 +23,7 @@
 namespace OHOS::Rosen {
 class RSSurfaceRenderParams : public RSRenderParams {
 public:
-    explicit RSSurfaceRenderParams(Drawing::Matrix matrix, Drawing::RectF bounds);
+    explicit RSSurfaceRenderParams();
     virtual ~RSSurfaceRenderParams() = default;
 
 private:

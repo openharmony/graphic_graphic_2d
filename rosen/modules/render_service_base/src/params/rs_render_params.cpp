@@ -24,10 +24,6 @@
 #include "src/image/SkImage_Base.h"
 
 namespace OHOS::Rosen {
-RSRenderParams::RSRenderParams(Drawing::Matrix matrix, Drawing::RectF bounds) : matrix_(matrix), boundsRect_(bounds)
-{
-}
-
 const Drawing::Matrix RSRenderParams::GetMatrix() const
 {
     return matrix_;
@@ -36,6 +32,16 @@ const Drawing::Matrix RSRenderParams::GetMatrix() const
 const Drawing::Rect RSRenderParams::GetBounds() const
 {
     return boundsRect_;
+}
+
+void RSRenderParams::SetMatrix(Drawing::Matrix matrix)
+{
+    matrix_ = matrix;
+}
+
+void RSRenderParams::SetBoundsRect(Drawing::RectF boundsRect)
+{
+    boundsRect_ = boundsRect;
 }
 
 } // namespace OHOS::Rosen
