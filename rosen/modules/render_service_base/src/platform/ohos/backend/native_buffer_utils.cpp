@@ -17,6 +17,7 @@
 #include "native_buffer_utils.h"
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
+#include "pipeline/sk_resource_manager.h"
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
 void DeleteVkImage(void* context)
@@ -238,6 +239,9 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));
+    if (nativeSurface.drawingSurface) {
+        SKResourceManager::Instance().HoldResource(nativeSurface.drawingSurface);
+    }
 
     nativeSurface.image = image;
     if (nativeSurface.nativeWindowBuffer != nullptr) {

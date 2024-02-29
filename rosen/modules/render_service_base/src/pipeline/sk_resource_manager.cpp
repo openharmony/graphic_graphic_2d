@@ -43,6 +43,22 @@ void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 #endif
 }
 
+void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
+{
+#ifdef ROSEN_OHOS
+    auto tid = gettid();
+    if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
+        return;
+    }
+    std::scoped_lock<std::recursive_mutex> lock(mutex_);
+    if (std::any_of(skSurfaces_[tid].cbegin(), skSurfaces_[tid].cend(),
+        [&surface](const std::shared_ptr<Drawing::Surface>& skSurface) {return skSurface.get() == surface.get(); })) {
+        return;
+    }
+    skSurfaces_[tid].push_back(surface);
+#endif
+}
+
 void SKResourceManager::ReleaseResource()
 {
 #ifdef ROSEN_OHOS
@@ -53,6 +69,28 @@ void SKResourceManager::ReleaseResource()
                 auto tid = gettid();
                 std::scoped_lock<std::recursive_mutex> lock(mutex_);
                 images_[tid]->ReleaseResource();
+            });
+        }
+    }
+
+    for (auto& skSurface : skSurfaces_) {
+        if (skSurface.second.size() > 0) {
+            RSTaskDispatcher::GetInstance().PostTask(skSurface.first, [this]() {
+                auto tid = gettid();
+                std::scoped_lock<std::recursive_mutex> lock(mutex_);
+                size_t size = skSurfaces_[tid].size();
+                while (size-- > 0) {
+                    auto surface = skSurfaces_[tid].front();
+                    skSurfaces_[tid].pop_front();
+                    if (surface == nullptr) {
+                        continue;
+                    }
+                    if (surface.unique()) {
+                        surface = nullptr;
+                    } else {
+                        skSurfaces_[tid].push_back(surface);
+                    }
+                }
             });
         }
     }
