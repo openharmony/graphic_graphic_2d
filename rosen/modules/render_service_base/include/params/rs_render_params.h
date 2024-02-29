@@ -18,6 +18,7 @@
 
 #include "common/rs_rect.h"
 #include "property/rs_properties.h"
+#include "utils/matrix.h"
 
 namespace OHOS::Rosen {
 class RSB_EXPORT RSRenderParams {
