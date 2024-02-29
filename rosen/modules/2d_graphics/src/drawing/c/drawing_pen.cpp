@@ -277,11 +277,13 @@ void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen* cPen, OH_Drawing_PathEffect* cP
 
 void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 {
-    if (cFilter == nullptr) {
-        return;
-    }
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
+        return;
+    }
+    if (cFilter == nullptr) {
+        Filter filter;
+        pen->SetFilter(filter);
         return;
     }
     pen->SetFilter(CastToFilter(*cFilter));
