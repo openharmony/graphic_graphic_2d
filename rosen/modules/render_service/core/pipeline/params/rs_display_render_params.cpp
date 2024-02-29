@@ -24,8 +24,7 @@
 #include "src/image/SkImage_Base.h"
 
 namespace OHOS::Rosen {
-RSDisplayRenderParams::RSDisplayRenderParams(Drawing::Matrix matrix, Drawing::RectF bounds) :
-    RSRenderParams(matrix, bounds)
+RSDisplayRenderParams::RSDisplayRenderParams()
 {
 }
 

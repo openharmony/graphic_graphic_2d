@@ -1005,7 +1005,7 @@ const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
     return renderContent_;
 }
 
-const std::shared_ptr<RSRenderParams> RSRenderNode::GetRenderParams() const
+const RSRenderParams RSRenderNode::GetRenderParams() const
 {
     return renderParams_;
 }
