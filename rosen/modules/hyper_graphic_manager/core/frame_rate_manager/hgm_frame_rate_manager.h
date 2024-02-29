@@ -120,6 +120,7 @@ private:
 
     std::mutex pkgSceneMutex_;
     std::mutex voteMutex_;
+    std::mutex voteNameMutex_;
     std::vector<std::string> voters_;
     // FORMAT: <sceneName, pid>
     std::vector<std::pair<std::string, pid_t>> sceneStack_;
