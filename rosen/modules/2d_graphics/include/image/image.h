@@ -234,7 +234,7 @@ public:
     virtual ~Image() {};
     bool BuildFromBitmap(const Bitmap& bitmap);
 
-    /*
+    /**
      * @brief                        Create Image from Pixmap.
      * @param  pixmap                pixmap.
      * @param  rasterReleaseProc     function called when pixels can be released; or nullptr.
@@ -244,13 +244,14 @@ public:
     static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
 
-    /*
+    /**
      * @brief  Create Image from ImageInfo, sharing pixels.
+     * @return A shared pointer to Image
      */
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
                                                  size_t rowBytes);
 #ifdef ACE_ENABLE_GPU
-    /*
+    /**
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
      * @param gpuContext  GPU context.
      * @param bitmap      BitmapInfo, pixel address and row bytes.
@@ -260,7 +261,7 @@ public:
 
     bool MakeFromEncoded(const std::shared_ptr<Data>& data);
 
-    /*
+    /**
      * @brief             Create a GPU-backed Image from compressed data.
      * @param gpuContext  GPU context.
      * @param data        Compressed data to store in Image.
@@ -272,7 +273,7 @@ public:
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type);
 
-    /*
+    /**
      * @brief               Create Image from GPU texture associated with context.
      * @param gpuContext    GPU context.
      * @param info          Texture info.
@@ -286,9 +287,33 @@ public:
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
         void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr);
 
+    /**
+     * @brief GetBackendTexture from surface, then create Image from GPU texture associated with context.
+     * @param gpuContext    GPU context
+     * @param surface       surface
+     * @param origin        The origin of the texture space corresponds to the context pixel.
+                            One of TextureOrigin::Top_Left, TextureOrigion::Bottom_Left.
+     * @param bitmapFormat  It contains ColorType and AlphaType.
+     * @param colorSpace    Range of colors, may be nullptr.
+     * @return              True if Image is created successed.
+     */
     bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
 
+    /**
+     * @brief Returns subset of this image.
+     * image nullptr if any of the following are true:
+     * - Subset is empty
+     * - Subset is not contained inside the image's bounds
+     * - Pixels in the image could not be read or copied
+     * If this image is texture-backed, the context parameter is required and must match the
+     * context of the source image. If the context parameter is provided, and the image is
+     * raster-backed, the subset will be converted to texture-backed.
+     * @param image       subset of this image
+     * @param rect        bounds of subset
+     * @param gpuContext  the GPUContext in play
+     * @return            true if build success
+     */
     bool BuildSubset(const std::shared_ptr<Image>& image, const RectI& rect, GPUContext& gpuContext);
 
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
@@ -298,47 +323,54 @@ public:
     bool pinAsTexture(GPUContext& context);
 #endif
 
-    /*
+    /**
      * @brief  Creates raster Bitmap with same pixels as Image.
      */
     bool AsLegacyBitmap(Bitmap& bitmap) const;
 
-    /*
+    /**
      * @brief  Gets the width of Image.
+     * @return width of Image
      */
     int GetWidth() const;
 
-    /*
+    /**
      * @brief  Gets the height of Image.
+     * @return height of image
      */
     int GetHeight() const;
 
-    /*
+    /**
      * @brief  Gets the color type of Image.
+     * @return color Type of Image
      */
     ColorType GetColorType() const;
 
-    /*
+    /**
      * @brief  Gets the alpha type of Image.
+     * @return alpha type of Image
      */
     AlphaType GetAlphaType() const;
 
-    /*
+    /**
      * @brief  Gets the color space of Image.
+     * @return a shared pointer to ColorSpace
      */
     std::shared_ptr<ColorSpace> GetColorSpace() const;
 
-    /*
+    /**
      * @brief  Gets the unique Id of Image.
+     * @return the unique Id of Image
      */
     uint32_t GetUniqueID() const;
 
-    /*
+    /**
      * @brief  Gets the ImageInfo of Image.
+     * @return the ImageInfo of Image
      */
     ImageInfo GetImageInfo();
 
-    /*
+    /**
      * @brief         Copies a Rect of pixels from Image to Bitmap.
      * @param bitmap  Destination Bitmap.
      * @param x       Column index whose absolute value is less than Image width.
@@ -347,6 +379,13 @@ public:
      */
     bool ReadPixels(Bitmap& bitmap, int x, int y);
 
+    /**
+     * @brief         Copies a Rect of pixels from Image to Pixmap.
+     * @param pixmap  Destination Pixmap.
+     * @param x       Column index whose absolute value is less than Image width.
+     * @param y       Row index whose absolute value is less than Image height.
+     * @return        True of pixels are copied to Pixmap.
+     */
     bool ReadPixels(Pixmap& pixmap, int x, int y);
 
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
@@ -359,7 +398,7 @@ public:
 
     bool IsLazyGenerated() const;
 
-    /*
+    /**
      * @brief  Get Bitmap by image's directContext, can call it if IsLazyGenerated return false.
      */
     bool GetROPixels(Bitmap& bitmap) const;
@@ -368,7 +407,7 @@ public:
 
     bool CanPeekPixels() const;
 
-    /*
+    /**
      * @brief   Returns true the contents of Image was created on or uploaded to GPU memory,
                 and is available as a GPU texture.
      * @return  True if Image is a GPU texture.

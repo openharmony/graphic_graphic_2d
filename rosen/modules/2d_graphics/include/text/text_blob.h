@@ -43,13 +43,13 @@ public:
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
         const RSXform xform[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
 
-    /*
+    /**
      * @brief   Serialize TextBlob.
      * @return  A shared point to serialized data.
      */
     std::shared_ptr<Data> Serialize() const;
 
-    /*
+    /**
      * @brief       Deserialize TextBlob.
      * @param data  Serialized data.
      * @param size  Data size.

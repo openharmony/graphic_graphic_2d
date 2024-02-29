@@ -17,6 +17,7 @@
 
 #include "utils/matrix.h"
 
+static constexpr int POLY_POINT_COUNT_MAX = 4;
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
@@ -24,6 +25,11 @@ using namespace Drawing;
 static Matrix* CastToMatrix(OH_Drawing_Matrix* cMatrix)
 {
     return reinterpret_cast<Matrix*>(cMatrix);
+}
+
+static const Point* CastToPoint(const OH_Drawing_Point2D* cPoint)
+{
+    return reinterpret_cast<const Point *>(cPoint);
 }
 
 OH_Drawing_Matrix* OH_Drawing_MatrixCreate()
@@ -145,6 +151,19 @@ bool OH_Drawing_MatrixIsEqual(OH_Drawing_Matrix* cMatrix, OH_Drawing_Matrix* oth
         return false;
     }
     return (*matrix == *otherMatrix);
+}
+
+bool OH_Drawing_MatrixSetPolyToPoly(OH_Drawing_Matrix* cMatrix, const OH_Drawing_Point2D* src,
+    const OH_Drawing_Point2D* dst, uint32_t count)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return false;
+    }
+    if (count > POLY_POINT_COUNT_MAX) {
+        return false;
+    }
+    return matrix->SetPolyToPoly(CastToPoint(src), CastToPoint(dst), count);
 }
 
 bool OH_Drawing_MatrixIsIdentity(OH_Drawing_Matrix* cMatrix)

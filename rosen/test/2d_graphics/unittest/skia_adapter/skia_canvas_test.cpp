@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_canvas.h"
 #include "draw/core_canvas.h"
+#include "pixel_map.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -306,6 +307,48 @@ HWTEST_F(SkiaCanvasTest, DrawBitmap001, TestSize.Level1)
 
     skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawBitmap(bitmap, px, py);
+}
+
+/**
+ * @tc.name: DrawBitmap002
+ * @tc.desc: Test DrawBitmap
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawBitmap002, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    scalar px = 100;
+    scalar py = 100;
+    opts.pixelFormat = Media::PixelFormat::RGB_565;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    skiaCanvas.DrawBitmap(*pixelMap, px, py);
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    pixelMap = Media::PixelMap::Create(opts);
+    skiaCanvas.DrawBitmap(*pixelMap, px, py);
+    opts.pixelFormat = Media::PixelFormat::BGRA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
+    pixelMap = Media::PixelMap::Create(opts);
+    skiaCanvas.DrawBitmap(*pixelMap, px, py);
+    opts.pixelFormat = Media::PixelFormat::ALPHA_8;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
+    pixelMap = Media::PixelMap::Create(opts);
+    skiaCanvas.DrawBitmap(*pixelMap, px, py);
+    opts.pixelFormat = Media::PixelFormat::RGBA_F16;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
+    pixelMap = Media::PixelMap::Create(opts);
+    skiaCanvas.DrawBitmap(*pixelMap, px, py);
+    opts.pixelFormat = Media::PixelFormat::CMYK;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
+    pixelMap = Media::PixelMap::Create(opts);
+    skiaCanvas.DrawBitmap(*pixelMap, px, py);
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawBitmap(*pixelMap, px, py);
 }
 
 /**
@@ -603,6 +646,367 @@ HWTEST_F(SkiaCanvasTest, GetGPUContextTest001, TestSize.Level1)
     auto gpuContetxt = skiaCanvas->GetGPUContext();
 }
 #endif
+
+/**
+ * @tc.name: GetWidth001
+ * @tc.desc: Test GetWidth
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, GetWidth001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    ASSERT_TRUE(skiaCanvas->GetWidth() >= 0);
+}
+
+/**
+ * @tc.name: GetHeight001
+ * @tc.desc: Test GetHeight
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, GetHeight001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    ASSERT_TRUE(skiaCanvas->GetHeight() >= 0);
+}
+
+/**
+ * @tc.name: GetImageInfo001
+ * @tc.desc: Test GetImageInfo
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, GetImageInfo001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    ASSERT_TRUE(skiaCanvas->GetImageInfo().GetWidth() >= 0);
+}
+
+/**
+ * @tc.name: ReadPixels001
+ * @tc.desc: Test ReadPixels
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, ReadPixels001, TestSize.Level1)
+{
+    auto skiaCanvas1 = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas1 != nullptr);
+    ImageInfo imageInfo;
+    ASSERT_TRUE(!skiaCanvas1->ReadPixels(imageInfo, nullptr, 0, 0, 0));
+    Bitmap bitmap;
+    ASSERT_TRUE(!skiaCanvas1->ReadPixels(bitmap, 0, 0));
+
+    auto skiaCanvas2 = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas2 != nullptr);
+    ASSERT_TRUE(!skiaCanvas2->ReadPixels(imageInfo, nullptr, 0, 0, 0));
+    ASSERT_TRUE(!skiaCanvas2->ReadPixels(bitmap, 0, 0));
+}
+
+/**
+ * @tc.name: DrawPoints001
+ * @tc.desc: Test DrawPoints
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawPoints001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->DrawPoints(PointMode::POINTS_POINTMODE, 0, {});
+}
+
+/**
+ * @tc.name: DrawColor001
+ * @tc.desc: Test DrawColor
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawColor001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->DrawColor(0xFF000000, BlendMode::COLOR_BURN);
+}
+
+/**
+ * @tc.name: ClipRect001
+ * @tc.desc: Test ClipRect
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, ClipRect001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    Rect rect;
+    skiaCanvas->ClipRect(rect, ClipOp::DIFFERENCE, true);
+}
+
+/**
+ * @tc.name: ClipIRect001
+ * @tc.desc: Test ClipIRect
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, ClipIRect001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    RectI rect;
+    skiaCanvas->ClipIRect(rect, ClipOp::DIFFERENCE);
+}
+
+/**
+ * @tc.name: ClipRegion001
+ * @tc.desc: Test ClipRegion
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, ClipRegion001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    Region region;
+    skiaCanvas->ClipRegion(region, ClipOp::DIFFERENCE);
+}
+
+/**
+ * @tc.name: IsClipEmpty001
+ * @tc.desc: Test IsClipEmpty
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, IsClipEmpty001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    ASSERT_TRUE(skiaCanvas->IsClipEmpty());
+    auto skiaCanvas2 = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas2 != nullptr);
+    ASSERT_TRUE(!skiaCanvas2->IsClipEmpty());
+}
+
+/**
+ * @tc.name: IsClipRect001
+ * @tc.desc: Test IsClipRect
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, IsClipRect001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    ASSERT_TRUE(!skiaCanvas->IsClipRect());
+    auto skiaCanvas2 = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas2 != nullptr);
+    ASSERT_TRUE(!skiaCanvas2->IsClipRect());
+}
+
+/**
+ * @tc.name: QuickReject001
+ * @tc.desc: Test QuickReject
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, QuickReject001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    Rect rect{0, 0, 1, 1};
+    ASSERT_TRUE(skiaCanvas->QuickReject(rect));
+    auto skiaCanvas2 = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas2 != nullptr);
+    ASSERT_TRUE(!skiaCanvas2->QuickReject(rect));
+}
+
+/**
+ * @tc.name: Translate001
+ * @tc.desc: Test Translate
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, Translate001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->Translate(1, 1);
+}
+
+/**
+ * @tc.name: Scale001
+ * @tc.desc: Test Scale
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, Scale001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->Scale(1, 1);
+}
+
+/**
+ * @tc.name: Clear001
+ * @tc.desc: Test Clear
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, Clear001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->Clear(0xFF000000); // 0xFF000000: color
+}
+
+/**
+ * @tc.name: Save001
+ * @tc.desc: Test Save
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, Save001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->Save();
+    skiaCanvas->Restore();
+    ASSERT_TRUE(skiaCanvas->GetSaveCount() == 0);
+}
+
+/**
+ * @tc.name: DrawSymbol001
+ * @tc.desc: Test DrawSymbol
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawSymbol001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    DrawingHMSymbolData drawingHMSymbolData;
+    Path path;
+    drawingHMSymbolData.path_ = path;
+    DrawingRenderGroup group;
+    DrawingGroupInfo info{{1, 1}, {1, 1}};
+    group.groupInfos = {info};
+    drawingHMSymbolData.symbolInfo_.renderGroups = {group};
+    Point locate;
+    skiaCanvas->DrawSymbol(drawingHMSymbolData, locate);
+    skiaCanvas->ImportSkCanvas(nullptr);
+    skiaCanvas->DrawSymbol(drawingHMSymbolData, locate);
+}
+
+/**
+ * @tc.name: DrawTextBlob001
+ * @tc.desc: Test DrawTextBlob
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawTextBlob001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->DrawTextBlob(nullptr, 0, 0);
+    Font font;
+    auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    skiaCanvas->DrawTextBlob(textBlob.get(), 0, 0);
+    skiaCanvas->ImportSkCanvas(nullptr);
+    skiaCanvas->DrawTextBlob(nullptr, 0, 0);
+}
+
+/**
+ * @tc.name: DrawPatch001
+ * @tc.desc: Test DrawPatch
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawPatch001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    float width = 100.0;
+    float height = 100.0;
+    float segmentWidthOne = width / 3.0;
+    float segmentWidthTwo = width / 3.0 * 2.0;
+    float segmentHeightOne = height / 3.0;
+    float segmentHeightTwo = height / 3.0 * 2.0;
+    Point ctrlPoints[12] = {
+        // top edge control points
+        {0.0f, 0.0f}, {segmentWidthOne, 0.0f}, {segmentWidthTwo, 0.0f}, {width, 0.0f},
+        // right edge control points
+        {width, segmentHeightOne}, {width, segmentHeightTwo},
+        // bottom edge control points
+        {width, height}, {segmentWidthTwo, height}, {segmentWidthOne, height}, {0.0f, height},
+        // left edge control points
+        {0.0f, segmentHeightTwo}, {0.0f, segmentHeightOne}
+    };
+    ColorQuad colors[4] = {0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000};
+    Point texCoords[4] = {
+        {0.0f, 0.0f}, {width, 0.0f}, {width, height}, {0.0f, height}
+    };
+    skiaCanvas->DrawPatch(ctrlPoints, colors, texCoords, BlendMode::COLOR_BURN);
+    skiaCanvas->DrawPatch(nullptr, nullptr, nullptr, BlendMode::COLOR_BURN);
+    skiaCanvas->ImportSkCanvas(nullptr);
+    skiaCanvas->DrawPatch(nullptr, nullptr, nullptr, BlendMode::COLOR_BURN);
+}
+
+/**
+ * @tc.name: DrawVertices001
+ * @tc.desc: Test DrawVertices
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawVertices001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    Vertices vertices;
+    skiaCanvas->DrawVertices(vertices, BlendMode::COLOR_BURN);
+    skiaCanvas->ImportSkCanvas(nullptr);
+    skiaCanvas->DrawVertices(vertices, BlendMode::COLOR_BURN);
+}
+
+/**
+ * @tc.name: DrawImageNine001
+ * @tc.desc: Test DrawImageNine
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawImageNine001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    Image image;
+    RectI center;
+    Rect dst;
+    Brush brush;
+    skiaCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, &brush);
+    skiaCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageLattice001
+ * @tc.desc: Test DrawImageLattice
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawImageLattice001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    Image image;
+    Lattice lattice;
+    Rect dst;
+    Brush brush;
+    skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, &brush);
+    skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

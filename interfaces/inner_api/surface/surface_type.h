@@ -445,14 +445,8 @@ using BufferRequestConfig = struct BufferRequestConfig {
     GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     bool operator ==(const struct BufferRequestConfig &config) const
     {
-        return width == config.width &&
-               height == config.height &&
-               strideAlignment == config.strideAlignment &&
-               format == config.format &&
-               usage == config.usage &&
-               timeout == config.timeout &&
-               colorGamut == config.colorGamut &&
-               transform == config.transform;
+        return width == config.width && height == config.height &&
+               format == config.format && usage == config.usage;
     }
     bool operator != (const struct BufferRequestConfig &config) const
     {

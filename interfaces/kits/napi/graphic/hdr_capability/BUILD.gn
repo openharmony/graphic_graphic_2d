@@ -17,20 +17,20 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 config("hdr_capability_object_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [
-    "$graphic_2d_root/interfaces/kits/napi/graphic/hdr_capability/hdr_capability_utils",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-  ]
+  include_dirs = [ "$graphic_2d_root/interfaces/kits/napi/graphic/hdr_capability/hdr_capability_utils" ]
 }
 
 ohos_shared_library("hdr_capability_utils") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [ "hdr_capability_utils/js_hdr_format_utils.cpp" ]
 
   configs = [ ":hdr_capability_object_config" ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-  ]
 
   external_deps = [
     "hilog:libhilog",
@@ -49,11 +49,17 @@ config("hdr_capability_napi_config") {
   include_dirs = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/hdr_capability/hdr_capability_utils",
     "$graphic_2d_root/interfaces/kits/napi/graphic/hdr_capability/hdr_capability_napi",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 }
 
-ohos_shared_library("hdr_capability_napi") {
+ohos_shared_library("hdrcapability_napi") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "hdr_capability_napi/hdr_capability_module.cpp",
     "hdr_capability_napi/js_hdr_capability.cpp",
@@ -61,10 +67,7 @@ ohos_shared_library("hdr_capability_napi") {
 
   configs = [ ":hdr_capability_napi_config" ]
 
-  deps = [
-    "$graphic_2d_root/interfaces/kits/napi/graphic/hdr_capability:hdr_capability_utils",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-  ]
+  deps = [ "$graphic_2d_root/interfaces/kits/napi/graphic/hdr_capability:hdr_capability_utils" ]
 
   external_deps = [
     "hilog:libhilog",

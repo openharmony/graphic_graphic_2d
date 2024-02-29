@@ -67,6 +67,107 @@ HWTEST_F(SkiaColorFilterTest, Compose001, TestSize.Level1)
     EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
+/**
+ * @tc.name: InitWithBlendMode001
+ * @tc.desc: Test InitWithBlendMode
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaColorFilterTest, InitWithBlendMode001, TestSize.Level1)
+{
+    ColorQuad c = 0xFF000000;
+    SkiaColorFilter skiaColorFilter;
+    skiaColorFilter.InitWithBlendMode(c, BlendMode::CLEAR);
+}
+
+/**
+ * @tc.name: InitWithColorMatrix001
+ * @tc.desc: Test InitWithColorMatrix
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaColorFilterTest, InitWithColorMatrix001, TestSize.Level1)
+{
+    ColorMatrix cm;
+    SkiaColorFilter skiaColorFilter;
+    skiaColorFilter.InitWithColorMatrix(cm);
+}
+
+/**
+ * @tc.name: InitWithColorFloat001
+ * @tc.desc: Test InitWithColorFloat
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaColorFilterTest, InitWithColorFloat001, TestSize.Level1)
+{
+    static const float colorMatrixArray[20] = {
+        0.402,  -1.174, -0.228, 1.0, 0.0,
+        -0.598, -0.174, -0.228, 1.0, 0.0,
+        -0.599, -1.175, 0.772,  1.0, 0.0,
+        0.0,    0.0,    0.0,    1.0, 0.0
+    };
+    SkiaColorFilter skiaColorFilter;
+    skiaColorFilter.InitWithColorFloat(colorMatrixArray);
+}
+
+/**
+ * @tc.name: InitWithSrgbGammaToLinear001
+ * @tc.desc: Test InitWithSrgbGammaToLinear
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaColorFilterTest, InitWithSrgbGammaToLinear001, TestSize.Level1)
+{
+    SkiaColorFilter skiaColorFilter;
+    skiaColorFilter.InitWithSrgbGammaToLinear();
+}
+
+/**
+ * @tc.name: InitWithLuma001
+ * @tc.desc: Test InitWithLuma
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaColorFilterTest, InitWithLuma001, TestSize.Level1)
+{
+    SkiaColorFilter skiaColorFilter;
+    skiaColorFilter.InitWithLuma();
+}
+
+/**
+ * @tc.name: Serialize001
+ * @tc.desc: Test Serialize
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaColorFilterTest, Serialize001, TestSize.Level1)
+{
+    SkiaColorFilter skiaColorFilter;
+    skiaColorFilter.Serialize();
+    skiaColorFilter.Deserialize(nullptr);
+}
+
+/**
+ * @tc.name: AsAColorMatrix001
+ * @tc.desc: Test AsAColorMatrix
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaColorFilterTest, AsAColorMatrix001, TestSize.Level1)
+{
+    SkiaColorFilter skiaColorFilter;
+    scalar colorMatrixArray[20] = {
+        0.402,  -1.174, -0.228, 1.0, 0.0,
+        -0.598, -0.174, -0.228, 1.0, 0.0,
+        -0.599, -1.175, 0.772,  1.0, 0.0,
+        0.0,    0.0,    0.0,    1.0, 0.0
+    };
+    skiaColorFilter.AsAColorMatrix(colorMatrixArray);
+    skiaColorFilter.InitWithLuma();
+    skiaColorFilter.AsAColorMatrix(colorMatrixArray);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

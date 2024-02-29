@@ -376,7 +376,14 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     if (effectNode == nullptr || curSurfaceDirtyManager_ == nullptr) {
         return;
     }
-    effectNode->SetRotationChanged(curDisplayNode_->IsRotationChanged());
+    // set rotationChanged true when screen is rotating or folding/expanding screen.
+    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
+        effectNode->SetRotationChanged(true);
+        int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
+        effectNode->SetInvalidateTimesForRotation(invalidateTimes);
+    } else {
+        effectNode->SetRotationChanged(false);
+    }
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
@@ -1828,14 +1835,17 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
-
     effectRegion_ = node.InitializeEffectRegion();
-    auto parentNode = node.GetParent().lock();
-    node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
-    if (curDisplayNode_->IsRotationChanged()) {
+    
+    // set rotationChanged true when screen is rotating or folding/expanding screen.
+    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
+        node.SetRotationChanged(true);
         int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
         node.SetInvalidateTimesForRotation(invalidateTimes);
+    } else {
+        node.SetRotationChanged(false);
     }
+    auto parentNode = node.GetParent().lock();
     node.SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);
 
@@ -3996,18 +4006,20 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
         if (surfaceNode == nullptr) {
             continue;
         }
+        if (!surfaceNode->IsNodeDirty()) {
+            continue;
+        }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (surfaceDirtyManager == nullptr) {
             continue;
         }
         RectI surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
-
+        auto surfaceDirtyRegion = Occlusion::Region{Occlusion::Rect{surfaceDirtyRect}};
         if (surfaceNode->HasContainerWindow()) {
             // If a surface's dirty is intersect with container region (which can be considered transparent)
             // should be added to display dirty region.
             // Note: we use containerRegion rather transparentRegion to bypass inner corner dirty problem.
             auto containerRegion = surfaceNode->GetContainerRegion();
-            auto surfaceDirtyRegion = Occlusion::Region{Occlusion::Rect{surfaceDirtyRect}};
             auto containerDirtyRegion = containerRegion.And(surfaceDirtyRegion);
             if (!containerDirtyRegion.IsEmpty()) {
                 RS_LOGD("CalcDirtyDisplayRegion merge containerDirtyRegion %{public}s region %{public}s",
@@ -4016,28 +4028,22 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
                 const auto& rect = containerRegion.GetBoundRef();
                 displayDirtyManager->MergeDirtyRect(
                     RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
-            }
-        } else {
-            // warning: if a surfacenode has transparent region and opaque region, and its dirty pattern appears in
-            // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
-            // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
-            // which include transparent region but not counted in display dirtyregion)
-            if (!surfaceNode->IsNodeDirty()) {
                 continue;
             }
-            auto transparentRegion = surfaceNode->GetTransparentRegion();
-            Occlusion::Rect tmpRect = Occlusion::Rect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
-                surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
-            Occlusion::Region surfaceDirtyRegion { tmpRect };
-            Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
-            if (!transparentDirtyRegion.IsEmpty()) {
-                RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %{public}s region %{public}s",
-                    surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
-                const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
-                for (const auto& rect : rects) {
-                    displayDirtyManager->MergeDirtyRect(
-                        RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
-                }
+        }
+        // warning: if a surfacenode has transparent region and opaque region, and its dirty pattern appears in
+        // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
+        // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
+        // which include transparent region but not counted in display dirtyregion)
+        auto transparentRegion = surfaceNode->GetTransparentRegion();
+        Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
+        if (!transparentDirtyRegion.IsEmpty()) {
+            RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %{public}s region %{public}s",
+                surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
+            const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
+            for (const auto& rect : rects) {
+                displayDirtyManager->MergeDirtyRect(
+                    RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             }
         }
     }
@@ -4739,7 +4745,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f ||
                     backgroundTransparent || IsRosenWebHardwareDisabled(node, rotation) ||
-                    RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0) &&
+                    RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0 ||
+                    canvas_->GetBlendOffscreenLayerCnt() > 0) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
                 node.ResetHardwareForcedDisabledBySrcRect();

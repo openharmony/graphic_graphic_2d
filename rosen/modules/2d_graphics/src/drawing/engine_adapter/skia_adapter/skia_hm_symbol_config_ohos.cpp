@@ -100,6 +100,47 @@ std::vector<DrawingGroupInfo> SkiaHmSymbolConfigOhos::ConvertToDrawingGroupInfo(
     return groupInfos;
 }
 
+static DrawingPiecewiseParameter ConvertPiecewiseParameter(const PiecewiseParameter& in)
+{
+    DrawingPiecewiseParameter out;
+    out.curveType = static_cast<DrawingCurveType>(in.curveType);
+    out.duration = in.duration;
+    out.delay = in.delay;
+    std::copy(in.curveArgs.begin(), in.curveArgs.end(),
+        std::inserter(out.curveArgs, out.curveArgs.begin()));
+    std::copy(in.properties.begin(), in.properties.end(),
+        std::inserter(out.properties, out.properties.begin()));
+    return out;
+}
+
+static std::vector<DrawingPiecewiseParameter> ConvertPiecewiseParametersVec(const std::vector<PiecewiseParameter>& in)
+{
+    std::vector<DrawingPiecewiseParameter> out;
+    for (auto& tmp : in) {
+        out.push_back(ConvertPiecewiseParameter(tmp));
+    }
+    return out;
+}
+
+std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaHmSymbolConfigOhos::GetGroupParameters(
+    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+{
+    auto animationSubType = static_cast<AnimationSubType>(type);
+    auto animationType = static_cast<AnimationType>(subType);
+    auto parametersPtr = HmSymbolConfig_OHOS::getInstance()->getGroupParameters(
+        animationType, animationSubType, animationMode);
+    if (parametersPtr == nullptr) {
+        return nullptr;
+    }
+
+    std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> parameters =
+        std::make_shared<std::vector<std::vector<DrawingPiecewiseParameter>>>();
+    for (auto& paraTmp : (*parametersPtr)) {
+        parameters->push_back(ConvertPiecewiseParametersVec(paraTmp));
+    }
+    return parameters;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

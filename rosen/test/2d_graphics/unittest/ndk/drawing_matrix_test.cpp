@@ -408,6 +408,89 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_Invert, TestSize.Level
     OH_Drawing_MatrixDestroy(matrixB);
 }
 
+/**
+ * @tc.name: NativeDrawingMatrixTest_SetPolyToPoly001
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetPolyToPoly001, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    ASSERT_TRUE(matrix != nullptr);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    OH_Drawing_Point2D src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
+    OH_Drawing_Point2D dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
+    EXPECT_TRUE(OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, 0));
+    OH_Drawing_MatrixDestroy(matrix);
+}
+
+/**
+ * @tc.name: NativeDrawingMatrixTest_SetPolyToPoly002
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetPolyToPoly002, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    ASSERT_TRUE(matrix != nullptr);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    OH_Drawing_Point2D src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}};
+    OH_Drawing_Point2D dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}};
+    EXPECT_TRUE(OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, 1));
+    OH_Drawing_MatrixDestroy(matrix);
+}
+
+/**
+ * @tc.name: NativeDrawingMatrixTest_SetPolyToPoly003
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetPolyToPoly003, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    ASSERT_TRUE(matrix != nullptr);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    OH_Drawing_Point2D src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
+    OH_Drawing_Point2D dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
+    EXPECT_TRUE(OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, 4));
+    OH_Drawing_MatrixDestroy(matrix);
+}
+
+/**
+ * @tc.name: NativeDrawingMatrixTest_SetPolyToPoly004
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetPolyToPoly004, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    ASSERT_TRUE(matrix != nullptr);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    OH_Drawing_Point2D src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
+    OH_Drawing_Point2D dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
+    EXPECT_FALSE(OH_Drawing_MatrixSetPolyToPoly(matrix, src, dst, 5));
+    OH_Drawing_MatrixDestroy(matrix);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

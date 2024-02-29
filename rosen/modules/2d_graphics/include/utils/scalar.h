@@ -42,9 +42,9 @@ inline scalar ConvertSigmaToRadius(scalar sigma)
     return sigma > 0.5f ? (sigma - 0.5f) / BLUR_SIGMA_SCALE : 0.0f;
 }
 
-/*
- * @param radians   Radians values.
- * @return          Return degrees values.
+/**
+ * @param radians Radians values.
+ * @return Return degrees values.
  */
 inline scalar ConvertRadiansToDegrees(scalar radians)
 {

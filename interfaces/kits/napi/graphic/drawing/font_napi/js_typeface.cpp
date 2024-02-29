@@ -61,7 +61,7 @@ napi_value JsTypeface::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsTypeface *jsTypeface = new(std::nothrow) JsTypeface(Typeface::MakeDefault());
+    JsTypeface *jsTypeface = new(std::nothrow) JsTypeface(JsTypeface::LoadZhCnTypeface());
 
     status = napi_wrap(env, jsThis, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
@@ -101,6 +101,15 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
         }
     }
     return result;
+}
+
+std::shared_ptr<Typeface> JsTypeface::LoadZhCnTypeface()
+{
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(ZH_CN_TTF);
+    if (typeface == nullptr) {
+        typeface = Typeface::MakeDefault();
+    }
+    return typeface;
 }
 
 std::shared_ptr<Typeface> JsTypeface::GetTypeface()

@@ -48,11 +48,20 @@ public:
     inline void SetRect(const Rect& rect);
     inline Rect GetRect() const;
 
+    /**
+     * @brief Translates RoundRect by (dx, dy).
+     * @param dx  offset added to rect left and rect right
+     * @param dy  offset added to rect top and rect bottom
+     */
     inline void Offset(scalar dx, scalar dy);
 
     void AdjustRadiiX(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
     void AdjustRadiiY(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
     bool ClampToZero();
+
+    /**
+     * @brief Returns true if the radii had to be scaled to fit rect.
+     */
     bool ScaleRadii();
 
 private:

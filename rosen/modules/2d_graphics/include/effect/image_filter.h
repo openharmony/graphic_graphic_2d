@@ -36,8 +36,8 @@ public:
         COMPOSE,
         GRADIENT_BLUR,
     };
-    /*
-     * @brief         Create a filter that blurs its input by the separate X and Y sinma value.
+    /**
+     * @brief Create a filter that blurs its input by the separate X and Y sinma value.
      * @param sigmaX  The Gaussian sigma value for blurring along the X axis.
      * @param sigmaY  The Gaussian sigma value for blurring along the Y axis.
      * @param mode    The tile mode applied at edges.
@@ -46,8 +46,8 @@ public:
      */
     static std::shared_ptr<ImageFilter> CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,
         std::shared_ptr<ImageFilter> input, ImageBlurType blurType = ImageBlurType::GAUSS);
-    /*
-     * @brief        Create a filter that applies the color filter to the input filter results.
+    /**
+     * @brief Create a filter that applies the color filter to the input filter results.
      * @param cf     The color filter that transforms the input image.
      * @param input  The input filter, or uses the source bitmap if this is null.
      * @return       A shared pointer to ImageFilter that its type is color.
@@ -66,8 +66,8 @@ public:
      */
     static std::shared_ptr<ImageFilter> CreateOffsetImageFilter(scalar dx, scalar dy,
         std::shared_ptr<ImageFilter> input);
-    /*
-     * @brief                 Create a filter that implements a custom blend mode.
+    /**
+     * @brief Create a filter that implements a custom blend mode.
      * @param coefficients    Get the four coefficients used to combine the foreground and background in the vector.
                               And The vector size must be four, otherwise the call fails.
      * @param enforcePMColor  If true, the RGB channels will be clamped to the Calculated alpha.
@@ -77,8 +77,8 @@ public:
      */
     static std::shared_ptr<ImageFilter> CreateArithmeticImageFilter(const std::vector<scalar>& coefficients,
         bool enforcePMColor, std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground);
-    /*
-     * @brief     Create a filter that composes f1 with f2.
+    /**
+     * @brief Create a filter that composes f1 with f2.
      * @param f1  The outer filter that evaluates the results of inner.
      * @param f2  The inner filter that produces the input to outer.
      * @return    A shared pointer to ImageFilter that its type is compose.

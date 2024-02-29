@@ -31,7 +31,7 @@ public:
     Matrix44();
     virtual ~Matrix44() {}
 
-    /*
+    /**
      * @brief     Sets Matrix44 to translate by (dx, dy, dz).
      * @param dx  horizontal translation.
      * @param dy  vertical translation.
@@ -39,7 +39,7 @@ public:
      */
     void Translate(scalar dx, scalar dy, scalar dz);
 
-    /*
+    /**
      * @brief     Sets Matrix44 to scale by sx, sy and sz about pivot point at (0, 0, 0).
      * @param sx  horizontal scale factor.
      * @param sy  vertical scale factor.
@@ -54,20 +54,20 @@ public:
     void PreScale(scalar sx, scalar sy, scalar sz = 1);
 
     void SetCol(int column, scalar x, scalar y, scalar z, scalar w);
-    /*
+    /**
      * @brief        Gets new Matrix44 to Matrix44  multiplied by Matrix44 other.
      * @param other  on right side of multiply expression.
      * @return       A new calculated Matrix44.
      */
     Matrix44 operator*(const Matrix44& other);
 
-    /*
+    /**
      * @brief   Converts the Matrix44 to Matrix.
      * @return  A Matrix which converts by Matrix44.
      */
     explicit operator Matrix() const;
 
-    /*
+    /**
      * @brief         Sets Matrix44 to sixteen values in buffer.
      * @param buffer  a [col][row] array. eg. buffer[0] maps to m00, buffer[1] maps to m10
      */
@@ -75,7 +75,7 @@ public:
     void SetMatrix44ColMajor(const Buffer& buffer);
     void SetMatrix44RowMajor(const Buffer& buffer);
 
-    /*
+    /**
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */

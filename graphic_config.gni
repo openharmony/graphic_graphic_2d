@@ -28,6 +28,8 @@ declare_args() {
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
+  graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_ddgr_opinc = false
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
@@ -49,11 +51,6 @@ declare_args() {
     is_cross_platform = false
     use_new_render_context = false
   }
-}
-
-declare_args() {
-  graphic_2d_feature_enable_ddgr = false
-  graphic_2d_feature_enable_ddgr_opinc = false
 }
 
 if (graphic_2d_feature_product == "phone") {

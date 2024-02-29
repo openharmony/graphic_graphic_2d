@@ -40,6 +40,33 @@ void SkiaShaderEffectTest::SetUp() {}
 void SkiaShaderEffectTest::TearDown() {}
 
 /**
+ * @tc.name: InitWithColor001
+ * @tc.desc: Test InitWithColor
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithColor001, TestSize.Level1)
+{
+    ColorQuad colorQuad = 0xFF000000;
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithColor(colorQuad);
+}
+
+/**
+ * @tc.name: InitWithBlend001
+ * @tc.desc: Test InitWithBlend
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithBlend001, TestSize.Level1)
+{
+    ShaderEffect shaderEffect1{ShaderEffect::ShaderEffectType::BLEND, 0xFF000000};
+    ShaderEffect shaderEffect2{ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, 0xFF000000};
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithBlend(shaderEffect1, shaderEffect2, BlendMode::CLEAR);
+}
+
+/**
  * @tc.name: InitWithImage001
  * @tc.desc:
  * @tc.type: FUNC
@@ -140,6 +167,22 @@ HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradient001, TestSize.Level1)
     scalar endAngle = 60.0f;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithSweepGradient(centerPt, color, pos, TileMode::MIRROR, startAngle, endAngle, nullptr);
+}
+
+/**
+ * @tc.name: Serialize001
+ * @tc.desc: Test Serialize
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaShaderEffectTest, Serialize001, TestSize.Level1)
+{
+    SkiaShaderEffect skiaShaderEffect;
+    auto shader1 = skiaShaderEffect.GetShader();
+    EXPECT_TRUE(shader1 == nullptr);
+    skiaShaderEffect.Serialize();
+    auto shader2 = skiaShaderEffect.GetShader();
+    EXPECT_TRUE(shader2 == nullptr);
 }
 
 } // namespace Drawing

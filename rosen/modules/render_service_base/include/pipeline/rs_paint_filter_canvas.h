@@ -193,6 +193,11 @@ public:
     int SaveBlendMode();
     void SetBlendMode(std::optional<int> blendMode);
     void RestoreBlendMode();
+    std::optional<int> GetBlendMode();
+    void AddBlendOffscreenLayer(bool isExtra);
+    void MinusBlendOffscreenLayer();
+    bool IsBlendOffscreenExtraLayer() const;
+    int GetBlendOffscreenLayerCnt() const;
 
     // save/restore utils
     struct SaveStatus {
@@ -358,7 +363,11 @@ private:
 #endif
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
+    
+    // blendmode related
     std::stack<std::optional<int>> blendModeStack_;
+    // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
+    std::stack<bool> blendOffscreenStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };

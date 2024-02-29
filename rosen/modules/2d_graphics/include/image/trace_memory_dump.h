@@ -27,6 +27,20 @@ public:
     TraceMemoryDump(const char* categoryKey, bool itemizeType);
     ~TraceMemoryDump() {}
 
+    /**
+     * @brief Appends a new memory dump (i.e. a row) to the trace memory infrastructure.
+     * If dumpName does not exist yet, a new one is created. Otherwise, a new column is appended to
+     * the previously created dump.
+     *
+     * @param dumpName an absolute, slash-separated, name for the item being dumped
+     * e.g., "Drawing/CacheX/EntryY".
+     * @param valueName a string indicating the name of the column.
+     * e.g., "size", "active_size", "number_of_objects".
+     * This string is supposed to be long lived and is NOT copied.
+     * @param units a string indicating the units for the value. e.g., "bytes", "objects".
+     * This string is supposed to be long lived and is NOT copied.
+     * @param value the actual value being dumped.
+     */
     void DumpNumericValue(const char* dumpName, const char* valueName, const char* units, uint64_t value);
 
     void DumpStringValue(const char* dumpName, const char* valueName, const char* value);

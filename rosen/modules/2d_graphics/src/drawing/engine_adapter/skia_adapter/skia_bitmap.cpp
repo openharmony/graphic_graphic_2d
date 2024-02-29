@@ -296,6 +296,11 @@ bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
     return true;
 }
 
+ImageInfo SkiaBitmap::GetImageInfo()
+{
+    return SkiaImageInfo::ConvertToRSImageInfo(skiaBitmap_.info());
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -21,8 +21,14 @@ namespace Rosen {
 namespace Drawing {
 enum class ShadowFlags {
     NONE,
+    /**
+     * The occluding object is not opaque. Knowing that the occluder is opaque allows
+     * us to cull shadow geometry behind it and improve performance.
+     */
     TRANSPARENT_OCCLUDER,
+    /** Don't try to use analytic shadows. */
     GEOMETRIC_ONLY,
+    /** mask for all shadow flags */
     ALL,
 };
 } // namespace Drawing

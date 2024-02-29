@@ -20,7 +20,6 @@
 
 namespace OHOS {
 using namespace HiviewDFX;
-constexpr int64_t TRANSFORM_MATRIX_ELE_COUNT = 16;
 static SurfaceUtils* instance = nullptr;
 static std::mutex mutextinstance_;
 
@@ -103,18 +102,67 @@ std::array<float, 16> SurfaceUtils::MatrixProduct(const std::array<float, 16>& l
                                   lMat[3] * rMat[12] + lMat[7] * rMat[13] + lMat[11] * rMat[14] + lMat[15] * rMat[15]};
 }
 
+void SurfaceUtils::ComputeTransformByMatrix(GraphicTransformType& transform,
+    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> *transformMatrix)
+{
+    const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> rotate90 = {0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> rotate180 = {-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> rotate270 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> flipH = {-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> flipV = {1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+    *transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    switch (transform) {
+        case GraphicTransformType::GRAPHIC_ROTATE_NONE:
+            break;
+        case GraphicTransformType::GRAPHIC_ROTATE_90:
+            *transformMatrix = MatrixProduct(*transformMatrix, rotate90);
+            break;
+        case GraphicTransformType::GRAPHIC_ROTATE_180:
+            *transformMatrix = MatrixProduct(*transformMatrix, rotate180);
+            break;
+        case GraphicTransformType::GRAPHIC_ROTATE_270:
+            *transformMatrix = MatrixProduct(*transformMatrix, rotate270);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H:
+            *transformMatrix = MatrixProduct(*transformMatrix, flipH);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V:
+            *transformMatrix = MatrixProduct(*transformMatrix, flipV);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+            *transformMatrix = MatrixProduct(flipH, rotate90);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
+            *transformMatrix = MatrixProduct(flipV, rotate90);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+            *transformMatrix = MatrixProduct(flipH, rotate180);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
+            *transformMatrix = MatrixProduct(flipV, rotate180);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270:
+            *transformMatrix = MatrixProduct(flipH, rotate270);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270:
+            *transformMatrix = MatrixProduct(flipV, rotate270);
+            break;
+        default:
+            break;
+    }
+}
+
 void SurfaceUtils::ComputeTransformMatrix(float matrix[16],
     sptr<SurfaceBuffer>& buffer, GraphicTransformType& transform, Rect& crop)
 {
-    const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> rotate90 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
-    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     float tx = 0.f;
     float ty = 0.f;
     float sx = 1.f;
     float sy = 1.f;
-    if (transform == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        transformMatrix = MatrixProduct(transformMatrix, rotate90);
-    }
+    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    ComputeTransformByMatrix(transform, &transformMatrix);
+
     float bufferWidth = buffer->GetWidth();
     float bufferHeight = buffer->GetHeight();
     if (crop.w < bufferWidth && bufferWidth != 0) {

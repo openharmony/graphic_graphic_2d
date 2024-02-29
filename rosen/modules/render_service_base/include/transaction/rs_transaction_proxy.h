@@ -51,6 +51,7 @@ public:
     void CommitSyncTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
     void MarkTransactionNeedSync();
     void MarkTransactionNeedCloseSync(const int32_t transactionCount);
+    void SetSyncTransactionNum(const int32_t transactionCount);
 
     void StartSyncTransaction();
     void CloseSyncTransaction();

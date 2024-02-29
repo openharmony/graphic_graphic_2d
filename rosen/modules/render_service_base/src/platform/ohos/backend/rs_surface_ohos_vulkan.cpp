@@ -242,9 +242,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     auto& surface = mSurfaceMap[mSurfaceList.front()];
 
+    RSTagTracker tagTracker(mSkContext.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
     DestroySemaphoreInfo* destroyInfo =
         new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
-    RSTagTracker tagTracker(mSkContext.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
 #ifndef USE_ROSEN_DRAWING
     GrFlushInfo flushInfo;
@@ -279,11 +279,14 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
+        DestroySemaphore(destroyInfo);
+        destroyInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan NativeWindowFlushBuffer failed");
         return false;
     }
     mSurfaceList.pop_front();
     DestroySemaphore(destroyInfo);
+    destroyInfo = nullptr;
     surface.fence.reset();
     surface.lastPresentedCount = mPresentCount;
     mPresentCount++;

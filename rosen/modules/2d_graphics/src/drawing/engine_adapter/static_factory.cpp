@@ -300,6 +300,12 @@ std::shared_ptr<DrawingSymbolLayersGroups> StaticFactory::GetSymbolLayersGroups(
     return EngineStaticFactory::GetSymbolLayersGroups(glyphId);
 }
 
+std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> StaticFactory::GetGroupParameters(
+    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+{
+    return EngineStaticFactory::GetGroupParameters(type, subType, animationMode);
+}
+
 FontStyleSet* StaticFactory::CreateEmpty()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

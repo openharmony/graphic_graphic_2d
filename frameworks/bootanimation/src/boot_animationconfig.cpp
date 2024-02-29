@@ -28,8 +28,8 @@ bool BootAnimationConfig::ReadPicZipFile(ImageStructVec& vec, int32_t& freq)
     std::string picZipPath = GetPicZipPath();
     ReadZipFile(picZipPath, vec, jsonConfig);
     int32_t imageNum = static_cast<int32_t>(vec.size());
-    if (imageNum <= 0) {
-        LOGE("zip pic num is 0.");
+    if (imageNum < 0) {
+        LOGE("zip pic num is invalid.");
         return false;
     }
     SortZipFile(vec);

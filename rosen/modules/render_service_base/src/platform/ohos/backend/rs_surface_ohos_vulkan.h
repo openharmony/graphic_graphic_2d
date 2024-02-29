@@ -39,8 +39,8 @@ struct DestroySemaphoreInfo {
 
     int mRefs = 2;
     DestroySemaphoreInfo(PFN_vkDestroySemaphore destroyFunction, VkDevice device,
-                        VkSemaphore semaphore):
-        : mDestroyFunction(destroyFunction), mDevice(deivce), mSemaphore(semaphore) {}
+                        VkSemaphore semaphore)
+        : mDestroyFunction(destroyFunction), mDevice(device), mSemaphore(semaphore) {}
 };
 
 class RSSurfaceOhosVulkan : public RSSurfaceOhos {

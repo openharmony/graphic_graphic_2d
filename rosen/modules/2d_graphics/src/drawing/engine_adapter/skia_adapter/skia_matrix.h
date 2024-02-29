@@ -71,6 +71,7 @@ public:
         scalar persp0, scalar persp1, scalar persp2) override;
     void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const override;
     bool MapRect(Rect& dst, const Rect& src) const override;
+    bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count) override;
     void Set(int index, scalar value) override;
     scalar Get(int index) const override;
     void GetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) const override;

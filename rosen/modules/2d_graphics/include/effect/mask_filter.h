@@ -44,6 +44,13 @@ public:
         BLUR,
     };
 
+    /**
+     * @brief Create a blur Maskfilter.
+     * @param style The Drawing::BlurStyle to use.
+     * @param sigma Standard deviation of the Gaussian blur to apply. Must be > 0.
+     * @param respectCTM if true the blur's sigma is modified by the CTM.
+     * @return A shared pointer to MaskFilter
+     */
     static std::shared_ptr<MaskFilter> CreateBlurMaskFilter(BlurType blurType, scalar sigma, bool respectCTM = true);
 
     virtual ~MaskFilter() = default;

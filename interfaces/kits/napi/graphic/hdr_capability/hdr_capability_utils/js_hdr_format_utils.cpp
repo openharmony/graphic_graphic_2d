@@ -22,13 +22,13 @@ namespace HdrCapability {
 napi_value HDRFormatInit(napi_env env)
 {
     if (env == nullptr) {
-        ROSEN_LOGE("[NAPI] Engine is nullptr");
+        HCLOGE("[NAPI]Engine is nullptr");
         return nullptr;
     }
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
-        ROSEN_LOGE("[NAPI] Failed to get object");
+        HCLOGE("[NAPI]Failed to get object");
         return nullptr;
     }
 

@@ -19,6 +19,7 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_path_animation.h"
+#include "common/rs_optional_trace.h"
 #include "modifier/rs_property.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
@@ -489,17 +490,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
                     keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
                 }
             }
-            if (animation == nullptr) {
-                ROSEN_LOGE("Failed to create animation!");
-                return;
-            }
-            if (repeatCallback != nullptr) {
-                animation->SetRepeatCallback(std::move(repeatCallback));
-                repeatCallback.reset();
-            }
-            // for keyframe animations, we don't add it to target now, we will add it later in
-            // RSImplicitAnimator::CloseImplicitAnimation.
-            return;
+            break;
         }
         case ImplicitAnimationParamType::SPRING: {
             auto springImplicitParam = static_cast<RSImplicitSpringAnimationParam*>(params.get());
@@ -530,16 +521,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         case ImplicitAnimationParamType::TRANSITION: {
             auto implicitTransitionParam = static_cast<RSImplicitTransitionParam*>(params.get());
             animation = implicitTransitionParam->CreateAnimation(property, startValue, endValue);
-            if (animation == nullptr) {
-                ROSEN_LOGE("Failed to create animation!");
-                return;
-            }
-            if (repeatCallback != nullptr) {
-                animation->SetRepeatCallback(std::move(repeatCallback));
-                repeatCallback.reset();
-            }
-            // this will create custom transition animation, there is no need to add it to target.
-            return;
+            break;
         }
         case ImplicitAnimationParamType::CANCEL: {
             // CreateEmptyAnimation
@@ -579,6 +561,21 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
     if (repeatCallback != nullptr) {
         animation->SetRepeatCallback(std::move(repeatCallback));
         repeatCallback.reset();
+    }
+
+    RS_OPTIONAL_TRACE_NAME("CreateImplicitAnimation:node[" + std::to_string(target->GetId()) + "] pro[" +
+                           std::to_string(property->GetId()) + "] animate[" + std::to_string(animation->GetId()) +
+                           "] animateType [" + std::to_string(static_cast<int>(params->GetType())) + "] proType [" +
+                           std::to_string(static_cast<int>(property->type_)) + "] dur [" +
+                           std::to_string(animation->GetDuration()) + "] repeat [" +
+                           std::to_string(protocol.GetRepeatCount()) + "]");
+
+    if (params->GetType() == ImplicitAnimationParamType::TRANSITION ||
+        params->GetType() == ImplicitAnimationParamType::KEYFRAME) {
+        // for transition this will create custom transition animation, there is no need to add it to target.
+        // for keyframe animations, we don't add it to target now, we will add it later in
+        // RSImplicitAnimator::CloseImplicitAnimation.
+        return;
     }
     target->AddAnimation(animation);
     implicitAnimations_.top().emplace_back(animation, target->GetId());

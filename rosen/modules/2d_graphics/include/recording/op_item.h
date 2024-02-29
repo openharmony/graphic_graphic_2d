@@ -26,7 +26,7 @@ public:
     explicit OpItem(uint32_t type) : type_(type) {}
     virtual ~OpItem() = default;
 
-    /*
+    /**
      * @brief Gets the offset of next OpItem.
      */
     uint32_t GetNextOpItemOffset() const
@@ -34,8 +34,8 @@ public:
         return nextOpItem_;
     }
 
-    /*
-     * @brief         Sets the offset of next OpItem.
+    /**
+     * @brief Sets the offset of next OpItem.
      * @param offset  The offset of next OpItem.
      */
     void SetNextOpItemOffset(uint32_t offset)
@@ -43,8 +43,8 @@ public:
         nextOpItem_ = offset;
     }
 
-    /*
-     * @brief   Gets the type of OpItem.
+    /**
+     * @brief Gets the type of OpItem.
      */
     uint32_t GetType() const
     {
