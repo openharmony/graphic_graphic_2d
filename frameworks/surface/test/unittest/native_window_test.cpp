@@ -154,8 +154,6 @@ HWTEST_F(NativeWindowTest, CreateNativeWindow002, Function | MediumTest | Level2
  */
 HWTEST_F(NativeWindowTest, CreateNativeWindow003, Function | MediumTest | Level2)
 {
-    nativeWindow = OH_NativeWindow_CreateNativeWindow(&pSurface);
-    ASSERT_NE(nativeWindow, nullptr);
     uint64_t surfaceId = 0;
     int32_t ret = OH_NativeWindow_GetSurfaceId(nativeWindow, &surfaceId);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -177,10 +175,10 @@ HWTEST_F(NativeWindowTest, CreateNativeWindowFromSurfaceId001, Function | Medium
     int32_t ret = OH_NativeWindow_CreateNativeWindowFromSurfaceId(surfaceId, &window);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     surfaceId = 0;
-    ret = OH_NativeWindow_GetSurfaceId(nativeWindow, &surfaceId);
+    ret = OH_NativeWindow_GetSurfaceId(window, &surfaceId);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(surfaceId, pSurface->GetUniqueId());
-    OH_NativeWindow_DestroyNativeWindow(nativeWindow);
+    OH_NativeWindow_DestroyNativeWindow(window);
 }
 
 /*
@@ -219,7 +217,9 @@ HWTEST_F(NativeWindowTest, CreateNativeWindowFromSurfaceId003, Function | Medium
     auto utils = SurfaceUtils::GetInstance();
     utils->Add(surfaceId, pSurfaceTmp);
     OHNativeWindow *nativeWindowTmp = nullptr;
-    int32_t ret = OH_NativeWindow_CreateNativeWindowFromSurfaceId(surfaceId, &nativeWindowTmp);
+    int32_t ret = OH_NativeWindow_CreateNativeWindowFromSurfaceId(0xFFFFFFFF, &nativeWindowTmp);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+    ret = OH_NativeWindow_CreateNativeWindowFromSurfaceId(surfaceId, &nativeWindowTmp);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     surfaceId = 0;
     ret = OH_NativeWindow_GetSurfaceId(nativeWindowTmp, &surfaceId);
