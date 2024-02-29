@@ -20,21 +20,27 @@ using namespace OHOS::Media;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int32_t BITMAP_WIDTH = 200;
+static constexpr int32_t BITMAP_HEIGHT = 200;
+static constexpr scalar STROKE_WIDTH = 10;
+static constexpr scalar POSITION_X = 500;
+static constexpr scalar POSITION_Y = 500;
+
 using TestFunc = std::function<void(Canvas&, uint32_t, uint32_t)>;
 void BitmapTest::TestDrawBitmap(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawBitmap");
     Bitmap bmp;
     BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    bmp.Build(200, 200, format); // bitmap width and height
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
-    pen.SetWidth(10); // The thickness of the pen is 10
+    pen.SetWidth(STROKE_WIDTH); // The thickness of the pen is 10
     canvas.AttachPen(pen);
-    canvas.DrawBitmap(bmp, 500, 500); // draw bitmap at (fx, fy)
+    canvas.DrawBitmap(bmp, POSITION_X, POSITION_Y); // draw bitmap at (fx, fy)
 
     LOGI("------- TestDrawBitmap");
 }
