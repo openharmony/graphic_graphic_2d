@@ -51,18 +51,28 @@ public:
         RGB,
     };
 
+    /**
+     * @brief Create the sRGB color space.
+     *
+     * @return A shared ptr to ColorSpace
+     */
     static std::shared_ptr<ColorSpace> CreateSRGB();
+
+    /**
+     * @brief Colorspace with the sRGB primaries, but a linear (1.0) gamma.
+     * @return A shared ptr to ColorSpace
+     */
     static std::shared_ptr<ColorSpace> CreateSRGBLinear();
     static std::shared_ptr<ColorSpace> CreateRefImage(const Image& image);
-    /*
-     * @brief         Create a ColorSpace form a transfer function and a row-major 3x3 transformation to XYZ.
+    /**
+     * @brief Create a ColorSpace form a transfer function and a row-major 3x3 transformation to XYZ.
      * @param func    A transfer function type
      * @param matrix  A row-major 3x3 transformation type to XYZ
      * @return        A shared pointer to ColorSpace that its type is RGB.
      */
     static std::shared_ptr<ColorSpace> CreateRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix);
-    /*
-     * @brief         Create a ColorSpace form a adaptro impl, only used by ImageInfo to ccreate from adaptor image info
+    /**
+     * @brief Create a ColorSpace form a adaptro impl, only used by ImageInfo to ccreate from adaptor image info
      * @param impl    A adaptor impl of color space
      * @return        A shared pointer to ColorSpace that its type is RGB.
      */
@@ -87,9 +97,9 @@ public:
     ColorSpace(ColorSpaceType t, const Image& image) noexcept;
     ColorSpace(ColorSpaceType t, const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept;
 
-    /*
-     * @brief      Caller use method toProfile of SkColorSpace, the parameter is type skcms_ICCProfile.
-     * @           In order not to encapsulate this method. Drawing ColorSpace needs to be converted to SkColorSpace.
+    /**
+     * @brief Caller use method toProfile of SkColorSpace, the parameter is type skcms_ICCProfile.
+     * In order not to encapsulate this method. Drawing ColorSpace needs to be converted to SkColorSpace.
      * @return     A shared pointer to SkColorSpace.
      */
     sk_sp<SkColorSpace> GetSkColorSpace() const;

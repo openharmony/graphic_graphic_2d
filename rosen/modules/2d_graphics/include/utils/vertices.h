@@ -41,8 +41,8 @@ public:
     explicit Vertices(std::shared_ptr<VerticesImpl>) noexcept;
     virtual ~Vertices() {};
 
-    /*
-     * @brief              Make a copy from vertices data.
+    /**
+     * @brief Make a copy from vertices data.
      * @param vertexCount  Vertex count.
      * @param positions    Positions data pointer.
      * @param tex          Texture coordinate data pointer.
@@ -55,8 +55,8 @@ public:
         int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[],
         int indexCount, const uint16_t indices[]);
 
-    /*
-     * @brief              Make a copy from vertices data.
+    /**
+     * @brief Make a copy from vertices data.
      * @param vertexCount  Vertex count.
      * @param positions    Positions data pointer.
      * @param tex          Texture coordinate data pointer.
@@ -66,8 +66,8 @@ public:
     bool MakeCopy(VertexMode mode,
         int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[]);
 
-    /*
-     * @brief   Get the adaptation layer instance, called in the adaptation layer.
+    /**
+     * @brief Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */
     template<typename T>
@@ -85,34 +85,34 @@ public:
         Builder(VertexMode mode, int vertexCount, int indexCount, uint32_t flags);
         virtual ~Builder() {};
 
-        /*
-         * @brief  Return if builder is valid.
+        /**
+         * @brief Return if builder is valid.
          */
         bool IsValid();
 
-        /*
-         * @brief  Return positions data pointer in the builder.
+        /**
+         * @brief Return positions data pointer in the builder.
          */
         Point* Positions();
 
-        /*
-         * @brief  Return indices data pointer in the builder.
+        /**
+         * @brief Return indices data pointer in the builder.
          */
         uint16_t* Indices();
 
-        /*
-         * @brief  Return texture coordinate data pointer in the builder.
+        /**
+         * @brief Return texture coordinate data pointer in the builder.
          */
         Point* TexCoords();
 
-        /*
-         * @brief  Return color data pointer in theBuilder.
+        /**
+         * @brief Return color data pointer in theBuilder.
          */
         ColorQuad* Colors();
 
-        /*
-         * @brief   Detach the built vertices object. After yhe first call, this will always return null.
-         * @return  Return a shared pointer of Vertices object or nullptr.
+        /**
+         * @brief Detach the built vertices object. After yhe first call, this will always return null.
+         * @return Return a shared pointer of Vertices object or nullptr.
          */
         std::shared_ptr<Vertices> Detach();
 

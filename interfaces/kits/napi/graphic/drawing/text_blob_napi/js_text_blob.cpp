@@ -24,6 +24,7 @@ namespace Drawing {
 const std::string CLASS_NAME = "TextBlob";
 thread_local napi_ref JsTextBlob::constructor_ = nullptr;
 std::shared_ptr<TextBlob> drawingTextBlob;
+static constexpr size_t CHAR16_SIZE = 2;
 napi_value JsTextBlob::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
@@ -214,12 +215,6 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    std::string text = "";
-    if (!ConvertFromJsValue(env, argv[0], text)) {
-        ROSEN_LOGE("JsTextBlob::MakeFromString Argv[0] is invalid");
-        return nullptr;
-    }
-
     void* pointerResult = nullptr;
     napi_unwrap(env, argv[1], &pointerResult);
     auto jsFont = static_cast<JsFont*>(pointerResult);
@@ -233,17 +228,16 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    std::shared_ptr<TextBlob> textBlob;
-    if (argc == ARGC_TWO) {
-        textBlob = TextBlob::MakeFromString(text.c_str(), *font);
-    } else {
-        TextEncoding TextEncoding = TextEncoding::UTF8;
-        if (!ConvertFromJsTextEncoding(env, TextEncoding, argv[ARGC_TWO])) {
-            ROSEN_LOGE("JsTextBlob::MakeFromString Argv[2] is invalid");
-            return nullptr;
-        }
-        textBlob = TextBlob::MakeFromString(text.c_str(), *font, TextEncoding);
+    // Chinese characters need to be encoded with UTF16
+    size_t len = 0;
+    if (napi_get_value_string_utf16(env, argv[0], nullptr, 0, &len) != napi_ok) {
+        return nullptr;
     }
+    char16_t buffer[len + 1];
+    if (napi_get_value_string_utf16(env, argv[0], buffer, len + 1, &len) != napi_ok) {
+        return nullptr;
+    }
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(buffer, CHAR16_SIZE * len, *font, TextEncoding::UTF16);
 
     if (textBlob == nullptr) {
         ROSEN_LOGE("JsTextBlob::MakeFromString textBlob is nullptr");

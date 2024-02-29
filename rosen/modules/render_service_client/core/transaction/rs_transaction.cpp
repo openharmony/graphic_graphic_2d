@@ -69,6 +69,7 @@ void RSTransaction::Commit()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME_FMT("CommitSyncTransaction syncId: %lu", syncId_);
+        transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();
@@ -114,6 +115,10 @@ bool RSTransaction::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSTransaction marshalling failed");
         return false;
     }
+    if (!parcel.WriteInt32(duration_)) {
+        ROSEN_LOGE("RSTransaction marshalling failed");
+        return false;
+    }
     transactionCount_++;
     return true;
 }
@@ -121,6 +126,10 @@ bool RSTransaction::Marshalling(Parcel& parcel) const
 bool RSTransaction::UnmarshallingParam(Parcel& parcel)
 {
     if (!parcel.ReadUint64(syncId_)) {
+        ROSEN_LOGE("RSTransaction unmarshallingParam failed");
+        return false;
+    }
+    if (!parcel.ReadInt32(duration_)) {
         ROSEN_LOGE("RSTransaction unmarshallingParam failed");
         return false;
     }

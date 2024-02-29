@@ -208,8 +208,9 @@ RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    RS_LOGI("RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64 ", ScreenPowerStatus: %{public}u", id,
-        static_cast<uint32_t>(status));
+    RS_LOGI("[UL_POWER]RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64
+            ", ScreenPowerStatus: %{public}u",
+        id, static_cast<uint32_t>(status));
     renderServiceClient_->SetScreenPowerStatus(id, status);
 }
 #endif // !ROSEN_ARKUI_X

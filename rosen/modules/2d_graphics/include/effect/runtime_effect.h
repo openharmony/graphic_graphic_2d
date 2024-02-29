@@ -34,10 +34,28 @@ public:
 
 class DRAWING_API RuntimeEffect {
 public:
+    /**
+     * @brief Shader SL requires an entry point that looks like:
+     * vec4 main(vec2 inCoords) { ... }
+     * -or-
+     * vec4 main(vec2 inCoords, vec4 inColor) { ... }
+     * Most shaders don't use the input color, so that parameter is optional.
+     *
+     * @param sl 
+     * @return A shared pointer to RuntimeEffect
+     */
     static std::shared_ptr<RuntimeEffect> CreateForShader(const std::string& sl,
         const RuntimeEffectOptions&);
     static std::shared_ptr<RuntimeEffect> CreateForShader(const std::string& sl);
     static std::shared_ptr<RuntimeEffect> CreateForES3Shader(const std::string& sl);
+
+    /**
+     * @brief Blend SkSL requires an entry point that looks like:
+     * vec4 main(vec4 srcColor, vec4 dstColor) { ... }
+     *
+     * @param sl 
+     * @return A shared pointer to RuntimeEffect
+     */
     static std::shared_ptr<RuntimeEffect> CreateForBlender(const std::string& sl);
 
     explicit RuntimeEffect(const std::string& sl) noexcept;

@@ -60,6 +60,8 @@ public:
 
     void SetIndents(const std::vector<float>& indents) override;
 
+    float DetectIndents(size_t index) override;
+
     void Layout(double width) override;
 
     void Paint(SkCanvas* canvas, double x, double y) override;
@@ -90,7 +92,9 @@ public:
         }
     }
 
-    OHOS::Rosen::Drawing::FontMetrics MeasureText() override;
+    Drawing::FontMetrics MeasureText() override;
+
+    Drawing::FontMetrics GetFontMetricsResult(const SPText::TextStyle& textStyle) override;
 
 private:
     TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);

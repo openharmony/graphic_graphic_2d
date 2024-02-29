@@ -107,7 +107,7 @@ public:
     static bool IsNearlyFullScreen(Drawing::RectI imageSize, int32_t canvasWidth, int32_t canvasHeight);
     void PostPartialFilterRenderTask(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void PostPartialFilterRenderInit(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect,
-        int32_t canvasWidth, int32_t canvasHeight);
+        int32_t canvasWidth, int32_t canvasHeight, bool& shouldClearFilteredCache);
 #endif
     enum CacheType : uint8_t {
         CACHE_TYPE_NONE              = 0,
@@ -132,8 +132,10 @@ private:
         static const bool FilterPartialRenderEnabled;
         bool isFirstInit_ = true;
         bool needClearSurface_ = false;
+        bool isLastRender_ = false;
         std::atomic<bool> isTaskRelease_ = false;
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFirstFilter_ = nullptr;
+        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshotInTask_ = nullptr;
         std::mutex grBackendTextureMutex_;
         RSFilterCacheTask() = default;
         virtual ~RSFilterCacheTask() = default;
@@ -274,7 +276,6 @@ private:
         std::shared_ptr<RSDrawingFilter> filterBefore_ = nullptr;
 #endif
         std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
-        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshotInTask_ = nullptr;
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshotBefore_ = nullptr;
         std::condition_variable cvParallelRender_;
         std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
@@ -305,6 +306,7 @@ private:
     std::tuple<Drawing::RectI, Drawing::RectI> ValidateParams(RSPaintFilterCanvas& canvas,
         const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect,
         const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
+    inline bool IsClearFilteredCache(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dst);
 #endif
     inline static void ClipVisibleRect(RSPaintFilterCanvas& canvas);
     // Check if the cache is valid in current GrContext, since FilterCache will never be used in multi-thread

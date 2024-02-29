@@ -61,20 +61,48 @@ public:
     inline void SetRight(int pos);
     inline void SetBottom(int pos);
 
+    /**
+     * @brief Offsets RectI by adding dx to left, right; and by adding dy to top, bottom.
+     * If dx is negative, moves RectI returned to the left.
+     * If dx is positive, moves RectI returned to the right.
+     * If dy is negative, moves RectI returned upward.
+     * If dy is positive, moves RectI returned downward.
+     * @param dx  offset added to left and right
+     * @param dy  offset added to top and bottom
+     */
     inline void Offset(int dx, int dy);
+
+    /**
+     * @brief outset by (dx, dy).
+     * If dx is negative, RectI is narrower.
+     * If dx is positive, RectI is wider.
+     * If dy is negative, RectI is shorter.
+     * If dy is positive, RectI is taller.
+     * @param dx offset subtracted to left and added from right
+     * @param dy offset subtracted to top and added from bottom
+     */
     inline void MakeOutset(int dx, int dy);
+
+    /**
+     * @brief Returns true if RectI contains other.
+     * Returns false if RectI is empty or other is empty.
+     * RectI contains other when RectI area completely includes other area.
+     * @param other RectI contained
+     * @return true if all sides of RectI are outside other
+     */
     inline bool Contains(const RectI& other) const;
-    /*
-     * @brief        If RectI intersects other, sets RectI to intersection.
-     * @param other  limit of result.
-     * @return       true if other and RectI have area in common.
+
+    /**
+     * @brief If RectI intersects other, sets RectI to intersection.
+     * @param other limit of result.
+     * @return true if other and RectI have area in common.
      */
     inline bool Intersect(const RectI& other);
 
-    /*
-     * @brief        If other is valid, sets RectI to the union of itself and other.
-     * @param other  expansion RectI.
-     * @return       true if other is valid.
+    /**
+     * @brief If other is valid, sets RectI to the union of itself and other.
+     * @param other expansion RectI.
+     * @return true if other is valid.
      */
     inline bool Join(const RectI& other);
 

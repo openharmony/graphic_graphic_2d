@@ -48,6 +48,4 @@ ohos_unittest("2d_engine_rosen_text_ui_test") {
 
 group("unittest") {
   testonly = true
-
-  deps = [ ":2d_engine_rosen_text_ui_test" ]
 }

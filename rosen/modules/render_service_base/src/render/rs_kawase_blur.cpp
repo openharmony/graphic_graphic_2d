@@ -216,10 +216,10 @@ SkMatrix KawaseBlurFilter::GetShaderTransform(const SkCanvas* canvas, const SkRe
 }
 #else
 Drawing::Matrix KawaseBlurFilter::GetShaderTransform(const Drawing::Canvas* canvas, const Drawing::Rect& blurRect,
-    float scale)
+    float scaleW, float scaleH)
 {
     Drawing::Matrix matrix;
-    matrix.SetScale(scale, scale);
+    matrix.SetScale(scaleW, scaleH);
     Drawing::Matrix translateMatrix;
     translateMatrix.Translate(blurRect.GetLeft(), blurRect.GetTop());
     matrix.PostConcat(translateMatrix);
@@ -289,7 +289,10 @@ void KawaseBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std::s
         brush.SetFilter(filter);
     }
     Drawing::Matrix inputMatrix;
+    float scaleW = dst.GetWidth() / image->GetWidth();
+    float scaleH = dst.GetHeight() / image->GetHeight();
     inputMatrix.Translate(-src.GetLeft(), -src.GetTop());
+    inputMatrix.PostScale(scaleW, scaleH);
     Drawing::Matrix matrix;
     matrix.Translate(dst.GetLeft(), dst.GetTop());
     inputMatrix.PostConcat(matrix);
@@ -387,7 +390,9 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::Matrix blurMatrix;
     blurMatrix.Translate(-src.GetLeft(), -src.GetTop());
-    blurMatrix.PostScale(blurScale_, blurScale_);
+    float scaleW = static_cast<float>(scaledInfo.GetWidth()) / input->GetWidth();
+    float scaleH = static_cast<float>(scaledInfo.GetHeight()) / input->GetHeight();
+    blurMatrix.PostScale(scaleW, scaleH);
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
     // Advanced Filter: check is AF usable only the first time
@@ -445,11 +450,11 @@ bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<
 {
     auto src = param.src;
     auto dst = param.dst;
+#ifndef USE_ROSEN_DRAWING
     if (abs(blurScale_) <= 1e-6) {
         return false;
     }
     float invBlurScale = 1.0f / blurScale_;
-#ifndef USE_ROSEN_DRAWING
     SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
     const auto blurMatrix = GetShaderTransform(&canvas, dst, invBlurScale);
     const auto blurShader = blurImage->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, &blurMatrix);
@@ -478,7 +483,8 @@ bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<
     canvas.drawRect(dst, paint);
 #else
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    const auto blurMatrix = GetShaderTransform(&canvas, dst, invBlurScale);
+    const auto blurMatrix = GetShaderTransform(&canvas, dst, dst.GetWidth() / blurImage->GetWidth(),
+        dst.GetHeight() / blurImage->GetHeight());
     const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*blurImage, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, linear, blurMatrix);
     Drawing::Brush brush;
@@ -492,6 +498,7 @@ bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<
     if (addRandomColor) {
         Drawing::Matrix inputMatrix;
         inputMatrix.Translate(-src.GetLeft(), -src.GetTop());
+        inputMatrix.PostScale(dst.GetWidth() / image->GetWidth(), dst.GetHeight() / image->GetHeight());
         Drawing::Matrix matrix;
         matrix.Translate(dst.GetLeft(), dst.GetTop());
         inputMatrix.PostConcat(matrix);

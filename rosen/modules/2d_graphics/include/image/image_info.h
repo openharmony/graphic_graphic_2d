@@ -41,48 +41,48 @@ public:
     {
         return ImageInfo(width, height, COLORTYPE_N32, ALPHATYPE_PREMUL, nullptr);
     }
-    /*
-     * @brief  Gets the width value of ImageInfo.
+    /**
+     * @brief Gets the width value of ImageInfo.
      */
     int GetWidth() const
     {
         return width_;
     }
 
-    /*
-     * @brief  Gets the height value of ImageInfo.
+    /**
+     * @brief Gets the height value of ImageInfo.
      */
     int GetHeight() const
     {
         return height_;
     }
 
-    /*
-     * @brief  Gets the color type value of ImageInfo.
+    /**
+     * @brief Gets the color type value of ImageInfo.
      */
     ColorType GetColorType() const
     {
         return colorType_;
     }
 
-    /*
-     * @brief  Gets the alpha type value of ImageInfo.
+    /**
+     * @brief Gets the alpha type value of ImageInfo.
      */
     AlphaType GetAlphaType() const
     {
         return alphaType_;
     }
 
-    /*
-     * @brief  Gets the color space value of ImageInfo.
+    /**
+     * @brief Gets the color space value of ImageInfo.
      */
     std::shared_ptr<ColorSpace> GetColorSpace() const
     {
         return colorSpace_;
     }
 
-    /*
-     * @brief  Returns number of bytes per pixel.
+    /**
+     * @brief Returns number of bytes per pixel.
      */
     int32_t GetBytesPerPixel() const
     {
@@ -102,48 +102,48 @@ public:
         }
     }
 
-    /*
-     * @brief  Sets the width value of ImageInfo.
+    /**
+     * @brief Sets the width value of ImageInfo.
      */
     void SetWidth(int width)
     {
         width_ = width;
     }
 
-    /*
-     * @brief  Sets the height value of ImageInfo.
+    /**
+     * @brief Sets the height value of ImageInfo.
      */
     void SetHeight(int height)
     {
         height_ = height;
     }
 
-    /*
-     * @brief  Sets the color type value of ImageInfo.
+    /**
+     * @brief Sets the color type value of ImageInfo.
      */
     void SetColorType(ColorType colorType)
     {
         colorType_ = colorType;
     }
 
-    /*
-     * @brief  Sets the alpha type value of ImageInfo.
+    /**
+     * @brief Sets the alpha type value of ImageInfo.
      */
     void SetAlphaType(AlphaType alphaType)
     {
         alphaType_ = alphaType;
     }
 
-    /*
-     * @brief  Sets the color space value of ImageInfo.
+    /**
+     * @brief Sets the color space value of ImageInfo.
      */
     void SetColorSpace(std::shared_ptr<ColorSpace> colorSpace)
     {
         colorSpace_ = colorSpace;
     }
 
-    /*
-     * @brief  Gets the bounds of ImageInfo.
+    /**
+     * @brief Gets the bounds of ImageInfo.
      */
     RectI GetBound() const
     {

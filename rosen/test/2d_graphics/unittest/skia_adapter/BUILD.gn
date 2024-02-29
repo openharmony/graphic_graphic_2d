@@ -40,6 +40,12 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "skia_pixmap_test.cpp",
     "skia_region_test.cpp",
     "skia_shader_effect_test.cpp",
+    "skia_surface_test.cpp",
+    "skia_text_blob_test.cpp",
+    "skia_texture_info_test.cpp",
+    "skia_trace_memory_dump_test.cpp",
+    "skia_typeface_test.cpp",
+    "skia_vertices_test.cpp",
   ]
 
   include_dirs = [
@@ -55,7 +61,10 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "image_framework:image_native",
+  ]
 
   include_dirs += [
     "//third_party/skia",

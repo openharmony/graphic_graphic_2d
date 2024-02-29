@@ -36,7 +36,7 @@ public:
         DEFERRED
     };
 
-    /*
+    /**
      * @brief   Creates a DrawCmdList with contiguous buffers.
      * @param   data    A contiguous buffers.
      * @detail  Called only by Unmarshalling-Thread, the default mode is DEFERRED since all DrawOp store in vector
@@ -96,7 +96,7 @@ public:
      */
     bool AddDrawOp(std::shared_ptr<DrawOpItem>&& drawOpItem);
 
-    /*
+    /**
      * @brief   Clear DrawOpItem in contiguous buffer, draw op vector, and other resource associated with draw op
      */
     void ClearOp();
@@ -122,33 +122,33 @@ public:
      */
     void UnmarshallingDrawOps();
 
-    /*
+    /**
      * @brief   Draw cmd is empty or not.
      */
     bool IsEmpty() const;
 
-    /*
+    /**
      * @brief         Calls the corresponding operations of all opitems in DrawCmdList to the canvas.
      * @param canvas  Implements the playback action of the DrawCmdList in the Canvas.
      */
     void Playback(Canvas& canvas, const Rect* rect = nullptr);
 
-    /*
+    /**
      * @brief  Gets the width of the DrawCmdList.
      */
     int32_t GetWidth() const;
 
-    /*
+    /**
      * @brief  Gets the height of the DrawCmdList.
      */
     int32_t GetHeight() const;
 
-    /*
+    /**
      * @brief  Sets the width of the DrawCmdList.
      */
     void SetWidth(int32_t width);
 
-    /*
+    /**
      * @brief  Sets the height of the DrawCmdList.
      */
     void SetHeight(int32_t height);

@@ -713,7 +713,7 @@ HWTEST_F(PenTest, OverrideNotEquals002, TestSize.Level1)
 {
     Pen pen1 = Pen(128);
     Pen pen2 = Pen(0);
-    EXPECT_TRUE(pen1 != pen1);
+    EXPECT_TRUE(pen1 != pen2);
 }
 } // namespace Drawing
 } // namespace Rosen

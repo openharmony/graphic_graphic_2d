@@ -111,6 +111,7 @@ ohos_shared_library("surface") {
   if (graphic_2d_feature_drivers_interface_display_enable) {
     external_deps += [
       "drivers_interface_display:display_buffer_idl_headers",
+      "drivers_interface_display:display_commontype_idl_headers",
       "drivers_interface_display:display_commontype_idl_headers_1.1",
       "drivers_interface_display:libdisplay_buffer_hdi_impl_v1_1",
     ]

@@ -171,9 +171,20 @@ Path SkiaStaticFactory::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBl
     return SkiaTextBlob::GetDrawingPathforTextBlob(glyphId, blob);
 }
 
+void SkiaStaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
+{
+    return SkiaTextBlob::GetDrawingPointsForTextBlob(blob, points);
+}
+
 std::shared_ptr<DrawingSymbolLayersGroups> SkiaStaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
 {
     return SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(glyphId);
+}
+
+std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaStaticFactory::GetGroupParameters(
+    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+{
+    return SkiaHmSymbolConfigOhos::GetGroupParameters(type, subType, animationMode);
 }
 
 FontStyleSet* SkiaStaticFactory::CreateEmpty()

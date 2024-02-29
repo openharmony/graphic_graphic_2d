@@ -51,38 +51,39 @@ struct GPUResourceTag {
     uint32_t fFid;
 };
 
-/*
- * @brief  Option to create a GPUContext. Currently only supports setting persistent cache,
-           other options may be expanded in the future
+/**
+ * @brief Option to create a GPUContext. Currently only supports setting persistent cache,
+ * other options may be expanded in the future
  */
 class DRAWING_API GPUContextOptions {
 public:
-    /*
-     * @brief  Cache compiled shaders for use between sessions.
+    /**
+     * @brief Cache compiled shaders for use between sessions.
      */
     class PersistentCache {
     public:
         PersistentCache() = default;
         virtual ~PersistentCache() = default;
 
-        /*
-         * @brief  Returns the data for the key if it exists in the cache.
+        /**
+         * @brief Returns the data for the key if it exists in the cache.
          */
         virtual std::shared_ptr<Data> Load(const Data& key) = 0;
 
-        /*
-         * @brief  Stores the data and key.
+        /**
+         * @brief Stores the data and key.
          */
         virtual void Store(const Data& key, const Data& data) = 0;
     };
 
-    /*
-     * @brief  Gets persistent cache object.
+    /**
+     * @brief Gets persistent cache object.
      */
     PersistentCache* GetPersistentCache() const;
-    /*
-     * @brief                  Sets persistent cache object.
-     * @param persistentCache  A pointer to persistent cache object.
+
+    /**
+     * @brief Sets persistent cache object.
+     * @param persistentCache A pointer to persistent cache object.
      */
     void SetPersistentCache(PersistentCache* persistentCache);
 

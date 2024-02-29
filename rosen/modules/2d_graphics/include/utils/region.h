@@ -42,62 +42,62 @@ public:
         return DrawingType::COMMON;
     }
 
-    /*
-     * @brief        Constructs a rectangular Region matching the bounds of rect.
-     * @param rectI  Bounds of constructed Region.
-     * @return       If rectI is empty, constructs empty and returns false.
+    /**
+     * @brief Constructs a rectangular Region matching the bounds of rect.
+     * @param rectI Bounds of constructed Region.
+     * @return If rectI is empty, constructs empty and returns false.
      */
     virtual bool SetRect(const RectI& rectI);
 
-    /*
-     * @brief        Constructs Region to match outline of path within clip.
-     * @param &path  Providing outline.
-     * @param &clip  Containing path.
-     * @return       Return true if constructed Region is not empty.
+    /**
+     * @brief Constructs Region to match outline of path within clip.
+     * @param path Providing outline.
+     * @param clip Containing path.
+     * @return Return true if constructed Region is not empty.
      */
     virtual bool SetPath(const Path& path, const Region& clip);
 
-    /*
-     * @brief       Appends outline of Region to path.
-     * @param path  Path to append to.
-     * @return      Return true if path changed.
+    /**
+     * @brief Appends outline of Region to path.
+     * @param path Path to append to.
+     * @return Return true if path changed.
      */
     bool GetBoundaryPath(Path* path) const;
 
-    /*
-     * @brief         Determines whether it intersects other.
-     * @param &other  Other Region object.
-     * @return        If true indicates that other and Region have area in common.
+    /**
+     * @brief Determines whether it intersects other.
+     * @param other Other Region object.
+     * @return If true indicates that other and Region have area in common.
      */
     bool IsIntersects(const Region& other) const;
 
-    /*
-     * @brief         Determines whether Region is empty.
-     * @return        If true indicates that bounds has no width or height.
+    /**
+     * @brief Determines whether Region is empty.
+     * @return If true indicates that bounds has no width or height.
      */
     bool IsEmpty() const;
 
-    /*
-     * @brief         Determines whether Region is one Rect with positive dimensions.
-     * @return        If true indicates that Region contains one Rect.
+    /**
+     * @brief Determines whether Region is one Rect with positive dimensions.
+     * @return If true indicates that Region contains one Rect.
      */
     bool IsRect() const;
 
-    /*
-     * @brief          Replaces Region with the result of Region op region.
-     * @param &region  Operand.
-     * @param op       Operation type.
-     * @return         Returns true if replaced Region is not empty.
+    /**
+     * @brief Replaces Region with the result of Region op region.
+     * @param region Operand.
+     * @param op     Operation type.
+     * @return Returns true if replaced Region is not empty.
      */
     virtual bool Op(const Region& region, RegionOp op);
 
-    /*
-     * @brief   Get the adaptation layer instance, called in the adaptation layer.
-     * @return  Adaptation Layer instance.
-     */
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
 
+    /**
+     * @brief Get the adaptation layer instance, called in the adaptation layer.
+     * @return Adaptation Layer instance.
+     */
     template<typename T>
     T* GetImpl() const
     {

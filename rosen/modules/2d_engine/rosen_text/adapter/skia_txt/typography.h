@@ -41,6 +41,7 @@ public:
     int GetLineCount() const override;
 
     void SetIndents(const std::vector<float>& indents) override;
+    float DetectIndents(size_t index) override;
     void Layout(double width) override;
     void Paint(SkCanvas *canvas, double x, double y) override;
     void Paint(Drawing::Canvas *drawCanvas, double x, double y) override;
@@ -57,7 +58,10 @@ public:
         std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
     ) override;
     Drawing::FontMetrics MeasureText() override;
-
+    bool GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics) override;
+    std::vector<LineMetrics> GetLineMetrics() override;
+    bool GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics) override;
+    Drawing::FontMetrics GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle) override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
 };

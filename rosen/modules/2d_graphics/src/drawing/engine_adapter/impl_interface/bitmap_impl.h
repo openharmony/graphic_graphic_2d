@@ -64,6 +64,7 @@ public:
     virtual bool TryAllocPixels(const ImageInfo& info) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
+    virtual ImageInfo GetImageInfo() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

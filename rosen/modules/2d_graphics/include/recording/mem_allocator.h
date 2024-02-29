@@ -31,21 +31,21 @@ public:
     MemAllocator();
     ~MemAllocator();
 
-    /*
+    /**
      * @brief       Creates a read-only memory allocator form a read-only buffer that will not be freed when destroyed.
      * @param data  A read-only buffer.
      * @param size  The size of a read-only buffer.
      */
     bool BuildFromData(const void* data, size_t size);
 
-    /*
+    /**
      * @brief       Creates a memory allocator by copying the specified data.
      * @param data  A read-only buffer.
      * @param size  The size of a read-only buffer.
      */
     bool BuildFromDataWithCopy(const void* data, size_t size);
 
-    /*
+    /**
      * @brief   Creates an object of T from a contiguous buffer in the memory allocator.
      * @return  The pointer to an object of T.
      */
@@ -71,33 +71,33 @@ public:
         return obj;
     }
 
-    /*
-     * @brief       Copies a read-only buffer into contiguous memory held by the memory allocator.
-     * @param data  A ready-only buffer.
-     * @param size  The size of ready-only buffer.
+    /**
+     * @brief Copies a read-only buffer into contiguous memory held by the memory allocator.
+     * @param data A ready-only buffer.
+     * @param size The size of ready-only buffer.
      */
     void* Add(const void* data, size_t size);
 
-    /*
-     * @brief   Gets the size of the contiguous memory buffer held by MemAllocator.
+    /**
+     * @brief Gets the size of the contiguous memory buffer held by MemAllocator.
      */
     size_t GetSize() const;
 
-    /*
-     * @brief   Gets the address of the contiguous memory buffer held by MemAllocator.
+    /**
+     * @brief Gets the address of the contiguous memory buffer held by MemAllocator.
      */
     const void* GetData() const;
 
-    /*
-     * @brief       Gets the offset from the contiguous memory buffer header pointer
-                    held by the MemAllocator based on the addr.
-     * @param addr  To get the offset from the header pointer.
+    /**
+     * @brief Gets the offset from the contiguous memory buffer header pointer
+     * held by the MemAllocator based on the addr.
+     * @param addr To get the offset from the header pointer.
      */
     uint32_t AddrToOffset(const void* addr) const;
 
-    /*
-     * @brief         Gets the address of the contiguous memory buffer held by the memory allocator from the offset.
-     * @param offset  To get the address of the offset.
+    /**
+     * @brief Gets the address of the contiguous memory buffer held by the memory allocator from the offset.
+     * @param offset To get the address of the offset.
      */
     void* OffsetToAddr(size_t offset) const;
 

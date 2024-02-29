@@ -26,6 +26,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class JsTypeface final {
 public:
+    static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC_Regular.ttf";
+
     explicit JsTypeface(std::shared_ptr<Typeface> typeface) : m_typeface(typeface) {};
     ~JsTypeface();
 
@@ -35,6 +37,9 @@ public:
     static napi_value CreateJsTypeface(napi_env env, const std::shared_ptr<Typeface> typeface);
 
     static napi_value GetFamilyName(napi_env env, napi_callback_info info);
+
+    // Default typeface does not support chinese characters, needs to load chinese character ttf file.
+    static std::shared_ptr<Typeface> LoadZhCnTypeface();
 
     std::shared_ptr<Typeface> GetTypeface();
 

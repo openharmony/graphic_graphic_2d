@@ -44,13 +44,13 @@ public:
         uint32_t*  clusters;
     };
 
-    /*
+    /**
      * @brief   Make textBlob by textBlobBuilder.
      * @return  A shared point to textBlob.
      */
     std::shared_ptr<TextBlob> Make();
 
-    /*
+    /**
      * @brief         Alloc run with storage for glyphs and point positions.
      * @param font    Font used for this run
      * @param count   Number of glyphs

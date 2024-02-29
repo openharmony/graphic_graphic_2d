@@ -139,6 +139,17 @@ uint32_t OH_Drawing_BitmapGetHeight(OH_Drawing_Bitmap*);
  */
 void* OH_Drawing_BitmapGetPixels(OH_Drawing_Bitmap*);
 
+/**
+ * @brief Gets the image info.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @param OH_Drawing_Image_Info Indicates the pointer to an <b>OH_Drawing_Image_Info</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_BitmapGetImageInfo(OH_Drawing_Bitmap*, OH_Drawing_Image_Info*);
+
 #ifdef __cplusplus
 }
 #endif

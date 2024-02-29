@@ -401,6 +401,82 @@ HWTEST_F(MatrixTest, MatrixMapRectTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MatrixSetPolyToPolyTest001
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(MatrixTest, MatrixSetPolyToPolyTest001, TestSize.Level1)
+{
+    std::unique_ptr<Matrix> matrix = std::make_unique<Matrix>();
+    ASSERT_TRUE(matrix != nullptr);
+    matrix->SetMatrix(
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    ASSERT_TRUE(matrix != nullptr);
+    Point src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
+    Point dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
+    EXPECT_TRUE(matrix->SetPolyToPoly(src, dst, 0));
+}
+
+/**
+ * @tc.name: MatrixSetPolyToPolyTest002
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(MatrixTest, MatrixSetPolyToPolyTest002, TestSize.Level1)
+{
+    std::unique_ptr<Matrix> matrix = std::make_unique<Matrix>();
+    matrix->SetMatrix(
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    ASSERT_TRUE(matrix != nullptr);
+    Point src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
+    Point dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
+    EXPECT_TRUE(matrix->SetPolyToPoly(src, dst, 1));
+}
+
+/**
+ * @tc.name: MatrixSetPolyToPolyTest003
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(MatrixTest, MatrixSetPolyToPolyTest003, TestSize.Level1)
+{
+    std::unique_ptr<Matrix> matrix = std::make_unique<Matrix>();
+    matrix->SetMatrix(
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    ASSERT_TRUE(matrix != nullptr);
+    Point src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
+    Point dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
+    EXPECT_TRUE(matrix->SetPolyToPoly(src, dst, 4));
+}
+
+/**
+ * @tc.name: MatrixSetPolyToPolyTest004
+ * @tc.desc: test for set poly to poly of Matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(MatrixTest, MatrixSetPolyToPolyTest004, TestSize.Level1)
+{
+    std::unique_ptr<Matrix> matrix = std::make_unique<Matrix>();
+    matrix->SetMatrix(
+        1, 0, 0,
+        0, -1, 0,
+        0, 0, 1);
+    ASSERT_TRUE(matrix != nullptr);
+    Point src[] = {{0, 0}, {100, 0}, {100, 100}, {0, 100}, {0, 100}};
+    Point dst[] = {{0, 0}, {100, 30}, {100, 70}, {0, 100}, {0, 100}};
+    EXPECT_FALSE(matrix->SetPolyToPoly(src, dst, 5));
+}
+/**
  * @tc.name: MatrixSetTest001
  * @tc.desc: test for seting Matrix value.
  * @tc.type: FUNC

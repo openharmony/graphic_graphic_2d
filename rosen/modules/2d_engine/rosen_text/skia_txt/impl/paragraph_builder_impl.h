@@ -36,6 +36,8 @@ public:
     void AddPlaceholder(PlaceholderRun& span) override;
     std::unique_ptr<Paragraph> Build() override;
 
+    static skia::textlayout::TextStyle ConvertTextStyleToSkStyle(const TextStyle& txt);
+
 private:
     skia::textlayout::ParagraphPainter::PaintID AllocPaintID(const PaintRecord& paint);
     skia::textlayout::ParagraphStyle TextStyleToSkStyle(const ParagraphStyle& txt);

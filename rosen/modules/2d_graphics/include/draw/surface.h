@@ -60,22 +60,24 @@ public:
     Surface();
     ~Surface() {}
 
-    /*
+    /**
      * @brief         Bind raster Surface.
      * @param bitmap  Raster pixel array.
      */
     bool Bind(const Bitmap& bitmap);
 
 #ifdef ACE_ENABLE_GPU
-    /*
+    /**
      * @brief         Bind GPU texture Surface.
      * @param image   In GPU memory as a GPU texture.
+     * @return        true if Bind success.
      */
     bool Bind(const Image& image);
 
-    /*
+    /**
      * @brief       Bind
      * @param info  FrameBuffer object info.
+     * @return      true if Bind success.
      */
     bool Bind(const FrameBuffer& frameBuffer);
 
@@ -88,81 +90,86 @@ public:
         std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
 
-    /*
+    /**
      * @brief              Create Surface from gpuContext and imageInfo.
      * @param gpuContext   GPU texture.
      * @param budgeted     Texture count.
      * @param imageInfo    image Info.
-     * @return             A shared point to Surface.
+     * @return             A shared pointer to Surface.
      */
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
 #endif
 
-    /*
+    /**
      * @brief              Allocates raster Surface.
      * @param imageInfo    image info.
-     * @return             A shared point to Surface.
+     * @return             A shared pointer to Surface.
      */
     static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
 
-    /*
+    /**
      * @brief              Allocates raster direct Surface.
      * @param imageInfo    image info.
      * @param pixels       Pointer to destination pixels buffer.
      * @param rowBytes     Interval from one Surface row to the next.
-     * @return             A shared point to Surface.
+     * @return             A shared pointer to Surface.
      */
     static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);
 
-    /*
+    /**
      * @brief          Create Surface using width and height.
      * @param width    Pixel column count.
      * @param height   Pixel row count.
-     * @return         A shared point to Surface.
+     * @return         A shared pointer to Surface.
      */
     static std::shared_ptr<Surface> MakeRasterN32Premul(int32_t width, int32_t height);
 
-    /*
+    /**
      * @brief   Gets Canvas that draws into Surface.
      */
     std::shared_ptr<Canvas> GetCanvas();
 
-    /*
+    /**
      * @brief   Gets Image capturing Surface contents.
+     * @return  A shared pointer to Image
      */
     std::shared_ptr<Image> GetImageSnapshot() const;
 
-    /*
+    /**
      * @brief         Gets Image capturing Surface contents.
      * @param bounds  Bounds.
      *                If bounds extends beyond the Surface, it will be trimmed to just the intersection of it
      *                and the Surface.
      *                If bounds does not intersect the surface, then this returns nullptr.
      *                If bounds == the surface, then this is the same as calling the no-parameter variant.
+     * @return        A shared pointer to Image
      */
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const;
 
-    /*
-     * @brief   Returns a compatible Surface, with the specified widht and height
+    /**
+     * @brief   Returns a compatible Surface, with the specified widht and height.
+     * @return  A shared pointer to Surface
      */
     std::shared_ptr<Surface> MakeSurface(int width, int height) const;
 
-    /*
-     * @brief   Gets ImageInfo of Surface
+    /**
+     * @brief   Gets ImageInfo of Surface.
+     * @return  ImageInfo
      */
     ImageInfo GetImageInfo();
 
-    /*
-     * @brief   Gets BackendTexture of Surface
+    /**
+     * @brief   Gets BackendTexture of Surface.
+     * @return  BackendTexture
      */
     BackendTexture GetBackendTexture(BackendAccess access = BackendAccess::FLUSH_READ) const;
 
-    /*
+    /**
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
      */
     void FlushAndSubmit(bool syncCpu = false);
 
-    /*
+    /**
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
      */
     void Flush(FlushInfo *drawingflushInfo = nullptr);

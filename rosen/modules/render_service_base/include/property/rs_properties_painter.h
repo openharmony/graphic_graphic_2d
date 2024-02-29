@@ -74,6 +74,7 @@ public:
 
     static void BeginBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties);
     static void EndBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties);
+    static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
 
 #ifndef USE_ROSEN_DRAWING
     static void Clip(SkCanvas& canvas, RectF rect, bool isAntiAlias = true);

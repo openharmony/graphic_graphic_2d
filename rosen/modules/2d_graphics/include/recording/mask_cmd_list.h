@@ -35,13 +35,13 @@ public:
         return Type::MASK_CMD_LIST;
     }
 
-    /*
+    /**
      * @brief       Creates a PathCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
     static std::shared_ptr<MaskCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
-    /*
+    /**
      * @brief  Calls the corresponding operations of all opitems in MaskCmdList to the mask.
      */
     bool Playback(std::shared_ptr<Path>& path, Brush& brush) const;
@@ -50,7 +50,7 @@ public:
 };
 
 /* OpItem */
-/*
+/**
  * @brief  Helper class for mask playback.
  *         Contains the playback context and a static mapping table: { OpItemType， OpItemPlaybackFunc }.
  */
@@ -60,7 +60,7 @@ public:
     MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, Pen& pen, const CmdList& cmdList);
     ~MaskPlayer() = default;
 
-    /*
+    /**
      * @brief  Obtain the corresponding func according to the type lookup mapping table
      *         and then invoke the func to plays opItem back to mask which in context.
      */

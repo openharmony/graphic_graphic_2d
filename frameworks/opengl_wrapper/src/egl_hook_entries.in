@@ -228,3 +228,7 @@ CALL_HOOK_API_RET(eglSetDamageRegionKHR, dpy, surface, rects, n_rects)
 /* EglDupNativeFenceFDANDROID */
 HOOK_API_ENTRY(EGLint, eglDupNativeFenceFDANDROID, EGLDisplay dpy, EGLSync sync)
 CALL_HOOK_API_RET(eglDupNativeFenceFDANDROID, dpy, sync)
+
+/* EglSetBlobCacheFuncsANDROID */
+HOOK_API_ENTRY(void, eglSetBlobCacheFuncsANDROID, EGLDisplay dpy, EGLSetBlobFuncANDROID set, EGLGetBlobFuncANDROID get)
+CALL_HOOK_API(eglSetBlobCacheFuncsANDROID, dpy, set, get)

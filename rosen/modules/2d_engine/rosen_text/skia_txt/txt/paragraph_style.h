@@ -55,7 +55,6 @@ public:
     bool strutHalfLeading = false;
     double strutLeading = -1;
     bool forceStrutHeight = false;
-
     TextAlign textAlign = TextAlign::START;
     TextDirection textDirection = TextDirection::LTR;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
@@ -63,6 +62,9 @@ public:
     std::u16string ellipsis = u"\u2026";
     std::string locale;
     float textSplitRatio = 0.5;
+    bool textOverflower = false;
+    TextStyle spTextStyle;
+    bool customSpTextStyle = false;
 };
 } // namespace SPText
 } // namespace Rosen

@@ -32,14 +32,14 @@ public:
     explicit FontStyleSet(std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl) noexcept;
     virtual ~FontStyleSet() = default;
 
-    /*
+    /**
      * @brief        Create a typeface for the given index.
      * @param index  The index of the typeface in this fontStyleSet.
      * @return       If successful, return typeface. else, return nullptr.
      */
     Typeface* CreateTypeface(int index);
 
-    /*
+    /**
      * @brief            Get font style for the specified typeface.
      * @param index      The index of the typeface in this fontStyleSet.
      * @param fontStyle  The font style returned to the caller.
@@ -47,14 +47,14 @@ public:
      */
     void GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName);
 
-    /*
+    /**
      * @brief        Get the closest matching typeface.
      * @param index  The font style to be matching.
      * @return       A pointer to matched typeface.
      */
     Typeface* MatchStyle(const FontStyle& pattern);
 
-    /*
+    /**
      * @brief   Get the count of typeface.
      * @return  The count of typeface in this font style set.
      */

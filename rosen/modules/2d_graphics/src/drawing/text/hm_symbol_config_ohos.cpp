@@ -25,6 +25,12 @@ std::shared_ptr<DrawingSymbolLayersGroups> HmSymbolConfigOhos::GetSymbolLayersGr
     return StaticFactory::GetSymbolLayersGroups(glyphId);
 }
 
+std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> HmSymbolConfigOhos::GetGroupParameters(
+    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+{
+    return StaticFactory::GetGroupParameters(type, subType, animationMode);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

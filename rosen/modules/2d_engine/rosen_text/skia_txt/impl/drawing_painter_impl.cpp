@@ -81,6 +81,17 @@ RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, cons
     : canvas_(canvas), paints_(paints)
 {}
 
+#ifndef USE_ROSEN_DRAWING
+void RSCanvasParagraphPainter::drawTextBlob(const sk_sp<SkTextBlob>& blob, SkScalar x, SkScalar y,
+    const SkPaintOrID& paint)
+{
+}
+
+void RSCanvasParagraphPainter::drawTextShadow(const sk_sp<SkTextBlob>& blob, SkScalar x, SkScalar y,
+    SkColor color, SkScalar blurSigma)
+{
+}
+#else
 void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint& offset,
     const PaintRecord &pr)
 {
@@ -111,45 +122,42 @@ void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint
     }
 }
 
-void RSCanvasParagraphPainter::drawTextBlob(
-    const sk_sp<SkTextBlob>& blob, SkScalar x, SkScalar y, const SkPaintOrID& paint)
+void RSCanvasParagraphPainter::drawTextBlob(const std::shared_ptr<RSTextBlob>& blob, SkScalar x, SkScalar y,
+    const SkPaintOrID& paint)
 {
     SkASSERT(!std::holds_alternative<SkPaint>(paint));
     const PaintRecord& pr = paints_[std::get<PaintID>(paint)];
 
-    auto textBlobImpl = std::make_shared<Drawing::SkiaTextBlob>(blob);
-    auto textBlob = std::make_shared<Drawing::TextBlob>(textBlobImpl);
-
     if (pr.isSymbolGlyph && G_IS_HM_SYMBOL_TXT_ENABLE) {
-        std::vector<SkPoint> points;
-        GetPointsForTextBlob(blob.get(), points);
+        std::vector<RSPoint> points;
+        RSTextBlob::GetDrawingPointsForTextBlob(blob.get(), points);
         RSPoint offset;
         if (points.size() > 0) {
-            offset = RSPoint{ x + points[0].x(), y + points[0].y() };
+            offset = RSPoint{ x + points[0].GetX(), y + points[0].GetY() };
         } else {
             offset = RSPoint{ x, y };
         }
-        DrawSymbolSkiaTxt(textBlob.get(), offset, pr);
+        DrawSymbolSkiaTxt(blob.get(), offset, pr);
     } else if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
-        canvas_->DrawTextBlob(textBlob.get(), x, y);
+        canvas_->DrawTextBlob(blob.get(), x, y);
         canvas_->DetachPen();
         canvas_->AttachBrush(pr.brush.value());
-        canvas_->DrawTextBlob(textBlob.get(), x, y);
+        canvas_->DrawTextBlob(blob.get(), x, y);
         canvas_->DetachBrush();
     } else if (pr.pen.has_value() && !pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
-        canvas_->DrawTextBlob(textBlob.get(), x, y);
+        canvas_->DrawTextBlob(blob.get(), x, y);
         canvas_->DetachPen();
     } else if (!pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
-        canvas_->DrawTextBlob(textBlob.get(), x, y);
+        canvas_->DrawTextBlob(blob.get(), x, y);
         canvas_->DetachBrush();
     } else {
         Drawing::Brush brush;
         brush.SetColor(pr.color);
         canvas_->AttachBrush(brush);
-        canvas_->DrawTextBlob(textBlob.get(), x, y);
+        canvas_->DrawTextBlob(blob.get(), x, y);
         canvas_->DetachBrush();
     }
 }
@@ -167,8 +175,8 @@ void RSCanvasParagraphPainter::SymbolAnimation(const PaintRecord &pr)
     }
 }
 
-void RSCanvasParagraphPainter::drawTextShadow(
-    const sk_sp<SkTextBlob>& blob, SkScalar x, SkScalar y, SkColor color, SkScalar blurSigma)
+void RSCanvasParagraphPainter::drawTextShadow(const std::shared_ptr<RSTextBlob>& blob, SkScalar x, SkScalar y,
+    SkColor color, SkScalar blurSigma)
 {
     Drawing::Filter filter;
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, blurSigma, false));
@@ -178,13 +186,11 @@ void RSCanvasParagraphPainter::drawTextShadow(
     brush.SetAntiAlias(true);
     brush.SetFilter(filter);
 
-    auto textBlobImpl = std::make_shared<Drawing::SkiaTextBlob>(blob);
-    auto textBlob = std::make_shared<Drawing::TextBlob>(textBlobImpl);
-
     canvas_->AttachBrush(brush);
-    canvas_->DrawTextBlob(textBlob.get(), x, y);
+    canvas_->DrawTextBlob(blob.get(), x, y);
     canvas_->DetachBrush();
 }
+#endif
 
 void RSCanvasParagraphPainter::drawRect(const SkRect& rect, const SkPaintOrID& paint)
 {
@@ -225,16 +231,20 @@ void RSCanvasParagraphPainter::drawFilledRect(const SkRect& rect, const Decorati
     canvas_->DetachPaint();
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSCanvasParagraphPainter::drawPath(const SkPath& path, const DecorationStyle& decorStyle)
 {
+}
+#else
+void RSCanvasParagraphPainter::drawPath(const RSPath& path, const DecorationStyle& decorStyle)
+{
     Drawing::Paint paint = ConvertDecorStyle(decorStyle);
-    Drawing::Path rsPath;
-    rsPath.GetImpl<Drawing::SkiaPath>()->SetPath(path);
 
     canvas_->AttachPaint(paint);
-    canvas_->DrawPath(rsPath);
+    canvas_->DrawPath(path);
     canvas_->DetachPaint();
 }
+#endif
 
 void RSCanvasParagraphPainter::drawLine(
     SkScalar x0, SkScalar y0, SkScalar x1, SkScalar y1, const DecorationStyle& decorStyle)

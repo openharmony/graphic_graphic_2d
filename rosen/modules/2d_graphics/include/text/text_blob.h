@@ -43,13 +43,13 @@ public:
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
         const RSXform xform[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
 
-    /*
+    /**
      * @brief   Serialize TextBlob.
      * @return  A shared point to serialized data.
      */
     std::shared_ptr<Data> Serialize() const;
 
-    /*
+    /**
      * @brief       Deserialize TextBlob.
      * @param data  Serialized data.
      * @param size  Data size.
@@ -58,6 +58,7 @@ public:
     static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
+    static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
 
     template<typename T>
     T* GetImpl() const

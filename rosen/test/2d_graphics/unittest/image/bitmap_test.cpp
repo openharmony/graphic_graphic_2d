@@ -363,6 +363,27 @@ HWTEST_F(BitmapTest, BitmapGetFormatTest002, TestSize.Level1)
     ASSERT_EQ(AlphaType::ALPHATYPE_OPAQUE, bitmap->GetFormat().alphaType);
     bitmap->Free();
 }
+
+/*
+ * @tc.name: BitmapGetImageInfoTest001
+ * @tc.desc: test for bitmap GetImageInfo.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(BitmapTest, BitmapGetImageInfoTest001, TestSize.Level1)
+{
+    std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
+    ASSERT_TRUE(bitmap != nullptr);
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
+    const unsigned int width = 500;
+    const unsigned int height = 500;
+    bitmap->Build(width, height, bitmapFormat);
+
+    auto imageInfo = bitmap->GetImageInfo();
+    EXPECT_EQ(width, imageInfo.GetWidth());
+    EXPECT_EQ(height, imageInfo.GetHeight());
+    bitmap->Free();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

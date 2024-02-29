@@ -75,6 +75,11 @@ Path TextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob)
     return StaticFactory::GetDrawingPathforTextBlob(glyphId, blob);
 }
 
+void TextBlob::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
+{
+    return StaticFactory::GetDrawingPointsForTextBlob(blob, points);
+}
+
 std::shared_ptr<Rect> TextBlob::Bounds() const
 {
     if (textBlobImpl_) {

@@ -45,7 +45,16 @@ public:
         LIGHT_UP,
     };
 
+    /** 
+     * @brief Create a ShaderEffect that ignores the color in the paint, and uses the
+     * specified color. Note: like all shaders, at draw time the paint's alpha
+     * will be respected, and is applied to the specified color.
+     *
+     * @param color the specified color
+     * @return A shared pointer to ShaderEffect
+     */
     static std::shared_ptr<ShaderEffect> CreateColorShader(ColorQuad color);
+    
     static std::shared_ptr<ShaderEffect> CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode);
     static std::shared_ptr<ShaderEffect> CreateImageShader(
         const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling, const Matrix& matrix);

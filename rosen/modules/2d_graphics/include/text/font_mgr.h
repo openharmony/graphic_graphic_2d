@@ -32,20 +32,20 @@ public:
     explicit FontMgr(std::shared_ptr<FontMgrImpl> fontMgrImpl) noexcept;
     virtual ~FontMgr() = default;
 
-    /*
+    /**
      * @brief   Create a default fontMgr.
      * @return  A shared pointer to default fontMgr.
      */
     static std::shared_ptr<FontMgr> CreateDefaultFontMgr();
 
 #ifndef USE_TEXGINE
-    /*
+    /**
      * @brief   Create a dynamic fontMgr.
      * @return  A shared pointer to dynamic fontMgr.
      */
     static std::shared_ptr<FontMgr> CreateDynamicFontMgr();
 
-    /*
+    /**
      * @brief             Load dynamic font typeface.
      * @param familyName  Font family name.
      * @param data        Font data.
@@ -53,7 +53,7 @@ public:
      */
     void LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength);
 
-    /*
+    /**
      * @brief             Load theme font typeface.
      * @param familyName  Font family name.
      * @param themeName   Theme name.
@@ -64,7 +64,7 @@ public:
         const uint8_t* data, size_t dataLength);
 #endif
 
-    /*
+    /**
      * @brief             Use the system fallback to find a typeface for the given character.
      * @param familyName  A const char array of familyName.
      * @param fontStyle   FontStyle.
@@ -77,7 +77,7 @@ public:
                                         const char* bcp47[], int bcp47Count,
                                         int32_t character) const;
 
-    /*
+    /**
      * @brief             Find a fontStyleSet for the given familyName.
      * @param familyName  A const char array of familyName.
      * @return            If find, return fontStyleSet. else, return nullptr.
@@ -90,7 +90,8 @@ public:
         return fontMgrImpl_->DowncastingTo<T>();
     }
 
-    /* @brief             Find the corresponding font based on the style and font name
+    /**
+     * @brief             Find the corresponding font based on the style and font name
      * @param familyName  The name of the font you want to apply
      * @param fontStyle   The font style you want to achieve
      * @return            Returns the corresponding font

@@ -54,7 +54,17 @@ public:
     scalar GetSize() const override;
     std::shared_ptr<Typeface> GetTypeface() override;
 
-    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding) override;
+    FontEdging GetEdging() const override;
+    FontHinting GetHinting() const override;
+    scalar GetScaleX() const override;
+    scalar GetSkewX() const override;
+    bool IsSubpixel() const override;
+
+    uint16_t UnicharToGlyph(int32_t uni) const override;
+    int TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
+        uint16_t glyphs[], int maxGlyphCount) const override;
+
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) override;
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const override;
 
     const SkFont& GetFont() const;

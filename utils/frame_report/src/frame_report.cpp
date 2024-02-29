@@ -35,9 +35,9 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001404, 
 #define LOGD(...) (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, __VA_ARGS__)
 
 #if (defined(__aarch64__) || defined(__x86_64__))
-    const std::string FRAME_AWARE_SO_PATH = "/system/lib64/libframe_ui_intf.z.so";
+    const std::string FRAME_AWARE_SO_PATH = "/system/lib64/platformsdk/libframe_ui_intf.z.so";
 #else
-    const std::string FRAME_AWARE_SO_PATH = "/system/lib/libframe_ui_intf.z.so";
+    const std::string FRAME_AWARE_SO_PATH = "/system/lib/platformsdk/libframe_ui_intf.z.so";
 #endif
 
 constexpr int SCHEDULE_MSG_BUFFER_SIZE = 48;

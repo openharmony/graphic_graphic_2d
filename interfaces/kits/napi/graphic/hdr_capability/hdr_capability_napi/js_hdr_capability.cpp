@@ -29,7 +29,7 @@ void JsHdrCapability::Finalizer(napi_env env, void* data, void* hint)
 napi_value JsHdrCapabilityInit(napi_env env, napi_value exportObj)
 {
     if (env == nullptr || exportObj == nullptr) {
-        ROSEN_LOGE("[NAPI]JsHdrCapabilityInit engine or exportObj is nullptr");
+        HCLOGE("[NAPI]JsHdrCapabilityInit engine or exportObj is nullptr");
         return nullptr;
     }
 

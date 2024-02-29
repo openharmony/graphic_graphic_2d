@@ -86,7 +86,7 @@ public:
         return Type::CMD_LIST;
     }
 
-    /*
+    /**
      * @brief       Add OpItem to CmdList.
      * @param T     The name of OpItem class.
      * @param Args  Constructs arguments to the OpItem.
@@ -111,7 +111,7 @@ public:
         opCnt_++;
     }
 
-    /*
+    /**
      * @brief       Add a contiguous buffers to the CmdList.
      * @param src   A contiguous buffers.
      * @return      Returns the offset of the contiguous buffers and CmdList head point.
@@ -120,7 +120,7 @@ public:
 
     const void* GetCmdListData(uint32_t offset) const;
 
-    /*
+    /**
      * @brief   Gets the contiguous buffers of CmdList.
      */
     CmdListData GetData() const;

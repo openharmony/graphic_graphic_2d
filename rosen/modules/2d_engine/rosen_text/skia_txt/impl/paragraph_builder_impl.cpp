@@ -26,19 +26,29 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 namespace {
-SkFontStyle::Weight ConvertToSkFontWeight(FontWeight fontWeight)
+int ConvertToSkFontWeight(FontWeight fontWeight)
 {
     constexpr int weightBase = 100;
-    return static_cast<SkFontStyle::Weight>(static_cast<int>(fontWeight) * weightBase + weightBase);
+    return static_cast<int>(fontWeight) * weightBase + weightBase;
 }
 
-SkFontStyle MakeSkFontStyle(FontWeight fontWeight, FontStyle fontStyle)
+#ifndef USE_ROSEN_DRAWING
+SkFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
 {
     auto weight = ConvertToSkFontWeight(fontWeight);
     auto slant = fontStyle == FontStyle::NORMAL ?
         SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant;
     return SkFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
 }
+#else
+RSFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
+{
+    auto weight = ConvertToSkFontWeight(fontWeight);
+    auto slant = fontStyle == FontStyle::NORMAL ?
+        RSFontStyle::Slant::UPRIGHT_SLANT : RSFontStyle::Slant::ITALIC_SLANT;
+    return RSFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
+}
+#endif
 
 SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
 {
@@ -133,17 +143,22 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
 
     PaintRecord paint;
     paint.SetColor(textStyle.getColor());
-    textStyle.setForegroundPaintID(AllocPaintID(paint));
+    if (txt.customSpTextStyle) {
+        textStyle = this->TextStyleToSkStyle(txt.spTextStyle);
+    } else {
+        textStyle.setForegroundPaintID(AllocPaintID(paint));
+        textStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontStyle));
+        textStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
+        textStyle.setHeight(SkDoubleToScalar(txt.height));
+        textStyle.setHeightOverride(txt.heightOverride);
+        textStyle.setFontFamilies({ SkString(txt.fontFamily.c_str()) });
+        textStyle.setLocale(SkString(txt.locale.c_str()));
+    }
 
-    textStyle.setFontStyle(MakeSkFontStyle(txt.fontWeight, txt.fontStyle));
-    textStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
-    textStyle.setHeight(SkDoubleToScalar(txt.height));
-    textStyle.setHeightOverride(txt.heightOverride);
-    textStyle.setFontFamilies({ SkString(txt.fontFamily.c_str()) });
-    textStyle.setLocale(SkString(txt.locale.c_str()));
     skStyle.setTextStyle(textStyle);
+    skStyle.setTextOverflower(txt.textOverflower);
     skt::StrutStyle strutStyle;
-    strutStyle.setFontStyle(MakeSkFontStyle(txt.strutFontWeight, txt.strutFontStyle));
+    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontStyle));
     strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
     strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
     strutStyle.setHeightOverride(txt.strutHeightOverride);
@@ -177,6 +192,13 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
 
 skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
 {
+    auto skStyle = ConvertTextStyleToSkStyle(txt);
+    CopyTextStylePaint(txt, skStyle);
+    return skStyle;
+}
+
+skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& txt)
+{
     skt::TextStyle skStyle;
 
     skStyle.setColor(txt.color);
@@ -184,7 +206,7 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     skStyle.setDecorationColor(txt.decorationColor);
     skStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(txt.decorationStyle));
     skStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(txt.decorationThicknessMultiplier));
-    skStyle.setFontStyle(MakeSkFontStyle(txt.fontWeight, txt.fontStyle));
+    skStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontStyle));
     skStyle.setTextBaseline(static_cast<skt::TextBaseline>(txt.baseline));
 
     std::vector<SkString> fonts;
@@ -204,8 +226,6 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
         txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,
         txt.backgroundRect.leftBottomRadius });
-
-    CopyTextStylePaint(txt, skStyle);
 
     skStyle.resetFontFeatures();
     for (const auto& ff : txt.fontFeatures.GetFontFeatures()) {

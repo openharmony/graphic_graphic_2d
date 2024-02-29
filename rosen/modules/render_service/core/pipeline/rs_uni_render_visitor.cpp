@@ -86,7 +86,6 @@ constexpr int ROTATION_270 = 270;
 constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
-static const std::string BIGFLODER_BUNDLE_NAME = "SCBDesktop2";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
 static std::mutex cacheRenderNodeMapMutex;
@@ -377,7 +376,14 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     if (effectNode == nullptr || curSurfaceDirtyManager_ == nullptr) {
         return;
     }
-    effectNode->SetRotationChanged(curDisplayNode_->IsRotationChanged());
+    // set rotationChanged true when screen is rotating or folding/expanding screen.
+    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
+        effectNode->SetRotationChanged(true);
+        int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
+        effectNode->SetInvalidateTimesForRotation(invalidateTimes);
+    } else {
+        effectNode->SetRotationChanged(false);
+    }
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
@@ -700,7 +706,7 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
             return;
         }
 
-        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
+        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB && !IsHardwareComposerEnabled()) {
             newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
             RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorspace primaries %{public}d",
                     node.GetName().c_str(), colorSpaceInfo.primaries);
@@ -1829,14 +1835,17 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
-
     effectRegion_ = node.InitializeEffectRegion();
-    auto parentNode = node.GetParent().lock();
-    node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
-    if (curDisplayNode_->IsRotationChanged()) {
+    
+    // set rotationChanged true when screen is rotating or folding/expanding screen.
+    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
+        node.SetRotationChanged(true);
         int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
         node.SetInvalidateTimesForRotation(invalidateTimes);
+    } else {
+        node.SetRotationChanged(false);
     }
+    auto parentNode = node.GetParent().lock();
     node.SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);
 
@@ -2710,6 +2719,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
                 return;
             }
+            canvas_->SetDisableFilterCache(true);
             if (displayHasSecSurface_[mirrorNode->GetScreenId()]) {
 #ifndef USE_ROSEN_DRAWING
                 canvas_->clear(SK_ColorBLACK);
@@ -2718,6 +2728,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
                 processor_->PostProcess();
                 RS_LOGI("RSUniRenderVisitor::ProcessDisplayRenderNode, set canvas to black because of security layer.");
+                canvas_->SetDisableFilterCache(false);
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
@@ -2816,6 +2827,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->RestoreToCount(saveCount);
             }
 #endif
+            canvas_->SetDisableFilterCache(false);
         } else {
             mirrorNode->SetOriginScreenRotation(node.GetOriginScreenRotation());
             processor_->ProcessDisplaySurface(*mirrorNode);
@@ -2974,6 +2986,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifdef ENABLE_RECORDING_DCL
         tryCapture(node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
 #endif
+        StartOverDraw();
 
         int saveLayerCnt = 0;
 #ifndef USE_ROSEN_DRAWING
@@ -3229,9 +3242,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode  unpairedTransitionNodes_ is not empty.");
             ProcessUnpairedSharedTransitionNode();
         }
-        if (overdrawListener != nullptr) {
-            overdrawListener->Draw();
-        }
         DrawWatermarkIfNeed(node);
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
         if (isPartialRenderEnabled_) {
@@ -3301,6 +3311,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         }
 #endif
+        FinishOverDraw();
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
@@ -3556,38 +3567,11 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
     }
 #endif
 #endif
-    // if listenedCanvas is nullptr, that means disabled or listen failed
-    std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
-
-    if (RSOverdrawController::GetInstance().IsEnabled()) {
-        auto &oc = RSOverdrawController::GetInstance();
 #ifndef USE_ROSEN_DRAWING
-        listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
 #else
-        listenedCanvas = std::make_shared<RSListenedCanvas>(*drSurface.get());
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
 #endif
-        overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
-        if (overdrawListener == nullptr) {
-            overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
-        }
-
-        if (overdrawListener != nullptr) {
-            listenedCanvas->SetListener(overdrawListener);
-        } else {
-            // create listener failed
-            listenedCanvas = nullptr;
-        }
-    }
-
-    if (listenedCanvas != nullptr) {
-        canvas_ = listenedCanvas;
-    } else {
-#ifndef USE_ROSEN_DRAWING
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
-#else
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
-#endif
-    }
 }
 
 bool RSUniRenderVisitor::IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const
@@ -4022,18 +4006,20 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
         if (surfaceNode == nullptr) {
             continue;
         }
+        if (!surfaceNode->IsNodeDirty()) {
+            continue;
+        }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (surfaceDirtyManager == nullptr) {
             continue;
         }
         RectI surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
-
+        auto surfaceDirtyRegion = Occlusion::Region{Occlusion::Rect{surfaceDirtyRect}};
         if (surfaceNode->HasContainerWindow()) {
             // If a surface's dirty is intersect with container region (which can be considered transparent)
             // should be added to display dirty region.
             // Note: we use containerRegion rather transparentRegion to bypass inner corner dirty problem.
             auto containerRegion = surfaceNode->GetContainerRegion();
-            auto surfaceDirtyRegion = Occlusion::Region{Occlusion::Rect{surfaceDirtyRect}};
             auto containerDirtyRegion = containerRegion.And(surfaceDirtyRegion);
             if (!containerDirtyRegion.IsEmpty()) {
                 RS_LOGD("CalcDirtyDisplayRegion merge containerDirtyRegion %{public}s region %{public}s",
@@ -4042,28 +4028,22 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
                 const auto& rect = containerRegion.GetBoundRef();
                 displayDirtyManager->MergeDirtyRect(
                     RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
-            }
-        } else {
-            // warning: if a surfacenode has transparent region and opaque region, and its dirty pattern appears in
-            // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
-            // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
-            // which include transparent region but not counted in display dirtyregion)
-            if (!surfaceNode->IsNodeDirty()) {
                 continue;
             }
-            auto transparentRegion = surfaceNode->GetTransparentRegion();
-            Occlusion::Rect tmpRect = Occlusion::Rect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
-                surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
-            Occlusion::Region surfaceDirtyRegion { tmpRect };
-            Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
-            if (!transparentDirtyRegion.IsEmpty()) {
-                RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %{public}s region %{public}s",
-                    surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
-                const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
-                for (const auto& rect : rects) {
-                    displayDirtyManager->MergeDirtyRect(
-                        RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
-                }
+        }
+        // warning: if a surfacenode has transparent region and opaque region, and its dirty pattern appears in
+        // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
+        // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
+        // which include transparent region but not counted in display dirtyregion)
+        auto transparentRegion = surfaceNode->GetTransparentRegion();
+        Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
+        if (!transparentDirtyRegion.IsEmpty()) {
+            RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %{public}s region %{public}s",
+                surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
+            const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
+            for (const auto& rect : rects) {
+                displayDirtyManager->MergeDirtyRect(
+                    RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             }
         }
     }
@@ -4765,7 +4745,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f ||
                     backgroundTransparent || IsRosenWebHardwareDisabled(node, rotation) ||
-                    RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0) &&
+                    RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0 ||
+                    canvas_->GetBlendOffscreenLayerCnt() > 0) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
                 node.ResetHardwareForcedDisabledBySrcRect();
@@ -5178,12 +5159,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
 
     if (node.GetSharedTransitionParam().has_value()) {
-        // enable cache for sharingTrans on Desktop
-        auto mainThread = RSMainThread::Instance();
-        std::string bundleNameFocusNow = mainThread->GetFocusAppBundleName();
-        if (bundleNameFocusNow == BIGFLODER_BUNDLE_NAME) {
-            isTextNeedCached_ = true;
-        }
         // draw self and children in sandbox which will not be affected by parent's transition
         const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
         if (sandboxMatrix) {
@@ -5205,7 +5180,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     const auto& property = node.GetRenderProperties();
     if (property.IsSpherizeValid()) {
-        isTextNeedCached_ = false;
         DrawSpherize(node);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
         if (autoCacheEnable_) {
@@ -5213,11 +5187,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         }
 #endif
         return;
-    }
-    auto preType = canvas_->GetCacheType();
-    if (isTextNeedCached_) {
-        RS_OPTIONAL_TRACE_NAME_FMT("BigFloderCacheEnabled[%s]", BIGFLODER_BUNDLE_NAME.c_str());
-        canvas_->SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     }
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
         std::lock_guard<std::mutex> lock(drawingMutex_);
@@ -5247,8 +5216,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         }
 #endif
     notRunCheckAndSetNodeCacheType_ = false;
-    isTextNeedCached_ = false;
-    canvas_->SetCacheType(preType);
 #ifndef USE_ROSEN_DRAWING
     canvas_->restore();
 #else
@@ -5382,6 +5349,57 @@ void RSUniRenderVisitor::FinishOffscreenRender(bool isMirror)
     // restore current canvas and cleanup
     offscreenSurface_ = nullptr;
     canvas_ = std::move(canvasBackup_);
+}
+
+void RSUniRenderVisitor::StartOverDraw()
+{
+    if (!RSOverdrawController::GetInstance().IsEnabled()) {
+        return;
+    }
+    auto gpuContext = canvas_->GetGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: need gpu canvas");
+        return;
+    }
+
+    auto width = canvas_->GetWidth();
+    auto height = canvas_->GetHeight();
+    Drawing::ImageInfo info =
+        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+    if (!overdrawSurface_) {
+        RS_LOGE("RSUniRenderVisitor::StartOverDraw failed: surface is nullptr");
+        return;
+    }
+    overdrawCanvas_ = std::make_shared<Drawing::OverDrawCanvas>(overdrawSurface_->GetCanvas());
+    canvas_->AddCanvas(overdrawCanvas_.get());
+}
+
+void RSUniRenderVisitor::FinishOverDraw()
+{
+    if (!RSOverdrawController::GetInstance().IsEnabled()) {
+        return;
+    }
+    if (!overdrawSurface_) {
+        RS_LOGE("RSRenderThreadVisitor::FinishOverDraw overdrawSurface is nullptr");
+        return;
+    }
+    auto image = overdrawSurface_->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSRenderThreadVisitor::FinishOverDraw image is nullptr");
+        return;
+    }
+    Drawing::Brush brush;
+    auto overdrawColors = RSOverdrawController::GetInstance().GetColorArray();
+    auto colorFilter = Drawing::ColorFilter::CreateOverDrawColorFilter(overdrawColors.data());
+    Drawing::Filter filter;
+    filter.SetColorFilter(colorFilter);
+    brush.SetFilter(filter);
+    canvas_->AttachBrush(brush);
+    canvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    canvas_->DetachBrush();
+    overdrawSurface_ = nullptr;
+    overdrawCanvas_ = nullptr;
 }
 
 bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
@@ -5900,17 +5918,16 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate()
 
 bool RSUniRenderVisitor::IsOutOfScreenRegion(RectI rect)
 {
-    int32_t boundWidth = static_cast<int32_t>(screenInfo_.width);
-    int32_t boundHeight = static_cast<int32_t>(screenInfo_.height);
-    ScreenRotation rotation = screenInfo_.rotation;
-    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-        std::swap(boundWidth, boundHeight);
+    if (!canvas_) {
+        return false;
     }
 
-    if (rect.GetRight() <= 0 ||
-        rect.GetLeft() >= boundWidth ||
-        rect.GetBottom() <= 0 ||
-        rect.GetTop() >= boundHeight) {
+    auto deviceClipBounds = canvas_->GetDeviceClipBounds();
+
+    if (rect.GetRight() <= deviceClipBounds.GetLeft() ||
+        rect.GetLeft() >= deviceClipBounds.GetRight() ||
+        rect.GetBottom() <= deviceClipBounds.GetTop() ||
+        rect.GetTop() >= deviceClipBounds.GetBottom()) {
         return true;
     }
 

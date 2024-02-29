@@ -78,6 +78,7 @@ napi_value JsFont::Constructor(napi_env env, napi_callback_info info)
     }
 
     std::shared_ptr<Font> font = std::make_shared<Font>();
+    font->SetTypeface(JsTypeface::LoadZhCnTypeface());
     JsFont *jsFont = new(std::nothrow) JsFont(font);
 
     status = napi_wrap(env, jsThis, jsFont,

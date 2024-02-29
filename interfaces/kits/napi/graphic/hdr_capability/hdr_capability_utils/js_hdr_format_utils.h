@@ -18,13 +18,23 @@
 
 #include <map>
 #include <string>
+#include <hilog/log.h>
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace HdrCapability {
+#ifndef TITLE
+#define TITLE __func__
+#endif
+
+constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, 0xD001410, "JsHdrCapability"};
+#define HCLOGE(fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s: " fmt, TITLE, ##args)
+#define HCLOGI(fmt, args...) \
+    (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, "%{public}s: " fmt, TITLE, ##args)
+
 enum class ApiHDRFormat : uint32_t {
     NONE = 0,
     VIDEO_HLG = 1,
