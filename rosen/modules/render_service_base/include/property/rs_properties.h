@@ -381,6 +381,7 @@ private:
     bool NeedClip() const;
 
     const RectF& GetBgImageRect() const;
+    friend const RectF& GetBgImageRect(const RSProperties& properties);
     void GenerateRRect();
     RectI GetDirtyRect() const;
     // added for update dirty region dfx
