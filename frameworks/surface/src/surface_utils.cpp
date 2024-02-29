@@ -21,15 +21,24 @@
 namespace OHOS {
 using namespace HiviewDFX;
 constexpr int64_t TRANSFORM_MATRIX_ELE_COUNT = 16;
+static SurfaceUtils* instance = nullptr;
+static std::mutex mutextinstance_;
 
 SurfaceUtils* SurfaceUtils::GetInstance()
 {
-    static SurfaceUtils instance;
-    return &instance;
+    if (instance == nullptr) {
+        std::lock_guard<std::mutex> lockGuard(mutextinstance_);
+        if (instance == nullptr) {
+            instance = new SurfaceUtils();
+        }
+    }
+
+    return instance;
 }
 
 SurfaceUtils::~SurfaceUtils()
 {
+    instance = nullptr;
     surfaceCache_.clear();
     nativeWindowCache_.clear();
 }
