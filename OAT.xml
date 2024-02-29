@@ -66,6 +66,11 @@ Note: If the text contains special characters, please escape them according to t
                 <filteritem type="filename" name="icon.png" desc="png for hap"/>
                 <filteritem type="filename" name="bootpic.zip" desc="bootanimation"/>
                 <filteritem type="filename" name="cursor.raw" desc="cursor"/>
+                <filteritem type="filename" name="startIcon.png" desc="app start icon"/>
+                <filteritem type="filename" name="DrawPath.jpg" desc="sample renderings"/>
+                <filteritem type="filename" name="Index.jpg" desc="sample renderings"/>
+                <filteritem type="filename" name="DrawText.jpg" desc="sample renderings"/>
+                <filteritem type="filename" name="app_icon.png" desc="app icon"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
