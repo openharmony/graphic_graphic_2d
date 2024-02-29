@@ -106,7 +106,7 @@ public:
         auto interpolationValue = RSValueEstimator::Estimate(fraction, startValue_, endValue_);
         auto animationValue = interpolationValue;
         if (isAdditive && property_ != nullptr) {
-            animationValue = property_->Get() + interpolationValue - lastValue_;
+            animationValue = property_->Get() + (interpolationValue - lastValue_);
         }
         lastValue_ = interpolationValue;
         return animationValue;
@@ -204,7 +204,7 @@ public:
                     keyframeInterpolator->Interpolate(intervalFraction), preKeyframeValue, keyframeValue);
                 auto animationValue = interpolationValue;
                 if (isAdditive && property_ != nullptr) {
-                    animationValue = property_->Get() + interpolationValue - lastValue_;
+                    animationValue = property_->Get() + (interpolationValue - lastValue_);
                 }
                 lastValue_ = interpolationValue;
                 return animationValue;
@@ -233,7 +233,7 @@ public:
                     keyframeInterpolator->Interpolate(intervalFraction), preKeyframeValue, keyframeValue);
                 auto animationValue = interpolationValue;
                 if (isAdditive && property_ != nullptr) {
-                    animationValue = property_->Get() + interpolationValue - lastValue_;
+                    animationValue = property_->Get() + (interpolationValue - lastValue_);
                 }
                 lastValue_ = interpolationValue;
                 preKeyframeValue = animationValue;
