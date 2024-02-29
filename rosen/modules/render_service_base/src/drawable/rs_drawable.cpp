@@ -15,9 +15,11 @@
 
 #include "drawable/rs_drawable.h"
 
+#include "recording/draw_cmd_list.h"
+
 #include "drawable/rs_drawable_content.h"
-// #include "drawable/rs_render_node_drawable.h"
-#include "pipeline/rs_draw_cmd.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen {
 
@@ -28,9 +30,9 @@ RSChildrenDrawable::RSChildrenDrawable(std::shared_ptr<const RSChildrenDrawableC
 
 void RSChildrenDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 {
-    // for (auto& drawable : content_->childrenDrawables_) {
-    //     drawable->OnDraw(canvas);
-    // }
+    for (auto& drawable : content_->childrenDrawables_) {
+        drawable->OnDraw(canvas);
+    }
 }
 
 // =================== RSCustomModifierDrawable =====================

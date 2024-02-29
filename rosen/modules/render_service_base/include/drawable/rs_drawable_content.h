@@ -16,11 +16,19 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_CONTENT_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_CONTENT_H
 
+#include <bitset>
+#include <cstdint>
 #include <functional>
-#include <drawable/rs_drawable.h>
+#include <memory>
+#include <unordered_set>
+
+#include "drawable/rs_drawable.h"
+#include "modifier/rs_modifier_type.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
+class RSRenderContent;
+
 // NOTE: MUST update DrawableGeneratorLut in rs_property_drawable.cpp when new slots are added
 enum class RSDrawableContentSlot : uint8_t {
     INVALID = 0,
@@ -89,7 +97,6 @@ enum class RSDrawableContentSlot : uint8_t {
     MAX                      = RESTORE_ALL + 1,
 };
 
-
 // pure virtual base class
 class RSDrawableContent : public std::enable_shared_from_this<RSDrawableContent> {
 public:
@@ -120,6 +127,19 @@ public:
     RSDrawableContent(const RSDrawableContent&&) = delete;
     RSDrawableContent& operator=(const RSDrawableContent&) = delete;
     RSDrawableContent& operator=(const RSDrawableContent&&) = delete;
+
+    // Step 1, generate DirtySlots from dirty Modifiers
+
+#ifdef USE_ROSEN_DRAWING
+    using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
+    static std::unordered_set<RSDrawableContentSlot> GenerateDirtySlots(
+        ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
+    // Step 2, for every DirtySlot, generate DrawableContent
+    static bool UpdateDrawableVec(
+        const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableContentSlot>& dirtySlots);
+    // Step 3, add necessary Clip/Save/Restore
+    static void UpdateSaveRestore(RSRenderContent& content, Vec& drawableVec, uint8_t& drawableVecStatus);
+#endif
 };
 
 // RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
@@ -158,8 +178,8 @@ private:
     RSModifierType type_;
 
     bool needSync_ = false;
-    std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdList_;
-    std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdList_;
+    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> drawCmdList_;
+    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdList_;
     friend class RSCustomModifierDrawable;
 };
 } // namespace OHOS::Rosen

@@ -16,8 +16,6 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_H
 
-#include <memory>
-
 #include "drawable/rs_drawable.h"
 
 namespace OHOS::Rosen {

@@ -15,14 +15,23 @@
 
 #include "drawable/rs_render_node_drawable_adapter.h"
 
-namespace OHOS::Rosen {
+#include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 
+namespace OHOS::Rosen {
 std::unordered_map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 
-// TODO: add dependency injection from render_service.so
-RSRenderNodeDrawableAdapter::Ptr RSRenderNodeDrawableAdapter::OnGenerate(std::shared_ptr<const RSRenderNode> node)
+RSRenderNodeDrawableAdapter::Ptr RSRenderNodeDrawableAdapter::OnGenerate(
+    const std::shared_ptr<const RSRenderNode>& node)
 {
-    // TODO: add adapter
+    if (node == nullptr) {
+        // Empty child should be filtered on RSRenderNode::GenerateFullChildrenList, we should not reach here
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node is null");
+        return nullptr;
+    }
+    if (const auto it = GeneratorMap.find(node->GetType()); it != GeneratorMap.end()) {
+        return it->second(node);
+    }
     return nullptr;
 }
 

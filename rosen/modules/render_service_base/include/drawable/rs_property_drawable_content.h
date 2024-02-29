@@ -16,8 +16,6 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_CONTENT_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_CONTENT_H
 
-#include <memory>
-
 #include "recording/draw_cmd_list.h"
 
 #include "drawable/rs_drawable_content.h"

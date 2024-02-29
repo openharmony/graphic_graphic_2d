@@ -17,6 +17,7 @@
 
 #include "drawable/rs_property_drawable_content.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 
@@ -27,6 +28,8 @@ RSPropertyDrawableNG::RSPropertyDrawableNG(std::shared_ptr<const RSPropertyDrawa
 void RSPropertyDrawableNG::OnDraw(RSPaintFilterCanvas& canvas) const
 {
     if (cmdList_ == nullptr) {
+        // empty draw cmd should be filter out during OnGenerate and OnUpdate, we should not reach here
+        ROSEN_LOGE("RSPropertyDrawableNG::OnDraw, cmdList_ is null");
         return;
     }
     const auto& drawCmdList = cmdList_->drawCmdList_;
