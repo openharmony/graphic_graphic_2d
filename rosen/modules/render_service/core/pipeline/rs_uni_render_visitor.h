@@ -52,6 +52,12 @@ public:
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
     ~RSUniRenderVisitor() override;
 
+    // To prepare nodes between displayRenderNode and app nodes.
+    void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
+    void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) override;
+    void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void QuickPrepareChildren(RSRenderNode& node) override;
+
     void PrepareChildren(RSRenderNode& node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
     void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override;

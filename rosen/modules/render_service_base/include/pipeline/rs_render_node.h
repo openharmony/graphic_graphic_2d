@@ -89,6 +89,7 @@ public:
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);
     bool GetContainBootAnimation() const;
+
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
@@ -106,6 +107,7 @@ public:
                                 bool isUniRender,
                                 bool onlyFirstLevel);
     virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
+    virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;

@@ -384,6 +384,15 @@ void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
     isNotifyUIBufferAvailable_.store(available);
 }
 
+void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+{
+    if (!visitor) {
+        return;
+    }
+    visitor->QuickPrepareSurfaceRenderNode(*this); 
+}
+
+
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

@@ -48,6 +48,14 @@ void RSDisplayRenderNode::CollectSurface(
     }
 }
 
+void RSDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+{
+    if (!visitor) {
+        return;
+    }
+    visitor->QuickPrepareDisplayRenderNode(*this);
+}
+
 void RSDisplayRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

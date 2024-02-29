@@ -883,6 +883,14 @@ void RSRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->PrepareChildren(*this);
 }
 
+void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+{
+    if (!visitor) {
+        return;
+    }
+    visitor->QuickPrepareChildren(*this);
+}
+
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

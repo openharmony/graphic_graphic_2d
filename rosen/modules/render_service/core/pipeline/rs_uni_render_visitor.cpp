@@ -1238,6 +1238,127 @@ void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node
     node.UpdateFilterCacheManagerWithCacheRegion(dirtyManager, prepareClipRect_);
 }
 
+void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
+{
+    // 0. init and check need to recalculate occlusion
+    RS_TRACE_NAME("RSUniRender:QuickPrepareDisplay " + std::to_string(currentVisitDisplay_));
+    curDisplayDirtyManager_ = node.GetDirtyManager();
+    if (!curDisplayDirtyManager_) {
+        return;
+    }
+    curDisplayDirtyManager_->Clear();
+    // TODO
+    // needRecalculateOcclusion_ = ...;
+
+    // 2. update Matrix
+    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr != nullptr) {
+        geoPtr->UpdateByMatrixFromSelf();
+    }
+
+    // TODO: Occulusion check whether to applymodifiers.
+    node.ApplyModifiers();
+
+    // 3. Recursively traverse child nodes
+    if (node.IsSubTreeDirty() /*|| needRecalculateOcclusion_*/) {
+        QuickPrepareChildren(node);
+    }
+}
+
+void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
+{
+    // 0. check current node need to tranverse
+    auto nodeParent = node.GetParent().lock();
+    auto rsParent = (nodeParent);
+
+    //1. Update matrix and collect dirty region
+    RectI prepareClipRect = prepareClipRect_;
+    auto& property = node.GetMutableRenderProperties();
+    auto geoPtr = (property.GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        return;
+    }
+
+    if (node.IsDirty()) {
+        node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
+        // TODO: divide to two parts: a. update matrix  b. collect dirty
+    }
+
+    // TODO: Occulusion check whether to applymodifiers.
+    node.ApplyModifiers();
+
+    // 2. Recursively traverse child nodes
+    auto rsSurfaceParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(rsParent);
+    if (rsSurfaceParent->IsLeashWindow()) {
+        prepareClipRect_ = prepareClipRect;
+        // TODO:Update occlusion Region of this node
+        // TODO:Record node to be prepare next prepare stage.
+        // TODO: will transverse nodes in appwindows
+        return;
+    }
+
+    if (node.IsSubTreeDirty() /*|| needRecalculateOcclusion_*/) {
+        QuickPrepareChildren(node);
+    }
+    prepareClipRect_ = prepareClipRect;
+
+    // 3. calculate occlusion region TODO
+    // auto screenRotation = curDisplayNode_->GetRotation();
+    // auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
+    // Vector4f cornerRadius;
+    // Vector4f::Max(node.GetWindowCornerRadius(), node.GetGlobalCornerRadius(), cornerRadius);
+    // Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
+    //                              static_cast<int>(std::ceil(cornerRadius.y_)),
+    //                              static_cast<int>(std::ceil(cornerRadius.z_)),
+    //                              static_cast<int>(std::ceil(cornerRadius.w_)));
+    // auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
+    // auto isFocused = node.IsFocusedNode(currentFocusedNodeId_) ||
+    //     (parent && parent->IsLeashWindow() && parent->IsFocusedNode(focusedLeashWindowId_));
+    // if (!node.CheckOpaqueRegionBaseInfo(
+    //     screenRect, geoPtr->GetAbsRect(), screenRotation, isFocused, dstCornerRadius)
+    //     && node.GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+    //     node.ResetSurfaceOpaqueRegion(screenRect, geoPtr->GetAbsRect(), screenRotation, isFocused, dstCornerRadius);
+    // }
+    // node.SetOpaqueRegionBaseInfo(screenRect, geoPtr->GetAbsRect(), screenRotation, isFocused, dstCornerRadius);
+}
+
+void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
+{
+    // 0. check current node need to tranverse
+    auto nodeParent = node.GetParent().lock();
+    auto rsParent = (nodeParent);
+
+    RectI prepareClipRect = prepareClipRect_;
+    // TODO: can optimize in container node's children not contain surfacenode.
+    if (node.IsDirty()) {
+        node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
+        // TODO: divide to two parts: a. update matrix  b. collect dirty
+    }
+
+    // TODO: Occulusion check whether to applymodifiers.
+    node.ApplyModifiers();
+
+    auto rsSurfaceParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(rsParent);
+    if (rsSurfaceParent->IsLeashWindow()) {
+        // TODO: record node to be prepare int next prepare stage.
+        return;
+    }
+
+    // 1. Recursively traverse child nodes
+    if (node.IsSubTreeDirty() /*|| needRecalculateOcclusion_*/) {
+        QuickPrepareChildren(node);
+    }
+    prepareClipRect_ = prepareClipRect;
+}
+
+void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
+{
+    auto children = node.GetSortedChildren();
+    for (auto& child : *children) {
+        child->Prepare(shared_from_this());
+    }
+}
+
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_OPTIONAL_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] nodeid: " +
