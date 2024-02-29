@@ -2173,7 +2173,7 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
         canvas.DrawNestedRoundRect(roundRect, innerRoundRect);
         canvas.DetachBrush();
     } else {
-        bool isZero = isOutline ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
+        bool isZero = isOutline ? border->GetRadiusFour().IsZero() : properties.GetCornerRadius().IsZero();
         if (isZero && border->ApplyFourLine(pen)) {
             RectF rectf = isOutline ?
                 properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect();
