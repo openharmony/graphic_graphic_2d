@@ -78,10 +78,7 @@ ohos_static_library("render_context") {
 ohos_unittest("2d_graphics_shader_cache_test") {
   module_out_path = module_output_path
 
-  sources = [
-    "cache_data_test.cpp",
-    "shader_cache_test.cpp",
-  ]
+  sources = [ "cache_data_test.cpp" ]
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_engine",
