@@ -114,6 +114,8 @@ GSError BufferQueue::PopFromFreeList(sptr<SurfaceBuffer> &buffer,
     }
 
     buffer = bufferQueueCache_[freeList_.front()].buffer;
+    buffer->SetSurfaceBufferColorGamut(config.colorGamut);
+    buffer->SetSurfaceBufferTransform(config.transform);
     freeList_.pop_front();
     return GSERROR_OK;
 }
