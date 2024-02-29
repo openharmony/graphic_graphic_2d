@@ -62,7 +62,6 @@ namespace OHOS {
         int64_t offset = GetData<int64_t>();
         int32_t rate = GetData<int32_t>();
         int32_t highPriorityRate = GetData<int32_t>();
-        uint32_t pid = GetData<uint32_t>();
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -71,7 +70,6 @@ namespace OHOS {
         sptr<Rosen::VSyncConnection> conn = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
         vsyncDistributor->SetVSyncRate(rate, conn);
         vsyncDistributor->SetHighPriorityVSyncRate(highPriorityRate, conn);
-        vsyncDistributor->SetQosVSyncRate(pid, rate);
 
         return true;
     }

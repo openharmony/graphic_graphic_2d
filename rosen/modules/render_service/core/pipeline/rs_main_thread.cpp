@@ -80,7 +80,6 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
 
-#include "rs_qos_thread.h"
 #include "xcollie/watchdog.h"
 
 #include "render_frame_trace.h"
@@ -2132,10 +2131,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     rsCurrRange_.Reset();
 
     if (context_->animatingNodeList_.empty()) {
-        if (doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
-            // Preventing Occlusion Calculation from Being Completed in Advance
-            RSQosThread::GetInstance()->OnRSVisibilityChangeCB(lastPidVisMap_);
-        }
         doWindowAnimate_ = false;
         return;
     }
@@ -2196,9 +2191,6 @@ void RSMainThread::Animate(uint64_t timestamp)
         return !hasRunningAnimation;
     });
     RS_TRACE_NAME_FMT("Animate [nodeSize, totalAnimationSize] is [%lu, %lu]", animatingNodeSize, totalAnimationSize);
-    if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
-        RSQosThread::ResetQosPid();
-    }
     if (!isCalculateAnimationValue && needRequestNextVsync) {
         RS_TRACE_NAME("Animation running empty");
     }
@@ -2407,15 +2399,6 @@ void RSMainThread::SendCommands()
             app->OnTransaction(transactionPtr);
         }
     });
-}
-
-void RSMainThread::QosStateDump(std::string& dumpString)
-{
-    if (RSQosThread::GetInstance()->GetQosCal()) {
-        dumpString.append("QOS is enabled\n");
-    } else {
-        dumpString.append("QOS is disabled\n");
-    }
 }
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString)

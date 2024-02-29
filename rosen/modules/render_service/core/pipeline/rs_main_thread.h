@@ -89,7 +89,6 @@ public:
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
-    void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
