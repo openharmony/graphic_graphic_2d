@@ -86,7 +86,7 @@ private:
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
-    int CacRotationFromTransformType(GraphicTransformType transform);
+    Drawing::Matrix CacRotationFromTransformType(GraphicTransformType transform, RectF& bounds);
 
     bool UpdateAnimatePropertyCacheSurface(RSRenderNode& node);
     void ProcessShadowFirst(RSRenderNode& node);
