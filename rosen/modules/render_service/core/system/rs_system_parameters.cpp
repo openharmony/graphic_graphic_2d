@@ -62,7 +62,7 @@ bool RSSystemParameters::GetShowRefreshRateEnabled()
 
 QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "5");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "2");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));
@@ -85,13 +85,13 @@ bool RSSystemParameters::GetSystemAnimatedScenesEnabled()
 bool RSSystemParameters::GetFilterCacheOcculusionEnabled()
 {
     static bool filterCacheOcclusionEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheOcclusionEnabled", "1")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheOcclusionEnabled", "0")).c_str()) != 0;
     return filterCacheOcclusionEnabled;
 }
 
 bool RSSystemParameters::GetSkipCanvasNodeOutofScreenEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipCanvasNodeOutofScreen.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipCanvasNodeOutofScreen.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;

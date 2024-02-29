@@ -655,6 +655,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += ", isContainBootAnimation_: " + std::to_string(isContainBootAnimation_);
     out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
     out += ", isPropertyDirty: " + std::to_string(GetRenderProperties().IsDirty());
+    out += ", isSubTreeDirty: " + std::to_string(static_cast<int>(isSubTreeDirty_));
     out += ", IsPureContainer: " + std::to_string(IsPureContainer());
     DumpDrawCmdModifiers(out);
     animationManager_.DumpAnimations(out);
@@ -1161,6 +1162,25 @@ bool RSRenderNode::IsSelfDrawingNode() const
 bool RSRenderNode::IsDirty() const
 {
     return dirtyStatus_ != NodeDirty::CLEAN || GetRenderProperties().IsDirty();
+}
+
+bool RSRenderNode::IsSubTreeDirty() const
+{
+    return isSubTreeDirty_;
+}
+
+void RSRenderNode::SetSubTreeDirty(bool val)
+{
+    isSubTreeDirty_ = val;
+}
+
+void RSRenderNode::SetParentSubTreeDirty()
+{
+    auto parentNode = parent_.lock();
+    if (parentNode && !parentNode->IsSubTreeDirty()) {
+        parentNode->SetSubTreeDirty(true);
+        parentNode->SetParentSubTreeDirty();
+    }
 }
 
 bool RSRenderNode::IsContentDirty() const
@@ -2385,6 +2405,7 @@ void RSRenderNode::OnTreeStateChanged()
 #else
         SetDirty(true);
 #endif
+        SetParentSubTreeDirty();
     }
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!isOnTheTree_) {

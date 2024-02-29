@@ -109,6 +109,9 @@ public:
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;
+    bool IsSubTreeDirty() const;
+    void SetSubTreeDirty(bool val);
+    void SetParentSubTreeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
@@ -628,6 +631,7 @@ private:
 
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
     bool shouldPaint_ = true;
+    bool isSubTreeDirty_ = false;
 
     bool isDirtyRegionUpdated_ = false;
     bool isContainBootAnimation_ = false;
