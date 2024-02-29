@@ -2305,6 +2305,15 @@ NodeId RSRenderNode::GetFirstLevelNodeId() const
 {
     return firstLevelNodeId_;
 }
+const std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstLevelNode() const
+{
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("Invalid context");
+        return nullptr;
+    }
+    return context->GetNodeMap().GetRenderNode(firstLevelNodeId_);
+}
 bool RSRenderNode::IsRenderUpdateIgnored() const
 {
     return isRenderUpdateIgnored_;

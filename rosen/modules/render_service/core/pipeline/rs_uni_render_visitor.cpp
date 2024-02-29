@@ -340,7 +340,6 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
                 PrepareSurfaceRenderNode(*surfaceNode);
                 return;
             }
-            UpdateSecurityAndSkipLayerRecord(*surfaceNode);
         } else if (auto effectNode = child->ReinterpretCastTo<RSEffectRenderNode>()) {
             // effectNode need to update effectRegion so effectNode and use-effect child should be updated
             PrepareEffectNodeIfCacheReuse(cacheRootNode, effectNode);
@@ -1095,10 +1094,6 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
         curSurfaceNode_->AddChildHardwareEnabledNode(node.ReinterpretCastTo<RSSurfaceRenderNode>());
         node.SetLocalZOrder(localZOrder_++);
     }
-
-    // record whether child node is security or skip layer
-    // it should be call after reset to false for each loop
-    UpdateSecurityAndSkipLayerRecord(node);
 }
 
 void RSUniRenderVisitor::ClassifyUIFirstSurfaceDirtyStatus(RSSurfaceRenderNode& node)
@@ -1208,16 +1203,10 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
 
 void RSUniRenderVisitor::UpdateSecurityAndSkipLayerRecord(RSSurfaceRenderNode& node)
 {
-    if (curSurfaceNode_ == nullptr) {
-        return;
-    }
-    if (node.GetSecurityLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId()) {
-        curSurfaceNode_->SetHasSecurityLayer(true);
+    if (node.GetHasSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
     }
-    if (node.GetSkipLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId() &&
-        node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-        curSurfaceNode_->SetHasSkipLayer(true);
+    if (node.GetHasSkipLayer() && node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
         displayHasSkipSurface_[currentVisitDisplay_] = true;
     }
 }
@@ -1260,26 +1249,19 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetAncestorDisplayNode(curDisplayNode_);
     CheckColorSpace(node);
     CheckPixelFormat(node);
-
+    // only need collect first level node's security & skip layer info
+    if (node.GetId() == node.GetFirstLevelNodeId()) {
+        UpdateSecurityAndSkipLayerRecord(node);
+    }
     // stop traversal if node keeps static
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
         // node type is mainwindow.
-        if (node.GetHasSecurityLayer() && node.GetId() == node.GetInstanceRootNodeId()) {
-            displayHasSecSurface_[currentVisitDisplay_] = true;
-        }
-        if (node.GetHasSkipLayer() && node.GetId() == node.GetInstanceRootNodeId() &&
-            node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-            displayHasSkipSurface_[currentVisitDisplay_] = true;
-        }
         PrepareSubSurfaceNodes(node);
         return;
     }
     // Attension: Updateinfo before info reset
     node.StoreMustRenewedInfo();
     SetHasSharedTransitionNode(node, false);
-    // reset HasSecurityLayer
-    node.SetHasSecurityLayer(false);
-    node.SetHasSkipLayer(false);
     node.CleanDstRectChanged();
     if (node.IsHardwareEnabledTopSurface()) {
         node.ResetSubNodeShouldPaint();

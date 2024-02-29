@@ -184,6 +184,7 @@ public:
     NodeId GetInstanceRootNodeId() const;
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
     NodeId GetFirstLevelNodeId() const;
+    const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
