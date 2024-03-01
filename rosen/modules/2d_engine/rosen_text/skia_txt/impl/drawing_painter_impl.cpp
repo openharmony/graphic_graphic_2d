@@ -97,8 +97,10 @@ void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint
 {
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     symbolCount_++;
+    const uint32_t length32Bit = 32;
+    auto symbolSpanId = (static_cast<uint64_t>(paragraphId_) << length32Bit) + symbolCount_;
     hmSymbolRun.SetAnimation(animationFunc_);
-    hmSymbolRun.SetSymbolId(symbolCount_);
+    hmSymbolRun.SetSymbolId(symbolSpanId);
     if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
         canvas_->AttachPen(pr.pen.value());

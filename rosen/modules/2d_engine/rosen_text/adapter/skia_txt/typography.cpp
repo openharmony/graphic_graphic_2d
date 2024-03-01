@@ -223,6 +223,13 @@ void Typography::SetAnimation(
     }
 }
 
+void Typography::SetParagraghId(uint32_t id)
+{
+    if (paragraph_ != nullptr) {
+        paragraph_->SetParagraghId(id);
+    }
+}
+
 bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics)
 {
     if (paragraph_ == nullptr) {

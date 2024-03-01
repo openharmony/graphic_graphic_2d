@@ -171,6 +171,7 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
 {
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
+    painter.SetParagraphId(id_);
     paragraph_->paint(&painter, x, y);
 }
 
