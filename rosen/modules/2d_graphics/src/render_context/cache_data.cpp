@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-CacheData::CacheData (const size_t maxKeySize, const size_t maxValueSize,
+CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
     const size_t maxTotalSize, const std::string& fileName)
     : maxKeySize_(maxKeySize),
     maxValueSize_(maxValueSize),
@@ -133,8 +133,8 @@ void CacheData::WriteToFile()
 
 void CacheData::Rewrite(const void *key, const size_t keySize, const void *value, const size_t valueSize)
 {
-    if (maxKeySize_ < keySize || maxValueSize_ < valueSize || maxTotalSize_ < keySize + valueSize
-        || keySize == 0 || valueSize <= 0) {
+    if ((maxKeySize_ < keySize) || (maxValueSize_ < valueSize) || (maxTotalSize_ < keySize + valueSize) ||
+        (keySize == 0) || (valueSize <= 0)) {
         LOGD("abandon, because of illegal content size");
         return;
     }
@@ -204,7 +204,7 @@ std::tuple<CacheData::ErrorCode, size_t> CacheData::Get(const void *key, const s
         LOGD("abandon, because of insufficient buffer space");
         return {ErrorCode::VALUE_SIZE_TOO_SAMLL, valuePointerSize};
     }
-    if (memcpy_s(value, valueSize, valuePointer->GetData(), valuePointerSize)) {
+    if (memcpy_s(value, valueSize, valuePointer->GetData(), valuePointerSize) != EOK) {
         LOGD("abandon, failed to copy content");
         return {ErrorCode::COPY_FAILED, 0};
     }
@@ -396,13 +396,15 @@ CacheData::DataPointer::DataPointer(const void *data, size_t size, bool ifOccupy
     toFree_(ifOccupy)
 {
     if (ifOccupy) {
-        pointer_ = malloc(size);
+        if (size > 0) {
+            pointer_ = malloc(size);
+        }
     } else {
         pointer_ = data;
     }
 
     if (data != nullptr && ifOccupy) {
-        if (memcpy_s(const_cast<void *>(pointer_), size, data, size)) {
+        if (memcpy_s(const_cast<void *>(pointer_), size, data, size) != EOK) {
             LOGD("abandon: failed to copy data");
             return;
         }
