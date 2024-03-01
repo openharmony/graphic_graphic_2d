@@ -1473,6 +1473,38 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
     containerRegion_ = absRegion.Sub(innerRectRegion);
 }
 
+bool RSSurfaceRenderNode::CheckNeedRecalculateOcclusion()
+{
+    // TODO
+   return GetZorderChanged() ||
+        GetDstRectChanged() ||
+        IsOpaqueRegionChanged();
+}
+
+void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
+    const ScreenRotation screenRotation)
+{
+    Vector4f tmpCornerRadius;
+    Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
+    Vector4<int> cornerRadius(static_cast<int>(std::ceil(tmpCornerRadius.x_)),
+                                static_cast<int>(std::ceil(tmpCornerRadius.y_)),
+                                static_cast<int>(std::ceil(tmpCornerRadius.z_)),
+                                static_cast<int>(std::ceil(tmpCornerRadius.w_)));
+
+    bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
+        opaqueRegionBaseInfo_.absRect_ == absRect &&
+        opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
+        opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
+        opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
+        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
+
+    if (!ret) {
+        // TODO: default process focus window
+        ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, true, cornerRadius);
+    }
+    SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, true, cornerRadius);
+}
+
 bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,
     const ScreenRotation screenRotation, const bool isFocusWindow, const Vector4<int>& cornerRadius)
 {

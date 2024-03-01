@@ -621,6 +621,13 @@ public:
         return visibleRegion_.IsIntersectWith(nodeRect);
     }
 
+    bool CheckNeedRecalculateOcclusion();
+
+    void SetVisibleRegion(Occlusion::Region region)
+    {
+        visibleRegion_ = region;
+    }
+
     inline bool IsEmptyAppWindow() const
     {
         return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
@@ -713,6 +720,10 @@ public:
     {
         return GetNodeId() == focusedNodeId;
     }
+
+
+    void CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
+        const ScreenRotation screenRotation);
 
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);

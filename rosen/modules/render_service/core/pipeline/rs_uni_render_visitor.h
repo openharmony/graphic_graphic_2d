@@ -481,6 +481,10 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodesInZOrder_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
+    // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
+    std::queue<NodeId> curMainAppWindowNodesIds_;
+    // vector of sufacenodes will records dirtyregions by itself
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> curMainSurfaceNodes_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;
@@ -521,14 +525,18 @@ private:
 #else
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
 #endif
+    // variable for occlusion 
+    bool needRecalculateOcclusion_ = false;
+    Occlusion::Region accumulatedRegion_;
+
     bool curDirty_ = false;
     bool curContentDirty_ = false;
     bool isPhone_ = false;
     bool isPc_ = false;
     bool isCacheBlurPartialRenderEnabled_ = false;
     bool drawCacheWithBlur_ = false;
-    bool noNeedTodrawShadowAgain_ = false;
     bool notRunCheckAndSetNodeCacheType_ = false;
+    bool noNeedTodrawShadowAgain_ = false;
     int updateCacheProcessCnt_ = 0;
 
     NodeId firstVisitedCache_ = INVALID_NODEID;
