@@ -561,7 +561,9 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pix
         }
         return false;
     } else {
-        surface = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+        Drawing::ImageInfo newInfo = Drawing::ImageInfo{ image->GetWidth(), image->GetHeight(),
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+        surface = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, newInfo);
         if (!surface) {
             if (!WriteSkImageToPixelmap(image, info, pixelmap, rect)) {
                 RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
