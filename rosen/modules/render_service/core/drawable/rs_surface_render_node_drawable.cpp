@@ -14,7 +14,7 @@
  */
 
 #include "drawable/rs_surface_render_node_drawable.h"
-
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -32,6 +32,12 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 
 void RSSurfaceRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 {
+    if (!renderNode_) {
+        RS_LOGE("There is no CanvasNode in RSSurfaceRenderNodeDrawable");
+        return;
+    }
+    RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
+
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen
