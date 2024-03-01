@@ -45,7 +45,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RenderNode is null!");
         return;
     }
-    auto displayNodeSp = renderNode_->ReinterpretCastTo<RSDisplayRenderNode>();
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(nodeSp);
     RS_TRACE_NAME("RSDisplayRenderNodeDrawable[" + std::to_string(displayNodeSp->GetScreenId()) + "]" +
         displayNodeSp->GetDirtyManager()->GetDirtyRegion().ToString().c_str());
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %{public}" PRIu64 ", child size:%{public}u",
