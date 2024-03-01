@@ -14,7 +14,7 @@
  */
 
 #include "drawable/rs_root_render_node_drawable.h"
-
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 
@@ -22,7 +22,7 @@ namespace OHOS::Rosen {
 RSRootRenderNodeDrawable::Registrar RSRootRenderNodeDrawable::instance_;
 
 RSRootRenderNodeDrawable::RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSRenderNodeDrawable(std::move(node))
+    : RSCanvasRenderNodeDrawable(std::move(node))
 {}
 
 RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -32,6 +32,12 @@ RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<c
 
 void RSRootRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 {
-    RSRenderNodeDrawable::OnDraw(canvas);
+    if (!renderNode_) {
+        RS_LOGE("There is no CanvasNode in RSRootRenderNodeDrawable");
+        return;
+    }
+    RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
+
+    RSCanvasRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen

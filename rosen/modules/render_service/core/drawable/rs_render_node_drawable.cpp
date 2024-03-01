@@ -51,6 +51,7 @@ void RSRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
     if (drawCmdList_ == nullptr) {
         return;
     }
+    Drawing::AutoCanvasRestore arc(canvas, true);
     drawCmdList_->Playback(canvas);
 }
 
