@@ -85,19 +85,6 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkContentChangedTest
- * @tc.desc: MarkContentChanged test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, MarkContentChangedTest, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = static_cast<NodeId>(1);
-    bool isChanged = false;
-    RSNodeCommandHelper::MarkContentChanged(context, nodeId, isChanged);
-}
-
-/**
  * @tc.name: SetDrawRegionTest
  * @tc.desc: SetDrawRegion test.
  * @tc.type: FUNC
