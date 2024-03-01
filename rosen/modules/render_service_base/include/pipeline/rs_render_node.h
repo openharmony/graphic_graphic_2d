@@ -487,6 +487,7 @@ public:
 
     void MarkNonGeometryChanged();
     void ApplyModifiers();
+    virtual void UpdateRenderParams();
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
@@ -510,7 +511,11 @@ public:
 
     void MarkParentNeedRegenerateChildren() const;
 
-    const RSRenderParams GetRenderParams() const;
+    const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
+
+    void UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
+
+    void SetNeedSyncFlag(bool needSync);
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -732,8 +737,8 @@ private:
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
     RSDrawableContent::Vec contentVec_;
 
-    RSRenderParams renderParams_;
-    RSRenderParams stagingRenderParams_;
+    std::unique_ptr<RSRenderParams> renderParams_;
+    std::unique_ptr<RSRenderParams> stagingRenderParams_;
 
     void OnSync();
 

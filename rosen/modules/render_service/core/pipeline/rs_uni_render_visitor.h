@@ -28,6 +28,7 @@
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
+#include "pipeline/rs_recording_canvas.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
@@ -332,6 +333,7 @@ private:
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
     bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node); // return if srcRect is allowed by dss restriction
+    void RecordDrawCmdList(RSRenderNode& node);
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 #else

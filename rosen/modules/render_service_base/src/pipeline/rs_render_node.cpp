@@ -1013,7 +1013,7 @@ const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
     return renderContent_;
 }
 
-const RSRenderParams RSRenderNode::GetRenderParams() const
+const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
 {
     return renderParams_;
 }
@@ -1345,6 +1345,16 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
         return;
     }
     canvas.RestoreStatus(renderNodeSaveCount_);
+}
+
+void RSRenderNode::UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    stagingDrawCmdList_ = drawCmdList;
+}
+
+void RSRenderNode::SetNeedSyncFlag(bool needSync)
+{
+    needSync_ = needSync;
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
@@ -2960,13 +2970,24 @@ void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThre
     lastIsNeedAssignToSubThread_ = lastIsNeedAssignToSubThread;
 }
 
+void RSRenderNode::UpdateRenderParams()
+{
+    stagingRenderParams_ = std::make_unique<RSRenderParams>();
+    auto boundGeo = GetRenderProperties().GetBoundsGeometry();
+    if (!boundGeo) {
+        return;
+    }
+    stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
+    stagingRenderParams_->SetBoundsRect({ boundGeo->GetX(), boundGeo->GetY(), boundGeo->GetWidth(), boundGeo->GetHeight() });
+}
+
 void RSRenderNode::OnSync()
 {
     // PLANNING: distinguish drawCmdList need sync and drawable need sync
     if (!needSync_) {
         return;
     }
-    renderParams_ = stagingRenderParams_;
+    renderParams_ = std::move(stagingRenderParams_);
     // Sync drawCmdList
     drawCmdList_ = std::move(stagingDrawCmdList_);
     // Sync each drawable. PLANNING: use dirty mask to only sync changed properties

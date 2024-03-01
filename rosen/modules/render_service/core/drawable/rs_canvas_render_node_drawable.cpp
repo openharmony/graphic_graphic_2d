@@ -37,11 +37,17 @@ void RSCanvasRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
         return;
     }
     auto& params = renderNode_->GetRenderParams();
-    canvas.ConcatMatrix(params.GetMatrix());
-    bool quickjected = canvas.QuickReject(params.GetBounds());
+    if (!params) {
+        RS_LOGE("params is nullptr");
+        return;
+    }
+    canvas.ConcatMatrix(params->GetMatrix());
+    bool quickjected = canvas.QuickReject(params->GetBounds());
     if (quickjected) {
         RS_LOGE("this drawable has quickjected");
     }
+    canvas.Save();
     RSRenderNodeDrawable::OnDraw(canvas);
+    canvas.Restore();
 }
 } // namespace OHOS::Rosen
