@@ -29,7 +29,7 @@
 #include "render/rs_light_up_effect_filter.h"
 #include "platform/common/rs_log.h"
 #include "visitor/rs_node_visitor.h"
-#include "property/rs_property_drawable.h"
+// #include "property/rs_property_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -113,23 +113,23 @@ void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSCanvasRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
+    //     return;
+    // }
     RSRenderNode::ProcessTransitionBeforeChildren(canvas);
 }
 
 void RSCanvasRenderNode::ProcessShadowBatching(RSPaintFilterCanvas& canvas)
 {
     RSAutoCanvasRestore acr(&canvas);
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::BOUNDS_MATRIX, RSPropertyDrawableSlot::TRANSITION, canvas);
-        DrawPropertyDrawable(
-            RSPropertyDrawableSlot::SHADOW, canvas);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     DrawPropertyDrawableRange(
+    //         RSPropertyDrawableSlot::BOUNDS_MATRIX, RSPropertyDrawableSlot::TRANSITION, canvas);
+    //     DrawPropertyDrawable(
+    //         RSPropertyDrawableSlot::SHADOW, canvas);
+    //     return;
+    // }
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyBoundsGeometry(canvas);
     ApplyAlpha(canvas);
@@ -157,36 +157,36 @@ void RSCanvasRenderNode::DrawShadow(RSModifierContext& context, RSPaintFilterCan
 
 void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty)
 {
-    auto parent = GetParent().lock();
-    if (RSSystemProperties::GetUseShadowBatchingEnabled() && parent &&
-        parent->GetRenderProperties().GetUseShadowBatching()) {
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
-        if (includeProperty) {
-            DrawPropertyDrawableRange(
-                RSPropertyDrawableSlot::BG_SAVE_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
-        } else {
-            DrawPropertyDrawableRange(
-                RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
-        }
-    } else {
-        if (includeProperty) {
-            DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::CLIP_TO_FRAME,
-                canvas);
-        } else {
-            DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::OUTLINE, canvas);
-            DrawPropertyDrawableRange(
-                RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
-        }
-    }
+    // auto parent = GetParent().lock();
+    // if (RSSystemProperties::GetUseShadowBatchingEnabled() && parent &&
+    //     parent->GetRenderProperties().GetUseShadowBatching()) {
+    //     DrawPropertyDrawableRange(
+    //         RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
+    //     if (includeProperty) {
+    //         DrawPropertyDrawableRange(
+    //             RSPropertyDrawableSlot::BG_SAVE_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+    //     } else {
+    //         DrawPropertyDrawableRange(
+    //             RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+    //     }
+    // } else {
+    //     if (includeProperty) {
+    //         DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::CLIP_TO_FRAME,
+    //             canvas);
+    //     } else {
+    //         DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::OUTLINE, canvas);
+    //         DrawPropertyDrawableRange(
+    //             RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+    //     }
+    // }
 }
 
 void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty)
 {
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        PropertyDrawableRender(canvas, includeProperty);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     PropertyDrawableRender(canvas, includeProperty);
+    //     return;
+    // }
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     DrawShadow(context, canvas);
 
@@ -229,31 +229,31 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 
 void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        DrawPropertyDrawable(RSPropertyDrawableSlot::CONTENT_STYLE, canvas);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     DrawPropertyDrawable(RSPropertyDrawableSlot::CONTENT_STYLE, canvas);
+    //     return;
+    // }
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 }
 
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+    //     return;
+    // }
     ProcessTransitionBeforeChildren(canvas);
     ProcessAnimatePropertyBeforeChildren(canvas, true);
 }
 
 void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::PARTICLE_EFFECT, canvas);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     DrawPropertyDrawableRange(
+    //         RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::PARTICLE_EFFECT, canvas);
+    //     return;
+    // }
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
@@ -286,21 +286,21 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 
 void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::PIXEL_STRETCH, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     DrawPropertyDrawableRange(RSPropertyDrawableSlot::PIXEL_STRETCH, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+    //     return;
+    // }
     RSPropertiesPainter::DrawPixelStretch(GetRenderProperties(), canvas);
     RSRenderNode::ProcessRenderAfterChildren(canvas);
 }
 
 void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
-        return;
-    }
+    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
+    //     DrawPropertyDrawableRange(
+    //         RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+    //     return;
+    // }
     ProcessAnimatePropertyAfterChildren(canvas);
     ProcessTransitionAfterChildren(canvas);
     canvas.RestoreEnv();

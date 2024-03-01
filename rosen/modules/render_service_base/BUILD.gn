@@ -206,10 +206,6 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_point_light_manager.cpp",
     "src/property/rs_properties.cpp",
     "src/property/rs_properties_painter.cpp",
-    "src/property/rs_property_drawable.cpp",
-    "src/property/rs_property_drawable_bounds_geometry.cpp",
-    "src/property/rs_property_drawable_frame_geometry.cpp",
-    "src/property/rs_property_drawable_utilities.cpp",
     "src/property/rs_property_trace.cpp",
 
     #drawable
@@ -304,12 +300,6 @@ ohos_source_set("render_service_base_src") {
       "src/pipeline/rs_occlusion_config.cpp",
       "src/pipeline/rs_uni_render_judgement.cpp",
       "src/pipeline/sk_resource_manager.cpp",
-
-      #property
-      "src/property/rs_property_drawable.cpp",
-      "src/property/rs_property_drawable_bounds_geometry.cpp",
-      "src/property/rs_property_drawable_frame_geometry.cpp",
-      "src/property/rs_property_drawable_utilities.cpp",
 
       #transaction
       "src/transaction/rs_hgm_config_data.cpp",

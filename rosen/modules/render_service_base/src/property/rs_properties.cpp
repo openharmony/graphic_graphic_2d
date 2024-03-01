@@ -159,13 +159,13 @@ RSProperties::RSProperties()
 
 RSProperties::~RSProperties() = default;
 
-void RSProperties::ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes)
+void RSProperties::ResetProperty(const ModifierDirtyTypes& dirtyTypes)
 {
     if (dirtyTypes.none()) {
         return;
     }
     for (uint8_t type = 0; type < static_cast<size_t>(RSModifierType::CUSTOM); type++) {
-        if (dirtyTypes[type]) {
+        if (dirtyTypes.test(type)) {
             if (auto& resetFunc = g_propertyResetterLUT[type]) {
                 resetFunc(this);
             }

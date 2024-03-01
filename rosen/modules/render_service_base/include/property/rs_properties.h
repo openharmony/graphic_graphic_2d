@@ -356,7 +356,7 @@ public:
     void OnApplyModifiers();
 
 private:
-    void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+    void ResetProperty(const ModifierDirtyTypes& dirtyTypes);
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;

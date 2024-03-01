@@ -34,7 +34,7 @@
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_render_service_client.h"
 #include "visitor/rs_node_visitor.h"
-#include "property/rs_property_drawable.h"
+// #include "property/rs_property_drawable.h"
 
 namespace OHOS {
 namespace Rosen {

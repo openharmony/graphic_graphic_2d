@@ -188,7 +188,7 @@ static const std::array<RSDrawableContent::Generator, GEN_LUT_SIZE> g_drawableGe
 } // namespace
 
 // ==================== RSDrawableContent =====================
-std::unordered_set<RSDrawableContentSlot> RSDrawableContent::GenerateDirtySlots(
+std::unordered_set<RSDrawableContentSlot> RSDrawableContent::CalculateDirtySlots(
     ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec)
 {
     if (dirtyTypes.none()) {
@@ -218,7 +218,7 @@ std::unordered_set<RSDrawableContentSlot> RSDrawableContent::GenerateDirtySlots(
     return dirtySlots;
 }
 
-bool RSDrawableContent::UpdateDrawableVec(
+bool RSDrawableContent::UpdateDirtySlots(
     const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableContentSlot>& dirtySlots)
 {
     bool drawableAddedOrRemoved = false;

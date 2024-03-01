@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
 
+#include <bitset>
 #include <cstdint>
 
 namespace OHOS {
@@ -123,6 +124,7 @@ enum class RSModifierType : int16_t {
     GEOMETRYTRANS,                 // 94
     MAX_RS_MODIFIER_TYPE,
 };
+using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
 
 enum class RSRenderPropertyType : int16_t {
     INVALID = 0,

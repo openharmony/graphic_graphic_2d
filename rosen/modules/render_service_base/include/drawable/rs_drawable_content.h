@@ -29,7 +29,7 @@ namespace OHOS::Rosen {
 class RSRenderNode;
 class RSRenderContent;
 
-// NOTE: MUST update DrawableGeneratorLut in rs_property_drawable.cpp when new slots are added
+// NOTE: MUST update DrawableGeneratorLut in rs_drawable_content.cpp when new slots are added
 enum class RSDrawableContentSlot : uint8_t {
     INVALID = 0,
 
@@ -128,11 +128,10 @@ public:
 
 
     // Step 1, generate DirtySlots from dirty Modifiers
-    using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
-    static std::unordered_set<RSDrawableContentSlot> GenerateDirtySlots(
+    static std::unordered_set<RSDrawableContentSlot> CalculateDirtySlots(
         ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
     // Step 2, for every DirtySlot, generate DrawableContent
-    static bool UpdateDrawableVec(
+    static bool UpdateDirtySlots(
         const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableContentSlot>& dirtySlots);
     // Step 3, add necessary Clip/Save/Restore
     static void UpdateSaveRestore(RSRenderContent& content, Vec& drawableVec, uint8_t& drawableVecStatus);
