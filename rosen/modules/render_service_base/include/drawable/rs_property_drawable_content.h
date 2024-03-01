@@ -30,7 +30,7 @@ class RSRenderNode;
 class RSPropertyDrawableContent : public RSDrawableContent {
 public:
     RSPropertyDrawableContent(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : drawCmdList_(std::move(drawCmdList)) {}
-    RSPropertyDrawableContent() {}
+    RSPropertyDrawableContent() = default;
     ~RSPropertyDrawableContent() override = default;
 
     void OnSync() override;

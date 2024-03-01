@@ -47,6 +47,7 @@ namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
 class RSB_EXPORT RSProperties final {
+friend class RSBackgroundContent;
 public:
     RSProperties();
     RSProperties(const RSProperties&) = delete;
@@ -381,7 +382,6 @@ private:
     bool NeedClip() const;
 
     const RectF& GetBgImageRect() const;
-    friend const RectF& GetBgImageRect(const RSProperties& properties);
     void GenerateRRect();
     RectI GetDirtyRect() const;
     // added for update dirty region dfx

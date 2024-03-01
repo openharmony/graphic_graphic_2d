@@ -140,7 +140,7 @@ bool RSBackgroundContent::OnUpdate(const RSRenderNode& node)
         canvas.ClipRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()),
             Drawing::ClipOp::INTERSECT, antiAlias);
         auto boundsRect = RSDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
-        bgImage->SetDstRect(GetBgImageRect(properties));
+        bgImage->SetDstRect(properties.GetBgImageRect());
         canvas.AttachBrush(brush);
         bgImage->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);
         canvas.DetachBrush();

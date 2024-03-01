@@ -1559,11 +1559,6 @@ const RectF& RSProperties::GetBgImageRect() const
     return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
 }
 
-const RectF& GetBgImageRect(const RSProperties& properties)
-{
-    return properties.GetBgImageRect();
-}
-
 void RSProperties::SetVisible(bool visible)
 {
     if (visible_ != visible) {
