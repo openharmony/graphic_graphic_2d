@@ -40,11 +40,7 @@ HWTEST_F(TexgineFontStyleSetTest, Count, TestSize.Level1)
         tfss1->Count();
 
         std::shared_ptr<TexgineFontStyleSet> tfss2 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss2->Count();
     });
 }
@@ -64,27 +60,15 @@ HWTEST_F(TexgineFontStyleSetTest, GetStyle, TestSize.Level1)
         tfss1->GetStyle(0, tfs, name);
 
         std::shared_ptr<TexgineFontStyleSet> tfss2 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss2->GetStyle(0, nullptr, name);
 
         std::shared_ptr<TexgineFontStyleSet> tfss3 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss3->GetStyle(0, tfs, nullptr);
 
         std::shared_ptr<TexgineFontStyleSet> tfss4 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss4->GetStyle(0, tfs, name);
     });
 }
@@ -102,11 +86,7 @@ HWTEST_F(TexgineFontStyleSetTest, CreateTypeface, TestSize.Level1)
         tfss1->CreateTypeface(0);
 
         std::shared_ptr<TexgineFontStyleSet> tfss2 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss2->CreateTypeface(0);
     });
 }
@@ -125,28 +105,16 @@ HWTEST_F(TexgineFontStyleSetTest, MatchStyle, TestSize.Level1)
         tfss1->MatchStyle(tfs);
 
         std::shared_ptr<TexgineFontStyleSet> tfss2 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss2->MatchStyle(nullptr);
 
         std::shared_ptr<TexgineFontStyleSet> tfss3 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss3->MatchStyle(tfs);
 
         tfs->SetFontStyle(nullptr);
         std::shared_ptr<TexgineFontStyleSet> tfss4 =
-#ifndef USE_ROSEN_DRAWING
-            std::make_shared<TexgineFontStyleSet>(SkFontStyleSet::CreateEmpty());
-#else
             std::make_shared<TexgineFontStyleSet>(RSFontStyleSet::CreateEmpty());
-#endif
         tfss4->MatchStyle(tfs);
     });
 }

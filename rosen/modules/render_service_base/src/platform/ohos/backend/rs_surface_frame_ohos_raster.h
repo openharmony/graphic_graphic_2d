@@ -29,13 +29,8 @@ public:
     RSSurfaceFrameOhosRaster(int32_t width, int32_t height);
     ~RSSurfaceFrameOhosRaster() = default;
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* GetCanvas() override;
-    sk_sp<SkSurface> GetSurface() override;
-#else
     Drawing::Canvas* GetCanvas() override;
     std::shared_ptr<Drawing::Surface> GetSurface() override;
-#endif
 
     sptr<SurfaceBuffer> GetBuffer() const
     {

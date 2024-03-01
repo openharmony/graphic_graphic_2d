@@ -58,11 +58,7 @@ enum class PathOp {
     REVERSE_DIFFERENCE,
 };
 
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT Path {
-#else
 class DRAWING_API Path {
-#endif
 public:
     Path() noexcept;
     Path(const Path& p) noexcept;

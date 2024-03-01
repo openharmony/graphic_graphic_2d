@@ -30,11 +30,7 @@ public:
     void TearDown() override;
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
-#ifndef USE_ROSEN_DRAWING
-    static inline SkCanvas skCanvas_;
-#else
     static inline Drawing::Canvas canvas;
-#endif
 };
 
 void RSEffectRenderNodeTest::SetUpTestCase() {}
@@ -81,11 +77,7 @@ HWTEST_F(RSEffectRenderNodeTest, GetFilterRect, TestSize.Level1)
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
-#ifndef USE_ROSEN_DRAWING
-    SkIRect path;
-#else
     Drawing::RectI path;
-#endif
     rsEffectRenderNode.SetEffectRegion(path);
     rsEffectRenderNode.GetFilterRect();
 }

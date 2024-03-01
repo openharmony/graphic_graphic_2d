@@ -24,18 +24,11 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_node.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-#endif
 
 namespace OHOS {
 namespace Rosen {
 struct RSDrawingContext {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* canvas;
-#else
     Drawing::Canvas* canvas;
-#endif
     float width;
     float height;
 };
@@ -45,11 +38,7 @@ public:
     static RSDrawingContext CreateDrawingContext(NodeId nodeId);
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
         RSDrawingContext& ctx, PropertyId id, RSModifierType type);
-#ifndef USE_ROSEN_DRAWING
-    static std::shared_ptr<DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
-#else
     static std::shared_ptr<Drawing::DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
-#endif
 };
 
 class RSC_EXPORT RSExtendedModifier : public RSModifier {
@@ -94,11 +83,7 @@ protected:
         RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(node->GetId());
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
-#ifndef USE_ROSEN_DRAWING
         bool isEmpty = drawCmdList == nullptr;
-#else
-        bool isEmpty = drawCmdList == nullptr;
-#endif
         if (lastDrawCmdListEmpty_ && isEmpty) {
             return;
         }
@@ -133,11 +118,7 @@ public:
 
     void Draw(RSDrawingContext& context) const override {};
 
-#ifndef USE_ROSEN_DRAWING
-    virtual SkMatrix GeometryEffect(float width, float height) const = 0;
-#else
     virtual Drawing::Matrix GeometryEffect(float width, float height) const = 0;
-#endif
 
 protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override
@@ -150,13 +131,8 @@ protected:
         if (canvasnode == nullptr) {
             return nullptr;
         }
-#ifndef USE_ROSEN_DRAWING
-        auto renderProperty = std::make_shared<RSRenderProperty<SkMatrix>>(
-            GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight()), property_->GetId());
-#else
         auto renderProperty = std::make_shared<RSRenderProperty<Drawing::Matrix>>(
             GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight()), property_->GetId());
-#endif
         auto renderModifier = std::make_shared<RSGeometryTransRenderModifier>(renderProperty);
         return renderModifier;
     }
@@ -171,26 +147,15 @@ protected:
         if (canvasnode == nullptr) {
             return;
         }
-#ifndef USE_ROSEN_DRAWING
-        auto SkMatrix = GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight());
-        std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertySkMatrix>(
-            node->GetId(), SkMatrix, property_->id_, UPDATE_TYPE_OVERWRITE);
-#else
         auto matrix = GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight());
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawingMatrix>(
             node->GetId(), matrix, property_->id_, UPDATE_TYPE_OVERWRITE);
-#endif
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, node->IsRenderServiceNode());
             if (node->NeedForcedSendToRemote()) {
-#ifndef USE_ROSEN_DRAWING
-                std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertySkMatrix>(
-                    node->GetId(), SkMatrix, property_->id_, UPDATE_TYPE_OVERWRITE);
-#else
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawingMatrix>(
                     node->GetId(), matrix, property_->id_, UPDATE_TYPE_OVERWRITE);
-#endif
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }
         }

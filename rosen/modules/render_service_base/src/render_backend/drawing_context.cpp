@@ -46,70 +46,6 @@ sk_sp<SkSurface> DrawingContext::AcquireSurface(const std::shared_ptr<RSRenderSu
         return AcquireSurfaceInVulkan(frame);
     }
 }
-#ifndef USE_ROSEN_DRAWING
-bool DrawingContext::SetUpDrawingContext()
-{
-#if defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return false;
-    }
-    if (grContext_ != nullptr) {
-        LOGD("grContext has already initialized");
-        return true;
-    }
-
-    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
-    if (glInterface.get() == nullptr) {
-        LOGE("SetUpDrawingContext failed to make native interface");
-        return false;
-    }
-
-    GrContextOptions options;
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-    // fix svg antialiasing bug
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-    options.fPreferExternalImagesOverES3 = true;
-    options.fDisableDistanceFieldPaths = true;
-    options.fAllowPathMaskCaching = true;
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    auto size = glesVersion ? strlen(glesVersion) : 0;
-    bool isUni = false;
-    auto &cache = ShaderCache::Instance();
-#if defined(RS_ENABLE_UNI_RENDER)
-    isUni = true;
-    cache.SetFilePath(UNIRENDER_CACHE_DIR);
-#endif
-    cache.InitShaderCache(glesVersion, size, isUni);
-    options.fPersistentCache = &cache;
-
-#if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
-#else
-    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
-#endif
-    if (grContext == nullptr) {
-        LOGE("Failed to create grContext, grContext is nullptr");
-        return false;
-    }
-    grContext_ = std::move(grContext);
-    return true;
-#else
-    return false;
-#endif
-}
-
-#if defined(NEW_SKIA)
-GrDirectContext* DrawingContext::GetDrawingContext() const
-{
-    return grContext_.get();
-}
-#else
-GrContext* DrawingContext::GetDrawingContext() const
-{
-    return grContext_.get();
-}
-#endif
-#else
 bool DrawingContext::SetUpDrawingContext()
 {
 #if defined(RS_ENABLE_GL)
@@ -149,7 +85,6 @@ GPUContext* DrawingContext::GetDrawingContext() const
 {
     return gpuContext_.get();
 }
-#endif
 
 sk_sp<SkSurface> DrawingContext::AcquireSurfaceInGLES(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {

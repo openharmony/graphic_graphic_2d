@@ -42,11 +42,7 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<DrawCmdList> drawCmds = nullptr;
-#else
     std::shared_ptr<Drawing::DrawCmdList> drawCmds = nullptr;
-#endif
     RSModifierType type = RSModifierType::INVALID;
     RSCanvasNodeCommandHelper::UpdateRecording(context, nodeId, drawCmds, static_cast<uint16_t>(type));
 }

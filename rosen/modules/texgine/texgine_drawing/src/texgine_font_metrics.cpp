@@ -37,20 +37,12 @@ TexgineFontMetrics::TexgineFontMetrics()
     fStrikeoutThickness_ = &fontMetrics_->fStrikeoutThickness;
     fStrikeoutPosition_ = &fontMetrics_->fStrikeoutPosition;
 }
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<SkFontMetrics> TexgineFontMetrics::GetFontMetrics() const
-#else
 std::shared_ptr<RSFontMetrics> TexgineFontMetrics::GetFontMetrics() const
-#endif
 {
     return fontMetrics_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineFontMetrics::SetFontMetrics(const std::shared_ptr<SkFontMetrics> metrics)
-#else
 void TexgineFontMetrics::SetFontMetrics(const std::shared_ptr<RSFontMetrics> metrics)
-#endif
 {
     if (metrics == nullptr) {
         return;

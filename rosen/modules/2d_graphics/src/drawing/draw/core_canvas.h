@@ -78,11 +78,7 @@ class Surface;
 /**
  * @brief Contains the option used to create the layer.
  */
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT SaveLayerOps {
-#else
 class DRAWING_API SaveLayerOps {
-#endif
 public:
     // How to allocate layer
     enum Flags {
@@ -130,11 +126,7 @@ private:
     uint32_t saveLayerFlags_;
 };
 
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT CoreCanvas {
-#else
 class DRAWING_API CoreCanvas {
-#endif
 public:
     CoreCanvas();
     explicit CoreCanvas(void* rawCanvas);

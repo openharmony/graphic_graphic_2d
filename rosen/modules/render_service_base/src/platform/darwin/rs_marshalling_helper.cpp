@@ -19,31 +19,7 @@
 #include <message_parcel.h>
 #include <unistd.h>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkDrawable.h"
-#include "include/core/SkImage.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkPaint.h"
-#include "include/core/SkPicture.h"
-#include "include/core/SkSerialProcs.h"
-#include "include/core/SkStream.h"
-#include "include/core/SkTextBlob.h"
-#include "include/core/SkTypeface.h"
-#include "include/core/SkVertices.h"
-#ifdef NEW_SKIA
-#include "include/core/SkSamplingOptions.h"
-#include "src/core/SkVerticesPriv.h"
-#endif
-#endif
 #include "securec.h"
-#ifndef USE_ROSEN_DRAWING
-#include "src/core/SkAutoMalloc.h"
-#include "src/core/SkPaintPriv.h"
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
-#include "src/image/SkImage_Base.h"
-#include "include/core/HMSymbol.h"
-#endif
 
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
@@ -57,12 +33,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_render_modifier.h"
-#ifndef USE_ROSEN_DRAWING
-#include "pipeline/rs_draw_cmd.h"
-#include "pipeline/rs_draw_cmd_list.h"
-#else
 #include "property/rs_properties_def.h"
-#endif
 #include "pixel_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
@@ -112,80 +83,7 @@ static inline sk_sp<T> sk_reinterpret_cast(sk_sp<P> ptr)
 }
 } // namespace
 
-#ifndef USE_ROSEN_DRAWING
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const GroupInfo& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, GroupInfo& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderGroup& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderGroup& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SymbolLayers& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SymbolLayers& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SymbolLayersGroups& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SymbolLayersGroups& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const HMSymbolData& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, HMSymbolData& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPoint& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPoint& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SColor& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SColor& val)
-{
-    return {};
-}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-// SkData
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, sk_sp<SkData> val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::SkipSkData(Parcel& parcel)
-{
-    return {};
-}
-#else
 // Drawing::Data
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val)
 {
@@ -199,64 +97,8 @@ bool RSMarshallingHelper::SkipData(Parcel& parcel)
 {
     return {};
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-// SkTypeface serial proc
-sk_sp<SkData> RSMarshallingHelper::SerializeTypeface(SkTypeface* tf, void* ctx)
-{
-    return {};
-}
 
-// SkTypeface deserial proc
-sk_sp<SkTypeface> RSMarshallingHelper::DeserializeTypeface(const void* data, size_t length, void* ctx)
-{
-    return {};
-}
-
-// SkTextBlob
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkTextBlob>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkTextBlob>& val)
-{
-    return {};
-}
-
-// SkPaint
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPaint& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPaint& val)
-{
-    return {};
-}
-#endif
-
-#ifndef USE_ROSEN_DRAWING
-// SkImage
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
-{
-    return {};
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
-{
-    return {};
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr)
-{
-    return {};
-}
-
-bool RSMarshallingHelper::SkipSkImage(Parcel& parcel)
-{
-    return {};
-}
-#else
 // Drawing::Image
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
 {
@@ -277,112 +119,9 @@ bool RSMarshallingHelper::SkipImage(Parcel& parcel)
 {
     return {};
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-// SkPicture
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkPicture>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkPicture>& val)
-{
-    return {};
-}
-
-// SkVertices
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkVertices>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkVertices>& val)
-{
-    return {};
-}
-
-// SkRect
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkRect& rect)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkRect& rect)
-{
-    return {};
-}
-
-// SkRegion
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkRegion& region)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkRegion& region)
-{
-    return {};
-}
-
-// SkBitmap
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkBitmap& val)
-{
-    return {};
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkBitmap& val)
-{
-    return {};
-}
-
-// SKPath
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPath& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPath& val)
-{
-    return {};
-}
-
-// SkFlattenable
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkFlattenable>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkFlattenable>& val)
-{
-    return {};
-}
-
-// SkDrawable
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkDrawable>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkDrawable>& val)
-{
-    return {};
-}
-
-// SkImageFilter
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImageFilter>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImageFilter>& val)
-{
-    return {};
-}
-#endif
 
 // RSShader
-#ifndef USE_ROSEN_DRAWING
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader>& val)
-{
-    return {};
-}
-#else
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
 {
     return {};
@@ -402,7 +141,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
     return {};
 }
-#endif
 
 // RSLinearGradientBlurPara
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSLinearGradientBlurPara>& val)
@@ -464,8 +202,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     return {};
 }
 
-#ifndef USE_ROSEN_DRAWING
-// RSPath
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPath>& val)
 {
     return {};
@@ -474,16 +210,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>&
 {
     return {};
 }
-#else
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPath>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>& val)
-{
-    return {};
-}
-#endif
 
 // RSMask
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMask>& val)
@@ -555,21 +281,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
     return {};
 }
 
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-// SkPaint
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkSamplingOptions& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkSamplingOptions& val)
-{
-    return {};
-}
-#endif
-#endif
 
-#ifdef USE_ROSEN_DRAWING
 // Drawing::DrawCmdList
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
 {
@@ -580,7 +292,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 {
     return {};
 }
-#endif
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
@@ -593,9 +304,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     }
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
-#ifndef USE_ROSEN_DRAWING
-MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
-#endif
 #undef MARSHALLING_AND_UNMARSHALLING
 
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \
@@ -660,32 +368,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     template bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<TYPE>>& val); \
     template bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<TYPE>>& val);
 
-#ifndef USE_ROSEN_DRAWING
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                                \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<std::vector<ParticleRenderParams>>) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)
-#else
 #define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                               \
     EXPLICIT_INSTANTIATION(TEMPLATE, float)                                              \
@@ -710,7 +392,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
-#endif
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 
 #undef EXPLICIT_INSTANTIATION

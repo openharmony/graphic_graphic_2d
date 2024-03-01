@@ -20,16 +20,7 @@
 #include <thread>
 
 #include "common/rs_macros.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkRefCnt.h"
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
-#else // USE_ROSEN_DRAWING
 #include "image/gpu_context.h"
-#endif // USE_ROSEN_DRAWING
 
 typedef void* EGLSurface;
 typedef void* EGLContext;
@@ -43,15 +34,7 @@ public:
 
     ~RSSharedContext();
     void MakeCurrent();
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    sk_sp<GrDirectContext> MakeGrContext();
-#else
-    sk_sp<GrContext> MakeGrContext();
-#endif
-#else // USE_ROSEN_DRAWING
     std::shared_ptr<Drawing::GPUContext> MakeDrContext();
-#endif
 
 private:
     RSSharedContext(EGLDisplay display, EGLContext context, EGLSurface surface)

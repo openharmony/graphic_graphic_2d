@@ -28,9 +28,7 @@
 #include "include/gpu/vk/GrVkBackendContext.h"
 #include "include/gpu/GrDirectContext.h"
 
-#ifdef USE_ROSEN_DRAWING
 #include "image/gpu_context.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -165,24 +163,15 @@ public:
         return std::to_string(VK_API_VERSION_1_2);
     }
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> CreateSkContext(bool independentContext = false);
-    sk_sp<GrDirectContext> GetSkContext();
-#else
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(bool independentContext = false);
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
-#endif
 
     static VKAPI_ATTR VkResult HookedVkQueueSubmit(VkQueue queue, uint32_t submitCount,
         const VkSubmitInfo* pSubmits, VkFence fence);
 
     static VKAPI_ATTR VkResult HookedVkQueueSignalReleaseImageOHOS(VkQueue queue, uint32_t waitSemaphoreCount,
         const VkSemaphore* pWaitSemaphores, VkImage image, int32_t* pNativeFenceFd);
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> GetHardWareGrContext() const
-#else
     std::shared_ptr<Drawing::GPUContext> GetHardWareGrContext() const
-#endif
     {
         return hcontext_;
     }
@@ -205,13 +194,8 @@ private:
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
     GrVkExtensions skVkExtensions_;
-#ifndef USE_ROSEN_DRAWING
-    static thread_local sk_sp<GrDirectContext> skContext_;
-    sk_sp<GrDirectContext> hcontext_ = nullptr;
-#else
     static thread_local std::shared_ptr<Drawing::GPUContext> drawingContext_;
     std::shared_ptr<Drawing::GPUContext> hcontext_ = nullptr;
-#endif
     // static thread_local GrVkBackendContext backendContext_;
     GrVkBackendContext backendContext_;
     GrVkBackendContext hbackendContext_;
@@ -230,11 +214,7 @@ private:
         const char* proc_name,
         const VkInstance& instance) const;
     PFN_vkVoidFunction AcquireProc(const char* proc_name, const VkDevice& device) const;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> CreateNewSkContext();
-#else
     std::shared_ptr<Drawing::GPUContext> CreateNewDrawingContext();
-#endif
     std::shared_ptr<MemoryHandler> memHandler_;
 };
 

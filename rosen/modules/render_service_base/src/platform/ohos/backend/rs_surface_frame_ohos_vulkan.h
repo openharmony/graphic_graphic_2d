@@ -27,21 +27,12 @@ namespace Rosen {
 
 class RSSurfaceFrameOhosVulkan : public RSSurfaceFrameOhos {
 public:
-#ifndef USE_ROSEN_DRAWING
-    RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height, int32_t bufferAge);
-#else
     RSSurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width,
         int32_t height, int32_t bufferAge);
-#endif
     ~RSSurfaceFrameOhosVulkan() override = default;
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* GetCanvas() override;
-    sk_sp<SkSurface> GetSurface() override;
-#else
     Drawing::Canvas* GetCanvas() override;
     std::shared_ptr<Drawing::Surface> GetSurface() override;
-#endif
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
     void SetDamageRegion(const std::vector<RectI>& rects) override;
     int32_t GetReleaseFence() const;
@@ -50,11 +41,7 @@ public:
 
 private:
     int32_t releaseFence_ = 0;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> surface_;
-#else
     std::shared_ptr<Drawing::Surface> surface_;
-#endif
     int width_ = 0;
     int height_ = 0;
     int32_t bufferAge_ = -1;

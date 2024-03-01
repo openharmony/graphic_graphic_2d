@@ -18,11 +18,7 @@
 
 #include "platform/common/rs_log.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkImage.h"
-#else
 #include "image/image.h"
-#endif
 #include "render/rs_pixel_map_util.h"
 
 #include "draw/surface.h"
@@ -34,23 +30,13 @@ namespace OHOS::Rosen {
 
 class RSB_EXPORT RSResourceManager final {
 public:
-#ifndef USE_ROSEN_DRAWING
-    typedef void (*TextureUpload)(bool, const sk_sp<SkImage>&,
-    const std::shared_ptr<Media::PixelMap>&, uint64_t);
-#else
     typedef void (*TextureUpload)(bool, const std::shared_ptr<Drawing::Image>&,
     const std::shared_ptr<Media::PixelMap>&, uint64_t);
-#endif
 
     static RSResourceManager& Instance();
 
-#ifndef USE_ROSEN_DRAWING
-    void UploadTexture(bool paraUpload, const sk_sp<SkImage>&,
-    const std::shared_ptr<Media::PixelMap>& pixelMap, uint64_t uniqueId);
-#else
     void UploadTexture(bool paraUpload, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Media::PixelMap>& pixelMap, uint64_t uniqueId);
-#endif
 
 private:
     friend class RSUploadResourceThread;

@@ -86,18 +86,11 @@ bool RSDrivenRenderManager::ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, c
     RRect absClipRRect = RRect({x, y, width, height}, property.GetCornerRadius());
 
     // clip hole
-#ifndef USE_ROSEN_DRAWING
-    canvas.save();
-    canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
-    canvas.clear(SK_ColorTRANSPARENT);
-    canvas.restore();
-#else
     canvas.Save();
     canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(absClipRRect),
         Drawing::ClipOp::INTERSECT, true);
     canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
     canvas.Restore();
-#endif
     return true;
 }
 

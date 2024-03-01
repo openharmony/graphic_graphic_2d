@@ -31,20 +31,12 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
-#ifndef USE_ROSEN_DRAWING
-    static inline SkCanvas skCanvas_;
-#else
     static inline Drawing::Canvas drawingCanvas_;
-#endif
 };
 
 void RSSurfaceRenderNodeTest::SetUpTestCase()
 {
-#ifndef USE_ROSEN_DRAWING
-    canvas_ = new RSPaintFilterCanvas(&skCanvas_);
-#else
     canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
-#endif
 }
 void RSSurfaceRenderNodeTest::TearDownTestCase()
 {
@@ -62,11 +54,7 @@ void RSSurfaceRenderNodeTest::TearDown() {}
 HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrix001, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix;
-#else
     Drawing::Matrix matrix;
-#endif
     bool sendMsg = false;
     surfaceRenderNode.SetContextMatrix(matrix, sendMsg);
 }
@@ -80,11 +68,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrix001, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, SetContextClipRegion001, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-#ifndef USE_ROSEN_DRAWING
-    SkRect clipRegion { 0, 0, 0, 0 };
-#else
     Drawing::Rect clipRegion { 0, 0, 0, 0 };
-#endif
     bool sendMsg = false;
     surfaceRenderNode.SetContextClipRegion(clipRegion, sendMsg);
 }
@@ -463,11 +447,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest, TestS
  */
 HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixTest, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkMatrix> matrix;
-#else
     std::optional<Drawing::Matrix> matrix;
-#endif
     bool sendMsg = false;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->SetContextMatrix(matrix, sendMsg);

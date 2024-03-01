@@ -67,13 +67,6 @@ class TexginePaintTest : public testing::Test {
 HWTEST_F(TexginePaintTest, SetPaint, TestSize.Level1)
 {
     std::shared_ptr<TexginePaint> tp = std::make_shared<TexginePaint>();
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkPaint> sp = std::make_shared<SkPaint>();
-    EXPECT_NO_THROW({
-        tp->SetPaint(*sp);
-        EXPECT_EQ(tp->GetPaint(), *sp);
-    });
-#else
     std::shared_ptr<RSBrush> brush = std::make_shared<RSBrush>();
     std::shared_ptr<RSPen> pen = std::make_shared<RSPen>();
     EXPECT_NO_THROW({
@@ -84,7 +77,6 @@ HWTEST_F(TexginePaintTest, SetPaint, TestSize.Level1)
         tp->SetPen(*pen);
         EXPECT_EQ(tp->GetPen(), *pen);
     });
-#endif
 }
 
 /**

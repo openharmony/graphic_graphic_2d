@@ -20,10 +20,6 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
-#endif
 
 #include "pipeline/rs_render_result.h"
 #include "platform/common/rs_log.h"
@@ -41,25 +37,13 @@ using namespace std;
 
 std::unique_ptr<RSSurfaceFrame> framePtr;
 
-#ifndef USE_ROSEN_DRAWING
-void DrawSurface(
-    SkRect surfaceGeometry, uint32_t color, SkRect shapeGeometry, std::shared_ptr<RSSurfaceNode> surfaceNode)
-#else
 void DrawSurface(Drawing::Rect surfaceGeometry,
     uint32_t color, Drawing::Rect shapeGeometry, std::shared_ptr<RSSurfaceNode> surfaceNode)
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
-    auto x = surfaceGeometry.x();
-    auto y = surfaceGeometry.y();
-    auto width = surfaceGeometry.width();
-    auto height = surfaceGeometry.height();
-#else
     auto x = surfaceGeometry.GetLeft();
     auto y = surfaceGeometry.GetTop();
     auto width = surfaceGeometry.GetWidth();
     auto height = surfaceGeometry.GetHeight();
-#endif
     surfaceNode->SetBounds(x, y, width, height);
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
     if (rsSurface == nullptr) {
@@ -69,16 +53,6 @@ void DrawSurface(Drawing::Rect surfaceGeometry,
     framePtr = std::move(frame);
     auto canvas = framePtr->GetCanvas();
 
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setStrokeWidth(20);
-    paint.setStrokeJoin(SkPaint::kRound_Join);
-    paint.setColor(color);
-
-    canvas->drawRect(shapeGeometry, paint);
-#else
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
     brush.SetColor(color);
@@ -86,7 +60,6 @@ void DrawSurface(Drawing::Rect surfaceGeometry,
     canvas->AttachBrush(brush);
     canvas->DrawRect(shapeGeometry);
     canvas->DetachBrush();
-#endif
     framePtr->SetDamageRegion(0, 0, width, height);
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
@@ -94,21 +67,12 @@ void DrawSurface(Drawing::Rect surfaceGeometry,
 
 void DrawSurfaceToCapture(std::shared_ptr<RSSurfaceNode> surfaceNode)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkRect surfaceGeometry = SkRect::MakeXYWH(50, 50, 128, 128);
-    SkRect shapeGeometry = SkRect::MakeXYWH(10, 20, 40, 48);
-    auto x = surfaceGeometry.x();
-    auto y = surfaceGeometry.y();
-    auto width = surfaceGeometry.width();
-    auto height = surfaceGeometry.height();
-#else
     Drawing::Rect surfaceGeometry = Drawing::Rect(50, 50, 178, 178);
     Drawing::Rect shapeGeometry = Drawing::Rect(10, 20, 50, 68);
     auto x = surfaceGeometry.GetLeft();
     auto y = surfaceGeometry.GetTop();
     auto width = surfaceGeometry.GetWidth();
     auto height = surfaceGeometry.GetHeight();
-#endif
     surfaceNode->SetBounds(x, y, width, height);
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
     if (rsSurface == nullptr) {
@@ -123,24 +87,6 @@ void DrawSurfaceToCapture(std::shared_ptr<RSSurfaceNode> surfaceNode)
         ROSEN_LOGE("***SurfaceCaptureTest*** DrawSurfaceToCapture: canvas == nullptr");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setStrokeWidth(4);
-    paint.setStrokeJoin(SkPaint::kRound_Join);
-    paint.setColor(0xffff0000);
-    SkPath path;
-    path.cubicTo(10, 10, 25, 80, 60, 80);
-    SkPaint pathPaint;
-    pathPaint.setAntiAlias(true);
-    pathPaint.setStyle(SkPaint::kFill_Style);
-    pathPaint.setStrokeWidth(2);
-    pathPaint.setStrokeJoin(SkPaint::kRound_Join);
-    pathPaint.setColor(0xffFFD700);
-    canvas->drawRect(shapeGeometry, paint);
-    canvas->drawPath(path, pathPaint);
-#else
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
     brush.SetColor(0xffff0000);
@@ -156,7 +102,6 @@ void DrawSurfaceToCapture(std::shared_ptr<RSSurfaceNode> surfaceNode)
     canvas->AttachBrush(pathBrush);
     canvas->drawPath(path);
     canvas->DetachBrush();
-#endif
     framePtr->SetDamageRegion(0, 0, width, height);
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
@@ -189,25 +134,6 @@ void DrawPixelmap(std::shared_ptr<RSSurfaceNode> surfaceNode, std::shared_ptr<Me
         ROSEN_LOGE("***SurfaceCaptureTest*** : canvas == nullptr");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas->drawColor(0xFF87CEEB);
-    SkImageInfo layerInfo = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    auto addr = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
-    if (addr == nullptr) {
-        ROSEN_LOGE("***SurfaceCaptureTest*** : addr == nullptr");
-        return;
-    }
-    SkPixmap pixmap(layerInfo, addr, pixelmap->GetRowBytes());
-    SkBitmap bitmap;
-    if (bitmap.installPixels(pixmap)) {
-#ifdef NEW_SKIA
-        canvas->drawImageRect(
-            bitmap.asImage(), SkRect::MakeXYWH(0, 0, sWidth, sHeight), SkSamplingOptions(), nullptr);
-#else
-        canvas->drawBitmapRect(bitmap, SkRect::MakeXYWH(0, 0, sWidth, sHeight), nullptr);
-#endif
-    }
-#else
     canvas->DrawColor(0xFF87CEEB);
     Drawing::Bitmap bitmap;
     bitmap.Build(width, height, Drawing::BitmapFormat{
@@ -222,7 +148,6 @@ void DrawPixelmap(std::shared_ptr<RSSurfaceNode> surfaceNode, std::shared_ptr<Me
     Drawing::Image image;
     image.BuildFromBitmap(bitmap);
     canvas->DrawImageRect(image, Drawing::Rect(0, 0, sWidth, sHeight), nullptr);
-#endif
     framePtr->SetDamageRegion(0, 0, sWidth, sHeight);
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
@@ -330,15 +255,9 @@ int main()
     auto surfaceNode1 = CreateSurface();
     auto surfaceNode2 = CreateSurface();
     auto surfaceNode3 = CreateSurface();
-#ifndef USE_ROSEN_DRAWING
-    DrawSurface(SkRect::MakeXYWH(0, 0, 700, 1000), 0xFFF0FFF0, SkRect::MakeXYWH(0, 0, 7000, 1000), surfaceLauncher);
-    DrawSurface(SkRect::MakeXYWH(100, 300, 128, 128), 0xFF8B008B, SkRect::MakeXYWH(20, 20, 100, 100), surfaceNode1);
-    DrawSurface(SkRect::MakeXYWH(100, 600, 256, 256), 0xFF00FF40, SkRect::MakeXYWH(20, 20, 100, 100), surfaceNode3);
-#else
     DrawSurface(Drawing::Rect(0, 0, 700, 1000), 0xFFF0FFF0, Drawing::Rect(0, 0, 7000, 1000), surfaceLauncher);
     DrawSurface(Drawing::Rect(100, 300, 228, 428), 0xFF8B008B, Drawing::Rect(20, 20, 120, 120), surfaceNode1);
     DrawSurface(Drawing::Rect(100, 600, 356, 856), 0xFF00FF40, Drawing::Rect(20, 20, 120, 120), surfaceNode3);
-#endif
     DrawSurfaceToCapture(surfaceNode2);
     RSDisplayNodeConfig config;
     config.screenId = id;

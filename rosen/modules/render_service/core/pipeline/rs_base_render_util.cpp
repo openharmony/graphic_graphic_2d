@@ -29,12 +29,10 @@
 #include "rs_trace.h"
 #include "transaction/rs_transaction_data.h"
 
-#ifdef USE_ROSEN_DRAWING
 #include "draw/clip.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
 #include "utils/camera3d.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -211,19 +209,6 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
         BYBy * B.x_, BY, BYBy * (1 - B.x_ - B.y_)
     };
 }
-#ifndef USE_ROSEN_DRAWING
-static const sk_sp<SkColorFilter>& InvertColorMat()
-{
-    static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.402,  -1.174, -0.228, 1.0, 0.0,
-        -0.598, -0.174, -0.228, 1.0, 0.0,
-        -0.599, -1.175, 0.772,  1.0, 0.0,
-        0.0,    0.0,    0.0,    1.0, 0.0
-    };
-    static auto invertColorMat = SkColorFilters::Matrix(colorMatrix);
-    return invertColorMat;
-}
-#else
 static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
@@ -235,21 +220,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
     static auto invertColorMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertColorMat;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-static const sk_sp<SkColorFilter>& ProtanomalyMat()
-{
-    static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.622,  0.377,  0.0, 0.0, 0.0,
-        0.264,  0.736,  0.0, 0.0, 0.0,
-        0.217,  -0.217, 1.0, 0.0, 0.0,
-        0.0,    0.0,    0.0, 1.0, 0.0
-    };
-    static auto protanomalyMat = SkColorFilters::Matrix(colorMatrix);
-    return protanomalyMat;
-}
-#else
 static const std::shared_ptr<Drawing::ColorFilter>& ProtanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
@@ -261,21 +232,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& ProtanomalyMat()
     static auto protanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return protanomalyMat;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-static const sk_sp<SkColorFilter>& DeuteranomalyMat()
-{
-    static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.288,  0.712, 0.0, 0.0, 0.0,
-        0.053,  0.947, 0.0, 0.0, 0.0,
-        -0.258, 0.258, 1.0, 0.0, 0.0,
-        0.0,    0.0,   0.0, 1.0, 0.0
-    };
-    static auto deuteranomalyMat = SkColorFilters::Matrix(colorMatrix);
-    return deuteranomalyMat;
-}
-#else
 static const std::shared_ptr<Drawing::ColorFilter>& DeuteranomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
@@ -287,21 +244,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& DeuteranomalyMat()
     static auto deuteranomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return deuteranomalyMat;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-static const sk_sp<SkColorFilter>& TritanomalyMat()
-{
-    static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        1.0, -0.806, 0.806, 0.0, 0.0,
-        0.0, 0.379,  0.621, 0.0, 0.0,
-        0.0, 0.105,  0.895, 0.0, 0.0,
-        0.0, 0.0,    0.0,   1.0, 0.0
-    };
-    static auto tritanomalyMat = SkColorFilters::Matrix(colorMatrix);
-    return tritanomalyMat;
-}
-#else
 static const std::shared_ptr<Drawing::ColorFilter>& TritanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
@@ -313,21 +256,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& TritanomalyMat()
     static auto tritanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return tritanomalyMat;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-static const sk_sp<SkColorFilter>& InvertProtanomalyMat()
-{
-    static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        -0.109, -0.663, -0.228, 1.0, 0.0,
-        -0.468, -0.304, -0.228, 1.0, 0.0,
-        -0.516, -1.258, 0.772,  1.0, 0.0,
-        0.0,    0.0,    0.0,    1.0, 0.0
-    };
-    static auto invertProtanomalyMat = SkColorFilters::Matrix(colorMatrix);
-    return invertProtanomalyMat;
-}
-#else
 static const std::shared_ptr<Drawing::ColorFilter>& InvertProtanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
@@ -339,21 +268,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertProtanomalyMat()
     static auto invertProtanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertProtanomalyMat;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-static const sk_sp<SkColorFilter>& InvertDeuteranomalyMat()
-{
-    static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.113,  -0.885, -0.228, 1.0, 0.0,
-        -0.123, -0.649, -0.228, 1.0, 0.0,
-        -0.434, -1.341, 0.772,  1.0, 0.0,
-        0.0,    0.0,    0.0,    1.0, 0.0
-    };
-    static auto invertDeuteranomalyMat = SkColorFilters::Matrix(colorMatrix);
-    return invertDeuteranomalyMat;
-}
-#else
 static const std::shared_ptr<Drawing::ColorFilter>& InvertDeuteranomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
@@ -365,21 +280,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertDeuteranomalyMat()
     static auto invertDeuteranomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertDeuteranomalyMat;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-static const sk_sp<SkColorFilter>& InvertTritanomalyMat()
-{
-    static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.402,  -0.792, -0.609, 1.0, 0.0,
-        -0.598, 0.392,  -0.794, 1.0, 0.0,
-        -0.598, 0.118,  -0.521, 1.0, 0.0,
-        0.0,    0.0,    0.0,    1.0, 0.0
-    };
-    static auto invertTritanomalyMat = SkColorFilters::Matrix(colorMatrix);
-    return invertTritanomalyMat;
-}
-#else
 static const std::shared_ptr<Drawing::ColorFilter>& InvertTritanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
@@ -391,7 +292,6 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertTritanomalyMat()
     static auto invertTritanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertTritanomalyMat;
 }
-#endif
 
 class SimpleColorSpace {
 public:
@@ -749,15 +649,6 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkImageInfo GenerateSkImageInfo(const sptr<OHOS::SurfaceBuffer>& buffer)
-{
-    SkColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-        kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-    return SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
-        colorType, kPremul_SkAlphaType);
-}
-#else
 Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer)
 {
     Drawing::ColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
@@ -766,7 +657,6 @@ Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer
     Drawing::BitmapFormat format { colorType, alphaType };
     return format;
 }
-#endif
 
 // YUV to RGBA: Pixel value conversion table
 static int Table_fv1[256] = { -180, -179, -177, -176, -174, -173, -172, -170, -169, -167, -166, -165, -163, -162,
@@ -916,15 +806,6 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
     }
 
     const auto& property = node.GetRenderProperties();
-#ifndef USE_ROSEN_DRAWING
-    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
-    // If node's gravity is not RESIZE and backgroundColor is not transparent,
-    // we check the src and dst size to decide whether to use client composition or not.
-    if (property.GetFrameGravity() != Gravity::RESIZE && SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT &&
-        (info.srcRect.w != info.dstRect.w || info.srcRect.h != info.dstRect.h)) {
-        return true;
-    }
-#else
     auto backgroundColor = static_cast<Drawing::ColorQuad>(property.GetBackgroundColor().AsArgbInt());
     // If node's gravity is not RESIZE and backgroundColor is not transparent,
     // we check the src and dst size to decide whether to use client composition or not.
@@ -933,7 +814,6 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
         (info.srcRect.w != info.dstRect.w || info.srcRect.h != info.dstRect.h)) {
         return true;
     }
-#endif
 
     if (property.GetBackgroundFilter() || property.GetFilter()) {
         RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need filter");
@@ -1094,40 +974,6 @@ bool RSBaseRenderUtil::IsColorFilterModeValid(ColorFilterMode mode)
     return valid;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, SkPaint& paint)
-{
-    switch (colorFilterMode) {
-        case ColorFilterMode::INVERT_COLOR_ENABLE_MODE:
-            paint.setColorFilter(Detail::InvertColorMat());
-            break;
-        case ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE:
-            paint.setColorFilter(Detail::ProtanomalyMat());
-            break;
-        case ColorFilterMode::DALTONIZATION_DEUTERANOMALY_MODE:
-            paint.setColorFilter(Detail::DeuteranomalyMat());
-            break;
-        case ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE:
-            paint.setColorFilter(Detail::TritanomalyMat());
-            break;
-        case ColorFilterMode::INVERT_DALTONIZATION_PROTANOMALY_MODE:
-            paint.setColorFilter(Detail::InvertProtanomalyMat());
-            break;
-        case ColorFilterMode::INVERT_DALTONIZATION_DEUTERANOMALY_MODE:
-            paint.setColorFilter(Detail::InvertDeuteranomalyMat());
-            break;
-        case ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE:
-            paint.setColorFilter(Detail::InvertTritanomalyMat());
-            break;
-        // INVERT_COLOR_DISABLE_MODE and DALTONIZATION_NORMAL_MODE couldn't be in this process
-        case ColorFilterMode::INVERT_COLOR_DISABLE_MODE:
-        case ColorFilterMode::DALTONIZATION_NORMAL_MODE:
-        case ColorFilterMode::COLOR_FILTER_END:
-        default:
-            paint.setColorFilter(nullptr);
-    }
-}
-#else
 void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint)
 {
     Drawing::Filter filter;
@@ -1163,7 +1009,6 @@ void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode
     }
     paint.SetFilter(filter);
 }
-#endif
 
 bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
 {
@@ -1184,35 +1029,6 @@ bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkMatrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds)
-{
-    SkMatrix matrix;
-    const float boundsWidth = bounds.GetWidth();
-    const float boundsHeight = bounds.GetHeight();
-    switch (rotationTransform) {
-        case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            matrix.preTranslate(0, boundsHeight);
-            matrix.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            matrix.preTranslate(boundsWidth, boundsHeight);
-            matrix.preRotate(-180); // rotate 180 degrees anti-clockwise at last.
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            matrix.preTranslate(boundsWidth, 0);
-            matrix.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-            break;
-        }
-        default:
-            break;
-    }
-
-    return matrix;
-}
-#else
 Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds)
 {
     Drawing::Matrix matrix;
@@ -1240,18 +1056,11 @@ Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType
 
     return matrix;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-SkMatrix RSBaseRenderUtil::GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds)
-{
-    SkMatrix gravityMatrix;
-#else
 Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds)
 {
     Drawing::Matrix gravityMatrix;
-#endif
     if (buffer == nullptr) {
         return gravityMatrix;
     }
@@ -1277,28 +1086,16 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
-#ifndef USE_ROSEN_DRAWING
-    params.matrix.preConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
-#else
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
-#endif
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
         std::swap(localBounds.width_, localBounds.height_);
-#ifndef USE_ROSEN_DRAWING
-        params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
-#else
         params.dstRect = Drawing::Rect(0, 0, localBounds.GetWidth(), localBounds.GetHeight());
-#endif
     }
 
     // deal with buffer's gravity effect in node's inner space.
-#ifndef USE_ROSEN_DRAWING
-    params.matrix.preConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds));
-#else
     params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds));
-#endif
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
     params.dstRect = params.srcRect;
@@ -1306,30 +1103,6 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
 
 void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawParam& params)
 {
-#ifndef USE_ROSEN_DRAWING
-    const int angle = 180;
-    Sk3DView sk3DView;
-    switch (GetFlipTransform(transform)) {
-        case GraphicTransformType::GRAPHIC_FLIP_H: {
-            sk3DView.rotateY(angle);
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_V: {
-            sk3DView.rotateX(angle);
-            break;
-        }
-        default: {
-            return;
-        }
-    }
-    RS_LOGD("RSBaseRenderUtil::FlipMatrix %{public}d", transform);
-    SkMatrix flip;
-    sk3DView.getMatrix(&flip);
-    const float half = 0.5f;
-    flip.preTranslate(-half * params.dstRect.width(), -half * params.dstRect.height());
-    flip.postTranslate(half * params.dstRect.width(), half * params.dstRect.height());
-    params.matrix.preConcat(flip);
-#else
     const int angle = 180;
     Drawing::Camera3D camera3D;
     switch (GetFlipTransform(transform)) {
@@ -1352,24 +1125,10 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     flip.PreTranslate(-half * params.dstRect.GetWidth(), -half * params.dstRect.GetHeight());
     flip.PostTranslate(half * params.dstRect.GetWidth(), half * params.dstRect.GetHeight());
     params.matrix.PreConcat(flip);
-#endif
 }
 
 void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params)
 {
-#ifndef USE_ROSEN_DRAWING
-    if (params.isNeedClip) {
-        if (!params.cornerRadius.IsZero()) {
-            canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(params.clipRRect), true);
-        } else {
-            canvas.clipRect(params.clipRect);
-        }
-    }
-    if (SkColorGetA(params.backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas.drawColor(params.backgroundColor);
-    }
-    canvas.concat(params.matrix);
-#else
     if (params.isNeedClip) {
         if (!params.cornerRadius.IsZero()) {
             canvas.ClipRoundRect(
@@ -1382,16 +1141,10 @@ void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const
         canvas.DrawColor(params.backgroundColor);
     }
     canvas.ConcatMatrix(params.matrix);
-#endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    GraphicColorGamut dstGamut, SkBitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas)
-#else
 bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
     GraphicColorGamut dstGamut, Drawing::Bitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas)
-#endif
 {
     if (!IsBufferValid(buffer)) {
         return false;
@@ -1414,22 +1167,6 @@ bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::ve
     return bitmapCreated;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    SkBitmap& bitmap)
-{
-    newBuffer.resize(buffer->GetWidth() * buffer->GetHeight() * 4, 0); // 4 is color channel
-    if (!Detail::ConvertYUV420SPToRGBA(newBuffer, buffer)) {
-        return false;
-    }
-
-    SkColorType colorType = kRGBA_8888_SkColorType;
-    SkImageInfo imageInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
-        colorType, kPremul_SkAlphaType);
-    SkPixmap pixmap(imageInfo, newBuffer.data(), buffer->GetWidth() * 4); // 4 is color channel
-    return bitmap.installPixels(pixmap);
-}
-#else
 bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
     Drawing::Bitmap& bitmap)
 {
@@ -1443,32 +1180,7 @@ bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, s
     bitmap.InstallPixels(imageInfo, newBuffer.data(), buffer->GetWidth() * 4);
     return true;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap)
-{
-    SkImageInfo imageInfo = Detail::GenerateSkImageInfo(buffer);
-    SkPixmap pixmap(imageInfo, buffer->GetVirAddr(), buffer->GetStride());
-    return bitmap.installPixels(pixmap);
-}
-
-bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    SkBitmap& bitmap, GraphicColorGamut srcGamut, GraphicColorGamut dstGamut,
-    const std::vector<GraphicHDRMetaData>& metaDatas)
-{
-    bool convertRes = Detail::ConvertBufferColorGamut(newBuffer, buffer, srcGamut, dstGamut, metaDatas);
-    if (convertRes) {
-        RS_LOGW("CreateNewColorGamutBitmap: convert color gamut succeed, use new buffer to create bitmap.");
-        SkImageInfo imageInfo = Detail::GenerateSkImageInfo(buffer);
-        SkPixmap pixmap(imageInfo, newBuffer.data(), buffer->GetStride());
-        return bitmap.installPixels(pixmap);
-    } else {
-        RS_LOGW("CreateNewColorGamutBitmap: convert color gamut failed, use old buffer to create bitmap.");
-        return CreateBitmap(buffer, bitmap);
-    }
-}
-#else
 bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap)
 {
     Drawing::BitmapFormat format = Detail::GenerateDrawingBitmapFormat(buffer);
@@ -1493,7 +1205,6 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
         return CreateBitmap(buffer, bitmap);
     }
 }
-#endif
 
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(MessageParcel& parcel)
 {
@@ -1556,11 +1267,7 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
     if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
         return false;
     }
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> surface = node.GetCacheSurface();
-#else
     std::shared_ptr<Drawing::Surface> surface = node.GetCacheSurface();
-#endif
     if (!surface) {
         return false;
     }
@@ -1574,19 +1281,6 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
         std::to_string(nowVal) + ".png";
     WriteToPngParam param;
 
-#ifndef USE_ROSEN_DRAWING
-    SkImageInfo info = SkImageInfo::Make(surface->width(), surface->height(),
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    SkBitmap bitmap;
-    bitmap.setInfo(info);
-    bitmap.allocPixels();
-    surface->readPixels(bitmap, 0, 0);
-    param.width = static_cast<uint32_t>(surface->width());
-    param.height = static_cast<uint32_t>(surface->height());
-    param.data = static_cast<uint8_t *>(bitmap.getPixels());
-    param.stride = static_cast<uint32_t>(bitmap.rowBytes());
-    param.bitDepth = Detail::BITMAP_DEPTH;
-#else
     auto image = surface->GetImageSnapshot();
     if (!image) {
         return false;
@@ -1600,7 +1294,6 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
     param.data = static_cast<uint8_t *>(bitmap.GetPixels());
     param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
     param.bitDepth = Detail::BITMAP_DEPTH;
-#endif
 
     return WriteToPng(filename, param);
 }

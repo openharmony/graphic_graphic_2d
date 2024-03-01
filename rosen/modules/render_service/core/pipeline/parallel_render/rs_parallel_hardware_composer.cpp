@@ -38,16 +38,6 @@ void RSParallelHardwareComposer::ClearTransparentColor(RSPaintFilterCanvas& canv
         return;
     }
     for (const auto& hole : holes) {
-#ifndef USE_ROSEN_DRAWING
-        canvas.save();
-        if (hole->IsRRect()) {
-            canvas.clipRRect(hole->GetRRect(), true);
-        } else {
-            canvas.clipRect(hole->GetRect());
-        }
-        canvas.clear(SK_ColorTRANSPARENT);
-        canvas.restore();
-#else
         canvas.Save();
         if (hole->IsRRect()) {
             canvas.ClipRoundRect(hole->GetRRect(), Drawing::ClipOp::INTERSECT, true);
@@ -56,7 +46,6 @@ void RSParallelHardwareComposer::ClearTransparentColor(RSPaintFilterCanvas& canv
         }
         canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
         canvas.Restore();
-#endif
     }
 }
 

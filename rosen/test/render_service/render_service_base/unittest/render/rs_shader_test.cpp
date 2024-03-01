@@ -52,12 +52,7 @@ HWTEST_F(RSShaderTest, CreateRSShaderTest, TestSize.Level1)
 HWTEST_F(RSShaderTest, SetSkShaderTest, TestSize.Level1)
 {
     std::shared_ptr<RSShader> shaderPtr = RSShader::CreateRSShader();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkShader> skShader;
-    shaderPtr->SetSkShader(skShader);
-#else
     std::shared_ptr<Drawing::ShaderEffect> drawingShader;
     shaderPtr->SetDrawingShader(drawingShader);
-#endif
 }
 } // namespace OHOS::Rosen
