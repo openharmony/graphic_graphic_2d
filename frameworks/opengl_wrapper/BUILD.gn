@@ -39,6 +39,7 @@ if (current_os != "ohos") {
   }
 } else {
   ohos_shared_library("EGL") {
+    defines = [ "EGL_ERROR_ENABLE" ]
     sources = [
       "src/EGL/egl.cpp",
       "src/EGL/egl_blob_cache.cpp",
