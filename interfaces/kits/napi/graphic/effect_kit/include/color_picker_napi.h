@@ -68,4 +68,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif /* COLOR_PICKER_NAPI_H_ */
+#endif /* COLOR_PICKER_NAPI_H */
