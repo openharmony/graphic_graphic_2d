@@ -15,8 +15,14 @@
 
 #include "drawable/rs_display_render_node_drawable.h"
 
+#include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_uni_render_listener.h"
+#include "pipeline/rs_uni_render_thread.h"
+#include "rs_trace.h"
+#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
 RSDisplayRenderNodeDrawable::Registrar RSDisplayRenderNodeDrawable::instance_;
@@ -32,6 +38,85 @@ RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_pt
 
 void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 {
-    RSRenderNodeDrawable::OnDraw(canvas);
+    (void)canvas;
+
+    // PLANNING multi_thread
+    if (!renderNode_) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RenderNode is null!");
+        return;
+    }
+    auto displayNodeSp = renderNode_->ReinterpretCastTo<RSDisplayRenderNode>();
+    RS_TRACE_NAME("RSDisplayRenderNodeDrawable[" + std::to_string(displayNodeSp->GetScreenId()) + "]" +
+        displayNodeSp->GetDirtyManager()->GetDirtyRegion().ToString().c_str());
+    RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %{public}" PRIu64 ", child size:%{public}u",
+        displayNodeSp->GetId(), displayNodeSp->GetChildrenCount());
+
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw ScreenManager is null!");
+        return;
+    }
+
+    auto compositeType = displayNodeSp->GetCompositeType();
+    // can cache?
+    auto processor = RSProcessorFactory::CreateProcessor(compositeType);
+    if (processor == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RSProcessor is null!");
+        return;
+    }
+
+    auto renderEngine = RSUniRenderThread::Instance()->GetRenderEngine();
+    if (renderEngine == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RenderEngine is null!");
+        return;
+    }
+
+    if (!processor->Init(*displayNodeSp, displayNodeSp->GetDisplayOffsetX(), displayNodeSp->GetDisplayOffsetY(),
+        INVALID_SCREEN_ID, renderEngine)) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw processor init failed!");
+        return;
+    }
+
+    if (!displayNodeSp->IsSurfaceCreated()) {
+        sptr<IBufferConsumerListener> listener = new RSUniRenderListener(displayNodeSp);
+        if (!displayNodeSp->CreateSurface(listener)) {
+            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode CreateSurface failed");
+            return;
+        }
+    }
+
+    auto rsSurface = displayNodeSp->GetRSSurface();
+    if (!rsSurface) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw No RSSurface found");
+        return;
+    }
+
+    auto screenInfo = screenManager->QueryScreenInfo(displayNodeSp->GetScreenId());
+    auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
+    auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig);
+    if (!renderFrame) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RequestFrame is null");
+        return;
+    }
+
+    auto drSurface = renderFrame->GetFrame()->GetSurface();
+    if (drSurface == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw DrawingSurface is null");
+        return;
+    }
+
+    auto curCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    if (!curCanvas) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw failed to create canvas");
+        return;
+    }
+
+    // canvas draw
+    curCanvas->Save();
+    RSRenderNodeDrawable::OnDraw(*curCanvas);
+    curCanvas->Restore();
+    renderFrame->Flush();
+    processor->ProcessDisplaySurface(*displayNodeSp);
+    processor->PostProcess(displayNodeSp.get());
 }
 } // namespace OHOS::Rosen
