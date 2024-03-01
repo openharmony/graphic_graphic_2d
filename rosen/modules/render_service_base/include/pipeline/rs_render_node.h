@@ -196,6 +196,8 @@ public:
 
     bool ChildHasFilter() const;
     void SetChildHasFilter(bool childHasFilter);
+    bool ChildHasVisibleFilter() const;
+    void SetChildHasVisibleFilter(bool val);
 
     NodeId GetInstanceRootNodeId() const;
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
@@ -612,6 +614,7 @@ private:
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
     bool childHasFilter_ = false;  // only collect children filter status
+    bool childHasVisibleFilter_ = false;  // only collect visible children filter status
 
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();

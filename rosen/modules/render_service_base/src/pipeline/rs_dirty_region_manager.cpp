@@ -45,6 +45,18 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
     }
 }
 
+bool RSDirtyRegionManager::MergeDirtyRectIfIntersect(const RectI& rect)
+{
+    if (!currentFrameDirtyRegion_.Intersect(rect)) {
+        return false;
+    }
+    currentFrameDirtyRegion_ = currentFrameDirtyRegion_.JoinRect(rect);
+    if (isDisplayDirtyManager_) {
+        mergedDirtyRegions_.emplace_back(rect);
+    }
+    return true;
+}
+
 void RSDirtyRegionManager::MergeDirtyRectAfterMergeHistory(const RectI& rect)
 {
     if (rect.IsEmpty()) {

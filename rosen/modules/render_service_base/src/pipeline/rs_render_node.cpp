@@ -2618,6 +2618,14 @@ void RSRenderNode::SetChildHasFilter(bool childHasFilter)
 {
     childHasFilter_ = childHasFilter;
 }
+bool RSRenderNode::ChildHasVisibleFilter() const
+{
+    return childHasVisibleFilter_;
+}
+void RSRenderNode::SetChildHasVisibleFilter(bool val)
+{
+    childHasVisibleFilter_ = val;
+}
 NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
     return instanceRootNodeId_;

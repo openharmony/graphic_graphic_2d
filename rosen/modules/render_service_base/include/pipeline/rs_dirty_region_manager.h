@@ -56,6 +56,8 @@ public:
     ~RSDirtyRegionManager() = default;
     // update/expand current frame dirtyregion
     void MergeDirtyRect(const RectI& rect);
+    // update/expand current frame dirtyregion if intersect
+    bool MergeDirtyRectIfIntersect(const RectI& rect);
     // update/expand dirtyregion after merge history
     void MergeDirtyRectAfterMergeHistory(const RectI& rect);
     // clip dirtyregion in current frame
