@@ -127,8 +127,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
 }
 #endif
 
-struct ImageParameter
-{
+struct ImageParameter {
     float ratio;
     float srcW;
     float srcH;
