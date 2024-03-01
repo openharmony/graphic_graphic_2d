@@ -15,11 +15,11 @@
 
 #include "drawable/rs_drawable_content.h"
 
+#include "drawable/rs_property_drawable_content.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
-
 namespace {
 // key = RSModifierType, value = RSDrawableContentSlot
 static const std::unordered_map<RSModifierType, RSDrawableContentSlot> g_propertyToDrawableLut = {
@@ -116,10 +116,71 @@ static const std::unordered_map<RSModifierType, RSDrawableContentSlot> g_propert
     { RSModifierType::GEOMETRYTRANS, RSDrawableContentSlot::INVALID },
 };
 
+template<RSModifierType type>
+static inline RSDrawableContent::Ptr ModifierGenerator(const RSRenderNode& node)
+{
+    return RSCustomModifierDrawableContent::OnGenerate(node, type);
+}
+
 // NOTE: This LUT should always the same size as RSDrawableContentSlot
 // index = RSPropertyDrawableType, value = DrawableGenerator
 constexpr int LUT_SIZE = static_cast<int>(RSDrawableContentSlot::MAX);
-static const std::array<RSDrawableContent::Generator, LUT_SIZE> g_drawableGeneratorLut = { nullptr };
+static const std::array<RSDrawableContent::Generator, LUT_SIZE> g_drawableGeneratorLut = {
+    nullptr, // INVALID = 0,
+    nullptr, // SAVE_ALL,
+
+    // Bounds Geometry
+    nullptr,                                                 // BOUNDS_MATRIX,
+    nullptr,                                                 // ALPHA,
+    nullptr,                                                 // MASK,
+    ModifierGenerator<RSModifierType::TRANSITION>,           // TRANSITION,
+    ModifierGenerator<RSModifierType::ENV_FOREGROUND_COLOR>, // ENV_FOREGROUND_COLOR,
+    nullptr,                                                 // SHADOW,
+    nullptr,                                                 // OUTLINE,
+
+    // BG properties in Bounds Clip
+    nullptr,                                                          // BG_SAVE_BOUNDS,
+    nullptr,                                                          // CLIP_TO_BOUNDS,
+    nullptr,                                                          // BLEND_MODE,
+    RSBackgroundContent::OnGenerate,                                  // BACKGROUND_COLOR,
+    RSBackgroundContent::OnGenerate,                                  // BACKGROUND_SHADER,
+    RSBackgroundContent::OnGenerate,                                  // BACKGROUND_IMAGE,
+    nullptr,                                                          // BACKGROUND_FILTER,
+    nullptr,                                                          // USE_EFFECT,
+    ModifierGenerator<RSModifierType::BACKGROUND_STYLE>,              // BACKGROUND_STYLE,
+    nullptr,                                                          // DYNAMIC_LIGHT_UP,
+    ModifierGenerator<RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY>, // ENV_FOREGROUND_COLOR_STRATEGY,
+    nullptr,                                                          // BG_RESTORE_BOUNDS,
+
+    // Frame Geometry
+    nullptr,                                             // SAVE_FRAME,
+    nullptr,                                             // FRAME_OFFSET,
+    nullptr,                                             // CLIP_TO_FRAME,
+    ModifierGenerator<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
+    RSChildrenDrawableContent::OnGenerate,               // CHILDREN,
+    ModifierGenerator<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,
+    nullptr,                                             // RESTORE_FRAME,
+
+    // FG properties in Bounds clip
+    nullptr, // FG_SAVE_BOUNDS,
+    nullptr, // FG_CLIP_TO_BOUNDS,
+    nullptr, // BINARIZATION,
+    nullptr, // COLOR_FILTER,
+    nullptr, // LIGHT_UP_EFFECT,
+    nullptr, // FOREGROUND_FILTER,
+    nullptr, // FOREGROUND_COLOR,
+    nullptr, // FG_RESTORE_BOUNDS,
+
+    // No clip (unless ClipToBounds is set)
+    nullptr,                                          // POINT_LIGHT,
+    RSBorderContent::OnGenerate,                      // BORDER,
+    ModifierGenerator<RSModifierType::OVERLAY_STYLE>, // OVERLAY,
+    nullptr,                                          // PARTICLE_EFFECT,
+    nullptr,                                          // PIXEL_STRETCH,
+
+    nullptr, // RESTORE_BLEND_MODE,
+    nullptr, // RESTORE_ALL,
+};
 } // namespace
 
 // ==================== RSDrawableContent =====================
@@ -160,7 +221,7 @@ bool RSDrawableContent::UpdateDrawableVec(
     for (const auto& slot : dirtySlots) {
         if (auto& drawable = drawableVec[static_cast<size_t>(slot)]) {
             // If the slot is already created, call OnUpdate
-            if (drawable->OnUpdate(node)) {
+            if (!drawable->OnUpdate(node)) {
                 // If the slot is no longer needed, destroy it
                 drawable.reset();
                 drawableAddedOrRemoved = true;
@@ -177,7 +238,13 @@ bool RSDrawableContent::UpdateDrawableVec(
     return drawableAddedOrRemoved;
 }
 
-void RSDrawableContent::UpdateSaveRestore(RSRenderContent& content, Vec& drawableVec, uint8_t& drawableVecStatus) {}
+void RSDrawableContent::UpdateSaveRestore(RSRenderContent& content, Vec& drawableVec, uint8_t& drawableVecStatus)
+{
+    // TODO: fill necessary save/restore into slots
+    (void)content;
+    (void)drawableVec;
+    (void)drawableVecStatus;
+}
 
 // ==================== RSChildrenDrawableContent =====================
 RSDrawableContent::Ptr RSChildrenDrawableContent::OnGenerate(const RSRenderNode& node)

@@ -114,7 +114,7 @@ public:
     // Call on property change, return true if update succeed, false if need destroy
     virtual bool OnUpdate(const RSRenderNode& content)
     {
-        return false;
+        return true;
     }
 
     // Call on thread sync
@@ -128,18 +128,18 @@ public:
     RSDrawableContent& operator=(const RSDrawableContent&) = delete;
     RSDrawableContent& operator=(const RSDrawableContent&&) = delete;
 
-    // Step 1, generate DirtySlots from dirty Modifiers
 
 #ifdef USE_ROSEN_DRAWING
+    // Step 1, generate DirtySlots from dirty Modifiers
     using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
     static std::unordered_set<RSDrawableContentSlot> GenerateDirtySlots(
         ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
+#endif
     // Step 2, for every DirtySlot, generate DrawableContent
     static bool UpdateDrawableVec(
         const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableContentSlot>& dirtySlots);
     // Step 3, add necessary Clip/Save/Restore
     static void UpdateSaveRestore(RSRenderContent& content, Vec& drawableVec, uint8_t& drawableVecStatus);
-#endif
 };
 
 // RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
