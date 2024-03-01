@@ -23,9 +23,7 @@
 #include "txt/asset_font_manager.h"
 #endif
 
-#ifdef USE_ROSEN_DRAWING
 #include "text/font_mgr.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {

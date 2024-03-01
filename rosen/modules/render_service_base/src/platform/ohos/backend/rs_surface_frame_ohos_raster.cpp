@@ -51,31 +51,6 @@ int32_t RSSurfaceFrameOhosRaster::GetBufferAge() const
     return -1;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSSurfaceFrameOhosRaster::GetCanvas()
-{
-    if (buffer_ == nullptr || buffer_->GetWidth() <= 0 || buffer_->GetHeight() <= 0) {
-        ROSEN_LOGW("buffer is invalid");
-        return nullptr;
-    }
-    if (skSurface_ == nullptr) {
-        CreateSurface();
-    }
-    return skSurface_->getCanvas();
-}
-
-sk_sp<SkSurface> RSSurfaceFrameOhosRaster::GetSurface()
-{
-    if (buffer_ == nullptr || buffer_->GetWidth() <= 0 || buffer_->GetHeight() <= 0) {
-        ROSEN_LOGW("buffer is invalid");
-        return nullptr;
-    }
-    if (skSurface_ == nullptr) {
-        CreateSurface();
-    }
-    return skSurface_;
-}
-#else
 Drawing::Canvas* RSSurfaceFrameOhosRaster::GetCanvas()
 {
     if (buffer_ == nullptr || buffer_->GetWidth() <= 0 || buffer_->GetHeight() <= 0) {
@@ -99,7 +74,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameOhosRaster::GetSurface()
     }
     return surface_;
 }
-#endif
 
 void RSSurfaceFrameOhosRaster::CreateSurface()
 {
@@ -108,18 +82,12 @@ void RSSurfaceFrameOhosRaster::CreateSurface()
         ROSEN_LOGW("buffer addr is invalid");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    SkImageInfo info =
-        SkImageInfo::Make(buffer_->GetWidth(), buffer_->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    skSurface_ = SkSurface::MakeRasterDirect(info, addr, buffer_->GetStride());
-#else
     Drawing::Bitmap bitmap;
     Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
     bitmap.Build(buffer_->GetWidth(), buffer_->GetHeight(), format);
     bitmap.SetPixels(addr);
     surface_ = std::make_shared<Drawing::Surface>();
     surface_->Bind(bitmap);
-#endif
 }
 
 int32_t RSSurfaceFrameOhosRaster::GetReleaseFence() const

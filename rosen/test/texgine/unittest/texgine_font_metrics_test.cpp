@@ -35,11 +35,7 @@ class TexgineFontMetricsTest : public testing::Test {
 HWTEST_F(TexgineFontMetricsTest, SetFontMetrics, TestSize.Level1)
 {
     std::shared_ptr<TexgineFontMetrics> tfm = std::make_shared<TexgineFontMetrics>();
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkFontMetrics> sfm = std::make_shared<SkFontMetrics>();
-#else
     std::shared_ptr<RSFontMetrics> sfm = std::make_shared<RSFontMetrics>();
-#endif
     EXPECT_NO_THROW({
         tfm->SetFontMetrics(nullptr);
         tfm->SetFontMetrics(sfm);

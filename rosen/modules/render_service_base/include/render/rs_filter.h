@@ -21,11 +21,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/gpu/GrDirectContext.h"
-#else
 #include "image/gpu_context.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {

@@ -16,9 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_H
 #define RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_H
 
-#ifdef USE_ROSEN_DRAWING
 #include <bitset>
-#endif
 #include <optional>
 #include <tuple>
 #include <vector>
@@ -92,13 +90,8 @@ public:
     void SetSandBox(const std::optional<Vector2f>& parentPosition);
     std::optional<Vector2f> GetSandBox() const;
     void ResetSandBox();
-#ifndef USE_ROSEN_DRAWING
-    void UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix);
-    std::optional<SkMatrix> GetSandBoxMatrix() const;
-#else
     void UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix);
     std::optional<Drawing::Matrix> GetSandBoxMatrix() const;
-#endif
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
@@ -286,13 +279,8 @@ public:
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
-#ifndef USE_ROSEN_DRAWING
-    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<SkPoint>& offset,
-        const std::optional<SkRect>& clipRect);
-#else
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
         const std::optional<Drawing::Rect>& clipRect);
-#endif
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
@@ -325,11 +313,7 @@ public:
     void SetColorBlend(const std::optional<Color>& colorBlend);
     const std::optional<Color>& GetColorBlend() const;
 
-#ifndef USE_ROSEN_DRAWING
-    const sk_sp<SkColorFilter>& GetColorFilter() const;
-#else
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
-#endif
 
     void SetLightIntensity(float lightIntensity);
     void SetLightPosition(const Vector4f& lightPosition);
@@ -370,11 +354,7 @@ public:
     void OnApplyModifiers();
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
-#else
     void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
-#endif
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
@@ -473,11 +453,7 @@ private:
     RRect rrect_ = RRect{};
 
     RSRenderParticleVector particles_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkColorFilter> colorFilter_ = nullptr;
-#else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
-#endif
     bool haveEffectRegion_ = false;
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

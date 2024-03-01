@@ -35,13 +35,8 @@
 namespace OHOS {
 namespace Rosen {
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::shared_ptr<SkPixmap>& pixmap,
-    uint32_t &errorCode)
-#else
 std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::shared_ptr<Drawing::Pixmap>& pixmap,
     uint32_t &errorCode)
-#endif
 {
     if (pixmap == nullptr) {
         ROSEN_LOGE("[ColorPicker]failed to create ColorPicker with null pixmap.");
@@ -60,13 +55,8 @@ std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::share
     return std::shared_ptr<RSColorPicker>(colorPicker);
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::shared_ptr<SkPixmap>& pixmap,
-    double* coordinates, uint32_t &errorCode)
-#else
 std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::shared_ptr<Drawing::Pixmap>& pixmap,
     double* coordinates, uint32_t &errorCode)
-#endif
 {
     if (pixmap == nullptr) {
         ROSEN_LOGE("[ColorPicker]failed to create ColorPicker with null pixmap.");
@@ -85,26 +75,10 @@ std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::share
     return std::shared_ptr<RSColorPicker>(colorPicker);
 }
 
-#ifndef USE_ROSEN_DRAWING
-RSColorPicker::RSColorPicker(std::shared_ptr<SkPixmap> pixmap):RSColorExtract(pixmap) {}
-RSColorPicker::RSColorPicker(
-    std::shared_ptr<SkPixmap> pixmap, double* coordinates):RSColorExtract(pixmap, coordinates) {}
-#else
 RSColorPicker::RSColorPicker(std::shared_ptr<Drawing::Pixmap> pixmap):RSColorExtract(pixmap) {}
 RSColorPicker::RSColorPicker(
     std::shared_ptr<Drawing::Pixmap> pixmap, double* coordinates):RSColorExtract(pixmap, coordinates) {}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-uint32_t RSColorPicker::GetLargestProportionColor(SkColor &color) const
-{
-    if (featureColors_.empty()) {
-        return RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
-    }
-    color = SkColor(featureColors_[0].first | 0xFF000000); // alpha = oxFF
-    return RS_COLOR_PICKER_SUCCESS;
-}
-#else
 uint32_t RSColorPicker::GetLargestProportionColor(Drawing::ColorQuad &color) const
 {
     if (featureColors_.empty()) {
@@ -113,13 +87,8 @@ uint32_t RSColorPicker::GetLargestProportionColor(Drawing::ColorQuad &color) con
     color = featureColors_[0].first | 0xFF000000; // alpha = oxFF
     return RS_COLOR_PICKER_SUCCESS;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-uint32_t RSColorPicker::GetHighestSaturationColor(SkColor &color) const
-#else
 uint32_t RSColorPicker::GetHighestSaturationColor(Drawing::ColorQuad &color) const
-#endif
 {
     if (featureColors_.empty()) {
         return RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
@@ -134,19 +103,11 @@ uint32_t RSColorPicker::GetHighestSaturationColor(Drawing::ColorQuad &color) con
             colorPicked = featureColors_[i].first;
         }
     }
-#ifndef USE_ROSEN_DRAWING
-    color = SkColor(colorPicked | 0xFF000000);
-#else
     color = colorPicked | 0xFF000000;
-#endif
     return RS_COLOR_PICKER_SUCCESS;
 }
 
-#ifndef USE_ROSEN_DRAWING
-uint32_t RSColorPicker::GetAverageColor(SkColor &color) const
-#else
 uint32_t RSColorPicker::GetAverageColor(Drawing::ColorQuad &color) const
-#endif
 {
     uint32_t colorPicked = 0;
     uint32_t redSum = 0;
@@ -169,11 +130,7 @@ uint32_t RSColorPicker::GetAverageColor(Drawing::ColorQuad &color) const
     uint32_t greenMean = round(greenSum / (float)totalPixelNum);
     uint32_t blueMean = round(blueSum / (float)totalPixelNum);
     colorPicked = redMean << ARGB_R_SHIFT | greenMean << ARGB_G_SHIFT | blueMean << ARGB_B_SHIFT;
-#ifndef USE_ROSEN_DRAWING
-    color = SkColor(colorPicked | 0xFF000000);
-#else
     color = colorPicked | 0xFF000000;
-#endif
     return RS_COLOR_PICKER_SUCCESS;
 }
 

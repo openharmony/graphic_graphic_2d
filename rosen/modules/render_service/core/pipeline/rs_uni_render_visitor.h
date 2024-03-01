@@ -189,17 +189,12 @@ private:
     void CalcSurfaceFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isMirror = false);
-#ifndef USE_ROSEN_DRAWING
-    void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
-        const SkPaint::Style fillType, float alpha, int edgeWidth, std::string extra = "");
-#else
     enum class RSPaintStyle {
         FILL,
         STROKE
     };
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color,
         const RSPaintStyle fillType, float alpha, int edgeWidth, std::string extra = "");
-#endif
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
     void DrawCacheRegionForDFX(std::vector<RectI> cacheRects);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
@@ -341,11 +336,7 @@ private:
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
     bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node); // return if srcRect is allowed by dss restriction
     void RecordDrawCmdList(RSRenderNode& node);
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
-#else
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
-#endif
 
     void SwitchColorFilterDrawing(int currentSaveCount);
     void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
@@ -356,11 +347,7 @@ private:
     void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
     void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
-#else
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
-#endif
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
     // Use in vulkan parallel rendering
@@ -379,21 +366,13 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
     std::vector<RectI> cacheRenderNodeMapRects_;
-#ifndef USE_ROSEN_DRAWING
-    SkRect boundsRect_ {};
-#else
     Drawing::Rect boundsRect_ {};
-#endif
     Gravity frameGravity_ = Gravity::DEFAULT;
 
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
     std::shared_ptr<RSProcessor> processor_;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix parentSurfaceNodeMatrix_;
-#else
     Drawing::Matrix parentSurfaceNodeMatrix_;
-#endif
 
     ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
     std::map<ScreenId, bool> displayHasSecSurface_;
@@ -520,18 +499,10 @@ private:
 #endif
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkMatrix> displayNodeMatrix_;
-#else
     std::optional<Drawing::Matrix> displayNodeMatrix_;
-#endif
     mutable std::mutex copyVisitorInfosMutex_;
     bool resetRotate_ = false;
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkIRect> effectRegion_ = std::nullopt;
-#else
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
-#endif
     // variable for occlusion 
     bool needRecalculateOcclusion_ = false;
     Occlusion::Region accumulatedRegion_;
@@ -559,20 +530,12 @@ private:
 #ifdef ENABLE_RECORDING_DCL
     void tryCapture(float width, float height);
     void endCapture() const;
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
-#else
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
-#endif
 #endif
     bool isNodeSingleFrameComposer_ = false;
 
     // use for screen recording optimization
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
-#else
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
-#endif
 
     void SetHasSharedTransitionNode(RSSurfaceRenderNode& surfaceNode, bool hasSharedTransitionNode);
 

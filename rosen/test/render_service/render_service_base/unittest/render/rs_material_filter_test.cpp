@@ -14,11 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkSurface.h"
-#else
 #include "draw/surface.h"
-#endif
 
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_material_filter.h"
@@ -102,13 +98,8 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle002, TestSize.Level1)
  */
 HWTEST_F(RSMaterialFilterTest, PostProcessTest, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     float dipScale = 1.0f;
     BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
     float ratio = 1.0f;

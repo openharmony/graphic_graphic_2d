@@ -23,9 +23,6 @@ void TexgineCanvas::DrawLine(double x0, double y0, double x1, double y1, const T
     if (canvas_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->drawLine(x0, y0, x1, y1, paint.GetPaint());
-#else
     RSPoint pointL(x0, y0);
     RSPoint pointR(x1, y1);
     if (paint.GetStyle() == TexginePaint::Style::FILL) {
@@ -43,7 +40,6 @@ void TexgineCanvas::DrawLine(double x0, double y0, double x1, double y1, const T
         canvas_->DetachBrush();
         canvas_->DetachPen();
     }
-#endif
 }
 
 void TexgineCanvas::DrawRect(const TexgineRect &rect, const TexginePaint &paint) const
@@ -51,9 +47,6 @@ void TexgineCanvas::DrawRect(const TexgineRect &rect, const TexginePaint &paint)
     if (canvas_ == nullptr || rect.GetRect() == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->drawRect(*rect.GetRect(), paint.GetPaint());
-#else
     if (paint.GetStyle() == TexginePaint::Style::FILL) {
         canvas_->AttachBrush(paint.GetBrush());
         canvas_->DrawRect(*rect.GetRect());
@@ -69,7 +62,6 @@ void TexgineCanvas::DrawRect(const TexgineRect &rect, const TexginePaint &paint)
         canvas_->DetachBrush();
         canvas_->DetachPen();
     }
-#endif
 }
 
 void TexgineCanvas::DrawRRect(const TexgineRect &rect, const TexginePaint &paint) const
@@ -77,9 +69,6 @@ void TexgineCanvas::DrawRRect(const TexgineRect &rect, const TexginePaint &paint
     if (canvas_ == nullptr || rect.GetRRect() == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->drawRRect(*rect.GetRRect(), paint.GetPaint());
-#else
     if (paint.GetStyle() == TexginePaint::Style::FILL) {
         canvas_->AttachBrush(paint.GetBrush());
         canvas_->DrawRoundRect(*rect.GetRRect());
@@ -95,7 +84,6 @@ void TexgineCanvas::DrawRRect(const TexgineRect &rect, const TexginePaint &paint
         canvas_->DetachBrush();
         canvas_->DetachPen();
     }
-#endif
 }
 
 void TexgineCanvas::DrawTextBlob(
@@ -104,9 +92,6 @@ void TexgineCanvas::DrawTextBlob(
     if (canvas_ == nullptr || blob == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->drawTextBlob(blob->GetTextBlob(), x, y, paint.GetPaint());
-#else
     if (paint.GetStyle() == TexginePaint::Style::FILL) {
         canvas_->AttachBrush(paint.GetBrush());
         canvas_->DrawTextBlob(blob->GetTextBlob().get(), x, y);
@@ -122,21 +107,13 @@ void TexgineCanvas::DrawTextBlob(
         canvas_->DetachBrush();
         canvas_->DetachPen();
     }
-#endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineCanvas::DrawSymbol(const HMSymbolData &symbol, SkPoint locate, const TexginePaint &paint)
-#else
 void TexgineCanvas::DrawSymbol(const RSHMSymbolData &symbol, RSPoint locate, const TexginePaint &paint)
-#endif
 {
     if (canvas_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->drawSymbol(symbol, locate, paint.GetPaint());
-#else
     if (paint.GetStyle() == TexginePaint::Style::FILL) {
         canvas_->AttachBrush(paint.GetBrush());
         canvas_->DrawSymbol(symbol, locate);
@@ -152,21 +129,13 @@ void TexgineCanvas::DrawSymbol(const RSHMSymbolData &symbol, RSPoint locate, con
         canvas_->DetachBrush();
         canvas_->DetachPen();
     }
-#endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineCanvas::DrawPath(const SkPath &path, const TexginePaint &paint)
-#else
 void TexgineCanvas::DrawPath(const RSPath &path, const TexginePaint &paint)
-#endif
 {
     if (canvas_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->drawPath(path, paint.GetPaint());
-#else
     if (paint.GetStyle() == TexginePaint::Style::FILL) {
         canvas_->AttachBrush(paint.GetBrush());
         canvas_->DrawPath(path);
@@ -182,7 +151,6 @@ void TexgineCanvas::DrawPath(const RSPath &path, const TexginePaint &paint)
         canvas_->DetachBrush();
         canvas_->DetachPen();
     }
-#endif
 }
 
 void TexgineCanvas::Clear(uint32_t color) const
@@ -190,11 +158,7 @@ void TexgineCanvas::Clear(uint32_t color) const
     if (canvas_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->clear(color);
-#else
     canvas_->Clear(color);
-#endif
 }
 
 int TexgineCanvas::Save() const
@@ -203,11 +167,7 @@ int TexgineCanvas::Save() const
         // 1 is failed
         return 1;
     }
-#ifndef USE_ROSEN_DRAWING
-    return canvas_->save();
-#else
     return canvas_->Save();
-#endif
 }
 
 void TexgineCanvas::Translate(float dx, float dy) const
@@ -215,18 +175,10 @@ void TexgineCanvas::Translate(float dx, float dy) const
     if (canvas_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->translate(dx, dy);
-#else
     canvas_->Translate(dx, dy);
-#endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas *TexgineCanvas::GetCanvas() const
-#else
 RSCanvas *TexgineCanvas::GetCanvas() const
-#endif
 {
     return canvas_;
 }
@@ -236,18 +188,10 @@ void TexgineCanvas::Restore() const
     if (canvas_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->restore();
-#else
     canvas_->Restore();
-#endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineCanvas::SetCanvas(SkCanvas *canvas)
-#else
 void TexgineCanvas::SetCanvas(RSCanvas *canvas)
-#endif
 {
     canvas_ = canvas;
 }

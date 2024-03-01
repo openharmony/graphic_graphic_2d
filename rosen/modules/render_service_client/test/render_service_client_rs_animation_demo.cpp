@@ -18,10 +18,6 @@
 
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_transition.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
-#endif
 
 #include "render_context/render_context.h"
 #include "transaction/rs_transaction.h"
@@ -47,11 +43,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorRED);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-#endif
 
     rsUiDirector->SetRoot(rootNode->GetId());
 }
@@ -59,25 +51,13 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 std::unique_ptr<RSSurfaceFrame> framePtr;
 RenderContext* rc_ = nullptr;
 
-#ifndef USE_ROSEN_DRAWING
-void DrawSurface(
-    SkRect surfaceGeometry, uint32_t color, SkRect shapeGeometry, std::shared_ptr<RSSurfaceNode> surfaceNode)
-#else
 void DrawSurface(Drawing::Rect surfaceGeometry,
     uint32_t color, Drawing::Rect shapeGeometry, std::shared_ptr<RSSurfaceNode> surfaceNode)
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
-    auto x = surfaceGeometry.x();
-    auto y = surfaceGeometry.y();
-    auto width = surfaceGeometry.width();
-    auto height = surfaceGeometry.height();
-#else
     auto x = surfaceGeometry.GetLeft();
     auto y = surfaceGeometry.GetTop();
     auto width = surfaceGeometry.GetWidth();
     auto height = surfaceGeometry.GetHeight();
-#endif
     surfaceNode->SetBounds(x, y, width, height);
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
     if (rsSurface == nullptr) {
@@ -97,16 +77,6 @@ void DrawSurface(Drawing::Rect surfaceGeometry,
         printf("DrawSurface canvas is nullptr");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setStrokeWidth(20);
-    paint.setStrokeJoin(SkPaint::kRound_Join);
-    paint.setColor(color);
-
-    canvas->drawRect(shapeGeometry, paint);
-#else
     Drawing::Brush brush;
     brush.SetAntiAilas(true);
     brush.SetColor(color);
@@ -114,7 +84,6 @@ void DrawSurface(Drawing::Rect surfaceGeometry,
     canvas->AttachBrush(brush);
     canvas->DrawRect(shapeGeometry);
     canvas->DetachBrush();
-#endif
     framePtr->SetDamageRegion(0, 0, width, height);
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
@@ -148,11 +117,7 @@ int main()
     runner->Run();
 
     RSTransaction::FlushImplicitTransaction();
-#ifndef USE_ROSEN_DRAWING
-    DrawSurface(SkRect::MakeXYWH(0, 0, 2800, 1600), 0xffffe4c4, SkRect::MakeXYWH(0, 0, 2800, 1600), surfaceNode);
-#else
     DrawSurface(Drawing::Rect(0, 0, 2800, 1600), 0xffffe4c4, Drawing::Rect(0, 0, 2800, 1600), surfaceNode);
-#endif
     std::cout << "rs app demo set up finished!" << std::endl;
     RSTransaction::FlushImplicitTransaction();
     sleep(5);

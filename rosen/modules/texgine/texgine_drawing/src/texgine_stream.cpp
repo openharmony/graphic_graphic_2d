@@ -18,34 +18,18 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-TexgineMemoryStream::TexgineMemoryStream(): memoryStream_(std::make_unique<SkMemoryStream>()) {}
-#else
 TexgineMemoryStream::TexgineMemoryStream(): memoryStream_(std::make_unique<RSMemoryStream>()) {}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-TexgineMemoryStream::TexgineMemoryStream(std::unique_ptr<SkMemoryStream> stream): memoryStream_(std::move(stream)) {}
-#else
 TexgineMemoryStream::TexgineMemoryStream(std::unique_ptr<RSMemoryStream> stream): memoryStream_(std::move(stream)) {}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-std::unique_ptr<SkMemoryStream> TexgineMemoryStream::GetStream()
-#else
 std::unique_ptr<RSMemoryStream> TexgineMemoryStream::GetStream()
-#endif
 {
     return std::move(memoryStream_);
 }
 
 std::unique_ptr<TexgineMemoryStream> TexgineMemoryStream::MakeCopy(const void *data, size_t length)
 {
-#ifndef USE_ROSEN_DRAWING
-    return std::make_unique<TexgineMemoryStream>(SkMemoryStream::MakeCopy(data, length));
-#else
     return std::make_unique<TexgineMemoryStream>(std::make_unique<RSMemoryStream>(data, length, true));
-#endif
 }
 } // namespace TextEngine
 } // namespace Rosen

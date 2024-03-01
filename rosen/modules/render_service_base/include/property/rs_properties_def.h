@@ -17,11 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_DEF_H
 
 #include "common/rs_common_def.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkMatrix.h"
-#else
 #include "utils/matrix.h"
-#endif
 
 #include "common/rs_color_palette.h"
 #include "common/rs_rect.h"
@@ -133,11 +129,7 @@ public:
     Sandbox() {}
     ~Sandbox() {}
     std::optional<Vector2f> position_;
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkMatrix> matrix_;
-#else
     std::optional<Drawing::Matrix> matrix_;
-#endif
 };
 
 enum class IlluminatedType : uint32_t {

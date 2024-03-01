@@ -549,11 +549,7 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
         return false;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bm;
-#else
     Drawing::Bitmap bm;
-#endif
     rsClient->GetBitmap(0, bm);
     return true;
 }

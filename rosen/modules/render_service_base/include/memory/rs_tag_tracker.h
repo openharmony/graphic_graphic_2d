@@ -14,15 +14,7 @@
  */
 #ifndef RS_TAG_TRACKER
 #define RS_TAG_TRACKER
-#ifndef USE_ROSEN_DRAWING
-#ifndef NEW_SKIA
-#include "include/gpu/GrContext.h"
-#else
-#include "include/gpu/GrDirectContext.h"
-#endif
-#else
 #include "image/gpu_context.h"
-#endif
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "platform/common/rs_system_properties.h"
@@ -43,36 +35,16 @@ public:
         TAG_UNTAGGED,
         TAG_CAPTURE,
     };
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    RSTagTracker(GrDirectContext* grContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(GrDirectContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(GrDirectContext* grContext, GrGpuResourceTag& tag);
-#else
-    RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(GrContext* grContext, GrGpuResourceTag& tag);
-#endif
-#else
     RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
-#endif
     void SetTagEnd();
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
 private:
     bool isSetTagEnd_ = false;
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    GrDirectContext* grContext_ = nullptr;
-#else
-    GrContext* grContext_ = nullptr;
-#endif
-#else
     Drawing::GPUContext* gpuContext_ = nullptr;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

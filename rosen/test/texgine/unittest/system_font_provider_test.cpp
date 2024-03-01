@@ -40,19 +40,7 @@ void InitSfpMockVars(MockVars vars)
     g_sfpMockvars = std::move(vars);
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
-{
-    return g_sfpMockvars.fontMgr;
-}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const std::string &familyName)
-{
-    return g_sfpMockvars.fontStyleSet;
-}
-#endif
 
 class SystemFontProviderTest : public testing::Test {
 public:

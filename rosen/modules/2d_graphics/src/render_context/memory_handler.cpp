@@ -20,17 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* identity,
-    const size_t size, const std::string& cacheFilePath, bool isUni)
-{
-    context->fAllowPathMaskCaching = true;
-    auto &cache = ShaderCache::Instance();
-    cache.SetFilePath(cacheFilePath);
-    cache.InitShaderCache(identity, size, isUni);
-    context->fPersistentCache = &cache;
-}
-#else
 void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const char* identity,
     const size_t size, const std::string& cacheFilePath, bool isUni)
 {
@@ -40,23 +29,7 @@ void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const 
     cache.InitShaderCache(identity, size, isUni);
     context->SetPersistentCache(&cache);
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-void MemoryHandler::ClearRedundantResources(GrDirectContext* grContext)
-#else
-void MemoryHandler::ClearRedundantResources(GrContext* grContext)
-#endif
-{
-    if (grContext != nullptr) {
-        LOGD("grContext clear redundant resources");
-        grContext->flush();
-        // GPU resources that haven't been used in the past 10 seconds
-        grContext->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
-    }
-}
-#else
 void MemoryHandler::ClearRedundantResources(Drawing::GPUContext* gpuContext)
 {
     if (gpuContext != nullptr) {
@@ -66,7 +39,6 @@ void MemoryHandler::ClearRedundantResources(Drawing::GPUContext* gpuContext)
         gpuContext->PerformDeferredCleanup(std::chrono::seconds(10));
     }
 }
-#endif
 
 std::string MemoryHandler::QuerryShader()
 {

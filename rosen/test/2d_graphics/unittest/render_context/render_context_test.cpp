@@ -92,11 +92,7 @@ HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
     }
     // start SetUpGrContextTest test
     RenderContext renderContext;
-#ifndef USE_ROSEN_DRAWING
-    bool grContext = renderContext.SetUpGrContext(nullptr);
-#else
     bool grContext = renderContext.SetUpGpuContext();
-#endif
     EXPECT_EQ(grContext, false);
 #endif
 }

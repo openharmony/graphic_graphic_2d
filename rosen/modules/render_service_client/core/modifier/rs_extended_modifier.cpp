@@ -31,42 +31,24 @@ RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(NodeId nodeId)
     if (!node) {
         return { nullptr };
     }
-#ifndef USE_ROSEN_DRAWING
-    auto recordingCanvas = new RSRecordingCanvas(node->GetPaintWidth(), node->GetPaintHeight());
-    recordingCanvas->SetIsCustomTextType(node->GetIsCustomTextType());
-#else
     auto recordingCanvas = new ExtendRecordingCanvas(node->GetPaintWidth(), node->GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(node->GetIsCustomTextType());
-#endif
     return { recordingCanvas, node->GetPaintWidth(), node->GetPaintHeight() };
 }
 
 std::shared_ptr<RSRenderModifier> RSExtendedModifierHelper::CreateRenderModifier(
     RSDrawingContext& ctx, PropertyId id, RSModifierType type)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto renderProperty = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(
-        RSExtendedModifierHelper::FinishDrawing(ctx), id);
-#else
     auto renderProperty = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(
         RSExtendedModifierHelper::FinishDrawing(ctx), id);
-#endif
     auto renderModifier =  std::make_shared<RSDrawCmdListRenderModifier>(renderProperty);
     renderModifier->SetType(type);
     return renderModifier;
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<DrawCmdList> RSExtendedModifierHelper::FinishDrawing(RSDrawingContext& ctx)
-#else
 std::shared_ptr<Drawing::DrawCmdList> RSExtendedModifierHelper::FinishDrawing(RSDrawingContext& ctx)
-#endif
 {
-#ifndef USE_ROSEN_DRAWING
-    auto recordingCanvas = static_cast<RSRecordingCanvas*>(ctx.canvas);
-#else
     auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(ctx.canvas);
-#endif
     if (!recordingCanvas) {
         RS_LOGW("RSExtendedModifierHelper::FinishDrawing recordingCanvas is nullptr");
         return nullptr;

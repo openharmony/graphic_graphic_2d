@@ -49,11 +49,7 @@ public:
     float GetAppGpuMemoryInMB();
     std::vector<MemoryGraphic> CountSubMem(int pid);
     void ReleaseSurface(uint32_t threadIndex) const;
-#ifndef USE_ROSEN_DRAWING
-    void AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
-#else
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
-#endif
     std::unordered_map<uint32_t, pid_t> GetReThreadIndexMap() const;
 private:
     RSSubThreadManager() = default;

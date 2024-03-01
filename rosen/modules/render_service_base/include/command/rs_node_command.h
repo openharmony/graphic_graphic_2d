@@ -48,11 +48,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4F,
     UPDATE_MODIFIER_RRECT,
     UPDATE_MODIFIER_DRAW_CMD_LIST,
-#ifndef USE_ROSEN_DRAWING
-    UPDATE_MODIFIER_SKMATRIX,
-#else
     UPDATE_MODIFIER_DRAWING_MATRIX,
-#endif
 
     SET_FREEZE,
     SET_DRAW_REGION,
@@ -98,18 +94,11 @@ public:
                 break;
         }
     }
-#ifndef USE_ROSEN_DRAWING
-    static void UpdateModifierDrawCmdList(
-        RSContext& context, NodeId nodeId, DrawCmdListPtr value, PropertyId id, bool isDelta)
-    {
-        std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(value, id);
-#else
     static void UpdateModifierDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId id, bool isDelta)
     {
         std::shared_ptr<RSRenderPropertyBase> prop =
             std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(value, id);
-#endif
         auto& nodeMap = context.GetNodeMap();
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
         if (!node) {
@@ -197,21 +186,12 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(RS_NODE, UPDATE_MODIFIER_RRECT, RSNodeCommandHelper::UpdateModifier<RRect>,
         NodeId, RRect, PropertyId, PropertyUpdateType))
-#ifndef USE_ROSEN_DRAWING
-ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifierDrawCmdList,
-        NodeId, DrawCmdListPtr, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertySkMatrix,
-    ARG(RS_NODE, UPDATE_MODIFIER_SKMATRIX, RSNodeCommandHelper::UpdateModifier<SkMatrix>,
-        NodeId, SkMatrix, PropertyId, PropertyUpdateType))
-#else
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifierDrawCmdList,
         NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX, RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>,
         NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
-#endif
 
 ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))

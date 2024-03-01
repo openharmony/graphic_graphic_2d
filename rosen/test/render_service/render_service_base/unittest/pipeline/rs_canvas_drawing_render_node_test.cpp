@@ -16,11 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#else
 #include "draw/canvas.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -35,20 +31,12 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
-#ifndef USE_ROSEN_DRAWING
-    static inline SkCanvas skCanvas_;
-#else
     static inline Drawing::Canvas drawingCanvas_;
-#endif
 };
 
 void RSCanvasDrawingRenderNodeTest::SetUpTestCase()
 {
-#ifndef USE_ROSEN_DRAWING
-    canvas_ = new RSPaintFilterCanvas(&skCanvas_);
-#else
     canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
-#endif
 }
 void RSCanvasDrawingRenderNodeTest::TearDownTestCase()
 {

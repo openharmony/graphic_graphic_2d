@@ -95,26 +95,6 @@ RectI RSEffectRenderNode::GetFilterRect() const
     return RSRenderNode::GetFilterRect();
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSEffectRenderNode::SetEffectRegion(const std::optional<SkIRect>& effectRegion)
-{
-    if (!effectRegion.has_value() || effectRegion->isEmpty()) {
-        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no effect region.");
-        GetMutableRenderProperties().SetHaveEffectRegion(false);
-        return;
-    }
-
-    const auto& properties = GetRenderProperties();
-    const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
-    if (!SkIRect::Intersects(*effectRegion,
-        SkIRect::MakeLTRB(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {
-        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: effect region is not in node.");
-        GetMutableRenderProperties().SetHaveEffectRegion(false);
-        return;
-    }
-    GetMutableRenderProperties().SetHaveEffectRegion(true);
-}
-#else
 void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion)
 {
     if (!effectRegion.has_value() || !effectRegion->IsValid()) {
@@ -134,7 +114,6 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
     }
     GetMutableRenderProperties().SetHaveEffectRegion(true);
 }
-#endif
 
 void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
     RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)

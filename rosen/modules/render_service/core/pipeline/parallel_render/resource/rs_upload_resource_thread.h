@@ -29,11 +29,7 @@
 #include "EGL/eglext.h"
 #include "include/core/SkSurface.h"
 #endif
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#else
 #include "draw/canvas.h"
-#endif
 #include "draw/surface.h"
 #include "draw/canvas.h"
 #include "image/gpu_context.h"
@@ -43,13 +39,8 @@
 
 namespace OHOS::Rosen {
 
-#ifndef USE_ROSEN_DRAWING
-void UploadTextureWithSkia(bool paraUpload, const sk_sp<SkImage>& imageUp,
-    const std::shared_ptr<Media::PixelMap>& pixelMapUp, uint64_t uniqueId);
-#else
 void UploadTextureWithDrawing(bool paraUpload, const std::shared_ptr<Drawing::Image>& imageUp,
     const std::shared_ptr<Media::PixelMap>& pixelMapUp, uint64_t uniqueId);
-#endif
 
 // Resource Collector
 class ResourceCollection : public GrDirectContext::ResourceCollector {
@@ -97,11 +88,7 @@ public:
         return (w < IMG_WIDTH_MAX) && (h < IMG_HEIGHT_MAX);
     }
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> GetShareGrContext() const;
-#else
     std::shared_ptr<Drawing::GPUContext> GetShareGrContext() const;
-#endif
     void ReleaseNotUsedPinnedViews();
 private:
     RSUploadResourceThread();
@@ -131,14 +118,9 @@ private:
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
 #endif
     std::mutex proxyViewMutex_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> CreateShareGrContext();
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     sk_sp<GrDirectContext> skContext_ = nullptr;
-#endif
     ResourceCollection resCollector_;
 };
 }

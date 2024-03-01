@@ -80,16 +80,18 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     if (address == nullptr) {
         return nullptr;
     }
-    SkImageInfo info =
-        SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    auto srfce = SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-    auto cnvs = srfce->getCanvas();
-    cnvs->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
+    Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(),
+    Drawing::ColorType::COLORTYPE_RGBA_8888,  Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto srfce = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    auto cnvs = srfce->GetCanvas();
+    cnvs->Clear(Drawing::Color::COLOR_YELLOW);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
     int a = 4;
     int b = 2;
-    cnvs->drawRect(SkRect::MakeXYWH(width/a, height/a, width/b, height/b), paint);
+    cnvs->AttachBrush(brush);
+    cnvs->DrawRect(Drawing::Rect(width/a, height/a, width/a + width/b, height/a + height/b));
+    cnvs->DetachBrush();
     return pixelmap;
 }
 

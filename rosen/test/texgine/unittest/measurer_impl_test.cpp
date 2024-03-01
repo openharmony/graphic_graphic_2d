@@ -149,22 +149,6 @@ U_CAPI UBool U_EXPORT2 u_isWhitespace(UChar32 c)
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-size_t TexgineTypeface::GetTableSize(uint32_t tag) const
-{
-    return g_measurerMockvars.retvalGetTableSize;
-}
-
-size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length, void *data) const
-{
-    return g_measurerMockvars.retvalGetTableData;
-}
-
-int TexgineTypeface::GetUnitsPerEm() const
-{
-    return g_measurerMockvars.retvalGetUnitsPerEm;
-}
-#endif
 
 std::vector<Boundary> WordBreaker::GetBoundary(const std::vector<uint16_t> &u16str, bool)
 {

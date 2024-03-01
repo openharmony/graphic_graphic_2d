@@ -74,19 +74,11 @@ bool RSSymbolAnimation::isEqual(const Vector2f val1, const Vector2f val2)
     return(val1.x_ == val2.x_ && val1.y_ == val2.y_);
 }
 
-#ifndef USE_ROSEN_DRAWING
-Vector4f RSSymbolAnimation::CalculateOffset(const SkPath &path, const float &offsetX, const float &offsetY)
-{
-    auto rect = path.getBounds();
-    float left = rect.fLeft;
-    float top = rect.fTop;
-#else
 Vector4f RSSymbolAnimation::CalculateOffset(const Drawing::Path &path, const float &offsetX, const float &offsetY)
 {
     auto rect = path.GetBounds();
     float left = rect.GetLeft();
     float top = rect.GetTop();
-#endif
     // the nodeTranslation is offset of new node to the father node;
     // the newOffset is offset of path on new node;
     Vector2f nodeTranslation = {offsetX + left, offsetY + top};
@@ -125,13 +117,6 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
     animation->Start(canvasNode);
     auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]);
 
-    #ifndef USE_ROSEN_DRAWING
-        SkPaint paint;
-        paint.setColor(symbolNode.color);
-        paint.setAntiAlias(true);
-        SkPoint offsetLocal = SkPoint::Make(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
-        recordingCanvas->drawSymbol(symbolNode.symbolData, offsetLocal, paint);
-    #else
         Drawing::Brush brush;
         Drawing::Pen pen;
         SetIconProperty(brush, pen, symbolNode);
@@ -142,7 +127,6 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
         recordingCanvas->AttachPen(pen);
         recordingCanvas->DrawSymbol(symbolNode.symbolData, offsetLocal);
         recordingCanvas->DetachPen();
-    #endif
     canvasNode->FinishRecording();
     rsNode_->AddChild(canvasNode, -1);
     return true;
@@ -251,13 +235,6 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
         }
         animation->Start(canvasNode);
         auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]);
-        #ifndef USE_ROSEN_DRAWING
-            SkPaint paint;
-            paint.setColor(symbolNode.color);
-            paint.setAntiAlias(true);
-            symbolNode.path.offset(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
-            recordingCanvas->drawPath(symbolNode.path, paint);
-        #else
             Drawing::Brush brush;
             Drawing::Pen pen;
             SetIconProperty(brush, pen, symbolNode);
@@ -267,7 +244,6 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
             recordingCanvas->DrawPath(symbolNode.path);
             recordingCanvas->DetachBrush();
             recordingCanvas->DetachPen();
-        #endif
         canvasNode->FinishRecording();
         rsNode_->AddChild(canvasNode, -1);
     }

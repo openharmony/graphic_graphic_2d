@@ -15,10 +15,6 @@
 
 #include <iostream>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkColor.h"
-#include "include/core/SkTextBlob.h"
-#endif
 
 #include "property/rs_properties_def.h"
 #include "refbase.h"
@@ -138,21 +134,8 @@ public:
                 std::cout << "Failed to create canvas!" << std::endl;
                 return;
             }
-#ifndef USE_ROSEN_DRAWING
-            canvas->clear(SK_ColorWHITE);
-            SkPaint paint;
-            paint.setAntiAlias(true);
-            paint.setStyle(SkPaint::kFill_Style);
-            paint.setStrokeWidth(20);
-            paint.setStrokeJoin(SkPaint::kRound_Join);
-            paint.setColor(SK_ColorBLUE);
-            sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString(
-                GravityString(gravity), SkFont(nullptr, 24.0f, 1.0f, 0.0f)); // font size: 24
-            canvas->drawTextBlob(textBlob.get(), 10, 100, paint);
-#else
             canvas->Clear(Drawing::Color::COLOR_WHITE);
             std::cout << "Drawing does not support TextBlob" << std::endl;
-#endif
             frame->SetDamageRegion(0, 0, 400, 400);
             rsSurface->FlushFrame(frame);
 

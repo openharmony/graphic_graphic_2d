@@ -181,15 +181,9 @@ public:
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 
-#ifndef USE_ROSEN_DRAWING
-    virtual bool GetBitmap(NodeId id, SkBitmap& bitmap) = 0;
-    virtual bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList) = 0;
-#else
     virtual bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) = 0;
     virtual bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList) = 0;
-#endif
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 

@@ -69,11 +69,7 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
     if (canvas_ == nullptr) {
         return false;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->concat(screenTransformMatrix_);
-#else
     canvas_->ConcatMatrix(screenTransformMatrix_);
-#endif
 
     return true;
 }
@@ -89,11 +85,7 @@ void RSVirtualScreenProcessor::PostProcess(RSDisplayRenderNode* node)
         return;
     }
     if (isSecurityDisplay_ && displayHasSecSurface_) {
-#ifndef USE_ROSEN_DRAWING
-        canvas_->clear(SK_ColorBLACK);
-#else
         canvas_->Clear(Drawing::Color::COLOR_BLACK);
-#endif
     }
     auto surfaceOhos = renderFrame_->GetSurface();
     renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
@@ -116,18 +108,12 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     // clipHole: false.
     // forceCPU: true.
     auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false);
-#ifndef USE_ROSEN_DRAWING
-    const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient_;
-    const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient_;
-    params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
-#else
     const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient_;
     const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient_;
     params.dstRect.SetLeft(0);
     params.dstRect.SetTop(0);
     params.dstRect.SetRight(adaptiveDstWidth);
     params.dstRect.SetBottom(adaptiveDstHeight);
-#endif
     renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
 }
 

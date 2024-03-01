@@ -23,15 +23,9 @@ FramePainter::FramePainter(FrameCollector &collector) : collector_(collector)
 {
 }
 
-#ifndef USE_ROSEN_DRAWING
-void FramePainter::Draw(SkCanvas &canvas)
-{
-}
-#else
 void FramePainter::Draw(Drawing::Canvas &canvas)
 {
 }
-#endif
 
 
 double FramePainter::SumHeight(const struct FrameInfo &info)

@@ -176,11 +176,7 @@ public:
     sptr<VSyncGenerator> vsyncGenerator_;
 
     void ReleaseSurface();
-#ifndef USE_ROSEN_DRAWING
-    void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
-#else
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
-#endif
 
     void SetDirtyFlag();
     void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
@@ -208,11 +204,7 @@ public:
     {
         idleTimerExpiredFlag_ = flag;
     }
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> GetWatermarkImg();
-#else
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
-#endif
     bool GetWatermarkFlag();
     uint64_t GetFrameCount() const
     {
@@ -473,11 +465,7 @@ private:
 
     // used for watermark
     std::mutex watermarkMutex_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> watermarkImg_ = nullptr;
-#else
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
-#endif
     bool isShow_ = false;
     bool doParallelComposition_ = false;
 
@@ -503,11 +491,7 @@ private:
     bool idleTimerExpiredFlag_ = false;
     // for ui first
     std::mutex mutex_;
-#ifndef USE_ROSEN_DRAWING
-    std::queue<sk_sp<SkSurface>> tmpSurfaces_;
-#else
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
-#endif
 
     // for surface occlusion change callback
     std::mutex surfaceOcclusionMutex_;

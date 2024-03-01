@@ -21,15 +21,9 @@ RSResourceManager& RSResourceManager::Instance()
     return sInstance;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSResourceManager::UploadTexture(bool paraUpload, const sk_sp<SkImage>& image,
-    const std::shared_ptr<Media::PixelMap>& pixelMap, uint64_t uniqueId)
-{
-#else
 void RSResourceManager::UploadTexture(bool paraUpload, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Media::PixelMap>& pixelMap, uint64_t uniqueId)
 {
-#endif
     if (hookFunction_ != nullptr) {
         hookFunction_(paraUpload, image, pixelMap, uniqueId);
     } else {
