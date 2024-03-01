@@ -73,26 +73,12 @@ public:
     void GenerateCache(const RSPaintFilterCanvas* canvas = nullptr, const SkRect* rect = nullptr);
     void ClearCache();
 
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    // functions that are dedicated to driven render [start]
-    void CheckClipRect(SkRect& rect);
-    void ReplaceDrivenCmds();
-    void RestoreOriginCmdsForDriven();
-    // functions that are dedicated to driven render [end]
-#endif
-
 private:
     std::vector<std::unique_ptr<OpItem>> ops_;
     mutable std::vector<uint32_t> imageIndexs_;
     mutable std::mutex mutex_;
     int width_;
     int height_;
-
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    // variables that are dedicated to driven render [start]
-    std::vector<std::pair<int, std::unique_ptr<OpItem>>> opReplacedByDrivenRender_;
-    // variables that are dedicated to driven render [end]
-#endif
 
 #ifdef ROSEN_OHOS
     // cache related, only available on OHOS

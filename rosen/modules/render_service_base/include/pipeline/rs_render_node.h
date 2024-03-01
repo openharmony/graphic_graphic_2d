@@ -389,22 +389,6 @@ public:
     void SetCacheGeoPreparationDelay(bool val);
     void ResetCacheGeoPreparationDelay();
     bool GetCacheGeoPreparationDelay() const;
-
-    // driven render ///////////////////////////////////
-    void SetIsMarkDriven(bool isMarkDriven);
-    bool IsMarkDriven() const;
-    void SetIsMarkDrivenRender(bool isMarkDrivenRender);
-    bool IsMarkDrivenRender() const;
-
-    void SetItemIndex(int index);
-    int GetItemIndex() const;
-
-    void SetPaintState(bool paintState);
-    bool GetPaintState() const;
-
-    void SetIsContentChanged(bool isChanged);
-    bool IsContentChanged() const;
-
     bool HasAnimation() const;
 
     bool HasFilter() const;
@@ -707,12 +691,6 @@ private:
     bool isParentScbScreen_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
-    // driven render
-    int itemIndex_ = -1;
-    bool isMarkDriven_ = false;
-    bool isMarkDrivenRender_ = false;
-    bool paintState_ = false;
-    bool isContentChanged_ = false;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     float globalAlpha_ = 1.0f;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };

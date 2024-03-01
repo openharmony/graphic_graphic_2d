@@ -25,7 +25,6 @@
 
 #include "rs_base_render_engine.h"
 
-#include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
@@ -123,15 +122,6 @@ public:
     void MarkHardwareForcedDisabled()
     {
         isHardwareForcedDisabled_ = true;
-    }
-
-    void SetDrivenRenderFlag(bool hasDrivenNodeOnUniTree, bool hasDrivenNodeMarkRender)
-    {
-        if (!drivenInfo_) {
-            return;
-        }
-        drivenInfo_->prepareInfo.hasDrivenNodeOnUniTree = hasDrivenNodeOnUniTree;
-        drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
@@ -491,8 +481,6 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
-    // driven render
-    std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
     std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;
 
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;

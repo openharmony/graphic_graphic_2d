@@ -2436,68 +2436,6 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-RectF RSPropertiesPainter::GetCmdsClipRect(DrawCmdListPtr& cmds)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    RectF clipRect;
-    if (cmds == nullptr) {
-        return clipRect;
-    }
-    SkRect rect;
-    cmds->CheckClipRect(rect);
-    clipRect = { rect.left(), rect.top(), rect.width(), rect.height() };
-    return clipRect;
-#else
-    return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
-#endif
-}
-#else
-RectF RSPropertiesPainter::GetCmdsClipRect(Drawing::DrawCmdListPtr& cmds)
-{
-    ROSEN_LOGE("Drawing Unsupport RSPropertiesPainter::GetCmdsClipRect");
-    return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
-}
-#endif
-
-#ifndef USE_ROSEN_DRAWING
-void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-                                             DrawCmdListPtr& cmds)
-#else
-void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-                                             Drawing::DrawCmdListPtr& cmds)
-#endif
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    if (cmds == nullptr) {
-        return;
-    }
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix mat;
-    if (GetGravityMatrix(
-            properties.GetFrameGravity(), properties.GetFrameRect(), cmds->GetWidth(), cmds->GetHeight(), mat)) {
-        canvas.concat(mat);
-    }
-    auto frameRect = Rect2SkRect(properties.GetFrameRect());
-#else
-    Rosen::Drawing::Matrix mat;
-    if (GetGravityMatrix(
-            properties.GetFrameGravity(), properties.GetFrameRect(), cmds->GetWidth(), cmds->GetHeight(), mat)) {
-        canvas.ConcatMatrix(mat);
-    }
-    auto frameRect = Rect2DrawingRect(properties.GetFrameRect());
-#endif
-    // temporary solution for driven content clip
-#ifndef USE_ROSEN_DRAWING
-    cmds->ReplaceDrivenCmds();
-    cmds->Playback(canvas, &frameRect);
-    cmds->RestoreOriginCmdsForDriven();
-#else
-    cmds->Playback(canvas, &frameRect);
-#endif
-#endif
-}
-
-#ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     const sk_sp<SkSurface>& spherizeSurface)
 {

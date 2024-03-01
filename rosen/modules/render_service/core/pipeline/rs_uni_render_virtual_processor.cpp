@@ -310,11 +310,6 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
     }
 }
 
-void RSUniRenderVirtualProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
-{
-    RS_LOGI("RSUniRenderVirtualProcessor::ProcessDrivenSurface() is not supported.");
-}
-
 void RSUniRenderVirtualProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
 {
     RS_LOGI("RSUniRenderVirtualProcessor::ProcessRcdSurface() is not supported.");

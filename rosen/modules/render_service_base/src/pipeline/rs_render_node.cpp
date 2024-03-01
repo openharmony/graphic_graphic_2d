@@ -2817,46 +2817,6 @@ NodeId RSRenderNode::GetDrawingCacheRootId() const
 {
     return drawingCacheRootId_;
 }
-void RSRenderNode::SetIsMarkDriven(bool isMarkDriven)
-{
-    isMarkDriven_ = isMarkDriven;
-}
-bool RSRenderNode::IsMarkDriven() const
-{
-    return isMarkDriven_;
-}
-void RSRenderNode::SetIsMarkDrivenRender(bool isMarkDrivenRender)
-{
-    isMarkDrivenRender_ = isMarkDrivenRender;
-}
-bool RSRenderNode::IsMarkDrivenRender() const
-{
-    return isMarkDrivenRender_;
-}
-void RSRenderNode::SetItemIndex(int index)
-{
-    itemIndex_ = index;
-}
-int RSRenderNode::GetItemIndex() const
-{
-    return itemIndex_;
-}
-void RSRenderNode::SetPaintState(bool paintState)
-{
-    paintState_ = paintState;
-}
-bool RSRenderNode::GetPaintState() const
-{
-    return paintState_;
-}
-void RSRenderNode::SetIsContentChanged(bool isChanged)
-{
-    isContentChanged_ = isChanged;
-}
-bool RSRenderNode::IsContentChanged() const
-{
-    return isContentChanged_ || HasAnimation();
-}
 bool RSRenderNode::HasAnimation() const
 {
     return !animationManager_.animations_.empty();

@@ -312,11 +312,12 @@ public:
 
     void SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType);
 
-    // driven render
-    void MarkDrivenRender(bool flag);
-    void MarkDrivenRenderItemIndex(int index);
-    void MarkDrivenRenderFramePaintState(bool flag);
-    void MarkContentChanged(bool isChanged);
+    // driven render was shelved, functions will be deleted soon [start]
+    void MarkDrivenRender(bool flag) {}
+    void MarkDrivenRenderItemIndex(int index) {}
+    void MarkDrivenRenderFramePaintState(bool flag) {}
+    void MarkContentChanged(bool isChanged) {}
+    // driven render was shelved, functions will be deleted soon [end]
 
     void AddModifier(const std::shared_ptr<RSModifier> modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
@@ -440,8 +441,6 @@ private:
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };
-    // driven render
-    bool drivenFlag_ = false;
 
     bool isNodeGroup_ = false;
 

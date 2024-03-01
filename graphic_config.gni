@@ -142,13 +142,9 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 # use_texgine = graphic_2d_feature_use_texgine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
-  rs_enable_driven_render = true
   gpu_defines += [
-    "RS_ENABLE_DRIVEN_RENDER",
     "RS_ENABLE_UNI_RENDER",
   ]
-} else {
-  rs_enable_driven_render = false
 }
 
 if (graphic_2d_feature_enable_afbc) {

@@ -65,44 +65,6 @@ void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context,
     }
 }
 
-void RSNodeCommandHelper::MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetIsMarkDriven(flag);
-        auto& nodeMap = context.GetMutableNodeMap();
-        if (flag) {
-            nodeMap.AddDrivenRenderNode(node);
-        } else {
-            nodeMap.RemoveDrivenRenderNode(nodeId);
-        }
-    }
-}
-
-void RSNodeCommandHelper::MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetItemIndex(index);
-    }
-}
-
-void RSNodeCommandHelper::MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetPaintState(flag);
-    }
-}
-
-void RSNodeCommandHelper::MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged)
-{
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetIsContentChanged(isChanged);
-    }
-}
-
 void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect)
 {
     auto& nodeMap = context.GetNodeMap();

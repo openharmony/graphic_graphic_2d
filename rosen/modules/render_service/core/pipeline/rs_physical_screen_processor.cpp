@@ -69,11 +69,6 @@ void RSPhysicalScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
     RS_LOGI("RSPhysicalScreenProcessor::ProcessDisplaySurface() is not supported.");
 }
 
-void RSPhysicalScreenProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
-{
-    RS_LOGI("RSPhysicalScreenProcessor::ProcessDrivenSurface() is not supported.");
-}
-
 void RSPhysicalScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
 {
     RS_LOGI("RSPhysicalScreenProcessor::ProcessRcdSurface() is not supported");

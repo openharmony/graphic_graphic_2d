@@ -136,11 +136,6 @@ void RSVirtualScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
     RS_LOGI("RSVirtualScreenProcessor::ProcessDisplaySurface() is not supported.");
 }
 
-void RSVirtualScreenProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
-{
-    RS_LOGI("RSVirtualScreenProcessor::ProcessDrivenSurface() is not supported.");
-}
-
 void RSVirtualScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
 {
     RS_LOGI("RSVirtualScreenProcessor::ProcessRcdSurface() is not supported.");

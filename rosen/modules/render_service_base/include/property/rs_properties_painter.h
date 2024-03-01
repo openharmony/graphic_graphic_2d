@@ -90,10 +90,6 @@ public:
     static SkRRect RRect2SkRRect(const RRect& rr);
     static SkRect Rect2SkRect(const RectF& r);
     static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
-     // functions that are dedicated to driven render [start]
-    static RectF GetCmdsClipRect(DrawCmdListPtr& cmds);
-    static void DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& cmds);
-    // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
     static sk_sp<SkBlender> MakeDynamicLightUpBlender(
@@ -117,11 +113,6 @@ public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot);
-    // functions that are dedicated to driven render [start]
-    static RectF GetCmdsClipRect(Drawing::DrawCmdListPtr& cmds);
-    static void DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-        Drawing::DrawCmdListPtr& cmds);
-    // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
     static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(

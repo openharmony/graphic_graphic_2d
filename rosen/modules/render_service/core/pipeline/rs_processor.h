@@ -30,7 +30,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSDrivenSurfaceRenderNode;
 class RSRcdSurfaceRenderNode;
 class RSProcessor {
 public:
@@ -44,7 +43,6 @@ public:
                       std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
-    virtual void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) = 0;
     virtual void PostProcess(RSDisplayRenderNode* node = nullptr) = 0;
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
     void SetSecurityDisplay(bool isSecurityDisplay);

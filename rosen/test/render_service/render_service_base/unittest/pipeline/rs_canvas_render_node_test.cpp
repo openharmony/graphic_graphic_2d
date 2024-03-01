@@ -126,23 +126,6 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest001, Tes
 }
 
 /**
- * @tc.name: ProcessDrivenBackgroundRenderTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.ProcessDrivenBackgroundRender(*canvas_);
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    EXPECT_EQ(rsCanvasRenderNode.GetChildrenCount(), 0);
-#endif
-}
-
-/**
  * @tc.name: ColorBlendModeTest
  * @tc.desc: test
  * @tc.type:FUNC

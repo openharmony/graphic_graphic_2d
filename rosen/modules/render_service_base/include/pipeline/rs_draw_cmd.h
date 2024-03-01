@@ -654,13 +654,6 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
-    // functions that are dedicated to driven render [start]
-    std::optional<SkRect> GetClipRect() const
-    {
-        return rect_;
-    }
-    // functions that are dedicated to driven render [end]
-
 private:
     SkRect rect_;
     SkClipOp clipOp_;

@@ -21,9 +21,6 @@
 #include "platform/common/rs_log.h"
 
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-#include "pipeline/driven_render/rs_driven_surface_render_node.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -110,19 +107,6 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         }
         layerNum++;
     }
-}
-
-void RSUniRenderProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    auto layer = uniComposerAdapter_->CreateLayer(node);
-    if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessDrivenSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
-            node.GetId());
-        return;
-    }
-    layers_.emplace_back(layer);
-#endif
 }
 
 void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

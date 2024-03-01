@@ -133,16 +133,6 @@ ohos_shared_library("librender_service") {
     "core/drawable/rs_canvas_render_node_drawable.cpp",
   ]
 
-  if (rs_enable_driven_render) {
-    sources += [
-      "core/pipeline/driven_render/rs_driven_render_ext.cpp",
-      "core/pipeline/driven_render/rs_driven_render_listener.cpp",
-      "core/pipeline/driven_render/rs_driven_render_manager.cpp",
-      "core/pipeline/driven_render/rs_driven_render_visitor.cpp",
-      "core/pipeline/driven_render/rs_driven_surface_render_node.cpp",
-    ]
-  }
-
   if (rs_enable_eglimage) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }

@@ -470,53 +470,6 @@ void DrawCmdList::ClearCache()
     isCached_ = false;
 #endif
 }
-
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-void DrawCmdList::CheckClipRect(SkRect& rect)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (const auto& it : ops_) {
-        if (it == nullptr) {
-            continue;
-        }
-        if (it->GetType() == CLIP_RECT_OPITEM) {
-            ClipRectOpItem* clipRectOpItem = static_cast<ClipRectOpItem*>(it.get());
-            auto optionalRect = clipRectOpItem->GetClipRect();
-            if (optionalRect.has_value() && !optionalRect.value().isEmpty()) {
-                rect = optionalRect.value();
-            }
-            break;
-        }
-    }
-}
-
-void DrawCmdList::ReplaceDrivenCmds()
-{
-    RS_TRACE_FUNC();
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    for (auto index = 0u; index < ops_.size(); index++) {
-        auto& op = ops_[index];
-        if (op != nullptr && op->GetType() == CLIP_RECT_OPITEM) {
-            // backup the original op and position, replace the original op with nullptr
-            opReplacedByDrivenRender_.emplace_back(index, op.release());
-            break;
-        }
-    }
-}
-
-void DrawCmdList::RestoreOriginCmdsForDriven()
-{
-    RS_TRACE_FUNC();
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    // restore the original op
-    for (auto& [index, op] : opReplacedByDrivenRender_) {
-        ops_[index].reset(op.release());
-    }
-    opReplacedByDrivenRender_.clear();
-}
-#endif
 } // namespace Rosen
 } // namespace OHOS
 #endif // USE_ROSEN_DRAWING

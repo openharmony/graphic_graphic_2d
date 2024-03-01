@@ -162,10 +162,6 @@ public:
     bool WaitHardwareThreadTaskExcute();
     void NotifyHardwareThreadCanExcuteTask();
 
-    // driven render
-    void NotifyDrivenRenderFinish();
-    void WaitUtilDrivenRenderFinished();
-
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
@@ -298,7 +294,6 @@ private:
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
-    void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
     void SetDeviceType();
@@ -427,11 +422,6 @@ private:
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
 
-    // driven render
-    mutable std::mutex drivenRenderMutex_;
-    bool drivenRenderFinished_ = false;
-    std::condition_variable drivenRenderCond_;
-
     // Used to refresh the whole display when AccessibilityConfig is changed
     bool isAccessibilityConfigChanged_ = false;
 
@@ -490,10 +480,6 @@ private:
 #endif
     bool isShow_ = false;
     bool doParallelComposition_ = false;
-
-    // driven render
-    bool hasDrivenNodeOnUniTree_ = false;
-    bool hasDrivenNodeMarkRender_ = false;
 
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
