@@ -22,6 +22,7 @@
 
 #include "drawable/rs_drawable_content.h"
 #include "drawable/rs_property_drawable_ng.h"
+#include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
@@ -29,6 +30,7 @@ class RSRenderNode;
 class RSPropertyDrawableContent : public RSDrawableContent {
 public:
     RSPropertyDrawableContent(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : drawCmdList_(std::move(drawCmdList)) {}
+    RSPropertyDrawableContent() = default;
     ~RSPropertyDrawableContent() override = default;
 
     void OnSync() override;
@@ -49,6 +51,8 @@ public:
     RSBackgroundContent(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
         : RSPropertyDrawableContent(std::move(drawCmdList))
     {}
+    RSBackgroundContent() : RSPropertyDrawableContent()
+    {}
     static RSDrawableContent::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
 };
@@ -59,8 +63,12 @@ public:
     RSBorderContent(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
         : RSPropertyDrawableContent(std::move(drawCmdList))
     {}
+    RSBorderContent() : RSPropertyDrawableContent()
+    {}
     static RSDrawableContent::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
+        const std::shared_ptr<RSBorder>& border, const bool& isOutline);
 };
 
 } // namespace OHOS::Rosen

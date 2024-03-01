@@ -47,6 +47,7 @@ namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
 class RSB_EXPORT RSProperties final {
+friend class RSBackgroundContent;
 public:
     RSProperties();
     RSProperties(const RSProperties&) = delete;
