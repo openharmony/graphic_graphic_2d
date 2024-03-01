@@ -29,7 +29,7 @@
             HLOGD("[%{public}s]composerSptr is nullptr.", __func__); \
             return GRAPHIC_DISPLAY_NULL_PTR;                         \
         }                                                            \
-    } while(0) 
+    } while (0)
 
 namespace OHOS {
 namespace Rosen {

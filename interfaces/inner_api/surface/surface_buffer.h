@@ -98,10 +98,10 @@ public:
     static sptr<SurfaceBuffer> Create();
 
 protected:
-    SurfaceBuffer(){}
+    SurfaceBuffer() {}
     SurfaceBuffer(const SurfaceBuffer&) = delete;
     SurfaceBuffer& operator=(const SurfaceBuffer&) = delete;
-    virtual ~SurfaceBuffer(){}
+    virtual ~SurfaceBuffer() {}
 };
 
 using OnReleaseFunc = std::function<GSError(sptr<SurfaceBuffer> &)>;

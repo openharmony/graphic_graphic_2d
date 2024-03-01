@@ -268,10 +268,12 @@ typedef struct OHExtDataHandle {
 } OHExtDataHandle;
 
 /**
- * @brief Creates an <b>OHNativeWindow</b> instance. A new <b>OHNativeWindow</b> instance is created each time this function is called.
+ * @brief Creates an <b>OHNativeWindow</b> instance. A new <b>OHNativeWindow</b> instance is \n
+ * created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param pSurface Indicates the pointer to a <b>ProduceSurface</b>. The type is a pointer to <b>sptr<OHOS::Surface></b>.
+ * @param pSurface Indicates the pointer to a <b>ProduceSurface</b>. The type is a pointer \n
+ * to <b>sptr<OHOS::Surface></b>.
  * @return Returns the pointer to the <b>OHNativeWindow</b> instance created.
  * @since 8
  * @version 1.0
@@ -418,7 +420,8 @@ BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(OHNativeWindowBuffer *bu
 int32_t OH_NativeWindow_NativeObjectReference(void *obj);
 
 /**
- * @brief Decreases the reference count of a native object and, when the reference count reaches 0, destroys this object.
+ * @brief Decreases the reference count of a native object and, when the reference count reaches 0, \n
+ * destroys this object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @param obj Indicates the pointer to an <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
