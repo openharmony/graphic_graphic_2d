@@ -50,7 +50,8 @@ bool RSStepsInterpolator::Marshalling(Parcel& parcel) const
 RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id = parcel.ReadUint64();
-    int32_t steps, position;
+    int32_t steps;
+    int32_t position;
     if (!(parcel.ReadInt32(steps) && parcel.ReadInt32(position))) {
         ROSEN_LOGE("StepsInterpolator unmarshalling failed.");
         return nullptr;

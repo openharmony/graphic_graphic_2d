@@ -22,6 +22,8 @@
 
 namespace OHOS {
 namespace Rosen {
+static constexpr int HALF_NUM = 2;
+
 Quaternion RSValueEstimator::Estimate(float fraction,
     const Quaternion& startValue, const Quaternion& endValue)
 {
@@ -56,7 +58,7 @@ std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
     if (startValue->GetFilterType() == endValue->GetFilterType()) {
         return startValue * (1.0f - fraction) + endValue * fraction;
     } else {
-        return (fraction < 0.5f) ? startValue * (1.0f - fraction * 2) : endValue * (fraction * 2 - 1.0f);
+        return (fraction < 0.5f) ? startValue * (1.0f - fraction * HALF_NUM) : endValue * (fraction * HALF_NUM - 1.0f);
     }
 }
 

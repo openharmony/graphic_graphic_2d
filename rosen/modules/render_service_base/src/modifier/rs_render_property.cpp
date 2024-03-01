@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 void RSRenderPropertyBase::OnChange() const
 {
     if (auto node = node_.lock()) {

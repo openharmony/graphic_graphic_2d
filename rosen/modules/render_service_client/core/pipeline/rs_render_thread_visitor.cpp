@@ -1133,7 +1133,8 @@ void RSRenderThreadVisitor::ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& n
         auto iter = surfaceCallbacks_.find(node.GetId());
         if (iter != surfaceCallbacks_.end()) {
 #ifndef USE_ROSEN_DRAWING
-            (iter->second)(canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(), width, height);
+            (iter->second)(canvas_->getTotalMatrix().getTranslateX(),
+                canvas_->getTotalMatrix().getTranslateY(), width, height);
 #else
             (iter->second)(canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X),
                 canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y), width, height);

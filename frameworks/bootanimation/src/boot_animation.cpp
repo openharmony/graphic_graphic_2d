@@ -30,6 +30,7 @@
 using namespace OHOS;
 
 constexpr float MAX_ZORDER = 100000.0f;
+constexpr int HALF_NUM = 2;
 
 void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
 {
@@ -271,11 +272,11 @@ void BootAnimation::InitPicCoordinates()
     if (windowWidth_ >= windowHeight_) {
         realHeight_ = windowHeight_;
         realWidth_ = realHeight_;
-        pointX_ = (windowWidth_ - realWidth_) / 2;
+        pointX_ = (windowWidth_ - realWidth_) / HALF_NUM;
     } else {
         realWidth_ = windowWidth_;
         realHeight_ = realWidth_;
-        pointY_ = (windowHeight_ - realHeight_) / 2;
+        pointY_ = (windowHeight_ - realHeight_) / HALF_NUM;
     }
 }
 

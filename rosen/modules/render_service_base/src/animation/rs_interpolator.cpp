@@ -163,7 +163,8 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
 RSCustomInterpolator* RSCustomInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id = parcel.ReadUint64();
-    std::vector<float> times, values;
+    std::vector<float> times;
+    std::vector<float> values;
     if (!(parcel.ReadFloatVector(&times) && parcel.ReadFloatVector(&values))) {
         ROSEN_LOGE("Unmarshalling CustomInterpolator failed");
         return nullptr;

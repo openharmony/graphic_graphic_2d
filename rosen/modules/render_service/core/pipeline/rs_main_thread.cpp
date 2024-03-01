@@ -573,7 +573,7 @@ void RSMainThread::ProcessCommand()
     } else {
         ProcessCommandForDividedRender();
     }
-    switch(context_->purgeType_) {
+    switch (context_->purgeType_) {
         case RSContext::PurgeType::GENTLY:
             ClearMemoryCache(context_->clearMoment_, false);
             break;
