@@ -449,15 +449,6 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return filterCacheSizeThreshold;
 }
 
-bool RSSystemProperties::GetFilterPartialRenderEnabled()
-{
-    // Determine whether the filter partial render should be enabled. The default value is 0,
-    // which means that it is unenabled.
-    static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "1")).c_str()) != 0;
-    return enabled;
-}
-
 bool RSSystemProperties::GetColorPickerPartialEnabled()
 {
     // Determine whether the color picker partial render should be enabled. The default value is 0,

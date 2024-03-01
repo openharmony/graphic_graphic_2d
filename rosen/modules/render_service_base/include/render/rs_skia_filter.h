@@ -66,7 +66,7 @@ public:
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
     virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
     virtual bool CanSkipFrame() const { return false; };
-    virtual void SetCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) {};
+    virtual void SetCanvasChange(RSPaintFilterCanvas& canvas) {};
     virtual void SetBoundsGeometry(float geoWidth, float geoHeight) {};
 
 protected:

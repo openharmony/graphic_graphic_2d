@@ -280,8 +280,6 @@ void RSMainThread::Init()
 
         InformHgmNodeInfo();
         ReleaseAllNodesBuffer();
-        auto subThreadManager = RSSubThreadManager::Instance();
-        subThreadManager->SubmitFilterSubThreadTask();
         SendCommands();
         {
             std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);

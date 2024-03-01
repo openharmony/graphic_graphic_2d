@@ -3337,10 +3337,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         AssignGlobalZOrderAndCreateLayer(appWindowNodesInZOrder_);
         node.SetGlobalZOrder(globalZOrder_++);
         processor_->ProcessDisplaySurface(node);
-        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
-        auto& fence = surfaceHandler.GetAcquireFence();
-        auto subThreadManager = RSSubThreadManager::Instance();
-        subThreadManager->SetFenceSubThread(fence);
         AssignGlobalZOrderAndCreateLayer(hardwareEnabledTopNodes_);
     }
     DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
@@ -3383,7 +3379,6 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
         subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    subThreadManager->StartFilterThread(renderEngine_->GetRenderContext().get());
     subThreadManager->StartColorPickerThread(renderEngine_->GetRenderContext().get());
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif

@@ -17,6 +17,7 @@
 
 #include "render/rs_skia_filter.h"
 #include "render/rs_gradient_blur_para.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/effects/SkRuntimeEffect.h"
@@ -55,11 +56,8 @@ public:
     {
         return nullptr;
     }
-    void SetCanvasChange(SkMatrix& mat, float surfaceWidth, float surfaceHeight) override
+    void SetCanvasChange(RSPaintFilterCanvas& canvas) override
     {
-        mat_ = mat;
-        surfaceWidth_ = surfaceWidth;
-        surfaceHeight_ = surfaceHeight;
     }
 #else
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -69,11 +67,15 @@ public:
     {
         return nullptr;
     }
-    void SetCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) override
+    void SetCanvasChange(RSPaintFilterCanvas& canvas) override
     {
+        auto surface = canvas.GetSurface();
+        auto width = surface->Width();
+        auto height = surface->Height();
+        Drawing::Matrix mat = canvas.GetTotalMatrix();
         mat_ = mat;
-        surfaceWidth_ = surfaceWidth;
-        surfaceHeight_ = surfaceHeight;
+        surfaceWidth_ = width;
+        surfaceHeight_ = height;
     }
 #endif
 

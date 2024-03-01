@@ -18,9 +18,7 @@
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
-#include <mutex>
 
-#include "event_handler.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkRect.h"
@@ -37,7 +35,6 @@
 #include "common/rs_rect.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
 
@@ -84,11 +81,6 @@ public:
         const std::shared_ptr<RSSkiaFilter>& filter, const std::optional<SkIRect>& srcRect = std::nullopt,
         const std::optional<SkIRect>& dstRect = std::nullopt,
         const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
-
-    static bool IsNearlyFullScreen(SkISize imageSize, int32_t canvasWidth, int32_t canvasHeight);
-    void PostPartialFilterRenderTask(const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect);
-    void PostPartialFilterRenderInit(const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect,
-        int32_t canvasWidth, int32_t canvasHeight);
 #else
     // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
     // regenerate the cache or reuse the existing cache.
@@ -103,11 +95,6 @@ public:
         const std::shared_ptr<RSDrawingFilter>& filter, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt,
         const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
-
-    static bool IsNearlyFullScreen(Drawing::RectI imageSize, int32_t canvasWidth, int32_t canvasHeight);
-    void PostPartialFilterRenderTask(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
-    void PostPartialFilterRenderInit(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect,
-        int32_t canvasWidth, int32_t canvasHeight);
 #endif
     enum CacheType : uint8_t {
         CACHE_TYPE_NONE              = 0,
@@ -127,166 +114,10 @@ public:
     }
 
 private:
-    class RSFilterCacheTask : public RSFilter::RSFilterTask {
-    public:
-        static const bool FilterPartialRenderEnabled;
-        bool isFirstInit_ = true;
-        bool needClearSurface_ = false;
-        std::atomic<bool> isTaskRelease_ = false;
-        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFirstFilter_ = nullptr;
-        std::mutex grBackendTextureMutex_;
-        RSFilterCacheTask() = default;
-        virtual ~RSFilterCacheTask() = default;
-#ifndef USE_ROSEN_DRAWING
-        bool InitSurface(GrRecordingContext* grContext) override;
-#else
-        std::atomic<Drawing::ColorType> cacheBackendTextureColorType_;
-        bool InitSurface(Drawing::GPUContext* grContext) override;
-#endif
-        bool Render() override;
-        bool SaveFilteredImage() override;
-        void SwapInit() override;
-        bool SetDone() override;
-        CacheProcessStatus GetStatus() const
-        {
-            return cacheProcessStatus_.load();
-        }
-
-        void SetStatus(CacheProcessStatus cacheProcessStatus)
-        {
-            cacheProcessStatus_.store(cacheProcessStatus);
-        }
-
-#ifndef USE_ROSEN_DRAWING
-        void InitTask(std::shared_ptr<RSSkiaFilter> filter,
-            std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot, const SkIRect& dstRect)
-        {
-            needClearSurface_ = (dstRectBefore_.width() != dstRect.width() ||
-                dstRectBefore_.height() != dstRect.height());
-            filterBefore_ = filter;
-            cachedSnapshotBefore_ = cachedSnapshot;
-            snapshotSizeBefore_ = cachedSnapshot->cachedRect_.size();
-            dstRectBefore_ = dstRect;
-        }
-
-        GrBackendTexture GetResultTexture() const
-        {
-            return cacheCompletedBackendTexture_;
-        }
-
-        SkIRect GetDstRect() const
-        {
-            return dstRect_;
-        }
-#else
-        void InitTask(std::shared_ptr<RSDrawingFilter> filter,
-            std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot, const Drawing::RectI& dstRect)
-        {
-            needClearSurface_ = (dstRectBefore_.GetWidth() != dstRect.GetWidth() ||
-                dstRectBefore_.GetHeight() != dstRect.GetHeight());
-            filterBefore_ = filter;
-            cachedSnapshotBefore_ = cachedSnapshot;
-            snapshotSizeBefore_ = cachedSnapshot->cachedRect_;
-            dstRectBefore_ = dstRect;
-        }
-
-        Drawing::BackendTexture GetResultTexture() const
-        {
-            return cacheCompletedBackendTexture_;
-        }
-
-        Drawing::RectI GetDstRect() const
-        {
-            return dstRect_;
-        }
-#endif
-
-        void Reset()
-        {
-            cachedSnapshotBefore_.reset();
-        }
-
-        void ResetInTask()
-        {
-            cachedSnapshotInTask_.reset();
-            dstRectBefore_ = { 0, 0, 0, 0 };
-            dstRect_ = { 0, 0, 0, 0 };
-        }
-
-        void ResetGrContext()
-        {
-            cacheSurface_ = nullptr;
-            cacheCompletedSurface_ = nullptr;
-            RSFilter::clearGpuContext();
-            isTaskRelease_.store(false);
-        }
-
-        void Notify()
-        {
-            cvParallelRender_.notify_one();
-        }
-
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetHandler()
-        {
-            return handler_;
-        }
-
-        bool IsCompleted()
-        {
-            return isCompleted_;
-        }
-
-        void SetCompleted(bool val)
-        {
-            isCompleted_ = val;
-        }
-
-        void SwapTexture()
-        {
-            std::swap(resultBackendTexture_, cacheCompletedBackendTexture_);
-            std::swap(cacheSurface_, cacheCompletedSurface_);
-        }
-
-    private:
-#ifndef USE_ROSEN_DRAWING
-        GrBackendTexture cacheBackendTexture_;
-        GrBackendTexture resultBackendTexture_;
-        GrBackendTexture cacheCompletedBackendTexture_;
-        sk_sp<SkSurface> cacheSurface_ = nullptr;
-        sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
-        SkISize snapshotSize_;
-        SkISize snapshotSizeBefore_;
-        SkIRect dstRect_;
-        SkIRect dstRectBefore_;
-        std::shared_ptr<RSSkiaFilter> filter_ = nullptr;
-        std::shared_ptr<RSSkiaFilter> filterBefore_ = nullptr;
-#else
-        Drawing::BackendTexture cacheBackendTexture_;
-        Drawing::BackendTexture resultBackendTexture_;
-        Drawing::BackendTexture cacheCompletedBackendTexture_;
-        std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
-        std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
-        Drawing::RectI snapshotSize_;
-        Drawing::RectI snapshotSizeBefore_;
-        Drawing::RectI dstRect_;
-        Drawing::RectI dstRectBefore_;
-        std::shared_ptr<RSDrawingFilter> filter_ = nullptr;
-        std::shared_ptr<RSDrawingFilter> filterBefore_ = nullptr;
-#endif
-        std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
-        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshotInTask_ = nullptr;
-        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshotBefore_ = nullptr;
-        std::condition_variable cvParallelRender_;
-        std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
-        bool isCompleted_ = false;
-    };
-
 #ifndef USE_ROSEN_DRAWING
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter,
         const SkIRect& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
-        RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect);
-    void FilterPartialRender(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const SkIRect& dstRect) const;
     // Validate the input srcRect and dstRect, and return the validated rects.
@@ -297,8 +128,6 @@ private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
-        RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
-    void FilterPartialRender(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;
     // Validate the input srcRect and dstRect, and return the validated rects.
@@ -319,7 +148,6 @@ private:
     // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot_ = nullptr;
-    bool newCache_ = true;
 
     // Hash of previous filter, used to determine if we need to invalidate cachedFilteredSnapshot_.
     uint32_t cachedFilterHash_ = 0;
@@ -329,8 +157,6 @@ private:
     bool pendingPurge_ = false;
     // Region of the cached image, used to determine if we need to invalidate the cache.
     RectI snapshotRegion_; // Note: in device coordinate.
-
-    std::shared_ptr<RSFilterCacheTask> task_ = std::make_shared<RSFilterCacheTask>();
 };
 } // namespace Rosen
 } // namespace OHOS

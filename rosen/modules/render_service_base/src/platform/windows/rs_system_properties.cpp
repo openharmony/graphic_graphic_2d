@@ -217,11 +217,6 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
     return 0;
 }
 
-bool RSSystemProperties::GetFilterPartialRenderEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetColorPickerPartialEnabled()
 {
     return false;

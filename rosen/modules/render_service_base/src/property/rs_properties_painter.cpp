@@ -1131,6 +1131,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
         if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
             filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
+            filter->SetCanvasChange(canvas);
         }
         cacheManager->DrawFilter(canvas, filter, needSnapshotOutset);
         return;
@@ -1169,8 +1170,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PreProcess(imageSnapshot);
 #ifndef USE_ROSEN_DRAWING
     if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        SkMatrix mat = canvas.getTotalMatrix();
-        filter->SetCanvasChange(mat, skSurface->width(), skSurface->height());
+        filter->SetCanvasChange(canvas);
         filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
     }
 
@@ -1183,8 +1183,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds()), SkRect::Make(clipIBounds));
 #else
     if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        Drawing::Matrix mat = canvas.GetTotalMatrix();
-        filter->SetCanvasChange(mat, surface->Width(), surface->Height());
+        filter->SetCanvasChange(canvas);
         filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
     }
 
