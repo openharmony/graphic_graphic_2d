@@ -160,9 +160,6 @@ bool RSBackgroundShaderContent::OnUpdate(const RSRenderNode& node)
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
     Drawing::Brush brush;
     brush.SetAntiAlias(antiAlias);
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    canvas.ClipRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()),
-        Drawing::ClipOp::INTERSECT, antiAlias);
     auto shaderEffect = bgShader->GetDrawingShader();
     brush.SetShaderEffect(shaderEffect);
     canvas.DrawBackground(brush);
@@ -193,9 +190,6 @@ bool RSBackgroundImageContent::OnUpdate(const RSRenderNode& node)
     // paint backgroundColor
     Drawing::Brush brush;
     brush.SetAntiAlias(antiAlias);
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    canvas.ClipRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()),
-        Drawing::ClipOp::INTERSECT, antiAlias);
     auto boundsRect = RSDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     bgImage->SetDstRect(properties.GetBgImageRect());
     canvas.AttachBrush(brush);
@@ -228,12 +222,8 @@ bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
         return false;
     }
 
-    canvas.Save();
-    canvas.ClipRect(RSDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()));
     auto bounds = canvas.GetDeviceClipBounds();
-    canvas.Restore();
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     // TODO canvas.GetDisableFilterCache(), canvas.SetEffectData, cacheManager->GeneratedCachedEffectData
@@ -445,11 +435,8 @@ void RSShadowContent::DrawColorfulShadowInner(const RSProperties& properties, Dr
     filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(
         blurRadius, blurRadius, Drawing::TileMode::DECAL, nullptr));
     blurBrush.SetFilter(filter);
-
     canvas.SaveLayer({nullptr, &blurBrush});
-
     canvas.Translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
-
     canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, false);
     // draw node content as shadow
     // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
@@ -570,14 +557,6 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
         return false;
     }
 
-    canvas.Save();
-    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
-    canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
-    auto tmpBounds = canvas.GetDeviceClipBounds();
-    Drawing::Rect clipBounds(
-        tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
-    canvas.Restore();
-
     /*  Calculates the relative coordinates of the clipbounds
         with respect to the origin of the current canvas coordinates */
     Drawing::Matrix worldToLocalMat;
@@ -585,12 +564,16 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
         ROSEN_LOGE("RSPixelStretchContent::OnUpdate get invert matrix failed.");
     }
     Drawing::Rect localClipBounds;
+    auto tmpBounds = canvas.GetDeviceClipBounds();
+    Drawing::Rect clipBounds(
+        tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     Drawing::Rect fClipBounds(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetRight(),
         clipBounds.GetBottom());
     if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPixelStretchContent::OnUpdate map rect failed.");
     }
 
+    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     if (!bounds.Intersect(localClipBounds)) {
         ROSEN_LOGE("RSPixelStretchContent::OnUpdate intersect clipbounds failed");
     }
@@ -684,7 +667,6 @@ bool RSDynamicLightUpContent::OnUpdate(const RSRenderNode& node)
         ROSEN_LOGE("RSDynamicLightUpContent::OnUpdate surface is null");
         return false;
     }
-    Drawing::AutoCanvasRestore acr(canvas, true);
     const RSProperties& properties = node.GetRenderProperties();
     auto blender = MakeDynamicLightUpBlender(properties.GetDynamicLightUpRate().value() * canvas.GetAlpha(),
         properties.GetDynamicLightUpDegree().value() * canvas.GetAlpha());
@@ -742,14 +724,6 @@ bool RSLightUpEffectContent::OnUpdate(const RSRenderNode& node)
         return false;
     }
 
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    const RSProperties& properties = node.GetRenderProperties();
-    if (properties.GetClipBounds() != nullptr) {
-        canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
-    } else {
-        canvas.ClipRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
-    }
-
     auto clipBounds = canvas.GetDeviceClipBounds();
     auto image = surface->GetImageSnapshot(clipBounds);
     if (image == nullptr) {
@@ -760,6 +734,7 @@ bool RSLightUpEffectContent::OnUpdate(const RSRenderNode& node)
     Drawing::Matrix scaleMat;
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
+    const RSProperties& properties = node.GetRenderProperties();
     auto shader = Drawing::ShaderEffect::CreateLightUp(properties.GetLightUpEffect(), *imageShader);
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
@@ -788,8 +763,6 @@ bool RSColorFilterContent::OnUpdate(const RSRenderNode& node)
 
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    canvas.ClipRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
@@ -902,8 +875,6 @@ bool RSBinarizationShaderContent::OnUpdate(const RSRenderNode& node)
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     const RSProperties& properties = node.GetRenderProperties();
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    canvas.ClipRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     auto drSurface = canvas.GetSurface();
     if (drSurface == nullptr) {
         ROSEN_LOGE("RSBinarizationShaderContent::OnUpdate drSurface is null");
