@@ -157,11 +157,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     BufferDrawParam params;
     params.threadIndex = threadIndex;
     params.useBilinearInterpolation = node.NeedBilinearInterpolation();
-#ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
-#else // RS_ENABLE_EGLIMAGE
-    params.useCPU = true;
-#endif // RS_ENABLE_EGLIMAGE
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
@@ -193,11 +189,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU)
 {
     BufferDrawParam params;
-#ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
-#else // RS_ENABLE_EGLIMAGE
-    params.useCPU = true;
-#endif // RS_ENABLE_EGLIMAGE
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
@@ -214,17 +206,12 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
 BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
 {
     BufferDrawParam params;
-#ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
-#else // RS_ENABLE_EGLIMAGE
-    params.useCPU = true;
-#endif // RS_ENABLE_EGLIMAGE
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
     params.paint.SetAlphaF(layer->GetAlpha().gAlpha);
-
     sptr<SurfaceBuffer> buffer = layer->GetBuffer();
     if (buffer == nullptr) {
         return params;

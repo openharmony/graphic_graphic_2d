@@ -79,7 +79,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     if (!isUniRender_ || isUseCpuSurface_) {
         return pixelmap;
     }
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto img = drSurface->GetImageSnapshot();
     if (!img) {
         RSOffscreenRenderThread::Instance().CleanGrResource();
@@ -175,7 +175,7 @@ std::shared_ptr<Drawing::Surface> RSUniUICapture::CreateSurface(
         return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
     }
     std::shared_ptr<Drawing::Surface> surface;
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto renderContext = RSOffscreenRenderThread::Instance().GetRenderContext();
     if (renderContext == nullptr) {
         RS_LOGE("RSUniUICapture::CreateSurface: renderContext is nullptr");

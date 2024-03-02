@@ -65,12 +65,12 @@ bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offs
     bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
     output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
 
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
+#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     // enable direct GPU composition.
     output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
-#else // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#else // (defined RS_ENABLE_GL)
     output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY_INVALID);
-#endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#endif // (defined RS_ENABLE_GL)
     return true;
 }
 
