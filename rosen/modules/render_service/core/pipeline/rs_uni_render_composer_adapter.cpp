@@ -345,7 +345,6 @@ bool RSUniRenderComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &in
     }
     return needClient;
 }
-
 bool RSUniRenderComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const
 {
     bool needClient = RSUniRenderUtil::IsNeedClient(node, info);
@@ -720,6 +719,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
         info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
     RS_OPTIONAL_TRACE_END();

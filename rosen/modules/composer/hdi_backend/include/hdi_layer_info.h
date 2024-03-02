@@ -207,6 +207,11 @@ public:
         gravity_ = gravity;
     }
 
+    void SetUniRenderFlag(bool isUniRender)
+    {
+        isUniRender_ = isUniRender;
+    }
+
     void SetTunnelHandleChange(bool change)
     {
         tunnelHandleChange_ = change;
@@ -310,6 +315,11 @@ public:
     int32_t GetGravity() const
     {
         return gravity_;
+    }
+
+    bool GetUniRenderFlag() const
+    {
+        return isUniRender_;
     }
 
     bool IsPreMulti() const
@@ -464,6 +474,7 @@ private:
     GraphicIRect cropRect_;
     GraphicMatrix matrix_; // matrix used for uni render redraw
     int32_t gravity_; // used for uni render redraw
+    bool isUniRender_ = false; // true for uni render layer (DisplayNode)
     GraphicLayerAlpha layerAlpha_;
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_;

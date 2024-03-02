@@ -49,8 +49,10 @@ public:
     void UpdateLayerInfo(const LayerInfoPtr &layerInfo);
     int32_t SetHdiLayerInfo();
     uint32_t GetLayerId() const;
-    void RecordPresentTime(int64_t timestamp);
+    bool RecordPresentTime(int64_t timestamp);
+    void RecordMergedPresentTime(int64_t timestamp); // used for uni render layer
     void Dump(std::string &result);
+    void DumpMergedResult(std::string &result);  // used for uni render layer
     void ClearDump();
 
     sptr<SyncFence> GetReleaseFence() const;
@@ -72,6 +74,8 @@ private:
 
     std::array<int64_t, FRAME_RECORDS_NUM> presentTimeRecords {};
     uint32_t count = 0;
+    std::array<int64_t, FRAME_RECORDS_NUM> mergedPresentTimeRecords {}; // used for uni render layer
+    uint32_t mergedCount = 0; // used for uni render layer
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;
     bool isInUsing_ = false;
