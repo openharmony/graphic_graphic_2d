@@ -127,6 +127,8 @@ public:
     virtual GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) = 0;
     virtual GSError RegisterReleaseListener(OnReleaseFuncWithFence func) = 0;
     virtual void ConsumerRequestCpuAccess(bool on) = 0;
+    virtual GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) = 0;
+    virtual GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) = 0;
 protected:
     IConsumerSurface() = default;
 };

@@ -97,6 +97,11 @@ public:
 
     static sptr<SurfaceBuffer> Create();
 
+    virtual GSError WriteBufferRequestConfig(MessageParcel &parcel) = 0;
+    virtual GSError ReadBufferRequestConfig(MessageParcel &parcel) = 0;
+    virtual const BufferRequestConfig& GetBufferRequestConfig() const = 0;
+    virtual void SetBufferRequestConfig(const BufferRequestConfig &config) = 0;
+
 protected:
     SurfaceBuffer(){}
     SurfaceBuffer(const SurfaceBuffer&) = delete;

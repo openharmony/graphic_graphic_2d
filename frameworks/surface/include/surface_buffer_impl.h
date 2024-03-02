@@ -89,6 +89,11 @@ public:
     GSError ListMetadataKeys(std::vector<uint32_t>& keys) override;
     GSError EraseMetadataKey(uint32_t key) override;
 
+    GSError WriteBufferRequestConfig(MessageParcel &parcel) override;
+    GSError ReadBufferRequestConfig(MessageParcel &parcel) override;
+    const BufferRequestConfig& GetBufferRequestConfig() const override;
+    void SetBufferRequestConfig(const BufferRequestConfig &config) override;
+
 private:
     void FreeBufferHandleLocked();
 
@@ -101,6 +106,7 @@ private:
     int32_t surfaceBufferWidth_ = 0;
     int32_t surfaceBufferHeight_ = 0;
     mutable std::mutex mutex_;
+    BufferRequestConfig bufferRequestConfig_;
 };
 } // namespace OHOS
 
