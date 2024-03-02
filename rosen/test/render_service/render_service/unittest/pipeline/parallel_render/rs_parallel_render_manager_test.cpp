@@ -198,11 +198,7 @@ HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode2, TaskType::PROCESS_TASK);
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode3, TaskType::PROCESS_TASK);
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas tmpCanvas;
-#else
     Drawing::Canvas tmpCanvas;
-#endif
     RSPaintFilterCanvas canvas(&tmpCanvas);
     RSParallelRenderManager::Instance()->MergeRenderResult(canvas);
 }
@@ -261,11 +257,7 @@ HWTEST_F(RSParallelRenderManagerTest, SetFrameSizeTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, AddSelfDrawingSurfaceTest, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas tmpCanvas;
-#else
     Drawing::Canvas tmpCanvas;
-#endif
     RSPaintFilterCanvas canvas(&tmpCanvas);
     auto instance = RSParallelRenderManager::Instance();
     instance->AddSelfDrawingSurface(0, false, { 0.f, 0.f, 100.f, 100.f });
@@ -554,7 +546,6 @@ HWTEST_F(RSParallelRenderManagerTest, PackParallelCompositionTask, TestSize.Leve
     ASSERT_EQ(status, ParallelStatus::FIRSTFLUSH);
 }
 
-#ifdef USE_ROSEN_DRAWING
 /**
  * @tc.name: DrawImageMergeFuncForRosenDrawing
  * @tc.desc: Test RSParallelRenderManagerTest.DrawImageMergeFuncForRosenDrawing
@@ -569,7 +560,6 @@ HWTEST_F(RSParallelRenderManagerTest, DrawImageMergeFuncForRosenDrawing, TestSiz
     bool ret = RSParallelRenderManager::Instance()->DrawImageMergeFuncForRosenDrawing(canvas, img);
     EXPECT_NE(ret, true);
 }
-#endif
 
 /**
  * @tc.name: SetParallelMode
@@ -583,11 +573,7 @@ HWTEST_F(RSParallelRenderManagerTest, SetParallelMode, TestSize.Level1)
     instance->SetParallelMode(false);
     instance->StartSubRenderThread(threadNum_, nullptr);
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas tmpCanvas;
-#else
     Drawing::Canvas tmpCanvas;
-#endif
     RSPaintFilterCanvas canvas(&tmpCanvas);
     RSParallelRenderManager::Instance()->DrawImageMergeFunc(canvas);
 }

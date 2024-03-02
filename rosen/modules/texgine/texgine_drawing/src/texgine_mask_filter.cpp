@@ -18,20 +18,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkMaskFilter> TexgineMaskFilter::GetMaskFilter() const
-#else
 std::shared_ptr<RSMaskFilter> TexgineMaskFilter::GetMaskFilter() const
-#endif
 {
     return filter_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineMaskFilter::SetMaskFilter(const sk_sp<SkMaskFilter> filter)
-#else
 void TexgineMaskFilter::SetMaskFilter(const std::shared_ptr<RSMaskFilter> filter)
-#endif
 {
     filter_ = filter;
 }
@@ -39,12 +31,8 @@ void TexgineMaskFilter::SetMaskFilter(const std::shared_ptr<RSMaskFilter> filter
 std::shared_ptr<TexgineMaskFilter> TexgineMaskFilter::MakeBlur(TexgineBlurStyle style,
     float sigma, bool respectCTM)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto filter = SkMaskFilter::MakeBlur(static_cast<SkBlurStyle>(style), sigma, respectCTM);
-#else
     std::shared_ptr<RSMaskFilter> filter = RSMaskFilter::CreateBlurMaskFilter(static_cast<Drawing::BlurType>(style),
         sigma, respectCTM);
-#endif
     auto maskFilter = std::make_shared<TexgineMaskFilter>();
     maskFilter->SetMaskFilter(filter);
     return maskFilter;

@@ -18,12 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkRect.h>
-#include <include/core/SkRRect.h>
-#else
 #include "drawing.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -70,40 +65,24 @@ public:
     /*
      * @brief Return SkRect that user init or set to TexgineRect
      */
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkRect> GetRect() const;
-#else
     std::shared_ptr<RSRect> GetRect() const;
-#endif
 
     /*
      * @brief Return SkRRect that user set to TexgineRect
      */
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkRRect> GetRRect() const;
-#else
     std::shared_ptr<RSRoundRect> GetRRect() const;
-#endif
 
     /*
      * @brief Sets SkRect to TexgineRect
      * @param rect SkRect user want
      */
-#ifndef USE_ROSEN_DRAWING
-    void SetRect(const SkRect &rect);
-#else
     void SetRect(const RSRect &rect);
-#endif
 
     /*
      * @brief Sets SkRRect to TexgineRect
      * @param rect SkRRect user want
      */
-#ifndef USE_ROSEN_DRAWING
-    void SetRRect(const SkRRect &rrect);
-#else
     void SetRRect(const RSRoundRect &rrect);
-#endif
 
     float *fLeft_ = nullptr;
     float *fTop_ = nullptr;
@@ -111,13 +90,8 @@ public:
     float *fBottom_ = nullptr;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkRect> rect_ = nullptr;
-    std::shared_ptr<SkRRect> rrect_ = nullptr;
-#else
     std::shared_ptr<RSRect> rect_ = nullptr;
     std::shared_ptr<RSRoundRect> rrect_ = nullptr;
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

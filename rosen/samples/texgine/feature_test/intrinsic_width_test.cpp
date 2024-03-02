@@ -109,7 +109,7 @@ public:
                 // placeholder
                 auto rects = tyData.typography->GetTextRectsOfPlaceholders();
                 for (auto &[rect, _] : rects) {
-                    rect.GetRect()->offset(x, y);
+                    rect.GetRect()->Offset(x, y);
                     canvas.DrawRect(rect, paint);
                 }
             };

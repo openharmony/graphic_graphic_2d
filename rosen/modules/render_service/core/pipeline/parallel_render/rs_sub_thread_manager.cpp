@@ -304,11 +304,7 @@ void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex) const
     });
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSubThreadManager::AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex)
-#else
 void RSSubThreadManager::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex)
-#endif
 {
     if (threadList_.size() <= threadIndex) {
         return;

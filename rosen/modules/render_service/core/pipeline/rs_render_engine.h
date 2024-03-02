@@ -46,11 +46,7 @@ private:
     void DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         float mirrorAdaptiveCoefficient = 1.0f, bool forceCPU = false);
 
-#ifndef USE_ROSEN_DRAWING
-    void SetColorFilterModeToPaint(SkPaint& paint);
-#else
     void SetColorFilterModeToPaint(Drawing::Brush& paint);
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

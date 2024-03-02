@@ -48,17 +48,10 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode)
 
 RSCanvasNode::~RSCanvasNode() {}
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
-{
-    recordingCanvas_ = new RSRecordingCanvas(width, height);
-    static_cast<RSRecordingCanvas*>(recordingCanvas_)->SetIsCustomTextType(isCustomTextType_);
-#else
 ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
-#endif
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -82,18 +75,10 @@ void RSCanvasNode::FinishRecording()
     if (!IsRecording()) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    auto recording = static_cast<RSRecordingCanvas*>(recordingCanvas_)->GetDrawCmdList();
-#else
     auto recording = recordingCanvas_->GetDrawCmdList();
-#endif
     delete recordingCanvas_;
     recordingCanvas_ = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    if (recording && recording->GetSize() == 0) {
-#else
     if (recording && recording->IsEmpty()) {
-#endif
         return;
     }
     if (recording != nullptr && RSSystemProperties::GetDrawTextAsBitmap()) {
@@ -113,24 +98,15 @@ void RSCanvasNode::FinishRecording()
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto recordingCanvas = std::make_shared<RSRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
-    recordingCanvas->SetIsCustomTextType(isCustomTextType_);
-#else
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(isCustomTextType_);
-#endif
     func(recordingCanvas);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
     }
     auto recording = recordingCanvas->GetDrawCmdList();
-#ifndef USE_ROSEN_DRAWING
-    if (recording && recording->GetSize() == 0) {
-#else
     if (recording && recording->IsEmpty()) {
-#endif
         return;
     }
     if (recording != nullptr && RSSystemProperties::GetDrawTextAsBitmap()) {

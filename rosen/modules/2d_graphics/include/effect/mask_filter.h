@@ -33,11 +33,7 @@ enum class BlurType {
     INNER,
 };
 
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT MaskFilter {
-#else
 class DRAWING_API MaskFilter {
-#endif
 public:
     enum class FilterType {
         NO_TYPE,

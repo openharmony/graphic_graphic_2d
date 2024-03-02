@@ -27,13 +27,8 @@
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkMatrix.h"
-#include "pipeline/rs_draw_cmd_list.h"
-#else
 #include "recording/draw_cmd_list.h"
 #include "utils/matrix.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -61,12 +56,6 @@ public:
 
     virtual void Apply(RSModifierContext& context) const = 0;
 
-#ifndef USE_ROSEN_DRAWING
-    virtual void DumpPicture(DfxString& info) const
-    {
-        return;
-    }
-#endif
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
     virtual RSModifierType GetType() = 0;
@@ -88,13 +77,8 @@ public:
 
 class RSB_EXPORT RSGeometryTransRenderModifier : public RSRenderModifier {
 public:
-#ifndef USE_ROSEN_DRAWING
-    RSGeometryTransRenderModifier(const std::shared_ptr<RSRenderProperty<SkMatrix>>& property)
-        : property_(property ? property : std::make_shared<RSRenderProperty<SkMatrix>>()) {}
-#else
     RSGeometryTransRenderModifier(const std::shared_ptr<RSRenderProperty<Drawing::Matrix>>& property)
         : property_(property ? property : std::make_shared<RSRenderProperty<Drawing::Matrix>>()) {}
-#endif
     ~RSGeometryTransRenderModifier() override = default;
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
@@ -121,24 +105,14 @@ public:
 
 protected:
     RSModifierType drawStyle_ = RSModifierType::GEOMETRYTRANS;
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSRenderProperty<SkMatrix>> property_;
-#else
     std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property_;
-#endif
 };
 
 class RSB_EXPORT RSDrawCmdListRenderModifier : public RSRenderModifier {
 public:
-#ifndef USE_ROSEN_DRAWING
-    RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>>& property)
-        : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
-    {}
-#else
     RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>>& property)
         : property_(property ? property : std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>())
     {}
-#endif
     ~RSDrawCmdListRenderModifier() override = default;
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
@@ -149,18 +123,6 @@ public:
         return property_->GetId();
     }
 
-#ifndef USE_ROSEN_DRAWING
-    void DumpPicture(DfxString& info) const override
-    {
-        if (!property_) {
-            return;
-        }
-        if (!(property_->Get())) {
-            return;
-        }
-        property_->Get()->DumpPicture(info);
-    }
-#endif
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() override
     {
@@ -181,11 +143,7 @@ public:
 
     uint64_t GetDrawCmdListId() const override
     {
-#ifndef USE_ROSEN_DRAWING
-        DrawCmdListPtr drawCmd = property_->Get();
-#else
         Drawing::DrawCmdListPtr drawCmd = property_->Get();
-#endif
         return reinterpret_cast<uint64_t>(drawCmd.get());
     }
     void SetSingleFrameModifier(bool value) override
@@ -199,11 +157,7 @@ public:
 
 protected:
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSRenderProperty<DrawCmdListPtr>> property_;
-#else
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
-#endif
     bool isSingleFrameModifier_ = false;
 };
 

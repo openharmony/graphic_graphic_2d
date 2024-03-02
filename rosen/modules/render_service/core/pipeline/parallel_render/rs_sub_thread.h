@@ -40,11 +40,7 @@ public:
     void RemoveTask(const std::string& name);
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
     void ReleaseSurface();
-#ifndef USE_ROSEN_DRAWING
-    void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
-#else
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
-#endif
     void ResetGrContext();
     void DumpMem(DfxString& log);
     MemoryGraphic CountSubMem(int pid);
@@ -52,11 +48,7 @@ public:
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> CreateShareGrContext();
-#else
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
-#endif
 
     uint32_t threadIndex_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -65,17 +57,9 @@ private:
 #ifdef RS_ENABLE_GL
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
 #endif
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
-#endif
     std::mutex mutex_;
-#ifndef USE_ROSEN_DRAWING
-    std::queue<sk_sp<SkSurface>> tmpSurfaces_;
-#else
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
-#endif
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_H

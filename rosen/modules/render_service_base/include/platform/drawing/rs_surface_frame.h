@@ -19,13 +19,8 @@
 #include <memory>
 
 #include "common/rs_rect.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkSurface.h"
-#else
 #include "draw/canvas.h"
 #include "draw/surface.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -38,20 +33,11 @@ public:
     virtual void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) {};
     virtual void SetDamageRegion(const std::vector<RectI> &rects) {};
     virtual int32_t GetBufferAge() const = 0;
-#ifndef USE_ROSEN_DRAWING
-    virtual SkCanvas* GetCanvas() = 0;
-    virtual sk_sp<SkSurface> GetSurface() = 0;
-#else
     virtual Drawing::Canvas* GetCanvas() = 0;
     virtual std::shared_ptr<Drawing::Surface> GetSurface() = 0;
-#endif
     virtual void SetRenderContext(RenderContext* context) = 0;
 protected:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> skSurface_ = nullptr;
-#else
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-#endif
 private:
 };
 

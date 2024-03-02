@@ -69,12 +69,6 @@ TextEngine::TextStyle Convert(const TextStyle &style)
         style.decorationColor.GetRed(), style.decorationColor.GetGreen(), style.decorationColor.GetBlue());
 
     std::optional<TextEngine::TexginePaint> foreground = std::nullopt;
-#ifndef USE_ROSEN_DRAWING
-    if (style.foreground.has_value()) {
-        foreground = TextEngine::TexginePaint();
-        foreground.value().SetPaint(style.foreground.value());
-    }
-#else
     if (style.foregroundBrush.has_value() || style.foregroundPen.has_value()) {
         foreground = TextEngine::TexginePaint();
         if (style.foregroundBrush.has_value() && style.foregroundPen.has_value()) {
@@ -91,15 +85,8 @@ TextEngine::TextStyle Convert(const TextStyle &style)
             foreground.value().SetPen(style.foregroundPen.value());
         }
     }
-#endif
 
     std::optional<TextEngine::TexginePaint> background = std::nullopt;
-#ifndef USE_ROSEN_DRAWING
-    if (style.background.has_value()) {
-        background = TextEngine::TexginePaint();
-        background.value().SetPaint(style.background.value());
-    }
-#else
     if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
         background = TextEngine::TexginePaint();
         if (style.backgroundBrush.has_value()) {
@@ -109,7 +96,6 @@ TextEngine::TextStyle Convert(const TextStyle &style)
             background.value().SetPen(style.backgroundPen.value());
         }
     }
-#endif
 
     TextEngine::TextStyle xs = {
         .fontWeight = Convert(style.fontWeight),

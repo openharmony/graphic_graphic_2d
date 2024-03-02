@@ -23,12 +23,7 @@
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "wm/window.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
-#else
 #include "draw/color.h"
-#endif
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
 #include "transaction/rs_transaction.h"
@@ -61,11 +56,7 @@ void RSUniRenderTest::Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorRED);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-#endif
 
     canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(100, 100, 300, 200); // canvasnode bounds: {L: 100, T:100, W: 300, H: 200}

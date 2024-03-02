@@ -34,24 +34,6 @@ int32_t RSSurfaceFrameWindows::GetBufferAge() const
     return -1;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSSurfaceFrameWindows::GetCanvas()
-{
-    if (surface_ == nullptr) {
-        CreateSurface();
-    }
-
-    if (surface_ != nullptr) {
-        return surface_->getCanvas();
-    }
-    return nullptr;
-}
-
-sk_sp<SkSurface> RSSurfaceFrameWindows::GetSurface()
-{
-    return surface_;
-}
-#else
 Drawing::Canvas* RSSurfaceFrameWindows::GetCanvas()
 {
     if (surface_ == nullptr) {
@@ -67,7 +49,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameWindows::GetSurface()
     }
     return surface_;
 }
-#endif
 
 void RSSurfaceFrameWindows::SetRenderContext(RenderContext* context)
 {
@@ -80,17 +61,12 @@ void RSSurfaceFrameWindows::CreateSurface()
         ROSEN_LOGW("RSSurfaceFrameWindows::GetCanvas buffer is nullptr");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    const auto &info = SkImageInfo::Make(width_, height_, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    surface_ = SkSurface::MakeRasterDirect(info, addr_.get(), width_);
-#else
     bitmap_ = std::make_shared<Drawing::Bitmap>();
     Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     bitmap_->Build(width_, height_, format);
     bitmap_->SetPixels(addr_.get());
     surface_ = std::make_shared<Drawing::Surface>();
     surface_->Bind(*bitmap_);
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

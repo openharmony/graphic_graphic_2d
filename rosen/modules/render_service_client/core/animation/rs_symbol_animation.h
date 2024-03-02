@@ -27,11 +27,7 @@
 #include "animation/rs_animation_timing_curve.h"
 #include "symbol_animation_config.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkPath.h"
-#else
 #include "draw/path.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -65,11 +61,7 @@ private:
 
     bool isEqual(const Vector2f val1, const Vector2f val2);
 
-#ifndef USE_ROSEN_DRAWING
-    Vector4f CalculateOffset(const SkPath &path, const float &offsetX, const float &offsetY);
-#else
     Vector4f CalculateOffset(const Drawing::Path &path, const float &offsetX, const float &offsetY);
-#endif
 
     template<typename T>
     bool CreateOrSetModifierValue(std::shared_ptr<RSAnimatableProperty<T>>& property, const T& value);

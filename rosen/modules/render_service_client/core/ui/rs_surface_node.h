@@ -35,9 +35,6 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-#endif
 
 namespace OHOS {
 namespace Rosen {

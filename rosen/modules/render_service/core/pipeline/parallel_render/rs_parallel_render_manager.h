@@ -184,9 +184,7 @@ private:
     void FlushOneBufferFunc();
     void GetCostFactor();
     void InitAppWindowNodeMap();
-#ifdef USE_ROSEN_DRAWING
     bool DrawImageMergeFuncForRosenDrawing(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> texture);
-#endif
     std::shared_ptr<RSParallelPackVisitor> packVisitor_;
     std::shared_ptr<RSParallelPackVisitor> packVisitorPrepare_;
     std::shared_ptr<RSParallelPackVisitor> calcCostVisitor_;

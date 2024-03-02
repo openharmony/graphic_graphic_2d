@@ -48,11 +48,7 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
     RectF rect;
     float w = 0.1;
     float h = 0.1;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix mat;
-#else
     Drawing::Matrix mat;
-#endif
     EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::CENTER, rect, w, h, mat));
     RSPropertiesPainter::GetGravityMatrix(Gravity::TOP, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM, rect, w, h, mat);
@@ -114,13 +110,8 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect003, TestSize.Level1)
     RectI dirtyShadow;
     RSProperties properties;
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
-#ifndef USE_ROSEN_DRAWING
-    SkPath skPath;
-    rsPath->SetSkiaPath(skPath);
-#else
     Drawing::Path path;
     rsPath->SetDrawingPath(path);
-#endif
     properties.SetShadowPath(rsPath);
     properties.SetShadowRadius(10.f);
     RRect rrect;
@@ -192,13 +183,8 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect006, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow001, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSProperties properties;
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
@@ -212,13 +198,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow001, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow002, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     canvas.SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     RSProperties properties;
     properties.SetShadowRadius(10.f);
@@ -234,23 +215,13 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow002, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow003, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSProperties properties;
     properties.SetShadowRadius(10.f);
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
-#ifndef USE_ROSEN_DRAWING
-    SkPath skPath;
-    rsPath->SetSkiaPath(skPath);
-#else
     Drawing::Path path;
     rsPath->SetDrawingPath(path);
-#endif
     properties.SetShadowPath(rsPath);
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
@@ -264,13 +235,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow003, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow004, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSProperties properties;
     properties.SetShadowRadius(10.f);
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
@@ -287,13 +253,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow004, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow005, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSProperties properties;
     RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
     RectF rect;
@@ -310,13 +271,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow005, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow006, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSProperties properties;
     properties.SetShadowElevation(0.f);
     Color color(10, 10, 10, 10);
@@ -335,13 +291,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow006, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow007, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSProperties properties;
     properties.SetShadowElevation(1.f);
     Color color(10, 10, 10, 10);
@@ -360,23 +311,13 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow007, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
     properties.SetBackgroundFilter(rsFilter);
-#ifndef USE_ROSEN_DRAWING
-    RSPropertiesPainter::DrawFilter(
-        properties, canvas, FilterType::BACKGROUND_FILTER, SkRect::MakeXYWH(0.f, 0.f, 1.f, 1.f));
-#else
     RSPropertiesPainter::DrawFilter(
         properties, canvas, FilterType::BACKGROUND_FILTER, Drawing::Rect(0.f, 0.f, 1.f, 1.f));
-#endif
 }
 
 /**
@@ -387,13 +328,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
     properties.SetBackgroundFilter(rsFilter);
@@ -410,13 +346,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
 
     std::vector<std::pair<float, float>> fractionStops;
     fractionStops.push_back(std::make_pair(0.f, 0.f));
@@ -438,13 +369,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Leve
 HWTEST_F(RSPropertiesPainterTest, DrawBackground001, TestSize.Level1)
 {
     RSProperties properties;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSPropertiesPainter::DrawBackground(properties, canvas);
 }
 
@@ -457,20 +383,11 @@ HWTEST_F(RSPropertiesPainterTest, DrawBackground001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawFrame001, TestSize.Level1)
 {
     RSProperties properties;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     int32_t w;
     int32_t h;
-#ifndef USE_ROSEN_DRAWING
-    auto cmds = std::make_shared<DrawCmdList>(w, h);
-#else
     auto cmds = std::make_shared<Drawing::DrawCmdList>(w, h);
-#endif
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
 }
 
@@ -486,15 +403,9 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame002, TestSize.Level1)
     properties.SetFrameGravity(Gravity::LEFT);
     Vector4f frame(10.f, 10.f, 10.f, 10.f);
     properties.SetFrame(frame);
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    auto cmds = std::make_shared<DrawCmdList>(5, 5);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     auto cmds = std::make_shared<Drawing::DrawCmdList>(5, 5);
-#endif
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
     canvas.SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
@@ -509,13 +420,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame002, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawBorder001, TestSize.Level1)
 {
     RSProperties properties;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPropertiesPainter::DrawBorder(properties, skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPropertiesPainter::DrawBorder(properties, drawingCanvas);
-#endif
 }
 
 /**
@@ -527,13 +433,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawBorder001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor001, TestSize.Level1)
 {
     RSProperties properties;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
-#endif
 }
 
 /**
@@ -549,13 +450,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor002, TestSize.Level1)
     properties.SetForegroundColor(color);
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
-#endif
 }
 
 /**
@@ -570,13 +466,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor003, TestSize.Level1)
     Color color(10, 10, 10, 10);
     properties.SetForegroundColor(color);
     properties.SetClipToBounds(true);
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
-#endif
 }
 
 /**
@@ -590,16 +481,9 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask001, TestSize.Level1)
     RSProperties properties;
     int32_t w = 1;
     int32_t h = 1;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    SkISize size = SkISize::Make(w, h);
-    SkRect maskBounds = SkRect::Make(size);
-    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
-#else
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
-#endif
 }
 
 /**
@@ -618,16 +502,9 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask002, TestSize.Level1)
     properties.SetMask(mask);
     int32_t w = 1;
     int32_t h = 1;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    SkISize size = SkISize::Make(w, h);
-    SkRect maskBounds = SkRect::Make(size);
-    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
-#else
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
-#endif
 }
 
 /**
@@ -644,16 +521,9 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask003, TestSize.Level1)
     properties.SetMask(mask);
     int32_t w = 1;
     int32_t h = 1;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    SkISize size = SkISize::Make(w, h);
-    SkRect maskBounds = SkRect::Make(size);
-    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
-#else
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
-#endif
 }
 
 /**
@@ -670,16 +540,9 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask004, TestSize.Level1)
     properties.SetMask(mask);
     int32_t w = 1;
     int32_t h = 1;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    SkISize size = SkISize::Make(w, h);
-    SkRect maskBounds = SkRect::Make(size);
-    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
-#else
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
-#endif
 }
 
 /**
@@ -692,13 +555,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp001, TestSize.Level1)
     RSProperties properties;
     properties.SetDynamicLightUpRate(0.5);
     properties.SetDynamicLightUpDegree(0.5);
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
 }
 
@@ -712,13 +570,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
     RSProperties properties;
     properties.SetDynamicLightUpRate(0.3);
     properties.SetDynamicLightUpDegree(0.8);
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
 }
 } // namespace Rosen

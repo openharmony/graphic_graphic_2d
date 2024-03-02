@@ -20,6 +20,7 @@
 #include <stack>
 
 #include "draw/canvas.h"
+#include "image/gpu_context.h"
 #include "recording/adaptive_image_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "recording/recording_handle.h"
@@ -52,10 +53,12 @@ public:
         gpuContext_ = gpuContext;
     }
 
+#ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> GetGPUContext() override
     {
         return gpuContext_;
     }
+#endif
 
     void Clear() const;
 

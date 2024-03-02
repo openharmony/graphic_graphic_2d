@@ -16,11 +16,6 @@
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_H
 
-#include <include/core/SkCanvas.h>
-#include <include/core/SkData.h>
-#include <include/core/SkImageInfo.h>
-#include <include/core/SkImage.h>
-#include <include/codec/SkCodec.h>
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include <media_errors.h>
 #endif
@@ -43,6 +38,7 @@
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include "boot_videoplayer.h"
 #endif
+#include "draw/canvas.h"
 #include "event_handler.h"
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include "player.h"
@@ -65,7 +61,7 @@ public:
     ~BootAnimation();
 private:
     void OnVsync();
-    void OnDraw(SkCanvas* canvas, int32_t curNo);
+    void OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo);
     void InitRsSurface();
     void InitRsSurfaceNode();
     void InitRsDisplayNode();

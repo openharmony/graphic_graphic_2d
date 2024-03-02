@@ -43,11 +43,7 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
         }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-        renderContext_->SetUpGrContext(nullptr);
-#else
         renderContext_->SetUpGpuContext(nullptr);
-#endif // USE_ROSEN_DRAWING
     });
 #endif
 }
@@ -74,20 +70,12 @@ void RSOffscreenRenderThread::CleanGrResource()
         if (!renderContext_) {
             return;
         }
-#ifndef USE_ROSEN_DRAWING
-        auto grContext = renderContext_->GetGrContext();
-#else
         auto grContext = renderContext_->GetDrGPUContext();
-#endif
         if (grContext == nullptr) {
             RS_LOGE("RSOffscreenRenderThread::grContext is nullptr");
             return;
         }
-#ifndef USE_ROSEN_DRAWING
-        grContext->freeGpuResources();
-#else
         grContext->FreeGpuResources();
-#endif
         RS_LOGD("RSOffscreenRenderThread::CleanGrResource() finished");
     });
 }

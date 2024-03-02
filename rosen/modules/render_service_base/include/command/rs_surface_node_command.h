@@ -22,13 +22,8 @@
 #include "platform/common/rs_surface_ext.h"
 #include "surface_type.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkMatrix;
-struct SkRect;
-#else
 #include "utils/matrix.h"
 #include "utils/rect.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -66,17 +61,9 @@ class RSB_EXPORT SurfaceNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId nodeId,
         RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::DEFAULT, bool isTextureExportNode = false);
-#ifndef USE_ROSEN_DRAWING
-    static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<SkMatrix>& matrix);
-#else
     static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<Drawing::Matrix>& matrix);
-#endif
     static void SetContextAlpha(RSContext& context, NodeId nodeId, float alpha);
-#ifndef USE_ROSEN_DRAWING
-    static void SetContextClipRegion(RSContext& context, NodeId nodeId, const std::optional<SkRect>& clipRect);
-#else
     static void SetContextClipRegion(RSContext& context, NodeId nodeId, const std::optional<Drawing::Rect>& clipRect);
-#endif
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
     static void SetSkipLayer(RSContext& context, NodeId nodeId, bool isSkipLayer);
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
@@ -105,23 +92,12 @@ public:
 
 ADD_COMMAND(RSSurfaceNodeCreate,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
-#ifndef USE_ROSEN_DRAWING
-ADD_COMMAND(
-    RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
-                                       SurfaceNodeCommandHelper::SetContextMatrix, NodeId, std::optional<SkMatrix>))
-#else
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
     SurfaceNodeCommandHelper::SetContextMatrix, NodeId, std::optional<Drawing::Matrix>))
-#endif
 ADD_COMMAND(RSSurfaceNodeSetContextAlpha,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_ALPHA, SurfaceNodeCommandHelper::SetContextAlpha, NodeId, float))
-#ifndef USE_ROSEN_DRAWING
-ADD_COMMAND(RSSurfaceNodeSetContextClipRegion, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
-    SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, std::optional<SkRect>))
-#else
 ADD_COMMAND(RSSurfaceNodeSetContextClipRegion, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
     SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, std::optional<Drawing::Rect>))
-#endif
 ADD_COMMAND(RSSurfaceNodeSetBootAnimation,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_BOOT_ANIMATION, SurfaceNodeCommandHelper::SetBootAnimation, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,

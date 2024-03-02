@@ -36,12 +36,8 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, const std::optional<SkMatrix>& matrix)
-#else
 void SurfaceNodeCommandHelper::SetContextMatrix(
     RSContext& context, NodeId id, const std::optional<Drawing::Matrix>& matrix)
-#endif
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetContextMatrix(matrix, false);
@@ -55,13 +51,8 @@ void SurfaceNodeCommandHelper::SetContextAlpha(RSContext& context, NodeId id, fl
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-void SurfaceNodeCommandHelper::SetContextClipRegion(
-    RSContext& context, NodeId id, const std::optional<SkRect>& clipRect)
-#else
 void SurfaceNodeCommandHelper::SetContextClipRegion(
     RSContext& context, NodeId id, const std::optional<Drawing::Rect>& clipRect)
-#endif
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetContextClipRegion(clipRect, false);

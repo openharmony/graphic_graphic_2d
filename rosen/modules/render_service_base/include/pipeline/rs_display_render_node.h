@@ -257,34 +257,15 @@ public:
         return originScreenRotation_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    void SetInitMatrix(const SkMatrix& skMatrix) {
-        initMatrix_ = skMatrix;
-#else
     void SetInitMatrix(const Drawing::Matrix& matrix) {
         initMatrix_ = matrix;
-#endif
         isFirstTimeToProcessor_ = false;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    const SkMatrix& GetInitMatrix() const {
-#else
     const Drawing::Matrix& GetInitMatrix() const {
-#endif
         return initMatrix_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> GetCacheImgForCapture() {
-        std::unique_lock<std::mutex> lock(mtx_);
-        return cacheImgForCapture_;
-    }
-    void SetCacheImgForCapture(sk_sp<SkImage> cacheImgForCapture) {
-        std::unique_lock<std::mutex> lock(mtx_);
-        cacheImgForCapture_ = cacheImgForCapture;
-    }
-#else
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() {
         std::unique_lock<std::mutex> lock(mtx_);
         return cacheImgForCapture_;
@@ -293,7 +274,6 @@ public:
         std::unique_lock<std::mutex> lock(mtx_);
         cacheImgForCapture_ = cacheImgForCapture;
     }
-#endif
     NodeId GetRootIdOfCaptureWindow() {
         return rootIdOfCaptureWindow_;
     }
@@ -315,11 +295,7 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix initMatrix_;
-#else
     Drawing::Matrix initMatrix_;
-#endif
     bool isFirstTimeToProcessor_ = true;
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;
@@ -341,11 +317,7 @@ private:
     std::mutex mtx_;
 
     // Use in screen recording optimization
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
-#else
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
-#endif
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
 
     // Use in vulkan parallel rendering

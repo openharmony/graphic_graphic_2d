@@ -18,14 +18,8 @@
 #include <memory>
 #include <sys/mman.h>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkRect.h"
-#else
 #include "draw/surface.h"
 #include "draw/color.h"
-#endif
 #include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
@@ -79,26 +73,6 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGE("RSSurfaceCaptureTask::Run: pixelmap == nullptr!");
         return false;
     }
-#ifndef USE_ROSEN_DRAWING
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    GrDirectContext* grContext = nullptr;
-    if (isProcOnBgThread_) {
-#if defined(RS_ENABLE_UNI_RENDER)
-        grContext = RSBackgroundThread::Instance().GetShareGrContext().get();
-#endif
-    } else {
-#if defined(NEW_RENDER_CONTEXT)
-        auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
-        grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
-    }
-#else
-        auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-        grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
-    }
-#endif
-    RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
-#endif
-#else // USE_ROSEN_DRAWING
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::GPUContext* grContext = nullptr;
     if (isProcOnBgThread_) {
@@ -117,136 +91,14 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 #endif
     RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
 #endif
-#endif
-#ifndef USE_ROSEN_DRAWING
-    auto skSurface = CreateSurface(pixelmap);
-    if (skSurface == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
-        return false;
-    }
-    visitor_->SetSurface(skSurface.get());
-#else
     auto surface = CreateSurface(pixelmap);
     if (surface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
         return false;
     }
     visitor_->SetSurface(surface.get());
-#endif
     node->Process(visitor_);
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_UNI_RENDER
-    if (RSSystemProperties::GetSnapshotWithDMAEnabled() && !isProcOnBgThread_) {
-        skSurface->flushAndSubmit(true);
-        GrBackendTexture grBackendTexture
-            = skSurface->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
-        if (!grBackendTexture.isValid()) {
-            RS_LOGE("RSSurfaceCaptureTask: SkiaSurface bind Image failed: BackendTexture is invalid");
-            return false;
-        }
-        auto wrapper = std::make_shared<std::tuple<std::unique_ptr<Media::PixelMap>>>();
-        std::get<0>(*wrapper) = std::move(pixelmap);
-        auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>();
-        auto rotation = (displayNode != nullptr) ? displayNode->GetScreenRotation()
-            : ScreenRotation::INVALID_SCREEN_ROTATION;
-        bool ableRotation = ((displayNode != nullptr) && visitor_->IsUniRender());
-        auto id = nodeId_;
-        auto screenCorrection = ScreenCorrection(screenCorrection_);
-        auto wrapperSf = std::make_shared<std::tuple<sk_sp<SkSurface>>>();
-        std::get<0>(*wrapperSf) = std::move(skSurface);
-        std::function<void()> copytask = [wrapper, callback, grBackendTexture, wrapperSf,
-                                             ableRotation, rotation, id, screenCorrection]() -> void {
-            RS_TRACE_NAME("copy and send capture");
-            if (!grBackendTexture.isValid()) {
-                RS_LOGE("RSSurfaceCaptureTask: SkiaSurface bind Image failed: BackendTexture is invalid");
-                callback->OnSurfaceCapture(id, nullptr);
-                RSUniRenderUtil::ClearNodeCacheSurface(
-                    std::move(std::get<0>(*wrapperSf )), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                return;
-            }
-            auto pixelmap = std::move(std::get<0>(*wrapper));
-            if (pixelmap == nullptr) {
-                RS_LOGE("RSSurfaceCaptureTask: pixelmap == nullptr");
-                callback->OnSurfaceCapture(id, nullptr);
-                RSUniRenderUtil::ClearNodeCacheSurface(
-                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                return;
-            }
-
-            SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
-                kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-            sk_sp<SkSurface> skSurface;
-            auto grContext = RSBackgroundThread::Instance().GetShareGrContext().get();
-            skSurface = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
-            if (skSurface == nullptr) {
-                RS_LOGE("RSSurfaceCaptureTask::Run MakeRenderTarget fail.");
-                callback->OnSurfaceCapture(id, nullptr);
-                RSUniRenderUtil::ClearNodeCacheSurface(
-                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                return;
-            }
-            auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
-            auto tmpImg = SkImage::MakeFromTexture(canvas->recordingContext(), grBackendTexture,
-                kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-            canvas->drawImage(tmpImg, 0, 0);
-            skSurface->flushAndSubmit(true);
-            if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
-                RS_LOGE("RSSurfaceCaptureTask::Run CopyDataToPixelMap failed");
-                callback->OnSurfaceCapture(id, nullptr);
-                RSUniRenderUtil::ClearNodeCacheSurface(
-                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                return;
-            }
-
-            if (ableRotation) {
-                if (screenCorrection != 0) {
-                    pixelmap->rotate(screenCorrection);
-                    RS_LOGI("RSSurfaceCaptureTask::Run: ScreenCorrection: %{public}d", screenCorrection);
-                }
-
-                if (rotation == ScreenRotation::ROTATION_90) {
-                    pixelmap->rotate(static_cast<int32_t>(90)); // 90 degrees
-                } else if (rotation == ScreenRotation::ROTATION_180) {
-                    pixelmap->rotate(static_cast<int32_t>(180)); // 180 degrees
-                } else if (rotation == ScreenRotation::ROTATION_270) {
-                    pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
-                }
-                RS_LOGI("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
-            }
-            // To get dump image
-            // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
-            RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
-            callback->OnSurfaceCapture(id, pixelmap.get());
-            RSBackgroundThread::Instance().CleanGrResource();
-            RSUniRenderUtil::ClearNodeCacheSurface(
-                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-        };
-        RSBackgroundThread::Instance().PostTask(copytask);
-        return true;
-    } else {
-        sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
-        if (!img) {
-            RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
-            return false;
-        }
-        if (!CopyDataToPixelMap(img, pixelmap)) {
-            RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
-            return false;
-        }
-    }
-#else
-    sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
-    if (!img) {
-        RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
-        return false;
-    }
-    if (!CopyDataToPixelMap(img, pixelmap)) {
-        RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
-        return false;
-    }
-#endif // RS_ENABLE_UNI_RENDER
-#else
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled() && !isProcOnBgThread_) {
         surface->FlushAndSubmit(true);
@@ -359,7 +211,6 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             return false;
     }
 #endif // RS_ENABLE_UNI_RENDER
-#endif // USE_ROSEN_DRAWING
 #endif
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         if (visitor_->IsUniRender()) {
@@ -462,109 +313,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     return Media::PixelMap::Create(opts);
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap)
-{
-    if (pixelmap == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: pixelmap == nullptr");
-        return nullptr;
-    }
-    auto address = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
-    if (address == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: address == nullptr");
-        return nullptr;
-    }
-    SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    if (isProcOnBgThread_) {
-#if defined(RS_ENABLE_UNI_RENDER)
-        auto gpuContext = RSBackgroundThread::Instance().GetShareGrContext().get();
-        return SkSurface::MakeRenderTarget(gpuContext, SkBudgeted::kNo, info);
-#endif
-    } else {
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-#if defined(NEW_RENDER_CONTEXT)
-            auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
-            if (drawingContext == nullptr) {
-                RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-                return nullptr;
-            }
-            drawingContext->SetUpDrawingContext();
-            return SkSurface::MakeRenderTarget(drawingContext->GetDrawingContext(), SkBudgeted::kNo, info);
-#else
-            auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-            if (renderContext == nullptr) {
-                RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-                return nullptr;
-            }
-            renderContext->SetUpGrContext(nullptr);
-            return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
-#endif
-        }
-#endif
-#ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-            return SkSurface::MakeRenderTarget(
-                RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), SkBudgeted::kNo, info);
-        }
-#endif
-    }
-    return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-}
-
-bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
-{
-    auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
-    SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-#ifdef ROSEN_OHOS
-    int fd = AshmemCreate("RSSurfaceCapture Data", size);
-    if (fd < 0) {
-        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap AshmemCreate fd < 0");
-        return false;
-    }
-    int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
-    if (result < 0) {
-        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap AshmemSetProt error");
-        ::close(fd);
-        return false;
-    }
-    void* ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    auto data = static_cast<uint8_t*>(ptr);
-    if (ptr == MAP_FAILED || ptr == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap data is nullptr");
-        ::close(fd);
-        return false;
-    }
-
-    if (!img->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
-        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap readPixels failed");
-        ::close(fd);
-        return false;
-    }
-    void* fdPtr = new int32_t();
-    *static_cast<int32_t*>(fdPtr) = fd;
-    pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
-#else
-    auto data = (uint8_t *)malloc(size);
-    if (data == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap data is nullptr");
-        return false;
-    }
-    if (!img->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
-        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap readPixels failed");
-        free(data);
-        data = nullptr;
-        return false;
-    }
-    pixelmap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
-#endif
-    return true;
-}
-
-#else
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
@@ -674,7 +422,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
     }
     return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
-#endif
 
 bool RSSurfaceCaptureTask::FindSecurityOrSkipLayer()
 {
@@ -701,18 +448,6 @@ RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, boo
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceCaptureVisitor::SetSurface(SkSurface* surface)
-{
-    if (surface == nullptr) {
-        RS_LOGE("RSSurfaceCaptureVisitor::SetSurface: surface == nullptr");
-        return;
-    }
-    canvas_ = std::make_unique<RSPaintFilterCanvas>(surface);
-    canvas_->scale(scaleX_, scaleY_);
-    canvas_->SetDisableFilterCache(true);
-}
-#else
 void RSSurfaceCaptureVisitor::SetSurface(Drawing::Surface* surface)
 {
     if (surface == nullptr) {
@@ -723,7 +458,6 @@ void RSSurfaceCaptureVisitor::SetSurface(Drawing::Surface* surface)
     canvas_->Scale(scaleX_, scaleY_);
     canvas_->SetDisableFilterCache(true);
 }
-#endif
 
 void RSSurfaceCaptureVisitor::ProcessChildren(RSRenderNode &node)
 {
@@ -762,11 +496,7 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
             // Adding matrix affine transformation logic
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {
-#ifndef USE_ROSEN_DRAWING
-                canvas_->concat(geoPtr->GetMatrix());
-#else
                 canvas_->ConcatMatrix(geoPtr->GetMatrix());
-#endif
             }
 
             ProcessChildren(node);
@@ -869,105 +599,12 @@ void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode(std::vector<std::sh
     // draw hardware-composition nodes
     for (auto& surfaceNode : nodes) {
         if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
-#ifndef USE_ROSEN_DRAWING
-            RSAutoCanvasRestore acr(canvas_);
-#else
             Drawing::AutoCanvasRestore acr(*canvas_, true);
-#endif
             CaptureSurfaceInDisplayWithUni(*surfaceNode);
         }
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node)
-{
-    const auto& property = node.GetRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
-    if (!geoPtr) {
-        RS_LOGE("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni node:%{public}" PRIu64 ", get geoPtr failed",
-            node.GetId());
-        return;
-    }
-
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isSelfDrawingSurface) {
-        canvas_->save();
-    }
-
-    if (node.IsAppWindow()) {
-        // When CaptureSingleSurfaceNodeWithUni, we should consider scale factor of canvas_ and
-        // child nodes (self-drawing surfaceNode) of AppWindow should use relative coordinates
-        // which is the node relative to the upper-left corner of the window.
-        // So we have to get the invert matrix of AppWindow here and apply it to canvas_
-        // when we calculate the position of self-drawing surfaceNode.
-        captureMatrix_.setScaleX(scaleX_);
-        captureMatrix_.setScaleY(scaleY_);
-        SkMatrix invertMatrix;
-        if (geoPtr->GetAbsMatrix().invert(&invertMatrix)) {
-            captureMatrix_.preConcat(invertMatrix);
-        }
-    } else if (!node.IsStartingWindow()) {
-        canvas_->setMatrix(captureMatrix_);
-        canvas_->concat(geoPtr->GetAbsMatrix());
-    }
-
-    const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
-    RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
-    if (isSelfDrawingSurface) {
-        RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
-        RSPropertiesPainter::DrawOutline(property, *canvas_);
-    }
-    canvas_->save();
-    if (isSelfDrawingSurface && !property.GetCornerRadius().IsZero()) {
-        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
-    } else {
-        canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
-    }
-    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
-        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
-            node.GetId());
-        canvas_->clear(SK_ColorWHITE);
-        canvas_->restore(); // restore clipRect
-        canvas_->restore(); // restore translate and concat
-        return;
-    }
-
-    if (isSelfDrawingSurface) {
-        RSPropertiesPainter::DrawBackground(property, *canvas_);
-        RSPropertiesPainter::DrawMask(property, *canvas_);
-        RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::BACKGROUND_FILTER);
-    } else {
-        auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
-        if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
-            canvas_->drawColor(backgroundColor);
-        }
-    }
-    canvas_->restore();
-    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
-        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-    }
-    if (isSelfDrawingSurface) {
-        RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
-    }
-
-    if (isSelfDrawingSurface) {
-        canvas_->restore();
-    }
-
-    if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
-        isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
-        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
-            process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
-            node.GetName().c_str(), node.GetId());
-        return;
-    }
-
-    ProcessChildren(node);
-}
-#else
 void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
@@ -1061,66 +698,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
 
     ProcessChildren(node);
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
-{
-    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
-        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) paused since it is security layer.",
-            node.GetId());
-        return;
-    }
-
-    const auto& property = node.GetRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
-    if (geoPtr) {
-        canvas_->setMatrix(geoPtr->GetAbsMatrix());
-    }
-
-    if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
-        isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
-        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
-            process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
-            node.GetName().c_str(), node.GetId());
-        return;
-    }
-
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isSelfDrawingSurface) {
-        canvas_->save();
-    }
-
-    const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
-    RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
-    RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
-    RSPropertiesPainter::DrawOutline(property, *canvas_);
-    if (!property.GetCornerRadius().IsZero()) {
-        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
-    } else {
-        canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
-    }
-    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
-    if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas_->drawColor(backgroundColor);
-    }
-    RSPropertiesPainter::DrawMask(property, *canvas_);
-
-    RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::BACKGROUND_FILTER);
-    if (isSelfDrawingSurface) {
-        canvas_->restore();
-    }
-
-    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
-        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-    }
-
-    ProcessChildren(node);
-    RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
-}
-#else
 void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
 {
     if (node.GetSecurityLayer() || node.GetSkipLayer()) {
@@ -1179,7 +757,6 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     ProcessChildren(node);
     RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
 }
-#endif
 
 void RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node)
 {
@@ -1190,11 +767,7 @@ void RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNod
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    RSAutoCanvasRestore acr(canvas_);
-#else
     Drawing::AutoCanvasRestore acr(*canvas_, true);
-#endif
     canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha());
     if (isDisplayNode_) {
         CaptureSurfaceInDisplayWithUni(node);
@@ -1218,11 +791,7 @@ void RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    SkAutoCanvasRestore acr(canvas_.get(), true);
-#else
     Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
-#endif
     ProcessCanvasRenderNode(node);
 }
 
@@ -1253,52 +822,6 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     DrawChildRenderNode(node);
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRenderNode& node)
-{
-    SkMatrix translateMatrix;
-    auto parentPtr = node.GetParent().lock();
-    if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
-        // calculate the offset from this node's parent, and perform translate.
-        auto parentNode = std::static_pointer_cast<RSSurfaceRenderNode>(parentPtr);
-        const float parentNodeTranslateX = parentNode->GetTotalMatrix().getTranslateX();
-        const float parentNodeTranslateY = parentNode->GetTotalMatrix().getTranslateY();
-        const float thisNodetranslateX = node.GetTotalMatrix().getTranslateX();
-        const float thisNodetranslateY = node.GetTotalMatrix().getTranslateY();
-        translateMatrix.preTranslate(
-            thisNodetranslateX - parentNodeTranslateX, thisNodetranslateY - parentNodeTranslateY);
-    }
-    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
-        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
-            node.GetId());
-        SkAutoCanvasRestore acr(canvas_.get(), true);
-        canvas_->concat(translateMatrix);
-        canvas_->clear(SK_ColorWHITE);
-        return;
-    }
-
-    if (node.GetChildrenCount() > 0) {
-        canvas_->concat(translateMatrix);
-        const auto saveCnt = canvas_->save();
-        ProcessChildren(node);
-        canvas_->restoreToCount(saveCnt);
-        if (node.GetBuffer() != nullptr) {
-            // in node's local coordinate.
-            auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
-            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-        }
-    } else {
-        SkAutoCanvasRestore acr(canvas_.get(), true);
-        canvas_->concat(translateMatrix);
-        if (node.GetBuffer() != nullptr) {
-            // in node's local coordinate.
-            auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
-            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-        }
-    }
-}
-#else
 void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRenderNode& node)
 {
     Drawing::Matrix translateMatrix;
@@ -1343,7 +866,6 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
         }
     }
 }
-#endif
 
 void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node)
 {
@@ -1397,19 +919,6 @@ void RSSurfaceCaptureVisitor::DrawWatermarkIfNeed(RSDisplayRenderNode& node)
     if (RSMainThread::Instance()->GetWatermarkFlag()) {
         sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
         auto screenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-#ifndef USE_ROSEN_DRAWING
-        sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
-        SkPaint rectPaint;
-        auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
-        auto skDstRect = SkRect::MakeWH(screenInfo.width, screenInfo.height);
-#ifdef NEW_SKIA
-        canvas_->drawImageRect(
-            skImage, skSrcRect, skDstRect, SkSamplingOptions(),
-            &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-        canvas_->drawImageRect(skImage, skSrcRect, skDstRect, &rectPaint);
-#endif
-#else
         auto image = RSMainThread::Instance()->GetWatermarkImg();
         if (image == nullptr) {
             return;
@@ -1422,7 +931,6 @@ void RSSurfaceCaptureVisitor::DrawWatermarkIfNeed(RSDisplayRenderNode& node)
         canvas_->DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas_->DetachBrush();
-#endif
     }
 }
 
@@ -1450,17 +958,8 @@ void RSSurfaceCaptureVisitor::DrawChildRenderNode(RSRenderNode& node)
             node.ProcessRenderBeforeChildren(*canvas_);
             if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
                 auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-#ifndef USE_ROSEN_DRAWING
-                SkBitmap bitmap = canvasDrawingNode->GetBitmap();
-#ifndef NEW_SKIA
-                canvas_->drawBitmap(bitmap, 0, 0);
-#else
-                canvas_->drawImage(bitmap.asImage(), 0, 0);
-#endif
-#else
                 Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
                 canvas_->DrawBitmap(bitmap, 0, 0);
-#endif
             } else {
                 node.ProcessRenderContents(*canvas_);
             }
@@ -1494,11 +993,7 @@ void RSSurfaceCaptureVisitor::ProcessCacheFilterRects(RSRenderNode& node)
     }
     curCacheFilterRects_ = cacheFilterRectsMap[node.GetId()];
     RS_TRACE_NAME_FMT("Draw cache with blur [%llu]", node.GetId());
-#ifndef USE_ROSEN_DRAWING
-    SkAutoCanvasRestore arc(canvas_.get(), true);
-#else
     Drawing::AutoCanvasRestore arc(*canvas_, true);
-#endif
     auto nodeType = node.GetCacheType();
     node.SetCacheType(CacheType::NONE);
     DrawChildRenderNode(node);

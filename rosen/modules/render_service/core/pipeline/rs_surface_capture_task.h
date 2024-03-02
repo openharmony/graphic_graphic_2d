@@ -19,25 +19,9 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "common/rs_common_def.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkSurface.h"
-#ifdef ROSEN_OHOS
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#include <GLES/gl.h>
-#include "GLES2/gl2.h"
-#include "GLES2/gl2ext.h"
-
-#include "surface_buffer.h"
-#include "window.h"
-#endif
-#else
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "utils/matrix.h"
-#endif
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -48,11 +32,7 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-#else
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-#endif
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
@@ -73,11 +53,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
-#ifndef USE_ROSEN_DRAWING
-        void SetSurface(SkSurface* surface);
-#else
         void SetSurface(Drawing::Surface* surface);
-#endif
         void IsDisplayNode(bool isDisplayNode)
         {
             isDisplayNode_ = isDisplayNode;
@@ -127,11 +103,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         bool isUIFirst_ = false;
         std::unordered_set<NodeId> curCacheFilterRects_ = {};
 
-#ifndef USE_ROSEN_DRAWING
-        SkMatrix captureMatrix_ = SkMatrix::I();
-#else
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();
-#endif
 
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
@@ -151,11 +123,7 @@ public:
 private:
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor_ = nullptr;
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
-#else
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
-#endif
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
         bool isUniRender = false);

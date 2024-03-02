@@ -21,13 +21,8 @@
 #endif
 
 #include "draw/color.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkRegion.h"
-#include "include/core/SkTextBlob.h"
-#else
 #include "recording/recording_canvas.h"
 #include "skia_adapter/skia_canvas.h"
-#endif
 
 #include "src/core/SkCanvasPriv.h"
 
@@ -811,11 +806,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             node.GetScreenRotation());
     }
 
-#ifndef USE_ROSEN_DRAWING
-    parentSurfaceNodeMatrix_ = SkMatrix::I();
-#else
     parentSurfaceNodeMatrix_ = Drawing::Matrix();
-#endif
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr != nullptr) {
         geoPtr->UpdateByMatrixFromSelf();
@@ -960,20 +951,12 @@ void RSUniRenderVisitor::ClearTransparentBeforeSaveLayer()
         if (dstRect.IsEmpty()) {
             continue;
         }
-#ifndef USE_ROSEN_DRAWING
-        canvas_->save();
-        canvas_->clipRect({ static_cast<float>(dstRect.GetLeft()), static_cast<float>(dstRect.GetTop()),
-                            static_cast<float>(dstRect.GetRight()), static_cast<float>(dstRect.GetBottom()) });
-        canvas_->clear(SK_ColorTRANSPARENT);
-        canvas_->restore();
-#else
         canvas_->Save();
         canvas_->ClipRect({ static_cast<float>(dstRect.GetLeft()), static_cast<float>(dstRect.GetTop()),
                               static_cast<float>(dstRect.GetRight()), static_cast<float>(dstRect.GetBottom()) },
             Drawing::ClipOp::INTERSECT, false);
         canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         canvas_->Restore();
-#endif
     }
 }
 
@@ -1596,11 +1579,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
                 isQuickSkipPreparationEnabled_ = true;
             }
             node.ResetChildHardwareEnabledNodes();
-#ifndef USE_ROSEN_DRAWING
-            boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
-#else
             boundsRect_ = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-#endif
             frameGravity_ = property.GetFrameGravity();
         }
     }
@@ -1692,30 +1671,16 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
     auto absMatrix = geoPtr->GetAbsMatrix();
     bool isScale = false;
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-#ifndef USE_ROSEN_DRAWING
-        isScale = (!ROSEN_EQ(absMatrix.getScaleX(), 1.f, EPSILON_SCALE) ||
-            !ROSEN_EQ(absMatrix.getScaleY(), 1.f, EPSILON_SCALE));
-#else
         isScale = (!ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_X), 1.f, EPSILON_SCALE) ||
             !ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_Y), 1.f, EPSILON_SCALE));
-#endif
     } else {
         bool getMinMaxScales = false;
-#ifndef USE_ROSEN_DRAWING
-        // skScaleFactors[0]-minimum scaling factor, skScaleFactors[1]-maximum scaling factor
-        SkScalar skScaleFactors[2];
-        getMinMaxScales = absMatrix.getMinMaxScales(skScaleFactors);
-        if (getMinMaxScales) {
-            isScale = !ROSEN_EQ(skScaleFactors[0], 1.f) || !ROSEN_EQ(skScaleFactors[1], 1.f);
-        }
-#else
         // scaleFactors[0]-minimum scaling factor, scaleFactors[1]-maximum scaling factor
         Drawing::scalar scaleFactors[2];
         getMinMaxScales = absMatrix.GetMinMaxScales(scaleFactors);
         if (getMinMaxScales) {
             isScale = !ROSEN_EQ(scaleFactors[0], 1.f) || !ROSEN_EQ(scaleFactors[1], 1.f);
         }
-#endif
         if (!getMinMaxScales) {
             RS_LOGD("getMinMaxScales fail, node:%{public}s %{public}" PRIu64 "", node.GetName().c_str(), node.GetId());
             auto dstRect = node.GetDstRect();
@@ -1751,15 +1716,6 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     auto geoPtr = (property.GetBoundsGeometry());
 
     // Context matrix should be relative to the parent surface node, so we need to revert the parentSurfaceNodeMatrix_.
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix invertMatrix;
-    auto contextMatrix = geoPtr->GetAbsMatrix();
-    if (parentSurfaceNodeMatrix_.invert(&invertMatrix)) {
-        contextMatrix.preConcat(invertMatrix);
-    } else {
-        ROSEN_LOGE("RSUniRenderVisitor::PrepareProxyRenderNode, invert parentSurfaceNodeMatrix_ failed");
-    }
-#else
     Drawing::Matrix invertMatrix;
     Drawing::Matrix contextMatrix = geoPtr->GetAbsMatrix();
 
@@ -1768,7 +1724,6 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     } else {
         ROSEN_LOGE("RSUniRenderVisitor::PrepareProxyRenderNode, invert parentSurfaceNodeMatrix_ failed");
     }
-#endif
     node.SetContextMatrix(contextMatrix);
 
     // For now, we only set the clipRegion if the parent node has ClipToBounds set to true.
@@ -1779,12 +1734,8 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
         // complex to calculate the intersect, and it will make app developers confused.
         auto rect = property.GetBoundsRect();
         // Context clip region is in the parent node coordinate, so we don't need to map it.
-#ifndef USE_ROSEN_DRAWING
-        node.SetContextClipRegion(SkRect::MakeXYWH(rect.left_, rect.top_, rect.width_, rect.height_));
-#else
         node.SetContextClipRegion(Drawing::Rect(
             rect.GetLeft(), rect.GetTop(), rect.GetWidth() + rect.GetLeft(), rect.GetHeight() + rect.GetTop()));
-#endif
     }
 
     // prepare children
@@ -1810,16 +1761,10 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (rsParent == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
         const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
-#ifndef USE_ROSEN_DRAWING
-        SkMatrix gravityMatrix;
-        (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
-            RectF { 0.0f, 0.0f, boundsRect_.width(), boundsRect_.height() }, rootWidth, rootHeight, gravityMatrix);
-#else
         Drawing::Matrix gravityMatrix;
         (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
             RectF { 0.0f, 0.0f, boundsRect_.GetWidth(), boundsRect_.GetHeight() },
             rootWidth, rootHeight, gravityMatrix);
-#endif
         // Only Apply gravityMatrix when rootNode is dirty
         if (geoPtr != nullptr && (dirtyFlag || geoDirty)) {
             geoPtr->ConcatMatrix(gravityMatrix);
@@ -1895,17 +1840,10 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     // FrameRect(if exists) is mapped to rect using abstract coordinate explicitly by calling MapAbsRect.
     if (property.GetClipToFrame()) {
         // MapAbsRect do not handle the translation of OffsetX and OffsetY
-#ifndef USE_ROSEN_DRAWING
-        RectF frameRect{
-            property.GetFrameOffsetX() * geoPtr->GetAbsMatrix().getScaleX(),
-            property.GetFrameOffsetY() * geoPtr->GetAbsMatrix().getScaleY(),
-            property.GetFrameWidth(), property.GetFrameHeight()};
-#else
         RectF frameRect{
             property.GetFrameOffsetX() * geoPtr->GetAbsMatrix().Get(Drawing::Matrix::SCALE_X),
             property.GetFrameOffsetY() * geoPtr->GetAbsMatrix().Get(Drawing::Matrix::SCALE_Y),
             property.GetFrameWidth(), property.GetFrameHeight()};
-#endif
         prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->MapAbsRect(frameRect));
     }
 
@@ -1992,15 +1930,9 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
             curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
                 DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
         }
-#ifndef USE_ROSEN_DRAWING
-        if (curSurfaceNode_ && effectRegion_.has_value() && !effectRegion_->isEmpty()) {
-            RectI filterRect(effectRegion_->left(), effectRegion_->top(),
-                effectRegion_->width(), effectRegion_->height());
-#else
         if (curSurfaceNode_ && effectRegion_.has_value() && !effectRegion_->IsEmpty()) {
             RectI filterRect(effectRegion_->GetLeft(), effectRegion_->GetTop(),
                 effectRegion_->GetWidth(), effectRegion_->GetHeight());
-#endif
             curSurfaceNode_->UpdateChildrenFilterRects(node.shared_from_this(), filterRect,
                 node.IsBackgroundFilterCacheValid());
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
@@ -2035,37 +1967,6 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
-    const SkPaint::Style fillType, float alpha, int edgeWidth = 6)
-{
-    if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-        ROSEN_LOGD("DrawDirtyRectForDFX dirty rect is invalid.");
-        return;
-    }
-    ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = %{public}s", dirtyRect.ToString().c_str());
-    auto skRect = SkRect::MakeXYWH(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
-    std::string position = std::to_string(dirtyRect.left_) + ',' + std::to_string(dirtyRect.top_) + ',' +
-        std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_);
-    const int defaultTextOffsetX = edgeWidth;
-    const int defaultTextOffsetY = 30; // text position has 30 pixelSize under the skRect
-    SkPaint rectPaint;
-    // font size: 24
-    sk_sp<SkTypeface> typeface = SkTypeface::MakeFromName("HarmonyOS Sans SC", SkFontStyle::Normal());
-    sk_sp<SkTextBlob> SkTextBlob = SkTextBlob::MakeFromString(position.c_str(), SkFont(typeface, 24.0f, 1.0f, 0.0f));
-    rectPaint.setColor(color);
-    rectPaint.setAntiAlias(true);
-    rectPaint.setAlphaf(alpha);
-    rectPaint.setStyle(fillType);
-    rectPaint.setStrokeWidth(edgeWidth);
-    if (fillType == SkPaint::kFill_Style) {
-        rectPaint.setStrokeJoin(SkPaint::kRound_Join);
-    }
-    canvas_->drawRect(skRect, rectPaint);
-    canvas_->drawTextBlob(SkTextBlob, dirtyRect.left_ + defaultTextOffsetX,
-        dirtyRect.top_ + defaultTextOffsetY, SkPaint());
-}
-#else
 void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color,
     const RSPaintStyle fillType, float alpha, int edgeWidth = 6, std::string extra)
 {
@@ -2126,17 +2027,12 @@ void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawi
     canvas_->DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ + defaultTextOffsetY);
     canvas_->DetachBrush();
 }
-#endif
 
 void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
 {
     const float fillAlpha = 0.2;
     for (const auto& subRect : dirtyRects) {
-#ifndef USE_ROSEN_DRAWING
-        DrawDirtyRectForDFX(subRect, SK_ColorBLUE, SkPaint::kStroke_Style, fillAlpha);
-#else
         DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE, fillAlpha);
-#endif
     }
 }
 
@@ -2144,11 +2040,7 @@ void RSUniRenderVisitor::DrawCacheRegionForDFX(std::vector<RectI> cacheRects)
 {
     const float fillAlpha = 0.2;
     for (const auto& subRect : cacheRects) {
-#ifndef USE_ROSEN_DRAWING
-        DrawDirtyRectForDFX(subRect, SK_ColorBLUE, SkPaint::kFill_Style, fillAlpha);
-#else
         DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL, fillAlpha);
-#endif
     }
 }
 
@@ -2158,13 +2050,8 @@ void RSUniRenderVisitor::DrawAutoCacheRegionForDFX(std::vector<RectI, std::strin
 {
     const float fillAlpha = 0.2;
     for (const auto& info : cacheRegionInfo) {
-#ifndef USE_ROSEN_DRAWING
-        DrawDirtyRectForDFX(info.first, SK_ColorBLUE, SkPaint::kFill_Style, fillAlpha,
-            DRAW_DFX_EDGE_WIDTH, info.second);
-#else
         DrawDirtyRectForDFX(info.first, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL, fillAlpha,
             DRAW_DFX_EDGE_WIDTH, info.second);
-#endif
     }
 }
 #endif
@@ -2181,11 +2068,7 @@ void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& no
     // draw display dirtyregion with red color
     RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
     const float fillAlpha = 0.2;
-#ifndef USE_ROSEN_DRAWING
-    DrawDirtyRectForDFX(dirtySurfaceRect, SK_ColorRED, SkPaint::kStroke_Style, fillAlpha);
-#else
     DrawDirtyRectForDFX(dirtySurfaceRect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE, fillAlpha);
-#endif
 }
 
 void RSUniRenderVisitor::DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node)
@@ -2263,29 +2146,17 @@ void RSUniRenderVisitor::DrawEffectRenderNodeForDFX()
         }
         RectI absRect = geoPtr->GetAbsRect();
         // draw effectNode
-#ifndef USE_ROSEN_DRAWING
-        DrawDirtyRectForDFX(absRect, SK_ColorBLUE, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
-#else
         DrawDirtyRectForDFX(absRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE, strokeAlpha, strokeWidth);
-#endif
         // draw useEffect nodes
         const auto& useEffectRects = effectNode.second.first;
         for (const auto& rect : useEffectRects) {
-#ifndef USE_ROSEN_DRAWING
-            DrawDirtyRectForDFX(rect, SK_ColorGREEN, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
-#else
             DrawDirtyRectForDFX(rect, Drawing::Color::COLOR_GREEN, RSPaintStyle::STROKE, strokeAlpha, strokeWidth);
-#endif
         }
 
         // draw fallback nodes
         const auto fallbackRects = effectNode.second.second;
         for (const auto& rect : fallbackRects) {
-#ifndef USE_ROSEN_DRAWING
-            DrawDirtyRectForDFX(rect, SK_ColorRED, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
-#else
             DrawDirtyRectForDFX(rect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE, strokeAlpha, strokeWidth);
-#endif
         }
     }
 }
@@ -2294,19 +2165,6 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate, uin
 {
     std::string info = std::to_string(currentRefreshRate) + " " + std::to_string(realtimeRefreshRate);
     auto color = currentRefreshRate <= 60 ? SK_ColorRED : SK_ColorGREEN;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkTypeface> tf = SkTypeface::MakeFromName("HarmonyOS Sans SC", SkFontStyle::Normal());
-    SkFont font;
-    font.setSize(100);  // 100:Scalar of setting font size
-    font.setTypeface(tf);
-    sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString(info.c_str(), font);
-
-    SkPaint paint;
-    paint.setColor(color);
-    paint.setAntiAlias(true);
-    canvas_->drawTextBlob(
-        textBlob, 100.f, 200.f, paint);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
-#else
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
     font.SetSize(100);  // 100:Scalar of setting font size
@@ -2320,7 +2178,6 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate, uin
     canvas_->DrawTextBlob(
         textBlob.get(), 100.f, 200.f);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas_->DetachBrush();
-#endif
 }
 
 void RSUniRenderVisitor::DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
@@ -2344,11 +2201,7 @@ void RSUniRenderVisitor::DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRender
         subInfo += (" " + info.first + "node amount: " + std::to_string(dirtyInfo.size()));
         for (const auto& [nid, rect] : dirtyInfo) {
             if (isDrawn) {
-#ifndef USE_ROSEN_DRAWING
-                DrawDirtyRectForDFX(rect, info.second, SkPaint::kStroke_Style, fillAlpha);
-#else
                 DrawDirtyRectForDFX(rect, info.second, RSPaintStyle::STROKE, fillAlpha);
-#endif
             }
         }
     }
@@ -2393,12 +2246,8 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
 {
     const auto& opaqueRegionRects = node.GetOpaqueRegion().GetRegionRects();
     for (const auto &subRect: opaqueRegionRects) {
-#ifndef USE_ROSEN_DRAWING
-        DrawDirtyRectForDFX(subRect.ToRectI(), SK_ColorGREEN, SkPaint::kFill_Style, 0.2f, 0);
-#else
         DrawDirtyRectForDFX(subRect.ToRectI(), Drawing::Color::COLOR_GREEN,
             RSPaintStyle::FILL, 0.2f, 0);
-#endif
     }
 }
 
@@ -2582,25 +2431,13 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
         RS_LOGE("RSUniRenderVisitor::ProcessParallelDisplayRenderNode: failed to create canvas");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->clear(SK_ColorTRANSPARENT);
-#else
     canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
     RSPropertiesPainter::SetBgAntiAlias(true);
-#ifndef USE_ROSEN_DRAWING
-    int saveCount = canvas_->save();
-#else
     int saveCount = canvas_->Save();
-#endif
     canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr != nullptr) {
-#ifndef USE_ROSEN_DRAWING
-        canvas_->concat(geoPtr->GetMatrix());
-#else
         canvas_->ConcatMatrix(geoPtr->GetMatrix());
-#endif
     }
     for (auto& childNode : *node.GetChildren()) {
         RSParallelRenderManager::Instance()->StartTiming(parallelRenderVisitorIndex_);
@@ -2608,11 +2445,7 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
         RSParallelRenderManager::Instance()->StopTimingAndSetRenderTaskCost(
             parallelRenderVisitorIndex_, childNode->GetId(), TaskType::PROCESS_TASK);
     }
-#ifndef USE_ROSEN_DRAWING
-    canvas_->restoreToCount(saveCount);
-#else
     canvas_->RestoreToCount(saveCount);
-#endif
 
     if (overdrawListener != nullptr) {
         overdrawListener->Draw();
@@ -2625,31 +2458,6 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkImage> RSUniRenderVisitor::GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode)
-{
-    sk_sp<SkImage> image = nullptr;
-    auto cacheImage = mirrorNode->GetCacheImgForCapture();
-
-    bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
-    if (!parallelComposition) {
-        return cacheImage;
-    }
-
-    if (cacheImage != nullptr) {
-        auto renderContext = renderEngine_->GetRenderContext();
-        if (renderContext != nullptr) {
-            auto grContext = renderContext->GetGrContext();
-            auto imageBackendTexure = cacheImage->getBackendTexture(false);
-            if (grContext != nullptr && imageBackendTexure.isValid()) {
-                image = SkImage::MakeFromTexture(grContext, imageBackendTexure,
-                    kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-            }
-        }
-    }
-    return image;
-}
-#else
 std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
     std::shared_ptr<RSDisplayRenderNode> mirrorNode)
 {
@@ -2676,7 +2484,6 @@ std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
     }
     return image;
 }
-#endif
 
 void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
@@ -2801,22 +2608,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_270) {
             mirrorAutoRotate_ = true;
         }
-#ifndef USE_ROSEN_DRAWING
-        canvas_->save();
-#else
         canvas_->Save();
-#endif
         ScaleMirrorIfNeed(node);
         RotateMirrorCanvasIfNeed(node);
         bool forceCPU = false;
         auto params = RSUniRenderUtil::CreateBufferDrawParam(*mirrorNode, forceCPU);
         params.isMirror = true;
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, *mirrorNode, params);
-#ifndef USE_ROSEN_DRAWING
-        canvas_->restore();
-#else
         canvas_->Restore();
-#endif
         mirrorAutoRotate_ = false;
         renderFrame_->Flush();
         processor_->ProcessDisplaySurface(node);
@@ -2838,61 +2637,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 return;
             }
             if (displayHasSecSurface_[mirrorNode->GetScreenId()]) {
-#ifndef USE_ROSEN_DRAWING
-                canvas_->clear(SK_ColorBLACK);
-#else
                 canvas_->Clear(Drawing::Color::COLOR_BLACK);
-#endif
                 processor_->PostProcess();
                 RS_LOGI("RSUniRenderVisitor::ProcessDisplayRenderNode, set canvas to black because of security layer.");
                 return;
             }
-#ifndef USE_ROSEN_DRAWING
-            sk_sp<SkImage> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
-            bool canvasRotation = screenManager->GetCanvasRotation(node.GetScreenId());
-            if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
-                !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
-                RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode screen recording optimization is enable");
-                ScaleMirrorIfNeed(node, canvasRotation);
-                if (canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
-                    RotateMirrorCanvasIfNeed(node);
-                }
-                canvas_->save();
-                // If both canvas and skImage have rotated, we need to reset the canvas
-                if (resetRotate_) {
-                    SkMatrix invertMatrix;
-                    if (processor->GetScreenTransformMatrix().invert(&invertMatrix)) {
-                        canvas_->concat(invertMatrix);
-                    }
-                }
-                SkPaint paint;
-                paint.setAntiAlias(true);
-                canvas_->drawImage(cacheImageProcessed, 0, 0,
-                    SkSamplingOptions(SkCubicResampler { 1 / 3.0f, 1 / 3.0f }), &paint); // 1/3.0f is Mitchell sampling
-                canvas_->restore();
-                bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
-                if (!parallelComposition) {
-                    int saveCount = canvas_->save();
-                    ProcessChildrenForScreenRecordingOptimization(
-                        *mirrorNode, mirrorNode->GetRootIdOfCaptureWindow());
-                    canvas_->restoreToCount(saveCount);
-                }
-                DrawWatermarkIfNeed(*mirrorNode, true);
-            } else {
-                RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode screen recording optimization is disable");
-                mirrorNode->SetCacheImgForCapture(nullptr);
-                int saveCount = canvas_->save();
-                ScaleMirrorIfNeed(node, canvasRotation);
-                if (canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
-                    RotateMirrorCanvasIfNeed(node);
-                }
-                PrepareOffscreenRender(*mirrorNode);
-                ProcessChildren(*mirrorNode);
-                FinishOffscreenRender(true);
-                DrawWatermarkIfNeed(*mirrorNode, true);
-                canvas_->restoreToCount(saveCount);
-            }
-#else
             std::shared_ptr<Drawing::Image> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             bool canvasRotation = screenManager->GetCanvasRotation(node.GetScreenId());
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
@@ -2940,7 +2689,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 DrawWatermarkIfNeed(*mirrorNode, true);
                 canvas_->RestoreToCount(saveCount);
             }
-#endif
         } else {
             mirrorNode->SetOriginScreenRotation(node.GetOriginScreenRotation());
             processor_->ProcessDisplaySurface(*mirrorNode);
@@ -3093,11 +2841,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 
         int saveLayerCnt = 0;
-#ifndef USE_ROSEN_DRAWING
-        SkRegion region;
-#else
         Drawing::Region region;
-#endif
         Occlusion::Region dirtyRegionTest;
         std::vector<RectI> rects;
         bool clipPath = false;
@@ -3105,11 +2849,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         int saveCountBeforeClip = 0;
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-#ifndef USE_ROSEN_DRAWING
-            saveCountBeforeClip = canvas_->save();
-#else
             saveCountBeforeClip = canvas_->Save();
-#endif
         }
 #endif
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
@@ -3156,14 +2896,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #else
                     topAfterFlip = static_cast<int32_t>(screenInfo_.GetRotatedHeight()) - r.GetBottom();
 #endif
-#ifndef USE_ROSEN_DRAWING
-                    region.op(SkIRect::MakeXYWH(r.left_, topAfterFlip, r.width_, r.height_), SkRegion::kUnion_Op);
-#else
                     Drawing::Region tmpRegion;
                     tmpRegion.SetRect(Drawing::RectI(r.left_, topAfterFlip,
                         r.left_ + r.width_, topAfterFlip + r.height_));
                     region.Op(tmpRegion, Drawing::RegionOp::UNION);
-#endif
                 }
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
@@ -3172,32 +2908,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
         }
         if (isOpDropped_ && !isDirtyRegionAlignedEnable_) {
-#ifndef USE_ROSEN_DRAWING
-            if (region.isEmpty()) {
-                // [planning] Remove this after frame buffer can cancel
-                canvas_->clipRect(SkRect::MakeEmpty());
-            } else if (region.isRect()) {
-                canvas_->clipRegion(region);
-                canvas_->clear(SK_ColorTRANSPARENT);
-            } else {
-                RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
-                clipPath = true;
-#ifdef RS_ENABLE_VK
-                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                    canvas_->clipRegion(region);
-                } else {
-                    SkPath dirtyPath;
-                    region.getBoundaryPath(&dirtyPath);
-                    canvas_->clipPath(dirtyPath, true);
-                }
-#else
-                SkPath dirtyPath;
-                region.getBoundaryPath(&dirtyPath);
-                canvas_->clipPath(dirtyPath, true);
-#endif
-            }
-#else
             if (region.IsEmpty()) {
                 // [planning] Remove this after frame buffer can cancel
                 canvas_->ClipRect(Drawing::Rect());
@@ -3222,48 +2932,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
 #endif
             }
-#endif
         } else {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->clear(SK_ColorTRANSPARENT);
-#else
             canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
         }
 
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (!isParallel_ || isUIFirst_) {
-#ifndef USE_ROSEN_DRAWING
-            int saveCount = canvas_->save();
-            canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
-            
-            bool displayNodeRotationChanged = node.IsRotationChanged();
-            // enable cache if screen rotation
-            canvas_->SetCacheType((isScreenRotationAnimating_ || displayNodeRotationChanged)
-                ? RSPaintFilterCanvas::CacheType::ENABLED
-                : RSPaintFilterCanvas::CacheType::DISABLED);
-            bool needOffscreen = clipPath || displayNodeRotationChanged;
-
-            if (needOffscreen) {
-                ClearTransparentBeforeSaveLayer(); // clear transparent before concat display node's matrix
-            }
-            auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
-            if (geoPtr != nullptr) {
-                canvas_->concat(geoPtr->GetMatrix());
-            }
-            if (needOffscreen) {
-                // we are doing rotation animation, try offscreen render if capable
-                displayNodeMatrix_ = canvas_->getTotalMatrix();
-                PrepareOffscreenRender(node);
-                ProcessChildren(node);
-                FinishOffscreenRender();
-            } else {
-                // render directly
-                ProcessChildren(node);
-            }
-            SwitchColorFilterDrawing(saveCount);
-            canvas_->restoreToCount(saveCount);
-#else
             int saveCount = canvas_->Save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
             
@@ -3293,7 +2967,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             SwitchColorFilterDrawing(saveCount);
             canvas_->RestoreToCount(saveCount);
-#endif
         }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -3326,17 +2999,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 renderEngine_->GetDrawingContext()->GetDrawingContext(),
                 RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
 #else
-#ifndef USE_ROSEN_DRAWING
-            RSTagTracker tagTracker(
-                renderEngine_->GetRenderContext()->GetGrContext(), RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
-            RS_TRACE_NAME("RSUniRender:RestoreLayer");
-            canvas_->restoreToCount(saveLayerCnt);
-#else
             RSTagTracker tagTracker(renderEngine_->GetRenderContext()->GetDrGPUContext(),
                 RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
             RS_TRACE_NAME("RSUniRender:RestoreLayer");
             canvas_->RestoreToCount(saveLayerCnt);
-#endif
 #endif
 #endif
         }
@@ -3409,11 +3075,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifdef RS_ENABLE_VK
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->restoreToCount(saveCountBeforeClip);
-#else
             canvas_->RestoreToCount(saveCountBeforeClip);
-#endif
         }
 #endif
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
@@ -3456,9 +3118,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 #ifdef RS_ENABLE_VK
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
-#ifdef USE_ROSEN_DRAWING
             renderEngine_->GetRenderContext()->GetDrGPUContext()->StoreVkPipelineCacheData();
-#endif
         }
 #endif
 }
@@ -3476,35 +3136,6 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
-{
-    ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
-    if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
-        colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
-        RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%{public}d",
-            static_cast<int32_t>(colorFilterMode));
-        SkPaint paint;
-        RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-#ifdef NEW_RENDER_CONTEXT
-        RSTagTracker tagTracker(
-            renderEngine_->GetDrawingContext()->GetDrawingContext(),
-            RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-#else
-        RSTagTracker tagTracker(
-            renderEngine_->GetRenderContext()->GetGrContext(),
-            RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-#endif
-#endif
-        SkCanvas::SaveLayerRec rec;
-        rec.fSaveLayerFlags = SkCanvas::kInitWithPrevious_SaveLayerFlag;
-        rec.fPaint = &paint;
-        canvas_->saveLayer(rec);
-        canvas_->restoreToCount(currentSaveCount);
-    }
-}
-#else
 void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
 {
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
@@ -3530,7 +3161,6 @@ void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
         canvas_->RestoreToCount(currentSaveCount);
     }
 }
-#endif
 
 void RSUniRenderVisitor::UpdateHardwareEnabledInfoBeforeCreateLayer()
 {
@@ -3600,19 +3230,6 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
         RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: renderSurface is nullptr");
         return;
     }
-#if !defined(USE_ROSEN_DRAWING)
-    RS_OPTIONAL_TRACE_BEGIN("RSUniRender::GetSurface");
-    auto skSurface = renderSurface->GetSurface();
-    RS_OPTIONAL_TRACE_END();
-    if (skSurface == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: skSurface is null");
-        return;
-    }
-    if (skSurface->getCanvas() == nullptr) {
-        ROSEN_LOGE("skSurface.getCanvas is null.");
-        return;
-    }
-#else
     RS_OPTIONAL_TRACE_BEGIN("RSUniRender::GetSurface");
     auto drSurface = renderSurface->GetSurface();
     RS_OPTIONAL_TRACE_END();
@@ -3624,25 +3241,11 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
         ROSEN_LOGE("drSurface.getCanvas is null.");
         return;
     }
-#endif
 #else
     if (renderFrame->GetFrame() == nullptr) {
         RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: RSSurfaceFrame is nullptr");
         return;
     }
-#if !defined(USE_ROSEN_DRAWING)
-    RS_TRACE_BEGIN("RSUniRender::GetSurface");
-    auto skSurface = renderFrame->GetFrame()->GetSurface();
-    RS_TRACE_END();
-    if (skSurface == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: skSurface is null");
-        return;
-    }
-    if (skSurface->getCanvas() == nullptr) {
-        ROSEN_LOGE("skSurface.getCanvas is null.");
-        return;
-    }
-#else
     RS_OPTIONAL_TRACE_BEGIN("RSUniRender::GetSurface");
     auto drSurface = renderFrame->GetFrame()->GetSurface();
     RS_OPTIONAL_TRACE_END();
@@ -3655,17 +3258,12 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
         return;
     }
 #endif
-#endif
     // if listenedCanvas is nullptr, that means disabled or listen failed
     std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
 
     if (RSOverdrawController::GetInstance().IsEnabled()) {
         auto &oc = RSOverdrawController::GetInstance();
-#ifndef USE_ROSEN_DRAWING
-        listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
-#else
         listenedCanvas = std::make_shared<RSListenedCanvas>(*drSurface.get());
-#endif
         overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
         if (overdrawListener == nullptr) {
             overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
@@ -3682,11 +3280,7 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
     if (listenedCanvas != nullptr) {
         canvas_ = listenedCanvas;
     } else {
-#ifndef USE_ROSEN_DRAWING
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
-#else
         canvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
-#endif
     }
 }
 
@@ -4307,15 +3901,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     if (!node.GetCacheSurface(threadIndex_, true)) {
         RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
             std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-        node.InitCacheSurface(canvas_ ? canvas_->recordingContext() : nullptr, func, threadIndex_);
-#else
-        node.InitCacheSurface(canvas_ ? canvas_->getGrContext() : nullptr, func, threadIndex_);
-#endif
-#else
         node.InitCacheSurface(canvas_ ? canvas_->GetGPUContext().get() : nullptr, func, threadIndex_);
-#endif
     }
     auto surface = node.GetCacheSurface(threadIndex_, true);
     if (!surface) {
@@ -4344,11 +3930,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     isOpDropped_ = false;
     isUpdateCachedSurface_ = true;
 
-#ifndef USE_ROSEN_DRAWING
-    cacheCanvas->clear(SK_ColorTRANSPARENT);
-#else
     cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
 
     swap(cacheCanvas, canvas_);
     // When cacheType == CacheType::ANIMATE_PROPERTY,
@@ -4356,13 +3938,8 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     if (cacheType == CacheType::ANIMATE_PROPERTY) {
         if (node.GetRenderProperties().IsShadowValid()
             && !node.GetRenderProperties().IsSpherizeValid()) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->save();
-            canvas_->translate(node.GetShadowRectOffsetX(), node.GetShadowRectOffsetY());
-#else
             canvas_->Save();
             canvas_->Translate(node.GetShadowRectOffsetX(), node.GetShadowRectOffsetY());
-#endif
         }
         node.ProcessAnimatePropertyBeforeChildren(*canvas_);
     }
@@ -4381,11 +3958,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     if (cacheType == CacheType::ANIMATE_PROPERTY) {
         if (node.GetRenderProperties().IsShadowValid()
             && !node.GetRenderProperties().IsSpherizeValid()) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->restore();
-#else
             canvas_->Restore();
-#endif
         }
         node.ProcessAnimatePropertyAfterChildren(*canvas_);
     }
@@ -4435,16 +4008,6 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
         } else if (node.GetRenderProperties().GetShadowColorStrategy() !=
             SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
             // clear hole while generating cache surface
-#ifndef USE_ROSEN_DRAWING
-            SkAutoCanvasRestore arc(canvas_.get(), true);
-            RectI shadowRect;
-            auto rrect = node.GetRenderProperties().GetRRect();
-            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, node.GetRenderProperties(), &rrect, false, false);
-            SkCanvasPriv::ResetClip(canvas_.get());
-            canvas_->clipRect(SkRect::MakeXYWH(shadowRect.left_, shadowRect.top_,
-                shadowRect.width_, shadowRect.height_));
-            canvas_->clear(SK_ColorTRANSPARENT);
-#else
             Drawing::AutoCanvasRestore arc(*canvas_.get(), true);
             RectI shadowRect;
             auto rrect = node.GetRenderProperties().GetRRect();
@@ -4455,18 +4018,8 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             canvas_->ClipRect(Drawing::Rect(shadowRect.left_, shadowRect.top_,
                 shadowRect.width_ + shadowRect.left_, shadowRect.height_ + shadowRect.top_));
             canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
         } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
             // clear hole while generating cache surface
-#ifndef USE_ROSEN_DRAWING
-            SkAutoCanvasRestore arc(canvas_.get(), true);
-            if (node.GetRenderProperties().GetClipBounds() != nullptr) {
-                canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
-            } else {
-                canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(node.GetRenderProperties().GetRRect()));
-            }
-            canvas_->clear(SK_ColorTRANSPARENT);
-#else
             Drawing::AutoCanvasRestore arc(*canvas_, true);
             if (node.GetRenderProperties().GetClipBounds() != nullptr) {
                 canvas_->ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect()),
@@ -4476,7 +4029,6 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
                     Drawing::ClipOp::INTERSECT, false);
             }
             canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
         }
     } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
         // no filter to draw, return
@@ -4616,18 +4168,6 @@ bool RSUniRenderVisitor::ForceHardwareComposer(RSSurfaceRenderNode& node) const
 
 bool RSUniRenderVisitor::UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkAutoCanvasRestore acr(canvas_.get(), true);
-
-    if (displayNodeMatrix_.has_value()) {
-        auto& displayNodeMatrix = displayNodeMatrix_.value();
-        canvas_->concat(displayNodeMatrix);
-    }
-    node.SetTotalMatrix(canvas_->getTotalMatrix());
-
-    auto dstRect = node.GetDstRect();
-    SkIRect dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom() };
-#else
     Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
 
     if (displayNodeMatrix_.has_value()) {
@@ -4639,7 +4179,6 @@ bool RSUniRenderVisitor::UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node)
     auto dstRect = node.GetDstRect();
     Drawing::RectI dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(),
                            dstRect.GetBottom() };
-#endif
     bool hasRotation = false;
     if (node.GetConsumer() != nullptr) {
         auto rotation = RSBaseRenderUtil::GetRotateTransform(node.GetConsumer()->GetTransform());
@@ -4672,19 +4211,12 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         // draw transparent red rect to indicate valid clip area
         {
             RSAutoCanvasRestore acr(canvas_);
-#ifndef USE_ROSEN_DRAWING
-            canvas_->concat(node.contextMatrix_.value_or(SkMatrix::I()));
-            SkPaint paint;
-            paint.setARGB(0x80, 0xFF, 0, 0); // transparent red
-            canvas_->drawRect(node.contextClipRect_.value(), paint);
-#else
             canvas_->ConcatMatrix(node.contextMatrix_.value_or(Drawing::Matrix()));
             Drawing::Brush brush;
             brush.SetARGB(0x80, 0xFF, 0, 0); // transparent red
             canvas_->AttachBrush(brush);
             canvas_->DrawRect(node.contextClipRect_.value());
             canvas_->DetachBrush();
-#endif
         }
         // make this node context transparent
         canvas_->MultiplyAlpha(0.5);
@@ -4696,15 +4228,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         "name:%{public}s,OcclusionVisible:%{public}d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_RENDER_CONTEXT
-    auto grContext = renderEngine_->GetDrawingContext()->GetDrawingContext();
-#else
-    auto grContext = canvas_ != nullptr ? static_cast<GrDirectContext*>(canvas_->recordingContext()) : nullptr;
-#endif
-    RSTagTracker tagTracker(grContext, node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
-    node.SetGrContext(grContext);
-#else
 #ifdef NEW_RENDER_CONTEXT
     Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
     RSTagTracker tagTracker(gpuContext, node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
@@ -4715,15 +4238,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetDrawingGPUContext(gpuContext.get());
 #endif
 #endif
-#endif
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-#ifndef USE_ROSEN_DRAWING
-        node.SetGrContext(renderEngine_->GetSkContext().get());
-#else
         node.SetDrawingGPUContext(renderEngine_->GetSkContext().get());
-#endif
     }
 #endif
     bool keepFilterCache = false;
@@ -4765,26 +4283,16 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isOpDropped_ && node.IsAppWindow()) {
         const auto& visibleRegions = node.GetVisibleRegion().GetRegionRects();
         if (visibleRegions.size() == 1) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->SetVisibleRect(SkRect::MakeLTRB(
-                visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
-#else
             canvas_->SetVisibleRect(Drawing::Rect(
                 visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
-#endif
         }
     }
 
     // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
     if (!isSecurityDisplay_ && canvas_->GetSurface() != nullptr &&
         node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
-#ifndef USE_ROSEN_DRAWING
-        resetRotate_ = CheckIfNeedResetRotate();
-        cacheImgForCapture_ = canvas_->GetSurface()->makeImageSnapshot();
-#else
         resetRotate_ = CheckIfNeedResetRotate();
         cacheImgForCapture_ = canvas_->GetSurface()->GetImageSnapshot();
-#endif
         auto mirrorNode = curDisplayNode_->GetMirrorSource().lock() ?
             curDisplayNode_->GetMirrorSource().lock() : curDisplayNode_;
         mirrorNode->SetRootIdOfCaptureWindow(FindInstanceChildOfDisplay(node.GetParent().lock()));
@@ -4811,19 +4319,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // to avoid child node being layout according to the BoundsRect of RosenRenderTexture.
     // Temporarily, we use parent of SELF_DRAWING_NODE which has the same paintRect with its child instead.
     // to draw child node of SELF_DRAWING_NODE
-#ifndef USE_ROSEN_DRAWING
-    if (isSelfDrawingSurface && !property.IsSpherizeValid()) {
-        canvas_->save();
-    }
-
-    canvas_->concat(geoPtr->GetMatrix());
-#else
     if (isSelfDrawingSurface && !property.IsSpherizeValid()) {
         canvas_->Save();
     }
 
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
-#endif
     isNodeSingleFrameComposer_ = node.GetNodeIsSingleFrameComposer();
     bool isSubNodeOfSurfaceInProcess = isSubNodeOfSurfaceInProcess_;
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
@@ -4875,15 +4375,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             // if this window is in freeze state, disable hardware composer for its child surfaceView
             if (IsHardwareComposerEnabled() && node.IsHardwareEnabledType() && (!node.IsHardwareForcedDisabled() ||
                 ForceHardwareComposer(node)) && UpdateSrcRectForHwcNode(node)) {
-#ifndef USE_ROSEN_DRAWING
-                if (!node.IsHardwareEnabledTopSurface()) {
-                    canvas_->clear(SK_ColorTRANSPARENT);
-                }
-#else
                 if (!node.IsHardwareEnabledTopSurface()) {
                     canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 }
-#endif
                 node.SetGlobalAlpha(canvas_->GetAlpha());
                 ParallelRenderEnableHardwareComposer(node);
                 RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode src:%{public}s, dst:%{public}s name:%{public}s"
@@ -4921,11 +4415,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
 
         if (isSelfDrawingSurface) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->restore();
-#else
             canvas_->Restore();
-#endif
         }
 
         if (node.IsAppWindow()) {
@@ -4945,11 +4435,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     RSPropertiesPainter::SetBgAntiAlias(bgAntiAliasState);
     if (node.IsAppWindow()) {
-#ifndef USE_ROSEN_DRAWING
-        canvas_->SetVisibleRect(SkRect::MakeLTRB(0, 0, 0, 0));
-#else
         canvas_->SetVisibleRect(Drawing::Rect(0, 0, 0, 0));
-#endif
 
         // count processed canvas node
         RS_TRACE_NAME_FMT("%s PureContainerNode/ProcessedNodes: %u/%u", node.GetName().c_str(),
@@ -4968,17 +4454,11 @@ void RSUniRenderVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
     if (RSSystemProperties::GetProxyNodeDebugEnabled() && node.contextClipRect_.has_value() &&
         node.target_.lock() != nullptr) {
         // draw transparent green rect to indicate clip area of proxy node
-#ifndef USE_ROSEN_DRAWING
-        SkPaint paint;
-        paint.setARGB(0x80, 0, 0xFF, 0); // transparent green
-        canvas_->drawRect(node.contextClipRect_.value(), paint);
-#else
         Drawing::Brush brush;
         brush.SetARGB(0x80, 0, 0xFF, 0); // transparent green
         canvas_->AttachBrush(brush);
         canvas_->DrawRect(node.contextClipRect_.value());
         canvas_->DetachBrush();
-#endif
     }
     ProcessChildren(node);
 }
@@ -4995,15 +4475,9 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessRootRenderNode, canvas is nullptr");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    int saveCount = canvas_->save();
-    ProcessCanvasRenderNode(node);
-    canvas_->restoreToCount(saveCount);
-#else
     int saveCount = canvas_->Save();
     ProcessCanvasRenderNode(node);
     canvas_->RestoreToCount(saveCount);
-#endif
 }
 
 bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
@@ -5099,11 +4573,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node)
     UpdateCacheRenderNodeMap(node);
     canvas_->SetCacheType(canvasType);
     RS_TRACE_NAME_FMT("Draw cache with blur [%llu]", node.GetId());
-#ifndef USE_ROSEN_DRAWING
-    SkAutoCanvasRestore arc(canvas_.get(), true);
-#else
     Drawing::AutoCanvasRestore arc(*canvas_, true);
-#endif
     auto nodeType = node.GetCacheType();
     node.SetCacheType(CacheType::NONE);
     bool isOpDropped = isOpDropped_;
@@ -5195,11 +4665,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
     processedCanvasNodeInCurrentSurface_++;
     if (!node.ShouldPaint() ||
-#ifndef USE_ROSEN_DRAWING
-        (canvas_ && canvas_->getDeviceClipBounds().isEmpty() && hardwareEnabledNodes_.empty())) {
-#else
         (canvas_ && canvas_->GetDeviceClipBounds().IsEmpty() && hardwareEnabledNodes_.empty())) {
-#endif
         return;
     }
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
@@ -5250,11 +4716,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
 #endif
     // in case preparation'update is skipped
-#ifndef USE_ROSEN_DRAWING
-    canvas_->save();
-#else
     canvas_->Save();
-#endif
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
     }
@@ -5269,11 +4731,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         // draw self and children in sandbox which will not be affected by parent's transition
         const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
         if (sandboxMatrix) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->setMatrix(*sandboxMatrix);
-#else
             canvas_->SetMatrix(*sandboxMatrix);
-#endif
         }
     }
     if (node.GetRenderProperties().GetUseEffect() && RSSystemParameters::GetDrawingEffectRegionEnabledDfx()) {
@@ -5303,17 +4761,10 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
         std::lock_guard<std::mutex> lock(drawingMutex_);
-#ifndef USE_ROSEN_DRAWING
-        auto clearFunc = [id = threadIndex_](sk_sp<SkSurface> surface) {
-            // The second param is null, 0 is an invalid value.
-            RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
-        };
-#else
         auto clearFunc = [id = threadIndex_](std::shared_ptr<Drawing::Surface> surface) {
             // The second param is null, 0 is an invalid value.
             RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
         };
-#endif
         drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
     }
     CheckAndSetNodeCacheType(node);
@@ -5331,11 +4782,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     notRunCheckAndSetNodeCacheType_ = false;
     isTextNeedCached_ = false;
     canvas_->SetCacheType(preType);
-#ifndef USE_ROSEN_DRAWING
-    canvas_->restore();
-#else
     canvas_->Restore();
-#endif
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (autoCacheEnable_) {
         node->GetAutoCache()->AfterDrawCache(canvas_, isDiscardSurface_, nodeCacheType_, true);
@@ -5355,11 +4802,7 @@ void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
     }
     nodesUseEffectForDfx_.clear();
     nodesUseEffectFallbackForDfx_.clear();
-#ifndef USE_ROSEN_DRAWING
-    SkAutoCanvasRestore acr(canvas_.get(), true);
-#else
     Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
-#endif
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
@@ -5385,27 +4828,6 @@ void RSUniRenderVisitor::PrepareOffscreenRender(RSRenderNode& node)
         RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, offscreenWidth or offscreenHeight is invalid");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    if (canvas_->GetSurface() == nullptr) {
-        canvas_->clipRect(SkRect::MakeWH(offscreenWidth, offscreenHeight));
-        RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, current surface is nullptr (software renderer?)");
-        return;
-    }
-    // create offscreen surface and canvas
-    offscreenSurface_ = canvas_->GetSurface()->makeSurface(offscreenWidth, offscreenHeight);
-    if (offscreenSurface_ == nullptr) {
-        RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, offscreenSurface is nullptr");
-        canvas_->clipRect(SkRect::MakeWH(offscreenWidth, offscreenHeight));
-        return;
-    }
-    auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface_.get());
-
-    // copy current canvas properties into offscreen canvas
-    offscreenCanvas->CopyConfiguration(*canvas_);
-
-    // backup current canvas and replace with offscreen canvas
-    canvasBackup_ = std::exchange(canvas_, offscreenCanvas);
-#else
     if (canvas_->GetSurface() == nullptr) {
         canvas_->ClipRect(Drawing::Rect(0, 0, offscreenWidth, offscreenHeight), Drawing::ClipOp::INTERSECT, false);
         RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, current surface is nullptr (software renderer?)");
@@ -5425,7 +4847,6 @@ void RSUniRenderVisitor::PrepareOffscreenRender(RSRenderNode& node)
 
     // backup current canvas and replace with offscreen canvas
     canvasBackup_ = std::exchange(canvas_, offscreenCanvas);
-#endif
 }
 
 void RSUniRenderVisitor::FinishOffscreenRender(bool isMirror)
@@ -5436,19 +4857,6 @@ void RSUniRenderVisitor::FinishOffscreenRender(bool isMirror)
     }
     RS_TRACE_NAME("RSUniRenderVisitor::OffscreenRender finish");
     // flush offscreen canvas, maybe unnecessary
-#ifndef USE_ROSEN_DRAWING
-    if (!isMirror) {
-        canvas_->flush();
-    }
-    // draw offscreen surface to current canvas
-    SkPaint paint;
-    paint.setAntiAlias(true);
-#ifdef NEW_SKIA
-    canvasBackup_->drawImage(offscreenSurface_->makeImageSnapshot(), 0, 0, SkSamplingOptions(), &paint);
-#else
-    canvasBackup_->drawImage(offscreenSurface_->makeImageSnapshot(), 0, 0, &paint);
-#endif
-#else
     if (!isMirror) {
         canvas_->Flush();
     }
@@ -5460,7 +4868,6 @@ void RSUniRenderVisitor::FinishOffscreenRender(bool isMirror)
         Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
     canvasBackup_->DrawImage(*offscreenSurface_->GetImageSnapshot().get(), 0, 0, sampling);
     canvasBackup_->DetachBrush();
-#endif
     // restore current canvas and cleanup
     offscreenSurface_ = nullptr;
     canvas_ = std::move(canvasBackup_);
@@ -5596,22 +5003,6 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isM
         if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0 && isMirror) {
             std::swap(mainWidth, mainHeight);
         }
-#ifndef USE_ROSEN_DRAWING
-        sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
-        if (!skImage) {
-            RS_LOGE("RSUniRenderVisitor::DrawWatermarkIfNeed: no image!");
-            return;
-        }
-        SkPaint rectPaint;
-        auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
-        auto skDstRect = SkRect::MakeWH(mainWidth, mainHeight);
-#ifdef NEW_SKIA
-        canvas_->drawImageRect(
-            skImage, skSrcRect, skDstRect, SkSamplingOptions(), &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-        canvas_->drawImageRect(skImage, skSrcRect, skDstRect, &rectPaint);
-#endif
-#else
         std::shared_ptr<Drawing::Image> drImage = RSMainThread::Instance()->GetWatermarkImg();
         if (drImage == nullptr) {
             return;
@@ -5623,7 +5014,6 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isM
         canvas_->DrawImageRect(*drImage, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas_->DetachBrush();
-#endif
     }
 }
 
@@ -5721,11 +5111,7 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
             auto& [child, canvasStatus] = existingNodeIter->second;
             canvas_->SetCanvasStatus(canvasStatus);
             canvas_->MultiplyAlpha(PreCanvasStatus.alpha_);
-#ifndef USE_ROSEN_DRAWING
-            canvas_->concat(PreCanvasStatus.matrix_);
-#else
             canvas_->ConcatMatrix(PreCanvasStatus.matrix_);
-#endif
             child->Process(shared_from_this());
             return true;
         }
@@ -5746,15 +5132,9 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         } else {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode: alpha_ is zero");
         }
-#ifndef USE_ROSEN_DRAWING
-        if (!currentStatus.matrix_.invert(&canvasStatus.matrix_)) {
-            RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
-        }
-#else
         if (!currentStatus.matrix_.Invert(canvasStatus.matrix_)) {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
         }
-#endif
         RenderParam value { node.shared_from_this(), canvasStatus };
         {
             std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
@@ -5786,36 +5166,6 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
     unpairedTransitionNodes_.clear();
 }
 #ifdef ENABLE_RECORDING_DCL
-#ifndef USE_ROSEN_DRAWING
-void RSUniRenderVisitor::tryCapture(float width, float height)
-{
-    if (!RSSystemProperties::GetRecordingEnabled()) {
-        return;
-    }
-    recordingCanvas_ = std::make_unique<RSRecordingCanvas>(width, height);
-    RS_TRACE_NAME("RSUniRender:Recording begin");
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-#ifdef NEW_SKIA
-    recordingCanvas_->SetGrRecordingContext(canvas_->recordingContext());
-#else
-    recordingCanvas_->SetGrContext(canvas_->getGrContext()); // SkImage::MakeFromCompressed need GrContext
-#endif
-#endif
-    canvas_->addCanvas(recordingCanvas_.get());
-    RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).CheckAndRecording();
-}
-
-void RSUniRenderVisitor::endCapture() const
-{
-    if (!RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetRecordingEnabled()) {
-        return;
-    }
-    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
-    RS_TRACE_NAME("RSUniRender:RecordingToFile curFrameNum = " +
-        std::to_string(RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetCurDumpFrame()));
-    RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).RecordingToFile(drawCmdList);
-}
-#else
 void RSUniRenderVisitor::tryCapture(float width, float height)
 {
     if (!RSSystemProperties::GetRecordingEnabled()) {
@@ -5842,7 +5192,6 @@ void RSUniRenderVisitor::endCapture() const
     RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).RecordingToFile(drawCmdList);
 }
 #endif
-#endif
 
 void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node)
 {
@@ -5855,22 +5204,6 @@ void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node)
             rotation = static_cast<ScreenRotation>(static_cast<int>(rotation) + 1);
         }
     }
-#ifndef USE_ROSEN_DRAWING
-    if (rotation != ScreenRotation::ROTATION_0) {
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
-        if (rotation == ScreenRotation::ROTATION_90) {
-            canvas_->rotate(90);
-            canvas_->translate(0, -(static_cast<float>(mainScreenInfo.height)));
-        } else if (rotation == ScreenRotation::ROTATION_180) {
-            canvas_->rotate(180, static_cast<float>(mainScreenInfo.width) / 2,
-                static_cast<float>(mainScreenInfo.height) / 2);
-        } else if (rotation == ScreenRotation::ROTATION_270) {
-            canvas_->rotate(270);
-            canvas_->translate(-(static_cast<float>(mainScreenInfo.width)), 0);
-        }
-    }
-#else
     if (rotation != ScreenRotation::ROTATION_0) {
         auto screenManager = CreateOrGetScreenManager();
         auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
@@ -5885,7 +5218,6 @@ void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node)
             canvas_->Translate(-(static_cast<float>(mainScreenInfo.width)), 0);
         }
     }
-#endif
 }
 
 void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation)
@@ -5917,11 +5249,7 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
     float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
     // If the width and height not match the main screen, calculate the dstRect.
     if (mainWidth != boundsWidth || mainHeight != boundsHeight) {
-#ifndef USE_ROSEN_DRAWING
-        canvas_->clear(SK_ColorBLACK);
-#else
         canvas_->Clear(SK_ColorBLACK);
-#endif
         float mirrorScale = 1.0f; // 1 for init scale
         float startX = 0.0f;
         float startY = 0.0f;
@@ -5932,13 +5260,8 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
             mirrorScale = boundsWidth / mainWidth;
             startY = (boundsHeight - (mirrorScale * mainHeight)) / 2; // 2 for calc Y
         }
-#ifndef USE_ROSEN_DRAWING
-        canvas_->translate(startX, startY);
-        canvas_->scale(mirrorScale, mirrorScale);
-#else
         canvas_->Translate(startX, startY);
         canvas_->Scale(mirrorScale, mirrorScale);
-#endif
     }
 }
 
@@ -5973,11 +5296,7 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate()
     if (canvas_ == nullptr) {
         return true;
     }
-#ifndef USE_ROSEN_DRAWING
-    int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->getTotalMatrix());
-#else
     int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->GetTotalMatrix());
-#endif
     return angle != 0 && angle % ROTATION_90 == 0;
 }
 

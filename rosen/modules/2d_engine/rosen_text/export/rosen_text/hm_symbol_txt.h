@@ -20,11 +20,7 @@
 #include <vector>
 #include "draw/color.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/HMSymbol.h"
-#else
 #include "text/hm_symbol.h"
-#endif
 
 #define EFFECT_NONE 0
 #define EFFECT_SCALE 1
@@ -41,11 +37,7 @@ public:
     HMSymbolTxt() {}
     ~HMSymbolTxt() {}
 
-#ifndef USE_ROSEN_DRAWING
-    void SetRenderColor(const std::vector<SColor>& colorList)
-#else
     void SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
-#endif
     {
         colorList_ = colorList;
     }
@@ -54,30 +46,18 @@ public:
     {
         colorList_.clear();
         for (auto color: colorList) {
-#ifndef USE_ROSEN_DRAWING
-            SColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#else
             Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#endif
             colorList_.push_back(colorIt);
         }
     }
 
     void SetRenderColor(const Drawing::Color& color)
     {
-#ifndef USE_ROSEN_DRAWING
-        SColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#else
         Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-#endif
         colorList_ = {colorIt};
     }
 
-#ifndef USE_ROSEN_DRAWING
-    void SetRenderColor(const SColor& colorList)
-#else
     void SetRenderColor(const Drawing::DrawingSColor& colorList)
-#endif
     {
         colorList_ = {colorList};
     }
@@ -85,17 +65,6 @@ public:
     void SetRenderMode(const uint32_t& renderMode)
     {
         switch (renderMode) {
-#ifndef USE_ROSEN_DRAWING
-            case RENDER_SINGLE:
-                renderMode_ = SymbolRenderingStrategy::SINGLE;
-                break;
-            case RENDER_MULTIPLE_OPACITY:
-                renderMode_ = SymbolRenderingStrategy::MULTIPLE_OPACITY;
-                break;
-            case RENDER_MULTIPLE_COLOR:
-                renderMode_ = SymbolRenderingStrategy::MULTIPLE_COLOR;
-                break;
-#else
             case RENDER_SINGLE:
                 renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
                 break;
@@ -105,7 +74,6 @@ public:
             case RENDER_MULTIPLE_COLOR:
                 renderMode_ = Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR;
                 break;
-#endif
             default:
                 break;
         }
@@ -114,17 +82,6 @@ public:
     void SetSymbolEffect(const uint32_t& effectStrategy)
     {
         switch (effectStrategy) {
-#ifndef USE_ROSEN_DRAWING
-            case EFFECT_NONE:
-                effectStrategy_ = EffectStrategy::NONE;
-                break;
-            case EFFECT_SCALE:
-                effectStrategy_ = EffectStrategy::SCALE;
-                break;
-            case EFFECT_HIERARCHICAL:
-                effectStrategy_ = EffectStrategy::HIERARCHICAL;
-                break;
-#else
             case EFFECT_NONE:
                 effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
                 break;
@@ -134,49 +91,30 @@ public:
             case EFFECT_HIERARCHICAL:
                 effectStrategy_ = Drawing::DrawingEffectStrategy::HIERARCHICAL;
                 break;
-#endif
             default:
                 break;
         }
     }
 
-#ifndef USE_ROSEN_DRAWING
-    std::vector<SColor> GetRenderColor() const
-#else
     std::vector<Drawing::DrawingSColor> GetRenderColor() const
-#endif
     {
         return colorList_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    SymbolRenderingStrategy GetRenderMode() const
-#else
     Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const
-#endif
     {
         return renderMode_;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    EffectStrategy GetEffectStrategy() const
-#else
     Drawing::DrawingEffectStrategy GetEffectStrategy() const
-#endif
     {
         return effectStrategy_;
     }
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    std::vector<SColor> colorList_;
-    SymbolRenderingStrategy renderMode_ = SymbolRenderingStrategy::SINGLE;
-    EffectStrategy effectStrategy_ = EffectStrategy::NONE;
-#else
     std::vector<Drawing::DrawingSColor> colorList_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
     Drawing::DrawingEffectStrategy effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
-#endif
 };
 }
 }

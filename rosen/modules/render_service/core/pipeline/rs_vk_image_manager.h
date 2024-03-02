@@ -34,11 +34,7 @@ namespace Rosen {
 
 class NativeVkImageRes {
 public:
-#ifndef USE_ROSEN_DRAWING
-    NativeVkImageRes(NativeWindowBuffer* nativeWindowBuffer, GrBackendTexture backendTexture,
-#else
     NativeVkImageRes(NativeWindowBuffer* nativeWindowBuffer, Drawing::BackendTexture backendTexture,
-#endif
         NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper)
         : mNativeWindowBuffer(nativeWindowBuffer),
         mBackendTexture_(backendTexture),
@@ -48,11 +44,7 @@ public:
 
     ~NativeVkImageRes();
 
-#ifndef USE_ROSEN_DRAWING
-    const GrBackendTexture& GetBackendTexture() const
-#else
     const Drawing::BackendTexture& GetBackendTexture() const
-#endif
     {
         return mBackendTexture_;
     }
@@ -76,11 +68,7 @@ public:
 
 private:
     NativeWindowBuffer* mNativeWindowBuffer;
-#ifndef USE_ROSEN_DRAWING
-    GrBackendTexture mBackendTexture_;
-#else
     Drawing::BackendTexture mBackendTexture_;
-#endif
     NativeBufferUtils::VulkanCleanupHelper* mVulkanCleanupHelper;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
 };

@@ -52,17 +52,10 @@ HWTEST_F(LinearGradientBlurFilterTest, testInterface, TestSize.Level1)
     auto filter = std::make_shared<RSLinearGradientBlurFilter>(linearGradientBlurPara, width, height);
     EXPECT_TRUE(filter != nullptr);
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas canvas;
-    SkRect src;
-    SkRect dst;
-    sk_sp<SkImage> image;
-#else
     Drawing::Canvas canvas;
     Drawing::Rect src;
     Drawing::Rect dst;
     std::shared_ptr<Drawing::Image> image;
-#endif
 
     filter->DrawImageRect(canvas, image, src, dst);
 }

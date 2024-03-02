@@ -18,30 +18,17 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkPathEffect.h>
-#else
 #include "drawing.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 class TexginePathEffect {
 public:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkPathEffect> GetPathEffect() const;
-    void SetPathEffect(const sk_sp<SkPathEffect> effect);
-#else
     std::shared_ptr<RSPathEffect> GetPathEffect() const;
     void SetPathEffect(const std::shared_ptr<RSPathEffect> effect);
-#endif
 private:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkPathEffect> pathEffect_ = nullptr;
-#else
     std::shared_ptr<RSPathEffect> pathEffect_ = nullptr;
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

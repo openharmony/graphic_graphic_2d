@@ -22,11 +22,7 @@ using namespace testing;
 using namespace testing::ext;
 
 struct MockVars {
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkPathEffect> skPathEffect_ = nullptr;
-#else
     std::shared_ptr<RSPathEffect> skPathEffect_ = nullptr;
-#endif
 };
 
 namespace {
@@ -38,12 +34,6 @@ void InitTp1peMockVars(struct MockVars &&vars)
 }
 } // namespace
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkPathEffect> SkPath1DPathEffect::Make(const SkPath& path, SkScalar advance, SkScalar phase, Style style)
-{
-    return g_tp1peMockvars.skPathEffect_;
-}
-#endif
 
 namespace OHOS {
 namespace Rosen {

@@ -31,17 +31,9 @@ RSSurfaceDarwin::RSSurfaceDarwin(OnRenderFunc onRender)
 
 RSSurfaceDarwin::~RSSurfaceDarwin()
 {
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    if (grContext_) {
-        grContext_->releaseResourcesAndAbandonContext();
-    }
-#endif
-#else
     if (grContext_) {
         grContext_->ReleaseResourcesAndAbandonContext();
     }
-#endif
     grContext_ = nullptr;
 }
 
@@ -54,45 +46,6 @@ void RSSurfaceDarwin::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& fram
 {
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
-    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
-{
-    if (onRender_ == nullptr) {
-        ROSEN_LOGE("RSSurfaceDarwin::RequestFrame, producer is nullptr");
-        return nullptr;
-    }
-
-    auto frame = std::make_unique<RSSurfaceFrameDarwin>(width, height);
-    if (SetupGrContext() == false) {
-        return frame;
-    }
-
-    constexpr auto colorType = kRGBA_8888_SkColorType;
-#if defined(NEW_SKIA)
-    SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
-#else
-    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-#endif
-    constexpr uint32_t format = 0x8058; // GL_RGBA8
-    GrBackendRenderTarget backendRenderTarget(
-        frame->width_, frame->height_, 0, 8, {.fFBOID = 0, .fFormat = format});
-    frame->surface_ = SkSurface::MakeFromBackendRenderTarget(grContext_.get(),
-                                                             backendRenderTarget,
-                                                             kTopLeft_GrSurfaceOrigin,
-                                                             colorType, skColorSpace_, &surfaceProps);
-#ifdef USE_GLFW_WINDOW
-    if (frame->surface_ != nullptr) {
-        const auto &canvas = frame->surface_->getCanvas();
-        if (canvas != nullptr) {
-            canvas->translate(0, frame->height_);
-            canvas->scale(1, -1);
-        }
-    }
-#endif
-    return frame;
-}
-#else
 std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
 {
@@ -126,7 +79,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
 #endif
     return frame;
 }
-#endif
 
 bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
@@ -146,17 +98,6 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
         addr = frameDarwin->addr_.get();
     }
 
-#ifndef USE_ROSEN_DRAWING
-    constexpr auto colorType = kRGBA_8888_SkColorType;
-    SkBitmap bitmap;
-    bitmap.setInfo(SkImageInfo::Make(frameDarwin->width_,
-                                     frameDarwin->height_,
-                                     colorType, kPremul_SkAlphaType));
-    bitmap.setPixels(addr);
-    if (frameDarwin->surface_ != nullptr) {
-        frameDarwin->surface_->readPixels(bitmap, 0, 0);
-    }
-#else
     Drawing::BitmapFormat format = { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
     bitmap.Build(frameDarwin->width_, frameDarwin->height_, format);
@@ -165,7 +106,6 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
         auto image = frameDarwin->surface_->GetImageSnapshot();
         image->ReadPixels(bitmap, 0, 0);
     }
-#endif
 #ifdef USE_GLFW_WINDOW
     if (frameDarwin->surface_ != nullptr) {
         YInvert(addr, frameDarwin->width_, frameDarwin->height_);
@@ -226,36 +166,12 @@ bool RSSurfaceDarwin::SetupGrContext()
     }
 
     GlfwRenderContext::GetGlobal()->MakeCurrent();
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<const GrGLInterface> glinterface{GrGLCreateNativeInterface()};
-    if (glinterface == nullptr) {
-        ROSEN_LOGE("glinterface is nullptr");
-        return false;
-    }
-
-    GrContextOptions options;
-    options.fPreferExternalImagesOverES3 = true;
-    options.fDisableDistanceFieldPaths = true;
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-    // fix svg antialiasing bug
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-#if defined(NEW_SKIA)
-    const auto &grContext = GrDirectContext::MakeGL(glinterface, options);
-#else
-    const auto &grContext = GrContext::MakeGL(glinterface, options);
-#endif
-    if (grContext == nullptr) {
-        ROSEN_LOGE("grContext is nullptr");
-        return false;
-    }
-#else
     auto grContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
     if (!grContext->BuildFromGL(options)) {
         RS_LOGE("grContext is nullptr");
         return false;
     }
-#endif
     grContext_ = grContext;
     return true;
 }

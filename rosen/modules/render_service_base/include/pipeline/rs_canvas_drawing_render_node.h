@@ -25,11 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
-#ifndef USE_ROSEN_DRAWING
-using ThreadInfo = std::pair<uint32_t, std::function<void(sk_sp<SkSurface>)>>;
-#else
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
-#endif
 class RSRecordingCanvas;
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
@@ -49,15 +45,9 @@ public:
         return Type;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap GetBitmap(const uint32_t tid = UNI_MAIN_THREAD_INDEX);
-    bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect,
-        const uint32_t tid = UNI_MAIN_THREAD_INDEX, std::shared_ptr<DrawCmdList> drawCmdList = nullptr);
-#else
     Drawing::Bitmap GetBitmap(const uint64_t tid = UINT32_MAX);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
-#endif
 
     void SetSurfaceClearFunc(ThreadInfo threadInfo)
     {
@@ -81,39 +71,20 @@ private:
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
-#ifndef USE_ROSEN_DRAWING
-    void ProcessCPURenderInBackgroundThread(std::shared_ptr<DrawCmdList> cmds);
-#else
     void ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds);
-#endif
 
     std::mutex imageMutex_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> skSurface_;
-    sk_sp<SkImage> skImage_;
-    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
-#else
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
-#endif
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
 #endif
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
-#ifndef USE_ROSEN_DRAWING
-    ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
-    ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
-#else
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
-#endif
     std::mutex drawCmdListsMutex_;
-#ifndef USE_ROSEN_DRAWING
-    std::map<RSModifierType, std::list<DrawCmdListPtr>> drawCmdLists_;
-#else
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
-#endif
 };
 
 } // namespace Rosen

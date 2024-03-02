@@ -22,22 +22,14 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-class RSB_EXPORT RSLightUpEffectFilter : public RSSkiaFilter {
-#else
 class RSB_EXPORT RSLightUpEffectFilter : public RSDrawingFilter {
-#endif
 public:
     RSLightUpEffectFilter(float lightUpDegree);
     RSLightUpEffectFilter(const RSLightUpEffectFilter&) = delete;
     RSLightUpEffectFilter operator=(const RSLightUpEffectFilter&) = delete;
     ~RSLightUpEffectFilter() override;
     float GetLightUpDegree();
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override;
-#else
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
-#endif
     std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
@@ -50,11 +42,7 @@ public:
 
 private:
     float lightUpDegree_ = 0.f;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImageFilter> CreateLightUpEffectFilter(float lightUpDegree);
-#else
     std::shared_ptr<Drawing::ImageFilter> CreateLightUpEffectFilter(float lightUpDegree);
-#endif
 
     friend class RSMarshallingHelper;
 };

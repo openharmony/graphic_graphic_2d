@@ -47,11 +47,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix001, TestSize.Level1)
     RSObjAbsGeometry rsObjAbsGeometry;
     std::shared_ptr<RSObjAbsGeometry> parent = nullptr;
     Quaternion quaternion;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix contextMatrix;
-#else
     Drawing::Matrix contextMatrix;
-#endif
     float x = 0.5f;
     float y = 0.5f;
     float w = 0.5f;
@@ -123,13 +119,8 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix002, TestSize.Level1)
     float y = 0.f;
     float w = 3.5f;
     float h = 3.5f;
-#ifndef USE_ROSEN_DRAWING
-    SkPoint offset = SkPoint::Make(offsetX, offsetY);
-    SkRect clipRect = SkRect::MakeLTRB(left, top, right, bottom);
-#else
     Drawing::Point offset = Drawing::Point(offsetX, offsetY);
     Drawing::Rect clipRect = Drawing::Rect(left, top, right, bottom);
-#endif
     rsObjAbsGeometry.SetRect(x, y, w, h);
     rsObjAbsGeometry.UpdateMatrix(parent, offset, clipRect);
     x = 0.5f;
@@ -153,11 +144,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateByMatrixFromSelf001, TestSize.Level1)
      */
     RSObjAbsGeometry rsObjAbsGeometry;
     Quaternion quaternion;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix contextMatrix;
-#else
     Drawing::Matrix contextMatrix;
-#endif
     float x = 0.5f;
     float y = 0.5f;
     float w = 0.5f;

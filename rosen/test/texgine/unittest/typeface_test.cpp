@@ -52,34 +52,9 @@ void InitMyMockVars(Mockvars vars)
     g_typefaceMockvars.typeface = std::make_unique<TextEngine::Typeface>(g_typefaceMockvars.texgineTypeface);
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromFile(const std::string &path, int index)
-{
-    return g_typefaceMockvars.texgineTypeface;
-}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-size_t TexgineTypeface::GetTableSize(uint32_t tag) const
-{
-    assert(g_typefaceMockvars.sizeIndex < g_typefaceMockvars.tableSize.size());
-    return g_typefaceMockvars.tableSize[g_typefaceMockvars.sizeIndex++];
-}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length,void* data) const
-{
-    return g_typefaceMockvars.dataLength[g_typefaceMockvars.lengthIndex++];
-}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineTypeface::GetFamilyName(TexgineString* name) const
-{
-    name->SetString(std::make_shared<SkString>(g_typefaceMockvars.name));
-}
-#endif
 
 extern "C" {
 hb_blob_t* hb_blob_create(const char* data, unsigned int length, hb_memory_mode_t mode,

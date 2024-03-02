@@ -16,11 +16,6 @@
 #ifndef RS_UNI_UI_CAPTURE
 #define RS_UNI_UI_CAPTURE
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkSurface.h"
-#endif
 #include "pixel_map.h"
 #include "rs_base_render_engine.h"
 
@@ -63,11 +58,7 @@ private:
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
-#ifndef USE_ROSEN_DRAWING
-        void SetCanvas(std::shared_ptr<RSRecordingCanvas> canvas);
-#else
         void SetCanvas(std::shared_ptr<ExtendRecordingCanvas> canvas);
-#endif
         void SetPaintFilterCanvas(std::shared_ptr<RSPaintFilterCanvas> canvas);
 
     private:
@@ -80,16 +71,6 @@ private:
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
 
-#ifndef USE_ROSEN_DRAWING
-        SkMatrix captureMatrix_ = SkMatrix::I();
-        bool isUniRender_ = false;
-        std::shared_ptr<RSBaseRenderEngine> renderEngine_;
-    };
-    sk_sp<SkSurface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap);
-    void PostTaskToRSRecord(std::shared_ptr<RSRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
-        std::shared_ptr<RSUniUICaptureVisitor> visitor);
-    bool CopyDataToPixelMap(sk_sp<SkImage> img, std::shared_ptr<Media::PixelMap> pixelmap);
-#else
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();
         bool isUniRender_ = false;
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -99,7 +80,6 @@ private:
         std::shared_ptr<RSUniUICaptureVisitor> visitor);
     bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
         std::shared_ptr<Media::PixelMap> pixelmap);
-#endif
     std::shared_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
 
     NodeId nodeId_;

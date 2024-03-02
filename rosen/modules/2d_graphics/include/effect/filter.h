@@ -26,11 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT Filter {
-#else
 class DRAWING_API Filter {
-#endif
 public:
     enum class FilterQuality {
         NONE,

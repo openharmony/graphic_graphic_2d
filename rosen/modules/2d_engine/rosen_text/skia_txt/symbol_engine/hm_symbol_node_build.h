@@ -21,13 +21,7 @@
 #include <vector>
 #include <utility>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/HMSymbol.h"
-#include "include/core/SkPaint.h"
-#include "include/pathops/SkPathOps.h"
-#else
 #include "drawing.h"
-#endif
 #include "symbol_engine/hm_symbol_txt.h"
 #include "rosen_text/symbol_animation_config.h"
 #include "common/rs_vector4.h"
@@ -38,17 +32,6 @@ namespace SPText {
 
 class SymbolNodeBuild {
 public:
-#ifndef USE_ROSEN_DRAWING
-    SymbolNodeBuild(const AnimationSetting animationSetting, const HMSymbolData symbolData,
-    const EffectStrategy effectStrategy, const std::pair<double, double> offset);
-
-    void AddWholeAnimation(const HMSymbolData &symbolData, const Vector4f &nodeBounds,
-        std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
-
-    void AddHierarchicalAnimation(HMSymbolData &symbolData, const Vector4f &nodeBounds,
-        std::vector<GroupSetting> &groupSettings,
-        std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
-#else
     SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
     const RSEffectStrategy effectStrategy, const std::pair<double, double> offset);
 
@@ -58,7 +41,6 @@ public:
     void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::vector<RSGroupSetting> &groupSettings,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
-#endif
     ~SymbolNodeBuild() {}
     bool DecomposeSymbolAndDraw();
     void ClearAnimation();
@@ -75,15 +57,9 @@ public:
     }
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    AnimationSetting animationSetting_;
-    HMSymbolData symbolData_;
-    EffectStrategy effectStrategy_;
-#else
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
     RSEffectStrategy effectStrategy_;
-#endif
     double offsetX_;
     double offsetY_;
 

@@ -17,9 +17,6 @@
 
 #include "ui/rs_node.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -39,11 +36,7 @@ public:
 
     static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* BeginRecording(int width, int height);
-#else
     ExtendRecordingCanvas* BeginRecording(int width, int height);
-#endif
     bool IsRecording() const;
     void FinishRecording();
     float GetPaintWidth() const;
@@ -64,11 +57,7 @@ protected:
     BoundsChangedCallback boundsChangedCallback_;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* recordingCanvas_ = nullptr;
-#else
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;
-#endif
     bool recordingUpdated_ = false;
     mutable std::mutex mutex_;
 
