@@ -102,7 +102,6 @@ void SurfaceUtils::ComputeTransformByMatrix(GraphicTransformType& transform,
     const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> flipH = {-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> flipV = {1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 
-    *transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     switch (transform) {
         case GraphicTransformType::GRAPHIC_ROTATE_NONE:
             break;
@@ -156,16 +155,21 @@ void SurfaceUtils::ComputeTransformMatrix(float matrix[16],
 
     float bufferWidth = buffer->GetWidth();
     float bufferHeight = buffer->GetHeight();
+    bool changeFlag = false;
     if (crop.w < bufferWidth && bufferWidth != 0) {
         tx = (float(crop.x) / bufferWidth);
         sx = (float(crop.w) / bufferWidth);
+        changeFlag = true;
     }
     if (crop.h < bufferHeight && bufferHeight != 0) {
         ty = (float(bufferHeight - crop.y) / bufferHeight);
         sy = (float(crop.h) / bufferHeight);
+        changeFlag = true;
     }
-    static const std::array<float, 16> cropMatrix = {sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1};
-    transformMatrix = MatrixProduct(cropMatrix, transformMatrix);
+    if (changeFlag) {
+        static const std::array<float, 16> cropMatrix = {sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1};
+        transformMatrix = MatrixProduct(cropMatrix, transformMatrix);
+    }
 
     auto ret = memcpy_s(matrix, sizeof(transformMatrix),
                         transformMatrix.data(), sizeof(transformMatrix));

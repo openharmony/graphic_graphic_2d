@@ -300,7 +300,9 @@ BufferHandle *SurfaceBufferImpl::GetBufferHandle() const
 void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const GraphicColorGamut& colorGamut)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    surfaceBufferColorGamut_ = colorGamut;
+    if (surfaceBufferColorGamut_ != colorGamut) {
+        surfaceBufferColorGamut_ = colorGamut;
+    }
 }
 
 const GraphicColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
@@ -312,7 +314,9 @@ const GraphicColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
 void SurfaceBufferImpl::SetSurfaceBufferTransform(const GraphicTransformType& transform)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    transform_ = transform;
+    if (transform_ != transform) {
+        transform_ = transform;
+    }
 }
 
 const GraphicTransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
