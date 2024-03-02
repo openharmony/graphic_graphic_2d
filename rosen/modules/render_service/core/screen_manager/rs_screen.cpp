@@ -69,6 +69,8 @@ std::map<ScreenHDRFormat, GraphicHDRFormat> RSScreen::RS_TO_HDI_HDR_FORMAT_MAP {
     {IMAGE_HDR_ISO_SINGLE, GRAPHIC_NOT_SUPPORT_HDR},
 };
 
+constexpr int MAX_LUM = 1000;
+
 RSScreen::RSScreen(ScreenId id,
     bool isVirtual,
     std::shared_ptr<HdiOutput> output,
@@ -754,7 +756,7 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
 
 const GraphicHDRCapability& RSScreen::GetHDRCapability()
 {
-    hdrCapability_.maxLum = 1000; // mock data
+    hdrCapability_.maxLum = MAX_LUM; // mock data
     return hdrCapability_;
 }
 

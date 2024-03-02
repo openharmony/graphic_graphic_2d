@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
- #ifndef RS_CORE_PIPELINE_PROCESSOR_H
- #define RS_CORE_PIPELINE_PROCESSOR_H
+#ifndef RS_CORE_PIPELINE_PROCESSOR_H
+#define RS_CORE_PIPELINE_PROCESSOR_H
 
 #include <memory>
 
