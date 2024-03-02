@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
- #ifndef RS_PROCESSOR_FACTORY_H
- #define RS_PROCESSOR_FACTORY_H
+#ifndef RS_PROCESSOR_FACTORY_H
+#define RS_PROCESSOR_FACTORY_H
 
 #include "pipeline/rs_processor.h"
 

@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 RSScreenModeInfo::RSScreenModeInfo(int32_t width, int32_t height, uint32_t refreshRate, int32_t id)
-    : width_(width),height_(height), refreshRate_(refreshRate), modeId_(id)
+    : width_(width), height_(height), refreshRate_(refreshRate), modeId_(id)
 {
 }
 
