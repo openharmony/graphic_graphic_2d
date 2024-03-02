@@ -1197,16 +1197,23 @@ void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node
     node.UpdateFilterCacheManagerWithCacheRegion(dirtyManager, prepareClipRect_);
 }
 
-bool RSUniRenderVisitor::IsSubTreeNeedPrepare(RSRenderNode& node) const
+bool RSUniRenderVisitor::IsSubTreeNeedPrepare(RSRenderNode& node, std::shared_ptr<RSRenderNode> parent) const
 {
     // stop visit invisible or clean without filter subtree
     if (!node.ShouldPaint()) {
         node.SetSubTreeDirty(false);
+        node.UpdateChildrenOutOfRectFlag(false); // not need to consider
         return false;
     }
     if (node.IsSubTreeDirty()) {
         node.SetSubTreeDirty(false);
+        node.UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
+    }
+    // for clean subtree, keep outofparent flag and map childrenrect if node is (geo)dirty
+    if (curDirty_) {
+        node.MapChildrenRect();
+        node.UpdateParentChildrenRect(parent);
     }
     // if clean without filter skip subtree
     return node.ChildHasVisibleFilter() ? filterInGlobal_ : false;
@@ -1238,6 +1245,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
+    // todo: update rotation based on screenInfo
+    dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     needRecalculateOcclusion_ = false;
     accumulatedRegion_.Reset();
     while (!curMainAppWindowNodesIds_.empty()) {
@@ -1276,7 +1285,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         curSurfaceDirtyManager_->Clear();
         filterInGlobal_ = curSurfaceNode_->IsTransparent();
     }
-
+    bool dirtyFlag = dirtyFlag_;
     curMainAppWindowNodesIds_.push(node.GetId());
     curMainSurfaceNodes_.push_back(std::shared_ptr<RSSurfaceRenderNode>(&node));
     if (!needRecalculateOcclusion_) {
@@ -1301,8 +1310,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     node.ApplyModifiers();
 
-    if (node.IsDirty()) {
-        node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
+    if (dirtyFlag_ || node.IsDirty()) {
+        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
     }
     auto dstRect = geoPtr->GetAbsRect();
     node.SetDstRect(dstRect);
@@ -1330,10 +1339,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         return;
     }
 
-    if (IsSubTreeNeedPrepare(node) || !IsSubTreeOccluded(node)) {
+    if (IsSubTreeNeedPrepare(node, nodeParent) || !IsSubTreeOccluded(node)) {
         QuickPrepareChildren(node);
     }
     prepareClipRect_ = prepareClipRect;
+    dirtyFlag_ = dirtyFlag;
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
 }
 
@@ -1389,13 +1399,14 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto nodeParent = node.GetParent().lock();
     auto rsParent = (nodeParent);
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
+    bool dirtyFlag = dirtyFlag_;
 
     node.ApplyModifiers();
 
     RectI prepareClipRect = prepareClipRect_;
     // TODO: can optimize in container node's children not contain surfacenode.
-    if (node.IsDirty()) {
-        node.Update(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
+    if (dirtyFlag_ || node.IsDirty()) {
+        dirtyFlag_ = node.Update(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
         // TODO: divide to two parts: a. update matrix  b. collect dirty
     }
 
@@ -1412,8 +1423,11 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     }
 
     // 1. Recursively traverse child nodes
-    QuickPrepareChildren(node);
+    if (!curSurfaceNode_ || IsSubTreeNeedPrepare(node, nodeParent)) {
+        QuickPrepareChildren(node);
+    }
     prepareClipRect_ = prepareClipRect;
+    dirtyFlag_ = dirtyFlag;
 }
 
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
@@ -1422,6 +1436,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     auto children = node.GetSortedChildren();
     std::for_each((*children).rbegin(), (*children).rend(),
         [this](const std::shared_ptr<RSRenderNode>& node) {
+        curDirty_ = node->IsDirty();
         node->Prepare(shared_from_this());
     });
     PrepareChildrenAfter(node);
@@ -1434,6 +1449,7 @@ void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
         auto globalFilterRect = RectI();
         if (curSurfaceNode_ && curSurfaceNode_->IsTransparent()) {
             if (auto geoPtr = node.GetRenderProperties().GetBoundsGeometry()) {
+                // since node's geoMatrix matches surfaceNode after update, map again to display
                 globalFilterRect = geoPtr->MapAbsRect(node.GetOldDirtyInSurface().ConvertTo<float>());
                 globalFilterRects_.emplace_back(globalFilterRect);
             }

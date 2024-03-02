@@ -194,6 +194,7 @@ public:
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
+    void MapChildrenRect();
     void SetDirty(bool forceAddToActiveList = false);
 
     virtual void AddDirtyType(RSModifierType type)

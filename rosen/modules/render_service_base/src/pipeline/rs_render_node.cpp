@@ -353,6 +353,13 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
     }
 }
 
+void RSRenderNode::MapChildrenRect()
+{
+    if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
+        childrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
+    }
+}
+
 void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
