@@ -283,7 +283,7 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
 
 std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>,
     std::shared_ptr<RSRenderPropertyBase>>
-RSRenderSpringAnimation::GetSpringStatus() const
+    RSRenderSpringAnimation::GetSpringStatus() const
 {
     // if animation is never started, return start value and initial velocity
     // fraction_threshold will change with animationScale.

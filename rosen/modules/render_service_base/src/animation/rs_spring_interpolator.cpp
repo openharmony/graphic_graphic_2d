@@ -57,7 +57,9 @@ bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id = parcel.ReadUint64();
-    float response, dampingRatio, initialVelocity;
+    float response;
+    float dampingRatio;
+    float initialVelocity;
     if (!(parcel.ReadFloat(response) && parcel.ReadFloat(dampingRatio) && parcel.ReadFloat(initialVelocity))) {
         ROSEN_LOGE("RSSpringInterpolator::Unmarshalling, SpringInterpolator failed");
         return nullptr;

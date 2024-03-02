@@ -28,6 +28,8 @@
 
 namespace OHOS {
 namespace Rosen {
+static constexpr int HALF_NUM = 2;
+
 RSPathAnimation::RSPathAnimation(std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPath>& animationPath) : RSPropertyAnimation(property), animationPath_(animationPath)
 {}
@@ -220,14 +222,14 @@ void RSPathAnimation::OnUpdateStagingValue(bool isFirstStart)
     float targetRotation = 0.0f;
     float byRotation = endTangent - startTangent;
     if (isFirstStart) {
-        if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
+        if (GetAutoReverse() && GetRepeatCount() % HALF_NUM == 0) {
             targetRotation = startTangent;
         } else {
             targetRotation = endTangent;
         }
     } else {
         float currentRotation = target->GetStagingProperties().GetRotation();
-        if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
+        if (GetAutoReverse() && GetRepeatCount() % HALF_NUM == 0) {
             targetRotation = IsReversed() ? currentRotation + byRotation
                 : currentRotation - byRotation;
         } else {
