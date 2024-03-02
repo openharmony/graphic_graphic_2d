@@ -108,7 +108,9 @@ public:
 
     const std::shared_ptr<RSBaseRenderEngine>& GetRenderEngine() const
     {
-        return isUniRender_ ? uniRenderEngine_ : renderEngine_;
+        RS_LOGE("You'd better to call GetRenderEngine from RSUniRenderThread directly");
+        return std::move(RSUniRenderThread::Instance().GetRenderEngine());
+        // return isUniRender_ ? uniRenderEngine_ : renderEngine_;
     }
 
     bool GetClearMemoryFinished() const

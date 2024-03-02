@@ -30,24 +30,30 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
     return std::make_unique<RSCanvasRenderNodeDrawable>(std::move(node));
 }
 
-void RSCanvasRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSCanvasRenderNodeDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
 {
     if (!renderNode_) {
         RS_LOGE("There is no CanvasNode in drawable");
         return;
     }
+
+    if (!canvas) {
+        RS_LOGE("There is no canvas in drawable");
+        return;
+    }
+
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
         RS_LOGE("params is nullptr");
         return;
     }
-    canvas.ConcatMatrix(params->GetMatrix());
-    bool quickjected = canvas.QuickReject(params->GetBounds());
+    canvas->ConcatMatrix(params->GetMatrix());
+    bool quickjected = canvas->QuickReject(params->GetBounds());
     if (quickjected) {
         RS_LOGE("this drawable has quickjected");
     }
-    canvas.Save();
+    canvas->Save();
     RSRenderNodeDrawable::OnDraw(canvas);
-    canvas.Restore();
+    canvas->Restore();
 }
 } // namespace OHOS::Rosen

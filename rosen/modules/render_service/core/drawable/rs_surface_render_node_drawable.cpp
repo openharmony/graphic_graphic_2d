@@ -30,12 +30,18 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
     return std::make_unique<RSSurfaceRenderNodeDrawable>(std::move(node));
 }
 
-void RSSurfaceRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSSurfaceRenderNodeDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
 {
     if (!renderNode_) {
         RS_LOGE("There is no CanvasNode in RSSurfaceRenderNodeDrawable");
         return;
     }
+
+    if (!canvas) {
+        RS_LOGE("There is no canvas in drawable");
+        return;
+    }
+
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
 
     RSRenderNodeDrawable::OnDraw(canvas);

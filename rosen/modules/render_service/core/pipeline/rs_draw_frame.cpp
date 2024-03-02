@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSDrawFrame::RSDrawFrame()
+RSDrawFrame::RSDrawFrame() : unirenderInstance_(RSUniRenderThread::Instance())
 {
 
 }
@@ -29,21 +29,21 @@ RSDrawFrame::~RSDrawFrame() noexcept
 {
 
 }
+
 void RSDrawFrame::RenderFrame()
 {
     RS_TRACE_NAME_FMT("RenderFrame");
     Sync();
     UnblockMainThread();
     Render();
-    FlushFrame();
-    PostProcess();
 }
 
 void RSDrawFrame::PostAndWait()
 {
+    RS_TRACE_NAME_FMT("PostAndWait");
     std::unique_lock<std::mutex> frameLock(frameMutex_);
     canUnblockMainThread = false;
-    RSUniRenderThread::Instance()->PostTask([this]() {
+    unirenderInstance_.PostTask([this]() {
         RenderFrame();
     });
     frameCV_.wait(frameLock, [this] {return canUnblockMainThread;});
@@ -56,7 +56,7 @@ void RSDrawFrame::Sync()
         if (!node) {
             continue;
         }
-        //node->Sync();
+        node->Sync();
     }
 }
 
@@ -72,17 +72,7 @@ void RSDrawFrame::UnblockMainThread()
 
 void RSDrawFrame::Render()
 {
-    RSUniRenderThread::Instance()->Render();
-}
-
-void RSDrawFrame::FlushFrame()
-{
-    //todo
-}
-
-void RSDrawFrame::PostProcess()
-{
-    //todo
+    unirenderInstance_.Render();
 }
 
 } // namespace Rosen

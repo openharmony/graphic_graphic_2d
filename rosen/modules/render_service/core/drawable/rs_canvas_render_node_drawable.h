@@ -25,7 +25,7 @@ public:
     ~RSCanvasRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
-    void OnDraw(RSPaintFilterCanvas& canvas) const override;
+    void OnDraw(RSPaintFilterCanvas* canvas) const override;
 
 private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;

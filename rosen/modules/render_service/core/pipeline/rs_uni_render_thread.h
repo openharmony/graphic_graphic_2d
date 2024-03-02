@@ -28,7 +28,7 @@ namespace OHOS {
 namespace Rosen {
 class RSUniRenderThread {
 public:
-    static RSUniRenderThread* Instance();
+    static RSUniRenderThread& Instance();
 
     // disable copy and move
     RSUniRenderThread(const RSUniRenderThread&) = delete;
@@ -36,12 +36,12 @@ public:
     RSUniRenderThread(RSUniRenderThread&&) = delete;
     RSUniRenderThread& operator=(RSUniRenderThread&&) = delete;
 
-    void Init();
     void Start();
     void InitGrContext();
     void RenderFrames();
     void Sync(std::list<std::shared_ptr<RSRenderNode>> nodes);
     void PostTask(const std::function<void()>& task);
+    void PostSyncTask(const std::function<void()>& task);
     void Render();
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 
@@ -55,7 +55,6 @@ private:
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSContext> context_;
     std::unique_ptr<RSRenderNodeDrawable> rootNodeDrawable_;
-    std::shared_ptr<RSPaintFilterCanvas> canvas_;
 };
 } // namespace Rosen
 } // namespace OHOS

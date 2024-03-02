@@ -60,6 +60,7 @@ bool RSRenderService::Init()
         }
     } else {
         RSHardwareThread::Instance().Start();
+        RSUniRenderThread::Instance().Start();
     }
 
     auto generator = CreateVSyncGenerator();

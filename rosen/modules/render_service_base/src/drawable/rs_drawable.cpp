@@ -28,7 +28,7 @@ RSChildrenDrawable::RSChildrenDrawable(std::shared_ptr<const RSChildrenDrawableC
     : content_(std::move(content))
 {}
 
-void RSChildrenDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSChildrenDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
 {
     for (auto& drawable : content_->childrenDrawables_) {
         drawable->OnDraw(canvas);
@@ -40,10 +40,10 @@ RSCustomModifierDrawable::RSCustomModifierDrawable(std::shared_ptr<const RSCusto
     : content_(std::move(content))
 {}
 
-void RSCustomModifierDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSCustomModifierDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
 {
     for (auto& drawCmdList : content_->drawCmdList_) {
-        drawCmdList->Playback(canvas);
+        drawCmdList->Playback(*canvas);
     }
 }
 

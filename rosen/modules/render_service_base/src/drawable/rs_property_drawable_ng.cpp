@@ -25,18 +25,24 @@ RSPropertyDrawableNG::RSPropertyDrawableNG(std::shared_ptr<const RSPropertyDrawa
     : cmdList_(std::move(cmdList))
 {}
 
-void RSPropertyDrawableNG::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSPropertyDrawableNG::OnDraw(RSPaintFilterCanvas* canvas) const
 {
     if (cmdList_ == nullptr) {
         // empty draw cmd should be filter out during OnGenerate and OnUpdate, we should not reach here
         ROSEN_LOGE("RSPropertyDrawableNG::OnDraw, cmdList_ is null");
         return;
     }
+
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableNG::OnDraw, canvas is null");
+        return;
+    }
+
     const auto& drawCmdList = cmdList_->drawCmdList_;
     if (drawCmdList == nullptr) {
         return;
     }
-    drawCmdList->Playback(canvas);
+    drawCmdList->Playback(*canvas);
 }
 
 } // namespace OHOS::Rosen

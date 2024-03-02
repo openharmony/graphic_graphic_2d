@@ -20,6 +20,7 @@
 #include "drawable/rs_effect_render_node_drawable.h"
 #include "drawable/rs_root_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 
@@ -42,17 +43,23 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
     return nullptr;
 }
 
-void RSRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSRenderNodeDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
 {
     if (renderNode_ == nullptr) {
         return;
     }
+
+    if (!canvas) {
+        RS_LOGE("There is no canvas in drawable");
+        return;
+    }
+
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
     if (drawCmdList_ == nullptr) {
         return;
     }
-    Drawing::AutoCanvasRestore arc(canvas, true);
-    drawCmdList_->Playback(canvas);
+    Drawing::AutoCanvasRestore arc(*canvas, true);
+    drawCmdList_->Playback(*canvas);
 }
 
 } // namespace OHOS::Rosen

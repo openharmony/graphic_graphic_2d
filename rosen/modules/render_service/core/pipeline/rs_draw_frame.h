@@ -18,7 +18,9 @@
 #include <condition_variable>
 #include <mutex>
 #include <list>
+
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_uni_render_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,10 +38,11 @@ public:
     void RenderFrame();
     void UnblockMainThread();
     void Sync();
-    void FlushFrame();
     void Render();
-    void PostProcess();
+
 private:
+    RSUniRenderThread& unirenderInstance_;
+
     std::mutex frameMutex_;
     std::condition_variable frameCV_;
     std::list<std::shared_ptr<RSRenderNode>> nodes;

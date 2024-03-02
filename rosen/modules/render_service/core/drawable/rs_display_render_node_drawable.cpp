@@ -36,7 +36,7 @@ RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_pt
     return std::make_unique<RSDisplayRenderNodeDrawable>(std::move(node));
 }
 
-void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
+void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
 {
     (void)canvas;
 
@@ -66,7 +66,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
         return;
     }
 
-    auto renderEngine = RSUniRenderThread::Instance()->GetRenderEngine();
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (renderEngine == nullptr) {
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RenderEngine is null!");
         return;
@@ -81,7 +81,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
     if (!displayNodeSp->IsSurfaceCreated()) {
         sptr<IBufferConsumerListener> listener = new RSUniRenderListener(displayNodeSp);
         if (!displayNodeSp->CreateSurface(listener)) {
-            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode CreateSurface failed");
+            RS_LOGE("RSDisplayRenderNodeDrawable::ProcessDisplayRenderNode CreateSurface failed");
             return;
         }
     }
@@ -114,7 +114,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas& canvas) const
 
     // canvas draw
     curCanvas->Save();
-    RSRenderNodeDrawable::OnDraw(*curCanvas);
+    RSRenderNodeDrawable::OnDraw(curCanvas.get());
     curCanvas->Restore();
     renderFrame->Flush();
     processor->ProcessDisplaySurface(*displayNodeSp);

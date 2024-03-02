@@ -343,6 +343,7 @@ void RSMainThread::Init()
     //     renderEngine_->Init();
     // }
 #ifdef RS_ENABLE_GL
+    /* move to render thread ? */
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         int cacheLimitsTimes = 3;
 #ifdef NEW_RENDER_CONTEXT
@@ -369,6 +370,7 @@ void RSMainThread::Init()
 #endif // RS_ENABLE_GL
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_UNI_RENDER)
+    /* move to render thread ? */
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
 

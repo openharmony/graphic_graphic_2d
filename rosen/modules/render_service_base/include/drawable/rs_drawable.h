@@ -34,7 +34,7 @@ public:
     // using Generator = std::function<Ptr(const RSRenderNode&)>;
 
     // Call in RenderThread during drawing
-    virtual void OnDraw(RSPaintFilterCanvas& canvas) const = 0;
+    virtual void OnDraw(RSPaintFilterCanvas* canvas) const = 0;
 
     // not copyable and moveable
     RSDrawable(const RSDrawable&) = delete;
@@ -49,7 +49,7 @@ public:
     RSChildrenDrawable(std::shared_ptr<const RSChildrenDrawableContent> content);
     ~RSChildrenDrawable() override = default;
 
-    void OnDraw(RSPaintFilterCanvas& canvas) const override;
+    void OnDraw(RSPaintFilterCanvas* canvas) const override;
 
 private:
     std::shared_ptr<const RSChildrenDrawableContent> content_;
@@ -61,7 +61,7 @@ public:
     RSCustomModifierDrawable(std::shared_ptr<const RSCustomModifierDrawableContent> content);
     ~RSCustomModifierDrawable() override = default;
 
-    void OnDraw(RSPaintFilterCanvas& canvas) const override;
+    void OnDraw(RSPaintFilterCanvas* canvas) const override;
 
 private:
     std::shared_ptr<const RSCustomModifierDrawableContent> content_;

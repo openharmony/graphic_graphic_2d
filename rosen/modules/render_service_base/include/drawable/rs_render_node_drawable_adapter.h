@@ -38,7 +38,7 @@ public:
     RSRenderNodeDrawableAdapter& operator=(const RSRenderNodeDrawableAdapter&&) = delete;
 
     // This method can only be called in RenderThread
-    virtual void OnDraw(RSPaintFilterCanvas& canvas) const = 0;
+    virtual void OnDraw(RSPaintFilterCanvas* canvas) const = 0;
 
     using Ptr = std::unique_ptr<RSRenderNodeDrawableAdapter>;
     static Ptr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
