@@ -15,6 +15,7 @@
 #include "egl_core.h"
 #include "egl_defs.h"
 #include "../wrapper_log.h"
+#include "../thread_private_data_ctl.h"
 
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(api, ...)                                         \
@@ -45,6 +46,16 @@
 extern "C" {
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "../egl_hook_entries.in"
+
+OHOS::GlHookTable *GetHookTable()
+{
+    auto hookTable = OHOS::ThreadPrivateDataCtl::GetGlHookTable();
+    if (hookTable == nullptr) {
+        return &OHOS::gWrapperHook.gl;
+    }
+    return hookTable;
+}
+
 #pragma GCC diagnostic warning "-Wunused-parameter"
 }
 

@@ -19,6 +19,7 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <dlfcn.h>
 
 #include "egl_defs.h"
 #include "egl_wrapper_context.h"
@@ -273,11 +274,30 @@ EGLint EglGetErrorImpl(void)
     return ret;
 }
 
+static __eglMustCastToProperFunctionPointerType findBuiltinWrapper(const char* procname)
+{
+#if (defined(__aarch64__) || defined(__x86_64__))
+    static void* dlglv3Handle = dlopen("/system/lib64/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+#else
+    static void* dlglv3Handle = dlopen("/system/lib/platformsdk/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+#endif
+    void* proc = dlsym(dlglv3Handle, procname);
+    if (proc) {
+        return (__eglMustCastToProperFunctionPointerType)proc;
+    }
+    return nullptr;
+}
+
 __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procname)
 {
     WLOGD("");
     if (gExtensionMap.find(procname) != gExtensionMap.end()) {
         return gExtensionMap.at(procname);
+    }
+
+    __eglMustCastToProperFunctionPointerType addr = findBuiltinWrapper(procname);
+    if (addr) {
+        return __eglMustCastToProperFunctionPointerType(addr);
     }
 
     EglWrapperLoader& loader(EglWrapperLoader::GetInstance());

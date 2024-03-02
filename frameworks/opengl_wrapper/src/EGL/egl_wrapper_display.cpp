@@ -16,6 +16,9 @@
 #include "egl_wrapper_display.h"
 
 #include "egl_defs.h"
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+#include "egl_wrapper_hook.h"
+#endif
 #include "egl_wrapper_context.h"
 #include "egl_wrapper_surface.h"
 #include "../thread_private_data_ctl.h"
@@ -101,7 +104,8 @@ EGLBoolean EglWrapperDisplay::Terminate()
 }
 
 EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
-    EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx)
+    EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx,
+    bool isAfterHook, EglWrapperContext *curCtx)
 {
     WLOGD("");
     EGLContext actualCtx  = EGL_NO_CONTEXT;
@@ -129,6 +133,9 @@ EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
                 hookTable = &gWrapperHook.gl;
                 ctx->SetCurrentSurface(draw, read);
             }
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+            ChooseHookTable(isAfterHook, ctx, curCtx, &hookTable);
+#endif
             ThreadPrivateDataCtl::SetGlHookTable(hookTable);
             ThreadPrivateDataCtl::SetContext(ctx);
         } else {
@@ -139,6 +146,28 @@ EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
     }
     return ret;
 }
+
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+void EglWrapperDisplay::ChooseHookTable(bool isAfterHook,
+    const EglWrapperContext *ctx, const EglWrapperContext *curCtx,
+    GlHookTable **ppHookTable)
+{
+    if (ppHookTable == nullptr) {
+        return;
+    }
+
+    if (isAfterHook) {
+        if (ctx == nullptr && curCtx != nullptr) {
+            *ppHookTable = &g_glHookCSDR;
+        }
+    } else {
+        EglWrapperHook& hookLayer(EglWrapperHook::GetInstance());
+        if (hookLayer.IsInit() && hookLayer.gtx.gtxGetSingleThreadStatus()) {
+            *ppHookTable = &g_glHookSingle;
+        }
+    }
+}
+#endif
 
 EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLContext ctx)
 {
@@ -187,6 +216,58 @@ EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLC
 
     return InternalMakeCurrent(surDrawPtr, surReadPtr, ctxPtr);
 }
+
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+EGLBoolean EglWrapperDisplay::MakeCurrentAfterHook(EGLSurface draw, EGLSurface read, EGLContext ctx)
+{
+    std::lock_guard<std::mutex> lock(refLockMutex_);
+
+    EglWrapperContext *ctxPtr = nullptr;
+    EglWrapperSurface *surDrawPtr = nullptr;
+    EglWrapperSurface *surReadPtr = nullptr;
+
+    EGLContext curC = ThreadPrivateDataCtl::GetContext();
+    EglWrapperContext *curCtx = EglWrapperContext::GetWrapperContext(curC);
+
+    if (ctx != EGL_NO_CONTEXT) {
+        ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
+        if (!CheckObject(ctxPtr)) {
+            WLOGE("EGLContext is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_CONTEXT);
+            return EGL_FALSE;
+        }
+    } else {
+        if (draw != EGL_NO_SURFACE || read != EGL_NO_SURFACE) {
+            WLOGE("EGLContext and EGLSurface is bad match.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_MATCH);
+            return EGL_FALSE;
+        }
+        if (ThreadPrivateDataCtl::GetContext() == EGL_NO_CONTEXT) {
+            WLOGI("There is just no current context. skip");
+            return EGL_TRUE;
+        }
+    }
+
+    if (draw != EGL_NO_SURFACE) {
+        surDrawPtr = EglWrapperSurface::GetWrapperSurface(draw);
+        if (!CheckObject(surDrawPtr)) {
+            WLOGE("EGLSurface is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+            return EGL_FALSE;
+        }
+    }
+
+    if (read != EGL_NO_SURFACE) {
+        surReadPtr = EglWrapperSurface::GetWrapperSurface(read);
+        if (!CheckObject(surReadPtr)) {
+            WLOGE("EGLSurface is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+            return EGL_FALSE;
+        }
+    }
+    return InternalMakeCurrent(surDrawPtr, surReadPtr, ctxPtr, true, curCtx);
+}
+#endif
 
 EglWrapperDisplay *EglWrapperDisplay::GetWrapperDisplay(EGLDisplay display)
 {
@@ -268,6 +349,23 @@ bool EglWrapperDisplay::ValidateEglSurface(EGLSurface surf)
     return false;
 }
 
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+int EglWrapperDisplay::ChooseGlesVersion(const EGLint *attribList)
+{
+    int version = EglWrapperDispatchTable::GLESV1_INDEX;
+    if (attribList) {
+        while (*attribList != EGL_NONE) {
+            GLint attr = *attribList++;
+            GLint value = *attribList++;
+            if (attr == EGL_CONTEXT_CLIENT_VERSION && (value == 2 || value == 3)) { // 2:version 3:version
+                version = EglWrapperDispatchTable::GLESV2_INDEX;
+            }
+        }
+    }
+    return version;
+}
+#endif
+
 EGLContext EglWrapperDisplay::CreateEglContext(EGLConfig config, EGLContext shareList, const EGLint *attribList)
 {
     WLOGD("");
@@ -288,7 +386,11 @@ EGLContext EglWrapperDisplay::CreateEglContext(EGLConfig config, EGLContext shar
     if (table->isLoad && table->egl.eglCreateContext) {
         EGLContext context = table->egl.eglCreateContext(disp_, config, shareCtx, attribList);
         if (context != EGL_NO_CONTEXT) {
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+            return new EglWrapperContext(this, context, ChooseGlesVersion(attribList));
+#else
             return new EglWrapperContext(this, context);
+#endif
         } else {
             WLOGE("egl.eglCreateContext error.");
         }
