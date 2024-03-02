@@ -25,53 +25,15 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
-#ifdef USE_ROSEN_DRAWING
 #include "image/image.h"
 #include "text/hm_symbol.h"
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-template<typename T>
-class sk_sp;
-class SkData;
-class SkDrawable;
-class SkFlattenable;
-class SkImage;
-class SkImageFilter;
-class SkPaint;
-class SkPath;
-class SkPicture;
-struct SkRect;
-class SkRegion;
-class SkTextBlob;
-class SkVertices;
-class SkTypeface;
-class SkBitmap;
-struct SkPoint;
-class HMSymbol;
-class HMSymbolData;
-struct GroupInfo;
-struct RenderGroup;
-struct SymbolLayers;
-struct SColor;
-struct SymbolLayersGroups;
-struct GroupSetting;
-struct AnimationSetting;
-
-#ifdef NEW_SKIA
-struct SkSamplingOptions;
-#endif
-#endif
 
 namespace OHOS {
 namespace Media {
 class PixelMap;
 }
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-class DrawCmdList;
-class OpItem;
-#else
 class RSExtendImageObject;
 class RSExtendImageBaseObj;
 namespace Drawing {
@@ -81,7 +43,6 @@ class Data;
 class Image;
 class Bitmap;
 }
-#endif
 class RSFilter;
 class RSImage;
 class RSImageBase;
@@ -233,36 +194,12 @@ public:
         return true;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const GroupInfo& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, GroupInfo& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const RenderGroup& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, RenderGroup& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SymbolLayers& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SymbolLayers& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SymbolLayersGroups& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SymbolLayersGroups& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const HMSymbolData& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, HMSymbolData& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SkPoint& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SkPoint& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SColor& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SColor& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const GroupSetting& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, GroupSetting& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const AnimationSetting& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, AnimationSetting& val);
-#else
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
     static RSB_EXPORT bool UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
     static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
-#endif
 
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                  \
@@ -282,26 +219,10 @@ public:
     DECLARE_FUNCTION_OVERLOAD(float)
     DECLARE_FUNCTION_OVERLOAD(double)
     // skia types
-#ifndef USE_ROSEN_DRAWING
-    DECLARE_FUNCTION_OVERLOAD(SkPath)
-    DECLARE_FUNCTION_OVERLOAD(SkPaint)
-    DECLARE_FUNCTION_OVERLOAD(SkRect)
-    DECLARE_FUNCTION_OVERLOAD(SkRegion)
-    DECLARE_FUNCTION_OVERLOAD(SkBitmap)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkTextBlob>)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkPicture>)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkDrawable>)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImageFilter>)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkVertices>)
-    static bool SkipSkData(Parcel& parcel);
-    static bool SkipSkImage(Parcel& parcel);
-#else
     DECLARE_FUNCTION_OVERLOAD(Drawing::Matrix)
     DECLARE_FUNCTION_OVERLOAD(Drawing::Bitmap)
     static bool SkipData(Parcel& parcel);
     static bool SkipImage(Parcel& parcel);
-#endif
     // RS types
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
@@ -316,14 +237,10 @@ public:
     DECLARE_FUNCTION_OVERLOAD(RenderParticleColorParaType)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<ParticleRenderParams>>)
-#ifndef USE_ROSEN_DRAWING
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
-#else
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseObj>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
-#endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
@@ -333,12 +250,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
-#ifndef USE_ROSEN_DRAWING
-    DECLARE_FUNCTION_OVERLOAD(std::unique_ptr<OpItem>)
-#ifdef NEW_SKIA
-    DECLARE_FUNCTION_OVERLOAD(SkSamplingOptions)
-#endif
-#endif
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation
@@ -475,15 +386,9 @@ public:
         return Unmarshalling(parcel, first) && Unmarshalling(parcel, args...);
     }
 
-#ifndef USE_ROSEN_DRAWING
-    static bool Marshalling(Parcel& parcel, sk_sp<SkData> val);
-    static bool Unmarshalling(Parcel& parcel, sk_sp<SkData>& val);
-    static bool UnmarshallingWithCopy(Parcel& parcel, sk_sp<SkData>& val);
-#else
     static bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val);
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
     static bool UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
-#endif
 
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
@@ -492,10 +397,6 @@ private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc);
     static bool SkipFromParcel(Parcel& parcel, size_t size);
-#ifndef USE_ROSEN_DRAWING
-    static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);
-    static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
-#endif
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k

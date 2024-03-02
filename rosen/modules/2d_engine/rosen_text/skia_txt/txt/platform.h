@@ -28,11 +28,7 @@ namespace Rosen {
 namespace SPText {
 std::vector<std::string> GetDefaultFontFamilies();
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkFontMgr> GetDefaultFontManager();
-#else
 std::shared_ptr<Drawing::FontMgr> GetDefaultFontManager();
-#endif
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

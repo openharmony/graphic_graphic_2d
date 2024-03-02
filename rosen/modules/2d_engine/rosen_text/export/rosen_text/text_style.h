@@ -21,12 +21,8 @@
 #include <string>
 #include <vector>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkPaint.h" // SKIA
-#else
 #include "draw/pen.h"
 #include "draw/brush.h"
-#endif
 #include "draw/color.h"
 #include "utils/point.h"
 
@@ -88,15 +84,10 @@ struct TextStyle {
     std::u16string ellipsis;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     std::string locale;
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkPaint> background; // SKIA
-    std::optional<SkPaint> foreground; // SKIA
-#else
     std::optional<Drawing::Brush> foregroundBrush;
     std::optional<Drawing::Pen> foregroundPen;
     std::optional<Drawing::Brush> backgroundBrush;
     std::optional<Drawing::Pen> backgroundPen;
-#endif
     // if Pen and SkPaint are setting, use pen first
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;

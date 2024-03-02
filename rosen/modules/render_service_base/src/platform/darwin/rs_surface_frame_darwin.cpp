@@ -34,24 +34,6 @@ int32_t RSSurfaceFrameDarwin::GetBufferAge() const
     return -1;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSSurfaceFrameDarwin::GetCanvas()
-{
-    if (surface_ == nullptr) {
-        CreateSurface();
-    }
-
-    if (surface_ != nullptr) {
-        return surface_->getCanvas();
-    }
-    return nullptr;
-}
-
-sk_sp<SkSurface> RSSurfaceFrameDarwin::GetSurface()
-{
-    return surface_;
-}
-#else
 Drawing::Canvas* RSSurfaceFrameDarwin::GetCanvas()
 {
     if (surface_ == nullptr) {
@@ -71,7 +53,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameDarwin::GetSurface()
     }
     return surface_;
 }
-#endif
 
 void RSSurfaceFrameDarwin::SetRenderContext(RenderContext* context)
 {
@@ -85,14 +66,9 @@ void RSSurfaceFrameDarwin::CreateSurface()
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    const auto &info = SkImageInfo::Make(width_, height_, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    surface_ = SkSurface::MakeRasterDirect(info, addr_.get(), width_);
-#else
     Drawing::ImageInfo info = Drawing::ImageInfo(width_, height_,
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
     surface_ = Drawing::Surface::MakeRasterDirect(info, addr_.get(), width_);
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

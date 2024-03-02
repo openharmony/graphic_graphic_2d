@@ -315,7 +315,6 @@ void RSParallelRenderManager::WaitCompositionEnd()
     }
 }
 
-#ifdef USE_ROSEN_DRAWING
 bool RSParallelRenderManager::DrawImageMergeFuncForRosenDrawing(RSPaintFilterCanvas& canvas,
     std::shared_ptr<Drawing::Image> texture)
 {
@@ -344,7 +343,6 @@ bool RSParallelRenderManager::DrawImageMergeFuncForRosenDrawing(RSPaintFilterCan
     canvas.DrawImage(*newImage, 0, 0, Drawing::SamplingOptions());
     return true;
 }
-#endif
 
 void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
 {
@@ -361,50 +359,16 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
                 RS_LOGE("Texture of subThread(%{public}d) is nullptr", i);
                 continue;
             }
-#ifndef USE_ROSEN_DRAWING
-            if (renderContext_ == nullptr) {
-                RS_LOGE("RS main thread render context is nullptr");
-                continue;
-            }
-#ifdef NEW_RENDER_CONTEXT
-            auto mainGrContext = drawingContext_->GetDrawingContext();
-#else
-            auto mainGrContext = renderContext_->GetGrContext();
-#endif
-            if (mainGrContext == nullptr) {
-                RS_LOGE("RS main thread GrDirectContext is nullptr");
-                continue;
-            }
-            auto sharedBackendTexture = texture->getBackendTexture(false);
-            if (!sharedBackendTexture.isValid()) {
-                RS_LOGE("Texture of subThread(%{public}d) does not has GPU backend", i);
-                continue;
-            }
-            auto sharedTexture = SkImage::MakeFromTexture(mainGrContext, sharedBackendTexture,
-                kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-            if (sharedTexture == nullptr) {
-                RS_LOGE("SharedTexture of subThread(%{public}d) is nullptr", i);
-            }
-            canvas.drawImage(sharedTexture, 0, 0);
-#else
             if (!DrawImageMergeFuncForRosenDrawing(canvas, texture)) {
                 continue;
             }
-#endif
             // For any one subMainThread' sksurface, we just clear transparent color of self drawing
             // surface drawed in larger skSurface, such as skSurface 0 should clear self drawing surface
             // areas drawed in skSurface 1.
             auto clearTransparentColorSurfaceIndex = i + 1;
             ClearSelfDrawingSurface(canvas, clearTransparentColorSurfaceIndex);
-#ifndef USE_ROSEN_DRAWING
-            sharedTexture.reset();
-            sharedTexture = nullptr;
             texture.reset();
             texture = nullptr;
-#else
-            texture.reset();
-            texture = nullptr;
-#endif
         }
     }
 }
@@ -426,14 +390,6 @@ void RSParallelRenderManager::FlushOneBufferFunc()
         renderContext_->ShareMakeCurrent(threadList_[i]->GetSharedContext());
 #endif
         RS_TRACE_BEGIN("Start Flush");
-#ifndef USE_ROSEN_DRAWING
-        auto skSurface = threadList_[i]->GetSkSurface();
-        if (skSurface) {
-            skSurface->flush();
-        } else {
-            RS_LOGE("skSurface is nullptr, thread index:%{public}d", i);
-        }
-#else
         auto drSurface = threadList_[i]->GetDrawingSurface();
         if (drSurface) {
             auto canvas = drSurface->GetCanvas();
@@ -441,7 +397,6 @@ void RSParallelRenderManager::FlushOneBufferFunc()
         } else {
             RS_LOGE("skSurface is nullptr, thread index:%{public}d", i);
         }
-#endif
         RS_TRACE_END();
 #ifdef NEW_RENDER_CONTEXT
         renderContext_->MakeCurrent(nullptr, EGL_NO_CONTEXT);

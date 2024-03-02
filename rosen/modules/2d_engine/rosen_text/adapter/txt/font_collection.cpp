@@ -40,11 +40,7 @@ std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCo
 
 namespace AdapterTxt {
 FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollection)
-#ifndef USE_ROSEN_DRAWING
-    : fontCollection_(fontCollection), dfmanager_(sk_make_sp<txt::DynamicFontManager>())
-#else
     : fontCollection_(fontCollection), dfmanager_(RSFontMgr::CreateDynamicFontMgr())
-#endif
 {
     if (fontCollection_ == nullptr) {
         fontCollection_ = std::make_shared<txt::FontCollection>();
@@ -72,33 +68,13 @@ void FontCollection::DisableSystemFont()
 
 void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto stream = std::make_unique<SkMemoryStream>(data, datalen, true);
-    auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-    if (familyName.empty()) {
-        dfmanager_->font_provider().RegisterTypeface(typeface);
-    } else {
-        dfmanager_->font_provider().RegisterTypeface(typeface, familyName);
-    }
-#else
     dfmanager_->LoadDynamicFont(familyName, data, datalen);
-#endif
     fontCollection_->ClearFontFamilyCache();
 }
 
 void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)
 {
-#ifndef USE_ROSEN_DRAWING
-    if (familyName.empty() || data == nullptr) {
-        dfmanager_->font_provider().RegisterTypeface(nullptr, OHOS_THEME_FONT);
-    } else {
-        auto stream = std::make_unique<SkMemoryStream>(data, datalen, true);
-        auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-        dfmanager_->font_provider().RegisterTypeface(typeface, OHOS_THEME_FONT);
-    }
-#else
     dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen);
-#endif
     fontCollection_->ClearFontFamilyCache();
 }
 } // namespace AdapterTxt

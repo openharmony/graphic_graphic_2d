@@ -28,22 +28,8 @@
 #include "GLES3/gl32.h"
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkColorSpace.h"
-#include "include/core/SkImageInfo.h"
-#include "include/core/SkSurface.h"
-#include "include/gpu/GrBackendSurface.h"
-#if defined(NEW_SKIA)
-#include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
-#include "include/gpu/gl/GrGLInterface.h"
-#else
 #include "draw/surface.h"
 #include "image/gpu_context.h"
-#endif
 #include "memory_handler.h"
 #include "surface_type.h"
 
@@ -55,31 +41,9 @@ public:
     RenderContext();
     virtual ~RenderContext();
     void CreateCanvas(int width, int height);
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> AcquireSurface(int width, int height);
-#else
     std::shared_ptr<Drawing::Surface> AcquireSurface(int width, int height);
-#endif
 
     void InitializeEglContext();
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    GrDirectContext* GetGrContext() const
-    {
-        return grContext_.get();
-    }
-#else
-    GrContext* GetGrContext() const
-    {
-        return grContext_.get();
-    }
-#endif
-    sk_sp<SkSurface> GetSurface() const
-    {
-        return skSurface_;
-    }
-    bool SetUpGrContext(sk_sp<GrDirectContext> skContext = nullptr);
-#else
     Drawing::GPUContext* GetDrGPUContext() const
     {
         return drGPUContext_.get();
@@ -95,7 +59,6 @@ public:
         return surface_;
     }
     bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr);
-#endif
 
 #ifdef RS_ENABLE_VK
     void AbandonContext();
@@ -180,17 +143,8 @@ public:
     static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
 
 private:
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext_;
-#else
-    sk_sp<GrContext> grContext_;
-#endif
-    sk_sp<SkSurface> skSurface_;
-#else
     std::shared_ptr<Drawing::GPUContext> drGPUContext_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-#endif
 
     EGLNativeWindowType nativeWindow_;
 
@@ -220,14 +174,8 @@ private:
     std::shared_ptr<MemoryHandler> mHandler_;
     std::mutex shareContextMutex_;
 
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
-    void InitGrContextOptions(GrContextOptions &options);
-#endif
-#else
 #ifdef RS_ENABLE_GL
     void InitGrContextOptions(Drawing::GPUContextOptions &options);
-#endif
 #endif
 };
 

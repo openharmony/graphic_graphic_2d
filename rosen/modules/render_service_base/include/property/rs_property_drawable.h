@@ -16,9 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
-#ifdef USE_ROSEN_DRAWING
 #include <bitset>
-#endif
 #include <memory>
 #include <set>
 #include <vector>
@@ -122,14 +120,9 @@ public:
 
     // Generator Utilities
     static void InitializeSaveRestore(const RSRenderContent& content, DrawableVec& drawableVec);
-#ifndef USE_ROSEN_DRAWING
-    static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
-        const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
-#else
     static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
         const RSProperties& properties,
         std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
-#endif
     static bool UpdateDrawableVec(const RSRenderContent& content, DrawableVec& drawableVec,
         std::unordered_set<RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(

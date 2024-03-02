@@ -18,15 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
-#else
-#include <include/gpu/GrContext.h>
-#endif
-#else
 #include "image/gpu_context.h"
-#endif
 
 #include "common/rs_common_def.h"
 #include "platform/drawing/rs_surface.h"
@@ -69,17 +61,8 @@ private:
     bool SetupGrContext();
 
     RenderContext* renderContext_ = nullptr;
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
-#endif
-    sk_sp<SkColorSpace> skColorSpace_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     std::shared_ptr<Drawing::ColorSpace> drColorSpace_ = nullptr;
-#endif
     OnRenderFunc onRender_ = nullptr;
 };
 } // namespace Rosen

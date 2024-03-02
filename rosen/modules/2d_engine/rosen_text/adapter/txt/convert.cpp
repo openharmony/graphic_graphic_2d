@@ -118,12 +118,6 @@ txt::TextStyle Convert(const TextStyle &style)
         style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
         style.backgroundRect.leftBottomRadius };
     textStyle.styleId = style.styleId;
-#ifndef USE_ROSEN_DRAWING
-    textStyle.has_background = style.background.has_value();
-    textStyle.background = style.background.value_or(SkPaint());
-    textStyle.has_foreground = style.foreground.has_value();
-    textStyle.foreground = style.foreground.value_or(SkPaint());
-#else
     textStyle.has_background_pen = style.backgroundPen.has_value();
     textStyle.background_pen = style.backgroundPen.value_or(RSPen());
     textStyle.has_background_brush = style.backgroundBrush.has_value();
@@ -132,16 +126,11 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.foreground_pen = style.foregroundPen.value_or(RSPen());
     textStyle.has_foreground_brush = style.foregroundBrush.has_value();
     textStyle.foreground_brush = style.foregroundBrush.value_or(RSBrush());
-#endif
 
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     for (const auto &[color, offset, radius] : style.shadows) {
         auto shadowColor = SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue());
-#ifndef USE_ROSEN_DRAWING
-        auto shadowOffset = SkPoint::Make(offset.GetX(), offset.GetY());
-#else
         auto shadowOffset = RSPoint{ offset.GetX(), offset.GetY() };
-#endif
         textStyle.text_shadows.emplace_back(shadowColor, shadowOffset, radius);
     }
 

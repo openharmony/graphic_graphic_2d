@@ -47,8 +47,6 @@ public:
     void FlushAndSubmit();
     void SetFence(sptr<SyncFence> fence);
     void ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheTask> colorPickerTask);
-#ifndef USE_ROSEN_DRAWING
-#else
 #ifdef IS_OHOS
     void AddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
         std::shared_ptr<Drawing::Surface>&& cacheSurface,
@@ -72,7 +70,6 @@ public:
         std::weak_ptr<std::atomic<bool>> waitRelease,
         std::weak_ptr<std::mutex> grBackendTextureMutex);
 #endif
-#endif
 
     void ResetGrContext();
     void DumpMem(DfxString& log);
@@ -82,15 +79,7 @@ private:
     const uint32_t SYNC_TIME_OUT = 1000;
     void CreateShareEglContext();
     void DestroyShareEglContext();
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    sk_sp<GrDirectContext> CreateShareGrContext();
-#else
-    sk_sp<GrContext> CreateShareGrContext();
-#endif
-#else
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
-#endif
     std::atomic<bool> isWorking_ = false;
     sptr<SyncFence> fence_ = nullptr;
     std::vector<std::weak_ptr<RSFilter::RSFilterTask>> filterTaskList_;
@@ -103,19 +92,11 @@ private:
 #ifdef RS_ENABLE_GL
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
 #endif
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
-#endif
-#else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaceResources_;
     std::map<std::string, std::queue<std::shared_ptr<Drawing::Image>>> tmpImageResources_;
 #ifdef IS_OHOS
     std::map<std::string, std::shared_ptr<OHOS::AppExecFwk::EventHandler>> handlerMap_;
-#endif
 #endif
 };
 } // namespace OHOS::Rosen

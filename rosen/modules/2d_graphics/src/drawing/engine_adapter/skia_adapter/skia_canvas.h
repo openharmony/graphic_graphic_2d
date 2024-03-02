@@ -41,11 +41,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT SkiaCanvas : public CoreCanvasImpl {
-#else
 class DRAWING_API SkiaCanvas : public CoreCanvasImpl {
-#endif
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 

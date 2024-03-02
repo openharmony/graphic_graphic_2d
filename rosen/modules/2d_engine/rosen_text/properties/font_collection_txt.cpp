@@ -45,11 +45,7 @@ FontCollectionTxt::FontCollectionTxt(bool createWithICU)
     txtCollection = std::make_shared<txt::FontCollection>();
     txtCollection->SetupDefaultFontManager();
 
-#ifndef USE_ROSEN_DRAWING
-    dynamicFontManager = sk_make_sp<txt::DynamicFontManager>();
-#else
     dynamicFontManager = RSFontMgr::CreateDynamicFontMgr();
-#endif
     txtCollection->SetDynamicFontManager(dynamicFontManager);
     LoadSystemFont();
 }
@@ -65,11 +61,7 @@ std::shared_ptr<txt::FontCollection> FontCollectionTxt::GetFontCollection() cons
     return txtCollection;
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<txt::DynamicFontManager> FontCollectionTxt::GetDynamicFontManager() const
-#else
 std::shared_ptr<RSFontMgr> FontCollectionTxt::GetDynamicFontManager() const
-#endif
 {
     return dynamicFontManager;
 }
@@ -93,20 +85,7 @@ void FontCollectionTxt::LoadFontFromList(const uint8_t* font_data,
                                          int length,
                                          std::string family_name)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkStreamAsset> font_stream =
-        std::make_unique<SkMemoryStream>(font_data, length, true);
-    sk_sp<SkTypeface> typeface =
-        SkTypeface::MakeFromStream(std::move(font_stream));
-    txt::TypefaceFontAssetProvider& font_provider = dynamicFontManager->font_provider();
-    if (family_name.empty()) {
-        font_provider.RegisterTypeface(typeface);
-    } else {
-        font_provider.RegisterTypeface(typeface, family_name);
-    }
-#else
     dynamicFontManager->LoadDynamicFont(family_name, font_data, length);
-#endif
     txtCollection->ClearFontFamilyCache();
 }
 } // namespace rosen

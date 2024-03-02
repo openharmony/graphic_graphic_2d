@@ -18,11 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkMaskFilter.h>
-#else
 #include "drawing.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -36,20 +32,12 @@ public:
         K_INNER_SK_BLUR_STYLE,  // only blur inner
         K_LAST_ENUM_SK_BLUR_STYLE = K_INNER_SK_BLUR_STYLE,
     };
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkMaskFilter> GetMaskFilter() const;
-#else
     std::shared_ptr<RSMaskFilter> GetMaskFilter() const;
-#endif
 
     /*
      * @brief Sets SkMaskFilter that user want to TexgineMaskFilter
      */
-#ifndef USE_ROSEN_DRAWING
-    void SetMaskFilter(const sk_sp<SkMaskFilter> filter);
-#else
     void SetMaskFilter(const std::shared_ptr<RSMaskFilter> filter);
-#endif
 
     /*
      * @brief Create a blur maskfilter
@@ -61,11 +49,7 @@ public:
         float sigma, bool respectCTM = true);
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkMaskFilter> filter_ = nullptr;
-#else
     std::shared_ptr<RSMaskFilter> filter_ = nullptr;
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

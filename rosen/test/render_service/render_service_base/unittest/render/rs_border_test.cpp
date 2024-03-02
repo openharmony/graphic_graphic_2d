@@ -111,13 +111,8 @@ HWTEST_F(RSBorderTest, LifeCycle003, TestSize.Level1)
     Color color4(1, 1, 1);
     Vector4<Color> vectorColor(color1, color2, color3, color4);
     RSProperties properties;
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint;
-    paint.setAntiAlias(true);
-#else
     Drawing::Pen pen;
     pen.SetAntiAlias(true);
-#endif
     properties.SetBorderColor(vectorColor);
     Vector4<uint32_t> style(0, 0, 0, 0);
     properties.SetBorderStyle(style);
@@ -126,11 +121,7 @@ HWTEST_F(RSBorderTest, LifeCycle003, TestSize.Level1)
     Vector4f width(1.f, 1.f, 1.f, 1.f);
     properties.SetBorderWidth(width);
     ASSERT_TRUE(properties.GetCornerRadius().IsZero());
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas canvas;
-#else
     Drawing::Canvas canvas;
-#endif
     RSPropertiesPainter::DrawBorder(properties, canvas);
     Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
     properties.SetCornerRadius(cornerRadius2);

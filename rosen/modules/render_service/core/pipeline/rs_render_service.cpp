@@ -357,13 +357,8 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     dumpString += "Bounds: [" + std::to_string(node->GetRenderProperties().GetBoundsWidth()) + "," +
         std::to_string(node->GetRenderProperties().GetBoundsHeight()) + "]\n";
     if (auto& contextClipRegion = node->contextClipRect_) {
-#ifndef USE_ROSEN_DRAWING
-        dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->width()) + "," +
-                      std::to_string(contextClipRegion->height()) + "]\n";
-#else
         dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->GetWidth()) + "," +
                       std::to_string(contextClipRegion->GetHeight()) + "]\n";
-#endif
     } else {
         dumpString += "ContextClipRegion: [ empty ]\n";
     }

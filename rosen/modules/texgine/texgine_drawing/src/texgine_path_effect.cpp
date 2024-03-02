@@ -18,20 +18,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkPathEffect> TexginePathEffect::GetPathEffect() const
-#else
 std::shared_ptr<RSPathEffect> TexginePathEffect::GetPathEffect() const
-#endif
 {
     return pathEffect_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexginePathEffect::SetPathEffect(const sk_sp<SkPathEffect> effect)
-#else
 void TexginePathEffect::SetPathEffect(const std::shared_ptr<RSPathEffect> effect)
-#endif
 {
     pathEffect_ = effect;
 }

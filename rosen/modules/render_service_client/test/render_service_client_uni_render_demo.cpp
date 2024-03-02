@@ -16,16 +16,8 @@
 #include <iostream>
 #include <surface.h>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkTextBlob.h"
-#include "include/core/SkTypeface.h"
-#endif
 #include "wm/window.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
-#endif
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
 #include "transaction/rs_transaction.h"
@@ -48,11 +40,7 @@ static void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int heig
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorRED);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-#endif
 
     canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(100, 100, 300, 200);
@@ -104,20 +92,7 @@ int main()
     sleep(1);
 
     std::cout << "rs uni render demo stage 2 drawTextBlob" << std::endl;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkTypeface> tf = SkTypeface::MakeFromName(nullptr, SkFontStyle::BoldItalic());
-    SkFont font;
-    font.setSize(35);
-    font.setTypeface(tf);
-    sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString("UniRenderDemo", font);
-    auto canvas = canvasNode->BeginRecording(rect.width_, rect.height_);
-    SkPaint paint;
-    paint.setColor(SK_ColorGREEN);
-    paint.setAntiAlias(true);
-    canvas->drawTextBlob(textBlob, 25.f, 100.f, paint);
-#else
     std::cout << "Drawing does not support TextBlob" << std::endl;
-#endif
     canvasNode->FinishRecording();
     rsUiDirector->SendMessages();
     sleep(2);

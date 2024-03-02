@@ -18,20 +18,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkPicture> TexginePicture::GetPicture() const
-#else
 std::shared_ptr<RSPicture> TexginePicture::GetPicture() const
-#endif
 {
     return picture_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexginePicture::SetPicture(const sk_sp<SkPicture> picture)
-#else
 void TexginePicture::SetPicture(const std::shared_ptr<RSPicture> picture)
-#endif
 {
     picture_ = picture;
 }

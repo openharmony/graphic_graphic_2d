@@ -67,11 +67,7 @@ RSParallelSubThread::~RSParallelSubThread()
     }
     texture_ = nullptr;
     canvas_ = nullptr;
-#ifndef USE_ROSEN_DRAWING
-    skSurface_ = nullptr;
-#else
     surface_ = nullptr;
-#endif
     RS_LOGI("~RSParallelSubThread():%{public}d", threadIndex_);
 }
 
@@ -289,21 +285,6 @@ void RSParallelSubThread::Render()
             RS_LOGE("Canvas is nullptr");
             return;
         }
-#ifndef USE_ROSEN_DRAWING
-        int saveCount = canvas_->save();
-        if (RSMainThread::Instance()->GetRenderEngine()) {
-            canvas_->SetHighContrast(RSMainThread::Instance()->GetRenderEngine()->IsHighContrastEnabled());
-        }
-        if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
-            canvas_->clear(SK_ColorTRANSPARENT);
-        }
-        canvas_->save();
-        if (physicalGeoPtr != nullptr) {
-            canvas_->concat(physicalGeoPtr->GetMatrix());
-            canvas_->SetCacheType(RSSystemProperties::GetCacheEnabledForRotation() ?
-                RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
-        }
-#else
         auto saveCount = canvas_->Save();
         if (RSMainThread::Instance()->GetRenderEngine()) {
             canvas_->SetHighContrast(RSMainThread::Instance()->GetRenderEngine()->IsHighContrastEnabled());
@@ -317,7 +298,6 @@ void RSParallelSubThread::Render()
             canvas_->SetCacheType(RSSystemProperties::GetCacheEnabledForRotation() ?
                 RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
         }
-#endif
         while (threadTask_->GetTaskSize() > 0) {
             RSParallelRenderManager::Instance()->StartTiming(threadIndex_);
             auto task = threadTask_->GetNextRenderTask();
@@ -334,11 +314,7 @@ void RSParallelSubThread::Render()
             RSParallelRenderManager::Instance()->StopTimingAndSetRenderTaskCost(
                 threadIndex_, task->GetIdx(), TaskType::PROCESS_TASK);
         }
-#ifndef USE_ROSEN_DRAWING
-        canvas_->restoreToCount(saveCount);
-#else
         canvas_->RestoreToCount(saveCount);
-#endif
     }
 #endif
 
@@ -380,7 +356,6 @@ void RSParallelSubThread::Render()
 #endif
 }
 
-#ifdef USE_ROSEN_DRAWING
 bool RSParallelSubThread::FlushForRosenDrawing()
 {
     if (drCanvas_ == nullptr) {
@@ -411,7 +386,6 @@ bool RSParallelSubThread::FlushForRosenDrawing()
     }
     return true;
 }
-#endif
 
 void RSParallelSubThread::Flush()
 {
@@ -419,34 +393,9 @@ void RSParallelSubThread::Flush()
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#ifndef USE_ROSEN_DRAWING
-        if (skCanvas_ == nullptr) {
-            RS_LOGE("in Flush(), skCanvas is nullptr");
-            return;
-        }
-        if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
-            RS_TRACE_BEGIN("Flush");
-            if (grContext_) {
-                grContext_->flushAndSubmit(false);
-            }
-            RS_TRACE_END();
-            RS_TRACE_BEGIN("Create Fence");
-#ifdef NEW_RENDER_CONTEXT
-            auto frame = renderContext_->GetRSRenderSurfaceFrame();
-            EGLDisplay eglDisplay = frame->eglState->eglDisplay;
-            eglSync_ = eglCreateSyncKHR(eglDisplay, EGL_SYNC_FENCE_KHR, nullptr);
-#else
-            eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
-#endif
-            RS_TRACE_END();
-            texture_ = skSurface_->makeImageSnapshot();
-            skCanvas_->discard();
-        }
-#else
         if (!FlushForRosenDrawing()) {
             return;
         }
-#endif
     }
 #endif
     // FIRSTFLUSH or WAITFIRSTFLUSH
@@ -500,16 +449,6 @@ void RSParallelSubThread::CreateResource()
                 threadIndex_, width, height, surfaceWidth_, surfaceHeight_);
             surfaceWidth_ = width;
             surfaceHeight_ = height;
-#ifndef USE_ROSEN_DRAWING
-            AcquireSubSkSurface(surfaceWidth_, surfaceHeight_);
-            if (skSurface_ == nullptr) {
-                RS_LOGE("in CreateResource, skSurface is nullptr");
-                return;
-            }
-            skCanvas_ = skSurface_->getCanvas();
-            canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_);
-            canvas_->SetIsParallelCanvas(true);
-#else
             AcquireSubDrawingSurface(surfaceWidth_, surfaceHeight_);
             if (surface_ == nullptr) {
                 RS_LOGE("in CreateResource, surface_ is nullptr");
@@ -518,7 +457,6 @@ void RSParallelSubThread::CreateResource()
             drCanvas_ = surface_->GetCanvas().get();
             canvas_ = std::make_shared<RSPaintFilterCanvas>(drCanvas_);
             canvas_->SetIsParallelCanvas(true);
-#endif
         }
         visitor_ = std::make_shared<RSUniRenderVisitor>(canvas_, threadIndex_);
     }
@@ -541,38 +479,6 @@ void RSParallelSubThread::CreateResource()
         RSParallelRenderManager::Instance()->GetUniVisitor());
 }
 
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-sk_sp<GrDirectContext> RSParallelSubThread::CreateShareGrContext()
-#else
-sk_sp<GrContext> RSParallelSubThread::CreateShareGrContext()
-#endif
-{
-    const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
-    sk_sp<const GrGLInterface> glInterface(grGlInterface);
-    if (glInterface.get() == nullptr) {
-        RS_LOGE("CreateShareGrContext failed");
-        return nullptr;
-    }
-
-    GrContextOptions options = {};
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-    // fix svg antialiasing bug
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-    options.fPreferExternalImagesOverES3 = true;
-    options.fDisableDistanceFieldPaths = true;
-#ifdef NEW_SKIA
-    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
-#else
-    sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
-#endif
-    if (grContext == nullptr) {
-        RS_LOGE("nullptr grContext is null");
-        return nullptr;
-    }
-    return grContext;
-}
-#else
 std::shared_ptr<Drawing::GPUContext> RSParallelSubThread::CreateShareGPUContext()
 {
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
@@ -580,28 +486,7 @@ std::shared_ptr<Drawing::GPUContext> RSParallelSubThread::CreateShareGPUContext(
     drGPUContext->BuildFromGL(options);
     return drGPUContext;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-void RSParallelSubThread::AcquireSubSkSurface(int width, int height)
-{
-    if (grContext_ == nullptr) {
-        grContext_ = CreateShareGrContext();
-    }
-
-    if (grContext_ == nullptr) {
-        RS_LOGE("Share GrContext is not ready!!!");
-        return;
-    }
-
-    auto surfaceInfo = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    skSurface_ = SkSurface::MakeRenderTarget(grContext_.get(), SkBudgeted::kYes, surfaceInfo);
-    if (skSurface_ == nullptr) {
-        RS_LOGE("skSurface is not ready!!!");
-        return;
-    }
-}
-#else
 void RSParallelSubThread::AcquireSubDrawingSurface(int width, int height)
 {
     if (drContext_ == nullptr) {
@@ -621,7 +506,6 @@ void RSParallelSubThread::AcquireSubDrawingSurface(int width, int height)
         return;
     }
 }
-#endif
 
 void RSParallelSubThread::StartComposition()
 {
@@ -664,17 +548,10 @@ EGLContext RSParallelSubThread::GetSharedContext() const
     return eglShareContext_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> RSParallelSubThread::GetSkSurface() const
-{
-    return skSurface_;
-}
-#else
 std::shared_ptr<Drawing::Surface> RSParallelSubThread::GetDrawingSurface() const
 {
     return surface_;
 }
-#endif
 
 void RSParallelSubThread::SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask)
 {
@@ -686,11 +563,7 @@ void RSParallelSubThread::SetCompositionTask(std::unique_ptr<RSCompositionTask> 
     compositionTask_ = std::move(compositionTask);
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkImage> RSParallelSubThread::GetTexture() const
-#else
 std::shared_ptr<Drawing::Image> RSParallelSubThread::GetTexture() const
-#endif
 {
     return texture_;
 }

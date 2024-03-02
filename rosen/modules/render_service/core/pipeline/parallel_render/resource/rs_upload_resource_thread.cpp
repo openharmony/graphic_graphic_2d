@@ -109,9 +109,6 @@ void RSUploadResourceThread::InitRenderContext(RenderContext* context)
     PostTask([this]() {
         grContext_ = CreateShareGrContext();
         if (grContext_) {
-#ifndef USE_ROSEN_DRAWING
-            grContext_->setResourceCollector(&resCollector_);
-#else
             auto skiaGPUContext  = grContext_->GetImpl<Drawing::SkiaGPUContext>();
             if (!skiaGPUContext) {
                 return;
@@ -121,13 +118,8 @@ void RSUploadResourceThread::InitRenderContext(RenderContext* context)
             if (skContext_) {
                 skContext_->setResourceCollector(&resCollector_);
             }
-#endif
         }
-#ifndef USE_ROSEN_DRAWING
-        RSResourceManager::Instance().SetUploadTextureFunction(UploadTextureWithSkia);
-#else
         RSResourceManager::Instance().SetUploadTextureFunction(UploadTextureWithDrawing);
-#endif
     });
 }
 
@@ -152,58 +144,6 @@ void RSUploadResourceThread::CreateShareEglContext()
 }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<GrDirectContext> RSUploadResourceThread::GetShareGrContext() const
-{
-    return grContext_;
-}
-sk_sp<GrDirectContext> RSUploadResourceThread::CreateShareGrContext()
-{
-    RS_TRACE_NAME("CreateShareGrContext");
-    sk_sp<GrDirectContext> grContext = nullptr;
-#ifdef RS_ENABLE_GL
-    if (Rosen::RSSystemProperties::GetGpuApiType() == Rosen::GpuApiType::OPENGL) {
-        CreateShareEglContext();
-        const GrGLInterface* glGlInterface = GrGLCreateNativeInterface();
-        sk_sp<const GrGLInterface> glInterface(glGlInterface);
-        if (glInterface.get() == nullptr) {
-            RS_LOGE("GrGLCreateNativeInterface failed.");
-            return nullptr;
-        }
-
-        GrContextOptions options = {};
-        options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-        // fix svg antialiasing bug
-        options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-        options.fPreferExternalImagesOverES3 = true;
-        options.fDisableDistanceFieldPaths = true;
-
-        auto handler = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        /* /data/service/el0/render_service is shader cache dir */
-        handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
-
-        grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
-    }
-#endif
-
-#ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-    // Get Vulkan Context
-        auto backendContext = RsVulkanContext::GetSingleton().GetGrVkBackendContext();
-        grContext = GrDirectContext::MakeVulkan(backendContext);
-    }
-#endif
-
-    if (grContext == nullptr) {
-        RS_LOGE("nullptr grContext is null");
-        return nullptr;
-    }
-    return grContext;
-}
-#else
 std::shared_ptr<Drawing::GPUContext> RSUploadResourceThread::GetShareGrContext() const
 {
     return grContext_;
@@ -242,7 +182,6 @@ std::shared_ptr<Drawing::GPUContext> RSUploadResourceThread::CreateShareGrContex
 #endif
     return gpuContext;
 }
-#endif
 
 void RSUploadResourceThread::ReleaseNotUsedPinnedViews()
 {
@@ -250,14 +189,10 @@ void RSUploadResourceThread::ReleaseNotUsedPinnedViews()
         return;
     }
  
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> grContext = grContext_;
-#else
     sk_sp<GrDirectContext> grContext = skContext_;
     if (!grContext) {
         return;
     }
-#endif
     auto arrPtr = std::make_shared<std::vector<sk_sp<GrSurfaceProxy>>>();
     resCollector_.SwapCollection(*arrPtr, CLEAN_VIEW_COUNT);
     if (arrPtr->empty()) {

@@ -59,11 +59,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand003, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
-#ifndef USE_ROSEN_DRAWING
-    SkRect clipRect;
-#else
     Drawing::Rect clipRect;
-#endif
     SurfaceNodeCommandHelper::SetContextClipRegion(context, id, clipRect);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
@@ -249,11 +245,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContextMatrix001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = -10;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix;
-#else
     Drawing::Matrix matrix;
-#endif
     SurfaceNodeCommandHelper::SetContextMatrix(context, id, matrix);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();

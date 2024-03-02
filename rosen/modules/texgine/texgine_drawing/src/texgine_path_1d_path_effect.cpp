@@ -21,13 +21,8 @@ namespace TextEngine {
 std::shared_ptr<TexginePathEffect> TexginePath1DPathEffect::Make(const TexginePath &path,
     float advance, float phase, Style style)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto effect = SkPath1DPathEffect::Make(*path.GetPath().get(), advance, phase,
-        static_cast<SkPath1DPathEffect::Style>(style));
-#else
     auto effect = RSPathEffect::CreatePathDashEffect(*path.GetPath().get(), advance, phase,
         static_cast<RSPathDashStyle>(style));
-#endif
     auto pathEffect = std::make_shared<TexginePathEffect>();
     pathEffect->SetPathEffect(effect);
     return pathEffect;

@@ -64,11 +64,7 @@ HWTEST_F(RSParallelSubThreadTest, CreateResourceTest, TestSize.Level1)
     auto curThread = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
     RSParallelRenderManager::Instance()->SetFrameSize(100, 100);
     curThread->CreateResource();
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_TRUE(curThread->grContext_ != nullptr);
-#else
     ASSERT_TRUE(curThread->drContext_ != nullptr);
-#endif
     curThread->CreateResource();
     RSParallelRenderManager::Instance()->SetFrameSize(100, 300);
     curThread->CreateResource();
@@ -153,15 +149,9 @@ HWTEST_F(RSParallelSubThreadTest, RenderTest, TestSize.Level1)
     curThread->threadTask_ = std::make_unique<RSSuperRenderTask>(rsDisplayRenderNode);
     curThread->canvas_ = nullptr;
     curThread->Render();
-#ifndef USE_ROSEN_DRAWING
-    curThread->skCanvas_ = new SkCanvas();
-    ASSERT_TRUE(curThread->skCanvas_ != nullptr);
-    curThread->canvas_ = std::make_shared<RSPaintFilterCanvas>(curThread->skCanvas_);
-#else
     curThread->drCanvas_ = new Drawing::Canvas();
     ASSERT_TRUE(curThread->drCanvas_ != nullptr);
     curThread->canvas_ = std::make_shared<RSPaintFilterCanvas>(curThread->drCanvas_);
-#endif
     RSSurfaceRenderNodeConfig config;
     config.id = 100;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
@@ -175,13 +165,8 @@ HWTEST_F(RSParallelSubThreadTest, RenderTest, TestSize.Level1)
     curThread->threadTask_->AddTask(nullptr);
     ASSERT_TRUE(curThread->threadTask_->GetTaskSize() > 0);
     curThread->Render();
-#ifndef USE_ROSEN_DRAWING
-    delete curThread->skCanvas_;
-    curThread->skCanvas_ = nullptr;
-#else
     delete curThread->drCanvas_;
     curThread->drCanvas_ = nullptr;
-#endif
 }
 
 /**
@@ -198,32 +183,19 @@ HWTEST_F(RSParallelSubThreadTest, FlushTest, TestSize.Level1)
     
     instance->StartSubRenderThread(threadNum_, nullptr);
     auto curThread = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
-#ifndef USE_ROSEN_DRAWING
-    curThread->skCanvas_ = nullptr;
-    curThread->Flush();
-    curThread->skCanvas_ = new SkCanvas();
-    ASSERT_TRUE(curThread->skCanvas_ != nullptr);
-    curThread->canvas_ = std::make_shared<RSPaintFilterCanvas>(curThread->skCanvas_);
-#else
     curThread->drCanvas_ = nullptr;
     curThread->Flush();
     curThread->drCanvas_ = new Drawing::Canvas();
     ASSERT_TRUE(curThread->drCanvas_ != nullptr);
     curThread->canvas_ = std::make_shared<RSPaintFilterCanvas>(curThread->drCanvas_);
-#endif
     RSParallelRenderManager::Instance()->expectedSubThreadNum_ = 3;
     RSParallelRenderManager::Instance()->readySubThreadNum_ = 1;
     RSParallelRenderManager::Instance()->firstFlush_ = true;
     curThread->Flush();
     RSParallelRenderManager::Instance()->firstFlush_ = false;
     curThread->Flush();
-#ifndef USE_ROSEN_DRAWING
-    delete curThread->skCanvas_;
-    curThread->skCanvas_ = nullptr;
-#else
     delete curThread->drCanvas_;
     curThread->drCanvas_ = nullptr;
-#endif
 }
 
 /**
@@ -329,7 +301,6 @@ HWTEST_F(RSParallelSubThreadTest, CalcCostTest4, TestSize.Level1)
     RSParallelRenderManager::Instance()->uniVisitor_ = nullptr;
 }
 
-#ifdef USE_ROSEN_DRAWING
 /**
  * @tc.name: FlushForRosenDrawing001
  * @tc.desc: Test RSParallelSubThreadTest.FlushForRosenDrawing001
@@ -385,5 +356,4 @@ HWTEST_F(RSParallelSubThreadTest, CreateShareGrContext, TestSize.Level1)
     auto sptr = curThread->CreateShareGPUContext();
     EXPECT_NE(sptr, nullptr);
 }
-#endif
 } // namespace OHOS::Rosen

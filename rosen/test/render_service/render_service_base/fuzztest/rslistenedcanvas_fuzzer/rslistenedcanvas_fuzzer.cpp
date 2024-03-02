@@ -51,95 +51,10 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-#ifndef USE_ROSEN_DRAWING
-void RSListenedCanvasFuzzTest0(RSListenedCanvas& inListener)
-{
-    uint32_t inColor1 = GetData<uint32_t>();
-    SkColor4f inSkColor = SkColor4f::FromColor(inColor1);
-    SkPaint inSkpaint1 = SkPaint(inSkColor);
-    SkScalar inSkScrlarX1 = GetData<float>();
-    SkScalar inSkScrlarY1 = GetData<float>();
-    SkScalar inSkScrlarW1 = GetData<float>();
-    SkScalar inSkScrlarH1 = GetData<float>();
-    SkRect inSkrect = SkRect::MakeXYWH(inSkScrlarX1, inSkScrlarY1, inSkScrlarW1, inSkScrlarH1);
-    bool inIsUseCenter = GetData<bool>();
-
-    SkScalar inSkScrlarStartAngle = GetData<float>();
-    SkScalar inSkScrlarSweepAngle = GetData<float>();
-    inListener.onDrawArc(inSkrect, inSkScrlarStartAngle, inSkScrlarSweepAngle, inIsUseCenter, inSkpaint1);
-
-    SkScalar inSkScrlarX2 = GetData<float>();
-    SkScalar inSkScrlarY2 = GetData<float>();
-    SkScalar inSkScrlarW2 = GetData<float>();
-    SkScalar inSkScrlarH2 = GetData<float>();
-    SkRect inSkrect2 = SkRect::MakeXYWH(inSkScrlarX2, inSkScrlarY2, inSkScrlarW2, inSkScrlarH2);
-    SkRRect inSkRrect = SkRRect::MakeRect(inSkrect);
-    SkRRect inSkRrect2 = SkRRect::MakeRect(inSkrect2);
-    inListener.onDrawDRRect(inSkRrect, inSkRrect2, inSkpaint1);
-    inListener.onDrawOval(inSkrect, inSkpaint1);
-
-    inListener.onDrawRect(inSkrect2, inSkpaint1);
-    inListener.onDrawRRect(inSkRrect, inSkpaint1);
-}
-
-void RSListenedCanvasFuzzTest1(RSListenedCanvas& inListener)
-{
-    uint32_t inColor2 = GetData<uint32_t>();
-    SkColor4f inSkColo2 = SkColor4f::FromColor(inColor2);
-    SkPaint inSkpaint2 = SkPaint(inSkColo2);
-    sk_sp<SkDrawable> inSkDrawable = SkDrawable::Deserialize(nullptr, 0);
-    SkMatrix _skmatrix = SkMatrix::MakeAll(GetData<float>(), GetData<float>(), GetData<float>(),
-                                GetData<float>(), GetData<float>(), GetData<float>(),
-                                GetData<float>(), GetData<float>(), GetData<float>());
-    inListener.onDrawDrawable(inSkDrawable.get(), &_skmatrix);
-
-    SkScalar inSkScrlarX3 = GetData<float>();
-    SkScalar inSkScrlarY3 = GetData<float>();
-    SkScalar inSkScrlarW3 = GetData<float>();
-    SkScalar inSkScrlarH3 = GetData<float>();
-    SkRect inSkrect3 = SkRect::MakeXYWH(inSkScrlarX3, inSkScrlarY3, inSkScrlarW3, inSkScrlarH3);
-    sk_sp<SkPicture> _skpicture = SkPicture::MakePlaceholder(inSkrect3);
-    inListener.onDrawPicture(_skpicture.get(), &_skmatrix, &inSkpaint2);
-    inListener.onDrawPaint(inSkpaint2);
-
-    SkPath inSkPath;
-    inListener.onDrawPath(inSkPath, inSkpaint2);
-    
-    uint32_t inLeft = GetData<uint32_t>();
-    uint32_t inTop = GetData<uint32_t>();
-    uint32_t inRight = GetData<uint32_t>();
-    uint32_t inButtom = GetData<uint32_t>();
-    SkIRect inSkIRrect = SkIRect::MakeLTRB(inLeft, inTop, inRight, inButtom);
-    SkRegion _skregion(inSkIRrect);
-    inListener.onDrawRegion(_skregion, inSkpaint2);
-}
-
-bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
-{
-    if (data == nullptr || size < 0) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    
-    // test
-    SkCanvas _skcanvs;
-    RSListenedCanvas nowListened(&_skcanvs);
-    std::shared_ptr<RSCanvasListener> nowListener = nullptr;
-    nowListened.SetListener(nowListener);
-    RSListenedCanvasFuzzTest0(nowListened);
-    RSListenedCanvasFuzzTest1(nowListened);
-    return true;
-}
-#else
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     return true;
 }
-#endif
 } // namespace OHOS
 
 /* Fuzzer entry point */

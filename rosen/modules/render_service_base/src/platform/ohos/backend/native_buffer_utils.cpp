@@ -167,13 +167,8 @@ bool BindImageMemory(VkDevice device, const RsVulkanContext& vkContext, VkImage&
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
-    NativeSurfaceInfo& nativeSurface, int width, int height)
-#else
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
     NativeSurfaceInfo& nativeSurface, int width, int height)
-#endif
 {
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
@@ -212,32 +207,6 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     }
 
     auto skColorSpace = RenderContext::ConvertColorGamutToSkColorSpace(nativeSurface.graphicColorGamut);
-#ifndef USE_ROSEN_DRAWING
-    GrVkImageInfo image_info;
-    image_info.fImage = image;
-    image_info.fImageTiling = VK_IMAGE_TILING_OPTIMAL;
-    image_info.fImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.fFormat = nbFormatProps.format;
-    image_info.fImageUsageFlags = usageFlags;
-    image_info.fSampleCount = 1;
-    image_info.fLevelCount = 1;
-
-    GrBackendRenderTarget backend_render_target(width, height, 0, image_info);
-    SkSurfaceProps props(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
-
-    SkColorType colorType = kRGBA_8888_SkColorType;
-
-    if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
-        colorType = kRGBA_1010102_SkColorType;
-    }
-
-    RSTagTracker tagTracker(skContext.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
-
-    nativeSurface.skSurface = SkSurface::MakeFromBackendRenderTarget(
-        skContext.get(), backend_render_target, kTopLeft_GrSurfaceOrigin, colorType,
-        skColorSpace, &props, DeleteVkImage, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-        image, memory));
-#else
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(width);
     texture_info.SetHeight(height);
@@ -269,7 +238,6 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));
-#endif
 
     nativeSurface.image = image;
     if (nativeSurface.nativeWindowBuffer != nullptr) {
@@ -301,13 +269,8 @@ GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbForma
     return ycbcrInfo;
 }
 
-#ifndef USE_ROSEN_DRAWING
-GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
-    int width, int height)
-#else
 Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
     int width, int height)
-#endif
 {
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (!nativeBuffer) {
@@ -343,25 +306,6 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
         return {};
     }
 
-#ifndef USE_ROSEN_DRAWING
-    GrVkAlloc alloc;
-    alloc.fMemory = memory;
-    alloc.fOffset = nbProps.allocationSize;
-
-    GrVkImageInfo imageInfo;
-    imageInfo.fImage = image;
-    imageInfo.fAlloc = alloc;
-    imageInfo.fImageTiling = VK_IMAGE_TILING_OPTIMAL;
-    imageInfo.fImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.fFormat = nbFormatProps.format;
-    imageInfo.fImageUsageFlags = usageFlags;
-    imageInfo.fLevelCount = 1;
-    imageInfo.fCurrentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
-    imageInfo.fYcbcrConversionInfo = GetYcbcrInfo(nbFormatProps);
-    imageInfo.fSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    return GrBackendTexture(width, height, imageInfo);
-#else
     Drawing::BackendTexture backendTexture(true);
     Drawing::TextureInfo textureInfo;
     textureInfo.SetWidth(width);
@@ -394,7 +338,6 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     textureInfo.SetVKTextureInfo(imageInfo);
     backendTexture.SetTextureInfo(textureInfo);
     return backendTexture;
-#endif
 }
 } // namespace NativeBufferUtils
 } // namespace OHOS::Rosen

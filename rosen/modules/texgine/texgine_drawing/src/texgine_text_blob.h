@@ -18,12 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkTextBlob.h>
-#include <include/core/SkPath.h>
-#else
 #include "drawing.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -33,37 +28,19 @@ public:
     /*
      * @brief Return the pointer of SkTextBlob to prepare the paint info
      */
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkTextBlob> GetTextBlob() const;
-#else
     std::shared_ptr<RSTextBlob> GetTextBlob() const;
-#endif
 
     /*
      * @brief Sets SkTextBlob to TexgineTextBlob
      */
-#ifndef USE_ROSEN_DRAWING
-    void SetTextBlob(const sk_sp<SkTextBlob> textBlob);
-#else
     void SetTextBlob(const std::shared_ptr<RSTextBlob> textBlob);
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-    void GetGlyphIDs(std::vector<SkGlyphID>& glyphIds);
-
-    SkPath GetPathbyGlyphID(const SkGlyphID& glyphId);
-#else
     void GetGlyphIDs(std::vector<uint16_t>& glyphIds);
 
     RSPath GetPathbyGlyphID(const uint16_t& glyphId);
-#endif
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkTextBlob> textBlob_ = nullptr;
-#else
     std::shared_ptr<RSTextBlob> textBlob_ = nullptr;
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

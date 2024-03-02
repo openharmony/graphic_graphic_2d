@@ -74,11 +74,7 @@ private:
     void DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param);
     void OnBufferAvailable() override;
     SurfaceError DoDraw();
-#ifndef USE_ROSEN_DRAWING
-    void ExcuteBenchMark(SkCanvas* canvas);
-#else
     void ExcuteBenchMark(Drawing::Canvas* canvas);
-#endif
     bool DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer);
     void CreateDrawingSurface();
     void OnHotPlugEvent(const std::shared_ptr<HdiOutput> &output, bool connected);

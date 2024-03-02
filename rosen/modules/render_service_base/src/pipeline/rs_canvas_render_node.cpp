@@ -20,11 +20,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_common_def.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#else
 #include "recording/recording_canvas.h"
-#endif
 #include "memory/rs_memory_track.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -57,19 +53,6 @@ RSCanvasRenderNode::~RSCanvasRenderNode()
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds,
-    RSModifierType type, bool isSingleFrameComposer)
-{
-    if (!drawCmds || drawCmds->GetSize() == 0) {
-        return;
-    }
-    auto renderProperty = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_ID);
-    auto renderModifier = std::make_shared<RSDrawCmdListRenderModifier>(renderProperty);
-    renderModifier->SetType(type);
-    AddModifier(renderModifier, isSingleFrameComposer);
-}
-#else
 void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
     RSModifierType type, bool isSingleFrameComposer)
 {
@@ -81,7 +64,6 @@ void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> d
     renderModifier->SetType(type);
     AddModifier(renderModifier, isSingleFrameComposer);
 }
-#endif
 
 void RSCanvasRenderNode::ClearRecording()
 {
@@ -221,17 +203,9 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
         RSPropertiesPainter::DrawDynamicLightUp(GetRenderProperties(), canvas);
     }
 
-#ifndef USE_ROSEN_DRAWING
-    canvasNodeSaveCount_ = canvas.Save();
-#else
     canvasNodeSaveCount_ = canvas.SaveAllStatus();
-#endif
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
-#ifndef USE_ROSEN_DRAWING
-    canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-#else
     canvas.Translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-#endif
 
     if (GetRenderProperties().GetClipToFrame()) {
     // In NEW_SKIA version, L116 code will cause dump if the 3rd parameter is true.
@@ -352,11 +326,7 @@ void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModi
 void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
 {
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
-#ifndef USE_ROSEN_DRAWING
-    canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-#else
     canvas.Translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-#endif
 
     if (GetRenderProperties().GetClipToFrame()) {
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
@@ -391,13 +361,8 @@ void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canv
 void RSCanvasRenderNode::ProcessDrivenContentRender(RSPaintFilterCanvas& canvas)
 {
 #if defined(RS_ENABLE_DRIVEN_RENDER)
-#ifndef USE_ROSEN_DRAWING
-    canvasNodeSaveCount_ = canvas.Save();
-    canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-#else
     canvasNodeSaveCount_ = canvas.SaveAllStatus();
     canvas.Translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-#endif
     DrawDrivenContent(canvas);
 #endif
 }

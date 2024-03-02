@@ -44,19 +44,11 @@ HWTEST_F(KawaseBlurFilterTest, testInterface, TestSize.Level1)
 {
     KawaseBlurFilter *kawaseBlurFilter = KawaseBlurFilter::GetKawaseBlurFilter();
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas canvas;
-    SkRect src;
-    SkRect dst;
-    KawaseParameter param = KawaseParameter(src, dst, 1);
-    sk_sp<SkImage> image;
-#else
     Drawing::Canvas canvas;
     Drawing::Rect src;
     Drawing::Rect dst;
     KawaseParameter param = KawaseParameter(src, dst, 1);
     std::shared_ptr<Drawing::Image> image;
-#endif
 
     kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param);
 }

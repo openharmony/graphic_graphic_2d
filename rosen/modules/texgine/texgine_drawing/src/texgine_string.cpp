@@ -18,20 +18,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-SkString *TexgineString::GetString() const
-#else
 std::string *TexgineString::GetString()
-#endif
 {
     return string_.get();
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineString::SetString(const std::shared_ptr<SkString> string)
-#else
 void TexgineString::SetString(const std::shared_ptr<std::string> string)
-#endif
 {
     string_ = string;
 }

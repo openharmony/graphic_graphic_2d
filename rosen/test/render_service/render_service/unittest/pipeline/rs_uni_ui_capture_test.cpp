@@ -66,11 +66,7 @@ HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
     float scaleX = 0.0;
     float scaleY = 0.0;
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSRecordingCanvas> canvas = nullptr;
-#else
     std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
-#endif
     rsUniUICaptureVisitor.SetCanvas(canvas);
 }
 
@@ -255,11 +251,7 @@ HWTEST_F(RSUniUiCaptureTest, PostTaskToRSRecord, TestSize.Level1)
         std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
     EXPECT_NE(rsUniUICaptureVisitor, nullptr);
     
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSRecordingCanvas> canvas = nullptr;
-#else
     std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
-#endif
     rsUniUICapture.PostTaskToRSRecord(canvas, node, rsUniUICaptureVisitor);
 }
 
@@ -280,13 +272,8 @@ HWTEST_F(RSUniUiCaptureTest, SetPaintFilterCanvas, TestSize.Level1)
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
         std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
 
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     EXPECT_NE(recordingCanvas, nullptr);
     rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);
 
@@ -333,13 +320,8 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
         std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, scaleX, scaleY);
 
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);
     
     std::weak_ptr<RSContext> context;

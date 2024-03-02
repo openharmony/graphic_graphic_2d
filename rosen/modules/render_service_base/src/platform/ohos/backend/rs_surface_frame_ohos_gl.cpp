@@ -43,27 +43,6 @@ int32_t RSSurfaceFrameOhosGl::GetBufferAge() const
     return static_cast<int32_t>(renderContext_->QueryEglBufferAge());
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas* RSSurfaceFrameOhosGl::GetCanvas()
-{
-    if (skSurface_ == nullptr) {
-        CreateSurface();
-    }
-    if (skSurface_ == nullptr) {
-        ROSEN_LOGE("RSSurfaceFrameOhosGl::GetCanvas, skSurface_ is nullptr.");
-        return nullptr;
-    }
-    return skSurface_->getCanvas();
-}
-
-sk_sp<SkSurface> RSSurfaceFrameOhosGl::GetSurface()
-{
-    if (skSurface_ == nullptr) {
-        CreateSurface();
-    }
-    return skSurface_;
-}
-#else
 Drawing::Canvas* RSSurfaceFrameOhosGl::GetCanvas()
 {
     if (surface_ == nullptr) {
@@ -83,7 +62,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameOhosGl::GetSurface()
     }
     return surface_;
 }
-#endif
 
 int32_t RSSurfaceFrameOhosGl::GetReleaseFence() const
 {
@@ -97,11 +75,7 @@ void RSSurfaceFrameOhosGl::SetReleaseFence(const int32_t& fence)
 
 void RSSurfaceFrameOhosGl::CreateSurface()
 {
-#ifndef USE_ROSEN_DRAWING
-    skSurface_ = renderContext_->AcquireSurface(width_, height_);
-#else
     surface_ = renderContext_->AcquireSurface(width_, height_);
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS
