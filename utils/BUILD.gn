@@ -81,10 +81,6 @@ group("sandbox_utils") {
   public_deps = [ "sandbox:sandbox_utils" ]
 }
 
-group("frame_report") {
-  public_deps = [ "frame_report:frame_report" ]
-}
-
 ## Build libgraphic_utils.so {{{
 config("libgraphic_utils_public_config") {
   include_dirs = [ "$graphic_2d_root/interfaces/inner_api/common" ]
@@ -97,7 +93,6 @@ ohos_shared_library("libgraphic_utils") {
     "buffer_handle:buffer_handle",
     "color_manager:color_manager",
     "cpudraw:cpudraw",
-    "frame_report:frame_report",
     "gl_utils:gl_utils",
     "gslogger:libgslogger",
     "matrix:matrix",
