@@ -469,10 +469,9 @@ public:
 
     void SetNeedSyncFlag(bool needSync);
 
-    // debug
     void Sync()
     {
-        drawCmdList_ = std::move(stagingDrawCmdList_);
+        OnSync();
     }
 
 protected:

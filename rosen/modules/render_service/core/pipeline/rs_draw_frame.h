@@ -48,7 +48,6 @@ private:
 
     std::mutex frameMutex_;
     std::condition_variable frameCV_;
-    std::list<std::shared_ptr<RSRenderNode>> nodes;
     bool canUnblockMainThread = false;
     std::unique_ptr<RSRenderThreadParams> stagingRenderThreadParams_ = nullptr;
 };
