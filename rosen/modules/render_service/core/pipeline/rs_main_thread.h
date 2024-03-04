@@ -537,6 +537,7 @@ private:
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool discardJankFrames_ = false;
     bool forceUIFirstChanged_ = false;
+    bool hasRosenWebNode_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
