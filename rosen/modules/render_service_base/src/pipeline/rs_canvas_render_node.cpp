@@ -69,7 +69,6 @@ void RSCanvasRenderNode::ClearRecording()
     RemoveModifier(ANONYMOUS_MODIFIER_ID);
 }
 
-
 void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

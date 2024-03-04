@@ -1415,9 +1415,9 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
         IsOpaqueRegionChanged();
 }
 
-void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
-    const ScreenRotation screenRotation)
+void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation)
 {
+    auto absRect = GetDstRect();
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
     Vector4<int> cornerRadius(static_cast<int>(std::ceil(tmpCornerRadius.x_)),

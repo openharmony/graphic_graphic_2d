@@ -53,6 +53,7 @@ public:
     ~RSUniRenderVisitor() override;
 
     // To prepare nodes between displayRenderNode and app nodes.
+    void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) override;
     void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
     void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
@@ -64,11 +65,13 @@ public:
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     // restore node's flag and filter dirty collection
     void PrepareChildrenAfter(RSRenderNode& node);
+    void CalculateOcclusion(RSSurfaceRenderNode& node);
 
     void PrepareChildren(RSRenderNode& node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
     void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override;
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override;
+    // prepareroot also used for quickprepare
     void PrepareRootRenderNode(RSRootRenderNode& node) override;
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void PrepareEffectRenderNode(RSEffectRenderNode& node) override;

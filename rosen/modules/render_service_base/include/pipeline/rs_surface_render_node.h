@@ -698,8 +698,7 @@ public:
     }
 
 
-    void CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
-        const ScreenRotation screenRotation);
+    void CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation);
 
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);

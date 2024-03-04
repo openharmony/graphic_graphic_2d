@@ -40,6 +40,7 @@ public:
     virtual void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) {};
     virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) {};
     virtual void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) {};
+    virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) {};
     virtual void QuickPrepareChildren(RSRenderNode& node) {};
 
     virtual void PrepareChildren(RSRenderNode& node) = 0;
