@@ -128,3 +128,7 @@ INTERACTION_RENDER_JANK:
 FIRST_FRAME_DRAWN:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction jank statistics}
   APP_PID: {type: INT32, desc: app process id}
+
+HGM_VOTER_INFO:
+  __BASE: {type: STATISTIC, level: MINOR, desc: hgm voter info statistics}
+  MSG: {type: STRING, desc: voter info}

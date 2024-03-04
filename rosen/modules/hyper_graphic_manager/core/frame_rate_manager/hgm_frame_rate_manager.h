@@ -17,6 +17,7 @@
 #define HGM_FRAME_RATE_MANAGER_H
 
 #include <mutex>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -48,6 +49,42 @@ enum TouchStatus : uint32_t {
     TOUCH_DOWN = 2,
     TOUCH_MOVE = 3,
     TOUCH_UP = 4
+};
+
+struct FrameRateVoteInfo {
+    std::string voterName = "";
+    uint32_t preferred = 0;
+    FrameRateLinkerId pid = 0;
+    std::string ltpoType = "";
+    uint64_t timestamp = 0;
+
+    void SetTimestamp(uint64_t timestamp_)
+    {
+        timestamp = timestamp_;
+    }
+
+    void SetVoteInfo(std::string voterName_, uint32_t preferred_)
+    {
+        voterName = voterName_;
+        preferred = preferred_;
+    }
+
+    void SetLtpoInfo(FrameRateLinkerId pid_, std::string ltpoType_)
+    {
+        pid = pid_;
+        ltpoType = ltpoType_;
+    }
+
+    std::string ToString()
+    {
+        std::stringstream str;
+        str << "VOTER_NAME:" << voterName << ";";
+        str << "PREFERRED:" << preferred << ";";
+        str << "LTPO_TYPE:" << ltpoType << ";";
+        str << "PID:" << pid << ";";
+        str << "TIMESTAMP:" << timestamp << ".";
+        return str.str();
+    }
 };
 
 class HgmFrameRateManager {
@@ -106,8 +143,9 @@ private:
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
-    VoteRange ProcessRefreshRateVote();
+    VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo);
     void UpdateVoteRule();
+    void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -127,6 +165,7 @@ private:
     std::unordered_map<std::string, std::vector<std::pair<pid_t, VoteRange>>> voteRecord_;
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
+    std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
 
     std::string curPkgName_ = "";
     RefreshRateMode curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
