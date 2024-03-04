@@ -26,12 +26,15 @@
 #include <unordered_set>
 #include <variant>
 #include <vector>
+
 #include "animation/rs_animation_manager.h"
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
-#include "drawable/rs_drawable_content.h"
+#include "draw/surface.h"
+#include "drawable/rs_drawable.h"
+#include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
 #include "params/rs_render_params.h"
@@ -41,9 +44,6 @@
 #include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
-
-#include "draw/surface.h"
-#include "image/gpu_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -656,7 +656,7 @@ private:
     std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
 
     uint8_t drawableVecStatus_ = 0;
-    void UpdateDrawableContentVec();
+    void UpdateDrawableVec();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;
 
@@ -668,7 +668,7 @@ private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
-    RSDrawableContent::Vec contentVec_;
+    RSDrawable::Vec drawableVec_;
 
     std::unique_ptr<RSRenderParams> renderParams_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
@@ -676,7 +676,6 @@ private:
     void OnSync();
 
     friend class DrawFuncOpItem;
-    friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
     friend class RSModifierDrawable;

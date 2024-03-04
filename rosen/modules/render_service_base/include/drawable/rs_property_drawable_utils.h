@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_UTILS_H
-#define RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_UTILS_H
+#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_UTILS_H
+#define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_UTILS_H
 
 #include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSDrawableUtils {
+class RSPropertyDrawableUtils {
 public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr)
     {
@@ -35,19 +35,19 @@ public:
             radii.at(i).SetX(rr.radius_[i].x_);
             radii.at(i).SetY(rr.radius_[i].y_);
         }
-        return Drawing::RoundRect(rect, radii);
+        return {rect, radii};
     }
 
     static Drawing::Rect Rect2DrawingRect(const RectF& r)
     {
-        return Drawing::Rect(r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_);
+        return {r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_};
     }
 
     static RRect GetRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool& isOutline)
     {
         if (!border) {
-            return RRect();
+            return {};
         }
 
         return isOutline ?
@@ -59,7 +59,7 @@ public:
         const bool& isOutline)
     {
         if (!border) {
-            return RRect();
+            return {};
         }
         return isOutline ? properties.GetRRect() : properties.GetInnerRRect();
     }
@@ -77,7 +77,7 @@ public:
 
         auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
         if (!colorPickerTask) {
-            ROSEN_LOGE("RSDrawableUtils::PickColor colorPickerTask is null");
+            ROSEN_LOGE("RSPropertyDrawableUtils::PickColor colorPickerTask is null");
             return false;
         }
         colorPickerTask->SetIsShadow(true);
@@ -174,4 +174,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_UTILS_H
+#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_UTILS_H

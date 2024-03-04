@@ -13,18 +13,15 @@
  * limitations under the License.
  */
 
+#include "drawable/rs_property_drawable.h"
+
 #include "rs_trace.h"
 
-#include "drawable/rs_property_drawable_content.h"
-#include "drawable/rs_drawable_utils.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_property_drawable_utils.h"
 #include "effect/runtime_blender_builder.h"
-
-#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_effect_render_node.h"
-#include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 
 namespace OHOS::Rosen {
@@ -33,10 +30,10 @@ bool g_forceBgAntiAlias = true;
 constexpr int PARAM_TWO = 2;
 } // namespace
 
-std::shared_ptr<Drawing::RuntimeEffect> RSDynamicLightUpContent::dynamicLightUpBlenderEffect_ = nullptr;
-std::shared_ptr<Drawing::RuntimeEffect> RSBinarizationShaderContent::binarizationShaderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSDynamicLightUpDrawable::dynamicLightUpBlenderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSBinarizationDrawable::binarizationShaderEffect_ = nullptr;
 
-void RSPropertyDrawableContent::OnSync()
+void RSPropertyDrawable::OnSync()
 {
     if (!needSync_) {
         return;
@@ -45,9 +42,9 @@ void RSPropertyDrawableContent::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSPropertyDrawableContent::CreateDrawFunc() const
+Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
-    auto ptr = std::static_pointer_cast<const RSPropertyDrawableContent>(shared_from_this());
+    auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         if (const auto& drawCmdList = ptr->drawCmdList_) {
             drawCmdList->Playback(*canvas);
@@ -94,7 +91,7 @@ protected:
 
 class RSPropertyDrawCmdListUpdater : public RSPropertyDrawCmdListRecorder {
 public:
-    explicit RSPropertyDrawCmdListUpdater(int width, int height, RSPropertyDrawableContent* target)
+    explicit RSPropertyDrawCmdListUpdater(int width, int height, RSPropertyDrawable* target)
         : RSPropertyDrawCmdListRecorder(width, height), target_(target)
     {}
     ~RSPropertyDrawCmdListUpdater() override
@@ -108,18 +105,18 @@ public:
     }
 
 private:
-    RSPropertyDrawableContent* target_;
+    RSPropertyDrawable* target_;
 };
 
-RSDrawableContent::Ptr RSBackgroundColorContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSBackgroundColorDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSBackgroundColorContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSBackgroundColorDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSBackgroundColorContent::OnUpdate(const RSRenderNode& node)
+bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     auto bgColor = properties.GetBackgroundColor();
@@ -136,20 +133,20 @@ bool RSBackgroundColorContent::OnUpdate(const RSRenderNode& node)
     brush.SetAntiAlias(antiAlias);
     brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
     canvas.AttachBrush(brush);
-    canvas.DrawRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
+    canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
     canvas.DetachBrush();
     return true;
 }
 
-RSDrawableContent::Ptr RSBackgroundShaderContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSBackgroundShaderDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSBackgroundShaderContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSBackgroundShaderDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSBackgroundShaderContent::OnUpdate(const RSRenderNode& node)
+bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     const auto& bgShader = properties.GetBackgroundShader();
@@ -170,15 +167,15 @@ bool RSBackgroundShaderContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawableContent::Ptr RSBackgroundImageContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSBackgroundImageDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSBackgroundImageContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSBackgroundImageDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSBackgroundImageContent::OnUpdate(const RSRenderNode& node)
+bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     const auto& bgImage = properties.GetBgImage();
@@ -194,7 +191,7 @@ bool RSBackgroundImageContent::OnUpdate(const RSRenderNode& node)
     // paint backgroundColor
     Drawing::Brush brush;
     brush.SetAntiAlias(antiAlias);
-    auto boundsRect = RSDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
+    auto boundsRect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     bgImage->SetDstRect(properties.GetBgImageRect());
     canvas.AttachBrush(brush);
     bgImage->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);
@@ -202,15 +199,15 @@ bool RSBackgroundImageContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawableContent::Ptr RSBackgroundFilterContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSBackgroundFilterContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSBackgroundFilterDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
+bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     auto& rsFilter = properties.GetBackgroundFilter();
@@ -222,7 +219,7 @@ bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
-        ROSEN_LOGE("RSBackgroundFilterContent::OnUpdate surface null");
+        ROSEN_LOGE("RSBackgroundFilterDrawable::OnUpdate surface null");
         return false;
     }
 
@@ -235,12 +232,12 @@ bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
     //     cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
     //     auto node = properties.backref_.lock();
     //     if (node == nullptr) {
-    //         ROSEN_LOGE("RSBackgroundFilterContent::OnUpdate node is null");
+    //         ROSEN_LOGE("RSBackgroundFilterDrawable::OnUpdate node is null");
     //         return false;
     //     }
     //     auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>();
     //     if (effectNode == nullptr) {
-    //         ROSEN_LOGE("RSBackgroundFilterContent::OnUpdate node reinterpret cast failed.");
+    //         ROSEN_LOGE("RSBackgroundFilterDrawable::OnUpdate node reinterpret cast failed.");
     //         return false;
     //     }
     //     // node is freeze or screen rotating, force cache filterred snapshot.
@@ -254,7 +251,7 @@ bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
     auto imageRect = bounds;
     auto imageSnapshot = surface->GetImageSnapshot(imageRect);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSBackgroundFilterContent::OnUpdate image snapshot null");
+        ROSEN_LOGE("RSBackgroundFilterDrawable::OnUpdate image snapshot null");
         return false;
     }
 
@@ -263,7 +260,7 @@ bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
     std::shared_ptr<Drawing::Surface> offscreenSurface =
         surface->MakeSurface(imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     if (offscreenSurface == nullptr) {
-        ROSEN_LOGE("RSBackgroundFilterContent::OnUpdate offscreenSurface null");
+        ROSEN_LOGE("RSBackgroundFilterDrawable::OnUpdate offscreenSurface null");
         return false;
     }
     RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
@@ -274,7 +271,7 @@ bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
 
     auto imageCache = offscreenSurface->GetImageSnapshot();
     if (imageCache == nullptr) {
-        ROSEN_LOGE("RSBackgroundFilterContent::OnUpdate imageCache snapshot null");
+        ROSEN_LOGE("RSBackgroundFilterDrawable::OnUpdate imageCache snapshot null");
         return false;
     }
     // TODO canvas.SetEffectData
@@ -284,15 +281,15 @@ bool RSBackgroundFilterContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawableContent::Ptr RSBorderContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSBorderDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSBorderContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSBorderDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSBorderContent::OnUpdate(const RSRenderNode& node)
+bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 {
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
@@ -301,7 +298,7 @@ bool RSBorderContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSBorderContent::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
+void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
     if (!border || !border->HasBorder()) {
@@ -313,9 +310,9 @@ void RSBorderContent::DrawBorder(const RSProperties& properties, Drawing::Canvas
     brush.SetAntiAlias(true);
     pen.SetAntiAlias(true);
     if (border->ApplyFillStyle(brush)) {
-        auto roundRect = RSDrawableUtils::RRect2DrawingRRect(RSDrawableUtils::GetRRectForDrawingBorder(properties,
+        auto roundRect = RSPropertyDrawableUtils::RRect2DrawingRRect(RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties,
             border, isOutline));
-        auto innerRoundRect = RSDrawableUtils::RRect2DrawingRRect(RSDrawableUtils::GetInnerRRectForDrawingBorder(
+        auto innerRoundRect = RSPropertyDrawableUtils::RRect2DrawingRRect(RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(
             properties, border, isOutline));
         canvas.AttachBrush(brush);
         canvas.DrawNestedRoundRect(roundRect, innerRoundRect);
@@ -328,21 +325,21 @@ void RSBorderContent::DrawBorder(const RSProperties& properties, Drawing::Canvas
             border->PaintFourLine(canvas, pen, rectf);
         } else if (border->ApplyPathStyle(pen)) {
             auto borderWidth = border->GetWidth();
-            RRect rrect = RSDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline);
+            RRect rrect = RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline);
             rrect.rect_.width_ -= borderWidth;
             rrect.rect_.height_ -= borderWidth;
             rrect.rect_.Move(borderWidth / PARAM_TWO, borderWidth / PARAM_TWO);
             Drawing::Path borderPath;
-            borderPath.AddRoundRect(RSDrawableUtils::RRect2DrawingRRect(rrect));
+            borderPath.AddRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rrect));
             canvas.AttachPen(pen);
             canvas.DrawPath(borderPath);
             canvas.DetachPen();
         } else {
             Drawing::AutoCanvasRestore acr(canvas, true);
-            auto rrect = RSDrawableUtils::RRect2DrawingRRect(RSDrawableUtils::GetRRectForDrawingBorder(properties,
+            auto rrect = RSPropertyDrawableUtils::RRect2DrawingRRect(RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties,
                 border, isOutline));
             canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
-            auto innerRoundRect = RSDrawableUtils::RRect2DrawingRRect(RSDrawableUtils::GetInnerRRectForDrawingBorder(
+            auto innerRoundRect = RSPropertyDrawableUtils::RRect2DrawingRRect(RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(
                 properties, border, isOutline));
             canvas.ClipRoundRect(innerRoundRect, Drawing::ClipOp::DIFFERENCE, true);
             Drawing::scalar centerX = innerRoundRect.GetRect().GetLeft() + innerRoundRect.GetRect().GetWidth() / 2;
@@ -359,32 +356,32 @@ void RSBorderContent::DrawBorder(const RSProperties& properties, Drawing::Canvas
     }
 }
 
-RSDrawableContent::Ptr RSOutlineContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSOutlineContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSOutlineDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSOutlineContent::OnUpdate(const RSRenderNode& node)
+bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 {
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     const RSProperties& properties = node.GetRenderProperties();
-    RSBorderContent::DrawBorder(properties, *updater.GetRecordingCanvas(), properties.GetOutline(), true);
+    RSBorderDrawable::DrawBorder(properties, *updater.GetRecordingCanvas(), properties.GetOutline(), true);
     return true;
 }
 
-RSDrawableContent::Ptr RSShadowContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSShadowContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSShadowDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSShadowContent::OnUpdate(const RSRenderNode& node)
+bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
@@ -411,9 +408,9 @@ bool RSShadowContent::OnUpdate(const RSRenderNode& node)
             canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
         }
     } else {
-        path.AddRoundRect(RSDrawableUtils::RRect2DrawingRRect(rrect));
+        path.AddRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rrect));
         if (!properties.GetShadowIsFilled()) {
-            canvas.ClipRoundRect(RSDrawableUtils::RRect2DrawingRRect(rrect), Drawing::ClipOp::DIFFERENCE, true);
+            canvas.ClipRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rrect), Drawing::ClipOp::DIFFERENCE, true);
         }
     }
     if (properties.GetShadowMask()) {
@@ -424,7 +421,7 @@ bool RSShadowContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSShadowContent::DrawColorfulShadowInner(const RSProperties& properties, Drawing::Canvas& canvas,
+void RSShadowDrawable::DrawColorfulShadowInner(const RSProperties& properties, Drawing::Canvas& canvas,
     Drawing::Path& path)
 {
     // blurRadius calculation is based on the formula in Canvas::DrawShadow, 0.25f and 128.0f are constants
@@ -450,7 +447,7 @@ void RSShadowContent::DrawColorfulShadowInner(const RSProperties& properties, Dr
     // }
 }
 
-void RSShadowContent::DrawShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path)
+void RSShadowDrawable::DrawShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path)
 {
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
@@ -470,8 +467,8 @@ void RSShadowContent::DrawShadowInner(const RSProperties& properties, Drawing::C
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr &&
         properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (RSDrawableUtils::PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
-            RSDrawableUtils::GetDarkColor(colorPicked);
+        if (RSPropertyDrawableUtils::PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
+            RSPropertyDrawableUtils::GetDarkColor(colorPicked);
         } else {
             shadowAlpha = 0;
         }
@@ -510,15 +507,15 @@ void RSShadowContent::DrawShadowInner(const RSProperties& properties, Drawing::C
     }
 }
 
-RSDrawableContent::Ptr RSForegroundColorContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSForegroundColorDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSForegroundColorContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSForegroundColorDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSForegroundColorContent::OnUpdate(const RSRenderNode& node)
+bool RSForegroundColorDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     auto fgColor = properties.GetForegroundColor();
@@ -532,20 +529,20 @@ bool RSForegroundColorContent::OnUpdate(const RSRenderNode& node)
     brush.SetColor(Drawing::Color(fgColor.AsArgbInt()));
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
-    canvas.DrawRoundRect(RSDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
+    canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
     canvas.DetachBrush();
     return true;
 }
 
-RSDrawableContent::Ptr RSPixelStretchContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSPixelStretchDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSPixelStretchContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSPixelStretchDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
+bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     auto& pixelStretch = properties.GetPixelStretch();
@@ -557,7 +554,7 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
-        ROSEN_LOGE("RSPixelStretchContent::OnUpdate surface null");
+        ROSEN_LOGE("RSPixelStretchDrawable::OnUpdate surface null");
         return false;
     }
 
@@ -565,7 +562,7 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
         with respect to the origin of the current canvas coordinates */
     Drawing::Matrix worldToLocalMat;
     if (!canvas.GetTotalMatrix().Invert(worldToLocalMat)) {
-        ROSEN_LOGE("RSPixelStretchContent::OnUpdate get invert matrix failed.");
+        ROSEN_LOGE("RSPixelStretchDrawable::OnUpdate get invert matrix failed.");
     }
     Drawing::Rect localClipBounds;
     auto tmpBounds = canvas.GetDeviceClipBounds();
@@ -574,18 +571,18 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
     Drawing::Rect fClipBounds(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetRight(),
         clipBounds.GetBottom());
     if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
-        ROSEN_LOGE("RSPixelStretchContent::OnUpdate map rect failed.");
+        ROSEN_LOGE("RSPixelStretchDrawable::OnUpdate map rect failed.");
     }
 
     auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     if (!bounds.Intersect(localClipBounds)) {
-        ROSEN_LOGE("RSPixelStretchContent::OnUpdate intersect clipbounds failed");
+        ROSEN_LOGE("RSPixelStretchDrawable::OnUpdate intersect clipbounds failed");
     }
 
     auto scaledBounds = Drawing::Rect(bounds.GetLeft() - pixelStretch->x_, bounds.GetTop() - pixelStretch->y_,
         bounds.GetRight() + pixelStretch->z_, bounds.GetBottom() + pixelStretch->w_);
     if (!scaledBounds.IsValid() || !bounds.IsValid() || !clipBounds.IsValid()) {
-        ROSEN_LOGE("RSPixelStretchContent::OnUpdate invalid scaled bounds");
+        ROSEN_LOGE("RSPixelStretchDrawable::OnUpdate invalid scaled bounds");
         return false;
     }
 
@@ -593,7 +590,7 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
         static_cast<int>(fClipBounds.GetRight()), static_cast<int>(fClipBounds.GetBottom()));
     auto image = surface->GetImageSnapshot(rectI);
     if (image == nullptr) {
-        ROSEN_LOGE("RSPixelStretchContent::OnUpdate image null");
+        ROSEN_LOGE("RSPixelStretchDrawable::OnUpdate image null");
         return false;
     }
 
@@ -623,7 +620,7 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
         rotateMat.Set(Drawing::Matrix::TRANS_X, bounds.GetLeft() - transBounds.GetLeft());
         rotateMat.Set(Drawing::Matrix::TRANS_Y, bounds.GetTop() - transBounds.GetTop());
         if (!rotateMat.Invert(inverseMat)) {
-            ROSEN_LOGE("RSPixelStretchContent::OnUpdate get invert matrix failed.");
+            ROSEN_LOGE("RSPixelStretchDrawable::OnUpdate get invert matrix failed.");
         }
     }
 
@@ -654,21 +651,21 @@ bool RSPixelStretchContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawableContent::Ptr RSDynamicLightUpContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSDynamicLightUpDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSDynamicLightUpContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSDynamicLightUpDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSDynamicLightUpContent::OnUpdate(const RSRenderNode& node)
+bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
 {
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     Drawing::Surface* surface = canvas.GetSurface();
     if (surface == nullptr) {
-        ROSEN_LOGE("RSDynamicLightUpContent::OnUpdate surface is null");
+        ROSEN_LOGE("RSDynamicLightUpDrawable::OnUpdate surface is null");
         return false;
     }
     const RSProperties& properties = node.GetRenderProperties();
@@ -680,7 +677,7 @@ bool RSDynamicLightUpContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-std::shared_ptr<Drawing::Blender> RSDynamicLightUpContent::MakeDynamicLightUpBlender(float dynamicLightUpRate,
+std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(float dynamicLightUpRate,
     float dynamicLightUpDeg)
 {
     static constexpr char prog[] = R"(
@@ -699,7 +696,7 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpContent::MakeDynamicLightUpBle
     if (dynamicLightUpBlenderEffect_ == nullptr) {
         dynamicLightUpBlenderEffect_ = Drawing::RuntimeEffect::CreateForBlender(prog);
         if (dynamicLightUpBlenderEffect_ == nullptr) {
-            ROSEN_LOGE("RSDynamicLightUpContent::MakeDynamicLightUpBlender effect error!");
+            ROSEN_LOGE("RSDynamicLightUpDrawable::MakeDynamicLightUpBlender effect error!");
             return nullptr;
         }
     }
@@ -710,28 +707,28 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpContent::MakeDynamicLightUpBle
     return builder->MakeBlender();
 }
 
-RSDrawableContent::Ptr RSLightUpEffectContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSLightUpEffectDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSLightUpEffectContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSLightUpEffectDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSLightUpEffectContent::OnUpdate(const RSRenderNode& node)
+bool RSLightUpEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     Drawing::Surface* surface = canvas.GetSurface();
     if (surface == nullptr) {
-        ROSEN_LOGE("RSLightUpEffectContent::OnUpdate surface is null");
+        ROSEN_LOGE("RSLightUpEffectDrawable::OnUpdate surface is null");
         return false;
     }
 
     auto clipBounds = canvas.GetDeviceClipBounds();
     auto image = surface->GetImageSnapshot(clipBounds);
     if (image == nullptr) {
-        ROSEN_LOGE("RSLightUpEffectContent::OnUpdate image is null");
+        ROSEN_LOGE("RSLightUpEffectDrawable::OnUpdate image is null");
         return false;
     }
 
@@ -748,15 +745,15 @@ bool RSLightUpEffectContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawableContent::Ptr RSColorFilterContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSColorFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSColorFilterContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSColorFilterDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSColorFilterContent::OnUpdate(const RSRenderNode& node)
+bool RSColorFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     // if useEffect defined, use color filter from parent EffectView.
@@ -774,13 +771,13 @@ bool RSColorFilterContent::OnUpdate(const RSRenderNode& node)
     brush.SetFilter(filter);
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
-        ROSEN_LOGE("RSColorFilterContent::OnUpdate surface is null");
+        ROSEN_LOGE("RSColorFilterDrawable::OnUpdate surface is null");
         return false;
     }
     auto clipBounds = canvas.GetDeviceClipBounds();
     auto imageSnapshot = surface->GetImageSnapshot(clipBounds);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSColorFilterContent::OnUpdate image is null");
+        ROSEN_LOGE("RSColorFilterDrawable::OnUpdate image is null");
         return false;
     }
     imageSnapshot->HintCacheGpuResource();
@@ -792,30 +789,30 @@ bool RSColorFilterContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawableContent::Ptr RSMaskContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSMaskDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSMaskContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSMaskDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSMaskContent::OnUpdate(const RSRenderNode& node)
+bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     std::shared_ptr<RSMask> mask = properties.GetMask();
     if (mask == nullptr) {
-        ROSEN_LOGE("RSMaskContent::OnUpdate null mask");
+        ROSEN_LOGE("RSMaskDrawable::OnUpdate null mask");
         return false;
     }
     if (mask->IsSvgMask() && !mask->GetSvgDom() && !mask->GetSvgPicture()) {
-        ROSEN_LOGE("RSMaskContent::OnUpdate not has Svg Mask property");
+        ROSEN_LOGE("RSMaskDrawable::OnUpdate not has Svg Mask property");
         return false;
     }
 
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    Drawing::Rect maskBounds = RSDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
+    Drawing::Rect maskBounds = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.Save();
     Drawing::SaveLayerOps slr(&maskBounds, nullptr);
     canvas.SaveLayer(slr);
@@ -866,28 +863,28 @@ bool RSMaskContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawableContent::Ptr RSBinarizationShaderContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSBinarizationDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSBinarizationShaderContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSBinarizationDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSBinarizationShaderContent::OnUpdate(const RSRenderNode& node)
+bool RSBinarizationDrawable::OnUpdate(const RSRenderNode& node)
 {
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     const RSProperties& properties = node.GetRenderProperties();
     auto drSurface = canvas.GetSurface();
     if (drSurface == nullptr) {
-        ROSEN_LOGE("RSBinarizationShaderContent::OnUpdate drSurface is null");
+        ROSEN_LOGE("RSBinarizationDrawable::OnUpdate drSurface is null");
         return false;
     }
     auto clipBounds = canvas.GetDeviceClipBounds();
     auto imageSnapshot = drSurface->GetImageSnapshot(clipBounds);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSBinarizationShaderContent::OnUpdate image is null");
+        ROSEN_LOGE("RSBinarizationDrawable::OnUpdate image is null");
         return false;
     }
     auto& aiInvert = properties.GetAiInvert();
@@ -906,7 +903,7 @@ bool RSBinarizationShaderContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-std::shared_ptr<Drawing::ShaderEffect> RSBinarizationShaderContent::MakeBinarizationShader(float low, float high,
+std::shared_ptr<Drawing::ShaderEffect> RSBinarizationDrawable::MakeBinarizationShader(float low, float high,
     float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
     static constexpr char prog[] = R"(
@@ -930,7 +927,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSBinarizationShaderContent::MakeBinariza
     if (binarizationShaderEffect_ == nullptr) {
         binarizationShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
         if (binarizationShaderEffect_ == nullptr) {
-            ROSEN_LOGE("RSBinarizationShaderContent::MakeBinarizationShader effect error\n");
+            ROSEN_LOGE("RSBinarizationDrawable::MakeBinarizationShader effect error\n");
             return nullptr;
         }
     }
@@ -945,15 +942,15 @@ std::shared_ptr<Drawing::ShaderEffect> RSBinarizationShaderContent::MakeBinariza
     return builder->MakeShader(nullptr, false);
 }
 
-RSDrawableContent::Ptr RSParticleContent::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSParticleDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSParticleContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSParticleDrawable>(); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 };
 
-bool RSParticleContent::OnUpdate(const RSRenderNode& node)
+bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     const auto& particleVector = properties.GetParticles();

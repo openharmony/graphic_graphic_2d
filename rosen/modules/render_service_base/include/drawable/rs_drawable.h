@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_CONTENT_H
-#define RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_CONTENT_H
+#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_H
+#define RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_H
 
 #include <bitset>
 #include <cstdint>
@@ -22,17 +22,16 @@
 #include <memory>
 #include <unordered_set>
 
+#include "recording/recording_canvas.h"
+
 #include "modifier/rs_modifier_type.h"
-#include "pipeline/rs_recording_canvas.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSRenderContent;
 
 // NOTE: MUST update DrawableGeneratorLut in rs_drawable_content.cpp when new slots are added
-enum class RSDrawableContentSlot : uint8_t {
-    INVALID = 0,
-
+enum class RSDrawableSlot : uint8_t {
     // Bounds Geometry
     ALPHA,
     MASK,
@@ -81,8 +80,12 @@ enum class RSDrawableContentSlot : uint8_t {
     PARTICLE_EFFECT,
     PIXEL_STRETCH,
 
+    // Restore state
     RESTORE_BLEND_MODE,
     RESTORE_ALPHA,
+
+    // Invalid
+    INVALID,
 
     // Annotations: Please remember to update this when new slots are added.
     // NOTE: MAX and *_END enums are using the one-past-the-end style.
@@ -92,20 +95,27 @@ enum class RSDrawableContentSlot : uint8_t {
     CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
     FG_PROPERTIES_BEGIN      = BINARIZATION,
     FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
-    MAX                      = RESTORE_ALPHA + 1,
+    MAX                      = INVALID,
 };
 
 // pure virtual base class
-class RSDrawableContent : public std::enable_shared_from_this<RSDrawableContent> {
+class RSDrawable : public std::enable_shared_from_this<RSDrawable> {
 public:
-    RSDrawableContent() = default;
-    virtual ~RSDrawableContent() = default;
+    RSDrawable() = default;
+    virtual ~RSDrawable() = default;
 
-    // type definition
-    using Ptr = std::shared_ptr<RSDrawableContent>;
-    using Vec = std::array<Ptr, static_cast<size_t>(RSDrawableContentSlot::MAX)>;
+    // not copyable and moveable
+    RSDrawable(const RSDrawable&) = delete;
+    RSDrawable(const RSDrawable&&) = delete;
+    RSDrawable& operator=(const RSDrawable&) = delete;
+    RSDrawable& operator=(const RSDrawable&&) = delete;
+
+    // =================type definition==================
+    using Ptr = std::shared_ptr<RSDrawable>;
+    using Vec = std::array<Ptr, static_cast<size_t>(RSDrawableSlot::MAX)>;
     using Generator = std::function<Ptr(const RSRenderNode&)>;
 
+    // =================virtual functions==================
     // Call on first create, return nullptr if no need to create
     // static Ptr OnGenerate(const RSRenderNode& content) { return nullptr; };
 
@@ -124,62 +134,15 @@ public:
     // !!!!!!!!!!!!!!!!!!!!!!!!!!
     virtual Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const = 0;
 
-    // not copyable and moveable
-    RSDrawableContent(const RSDrawableContent&) = delete;
-    RSDrawableContent(const RSDrawableContent&&) = delete;
-    RSDrawableContent& operator=(const RSDrawableContent&) = delete;
-    RSDrawableContent& operator=(const RSDrawableContent&&) = delete;
-
     // =================Generate & Update helper methods==================
     // Step 1, generate DirtySlots from dirty Modifiers
-    static std::unordered_set<RSDrawableContentSlot> CalculateDirtySlots(
+    static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(
         ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
     // Step 2, for every DirtySlot, generate DrawableContent
     static bool UpdateDirtySlots(
-        const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableContentSlot>& dirtySlots);
+        const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots);
     // Step 3, add necessary Clip/Save/Restore
     static void UpdateSaveRestore(RSRenderContent& content, Vec& drawableVec, uint8_t& drawableVecStatus);
 };
-
-// RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
-class RSRenderNodeDrawableAdapter;
-class RSChildrenDrawableContent : public RSDrawableContent {
-public:
-    RSChildrenDrawableContent() = default;
-    ~RSChildrenDrawableContent() override = default;
-
-    static RSDrawableContent::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
-    void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-
-private:
-    bool needSync_ = false;
-    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> childrenDrawables_;
-    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawables_;
-    friend class RSChildrenDrawable;
-};
-
-// RSChildrenDrawable, for drawing custom modifiers
-enum class RSModifierType : int16_t;
-namespace Drawing {
-class DrawCmdList;
-}
-class RSCustomModifierDrawableContent : public RSDrawableContent {
-public:
-    RSCustomModifierDrawableContent(RSModifierType type) : type_(type) {}
-    static RSDrawableContent::Ptr OnGenerate(const RSRenderNode& content, RSModifierType type);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-
-private:
-    RSModifierType type_;
-
-    bool needSync_ = false;
-    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> drawCmdList_;
-    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdList_;
-    friend class RSCustomModifierDrawable;
-};
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_CONTENT_H
+#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_H
