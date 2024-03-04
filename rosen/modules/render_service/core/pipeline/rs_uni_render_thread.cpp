@@ -100,7 +100,10 @@ void RSUniRenderThread::Render()
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
-    rootNodeDrawable_->OnDraw(nullptr);
+
+    // TO-DO replace Canvas* with Canvas&
+    Drawing::Canvas canvas;
+    rootNodeDrawable_->OnDraw(&canvas);
 }
 
 } // namespace Rosen

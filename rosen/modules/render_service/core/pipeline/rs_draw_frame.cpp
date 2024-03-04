@@ -18,6 +18,8 @@
 #include "rs_trace.h"
 #include "pipeline/rs_uni_render_thread.h"
 
+#include "pipeline/rs_main_thread.h"
+
 namespace OHOS {
 namespace Rosen {
 RSDrawFrame::RSDrawFrame() : unirenderInstance_(RSUniRenderThread::Instance())
@@ -57,11 +59,16 @@ void RSDrawFrame::PostAndWait()
 void RSDrawFrame::Sync()
 {
     RS_TRACE_NAME_FMT("Sync");
-    for(auto node : nodes) {
-        if (!node) {
-            continue;
+    auto& nodeMapMutex = RSMainThread::Instance()->GetContext().activeNodesInRootMutex_;
+    std::unique_lock<std::mutex> lock(nodeMapMutex);
+    auto& nodesMap = RSMainThread::Instance()->GetContext().activeNodesInRoot_;
+    for (auto rootMap : nodesMap) {
+        for (auto iter : rootMap.second) {
+            auto node = iter.second.lock();
+            if (node) {
+                node->Sync();
+            }
         }
-        node->Sync();
     }
 
     unirenderInstance_.Sync(stagingRenderThreadParams_);

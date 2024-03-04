@@ -133,6 +133,7 @@ private:
 
     friend class RSRenderThread;
     friend class RSMainThread;
+    friend class RSDrawFrame;
 };
 
 } // namespace Rosen
