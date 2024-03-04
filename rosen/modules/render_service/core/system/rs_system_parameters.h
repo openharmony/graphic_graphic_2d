@@ -40,7 +40,6 @@ public:
     static bool GetCalcCostEnabled();
     static bool GetDrawingCacheEnabled();
     static bool GetDrawingCacheEnabledDfx();
-    static bool GetQuickPrepareEnabled();
     static bool GetShowRefreshRateEnabled();
     static QuickSkipPrepareType GetQuickSkipPrepareType();
     static bool GetVSyncControlEnabled();

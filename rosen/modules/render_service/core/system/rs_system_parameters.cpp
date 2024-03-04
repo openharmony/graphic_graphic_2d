@@ -68,13 +68,6 @@ QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
     return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));
 }
 
-bool RSSystemParameters::GetQuickPrepareEnabled()
-{
-    static bool quickPrepareEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.quickPrepareEnabled", "0")).c_str()) != 0;
-    return quickPrepareEnabled;
-}
-
 bool RSSystemParameters::GetVSyncControlEnabled()
 {
     static bool vsyncControlEnabled =

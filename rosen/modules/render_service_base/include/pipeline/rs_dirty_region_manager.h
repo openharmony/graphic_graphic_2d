@@ -91,6 +91,9 @@ public:
     const RectI& GetCurrentFrameDirtyRegion();
     // return merged historical region
     const RectI& GetDirtyRegion() const;
+    // return mapAbs dirtyRegion
+    const RectI& GetCurrentFrameMpsAbsDirtyRect() const;
+    void SetCurrentFrameMapAbsDirtyRect(const RectI& dirtyRect);
     /*  return merged historical region upside down in left-bottom origin coordinate
         reason: when use OpenGL SetDamageRegion, coordinate system conversion exists.
     */
@@ -164,6 +167,7 @@ private:
     RectI surfaceRect_;             // dirtyregion clipbounds
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
+    RectI currentFrameMapAbsDirtyRect_;   // currentFrameDirtyRegion after mapAbsrect.
     std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion
     std::vector<RectI> cacheableFilterRects_ = {};  // node's region if filter cachable
     std::vector<RectI> mergedDirtyRegions_ = {};

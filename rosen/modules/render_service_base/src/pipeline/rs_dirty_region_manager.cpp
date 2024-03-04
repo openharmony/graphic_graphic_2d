@@ -133,6 +133,16 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
     return dirtyRegion_;
 }
 
+void RSDirtyRegionManager::SetCurrentFrameMapAbsDirtyRect(const RectI& dirtyRect)
+{
+    currentFrameMapAbsDirtyRect_ = dirtyRect;
+}
+
+const RectI& RSDirtyRegionManager::GetCurrentFrameMpsAbsDirtyRect() const
+{
+    return currentFrameMapAbsDirtyRect_;
+}
+
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
 {
     RectI glRect;
@@ -187,6 +197,7 @@ void RSDirtyRegionManager::Clear()
 {
     dirtyRegion_.Clear();
     currentFrameDirtyRegion_.Clear();
+    currentFrameMapAbsDirtyRect_.Clear();
     visitedDirtyRegions_.clear();
     mergedDirtyRegions_.clear();
     cacheableFilterRects_.clear();
@@ -218,13 +229,22 @@ void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
         AlignHistory();
     }
     isDirtyRegionAlignedEnable_ = enableAligned;
-    PushHistory(currentFrameDirtyRegion_);
-    dirtyRegion_ = MergeHistory(bufferAge_, currentFrameDirtyRegion_);
+    if (!isDisplayDirtyManager_ && RSSystemProperties::GetQuickPrepareEnabled()) {
+        PushHistory(currentFrameMapAbsDirtyRect_);
+        dirtyRegion_ = MergeHistory(bufferAge_, currentFrameMapAbsDirtyRect_);
+    } else {
+        PushHistory(currentFrameDirtyRegion_);
+        dirtyRegion_ = MergeHistory(bufferAge_, currentFrameDirtyRegion_);
+    }
 }
 
 void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
 {
-    currentFrameDirtyRegion_ = GetPixelAlignedRect(currentFrameDirtyRegion_, alignedBits);
+    if (RSSystemProperties::GetQuickPrepareEnabled()) {  
+        currentFrameMapAbsDirtyRect_ = GetPixelAlignedRect(currentFrameMapAbsDirtyRect_, alignedBits);
+    } else {
+        currentFrameDirtyRegion_ = GetPixelAlignedRect(currentFrameDirtyRegion_, alignedBits);       
+    }
 }
 
 void RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType,

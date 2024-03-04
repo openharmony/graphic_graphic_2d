@@ -1370,12 +1370,18 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isAccessibilityConfigChanged_ = false;
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
-        // rootNode->QuickPrepare(uniVisitor);  //TODO:the QuickPrepare will be replaced by Prepare
-        rootNode->Prepare(uniVisitor);
+        if (RSSystemProperties::GetQuickPrepareEnabled()) {
+            //TODO:the QuickPrepare will be replaced by Prepare
+            rootNode->QuickPrepare(uniVisitor);      
+        } else {
+            rootNode->Prepare(uniVisitor);
+        }
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-        CalcOcclusion();
+        if (!RSSystemProperties::GetQuickPrepareEnabled()) {
+            CalcOcclusion();
+        }
         doParallelComposition_ = RSInnovation::GetParallelCompositionEnabled(isUniRender_) &&
                                  rootNode->GetChildrenCount() > 1;
         if (doParallelComposition_) {
