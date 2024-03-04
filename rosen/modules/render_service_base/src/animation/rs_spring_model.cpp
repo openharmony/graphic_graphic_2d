@@ -15,8 +15,8 @@
 
 #include "animation/rs_spring_model.h"
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 #include "common/rs_rect.h"
 #include "modifier/rs_render_property.h"
@@ -34,31 +34,8 @@ float toFloat(float value)
 {
     return std::fabs(value);
 }
-template<>
-float toFloat(Vector4f value)
-{
-    return value.GetLength();
-}
-template<>
-float toFloat(Quaternion value)
-{
-    return value.GetLength();
-}
-template<>
-float toFloat(Vector2f value)
-{
-    return value.GetLength();
-}
 } // namespace
 
-template<typename RSAnimatableType>
-RSSpringModel<RSAnimatableType>::RSSpringModel(float response, float dampingRatio,
-    const RSAnimatableType& initialOffset, const RSAnimatableType& initialVelocity, float minimumAmplitude)
-    : response_(response), dampingRatio_(dampingRatio), initialOffset_(initialOffset),
-      initialVelocity_(initialVelocity), minimumAmplitudeRatio_(minimumAmplitude)
-{
-    CalculateSpringParameters();
-}
 template<>
 void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParameters()
 {
@@ -328,10 +305,7 @@ float RSSpringModel<float>::EstimateDurationForOverDampedModel() const
 template class RSSpringModel<float>;
 template class RSSpringModel<Color>;
 template class RSSpringModel<Matrix3f>;
-template class RSSpringModel<Vector2f>;
-template class RSSpringModel<Vector4f>;
 template class RSSpringModel<RRect>;
-template class RSSpringModel<Quaternion>;
 template class RSSpringModel<Vector4<Color>>;
 template class RSSpringModel<std::shared_ptr<RSFilter>>;
 template class RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>;

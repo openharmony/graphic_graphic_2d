@@ -39,16 +39,38 @@ float toFloat(RSAnimatableType value)
 {
     return 1.f;
 }
+template<>
+float toFloat(Vector4f value)
+{
+    return value.GetLength();
+}
+template<>
+float toFloat(Quaternion value)
+{
+    return value.GetLength();
+}
+template<>
+float toFloat(Vector2f value)
+{
+    return value.GetLength();
+}
 } // namespace
 
 // RSAnimatableType should have following operators: + - *float ==
 template<typename RSAnimatableType>
 class RSB_EXPORT RSSpringModel {
 public:
-    explicit RSSpringModel(float response, float dampingRatio, const RSAnimatableType& initialOffset,
-        const RSAnimatableType& initialVelocity, float minimumAmplitude);
+    RSSpringModel() {};
 
-    virtual ~RSSpringModel() = default;
+    explicit RSSpringModel(float response, float dampingRatio, const RSAnimatableType& initialOffset,
+        const RSAnimatableType& initialVelocity, float minimumAmplitude)
+        : response_(response), dampingRatio_(dampingRatio), initialOffset_(initialOffset),
+          initialVelocity_(initialVelocity), minimumAmplitudeRatio_(minimumAmplitude)
+    {
+        CalculateSpringParameters();
+    }
+
+    ~RSSpringModel() {};
 
     RSAnimatableType CalculateDisplacement(double time) const
     {
@@ -106,7 +128,6 @@ public:
     }
 
 protected:
-    RSSpringModel() = default;
     void CalculateSpringParameters()
     {
         // sanity check
@@ -178,9 +199,16 @@ private:
     float dampedAngularVelocity_ { 0.0f };
     RSAnimatableType coeffScaleAlt_ {};
     float coeffDecayAlt_ { 0.0f };
+
+    template<typename T>
+    friend class RSSpringValueEstimator;
 };
 
-// only used in interpolatingSpring animation
+template class RSSpringModel<Vector2f>;
+template class RSSpringModel<Vector4f>;
+template class RSSpringModel<Quaternion>;
+
+// only used for property of which type is float
 template<>
 RSB_EXPORT float RSSpringModel<float>::EstimateDuration() const;
 template<>
@@ -193,6 +221,7 @@ template<>
 RSB_EXPORT float RSSpringModel<float>::EstimateDurationForCriticalDampedModel() const;
 template<>
 RSB_EXPORT float RSSpringModel<float>::EstimateDurationForOverDampedModel() const;
+
 template<>
 void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParameters();
 template<>
