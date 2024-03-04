@@ -282,7 +282,10 @@ napi_status WebGLReadBufferArg::GenBufferData(napi_value data, BufferDataType de
     if (data == nullptr) {
         return napi_invalid_arg;
     }
-    bool dataView, isArrayBuffer, typedArray, array = false;
+    bool dataView = false;
+    bool isArrayBuffer = false;
+    bool typedArray = false;
+    bool array = false;
     napi_status status = napi_invalid_arg;
     napi_is_dataview(env_, data, &dataView);
     napi_is_arraybuffer(env_, data, &isArrayBuffer);

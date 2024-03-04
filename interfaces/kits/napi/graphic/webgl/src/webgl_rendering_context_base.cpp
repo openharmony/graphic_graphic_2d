@@ -1096,7 +1096,7 @@ napi_value WebGLRenderingContextBase::DrawElements(napi_env env, napi_callback_i
         return NVal::CreateNull(env).val_;
     }
     WebGLRenderingContext* context = GetWebGLRenderingContextBase(env, funcArg.GetThisVar());
-    return (context == nullptr) ? NVal::CreateNull(env).val_ : 
+    return (context == nullptr) ? NVal::CreateNull(env).val_ :
         context->GetWebGLRenderingContextImpl().DrawElements(
         env, mode, static_cast<GLsizei>(count), type, static_cast<GLintptr>(offset));
 }
