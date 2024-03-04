@@ -482,9 +482,9 @@ bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
     node.SetDrawingCacheChanged(false);
     node.SetCacheGeoPreparationDelay(dirtyFlag_);
     if (allCacheFilterRects_.count(node.GetId())) {
-        node.SetChildHasFilter(true);
+        node.SetChildHasVisibleFilter(true);
         if (const auto directParent = node.GetParent().lock()) {
-            directParent->SetChildHasFilter(true);
+            directParent->SetChildHasVisibleFilter(true);
         }
     }
     return true;
@@ -492,7 +492,7 @@ bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
 
 bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
 {
-    node.SetChildHasFilter(false);
+    node.SetChildHasVisibleFilter(false);
     if (!isDrawingCacheEnabled_) {
         return true;
     }
@@ -633,8 +633,8 @@ void RSUniRenderVisitor::ProcessSubSurfaceNodes(RSSurfaceRenderNode& node)
 void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
 {
     auto directParent = node.GetParent().lock();
-    if (directParent != nullptr && node.ChildHasFilter()) {
-        directParent->SetChildHasFilter(true);
+    if (directParent != nullptr && node.ChildHasVisibleFilter()) {
+        directParent->SetChildHasVisibleFilter(true);
     }
     if (!isDrawingCacheEnabled_ ||
         node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
@@ -657,9 +657,9 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
     }
     bool isDrawingCacheChanged = isDrawingCacheChanged_.empty() ? true : isDrawingCacheChanged_.top();
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
-        "staticCache %d, cacheChange %d, childHasFilter|effect: %d|%d, outofparent: %d, visitedCacheNodeIds num: %lu",
+        "staticCache %d, cacheChange %d, childHasVisibleFilter|effect: %d|%d, outofparent: %d, visitedCacheNodeIds num: %lu",
         node.GetId(), static_cast<int>(node.GetDrawingCacheType()), node.IsStaticCached(),
-        static_cast<int>(isDrawingCacheChanged), node.ChildHasFilter(), node.HasUseEffectNodes(),
+        static_cast<int>(isDrawingCacheChanged), node.ChildHasVisibleFilter(), node.HasUseEffectNodes(),
         static_cast<int>(node.HasChildrenOutOfRect()), visitedCacheNodeIds_.size());
     if (node.IsStaticCached()) {
         node.SetDrawingCacheChanged(false);
@@ -1074,7 +1074,7 @@ void RSUniRenderVisitor::ClassifyUIFirstSurfaceDirtyStatus(RSSurfaceRenderNode& 
         isCachedSurfaceReuse_ = (quickSkipPrepareType_ >= QuickSkipPrepareType::STATIC_CACHE_SURFACE) &&
             (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) &&
             CheckIfUIFirstSurfaceContentReusable(curSurfaceNode_, isSurfaceDirtyNodeLimited_);
-        // The condition of childHasFilter in QuerySubAssignable can not be used here
+        // The condition of childHasVisibleFilter in QuerySubAssignable can not be used here
         // Because child node's filter is not collected yet, so disable prepare optimization when node is transparent
         // [planning]: detect the filter change before prepare, and use the last frame result
         isSurfaceDirtyNodeLimited_ = (quickSkipPrepareType_ == QuickSkipPrepareType::CONTENT_DIRTY_CACHE_SURFACE) &&
@@ -1120,7 +1120,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
     if (properties.NeedFilter()) {
         UpdateForegroundFilterCacheWithDirty(node, *curSurfaceDirtyManager_);
         if (auto parentNode = node.GetParent().lock()) {
-            parentNode->SetChildHasFilter(true);
+            parentNode->SetChildHasVisibleFilter(true);
+            parentNode->SetChildHasVisibleFilter(true);
         }
         if (curSurfaceNode_) {
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
@@ -1129,8 +1130,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
     if (node.IsLeashWindow()) {
         auto children = node.GetSortedChildren();
         for (auto& child : *children) {
-            if (child->ChildHasFilter()) {
-                node.SetChildHasFilter(true);
+            if (child->ChildHasVisibleFilter()) {
+                node.SetChildHasVisibleFilter(true);
                 break;
             }
         }
@@ -1196,19 +1197,26 @@ void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node
     node.UpdateFilterCacheManagerWithCacheRegion(dirtyManager, prepareClipRect_);
 }
 
-bool RSUniRenderVisitor::IsSubTreeNeedPrepare(RSRenderNode& node) const
+bool RSUniRenderVisitor::IsSubTreeNeedPrepare(RSRenderNode& node, std::shared_ptr<RSRenderNode> parent) const
 {
     // stop visit invisible or clean without filter subtree
     if (!node.ShouldPaint()) {
         node.SetSubTreeDirty(false);
+        node.UpdateChildrenOutOfRectFlag(false); // not need to consider
         return false;
     }
     if (node.IsSubTreeDirty()) {
         node.SetSubTreeDirty(false);
+        node.UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
+    // for clean subtree, keep outofparent flag and map childrenrect if node is (geo)dirty
+    if (curDirty_) {
+        node.MapChildrenRect();
+        node.UpdateParentChildrenRect(parent);
+    }
     // if clean without filter skip subtree
-    return node.ChildHasFilter() ? filterInGlobal_ : false;
+    return node.ChildHasVisibleFilter() ? filterInGlobal_ : false;
 }
 
 bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
@@ -1237,6 +1245,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
+    // todo: update rotation based on screenInfo
+    dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     needRecalculateOcclusion_ = false;
     accumulatedRegion_.Reset();
     while (!curMainAppWindowNodesIds_.empty()) {
@@ -1275,7 +1285,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         curSurfaceDirtyManager_->Clear();
         filterInGlobal_ = curSurfaceNode_->IsTransparent();
     }
-
+    bool dirtyFlag = dirtyFlag_;
     curMainAppWindowNodesIds_.push(node.GetId());
     curMainSurfaceNodes_.push_back(std::shared_ptr<RSSurfaceRenderNode>(&node));
     if (!needRecalculateOcclusion_) {
@@ -1300,8 +1310,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     node.ApplyModifiers();
 
-    if (node.IsDirty()) {
-        node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
+    if (dirtyFlag_ || node.IsDirty()) {
+        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
     }
     auto dstRect = geoPtr->GetAbsRect();
     node.SetDstRect(dstRect);
@@ -1329,10 +1339,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         return;
     }
 
-    if (IsSubTreeNeedPrepare(node) || !IsSubTreeOccluded(node)) {
+    if (IsSubTreeNeedPrepare(node, nodeParent) || !IsSubTreeOccluded(node)) {
         QuickPrepareChildren(node);
     }
     prepareClipRect_ = prepareClipRect;
+    dirtyFlag_ = dirtyFlag;
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
 }
 
@@ -1388,13 +1399,14 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto nodeParent = node.GetParent().lock();
     auto rsParent = (nodeParent);
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
+    bool dirtyFlag = dirtyFlag_;
 
     node.ApplyModifiers();
 
     RectI prepareClipRect = prepareClipRect_;
     // TODO: can optimize in container node's children not contain surfacenode.
-    if (node.IsDirty()) {
-        node.Update(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
+    if (dirtyFlag_ || node.IsDirty()) {
+        dirtyFlag_ = node.Update(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
         // TODO: divide to two parts: a. update matrix  b. collect dirty
     }
 
@@ -1411,8 +1423,11 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     }
 
     // 1. Recursively traverse child nodes
-    QuickPrepareChildren(node);
+    if (!curSurfaceNode_ || IsSubTreeNeedPrepare(node, nodeParent)) {
+        QuickPrepareChildren(node);
+    }
     prepareClipRect_ = prepareClipRect;
+    dirtyFlag_ = dirtyFlag;
 }
 
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
@@ -1421,6 +1436,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     auto children = node.GetSortedChildren();
     std::for_each((*children).rbegin(), (*children).rend(),
         [this](const std::shared_ptr<RSRenderNode>& node) {
+        curDirty_ = node->IsDirty();
         node->Prepare(shared_from_this());
     });
     PrepareChildrenAfter(node);
@@ -1433,6 +1449,7 @@ void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
         auto globalFilterRect = RectI();
         if (curSurfaceNode_ && curSurfaceNode_->IsTransparent()) {
             if (auto geoPtr = node.GetRenderProperties().GetBoundsGeometry()) {
+                // since node's geoMatrix matches surfaceNode after update, map again to display
                 globalFilterRect = geoPtr->MapAbsRect(node.GetOldDirtyInSurface().ConvertTo<float>());
                 globalFilterRects_.emplace_back(globalFilterRect);
             }
@@ -1870,7 +1887,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         // the whole oldDirtyRect should be render in this vsync.
         // Partial rendering of node with filter would cause display problem.
         if (auto directParent = node.GetParent().lock()) {
-            directParent->SetChildHasFilter(true);
+            directParent->SetChildHasVisibleFilter(true);
         }
         if (curSurfaceDirtyManager_->IsTargetForDfx()) {
             curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
@@ -1924,7 +1941,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
         // the whole oldDirtyRect should be render in this vsync.
         // Partial rendering of node with filter would cause display problem.
         if (parentNode) {
-            parentNode->SetChildHasFilter(true);
+            parentNode->SetChildHasVisibleFilter(true);
         }
         if (curSurfaceDirtyManager_->IsTargetForDfx()) {
             curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
@@ -2269,7 +2286,7 @@ void RSUniRenderVisitor::CheckSkipRepeatShadow(RSRenderNode& node, const bool re
     // In normal process, if shadow has drawn in drawCacheWithBlur, no need to draw again in children node
     // not comming from drawCacheWithBlur and updateCacheProcess, child has shadow,skip draw shadow child later
     if (!drawCacheWithBlur_ && !notRunCheckAndSetNodeCacheType_ && !allCacheFilterRects_[node.GetId()].empty() &&
-        node.ChildHasFilter() && updateCacheProcessCnt_ == 0) {
+        node.ChildHasVisibleFilter() && updateCacheProcessCnt_ == 0) {
         if (resetStatus) {
             RS_TRACE_NAME("status reset");
             noNeedTodrawShadowAgain_ = false;
@@ -4001,7 +4018,7 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
         if (curGroupedNodes_.empty()) {
             // draw filter before drawing cached surface
             curCacheFilterRects_.top().erase(node.GetId());
-            if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
+            if (curCacheFilterRects_.empty() || !node.ChildHasVisibleFilter()) {
                 // no filter to draw, return
                 return true;
             }
@@ -4030,7 +4047,7 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             }
             canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
-    } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
+    } else if (curGroupedNodes_.empty() && !node.ChildHasVisibleFilter()) {
         // no filter to draw, return
         return true;
     }

@@ -1825,7 +1825,7 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
     } else {
         hasTransparentSurface_ = IsTransparent();
     }
-    return !(hasTransparentSurface_ && ChildHasFilter()) && !HasFilter() &&
+    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() &&
         !HasAbilityComponent() && !isRotation && QueryIfAllHwcChildrenForceDisabledByFilter();
 }
 

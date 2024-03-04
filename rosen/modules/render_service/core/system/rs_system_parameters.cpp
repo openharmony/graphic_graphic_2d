@@ -38,7 +38,7 @@ bool RSSystemParameters::GetCalcCostEnabled()
 
 bool RSSystemParameters::GetDrawingCacheEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.drawingCache.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drawingCache.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;

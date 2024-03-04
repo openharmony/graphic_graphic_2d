@@ -483,10 +483,10 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
         node->SetTextureValidFlag(false);
     }
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        RS_TRACE_NAME_FMT("AssignMainThread: name: %s, id: %lu, [HasTransparentSurface: %d, ChildHasFilter: %d,"
+        RS_TRACE_NAME_FMT("AssignMainThread: name: %s, id: %lu, [HasTransparentSurface: %d, ChildHasVisibleFilter: %d,"
             "HasFilter: %d, HasAbilityComponent: %d, QueryIfAllHwcChildrenForceDisabledByFilter: %d]",
             node->GetName().c_str(), node->GetId(), node->GetHasTransparentSurface(),
-            node->ChildHasFilter(), node->HasFilter(), node->HasAbilityComponent(),
+            node->ChildHasVisibleFilter(), node->HasFilter(), node->HasAbilityComponent(),
             node->QueryIfAllHwcChildrenForceDisabledByFilter());
     }
 }

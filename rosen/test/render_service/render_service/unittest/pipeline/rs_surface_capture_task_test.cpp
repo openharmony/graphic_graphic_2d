@@ -808,7 +808,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, DrawBlurInCache002, Function | SmallTest | Le
     NodeId id = 1;
     visitor_->curCacheFilterRects_.insert(id);
     auto node = std::make_shared<RSRenderNode>(id+1);
-    node->SetChildHasFilter(false);
+    node->SetChildHasVisibleFilter(false);
     ASSERT_TRUE(visitor_->DrawBlurInCache(*node));
     visitor_->curCacheFilterRects_.clear();
 }
@@ -826,7 +826,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, DrawBlurInCache003, Function | SmallTest | Le
     visitor_->curCacheFilterRects_.insert(id);
     visitor_->curCacheFilterRects_.insert(id+1);
     auto node = std::make_shared<RSRenderNode>(id);
-    node->SetChildHasFilter(false);
+    node->SetChildHasVisibleFilter(false);
     ASSERT_TRUE(visitor_->DrawBlurInCache(*node));
     visitor_->curCacheFilterRects_.clear();
 }

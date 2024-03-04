@@ -3372,7 +3372,7 @@ HWTEST_F(RSUniRenderVisitorTest, SetNodeCacheChangeStatus, TestSize.Level2)
     auto parent = std::make_shared<RSSurfaceRenderNode>(id);
     auto child = std::make_shared<RSSurfaceRenderNode>(++id);
     parent->AddChild(child);
-    child->SetChildHasFilter(true);
+    child->SetChildHasVisibleFilter(true);
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
     child->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     rsUniRenderVisitor->curCacheFilterRects_.push({});

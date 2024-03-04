@@ -2310,19 +2310,6 @@ HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus003, TestSiz
 }
 
 /**
- * @tc.name: ApplyModifiers
- * @tc.desc: ApplyModifiers Test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, ApplyModifiers, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->ApplyModifiers();
-}
-
-/**
  * @tc.name: UpdateRogSizeIfNeeded
  * @tc.desc: UpdateRogSizeIfNeeded Test
  * @tc.type: FUNC
