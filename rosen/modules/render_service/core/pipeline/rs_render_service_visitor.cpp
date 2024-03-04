@@ -92,11 +92,9 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     ScreenRotation rotation = node.GetRotation();
     int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
-
     if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
         logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
         logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
-
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(logicalScreenWidth, logicalScreenHeight);
         }

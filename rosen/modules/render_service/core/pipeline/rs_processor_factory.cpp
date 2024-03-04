@@ -25,7 +25,7 @@ namespace Rosen {
 
 std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType type)
 {
-    switch(type) {
+    switch (type) {
         case RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE:
             return std::make_shared<RSVirtualScreenProcessor>();
         case RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE:

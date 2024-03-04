@@ -34,6 +34,7 @@ namespace OHOS {
 namespace Rosen {
 using namespace std;
 constexpr uint32_t FLAT_ANGLE = 180;
+static const int GLOBAL_ALPHA_MAX = 255;
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
     float mirrorAdaptiveCoefficient)
 {
@@ -112,7 +113,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
-    info.alpha.gAlpha = 255;
+    info.alpha.gAlpha = GLOBAL_ALPHA_MAX;
     SetPreBufferInfo(node, info);
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
@@ -136,7 +137,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNo
     info.visibleRect = info.dstRect;
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
-    info.alpha.gAlpha = 255;
+    info.alpha.gAlpha = GLOBAL_ALPHA_MAX;
     SetPreBufferInfo(node, info);
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
