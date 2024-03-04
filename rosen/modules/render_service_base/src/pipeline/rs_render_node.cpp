@@ -1448,14 +1448,30 @@ void RSRenderNode::MarkParentNeedRegenerateChildren() const
 void RSRenderNode::UpdateDrawableContentVec()
 {
 #ifndef ROSEN_ARKUI_X
-    // Collect dirty slots
+    // Step 1: Collect dirty slots
     auto dirtySlots = RSDrawableContent::CalculateDirtySlots(dirtyTypes_, contentVec_);
 
-    // Update or regenerate drawable
+    if (dirtySlots.empty()) {
+        return;
+    }
+
+    // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawableContent::UpdateDirtySlots(*this, contentVec_, dirtySlots);
-    // if 1. first initialized or 2. any drawables changed, update save/clip/restore
+
     if (drawableChanged || drawableVecStatus_ == 0) {
+        // Step 3: if any drawables changed, update save/clip/restore
         RSDrawableContent::UpdateSaveRestore(*renderContent_, contentVec_, drawableVecStatus_);
+
+        // Step 4: Generate drawCmdList from drawables
+        // TODO: use correct W/H instead of 0
+        auto recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0, true);
+        for (const auto& drawable : contentVec_) {
+            if (drawable) {
+                recordingCanvas_->DrawDrawFunc(drawable->CreateDrawFunc());
+            }
+        }
+        stagingDrawCmdList_ = recordingCanvas_->GetDrawCmdList();
+        needSync_ = true;
     }
 #endif
 }

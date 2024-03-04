@@ -167,14 +167,14 @@ static const std::array<RSDrawableContent::Generator, GEN_LUT_SIZE> g_drawableGe
     nullptr,                                             // RESTORE_FRAME,
 
     // FG properties in Bounds clip
-    nullptr,                              // FG_SAVE_BOUNDS,
-    nullptr,                              // FG_CLIP_TO_BOUNDS,
-    nullptr,                              // BINARIZATION,
-    RSColorFilterContent::OnGenerate,     // COLOR_FILTER,
-    RSLightUpEffectContent::OnGenerate,   // LIGHT_UP_EFFECT,
-    nullptr,                              // FOREGROUND_FILTER,
-    RSForegroundColorContent::OnGenerate, // FOREGROUND_COLOR,
-    nullptr,                              // FG_RESTORE_BOUNDS,
+    nullptr,                                 // FG_SAVE_BOUNDS,
+    nullptr,                                 // FG_CLIP_TO_BOUNDS,
+    RSBinarizationShaderContent::OnGenerate, // BINARIZATION,
+    RSColorFilterContent::OnGenerate,        // COLOR_FILTER,
+    RSLightUpEffectContent::OnGenerate,      // LIGHT_UP_EFFECT,
+    nullptr,                                 // FOREGROUND_FILTER,
+    RSForegroundColorContent::OnGenerate,    // FOREGROUND_COLOR,
+    nullptr,                                 // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
     nullptr,                                          // POINT_LIGHT,
@@ -436,13 +436,13 @@ RSDrawableContent::Ptr RSChildrenDrawableContent::OnGenerate(const RSRenderNode&
 
 bool RSChildrenDrawableContent::OnUpdate(const RSRenderNode& node)
 {
-    needSync_ = true;
-    stagingChildrenDrawables_.clear();
-
     auto children = node.GetSortedChildren();
     if (children == nullptr || children->empty()) {
         return false;
     }
+
+    // Regenerate children drawables
+    needSync_ = true;
     stagingChildrenDrawables_.clear();
     for (const auto& child : *children) {
         stagingChildrenDrawables_.push_back(RSRenderNodeDrawableAdapter::OnGenerate(child));
@@ -481,15 +481,15 @@ RSDrawableContent::Ptr RSCustomModifierDrawableContent::OnGenerate(const RSRende
 
 bool RSCustomModifierDrawableContent::OnUpdate(const RSRenderNode& node)
 {
-    stagingDrawCmdList_.clear();
-    needSync_ = true;
-
     const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
     auto itr = drawCmdModifiers.find(type_);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return false;
     }
+
     // regenerate stagingDrawCmdList_
+    needSync_ = true;
+    stagingDrawCmdList_.clear();
     for (const auto& modifier : itr->second) {
         auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
         if (property == nullptr) {
