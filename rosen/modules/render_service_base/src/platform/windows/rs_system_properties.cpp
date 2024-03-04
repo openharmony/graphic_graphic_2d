@@ -37,16 +37,6 @@ int RSSystemProperties::GetRecordingEnabled()
     return 0;
 }
 
-int RSSystemProperties::GetDumpRSTreeCount()
-{
-    return 0;
-}
-
-void RSSystemProperties::SetDumpRSTreeCount(int count)
-{
-    return;
-}
-
 bool RSSystemProperties::IsSceneBoardEnabled()
 {
     return false;
