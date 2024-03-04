@@ -1498,19 +1498,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
         CalcOcclusion();
-        doParallelComposition_ = RSInnovation::GetParallelCompositionEnabled(isUniRender_) &&
-                                 rootNode->GetChildrenCount() > 1;
-        if (doParallelComposition_) {
-            RS_LOGD("RSMainThread::Render multi-threads parallel composition begin.");
-            if (uniVisitor->ParallelComposition(rootNode)) {
-                RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
-                isDirty_ = false;
-                if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-                    WaitUntilUploadTextureTaskFinished(isUniRender_);
-                }
-                return;
-            }
-        }
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }

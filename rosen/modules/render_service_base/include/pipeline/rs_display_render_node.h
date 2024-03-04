@@ -197,12 +197,7 @@ public:
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
-#if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-        std::unique_lock<std::mutex> lock(mtx_);
         currentFrameSurfacePos_[id] = rect;
-#else
-        currentFrameSurfacePos_[id] = rect;
-#endif
     }
 
     RectI GetLastFrameSurfacePos(NodeId id)
