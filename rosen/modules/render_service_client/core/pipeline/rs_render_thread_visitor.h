@@ -99,6 +99,7 @@ private:
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 
+    RectF surfaceNodeParentBoundsRect_;
     std::vector<NodeId> childSurfaceNodeIds_;
     Drawing::Matrix parentSurfaceNodeMatrix_;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
