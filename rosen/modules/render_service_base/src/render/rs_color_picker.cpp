@@ -228,8 +228,7 @@ HSV RSColorPicker::RGB2HSV(uint32_t rgb) const
     if (maxComponent == minComponent) {
         h = 0.0;
     } else {
-        if (delta == 0) { 
-            return hsv; }
+        if (delta == 0) { return hsv; }
         if (IsEquals(r, maxComponent) && g >= b) {
             h = 60 * (g - b) / delta + 0; // 60 is used to calculate color's hue, ranging between 0 and 360.
         } else if (IsEquals(r, maxComponent) && g < b) {
