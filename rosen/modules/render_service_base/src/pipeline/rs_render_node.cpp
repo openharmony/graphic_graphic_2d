@@ -22,25 +22,27 @@
 #include <set>
 #include <utility>
 
+#include "benchmarks/file_utils.h"
 #include "rs_trace.h"
+
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "benchmarks/file_utils.h"
 #include "common/rs_optional_trace.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
-// #include "property/rs_property_drawable.h"
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+
 #ifdef DDGR_ENABLE_FEATURE_OPINC
 #include "rs_auto_cache.h"
 #endif
@@ -1423,7 +1425,7 @@ void RSRenderNode::ApplyModifiers()
     //     UpdateDrawableVec();
     // }
 
-    UpdateDrawableContentVec();
+    UpdateDrawableVec();
 
 #endif
 
@@ -1445,27 +1447,27 @@ void RSRenderNode::MarkParentNeedRegenerateChildren() const
     parent->isChildrenSorted_ = false;
 }
 
-void RSRenderNode::UpdateDrawableContentVec()
+void RSRenderNode::UpdateDrawableVec()
 {
 #ifndef ROSEN_ARKUI_X
     // Step 1: Collect dirty slots
-    auto dirtySlots = RSDrawableContent::CalculateDirtySlots(dirtyTypes_, contentVec_);
+    auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
 
     if (dirtySlots.empty()) {
         return;
     }
 
     // Step 2: Update or regenerate drawable if needed
-    bool drawableChanged = RSDrawableContent::UpdateDirtySlots(*this, contentVec_, dirtySlots);
+    bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
 
     if (drawableChanged || drawableVecStatus_ == 0) {
         // Step 3: if any drawables changed, update save/clip/restore
-        RSDrawableContent::UpdateSaveRestore(*renderContent_, contentVec_, drawableVecStatus_);
+        RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
 
         // Step 4: Generate drawCmdList from drawables
         // TODO: use correct W/H instead of 0
         auto recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0, true);
-        for (const auto& drawable : contentVec_) {
+        for (const auto& drawable : drawableVec_) {
             if (drawable) {
                 recordingCanvas_->DrawDrawFunc(drawable->CreateDrawFunc());
             }
@@ -2757,7 +2759,7 @@ void RSRenderNode::OnSync()
     // Sync drawCmdList
     drawCmdList_ = std::move(stagingDrawCmdList_);
     // Sync each drawable. PLANNING: use dirty mask to only sync changed properties
-    std::for_each(contentVec_.begin(), contentVec_.end(), [](auto& drawableContent) {
+    std::for_each(drawableVec_.begin(), drawableVec_.end(), [](auto& drawableContent) {
         if (drawableContent) {
             drawableContent->OnSync();
         }

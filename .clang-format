@@ -58,7 +58,7 @@ ForEachMacros:
   - BOOST_FOREACH
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex:           '^"(animation|backend|c|command|common|draw|drawable|drawing|effect|image|ipc_callbacks|memory|modifier|overdraw|platform|pipeline|property|render|render_context|screen_manager|text|transaction|ui|utils|visitor)/'
+  - Regex:           '^"(animation|backend|c|command|common|draw|drawable|drawing|effect|image|ipc_callbacks|memory|modifier|overdraw|params|platform|pipeline|property|render|render_context|screen_manager|text|transaction|ui|utils|visitor)/'
     Priority:        3
   - Regex:           '<*>'
     Priority:        1
