@@ -518,15 +518,6 @@ protected:
 
     ModifierDirtyTypes dirtyTypes_;
     bool isBootAnimation_ = false;
-    // inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
-    // {
-    //     renderContent_->DrawPropertyDrawable(slot, canvas);
-    // }
-    // inline void DrawPropertyDrawableRange(
-    //     RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas)
-    // {
-    //     renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
-    // }
 
 private:
     NodeId id_;
@@ -666,8 +657,6 @@ private:
 
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableContentVec();
-    // void UpdateDrawableVec();
-    // void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;
 

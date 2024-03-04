@@ -1451,10 +1451,6 @@ void RSRenderNode::UpdateDrawableContentVec()
     // Collect dirty slots
     auto dirtySlots = RSDrawableContent::CalculateDirtySlots(dirtyTypes_, contentVec_);
 
-    //  // initialize necessary save/clip/restore
-    // if (drawableVecStatus_ == 0) {
-    //     RSDrawableContent::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
-    // }
     // Update or regenerate drawable
     bool drawableChanged = RSDrawableContent::UpdateDirtySlots(*this, contentVec_, dirtySlots);
     // if 1. first initialized or 2. any drawables changed, update save/clip/restore

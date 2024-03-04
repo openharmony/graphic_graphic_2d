@@ -22,8 +22,8 @@
 #include <memory>
 #include <unordered_set>
 
-#include "drawable/rs_drawable.h"
 #include "modifier/rs_modifier_type.h"
+#include "pipeline/rs_recording_canvas.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
@@ -34,7 +34,6 @@ enum class RSDrawableContentSlot : uint8_t {
     INVALID = 0,
 
     // Bounds Geometry
-    BOUNDS_MATRIX,
     ALPHA,
     MASK,
     TRANSITION,
@@ -83,6 +82,7 @@ enum class RSDrawableContentSlot : uint8_t {
     PIXEL_STRETCH,
 
     RESTORE_BLEND_MODE,
+    RESTORE_ALPHA,
 
     // Annotations: Please remember to update this when new slots are added.
     // NOTE: MAX and *_END enums are using the one-past-the-end style.
@@ -92,7 +92,7 @@ enum class RSDrawableContentSlot : uint8_t {
     CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
     FG_PROPERTIES_BEGIN      = BINARIZATION,
     FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
-    MAX                      = RESTORE_BLEND_MODE + 1,
+    MAX                      = RESTORE_ALPHA + 1,
 };
 
 // pure virtual base class
@@ -118,7 +118,11 @@ public:
     // Call on thread sync
     virtual void OnSync() = 0;
 
-    virtual RSDrawable::Ptr CreateDrawable() const = 0;
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Important Note:
+    // DrawFunc can only access the RT members variables, accessing staging members will cause a crash
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!
+    virtual Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const = 0;
 
     // not copyable and moveable
     RSDrawableContent(const RSDrawableContent&) = delete;
@@ -126,7 +130,7 @@ public:
     RSDrawableContent& operator=(const RSDrawableContent&) = delete;
     RSDrawableContent& operator=(const RSDrawableContent&&) = delete;
 
-
+    // =================Generate & Update helper methods==================
     // Step 1, generate DirtySlots from dirty Modifiers
     static std::unordered_set<RSDrawableContentSlot> CalculateDirtySlots(
         ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
@@ -147,7 +151,7 @@ public:
     static RSDrawableContent::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& content) override;
     void OnSync() override;
-    RSDrawable::Ptr CreateDrawable() const override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
     bool needSync_ = false;
@@ -167,7 +171,7 @@ public:
     static RSDrawableContent::Ptr OnGenerate(const RSRenderNode& content, RSModifierType type);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    RSDrawable::Ptr CreateDrawable() const override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
     RSModifierType type_;

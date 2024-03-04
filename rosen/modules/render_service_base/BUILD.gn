@@ -210,9 +210,7 @@ ohos_source_set("render_service_base_src") {
 
     #drawable
     "src/drawable/rs_render_node_drawable_adapter.cpp",
-    "src/drawable/rs_property_drawable_ng.cpp",
     "src/drawable/rs_property_drawable_content.cpp",
-    "src/drawable/rs_drawable.cpp",
     "src/drawable/rs_drawable_content.cpp",
 
     #render

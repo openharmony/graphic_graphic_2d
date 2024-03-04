@@ -26,20 +26,20 @@ namespace {
 constexpr int DIRTY_LUT_SIZE = static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE);
 static const std::array<RSDrawableContentSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
     RSDrawableContentSlot::INVALID,                       // INVALID
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // BOUNDS
+    RSDrawableContentSlot::INVALID,                       // BOUNDS
     RSDrawableContentSlot::FRAME_OFFSET,                  // FRAME
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // POSITION_Z
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // PIVOT
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // PIVOT_Z
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // QUATERNION
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // ROTATION
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // ROTATION_X
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // ROTATION_Y
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // CAMERA_DISTANCE
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // SCALE
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // SKEW
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // TRANSLATE
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // TRANSLATE_Z
+    RSDrawableContentSlot::INVALID,                       // POSITION_Z
+    RSDrawableContentSlot::INVALID,                       // PIVOT
+    RSDrawableContentSlot::INVALID,                       // PIVOT_Z
+    RSDrawableContentSlot::INVALID,                       // QUATERNION
+    RSDrawableContentSlot::INVALID,                       // ROTATION
+    RSDrawableContentSlot::INVALID,                       // ROTATION_X
+    RSDrawableContentSlot::INVALID,                       // ROTATION_Y
+    RSDrawableContentSlot::INVALID,                       // CAMERA_DISTANCE
+    RSDrawableContentSlot::INVALID,                       // SCALE
+    RSDrawableContentSlot::INVALID,                       // SKEW
+    RSDrawableContentSlot::INVALID,                       // TRANSLATE
+    RSDrawableContentSlot::INVALID,                       // TRANSLATE_Z
     RSDrawableContentSlot::INVALID,                       // SUBLAYER_TRANSFORM
     RSDrawableContentSlot::INVALID,                       // CORNER_RADIUS
     RSDrawableContentSlot::ALPHA,                         // ALPHA
@@ -84,7 +84,7 @@ static const std::array<RSDrawableContentSlot, DIRTY_LUT_SIZE> g_propertyToDrawa
     RSDrawableContentSlot::USE_EFFECT,                    // USE_EFFECT
     RSDrawableContentSlot::BLEND_MODE,                    // COLOR_BLEND_MODE
     RSDrawableContentSlot::BLEND_MODE,                    // COLOR_BLEND_APPLY_TYPE
-    RSDrawableContentSlot::BOUNDS_MATRIX,                 // SANDBOX
+    RSDrawableContentSlot::INVALID,                       // SANDBOX
     RSDrawableContentSlot::COLOR_FILTER,                  // GRAY_SCALE
     RSDrawableContentSlot::COLOR_FILTER,                  // BRIGHTNESS
     RSDrawableContentSlot::COLOR_FILTER,                  // CONTRAST
@@ -129,7 +129,7 @@ static inline RSDrawableContent::Ptr ModifierGenerator(const RSRenderNode& node)
 }
 
 // NOTE: This LUT should always the same size as RSDrawableContentSlot
-// index = RSPropertyDrawableType, value = DrawableGenerator
+// index = RSDrawableContentSlotType, value = DrawableGenerator
 constexpr int GEN_LUT_SIZE = static_cast<int>(RSDrawableContentSlot::MAX);
 static const std::array<RSDrawableContent::Generator, GEN_LUT_SIZE> g_drawableGeneratorLut = {
     nullptr, // INVALID = 0,
@@ -150,10 +150,10 @@ static const std::array<RSDrawableContent::Generator, GEN_LUT_SIZE> g_drawableGe
     RSBackgroundColorContent::OnGenerate,                             // BACKGROUND_COLOR,
     RSBackgroundShaderContent::OnGenerate,                            // BACKGROUND_SHADER,
     RSBackgroundImageContent::OnGenerate,                             // BACKGROUND_IMAGE,
-    nullptr,                                                          // BACKGROUND_FILTER,
+    RSBackgroundFilterContent::OnGenerate,                            // BACKGROUND_FILTER,
     nullptr,                                                          // USE_EFFECT,
     ModifierGenerator<RSModifierType::BACKGROUND_STYLE>,              // BACKGROUND_STYLE,
-    nullptr,                                                          // DYNAMIC_LIGHT_UP,
+    RSDynamicLightUpContent::OnGenerate,                              // DYNAMIC_LIGHT_UP,
     ModifierGenerator<RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY>, // ENV_FOREGROUND_COLOR_STRATEGY,
     nullptr,                                                          // BG_RESTORE_BOUNDS,
 
@@ -167,24 +167,47 @@ static const std::array<RSDrawableContent::Generator, GEN_LUT_SIZE> g_drawableGe
     nullptr,                                             // RESTORE_FRAME,
 
     // FG properties in Bounds clip
-    nullptr, // FG_SAVE_BOUNDS,
-    nullptr, // FG_CLIP_TO_BOUNDS,
-    nullptr, // BINARIZATION,
-    nullptr, // COLOR_FILTER,
-    nullptr, // LIGHT_UP_EFFECT,
-    nullptr, // FOREGROUND_FILTER,
-    nullptr, // FOREGROUND_COLOR,
-    nullptr, // FG_RESTORE_BOUNDS,
+    nullptr,                              // FG_SAVE_BOUNDS,
+    nullptr,                              // FG_CLIP_TO_BOUNDS,
+    nullptr,                              // BINARIZATION,
+    RSColorFilterContent::OnGenerate,     // COLOR_FILTER,
+    RSLightUpEffectContent::OnGenerate,   // LIGHT_UP_EFFECT,
+    nullptr,                              // FOREGROUND_FILTER,
+    RSForegroundColorContent::OnGenerate, // FOREGROUND_COLOR,
+    nullptr,                              // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
     nullptr,                                          // POINT_LIGHT,
     RSBorderContent::OnGenerate,                      // BORDER,
     ModifierGenerator<RSModifierType::OVERLAY_STYLE>, // OVERLAY,
-    nullptr,                                          // PARTICLE_EFFECT,
-    nullptr,                                          // PIXEL_STRETCH,
+    RSParticleContent::OnGenerate,                    // PARTICLE_EFFECT,
+    RSPixelStretchContent::OnGenerate,                // PIXEL_STRETCH,
 
     nullptr, // RESTORE_BLEND_MODE,
 };
+
+inline std::pair<RSDrawableContent::Ptr, RSDrawableContent::Ptr> GenerateSaveRestore(
+    RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::kCanvas)
+{
+    // if (type == RSPaintFilterCanvas::kNone) {
+    //     return {};
+    // } else if (type == RSPaintFilterCanvas::kCanvas) {
+    //     auto count = std::make_shared<int>(-1);
+    //     return { std::make_unique<RSSaveDrawable>(count), std::make_unique<RSRestoreDrawable>(count) };
+    // } else {
+    //     auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
+    //     return { std::make_unique<RSCustomSaveDrawable>(status, type),
+    //         std::make_unique<RSCustomRestoreDrawable>(status) };
+    // }
+    return {};
+}
+
+inline void SaveRestoreHelper(RSDrawableContent::Vec& drawableVec, RSDrawableContentSlot slot1,
+    RSDrawableContentSlot slot2, RSPaintFilterCanvas::SaveType saveType)
+{
+    std::tie(drawableVec[static_cast<size_t>(slot1)], drawableVec[static_cast<size_t>(slot2)]) =
+        GenerateSaveRestore(saveType);
+}
 } // namespace
 
 // ==================== RSDrawableContent =====================
@@ -242,12 +265,164 @@ bool RSDrawableContent::UpdateDirtySlots(
     return drawableAddedOrRemoved;
 }
 
+namespace {
+enum DrawableVecStatus : uint8_t {
+    CLIP_TO_BOUNDS          = 1 << 0,
+    BG_BOUNDS_PROPERTY      = 1 << 1,
+    FG_BOUNDS_PROPERTY      = 1 << 2,
+    CLIP_TO_FRAME           = 1 << 3,
+    FRAME_PROPERTY          = 1 << 4,
+    HAS_CHILDREN            = 1 << 5,
+    BOUNDS_MASK             = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
+    FRAME_MASK              = CLIP_TO_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
+};
+
+inline bool HasPropertyDrawableInRange(
+    const RSDrawableContent::Vec& drawableVec, RSDrawableContentSlot begin, RSDrawableContentSlot end)
+{
+    return std::any_of(drawableVec.begin() + static_cast<size_t>(begin), drawableVec.begin() + static_cast<size_t>(end),
+        [](const auto& Ptr) { return Ptr != nullptr; });
+}
+
+uint8_t CalculateDrawableVecStatus(RSRenderContent& content, const RSDrawableContent::Vec& drawableVec)
+{
+    uint8_t result = 0;
+    auto& properties = content.GetRenderProperties();
+
+    // color blend mode has implicit dependency on clipToBounds
+    if (properties.GetClipToBounds() || properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
+        properties.GetColorBlendMode()) {
+        result |= DrawableVecStatus::CLIP_TO_BOUNDS;
+    }
+    if (properties.GetClipToFrame()) {
+        result |= DrawableVecStatus::CLIP_TO_FRAME;
+    }
+
+    if (HasPropertyDrawableInRange(
+        drawableVec, RSDrawableContentSlot::BG_PROPERTIES_BEGIN, RSDrawableContentSlot::BG_PROPERTIES_END)) {
+        result |= DrawableVecStatus::BG_BOUNDS_PROPERTY;
+    }
+    if (HasPropertyDrawableInRange(
+        drawableVec, RSDrawableContentSlot::FG_PROPERTIES_BEGIN, RSDrawableContentSlot::FG_PROPERTIES_END)) {
+        result |= DrawableVecStatus::FG_BOUNDS_PROPERTY;
+    }
+    if (HasPropertyDrawableInRange(drawableVec, RSDrawableContentSlot::CONTENT_PROPERTIES_BEGIN,
+        RSDrawableContentSlot::CONTENT_PROPERTIES_END)) {
+        result |= DrawableVecStatus::FRAME_PROPERTY;
+    }
+
+    return result;
+}
+
+constexpr std::array boundsSlotsToErase = {
+    RSDrawableContentSlot::BG_SAVE_BOUNDS,
+    RSDrawableContentSlot::CLIP_TO_BOUNDS,
+    RSDrawableContentSlot::BG_RESTORE_BOUNDS,
+    RSDrawableContentSlot::FG_SAVE_BOUNDS,
+    RSDrawableContentSlot::FG_CLIP_TO_BOUNDS,
+    RSDrawableContentSlot::FG_RESTORE_BOUNDS,
+};
+
+constexpr std::array frameSlotsToErase = {
+    RSDrawableContentSlot::SAVE_FRAME,
+    RSDrawableContentSlot::RESTORE_FRAME,
+};
+
+void OptimizeBoundsSaveRestore(RSRenderContent& content, RSDrawableContent::Vec& drawableVec, uint8_t flags)
+{
+    // Erase existing save/clip/restore before re-generating
+    for (auto& slot : boundsSlotsToErase) {
+        drawableVec[static_cast<size_t>(slot)] = nullptr;
+    }
+
+    // if (flags & DrawableVecStatus::CLIP_TO_BOUNDS) {
+    //     // case 1: ClipToBounds set.
+    //     // add one clip, and reuse SAVE_ALL and RESTORE_ALL.
+    //     drawableVec[static_cast<size_t>(RSDrawableContentSlot::CLIP_TO_BOUNDS)] =
+    //         RSClipBoundsDrawable::Generate(content);
+    //     return;
+    // }
+
+    // if ((flags & DrawableVecStatus::BG_BOUNDS_PROPERTY) && (flags & DrawableVecStatus::FG_BOUNDS_PROPERTY)) {
+    //     // case 2: ClipToBounds not set and we have bounds properties both BG and FG.
+    //     // add two sets of save/clip/restore before & after content.
+
+    //     // part 1: before children
+    //     SaveRestoreHelper(drawableVec, RSDrawableContentSlot::BG_SAVE_BOUNDS,
+    //         RSDrawableContentSlot::BG_RESTORE_BOUNDS, RSPaintFilterCanvas::kCanvas);
+    //     drawableVec[static_cast<size_t>(RSDrawableContentSlot::CLIP_TO_BOUNDS)] =
+    //         RSClipBoundsDrawable::Generate(content);
+
+    //     // part 2: after children, add aliases
+    //     drawableVec[static_cast<size_t>(RSDrawableContentSlot::FG_SAVE_BOUNDS)] =
+    //         GenerateAlias(RSDrawableContentSlot::BG_SAVE_BOUNDS);
+    //     drawableVec[static_cast<size_t>(RSDrawableContentSlot::FG_CLIP_TO_BOUNDS)] =
+    //         GenerateAlias(RSDrawableContentSlot::CLIP_TO_BOUNDS);
+    //     drawableVec[static_cast<size_t>(RSDrawableContentSlot::FG_RESTORE_BOUNDS)] =
+    //         GenerateAlias(RSDrawableContentSlot::BG_RESTORE_BOUNDS);
+    //     return;
+    // }
+
+    // if (flags & DrawableVecStatus::BG_BOUNDS_PROPERTY) {
+    //     // case 3: ClipToBounds not set and we have background bounds properties.
+    //     SaveRestoreHelper(drawableVec, RSDrawableContentSlot::BG_SAVE_BOUNDS,
+    //         RSDrawableContentSlot::BG_RESTORE_BOUNDS, RSPaintFilterCanvas::kCanvas);
+
+    //     drawableVec[static_cast<size_t>(RSDrawableContentSlot::CLIP_TO_BOUNDS)] =
+    //         RSClipBoundsDrawable::Generate(content);
+    //     return;
+    // }
+
+    // if (flags & DrawableVecStatus::FG_BOUNDS_PROPERTY) {
+    //     // case 4: ClipToBounds not set and we have foreground bounds properties.
+    //     SaveRestoreHelper(drawableVec, RSDrawableContentSlot::FG_SAVE_BOUNDS,
+    //         RSDrawableContentSlot::FG_RESTORE_BOUNDS, RSPaintFilterCanvas::kCanvas);
+
+    //     drawableVec[static_cast<size_t>(RSDrawableContentSlot::FG_CLIP_TO_BOUNDS)] =
+    //         RSClipBoundsDrawable::Generate(content);
+    //     return;
+    // }
+    // case 5: ClipToBounds not set and no bounds properties, no need to save/clip/restore.
+    // nothing to do
+}
+
+void OptimizeFrameSaveRestore(RSRenderContent& content, RSDrawableContent::Vec& drawableVec, uint8_t flags)
+{
+    // Erase existing save/clip/restore before re-generating
+    for (auto& slot : frameSlotsToErase) {
+        drawableVec[static_cast<size_t>(slot)] = nullptr;
+    }
+
+    // PLANNING: if both clipToFrame and clipToBounds are set, and frame == bounds, we don't need an extra clip
+    if (flags & DrawableVecStatus::FRAME_PROPERTY) {
+        // save/restore
+        SaveRestoreHelper(drawableVec, RSDrawableContentSlot::SAVE_FRAME,
+            RSDrawableContentSlot::RESTORE_FRAME, RSPaintFilterCanvas::kCanvas);
+    } else {
+        // no need to save/clip/restore
+    }
+}
+} // namespace
+
 void RSDrawableContent::UpdateSaveRestore(RSRenderContent& content, Vec& drawableVec, uint8_t& drawableVecStatus)
 {
-    // TODO: fill necessary save/restore into slots
-    (void)content;
-    (void)drawableVec;
-    (void)drawableVecStatus;
+    // ====================================================================
+    // Step 3: Universal save/clip/restore optimization
+
+    // calculate new drawable map status
+    auto drawableVecStatusNew = CalculateDrawableVecStatus(content, drawableVec);
+
+    // calculate changed bits
+    uint8_t changedBits = drawableVecStatus ^ drawableVecStatusNew;
+    if (changedBits & BOUNDS_MASK) {
+        // update bounds save/clip if need
+        OptimizeBoundsSaveRestore(content, drawableVec, drawableVecStatusNew);
+    }
+    if (changedBits & FRAME_MASK) {
+        // update frame save/clip if need
+        OptimizeFrameSaveRestore(content, drawableVec, drawableVecStatusNew);
+    }
+    drawableVecStatus = drawableVecStatusNew;
 }
 
 // ==================== RSChildrenDrawableContent =====================
@@ -284,10 +459,15 @@ void RSChildrenDrawableContent::OnSync()
     needSync_ = false;
 }
 
-RSDrawable::Ptr RSChildrenDrawableContent::CreateDrawable() const
+// RSDrawable::Ptr RSChildrenDrawableContent::CreateDrawable() const
+Drawing::RecordingCanvas::DrawFunc RSChildrenDrawableContent::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawableContent>(shared_from_this());
-    return std::make_shared<RSChildrenDrawable>(ptr);
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        for (const auto& drawable : ptr->childrenDrawables_) {
+            drawable->OnDraw(canvas);
+        }
+    };
 }
 
 // ==================== RSCustomModifierDrawableContent ===================
@@ -331,9 +511,13 @@ void RSCustomModifierDrawableContent::OnSync()
     needSync_ = false;
 }
 
-RSDrawable::Ptr RSCustomModifierDrawableContent::CreateDrawable() const
+Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawableContent::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawableContent>(shared_from_this());
-    return std::make_shared<RSCustomModifierDrawable>(ptr);
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        for (const auto& drawCmdList : ptr->drawCmdList_) {
+            drawCmdList->Playback(*canvas);
+        }
+    };
 }
 } // namespace OHOS::Rosen

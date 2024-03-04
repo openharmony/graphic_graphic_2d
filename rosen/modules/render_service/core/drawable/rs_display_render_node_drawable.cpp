@@ -15,13 +15,14 @@
 
 #include "drawable/rs_display_render_node_drawable.h"
 
+#include "rs_trace.h"
+
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_thread.h"
-#include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
@@ -36,7 +37,7 @@ RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_pt
     return std::make_unique<RSDisplayRenderNodeDrawable>(std::move(node));
 }
 
-void RSDisplayRenderNodeDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
+void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
 {
     (void)canvas;
 

@@ -22,7 +22,6 @@
 
 namespace OHOS::Rosen {
 class RSRenderNode;
-class RSPaintFilterCanvas;
 
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
@@ -31,7 +30,7 @@ public:
     ~RSRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
-    void OnDraw(RSPaintFilterCanvas* canvas) const override;
+    void OnDraw(Drawing::Canvas* canvas) const override;
 
 protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;

@@ -43,7 +43,7 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
     return nullptr;
 }
 
-void RSRenderNodeDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
+void RSRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
 {
     if (renderNode_ == nullptr) {
         return;

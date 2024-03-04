@@ -19,7 +19,6 @@
 #include "recording/draw_cmd_list.h"
 
 #include "drawable/rs_drawable_content.h"
-#include "drawable/rs_property_drawable_ng.h"
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
@@ -32,7 +31,8 @@ public:
     ~RSPropertyDrawableContent() override = default;
 
     void OnSync() override;
-    RSDrawable::Ptr CreateDrawable() const override;
+    // RSDrawable::Ptr CreateDrawable() const override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 protected:
     bool needSync_ = false;

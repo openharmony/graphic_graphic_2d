@@ -45,10 +45,14 @@ void RSPropertyDrawableContent::OnSync()
     needSync_ = false;
 }
 
-RSDrawable::Ptr RSPropertyDrawableContent::CreateDrawable() const
+Drawing::RecordingCanvas::DrawFunc RSPropertyDrawableContent::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawableContent>(shared_from_this());
-    return std::make_shared<RSPropertyDrawableNG>(ptr);
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (const auto& drawCmdList = ptr->drawCmdList_) {
+            drawCmdList->Playback(*canvas);
+        }
+    };
 }
 
 class RSPropertyDrawCmdListRecorder {

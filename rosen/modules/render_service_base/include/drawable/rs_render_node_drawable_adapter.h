@@ -24,7 +24,9 @@
 
 namespace OHOS::Rosen {
 class RSRenderNode;
-class RSPaintFilterCanvas;
+namespace Drawing {
+    class Canvas;
+}
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter {
 public:
@@ -38,7 +40,7 @@ public:
     RSRenderNodeDrawableAdapter& operator=(const RSRenderNodeDrawableAdapter&&) = delete;
 
     // This method can only be called in RenderThread
-    virtual void OnDraw(RSPaintFilterCanvas* canvas) const = 0;
+    virtual void OnDraw(Drawing::Canvas* canvas) const = 0;
 
     using Ptr = std::unique_ptr<RSRenderNodeDrawableAdapter>;
     static Ptr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);

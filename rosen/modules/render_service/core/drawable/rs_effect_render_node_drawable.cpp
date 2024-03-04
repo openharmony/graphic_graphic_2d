@@ -30,7 +30,7 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
     return std::make_unique<RSEffectRenderNodeDrawable>(std::move(node));
 }
 
-void RSEffectRenderNodeDrawable::OnDraw(RSPaintFilterCanvas* canvas) const
+void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
 {
     if (!renderNode_) {
         RS_LOGE("There is no CanvasNode in RSEffectRenderNodeDrawable");
