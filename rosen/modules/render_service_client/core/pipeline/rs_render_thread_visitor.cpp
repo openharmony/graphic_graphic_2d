@@ -171,6 +171,11 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         ROSEN_LOGD("NotifyRTBufferAvailable and set it dirty");
         node.SetDirty();
     }
+    auto rect = nodeParent->GetRenderProperties().GetBoundsRect();
+    if (rect != surfaceNodeParentBoundsRect_) {
+        surfaceNodeParentBoundsRect_ = rect;
+        node.SetContextClipRegion(Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()));
+    }
     dirtyFlag_ = node.Update(*curDirtyManager_, nodeParent, dirtyFlag_);
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::SURFACE_NODE,
