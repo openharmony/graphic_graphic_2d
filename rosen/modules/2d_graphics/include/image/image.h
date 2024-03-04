@@ -19,6 +19,7 @@
 #include "drawing/engine_adapter/impl_interface/image_impl.h"
 #include "include/core/SkImage.h"
 #include "utils/drawing_macros.h"
+#include "image/gpu_context.h"
 #ifdef RS_ENABLE_VK
 #include "vulkan/vulkan.h"
 #endif

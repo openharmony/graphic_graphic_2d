@@ -52,10 +52,12 @@ public:
         gpuContext_ = gpuContext;
     }
 
+#ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> GetGPUContext() override
     {
         return gpuContext_;
     }
+#endif
 
     void Clear() const;
 
