@@ -845,6 +845,7 @@ void RSNode::SetSkew(const Vector2f& skew)
 
 void RSNode::SetSkewX(float skewX)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::SKEW);
     if (iter == propertyModifiers_.end()) {
         SetSkew(skewX, 0.f);
@@ -862,6 +863,7 @@ void RSNode::SetSkewX(float skewX)
 
 void RSNode::SetSkewY(float skewY)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::SKEW);
     if (iter == propertyModifiers_.end()) {
         SetSkew(0.f, skewY);
