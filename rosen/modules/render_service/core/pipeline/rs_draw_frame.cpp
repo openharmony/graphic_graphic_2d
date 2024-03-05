@@ -59,17 +59,13 @@ void RSDrawFrame::PostAndWait()
 void RSDrawFrame::Sync()
 {
     RS_TRACE_NAME_FMT("Sync");
-    auto& nodeMapMutex = RSMainThread::Instance()->GetContext().activeNodesInRootMutex_;
-    std::unique_lock<std::mutex> lock(nodeMapMutex);
-    auto& nodesMap = RSMainThread::Instance()->GetContext().activeNodesInRoot_;
-    for (auto rootMap : nodesMap) {
-        for (auto iter : rootMap.second) {
-            auto node = iter.second.lock();
-            if (node) {
-                node->Sync();
-            }
+    auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
+    for (auto& [id, weakPtr] : pendingSyncNodes) {
+        if (auto node = weakPtr.lock()) {
+            node->Sync();
         }
     }
+    pendingSyncNodes.clear();
 
     unirenderInstance_.Sync(stagingRenderThreadParams_);
 }

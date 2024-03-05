@@ -1303,7 +1303,7 @@ void RSRenderNode::UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList
 
 void RSRenderNode::SetNeedSyncFlag(bool needSync)
 {
-    needSync_ = needSync;
+    drawCmdListNeedSync_ = needSync;
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
@@ -1406,9 +1406,6 @@ void RSRenderNode::ApplyModifiers()
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
 
-    // Temporary code, copy matrix into render params
-    UpdateRenderParams();
-
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
         manager != nullptr &&
@@ -1419,19 +1416,22 @@ void RSRenderNode::ApplyModifiers()
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
         manager->InvalidateCache();
     }
+#endif
 
-    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
-    //     // Generate drawable
-    //     UpdateDrawableVec();
-    // }
-
+    UpdateShouldPaint();
+    // Temporary code, copy matrix into render params
+    // TODO: only run UpdateRenderParams on matrix change
+    UpdateRenderParams();
     UpdateDrawableVec();
 
-#endif
+    if (renderParamNeedSync_ || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
+        if (auto context = GetContext().lock()) {
+            context->AddPendingSyncNode(shared_from_this());
+        }
+    }
 
     // update state
     dirtyTypes_.reset();
-    UpdateShouldPaint();
 
     // update rate decider scale reference size.
     animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
@@ -1473,7 +1473,14 @@ void RSRenderNode::UpdateDrawableVec()
             }
         }
         stagingDrawCmdList_ = recordingCanvas_->GetDrawCmdList();
-        needSync_ = true;
+        drawCmdListNeedSync_ = true;
+    }
+
+    // Merge dirty slots
+    if (dirtySlots_.empty()) {
+        dirtySlots_ = std::move(dirtySlots);
+    } else {
+        dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
 #endif
 }
@@ -2236,8 +2243,10 @@ void RSRenderNode::UpdateFullChildrenListIfNeeded()
 {
     if (!isFullChildrenListValid_) {
         GenerateFullChildrenList();
+        AddDirtyType(RSModifierType::CHILDREN);
     } else if (!isChildrenSorted_) {
         ResortChildren();
+        AddDirtyType(RSModifierType::CHILDREN);
     }
 }
 
@@ -2738,33 +2747,45 @@ void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThre
     lastIsNeedAssignToSubThread_ = lastIsNeedAssignToSubThread;
 }
 
-void RSRenderNode::UpdateRenderParams()
+void RSRenderNode::OnInitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSRenderParams>();
+    renderParams_ = std::make_unique<RSRenderParams>();
+}
+
+void RSRenderNode::UpdateRenderParams()
+{
     auto boundGeo = GetRenderProperties().GetBoundsGeometry();
     if (!boundGeo) {
         return;
     }
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
     stagingRenderParams_->SetBoundsRect({ boundGeo->GetX(), boundGeo->GetY(), boundGeo->GetWidth(), boundGeo->GetHeight() });
+    stagingRenderParams_->SetShouldPaint(shouldPaint_);
+
+    renderParamNeedSync_ |= stagingRenderParams_->NeedSync();
 }
 
 void RSRenderNode::OnSync()
 {
-    // PLANNING: distinguish drawCmdList need sync and drawable need sync
-    if (!needSync_) {
-        return;
+    if (drawCmdListNeedSync_) {
+        drawCmdList_ = std::move(stagingDrawCmdList_);
+        drawCmdListNeedSync_ = false;
     }
-    renderParams_ = std::move(stagingRenderParams_);
-    // Sync drawCmdList
-    drawCmdList_ = std::move(stagingDrawCmdList_);
-    // Sync each drawable. PLANNING: use dirty mask to only sync changed properties
-    std::for_each(drawableVec_.begin(), drawableVec_.end(), [](auto& drawableContent) {
-        if (drawableContent) {
-            drawableContent->OnSync();
+
+    if (renderParamNeedSync_) {
+        stagingRenderParams_->OnSync(renderParams_);
+        renderParamNeedSync_ = false;
+    }
+
+    if (!dirtySlots_.empty()) {
+        for (const auto& slot : dirtySlots_) {
+            if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
+                drawable->OnSync();
+            }
         }
-    });
-    needSync_ = false;
+        dirtySlots_.clear();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

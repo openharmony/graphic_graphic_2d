@@ -88,6 +88,8 @@ public:
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
+    void AddPendingSyncNode(const std::shared_ptr<RSRenderNode>& node);
+
     void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
 
     void SetVsyncRequestFunc(const std::function<void()>& taskRunner)
@@ -130,6 +132,8 @@ private:
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::mutex activeNodesInRootMutex_;
+
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

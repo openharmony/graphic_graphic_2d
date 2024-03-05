@@ -1,4 +1,4 @@
-/*RSCanvasRenderParams
+/*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
-#define RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H
-
-#include "common/rs_rect.h"
-#include "property/rs_properties.h"
-#include "params/rs_render_params.h"
+#include "params/rs_display_render_params.h"
 
 namespace OHOS::Rosen {
-class RSCanvasRenderParams : public RSRenderParams {
-public:
-    explicit RSCanvasRenderParams();
-    virtual ~RSCanvasRenderParams() = default;
+RSDisplayRenderParams::RSDisplayRenderParams() {}
 
-private:
-};
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_RENDER_PARAMS_H

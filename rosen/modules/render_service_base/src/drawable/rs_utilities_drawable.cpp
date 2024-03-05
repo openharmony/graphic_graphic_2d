@@ -65,16 +65,16 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawableContent::CreateDrawFunc() c
     };
 }
 
-// ==================== RSCustomModifierDrawableContent ===================
-RSDrawable::Ptr RSCustomModifierDrawableContent::OnGenerate(const RSRenderNode& node, RSModifierType type)
+// ==================== RSCustomModifierDrawable ===================
+RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, RSModifierType type)
 {
-    if (auto ret = std::make_shared<RSCustomModifierDrawableContent>(type); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSCustomModifierDrawable>(type); ret->OnUpdate(node)) {
         return ret;
     }
     return nullptr;
 }
 
-bool RSCustomModifierDrawableContent::OnUpdate(const RSRenderNode& node)
+bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
 {
     const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
     auto itr = drawCmdModifiers.find(type_);
@@ -97,7 +97,7 @@ bool RSCustomModifierDrawableContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSCustomModifierDrawableContent::OnSync()
+void RSCustomModifierDrawable::OnSync()
 {
     if (!needSync_) {
         return;
@@ -106,9 +106,9 @@ void RSCustomModifierDrawableContent::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawableContent::CreateDrawFunc() const
+Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() const
 {
-    auto ptr = std::static_pointer_cast<const RSCustomModifierDrawableContent>(shared_from_this());
+    auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawCmdList : ptr->drawCmdList_) {
             drawCmdList->Playback(*canvas);

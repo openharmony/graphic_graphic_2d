@@ -46,14 +46,14 @@ private:
     friend class RSChildrenDrawable;
 };
 
-// RSChildrenDrawable, for drawing custom modifiers
+// RSCustomModifierDrawable, for drawing custom modifiers
 enum class RSModifierType : int16_t;
 namespace Drawing {
 class DrawCmdList;
 }
-class RSCustomModifierDrawableContent : public RSDrawable {
+class RSCustomModifierDrawable : public RSDrawable {
 public:
-    RSCustomModifierDrawableContent(RSModifierType type) : type_(type) {}
+    RSCustomModifierDrawable(RSModifierType type) : type_(type) {}
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& content, RSModifierType type);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
