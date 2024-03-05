@@ -1202,7 +1202,11 @@ void OH_Drawing_TextStyleGetBackgroundPen(OH_Drawing_TextStyle* style, OH_Drawin
 
 OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 {
-    return (OH_Drawing_FontDescriptor*)new TextEngine::FontParser::FontDescriptor;
+    auto fontDescriptor = new TextEngine::FontParser::FontDescriptor;
+    if (fontDescriptor == nullptr) {
+        return nullptr;
+    }
+    return (OH_Drawing_FontDescriptor*)fontDescriptor;
 }
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
@@ -1215,7 +1219,11 @@ void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)
 {
-    return (OH_Drawing_FontParser*)new TextEngine::FontParser;
+    auto fontParser = new TextEngine::FontParser;
+    if (fontParser == nullptr) {
+        return nullptr;
+    }
+    return (OH_Drawing_FontParser*)fontParser;
 }
 
 void OH_Drawing_DestroyFontParser(OH_Drawing_FontParser* parser)
@@ -1224,6 +1232,29 @@ void OH_Drawing_DestroyFontParser(OH_Drawing_FontParser* parser)
         delete ConvertToOriginalText<TextEngine::FontParser>(parser);
         parser = nullptr;
     }
+}
+
+static bool CopyStrData(char** destination, const std::string& source)
+{
+    if (destination == nullptr || source.empty()) {
+        return false;
+    }
+    size_t destinationSize = source.size() + 1;
+    *destination = new char[destinationSize];
+    if (*destination == nullptr) {
+        return false;
+    }
+    auto retMemset = memset_s(*destination, destinationSize, '\0', destinationSize);
+    if (retMemset != 0) {
+        delete[] *destination;
+        return false;
+    }
+    auto retCopy = strcpy_s(*destination, destinationSize, source.c_str());
+    if (retCopy != 0) {
+        delete[] * destination;
+        return false;
+    }
+    return true;
 }
 
 char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser, size_t* num)
@@ -1236,13 +1267,13 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
     std::vector<TextEngine::FontParser::FontDescriptor> systemFontList =
         ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts(std::string(locale.getName()));
     fontList = new char* [systemFontList.size()];
+    if (fontList == nullptr) {
+        return nullptr;
+    }
     for (size_t i = 0; i < systemFontList.size(); ++i) {
-        fontList[i] = new char[systemFontList[i].fullName.size() + 1];
-        auto retMemset = memset_s(fontList[i], systemFontList[i].fullName.size() + 1,
-            '\0', systemFontList[i].fullName.size() + 1);
-        auto retCopy = strcpy_s(fontList[i], systemFontList[i].fullName.size() + 1,
-            systemFontList[i].fullName.c_str());
-        if (retMemset != 0 || retCopy != 0) {
+        fontList[i] = nullptr;
+        bool res = CopyStrData(&fontList[i], systemFontList[i].fullName);
+        if (!res) {
             for (size_t j = i; j >= 0; j--) {
                 delete fontList[j];
                 fontList[j] = nullptr;
@@ -1292,6 +1323,9 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
         return nullptr;
     }
     std::vector<LineMetrics>* lineMetrics = new std::vector<LineMetrics>;
+    if (lineMetrics == nullptr) {
+        return nullptr;
+    }
     *lineMetrics = ConvertToOriginalText<Typography>(typography)->GetLineMetrics();
     return (OH_Drawing_LineMetrics*)lineMetrics;
 }
@@ -1331,7 +1365,7 @@ float OH_Drawing_TypographyGetIndentsWithIndex(OH_Drawing_Typography* typography
     if (typography == nullptr || index < 0) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->DetectIndents(static_cast<size_t>index);
+    return ConvertToOriginalText<Typography>(typography)->DetectIndents(static_cast<size_t>(index));
 }
 
 void OH_Drawing_TypographySetIndents(OH_Drawing_Typography* typography, int indentsNumber, const float indents[])
