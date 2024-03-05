@@ -33,6 +33,7 @@
 #include <locale>
 #include <vector>
 #include <string>
+#include <unicode/brkiter.h>
 
 #ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
@@ -1231,8 +1232,9 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
         return nullptr;
     }
     char** fontList = nullptr;
+    icu::Locale locale = icu::Locale::getDefault();
     std::vector<TextEngine::FontParser::FontDescriptor> systemFontList =
-        ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts();
+        ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts(std::string(locale.getName()));
     fontList = new char* [systemFontList.size()];
     for (size_t i = 0; i < systemFontList.size(); ++i) {
         fontList[i] = new char[systemFontList[i].fullName.size() + 1];
@@ -1324,12 +1326,12 @@ bool OH_Drawing_TypographyGetLineMetricsAt(OH_Drawing_Typography* typography, in
     return false;
 }
 
-float OH_Drawing_TypographyGetIndentsWithIndex(OH_Drawing_Typography* typography, size_t index)
+float OH_Drawing_TypographyGetIndentsWithIndex(OH_Drawing_Typography* typography, int index)
 {
-    if (typography == nullptr) {
+    if (typography == nullptr || index < 0) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->DetectIndents(index);
+    return ConvertToOriginalText<Typography>(typography)->DetectIndents(static_cast<size_t>index);
 }
 
 void OH_Drawing_TypographySetIndents(OH_Drawing_Typography* typography, int indentsNumber, const float indents[])
@@ -1605,26 +1607,41 @@ void OH_Drawing_SetTypographyTextLineStyleFontFamilies(OH_Drawing_TypographyStyl
     }
 }
 
-void OH_Drawing_SetTypographyTextLineStyleFontSize(OH_Drawing_TypographyStyle* style, double linestylefontSize)
+void OH_Drawing_SetTypographyTextLineStyleFontSize(OH_Drawing_TypographyStyle* style, double lineStyleFontSize)
 {
-    if (style) {
-        ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontSize = linestylefontSize;
+    if (style == nullptr) {
+        return;
     }
+    TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (typoStyle == nullptr) {
+        return;
+    }
+    typoStyle->lineStyleFontSize = lineStyleFontSize;
 }
 
-void OH_Drawing_SetTypographyTextLineStyleFontHeight(OH_Drawing_TypographyStyle* style, double linestylefontHeight)
+void OH_Drawing_SetTypographyTextLineStyleFontHeight(OH_Drawing_TypographyStyle* style, double lineStyleFontHeight)
 {
-    if (style) {
-        ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightScale = linestylefontHeight;
-        ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightOnly = true;
+    if (style == nullptr) {
+        return;
     }
+    TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (typoStyle == nullptr) {
+        return;
+    }
+    typoStyle->lineStyleHeightScale = lineStyleFontHeight;
+    typoStyle->lineStyleHeightOnly = true;
 }
 
-void OH_Drawing_SetTypographyTextLineStyleHalfLeading(OH_Drawing_TypographyStyle* style, bool linestylehalfLeading)
+void OH_Drawing_SetTypographyTextLineStyleHalfLeading(OH_Drawing_TypographyStyle* style, bool lineStyleHalfLeading)
 {
-    if (style) {
-        ConvertToOriginalText<TypographyStyle>(style)->lineStyleHalfLeading = linestylehalfLeading;
+    if (style == nullptr) {
+        return;
     }
+    TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (typoStyle == nullptr) {
+        return;
+    }
+    typoStyle->lineStyleHalfLeading = lineStyleHalfLeading;
 }
 
 void OH_Drawing_SetTypographyTextLineStyleSpacingScale(OH_Drawing_TypographyStyle* style, double spacingScale)
