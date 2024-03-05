@@ -183,4 +183,4 @@ private:
     uint32_t maxRefreshRateRange_ = 120;
 };
 } // namespace Ohos::Rosen
-# endif // HGM_SCREEN_H
+#endif // HGM_SCREEN_H

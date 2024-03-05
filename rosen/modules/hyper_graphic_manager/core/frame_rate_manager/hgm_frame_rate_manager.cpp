@@ -114,16 +114,14 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
             ResetScreenTimer(curScreenId_);
             CalcRefreshRate(curScreenId_, finalRange);
             DeliverRefreshRateVote(0, "VOTER_LTPO", ADD_VOTE, currRefreshRate_, currRefreshRate_);
+        } else if (idleTimerExpired) {
+            // idle in ltpo
+            HandleIdleEvent(ADD_VOTE);
+            DeliverRefreshRateVote(0, "VOTER_LTPO", REMOVE_VOTE);
         } else {
-            if (idleTimerExpired) {
-                // idle in ltpo
-                HandleIdleEvent(ADD_VOTE);
-                DeliverRefreshRateVote(0, "VOTER_LTPO", REMOVE_VOTE);
-            } else {
-                StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
-                    forceUpdateCallback_(true, false);
-                });
-            }
+            StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
+                forceUpdateCallback_(true, false);
+            });
         }
     }
 
@@ -466,6 +464,7 @@ void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vecto
 void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
 {
     std::string eventName = eventInfo.eventName;
+    std::lock_guard<std::mutex> lock(voteNameMutex_);
     auto event = std::find(voters_.begin(), voters_.end(), eventName);
     if (event == voters_.end()) {
         HGM_LOGW("HgmFrameRateManager:unknown event, eventName is %{public}s", eventName.c_str());
@@ -690,7 +689,8 @@ VoteRange HgmFrameRateManager::ProcessRefreshRateVote()
         return std::make_pair(lastPendingRate, lastPendingRate);
     }
     UpdateVoteRule();
-    std::lock_guard<std::mutex> lock(voteMutex_);
+    std::lock_guard<std::mutex> voteNameLock(voteNameMutex_);
+    std::lock_guard<std::mutex> voteLock(voteMutex_);
 
     uint32_t min = OLED_MIN_HZ;
     uint32_t max = OLED_MAX_HZ;
@@ -774,6 +774,7 @@ void HgmFrameRateManager::UpdateVoteRule()
     DeliverRefreshRateVote((*scenePos).second, "VOTER_SCENE", ADD_VOTE, min, max);
 
     // restore
+    std::lock_guard<std::mutex> lock(voteNameMutex_);
     voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
     std::string srcScene = "VOTER_SCENE";
     std::string dstScene = (scenePriority == SCENE_BEFORE_XML) ? "VOTER_XML" : "VOTER_TOUCH";
