@@ -284,8 +284,12 @@ void RSMainThread::Init()
         Render();
 
         // move rnv after mark rsnotrendring
-        if (needRequestNextVsyncAnimate_ && rsVSyncDistributor_->IsDVsyncOn()) {
+        if (rsVSyncDistributor_->IsDVsyncOn() &&
+            (needRequestNextVsyncAnimate_ || rsVSyncDistributor_->HasPendingUIRNV())) {
+            rsVSyncDistributor_->MarkRSAnimate();
             RequestNextVSync("animate", timestamp_);
+        } else {
+            rsVSyncDistributor_->UnmarkRSAnimate();
         }
 
         InformHgmNodeInfo();
@@ -419,13 +423,16 @@ void RSMainThread::Init()
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
     frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
-    frameRateMgr_->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {
-        RSMainThread::Instance()->PostTask([idleTimerExpired, forceUpdate]() {
+    frameRateMgr_->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
+        RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
             RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
                 idleTimerExpired? "True":"False", forceUpdate? "True": "False");
             RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
             RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
-            RSMainThread::Instance()->RequestNextVSync();
+            RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
+            if (!this->rsVSyncDistributor_->IsDVsyncOn()) {
+                RSMainThread::Instance()->RequestNextVSync();
+            }
         });
     });
     frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
@@ -1403,7 +1410,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_);
     } else {
         auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
-        frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers, idleTimerExpiredFlag_);
+        frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
+            idleTimerExpiredFlag_, rsVSyncDistributor_->IsDVsyncOn());
     }
 }
 

@@ -86,6 +86,8 @@ bool RSRenderService::Init()
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
 
+    generator->SetRSDistributor(rsVSyncDistributor_);
+
     mainThread_ = RSMainThread::Instance();
     if (mainThread_ == nullptr) {
         return false;

@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <parameter.h>
 #include <parameters.h>
+#include <set>
 #include "param/sys_param.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
@@ -35,8 +36,9 @@ constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 static GpuApiType SystemGpuApiType()
 {
+    static std::set<std::string> mSupportedDevices = {"ALN", "ALT"};
     if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
-          (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
+          mSupportedDevices.count(system::GetParameter("const.build.product", "0")))) {
         return GpuApiType::OPENGL;
     }
 

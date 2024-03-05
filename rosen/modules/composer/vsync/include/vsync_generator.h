@@ -29,6 +29,9 @@
 
 namespace OHOS {
 namespace Rosen {
+
+class VSyncDistributor;
+
 class VSyncGenerator : public RefBase {
 public:
     class Callback : public RefBase {
@@ -67,6 +70,8 @@ public:
     virtual VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) = 0;
     virtual void SetPendingMode(int64_t period, int64_t timestamp) = 0;
     virtual VsyncError StartRefresh() = 0;
+
+    virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -99,6 +104,8 @@ public:
     VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) override;
     void SetPendingMode(int64_t period, int64_t timestamp) override;
     VsyncError StartRefresh() override;
+
+    void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
@@ -165,6 +172,7 @@ private:
     bool startRefresh_ = false;
     int64_t phaseRecord_ = 0;
     int64_t periodRecord_ = 0;
+    sptr<VSyncDistributor> rsVSyncDistributor_;
 };
 } // impl
 } // namespace Rosen

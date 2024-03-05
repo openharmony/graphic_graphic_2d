@@ -15,6 +15,7 @@
 
 #include <parameter.h>
 #include <parameters.h>
+#include <set>
 #include "utils/system_properties.h"
 
 namespace OHOS {
@@ -24,8 +25,9 @@ namespace Drawing {
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 static GpuApiType SystemGpuApiType()
 {
+    static std::set<std::string> mSupportedDevices = {"ALN", "ALT"};
     if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
-          (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
+          mSupportedDevices.count(system::GetParameter("const.build.product", "0")))) {
         return GpuApiType::OPENGL;
     }
 

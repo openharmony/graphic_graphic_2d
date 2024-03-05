@@ -14,6 +14,7 @@
  */
 
 #include "vsync_generator.h"
+#include "vsync_distributor.h"
 #include <cstdint>
 #include <mutex>
 #include <scoped_bytrace.h>
@@ -552,6 +553,11 @@ VsyncError VSyncGenerator::StartRefresh()
     return VSYNC_ERROR_OK;
 }
 
+void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor)
+{
+    rsVSyncDistributor_ = rsVSyncDistributor;
+}
+
 VsyncError VSyncGenerator::CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
 {
     if (hardwareVsyncInterval < 0 || referenceTime < 0) {
@@ -563,8 +569,9 @@ VsyncError VSyncGenerator::CheckAndUpdateRefereceTime(int64_t hardwareVsyncInter
     if (pendingPeriod_ <= 0) {
         return VSYNC_ERROR_API_FAILED;
     }
-    if ((abs(pendingReferenceTime_ - referenceTime_) < MAX_TIMESTAMP_THRESHOLD) &&
-        (abs(hardwareVsyncInterval - pendingPeriod_) < MAX_TIMESTAMP_THRESHOLD)) {
+    if (rsVSyncDistributor_->IsDVsyncOn() ||
+        ((abs(pendingReferenceTime_ - referenceTime_) < MAX_TIMESTAMP_THRESHOLD) &&
+        (abs(hardwareVsyncInterval - pendingPeriod_) < MAX_TIMESTAMP_THRESHOLD))) {
         // framerate has changed
         frameRateChanging_ = false;
         pendingPeriod_ = 0;

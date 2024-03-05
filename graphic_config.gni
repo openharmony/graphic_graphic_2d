@@ -42,7 +42,6 @@ declare_args() {
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
-  graphic_2d_feature_enable_dvsync = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -140,12 +139,14 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
+  graphic_2d_feature_enable_dvsync = true
   gpu_defines += [
     "RS_ENABLE_DRIVEN_RENDER",
     "RS_ENABLE_UNI_RENDER",
   ]
 } else {
   rs_enable_driven_render = false
+  graphic_2d_feature_enable_dvsync = false
 }
 
 if (graphic_2d_feature_enable_afbc) {

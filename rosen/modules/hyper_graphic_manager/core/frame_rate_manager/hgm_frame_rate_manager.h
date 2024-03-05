@@ -68,7 +68,7 @@ public:
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     bool IsLtpo() const { return isLtpo_; };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
-        const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired);
+        const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, bool DvsyncIsOn);
     void UniProcessDataForLtps(bool idleTimerExpired);
 
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
@@ -90,7 +90,7 @@ private:
     void Reset();
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
-    void HandleFrameRateChangeForLTPO(uint64_t timestamp);
+    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool DvsyncIsOn);
     void FrameRateReport() const;
     void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
