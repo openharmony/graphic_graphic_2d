@@ -34,10 +34,10 @@ public:
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
     virtual std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const = 0;
     virtual void PreProcess(std::shared_ptr<Drawing::Image> image) {};
-    virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
+    virtual void PostProcess(Drawing::Canvas& canvas) {};
     virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
     virtual bool CanSkipFrame() const { return false; };
-    virtual void SetCanvasChange(RSPaintFilterCanvas& canvas) {};
+    virtual void SetCanvasChange(Drawing::Canvas& canvas) {};
     virtual void SetBoundsGeometry(float geoWidth, float geoHeight) {};
 
 protected:

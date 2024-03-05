@@ -39,7 +39,7 @@ public:
     };
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
 
-    void PostProcess(RSPaintFilterCanvas& canvas) override {};
+    void PostProcess(Drawing::Canvas& canvas) override {};
     std::string GetDescription() override;
 
     bool CanSkipFrame() const override { return false; };

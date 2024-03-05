@@ -109,14 +109,20 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 };
 
-class RSBackgroundFilterDrawable : public RSPropertyDrawable {
+class RSBackgroundFilterDrawable : public RSDrawable {
 public:
-    RSBackgroundFilterDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
     RSBackgroundFilterDrawable() = default;
+    ~RSBackgroundFilterDrawable() override = default;
+
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
+    bool OnUpdate(const RSRenderNode& content) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
 };
 
 class RSBorderDrawable : public RSPropertyDrawable {
@@ -166,14 +172,40 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 };
 
-class RSPixelStretchDrawable : public RSPropertyDrawable {
+class RSForegroundFilterDrawable : public RSDrawable {
 public:
-    RSPixelStretchDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSPixelStretchDrawable() = default;
+    RSForegroundFilterDrawable() = default;
+    ~RSForegroundFilterDrawable() override = default;
+
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
+    bool OnUpdate(const RSRenderNode& content) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
+};
+
+class RSPixelStretchDrawable : public RSDrawable {
+public:
+    RSPixelStretchDrawable() = default;
+    ~RSPixelStretchDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& content) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    std::optional<Vector4f> pixelStretch_;
+    std::optional<Vector4f> stagingPixelStretch_;
+    std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
+    std::shared_ptr<RSObjAbsGeometry> stagingBoundsGeo_;
+    RectF boundsRect_;
+    RectF stagingBoundsRect_;
 };
 
 class RSDynamicLightUpDrawable : public RSPropertyDrawable {
@@ -191,24 +223,36 @@ private:
         float dynamicLightUpRate, float dynamicLightUpDeg);
 };
 
-class RSLightUpEffectDrawable : public RSPropertyDrawable {
+class RSLightUpEffectDrawable : public RSDrawable {
 public:
-    RSLightUpEffectDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
     RSLightUpEffectDrawable() = default;
+    ~RSLightUpEffectDrawable() override = default;
+
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
+    bool OnUpdate(const RSRenderNode& content) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    float lightUpEffectDegree_ = 1.0f;
+    float stagingLightUpEffectDegree_ = 1.0f;
 };
 
-class RSColorFilterDrawable : public RSPropertyDrawable {
+class RSColorFilterDrawable : public RSDrawable {
 public:
-    RSColorFilterDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
     RSColorFilterDrawable() = default;
+    ~RSColorFilterDrawable() override = default;
+
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
+    bool OnUpdate(const RSRenderNode& content) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    std::shared_ptr<Drawing::ColorFilter> filter_;
+    std::shared_ptr<Drawing::ColorFilter> stagingFilter_;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {
@@ -219,28 +263,71 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 };
 
-class RSBinarizationDrawable : public RSPropertyDrawable {
+class RSBinarizationDrawable : public RSDrawable {
 public:
-    RSBinarizationDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
     RSBinarizationDrawable() = default;
+    ~RSBinarizationDrawable() override = default;
+
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
+    bool OnUpdate(const RSRenderNode& content) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
-    static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high, float thresholdLow,
-        float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    bool needSync_ = false;
+    std::optional<Vector4f> aiInvert_;
+    std::optional<Vector4f> stagingAiInvert_;
 };
 
 class RSParticleDrawable : public RSPropertyDrawable {
 public:
-    RSParticleDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
-    {}
+    RSParticleDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) :
+        RSPropertyDrawable(std::move(drawCmdList)) {}
     RSParticleDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+};
+
+class RSBeginBlendModeDrawable : public RSPropertyDrawable {
+public:
+    RSBeginBlendModeDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+        : RSPropertyDrawable(std::move(drawCmdList))
+    {}
+    RSBeginBlendModeDrawable() : RSPropertyDrawable()
+    {}
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+};
+
+class RSEndBlendModeDrawable : public RSPropertyDrawable {
+public:
+    RSEndBlendModeDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+        : RSPropertyDrawable(std::move(drawCmdList))
+    {}
+    RSEndBlendModeDrawable() : RSPropertyDrawable()
+    {}
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+};
+
+class RSPointLightDrawable : public RSPropertyDrawable {
+public:
+    RSPointLightDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+        : RSPropertyDrawable(std::move(drawCmdList))
+    {}
+    RSPointLightDrawable() : RSPropertyDrawable()
+    {}
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+
+private:
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder_;
+
+    static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
+    static void DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity);
+    static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity);
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_H

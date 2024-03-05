@@ -32,7 +32,7 @@ public:
     RSLinearGradientBlurFilter operator=(const RSLinearGradientBlurFilter&) = delete;
     ~RSLinearGradientBlurFilter() override;
 
-    void PostProcess(RSPaintFilterCanvas& canvas) override {};
+    void PostProcess(Drawing::Canvas& canvas) override {};
     std::string GetDescription() override;
     void SetBoundsGeometry(float geoWidth, float geoHeight) override
     {
@@ -47,7 +47,7 @@ public:
     {
         return nullptr;
     }
-    void SetCanvasChange(RSPaintFilterCanvas& canvas) override
+    void SetCanvasChange(Drawing::Canvas& canvas) override
     {
         auto surface = canvas.GetSurface();
         auto width = surface->Width();
