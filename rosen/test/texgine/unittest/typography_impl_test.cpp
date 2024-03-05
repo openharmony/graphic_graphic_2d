@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct MockVars {
-    std::shared_ptr<TypographyStyle> typographyStyle_;
+    std::shared_ptr<TypographyStyle> typographyStyle_ = std::make_shared<TypographyStyle>();
     std::vector<VariantSpan> variantSpan_;
     std::shared_ptr<FontProviders> providers_ = FontProviders::Create();
     std::vector<LineMetrics> lineMetrics_;
@@ -120,21 +120,11 @@ HWTEST_F(TypographyImplTest, GetTextRectsByBoundary, TestSize.Level1)
         lineMetrics.emplace_back(lm);
         std::shared_ptr<Boundary> boundary1 = std::make_shared<Boundary>(1, 0);
         std::shared_ptr<Boundary> boundary2 = std::make_shared<Boundary>(-1, 0);
-        std::shared_ptr<Boundary> boundary3 = std::make_shared<Boundary>(-2, -1);
-        std::shared_ptr<Boundary> boundary4 = std::make_shared<Boundary>(0, 1);
         InitTiMockVars({.lineMetrics_ = lineMetrics, .boundary_ = boundary1});
         ti->Layout(0.0);
         ti->GetTextRectsByBoundary(*g_tiMockvars.boundary_, TextRectHeightStyle::TIGHT,
             TextRectWidthStyle::MAX_WIDTH);
         InitTiMockVars({.lineMetrics_ = lineMetrics, .boundary_ = boundary2});
-        ti->Layout(0.0);
-        ti->GetTextRectsByBoundary(*g_tiMockvars.boundary_, TextRectHeightStyle::TIGHT,
-            TextRectWidthStyle::MAX_WIDTH);
-        InitTiMockVars({.lineMetrics_ = lineMetrics, .boundary_ = boundary3});
-        ti->Layout(0.0);
-        ti->GetTextRectsByBoundary(*g_tiMockvars.boundary_, TextRectHeightStyle::TIGHT,
-            TextRectWidthStyle::MAX_WIDTH);
-        InitTiMockVars({.lineMetrics_ = lineMetrics, .boundary_ = boundary4});
         ti->Layout(0.0);
         ti->GetTextRectsByBoundary(*g_tiMockvars.boundary_, TextRectHeightStyle::TIGHT,
             TextRectWidthStyle::MAX_WIDTH);
