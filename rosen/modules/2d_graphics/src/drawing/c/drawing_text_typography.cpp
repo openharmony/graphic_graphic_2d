@@ -1365,7 +1365,11 @@ float OH_Drawing_TypographyGetIndentsWithIndex(OH_Drawing_Typography* typography
     if (typography == nullptr || index < 0) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->DetectIndents(static_cast<size_t>(index));
+    Typography* innerTypography = ConvertToOriginalText<Typography>(typography);
+    if (innerTypography == nullptr) {
+        return 0.0;
+    }
+    return innerTypography->DetectIndents(static_cast<size_t>(index));
 }
 
 void OH_Drawing_TypographySetIndents(OH_Drawing_Typography* typography, int indentsNumber, const float indents[])
@@ -1653,17 +1657,19 @@ void OH_Drawing_SetTypographyTextLineStyleFontSize(OH_Drawing_TypographyStyle* s
     typoStyle->lineStyleFontSize = lineStyleFontSize;
 }
 
-void OH_Drawing_SetTypographyTextLineStyleFontHeight(OH_Drawing_TypographyStyle* style, double lineStyleFontHeight)
+void OH_Drawing_SetTypographyTextLineStyleFontHeight(OH_Drawing_TypographyStyle * style, double linestylefontHeight)
 {
     if (style == nullptr) {
         return;
     }
-    TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
-    if (typoStyle == nullptr) {
+    TypographyStyle* typographyStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (typographyStyle == nullptr) {
         return;
     }
-    typoStyle->lineStyleHeightScale = lineStyleFontHeight;
-    typoStyle->lineStyleHeightOnly = true;
+    typographyStyle->lineStyleHeightScale = linestylefontHeight;
+    if (!typographyStyle->lineStyleHeightOnlyInit) {
+        typographyStyle->lineStyleHeightOnly = true;
+    }
 }
 
 void OH_Drawing_SetTypographyTextLineStyleHalfLeading(OH_Drawing_TypographyStyle* style, bool lineStyleHalfLeading)

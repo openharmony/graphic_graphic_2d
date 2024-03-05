@@ -41,6 +41,7 @@ struct TypographyStyle {
     std::vector<std::string> lineStyleFontFamilies;
     double lineStyleFontSize = 14.0; // default is libtxt text style font size
     double lineStyleHeightScale = 1.0;
+    bool lineStyleHeightOnlyInit = false;
     bool lineStyleHeightOnly = false;
     bool lineStyleHalfLeading = false;
     double lineStyleSpacingScale = -1.0;
