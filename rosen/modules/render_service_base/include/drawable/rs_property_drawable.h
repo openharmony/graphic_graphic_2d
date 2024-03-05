@@ -115,7 +115,7 @@ public:
     ~RSBackgroundFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
+    bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
@@ -178,7 +178,7 @@ public:
     ~RSForegroundFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
+    bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
@@ -194,7 +194,7 @@ public:
     ~RSPixelStretchDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
+    bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
@@ -202,8 +202,8 @@ private:
     bool needSync_ = false;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> stagingPixelStretch_;
-    std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
-    std::shared_ptr<RSObjAbsGeometry> stagingBoundsGeo_;
+    bool boundsGeoValid_ = false;
+    bool stagingBoundsGeoValid_ = false;
     RectF boundsRect_;
     RectF stagingBoundsRect_;
 };
@@ -229,7 +229,7 @@ public:
     ~RSLightUpEffectDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
+    bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
@@ -245,7 +245,7 @@ public:
     ~RSColorFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
+    bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
@@ -269,7 +269,7 @@ public:
     ~RSBinarizationDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& content) override;
+    bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
