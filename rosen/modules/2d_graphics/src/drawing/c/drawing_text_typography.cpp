@@ -1666,7 +1666,7 @@ void OH_Drawing_SetTypographyTextLineStyleFontHeight(OH_Drawing_TypographyStyle*
     if (typographyStyle == nullptr) {
         return;
     }
-    typographyStyle->lineStyleHeightScale = linestylefontHeight;
+    typographyStyle->lineStyleHeightScale = lineStyleFontHeight;
     if (!typographyStyle->lineStyleHeightOnlyInit) {
         typographyStyle->lineStyleHeightOnly = true;
     }
@@ -1694,7 +1694,7 @@ void OH_Drawing_SetTypographyTextLineStyleSpacingScale(OH_Drawing_TypographyStyl
 void OH_Drawing_SetTypographyTextLineStyleOnly(OH_Drawing_TypographyStyle* style, bool lineStyleOnly)
 {
     if (style) {
-        ConvertToOriginalText<TypographyStyle>(style)->lineStyleOnly = linestyleOnly;
+        ConvertToOriginalText<TypographyStyle>(style)->lineStyleOnly = lineStyleOnly;
     }
 }
 
