@@ -120,6 +120,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY
     RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
+    RSDrawableSlot::CHILDREN,                      // CHILDREN
 };
 
 template<RSModifierType type>
@@ -215,8 +216,6 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
             dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
         }
     }
-
-    // TODO: if children changed, add CHILDREN to dirtySlots
 
     // Step 3: if bounds changed, every existing drawable needs to be updated
     if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS))) {
@@ -314,6 +313,8 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
             drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CONTENT_PROPERTIES_END)) {
         result |= DrawableVecStatus::FRAME_PROPERTY;
     }
+
+    // TODO: determine if we need save ALPHA/BlendMode/EffectData etc in SAVE_ALL
 
     return result;
 }

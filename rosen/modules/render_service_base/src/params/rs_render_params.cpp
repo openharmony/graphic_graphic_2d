@@ -15,13 +15,8 @@
 
 #include "params/rs_render_params.h"
 
-#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
-#include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
-#include "property/rs_properties_painter.h"
-
-#include "src/image/SkImage_Base.h"
 
 namespace OHOS::Rosen {
 const Drawing::Matrix RSRenderParams::GetMatrix() const
@@ -42,6 +37,18 @@ void RSRenderParams::SetMatrix(Drawing::Matrix matrix)
 void RSRenderParams::SetBoundsRect(Drawing::RectF boundsRect)
 {
     boundsRect_ = boundsRect;
+}
+
+void RSRenderParams::SetShouldPaint(bool shouldPaint)
+{
+    shouldPaint_ = shouldPaint;
+}
+
+void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
+{
+    target->SetMatrix(matrix_);
+    target->SetBoundsRect(boundsRect_);
+    target->shouldPaint_ = shouldPaint_;
 }
 
 } // namespace OHOS::Rosen

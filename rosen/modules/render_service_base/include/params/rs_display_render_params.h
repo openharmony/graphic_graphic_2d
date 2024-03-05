@@ -13,19 +13,18 @@
  * limitations under the License.
  */
 
-#include "pipeline/params/rs_display_render_params.h"
+#ifndef RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
+#define RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
 
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_render_node.h"
-#include "platform/common/rs_log.h"
-#include "property/rs_properties.h"
-#include "property/rs_properties_painter.h"
-
-#include "src/image/SkImage_Base.h"
+#include "params/rs_render_params.h"
 
 namespace OHOS::Rosen {
-RSDisplayRenderParams::RSDisplayRenderParams()
-{
-}
+class RSDisplayRenderParams : public RSRenderParams {
+public:
+    explicit RSDisplayRenderParams();
+    virtual ~RSDisplayRenderParams() = default;
 
+private:
+};
 } // namespace OHOS::Rosen
+#endif // RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H

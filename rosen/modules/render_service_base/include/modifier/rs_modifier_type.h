@@ -122,6 +122,7 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR,          // 92
     ENV_FOREGROUND_COLOR_STRATEGY, // 93
     GEOMETRYTRANS,                 // 94
+    CHILDREN,                      // 95, PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;

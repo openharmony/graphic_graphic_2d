@@ -13,13 +13,9 @@
  * limitations under the License.
  */
 
-#include "pipeline/params/rs_surface_render_params.h"
-
-#include "property/rs_properties.h"
+#include "params/rs_surface_render_params.h"
 
 namespace OHOS::Rosen {
-RSSurfaceRenderParams::RSSurfaceRenderParams()
-{
-}
+RSSurfaceRenderParams::RSSurfaceRenderParams() {}
 
 } // namespace OHOS::Rosen

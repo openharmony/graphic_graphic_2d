@@ -74,9 +74,6 @@ ohos_shared_library("librender_service") {
 
   sources = [
     "core/memory/rs_memory_manager.cpp",
-    "core/pipeline/params/rs_canvas_render_params.cpp",
-    "core/pipeline/params/rs_display_render_params.cpp",
-    "core/pipeline/params/rs_surface_render_params.cpp",
     "core/pipeline/round_corner_display/rs_rcd_render_listener.cpp",
     "core/pipeline/round_corner_display/rs_rcd_render_manager.cpp",
     "core/pipeline/round_corner_display/rs_rcd_render_visitor.cpp",

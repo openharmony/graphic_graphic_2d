@@ -13,13 +13,18 @@
  * limitations under the License.
  */
 
-#include "pipeline/params/rs_canvas_render_params.h"
+#ifndef RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
+#define RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
 
-#include "property/rs_properties.h"
+#include "params/rs_render_params.h"
 
 namespace OHOS::Rosen {
-RSCanvasRenderParams::RSCanvasRenderParams()
-{
-}
+class RSSurfaceRenderParams : public RSRenderParams {
+public:
+    explicit RSSurfaceRenderParams();
+    virtual ~RSSurfaceRenderParams() = default;
 
+private:
+};
 } // namespace OHOS::Rosen
+#endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

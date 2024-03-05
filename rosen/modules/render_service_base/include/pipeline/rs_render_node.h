@@ -664,11 +664,15 @@ private:
     void OnRegister(const std::weak_ptr<RSContext>& context);
 
     // Test pipeline
-    bool needSync_ = false;
+    bool drawCmdListNeedSync_ = false;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
+
+    std::unordered_set<RSDrawableSlot> dirtySlots_;
     RSDrawable::Vec drawableVec_;
 
+    bool renderParamNeedSync_ = false;
+    virtual void OnInitRenderParams();
     std::unique_ptr<RSRenderParams> renderParams_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
 

@@ -29,9 +29,20 @@ public:
     const Drawing::Rect GetBounds() const;
     virtual void SetMatrix(Drawing::Matrix matrix);
     virtual void SetBoundsRect(Drawing::RectF boundsRect);
+    void SetShouldPaint(bool shouldPaint);
+
+    // disable copy and move
+    RSRenderParams(const RSRenderParams&) = delete;
+    RSRenderParams(RSRenderParams&&) = delete;
+    RSRenderParams& operator=(const RSRenderParams&) = delete;
+    RSRenderParams& operator=(RSRenderParams&&) = delete;
+
+    virtual void OnSync(const std::unique_ptr<RSRenderParams>& target);
+
 private:
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
+    bool shouldPaint_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
