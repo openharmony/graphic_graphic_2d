@@ -104,7 +104,7 @@ public:
 
     // fromWhom indicates whether the source is animate or non-animate
     // lastVSyncTS indicates last vsync time, 0 when non-animate
-    VsyncError RequestNextVSync(const sptr<VSyncConnection> &connection, const std::string &fromWhom,
+    VsyncError RequestNextVSync(const sptr<VSyncConnection> &connection, const std::string &fromWhom = "unknown",
                                 int64_t lastVSyncTS = 0);
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
