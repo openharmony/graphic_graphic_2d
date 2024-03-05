@@ -1560,7 +1560,7 @@ void RSMainThread::Render()
     }
     int dumpTreeCount = RSSystemParameters::GetDumpRSTreeCount();
     if (UNLIKELY(dumpTreeCount)) {
-        RS_TRACE_NAME("dump rstreeing!");
+        RS_TRACE_NAME("dump rstree");
         RenderServiceTreeDump(g_dumpStr);
         RSSystemParameters::SetDumpRSTreeCount(dumpTreeCount - 1);
     }
