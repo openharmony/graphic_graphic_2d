@@ -53,7 +53,7 @@ SkFontStyleSet* AssetFontManager::onMatchFamily(const char name[]) const
 
 SkTypeface* AssetFontManager::onMatchFamilyStyle(const char familyName[], const SkFontStyle& style) const
 {
-    SkFontStyleSet* fontStyleSet = fontProvider_->MatchFamily(std::string(familyName));
+    SkFontStyleSet* fontStyleSet = fontProvider_->MatchFamily(std::string(familyName ? familyName : ""));
     if (fontStyleSet == nullptr)
         return nullptr;
     return fontStyleSet->matchStyle(style);
