@@ -64,8 +64,7 @@ typedef void (*OH_OnFrameAvailable)(void *context);
  * @since 11
  * @version 1.0
  */
-typedef struct OH_OnFrameAvailableListener
-{
+typedef struct OH_OnFrameAvailableListener {
     void *context;
     OH_OnFrameAvailable onFrameAvailable;
 } OH_OnFrameAvailableListener;
