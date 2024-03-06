@@ -237,18 +237,29 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
         return false;
     }
 
-    auto &skFontMetrics = sklineMetrics.fLineMetrics.at(sklineMetrics.fStartIndex).font_metrics;
-    lineMetrics->firstCharMetrics = skFontMetrics;
-
-    if (oneLine) {
-        lineMetrics->ascender = sklineMetrics.fAscent;
-        lineMetrics->descender = sklineMetrics.fDescent;
+    if (!sklineMetrics.fLineMetrics.empty()) {
+        auto &skFontMetrics = sklineMetrics.fLineMetrics.at(sklineMetrics.fStartIndex).font_metrics;
+        lineMetrics->firstCharMetrics = skFontMetrics;
+        if (oneLine) {
+            lineMetrics->ascender = sklineMetrics.fAscent;
+            lineMetrics->descender = sklineMetrics.fDescent;
+        } else {
+            lineMetrics->ascender = skFontMetrics.fAscent;
+            lineMetrics->descender = skFontMetrics.fDescent;
+        }
+        lineMetrics->capHeight = skFontMetrics.fCapHeight;
+        lineMetrics->xHeight = skFontMetrics.fXHeight;
     } else {
-        lineMetrics->ascender = skFontMetrics.fAscent;
-        lineMetrics->descender = skFontMetrics.fDescent;
+        if (oneLine) {
+            lineMetrics->ascender = sklineMetrics.fAscent;
+            lineMetrics->descender = sklineMetrics.fDescent;
+        } else {
+            lineMetrics->ascender = 0.0;
+            lineMetrics->descender = 0.0;
+        }
+        lineMetrics->capHeight = 0.0;
+        lineMetrics->xHeight = 0.0;
     }
-    lineMetrics->capHeight = skFontMetrics.fCapHeight;
-    lineMetrics->xHeight = skFontMetrics.fXHeight;
     if (includeWhitespace) {
         lineMetrics->width = sklineMetrics.fWidthWithSpaces;
     } else {
@@ -269,19 +280,24 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
     if (paragraph_ != nullptr) {
         auto metrics = paragraph_->GetLineMetrics();
         for (SPText::LineMetrics& spLineMetrics : metrics) {
-            LineMetrics& skLineMetrics = lineMetrics.emplace_back();
-            auto &skFontMetrics = spLineMetrics.runMetrics.at(spLineMetrics.startIndex).fontMetrics;
-            skLineMetrics.firstCharMetrics = skFontMetrics;
-            skLineMetrics.ascender = spLineMetrics.ascent;
-            skLineMetrics.descender = spLineMetrics.descent;
-            skLineMetrics.capHeight = spLineMetrics.runMetrics.at(spLineMetrics.startIndex).fontMetrics.fCapHeight;
-            skLineMetrics.xHeight = spLineMetrics.runMetrics.at(spLineMetrics.startIndex).fontMetrics.fXHeight;
-            skLineMetrics.width = spLineMetrics.width;
-            skLineMetrics.height = spLineMetrics.height;
-            skLineMetrics.x = spLineMetrics.left;
-            skLineMetrics.y = spLineMetrics.topHeight;
-            skLineMetrics.startIndex = spLineMetrics.startIndex;
-            skLineMetrics.endIndex = spLineMetrics.endIndex;
+            LineMetrics& line = lineMetrics.emplace_back();
+            if (!spLineMetrics.runMetrics.empty()) {
+                auto &spFontMetrics = spLineMetrics.runMetrics.at(spLineMetrics.startIndex).fontMetrics;
+                line.firstCharMetrics = spFontMetrics;
+                line.capHeight = spFontMetrics.fCapHeight;
+                line.xHeight = spFontMetrics.fXHeight;
+            } else {
+                line.capHeight = 0.0;
+                line.xHeight = 0.0;
+            }
+            line.ascender = spLineMetrics.ascent;
+            line.descender = spLineMetrics.descent;
+            line.width = spLineMetrics.width;
+            line.height = spLineMetrics.height;
+            line.x = spLineMetrics.left;
+            line.y = spLineMetrics.topHeight;
+            line.startIndex = spLineMetrics.startIndex;
+            line.endIndex = spLineMetrics.endIndex;
         }
     }
     return lineMetrics;
@@ -300,12 +316,19 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
         return false;
     }
 
-    auto &skFontMetrics = skLineMetrics.fLineMetrics.at(skLineMetrics.fStartIndex).font_metrics;
-    lineMetrics->firstCharMetrics = skFontMetrics;
-    lineMetrics->ascender = skFontMetrics.fAscent;
-    lineMetrics->descender = skFontMetrics.fDescent;
-    lineMetrics->capHeight = skFontMetrics.fCapHeight;
-    lineMetrics->xHeight = skFontMetrics.fXHeight;
+    if (!skLineMetrics.fLineMetrics.empty()) {
+        auto &skFontMetrics = skLineMetrics.fLineMetrics.at(skLineMetrics.fStartIndex).font_metrics;
+        lineMetrics->firstCharMetrics = skFontMetrics;
+        lineMetrics->capHeight = skFontMetrics.fCapHeight;
+        lineMetrics->xHeight = skFontMetrics.fXHeight;
+    } else {
+        lineMetrics->capHeight = 0.0;
+        lineMetrics->xHeight = 0.0;
+    }
+
+    lineMetrics->ascender = skLineMetrics.fAscent;
+    lineMetrics->descender = skLineMetrics.fDescent;
+
     lineMetrics->width = skLineMetrics.fWidth;
     lineMetrics->height = skLineMetrics.fHeight;
     lineMetrics->x = skLineMetrics.fLeft;
