@@ -423,7 +423,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
             LOGSO_FUNC_LINE(ERROR) << "parse table failed";
             return nullptr;
         }
-        std::string name = "/system/fonts/" + fontName;
+        std::string name = SYSTEM_FONT_PATH + fontName;
         if (fontDescriptor.fullName == fontName || fontDescriptor.path == name) {
             return std::make_unique<FontDescriptor>(fontDescriptor);
         }
