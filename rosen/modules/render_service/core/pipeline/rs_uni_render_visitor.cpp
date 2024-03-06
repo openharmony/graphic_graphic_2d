@@ -915,6 +915,10 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node)
 {
+    // only reset for instance node
+    if (curSurfaceNode_ == nullptr || curSurfaceNode_->GetId() != node.GetId()) {
+        return;
+    }
     if (auto directParent = node.GetParent().lock()) {
         if (auto parentInstance = directParent->GetInstanceRootNode()) {
             // in case leashwindow is not directParent
@@ -925,11 +929,11 @@ void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRender
                 filterInGlobal_ = surfaceParent->IsTransparent();
                 return;
             }
+            curSurfaceNode_ = nullptr;
+            curSurfaceDirtyManager_ = nullptr;
+            filterInGlobal_ = true;
         }
     }
-    curSurfaceNode_ = nullptr;
-    curSurfaceDirtyManager_ = nullptr;
-    filterInGlobal_ = true;
 }
 
 bool RSUniRenderVisitor::IsHardwareComposerEnabled()
@@ -1203,6 +1207,8 @@ bool RSUniRenderVisitor::IsSubTreeNeedPrepare(RSRenderNode& node, std::shared_pt
     if (!node.ShouldPaint()) {
         node.SetSubTreeDirty(false);
         node.UpdateChildrenOutOfRectFlag(false); // not need to consider
+        RS_TRACE_NAME_FMT("RSUniRenderVisitor::IsSubTreeNeedPrepare node[%s] not ShouldPaint",
+            std::to_string(node.GetId()).c_str());
         return false;
     }
     if (node.IsSubTreeDirty()) {
@@ -1215,6 +1221,10 @@ bool RSUniRenderVisitor::IsSubTreeNeedPrepare(RSRenderNode& node, std::shared_pt
         node.MapChildrenRect();
         node.UpdateParentChildrenRect(parent);
     }
+    RS_TRACE_NAME_FMT("RSUniRenderVisitor::IsSubTreeNeedPrepare node[%s] "
+        "ChildHasVisibleFilter[%d] filterInGlobal_[%d]",
+        std::to_string(node.GetId()).c_str(),
+        node.ChildHasVisibleFilter(), filterInGlobal_);
     // if clean without filter skip subtree
     return node.ChildHasVisibleFilter() ? filterInGlobal_ : false;
 }
@@ -1228,6 +1238,9 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
     if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
         if (surfaceNode.IsMainWindowType()) {
+            RS_TRACE_NAME_FMT("RSUniRenderVisitor::IsSubTreeOccluded node[%s]"
+            "name:[%s] visibleRegionIsEmpty[%d]", std::to_string(node.GetId()).c_str(),
+            surfaceNode.GetName().c_str(), surfaceNode.GetVisibleRegion().IsEmpty());
             return surfaceNode.GetVisibleRegion().IsEmpty();
         }
     }
@@ -1239,6 +1252,8 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     // 0. init and check need to recalculate occlusion
+    RS_LOGI("RSUniRenderVisitor::QuickPrepareDisplayRenderNode enter");
+    currentVisitDisplay_ = node.GetScreenId();
     RS_TRACE_NAME("RSUniRender:QuickPrepareDisplay " + std::to_string(currentVisitDisplay_));
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
@@ -1270,6 +1285,9 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr != nullptr) {
         geoPtr->UpdateByMatrixFromSelf();
+        if (geoPtr->IsNeedClientCompose()) {
+            isHardwareForcedDisabled_ = true;
+        }
     }
 
     // 3. Recursively traverse child nodes
@@ -1279,10 +1297,21 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
 
     MapAbsDirtyRectForMainWindow();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
+    HandleColorGamuts(node, screenManager);
+    HandlePixelFormat(node, screenManager);
+    RS_LOGI("RSUniRenderVisitor::QuickPrepareDisplayRenderNode exit");
 }
 
 void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    RS_TRACE_NAME_FMT("RSUniRender::QuickPrepareSurfaceRenderNode: node[%s]"
+        "name[%s] pid[%s] nodeType[%s]", std::to_string(node.GetId()).c_str(),
+        node.GetName().c_str(), std::to_string(ExtractPid(node.GetId())).c_str(),
+        std::to_string(static_cast<uint>(node.GetSurfaceNodeType())).c_str());
+    RS_LOGI("RSUniRender::QuickPrepareSurfaceRenderNode:[%{public}s] nodeid:[%{public}" PRIu64 "]"
+        "pid:[%{public}s] nodeType:[%{public}s]",
+        node.GetName().c_str(), node.GetId(), std::to_string(ExtractPid(node.GetId())).c_str(),
+        std::to_string(static_cast<uint>(node.GetSurfaceNodeType())).c_str());
     // 0. init curSurface* info and check current node need to tranverse
     auto nodeParent = node.GetParent().lock();
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
@@ -1320,6 +1349,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     // 1.1 Update Occlusion info before children preparation
     if (node.IsMainWindowType()) {
         CalculateOcclusion(node);
+        RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode visibleRegion:%s",
+            node.GetVisibleRegion().GetRegionInfo().c_str());
     }
 
     // 2. Recursively traverse child nodes
@@ -1799,6 +1830,8 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
 
 void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
+    RS_TRACE_NAME_FMT("RSUniRender::PrepareRootRenderNode:node[%s] pid[%s]",
+        std::to_string(node.GetId()).c_str(), std::to_string(ExtractPid(node.GetId())).c_str());
     bool dirtyFlag = dirtyFlag_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     RectI prepareClipRect = prepareClipRect_;
