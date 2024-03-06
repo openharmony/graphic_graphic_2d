@@ -26,7 +26,7 @@
     MessageOption opt;                                \
     MessageParcel arg;                                \
     MessageParcel ret;                                \
-    if (!arg.WriteInterfaceToken(GetDescriptor())) {  \
+    if (!(arg).WriteInterfaceToken(GetDescriptor())) {  \
         LOGE("write interface token failed");         \
     }
 
@@ -50,7 +50,7 @@
 
 #define CHECK_RETVAL_WITH_SEQ(reply, sequence)                          \
     do {                                                                \
-        int32_t ret = reply.ReadInt32();                                \
+        int32_t ret = (reply).ReadInt32();                                \
         if (ret != GSERROR_OK) {                                  \
             BLOGN_FAILURE_ID(sequence, "Remote return %{public}d", ret); \
             return (GSError)ret;                                   \

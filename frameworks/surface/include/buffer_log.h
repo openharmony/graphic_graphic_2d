@@ -34,33 +34,33 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqu
 #define BPUBU64  "%{public}llu"
 #endif
 
-#define _B_DFUNC HiviewDFX::HiLog::Debug
-#define _B_IFUNC HiviewDFX::HiLog::Info
-#define _B_WFUNC HiviewDFX::HiLog::Warn
-#define _B_EFUNC HiviewDFX::HiLog::Error
+#define B_DFUNC HiviewDFX::HiLog::Debug
+#define B_IFUNC HiviewDFX::HiLog::Info
+#define B_WFUNC HiviewDFX::HiLog::Warn
+#define B_EFUNC HiviewDFX::HiLog::Error
 
-#define _B_CNPRINTF(func, fmt, ...) \
+#define B_CNPRINTF(func, fmt, ...) \
     func(LABEL, "(%{public}s) %{public}s: " fmt, \
         name_.c_str(), __func__, ##__VA_ARGS__)
 
-#define _B_CPRINTF(func, fmt, ...) \
+#define B_CPRINTF(func, fmt, ...) \
     func(LABEL, "<%{public}d>%{public}s: " fmt, \
         __LINE__, __func__, ##__VA_ARGS__)
 
-#define BLOGFD(fmt, ...) _B_CPRINTF(_B_DFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
-#define BLOGFI(fmt, ...) _B_CPRINTF(_B_IFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
-#define BLOGFW(fmt, ...) _B_CPRINTF(_B_WFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
-#define BLOGFE(fmt, ...) _B_CPRINTF(_B_EFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
+#define BLOGFD(fmt, ...) B_CPRINTF(B_DFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
+#define BLOGFI(fmt, ...) B_CPRINTF(B_IFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
+#define BLOGFW(fmt, ...) B_CPRINTF(B_WFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
+#define BLOGFE(fmt, ...) B_CPRINTF(B_EFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)
 
-#define BLOGD(fmt, ...) _B_CPRINTF(_B_DFUNC, fmt, ##__VA_ARGS__)
-#define BLOGI(fmt, ...) _B_CPRINTF(_B_IFUNC, fmt, ##__VA_ARGS__)
-#define BLOGW(fmt, ...) _B_CPRINTF(_B_WFUNC, fmt, ##__VA_ARGS__)
-#define BLOGE(fmt, ...) _B_CPRINTF(_B_EFUNC, fmt, ##__VA_ARGS__)
+#define BLOGD(fmt, ...) B_CPRINTF(B_DFUNC, fmt, ##__VA_ARGS__)
+#define BLOGI(fmt, ...) B_CPRINTF(B_IFUNC, fmt, ##__VA_ARGS__)
+#define BLOGW(fmt, ...) B_CPRINTF(B_WFUNC, fmt, ##__VA_ARGS__)
+#define BLOGE(fmt, ...) B_CPRINTF(B_EFUNC, fmt, ##__VA_ARGS__)
 
-#define BLOGND(fmt, ...) _B_CNPRINTF(_B_DFUNC, fmt, ##__VA_ARGS__)
-#define BLOGNI(fmt, ...) _B_CNPRINTF(_B_IFUNC, fmt, ##__VA_ARGS__)
-#define BLOGNW(fmt, ...) _B_CNPRINTF(_B_WFUNC, fmt, ##__VA_ARGS__)
-#define BLOGNE(fmt, ...) _B_CNPRINTF(_B_EFUNC, fmt, ##__VA_ARGS__)
+#define BLOGND(fmt, ...) B_CNPRINTF(B_DFUNC, fmt, ##__VA_ARGS__)
+#define BLOGNI(fmt, ...) B_CNPRINTF(B_IFUNC, fmt, ##__VA_ARGS__)
+#define BLOGNW(fmt, ...) B_CNPRINTF(B_WFUNC, fmt, ##__VA_ARGS__)
+#define BLOGNE(fmt, ...) B_CNPRINTF(B_EFUNC, fmt, ##__VA_ARGS__)
 
 #define BLOGN_SUCCESS(fmt, ...) \
     BLOGNI("Success, Way: " fmt, ##__VA_ARGS__)

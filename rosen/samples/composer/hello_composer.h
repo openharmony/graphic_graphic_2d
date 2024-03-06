@@ -39,7 +39,7 @@ private:
     uint32_t currScreenId_ = 0;
     // Draw color with PIXEL_FMT_YCBCR_420_SP format in LAYER_EXTRA layer, if YUVFormat_ is true
     // Draw color with PIXEL_FMT_RGBA_8888 format in LAYER_EXTRA layer, if YUVFormat_ is false
-    bool YUVFormat_ = false;
+    bool yuvFormat_ = false;
     bool dump_ = false;
     bool ready_ = false;
     bool initDeviceFinished_ = false;

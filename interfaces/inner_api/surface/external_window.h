@@ -426,7 +426,8 @@ BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(OHNativeWindowBuffer *bu
 int32_t OH_NativeWindow_NativeObjectReference(void *obj);
 
 /**
- * @brief Decreases the reference count of a native object and, when the reference count reaches 0, destroys this object.
+ * @brief Decreases the reference count of a native object and, when the reference count reaches 0, \n
+ * destroys this object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @param obj Indicates the pointer to an <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
