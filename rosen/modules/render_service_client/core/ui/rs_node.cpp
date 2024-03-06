@@ -2027,7 +2027,6 @@ const std::optional<NodeId> RSNode::GetChildIdByIndex(int index) const
 {
     int childrenTotal = static_cast<int>(children_.size());
     if (childrenTotal <= 0 || index < -1 || index >= childrenTotal) {
-        ROSEN_LOGE("RSNode::GetChildIdByIndex, index out of bound");
         return std::nullopt;
     }
     if (index == -1) {
