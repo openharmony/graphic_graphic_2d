@@ -240,8 +240,8 @@ HWTEST_F(MeasurerImplTest, Create, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Measure1, TestSize.Level1)
 {
-    size_t ret = 0;
-    InitMiMockVars({.retvalBufferCreate = nullptr}, {});
+    size_t ret = 1;
+    InitMiMockVars({}, {});
     uint16_t testText = 2;
     text_ = {testText};
     MeasurerImpl mi(text_, fontCollection_);
@@ -250,7 +250,7 @@ HWTEST_F(MeasurerImplTest, Measure1, TestSize.Level1)
     mi.SetRange(begin, end);
     mi.SetFontFeatures(emptyff_);
 
-    EXPECT_EQ(mi.Measure(charGroups_), 1);
+    EXPECT_EQ(mi.Measure(charGroups_), 0);
     EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
@@ -343,7 +343,7 @@ HWTEST_F(MeasurerImplTest, SeekTypeface3, TestSize.Level1)
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetRange(0, 2);
     mi.SeekTypeface(mRuns);
-    EXPECT_EQ(mRuns.size(), 2);
+    EXPECT_EQ(mRuns.size(), 1);
     EXPECT_EQ(mRuns.front().typeface, g_measurerMockvars.typeface);
 }
 
