@@ -66,6 +66,8 @@ Note: If the text contains special characters, please escape them according to t
                 <filteritem type="filename" name="icon.png" desc="png for hap"/>
                 <filteritem type="filename" name="bootpic.zip" desc="bootanimation"/>
                 <filteritem type="filename" name="cursor.raw" desc="cursor"/>
+                <filteritem type="filename" name="bootsound.wav" desc="bootanimation sound file"/>
+                <filteritem type="filename" name="bootvideo.mp4" desc="bootanimation video file"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
