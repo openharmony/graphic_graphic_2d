@@ -24,7 +24,6 @@
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
-#include "property/rs_properties_painter.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_material_filter.h"
 
@@ -155,13 +154,13 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode &node)
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipToRRect()) {
         canvas.ClipRoundRect(
-            RSPropertiesPainter::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, false);
+            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, false);
     } else if (!properties.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
-            RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
+            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else {
         canvas.ClipRect(
-            RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
     }
     return true;
 }
@@ -183,7 +182,7 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode &node)
 
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     updater.GetRecordingCanvas()->ClipRect(
-        RSPropertiesPainter::Rect2DrawingRect(properties.GetFrameRect()), Drawing::ClipOp::INTERSECT, false);
+        RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetFrameRect()), Drawing::ClipOp::INTERSECT, false);
     return true;
 }
 
@@ -429,7 +428,7 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     // RRect rrect = properties.GetRRect();
     // skip shadow if not valid or cache is enabled
     if (properties.IsSpherizeValid() || !properties.IsShadowValid() ||
-        canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
+        canvas.GetCacheType() == Drawing::CacheType::ENABLED) {
         return false;
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
