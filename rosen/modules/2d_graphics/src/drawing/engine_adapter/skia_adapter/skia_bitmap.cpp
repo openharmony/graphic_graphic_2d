@@ -216,7 +216,6 @@ void SkiaBitmap::SetSkBitmap(const SkBitmap& skBitmap)
 
 std::shared_ptr<Data> SkiaBitmap::Serialize() const
 {
-#ifdef ROSEN_OHOS
     SkBinaryWriteBuffer writer;
     size_t rb = skiaBitmap_.rowBytes();
     int width = skiaBitmap_.width();
@@ -249,9 +248,6 @@ std::shared_ptr<Data> SkiaBitmap::Serialize() const
     data->BuildUninitialized(length);
     writer.writeToMemory(data->WritableData());
     return data;
-#else
-    return nullptr;
-#endif
 }
 
 bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
@@ -290,9 +286,11 @@ bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
     }
 
     SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
-    skiaBitmap_.setInfo(imageInfo, rb);
-    skiaBitmap_.allocPixels();
-    skiaBitmap_.setPixels(const_cast<void*>(pixBuffer.get()));
+    auto releaseProc = [] (void* addr, void* context) -> void {
+        free(addr);
+        addr = nullptr;
+    };
+    skiaBitmap_.installPixels(imageInfo, const_cast<void*>(pixBuffer.release()), rb, releaseProc, nullptr);
     return true;
 }
 
