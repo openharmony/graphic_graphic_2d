@@ -352,8 +352,7 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
 
 void RSRenderThreadVisitor::ProcessShadowFirst(RSRenderNode& node)
 {
-    if (RSSystemProperties::GetUseShadowBatchingEnabled()
-        && (node.GetRenderProperties().GetUseShadowBatching())) {
+    if (node.GetRenderProperties().GetUseShadowBatching()) {
         auto children = node.GetSortedChildren();
         for (auto& child : *children) {
             if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {

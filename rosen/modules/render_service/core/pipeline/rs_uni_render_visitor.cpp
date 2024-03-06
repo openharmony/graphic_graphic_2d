@@ -1777,7 +1777,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
     effectRegion_ = node.InitializeEffectRegion();
-    
+
     // set rotationChanged true when screen is rotating or folding/expanding screen.
     if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
         node.SetRotationChanged(true);
@@ -1794,7 +1794,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     PrepareChildren(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     node.SetEffectRegion(effectRegion_);
-    
+
     if (node.GetRenderProperties().NeedFilter()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
@@ -2144,8 +2144,7 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
 
 void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread)
 {
-    if (RSSystemProperties::GetUseShadowBatchingEnabled()
-        && (node.GetRenderProperties().GetUseShadowBatching())) {
+    if (node.GetRenderProperties().GetUseShadowBatching()) {
         auto children = node.GetSortedChildren();
         for (auto& child : *children) {
             if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
@@ -2850,7 +2849,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (!isParallel_ || isUIFirst_) {
             int saveCount = canvas_->Save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
-            
+
             bool displayNodeRotationChanged = node.IsRotationChanged();
             // enable cache if screen rotation
             canvas_->SetCacheType((isScreenRotationAnimating_ || displayNodeRotationChanged)
@@ -3585,7 +3584,7 @@ void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNo
             UpdateHardwareNodeStatusBasedOnFilter(currentSurfaceNode, prevHwcEnabledNodes, displayDirtyManager);
         }
     }
-    
+
     for (auto it = displayNode->GetCurAllSurfaces().begin(); it != displayNode->GetCurAllSurfaces().end();) {
         auto currentSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (currentSurfaceNode == nullptr) {

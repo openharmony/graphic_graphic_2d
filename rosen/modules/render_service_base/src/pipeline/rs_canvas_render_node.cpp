@@ -116,14 +116,9 @@ void RSCanvasRenderNode::DrawShadow(RSModifierContext& context, RSPaintFilterCan
 {
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
-    
-    if (RSSystemProperties::GetUseShadowBatchingEnabled()) {
-        auto parent = GetParent().lock();
-        if (!(parent && parent->GetRenderProperties().GetUseShadowBatching())) {
-            RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
-            RSPropertiesPainter::DrawOutline(GetRenderProperties(), canvas);
-        }
-    } else {
+
+    auto parent = GetParent().lock();
+    if (!(parent && parent->GetRenderProperties().GetUseShadowBatching())) {
         RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
         RSPropertiesPainter::DrawOutline(GetRenderProperties(), canvas);
     }
@@ -132,7 +127,7 @@ void RSCanvasRenderNode::DrawShadow(RSModifierContext& context, RSPaintFilterCan
 void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty)
 {
     auto parent = GetParent().lock();
-    if (RSSystemProperties::GetUseShadowBatchingEnabled() && parent &&
+    if (parent &&
         parent->GetRenderProperties().GetUseShadowBatching()) {
         DrawPropertyDrawableRange(
             RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
