@@ -226,6 +226,20 @@ if (exec_script(check_graphic_ext_file_script,
   }
 }
 
+check_platform_ext_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/platform/config.gni"),
+]
+graphic_2d_platform_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_platform_ext_file_args,
+                "string") == "True") {
+  graphic_2d_platform_configs = {
+    import("//foundation/graphic/graphic_2d_ext/platform/config.gni")
+  }
+}
+
 flutter_root = "//third_party/flutter"
 ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"

@@ -21,13 +21,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-static GpuApiType SystemGpuApiType()
-{
-    return GpuApiType::OPENGL;
-}
-#endif
-
 bool SystemProperties::GetHMSymbolEnable()
 {
     static bool isHMSymbolEnable =
@@ -36,7 +29,7 @@ bool SystemProperties::GetHMSymbolEnable()
 }
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-const GpuApiType SystemProperties::systemGpuApiType_ = SystemGpuApiType();
+const GpuApiType SystemProperties::systemGpuApiType_ = SystemProperties::GetSystemGraphicGpuType();
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
 const GpuApiType SystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else

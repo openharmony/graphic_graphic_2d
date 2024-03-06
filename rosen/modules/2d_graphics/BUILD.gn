@@ -193,6 +193,12 @@ template("graphics2d_source_set") {
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [ "init:libbegetutil" ]
       sources += [ "$drawing_src_dir/utils/system_properties.cpp" ]
+      if (defined(
+          graphic_2d_platform_configs.system_graphic_properties_sources)) {
+        sources += graphic_2d_platform_configs.system_graphic_properties_sources
+      } else {
+        sources += [ "$drawing_src_dir/utils/system_graphic_properties.cpp" ]
+      }
     }
 
     if (is_arkui_x) {
