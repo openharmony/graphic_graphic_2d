@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "common/rs_macros.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -88,12 +89,6 @@ enum class HgmRefreshRateModes {
     SET_RATE_MODE_LOW = 1,
     SET_RATE_MODE_MEDIUN = 2,
     SET_RATE_MODE_HIGH = 3
-};
-
-enum class GpuApiType {
-    OPENGL = 0,
-    VULKAN,
-    DDGR,
 };
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);

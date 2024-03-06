@@ -20,26 +20,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
-#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-static GpuApiType SystemGpuApiType()
-{
-    if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
-          (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
-        return GpuApiType::OPENGL;
-    }
-
-    if (std::atoi(system::GetParameter(
-        "persist.sys.graphic.GpuApitype", "-1").c_str()) == (-1)) { // -1 is invalid type
-        return GpuApiType::VULKAN;
-    }
-    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "0").c_str()) == 0) {
-        return GpuApiType::OPENGL;
-    }
-    return GpuApiType::VULKAN;
-}
-#endif
-
 bool SystemProperties::GetHMSymbolEnable()
 {
     static bool isHMSymbolEnable =
@@ -48,7 +28,7 @@ bool SystemProperties::GetHMSymbolEnable()
 }
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-const GpuApiType SystemProperties::systemGpuApiType_ = SystemGpuApiType();
+const GpuApiType SystemProperties::systemGpuApiType_ = SystemProperties::GetSystemGraphicGpuType();
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
 const GpuApiType SystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
