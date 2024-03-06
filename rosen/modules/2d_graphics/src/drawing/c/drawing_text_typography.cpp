@@ -371,19 +371,27 @@ OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_Typog
         return nullptr;
     }
 
-    objectMgr->RemoveObject(fontCollection);
-#ifndef USE_GRAPHIC_TEXT_GINE
+    std::unique_ptr<TypographyCreate> handler;
     const TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
-    std::unique_ptr<TypographyCreate> handler = TypographyCreate::CreateRosenBuilder(*typoStyle,
-        std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
+
+    if (auto fc = OHOS::Rosen::Drawing::FontCollectionMgr::GetInstance().Find(fontCollection)) {
+#ifndef USE_GRAPHIC_TEXT_GINE
+        handler = TypographyCreate::CreateRosenBuilder(*typoStyle, fc);
 #else
-    const TypographyStyle *typoStyle = ConvertToOriginalText<TypographyStyle>(style);
-    if (!typoStyle) {
-        return nullptr;
-    }
-    std::unique_ptr<TypographyCreate> handler = TypographyCreate::Create(*typoStyle,
-        std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
+        handler = TypographyCreate::Create(*typoStyle, fc);
 #endif
+    } else {
+        objectMgr->RemoveObject(fontCollection);
+
+#ifndef USE_GRAPHIC_TEXT_GINE
+        handler = TypographyCreate::CreateRosenBuilder(*typoStyle,
+            std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
+#else
+        handler = TypographyCreate::Create(*typoStyle,
+            std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
+#endif
+    }
+
     return ConvertToNDKText<OH_Drawing_TypographyCreate>(handler.release());
 }
 
