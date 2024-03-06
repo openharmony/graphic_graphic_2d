@@ -42,15 +42,18 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
         return nullptr;
     }
     std::string vsyncName(name, length);
-    NativeVSync* nativeVSync = new NativeVSync;
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver = rsClient.CreateVSyncReceiver(vsyncName);
+    if (receiver == nullptr) {
+        VLOGE("Create VSyncReceiver failed");
+        return nullptr;
+    }
     int ret = receiver->Init();
     if (ret != 0) {
-        delete nativeVSync;
         VLOGE("VSyncReceiver Init failed, ret:%{public}d", ret);
         return nullptr;
     }
+    NativeVSync* nativeVSync = new NativeVSync;
     nativeVSync->receiver_ = receiver;
     return OH_NativeVSync_NativeVSyncToOHNativeVSync(nativeVSync);
 }
