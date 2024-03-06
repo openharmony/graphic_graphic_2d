@@ -36,8 +36,6 @@ public:
     std::shared_ptr<TypographyStyle> GetParagraphStyle();
 
 private:
-    // napi_value OnEnableSubpixel(napi_env env, napi_callback_info info);
-
     static thread_local napi_ref constructor_;
     std::shared_ptr<TypographyStyle> m_paragraphStyle = nullptr;
 };

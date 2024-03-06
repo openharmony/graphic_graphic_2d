@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-# import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("textnapi") {
   deps = [
@@ -30,8 +30,8 @@ config("local_text") {
 
   include_dirs = [
     "../text",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/export/rosen_text",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
 }
 
@@ -64,8 +64,8 @@ ohos_shared_library("text_napi_impl") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine_source",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
   ]
 
 

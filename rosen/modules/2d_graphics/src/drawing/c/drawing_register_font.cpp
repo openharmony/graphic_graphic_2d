@@ -18,7 +18,6 @@
 #endif
 #include <fstream>
 #include "c/drawing_register_font.h"
-#include "utils/log.h"
 #ifndef USE_GRAPHIC_TEXT_GINE
 #include "rosen_text/ui/font_collection.h"
 #else
@@ -125,7 +124,6 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, cons
     ifs.close();
     const std::string familyName = fontFamily;
     const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
-    LOGE("ResTest | Over size=%f",static_cast<double>(size));
     return LoadFromFontCollection(fontCollection, familyName, data, size);
 }
 

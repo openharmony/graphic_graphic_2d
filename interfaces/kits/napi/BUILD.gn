@@ -19,7 +19,7 @@ group("napi_packages") {
     "graphic/effect_kit:effectkit",
     "graphic/hdr_capability:hdr_capability_napi",
     "graphic/hyper_graphic_manager:libhgmnapi",
-    "graphic/webgl:libwebglnapi",
     "graphic/text:textnapi",
+    "graphic/webgl:libwebglnapi",
   ]
 }
