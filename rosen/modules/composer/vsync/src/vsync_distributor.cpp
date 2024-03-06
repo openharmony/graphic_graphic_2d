@@ -36,6 +36,10 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
 constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 128;
+#if defined(RS_ENABLE_DVSYNC)
+constexpr int64_t DVSYNC_ON_PERIOD = 8333333;
+constexpr int64_t MAX_PERIOD_BIAS = 500000;
+#endif
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -317,9 +321,19 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
         if (result.first) {
             event_.timestamp = result.second;
             event_.vsyncCount++;
+            if (vsyncEnabled_ == false) {
+                ScopedBytrace func(name_ + "_EnableVsync");
+                EnableVSync();
+            }
         }
     }
 #endif
+}
+
+int64_t Now()
+{
+    const auto &now = std::chrono::steady_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 }
 
 void VSyncDistributor::ThreadMain()
@@ -358,9 +372,7 @@ void VSyncDistributor::ThreadMain()
 #endif
                     if (con_.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD)) ==
                         std::cv_status::timeout) {
-                        const auto &now = std::chrono::steady_clock::now().time_since_epoch();
-                        timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-                        event_.timestamp = timestamp;
+                        event_.timestamp = Now();
                         event_.vsyncCount++;
                     }
                 } else {
@@ -368,7 +380,7 @@ void VSyncDistributor::ThreadMain()
                     WaitForVsyncOrRequest(locker);
                 }
                 ScopedBytrace func(name_ + "_continue: waitForVSync " + std::to_string(waitForVSync) +
-                    ", vsyncEnabled " + std::to_string(vsyncEnabled_));
+                    ", vsyncEnabled " + std::to_string(vsyncEnabled_) + ", dvsyncOn " + std::to_string(IsDVsyncOn()));
                 continue;
             } else if ((timestamp > 0) && (waitForVSync == false)) {
                 // if there is a vsync signal but no vaild connections, we should disable vsync
@@ -381,6 +393,20 @@ void VSyncDistributor::ThreadMain()
             // IMPORTANT: ScopedDebugTrace here will cause frame loss.
             ScopedBytrace func(name_ + "_SendVsync");
         }
+#if defined(RS_ENABLE_DVSYNC)
+        // ensure the preexecution only gets ahead for at most one period(i.e., 3 buffer rotation)
+        if (IsDVsyncOn()) {
+            {
+                std::unique_lock<std::mutex> locker(mutex_);
+                dvsync_->MarkDistributorSleep(true);
+            }
+            dvsync_->DelayBeforePostEvent(timestamp);
+            {
+                std::unique_lock<std::mutex> locker(mutex_);
+                dvsync_->MarkDistributorSleep(false);
+            }
+        }
+#endif
         PostVSyncEvent(conns, timestamp);
     }
 }
@@ -402,33 +428,56 @@ void VSyncDistributor::DisableVSync()
 
 void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
+    std::lock_guard<std::mutex> locker(mutex_);
+    vsyncMode_ = vsyncMode;
+    event_.period = period;
     if (IsDVsyncOn()) {
         ScopedBytrace func("VSyncD onVSyncEvent");
     } else {
         ScopedBytrace func("VSync onVSyncEvent");
     }
-    std::lock_guard<std::mutex> locker(mutex_);
 
 #if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
         dvsync_->RecordVSync(now, period);
-    } else
+    }
+
+    if (!IsDVsyncOn() || pendingRNVInVsync_)
 #endif
     {
         event_.timestamp = now;
         event_.vsyncCount++;
     }
 
-    event_.period = period;
     if (refreshRate > 0) {
         event_.vsyncPulseCount += static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / refreshRate);
         generatorRefreshRate_ = refreshRate;
     }
-    vsyncMode_ = vsyncMode;
+
     ChangeConnsRateLocked();
-    if (!IsDVsyncOn()) {
+
+#if defined(RS_ENABLE_DVSYNC)
+    ScopedBytrace func("pendingRNVInVsync: " + std::to_string(pendingRNVInVsync_) + " DVSyncOn: " +
+        std::to_string(IsDVsyncOn()));
+    if (!IsDVsyncOn() || pendingRNVInVsync_) {
         con_.notify_all();
+        pendingRNVInVsync_ = false;
+    } else {
+        // When Dvsync on, if the RequestNextVsync is not invoked within three period and SetVSyncRate
+        // is not invoked either, execute DisableVSync.
+        for (uint32_t i = 0; i < connections_.size(); i++) {
+            if (connections_[i]->triggerThisTime_ || connections_[i]->rate_ >= 0) {
+                return;
+            }
+        }
+        if (now - dvsync_->GetLastRnvTS() > 3 * period) {  // 3 period
+            ScopedBytrace func(name_ + "_DisableVsync");
+            DisableVSync();
+        }
     }
+#else
+    con_.notify_all();
+#endif
 }
 
 /* std::pair<id, refresh rate> */
@@ -546,7 +595,8 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
 #if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
         dvsync_->RecordRNV(fromWhom, lastVSyncTS);
-        connection->rate_ = 0;
+    } else {
+        pendingRNVInVsync_ = true;
     }
 #endif
     if (connection->rate_ < 0) {
@@ -691,7 +741,8 @@ void VSyncDistributor::ChangeConnsRateLocked()
 bool VSyncDistributor::IsDVsyncOn()
 {
 #if defined(RS_ENABLE_DVSYNC)
-    return isRs_ && dvsync_->IsEnabled();
+    return isRs_ && dvsync_->IsEnabled() &&
+        (abs(event_.period - DVSYNC_ON_PERIOD) < MAX_PERIOD_BIAS);
 #else
     return false;
 #endif
@@ -708,6 +759,29 @@ void VSyncDistributor::UnmarkRSNotRendering()
 {
 #if defined(RS_ENABLE_DVSYNC)
     dvsync_->UnMarkRSNotRendering();
+#endif
+}
+
+void VSyncDistributor::MarkRSAnimate()
+{
+#if defined(RS_ENABLE_DVSYNC)
+    dvsync_->MarkRSAnimate();
+#endif
+}
+
+void VSyncDistributor::UnmarkRSAnimate()
+{
+#if defined(RS_ENABLE_DVSYNC)
+    dvsync_->UnmarkRSAnimate();
+#endif
+}
+
+bool VSyncDistributor::HasPendingUIRNV()
+{
+#if defined(RS_ENABLE_DVSYNC)
+    return dvsync_->HasPendingUIRNV();
+#else
+    return false;
 #endif
 }
 }

@@ -2432,11 +2432,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
-            RSMainThread::Instance()->rsVSyncDistributor_->MarkRSNotRendering();
             GpuDirtyRegion::GetInstance().AddSkipProcessFramesNumberForXpower(node.GetScreenId());
 #ifdef OHOS_PLATFORM
             RSJankStats::GetInstance().SetSkipDisplayNode();
 #endif
+            RSMainThread::Instance()->rsVSyncDistributor_->MarkRSNotRendering();
             resetRotate_ = CheckIfNeedResetRotate();
             if (!IsHardwareComposerEnabled()) {
                 return;
@@ -2466,6 +2466,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 processor_->PostProcess(&node);
             }
             return;
+        } else {
+            RSMainThread::Instance()->rsVSyncDistributor_->UnmarkRSNotRendering();
         }
 
         auto rsSurface = node.GetRSSurface();
