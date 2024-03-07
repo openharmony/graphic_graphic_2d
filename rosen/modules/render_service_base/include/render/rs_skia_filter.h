@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 
+#include "common/rs_vector2.h"
 #include "draw/brush.h"
 #include "draw/canvas.h"
 #include "effect/image_filter.h"
@@ -35,7 +36,7 @@ public:
     virtual std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const = 0;
     virtual void PreProcess(std::shared_ptr<Drawing::Image> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
-    virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
+    virtual void SetGreyCoef(const std::optional<Vector2f>& greyCoef) {};
     virtual bool CanSkipFrame() const { return false; };
     virtual void SetCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) {};
     virtual void SetBoundsGeometry(float geoWidth, float geoHeight) {};

@@ -276,8 +276,8 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
     auto brush = GetBrush();
     // if kawase blur failed, use gauss blur
     std::shared_ptr<Drawing::Image> greyImage = image;
-    if (isGreyCoefValid_) {
-        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
+    if (greyCoef_.has_value()) {
+        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef_.value());
     }
     if (greyImage == nullptr) {
         greyImage = image;
@@ -291,15 +291,9 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
     canvas.DetachBrush();
 }
 
-void RSMaterialFilter::SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid)
+void RSMaterialFilter::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
 {
-    if (!isGreyCoefValid) {
-        isGreyCoefValid_ = isGreyCoefValid;
-        return;
-    }
-    greyCoef1_ = greyCoef1;
-    greyCoef2_ = greyCoef2;
-    isGreyCoefValid_ = isGreyCoefValid;
+    greyCoef_ = greyCoef;
 }
 
 float RSMaterialFilter::GetRadius() const

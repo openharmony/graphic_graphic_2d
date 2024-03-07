@@ -121,8 +121,8 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
 {
     auto brush = GetBrush();
     std::shared_ptr<Drawing::Image> greyImage = image;
-    if (isGreyCoefValid_) {
-        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
+    if (greyCoef_.has_value()) {
+        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef_.value());
     }
     if (greyImage == nullptr) {
         greyImage = image;
@@ -139,15 +139,9 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
     canvas.DetachBrush();
 }
 
-void RSBlurFilter::SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid)
+void RSBlurFilter::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
 {
-    if (!isGreyCoefValid) {
-        isGreyCoefValid_ = isGreyCoefValid;
-        return;
-    }
-    greyCoef1_ = greyCoef1;
-    greyCoef2_ = greyCoef2;
-    isGreyCoefValid_ = isGreyCoefValid;
+    greyCoef_ = greyCoef;
 }
 
 bool RSBlurFilter::CanSkipFrame() const
