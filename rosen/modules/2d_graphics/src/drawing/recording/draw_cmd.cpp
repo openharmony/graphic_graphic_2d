@@ -51,6 +51,7 @@ bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
         return false;
     }
     offScreenCanvas = offScreenSurface->GetCanvas();
+    offScreenCanvas->SetMatrix(canvas.GetTotalMatrix());
     return true;
 }
 }
@@ -1011,8 +1012,11 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
                 canvas->AttachBrush(paint);
                 Drawing::SamplingOptions sampling =
                     Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+                canvas->Save();
+                canvas->ResetMatrix();
                 canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(), 0, 0, sampling);
                 canvas->DetachBrush();
+                canvas->Restore();
                 return;
             }
         }
