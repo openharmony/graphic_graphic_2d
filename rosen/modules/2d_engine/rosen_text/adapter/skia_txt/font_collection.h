@@ -42,7 +42,6 @@ public:
 private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
-    bool disableSystemFont_ = false;
 };
 } // namespace AdapterTxt
 } // namespace Rosen

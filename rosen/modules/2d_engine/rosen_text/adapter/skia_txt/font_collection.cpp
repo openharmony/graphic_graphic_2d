@@ -23,14 +23,10 @@ namespace OHOS {
 namespace Rosen {
 #define OHOS_THEME_FONT "OhosThemeFont"
 
-std::shared_ptr<FontCollection> g_instance;
-
 std::shared_ptr<FontCollection> FontCollection::Create()
 {
-    if (g_instance == nullptr) {
-        g_instance = std::make_shared<AdapterTxt::FontCollection>();
-    }
-    return g_instance;
+    static std::shared_ptr<FontCollection> instance = std::make_shared<AdapterTxt::FontCollection>();
+    return instance;
 }
 
 std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCollection> fontCollection)
@@ -45,14 +41,12 @@ FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollecti
     if (fontCollection_ == nullptr) {
         fontCollection_ = std::make_shared<txt::FontCollection>();
     }
+    fontCollection_->SetupDefaultFontManager();
+    fontCollection_->SetDynamicFontManager(dfmanager_);
 }
 
 std::shared_ptr<txt::FontCollection> FontCollection::Get()
 {
-    if (!disableSystemFont_) {
-        fontCollection_->SetupDefaultFontManager();
-    }
-    fontCollection_->SetDynamicFontManager(dfmanager_);
     return fontCollection_;
 }
 
@@ -63,7 +57,7 @@ void FontCollection::DisableFallback()
 
 void FontCollection::DisableSystemFont()
 {
-    disableSystemFont_ = true;
+    fontCollection_->SetDefaultFontManager(nullptr);
 }
 
 void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
