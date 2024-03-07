@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const std::string TOUCHSCREEN_WRAPPER_PATH = "../../vendor/lib64/libhw_touchscreen.default.so";
+const std::string TOUCHSCREEN_WRAPPER_PATH = "../../vendor/lib64/chipsetsdk/libhw_touchscreen.default.so";
 } // namespace
 
 TouchScreen::TouchScreen() {}
