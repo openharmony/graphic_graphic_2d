@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,31 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef SYSTEM_PROPERTIES
-#define SYSTEM_PROPERTIES
+#include <parameter.h>
+#include <parameters.h>
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class GpuApiType {
-    OPENGL = 0,
-    VULKAN,
-    DDGR,
-};
 namespace Drawing {
-class SystemProperties {
-public:
-    static inline GpuApiType GetGpuApiType()
-    {
-        return SystemProperties::systemGpuApiType_;
-    }
-
-    static bool GetHMSymbolEnable();
-    static GpuApiType GetSystemGraphicGpuType();
-
-private:
-    static const GpuApiType systemGpuApiType_;
-};
+GpuApiType SystemProperties::GetSystemGraphicGpuType()
+{
+    return GpuApiType::OPENGL;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-#endif // SYSTEM_PROPERTIES
