@@ -14,6 +14,7 @@
  */
 
 #include "drawable/rs_display_render_node_drawable.h"
+#include <memory>
 
 #include "rs_trace.h"
 
@@ -23,7 +24,9 @@
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_thread.h"
+#include "platform/common/rs_log.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "benchmarks/rs_recording_thread.h"
 
 namespace OHOS::Rosen {
 RSDisplayRenderNodeDrawable::Registrar RSDisplayRenderNodeDrawable::instance_;
@@ -107,18 +110,73 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
         return;
     }
 
-    auto curCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
-    if (!curCanvas) {
+    curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    if (!curCanvas_) {
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw failed to create canvas");
         return;
     }
 
+    // start recording skia op
+    TryCapture(renderNode_->GetRenderProperties().GetBoundsWidth(), renderNode_->GetRenderProperties().GetBoundsHeight());
+
     // canvas draw
-    curCanvas->Save();
-    RSRenderNodeDrawable::OnDraw(curCanvas.get());
-    curCanvas->Restore();
+    curCanvas_->Save();
+    RSRenderNodeDrawable::OnDraw(curCanvas_.get());
+    curCanvas_->Restore();
+
+    // Finish recording skia op
+    EndCapture();
     renderFrame->Flush();
     processor->ProcessDisplaySurface(*displayNodeSp);
     processor->PostProcess(displayNodeSp.get());
+}
+
+std::shared_ptr<RenderContext> RSDisplayRenderNodeDrawable::GetRenderContext() const
+{
+    return RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
+}
+
+void RSDisplayRenderNodeDrawable::TryCapture(float width, float height) const
+{
+    if (!RSSystemProperties::GetRecordingEnabled()) {
+        return;
+    }
+    recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height);
+    RS_TRACE_NAME("RSDisplayRenderNodeDrawable:Recording begin");
+    std::shared_ptr<RenderContext> renderContext;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    renderContext = GetRenderContext();
+    if (!recordingCanvas_) {
+        RS_LOGE("TryCapture recordingCanvas_ is nullptr");
+        return;
+    }
+    if (!renderContext) {
+        RS_LOGE("TryCapture renderContext is nullptr");
+        return;
+    }
+    recordingCanvas_->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
+#endif
+    if (!curCanvas_) {
+        RS_LOGE("TryCapture curCanvas_ is nullptr");
+        return;
+    }
+    curCanvas_->AddCanvas(recordingCanvas_.get());
+    RSRecordingThread::Instance(renderContext.get()).CheckAndRecording();
+}
+
+void RSDisplayRenderNodeDrawable::EndCapture() const
+{
+    auto renderContext = GetRenderContext();
+    if (!renderContext) {
+        RS_LOGE("EndCapture renderContext is nullptr");
+        return;
+    }
+    if (!RSRecordingThread::Instance(renderContext.get()).GetRecordingEnabled()) {
+        return;
+    }
+    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
+    RS_TRACE_NAME("RSUniRender:RecordingToFile curFrameNum = " +
+        std::to_string(RSRecordingThread::Instance(renderContext.get()).GetCurDumpFrame()));
+    RSRecordingThread::Instance(renderContext.get()).RecordingToFile(drawCmdList);
 }
 } // namespace OHOS::Rosen
