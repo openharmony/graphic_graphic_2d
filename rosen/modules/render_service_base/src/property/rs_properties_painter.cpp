@@ -614,6 +614,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     g_blurCnt++;
+    Drawing::AutoCanvasRestore acr(canvas, true);
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
     filter->SetGreyCoef(properties.GetGreyCoef1(), properties.GetGreyCoef2(), properties.IsGreyAdjustmentValid());
