@@ -319,15 +319,9 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareProxyRenderNode001, TestSize.Level1)
     auto rsBaseRenderNode = std::make_shared<RSBaseRenderNode>(10, rsContext->weak_from_this());
     rsUniRenderVisitor->logicParentNode_ = rsBaseRenderNode->weak_from_this();
     rsUniRenderVisitor->PrepareProxyRenderNode(*rsProxyRenderNode);
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     system::SetParameter("persist.sys.graphic.proxyNodeDebugEnabled", "0");
     rsUniRenderVisitor->ProcessProxyRenderNode(*rsProxyRenderNode);
 
@@ -571,20 +565,6 @@ HWTEST_F(RSUniRenderVisitorTest, CopyVisitorInfosTest, TestSize.Level1)
     auto newRsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     newRsUniRenderVisitor->CopyVisitorInfos(rsUniRenderVisitor);
     ASSERT_EQ(rsUniRenderVisitor->currentVisitDisplay_, newRsUniRenderVisitor->currentVisitDisplay_);
-}
-
-/**
- * @tc.name: CopyPropertyForParallelVisitorTest
- * @tc.desc: Test RSUniRenderVisitorTest.CopyPropertyForParallelVisitorTest
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, CopyPropertyForParallelVisitorTest, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    auto newRsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    newRsUniRenderVisitor->CopyPropertyForParallelVisitor(rsUniRenderVisitor.get());
-    ASSERT_EQ(rsUniRenderVisitor->doAnimate_, newRsUniRenderVisitor->doAnimate_);
 }
 
 /**
@@ -1196,15 +1176,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetParent(node);
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
 }
 
@@ -1228,15 +1202,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1)
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     surfaceNode->SetParent(node);
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
     rsUniRenderVisitor->isSubThread_ = false;
@@ -1266,15 +1234,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetSkipLayer(true);
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     surfaceNode->SetParent(node);
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
 }
@@ -1300,15 +1262,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetSecurityLayer(true);
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     surfaceNode->SetParent(node);
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
 }
@@ -1378,33 +1334,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareEffectRenderNode001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CopyForParallelPrepare001
- * @tc.desc: Test RSUniRenderVisitorTest.CopyForParallelPrepare api
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, CopyForParallelPrepare001, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto rsUniRenderVisitorCopy = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitorCopy, nullptr);
-    auto rsContext = std::make_shared<RSContext>();
-    RSSurfaceRenderNodeConfig config;
-    RSDisplayNodeConfig displayConfig;
-    config.id = 10;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(20, displayConfig, rsContext->weak_from_this());
-    rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
-    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
-    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
-    rsUniRenderVisitorCopy->PrepareDisplayRenderNode(*rsDisplayRenderNode);
-    rsUniRenderVisitorCopy->dirtySurfaceNodeMap_.emplace(rsSurfaceRenderNode->GetId(), rsSurfaceRenderNode);
-    rsUniRenderVisitor->CopyForParallelPrepare(rsUniRenderVisitorCopy);
-}
-
-#ifdef USE_ROSEN_DRAWING
-/**
  * @tc.name: DrawDirtyRectForDFX001
  * @tc.desc: Test RSUniRenderVisitorTest.DrawDirtyRectForDFX api
  * @tc.type: FUNC
@@ -1419,7 +1348,6 @@ HWTEST_F(RSUniRenderVisitorTest, DrawDirtyRectForDFX001, TestSize.Level1)
     RSUniRenderVisitor::RSPaintStyle fillType = RSUniRenderVisitor::RSPaintStyle::FILL;
     rsUniRenderVisitor->DrawDirtyRectForDFX(rect, color, fillType, 0, 0);
 }
-#endif
 
 /**
  * @tc.name: DrawDirtyRegionForDFX001
@@ -1475,24 +1403,6 @@ HWTEST_F(RSUniRenderVisitorTest, DrawSurfaceOpaqueRegionForDFX001, TestSize.Leve
 }
 
 /**
- * @tc.name: ProcessParallelDisplayRenderNode001
- * @tc.desc: Test RSUniRenderVisitorTest.ProcessParallelDisplayRenderNode api
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, ProcessParallelDisplayRenderNode001, TestSize.Level1)
-{
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(node, nullptr);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->ProcessParallelDisplayRenderNode(*node);
-}
-
-/**
  * @tc.name: SetSurfaceGlobalDirtyRegion001
  * @tc.desc: Test RSUniRenderVisitorTest.SetSurfaceGlobalDirtyRegion api
  * @tc.type: FUNC
@@ -1522,20 +1432,11 @@ HWTEST_F(RSUniRenderVisitorTest, DrawSpherize001, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(node, nullptr);
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
-#endif
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-#ifndef USE_ROSEN_DRAWING
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsUniRenderVisitor->DrawSpherize(*node);
 }
 
@@ -1619,36 +1520,10 @@ HWTEST_F(RSUniRenderVisitorTest, FinishOffscreenRender001, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->FinishOffscreenRender(false);
 
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#endif
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-    rsUniRenderVisitor->canvasBackup_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
     rsUniRenderVisitor->canvasBackup_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
-}
-
-/**
- * @tc.name: ParallelRenderEnableHardwareComposer001
- * @tc.desc: Test RSUniRenderVisitorTest.ParallelRenderEnableHardwareComposer api
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, ParallelRenderEnableHardwareComposer001, TestSize.Level1)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->ParallelRenderEnableHardwareComposer(*surfaceNode);
 }
 
 /**
@@ -1789,7 +1664,6 @@ HWTEST_F(RSUniRenderVisitorTest, AdjustLocalZOrder001, TestSize.Level2)
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->isParallel_ = false;
 
     rsUniRenderVisitor->CollectAppNodeForHwc(appWindowNode);
     ASSERT_NE(rsUniRenderVisitor->appWindowNodesInZOrder_.size(), 0);
@@ -2239,19 +2113,10 @@ HWTEST_F(RSUniRenderVisitorTest, DrawChildRenderNode001, TestSize.Level2)
     canvasNode->SetCacheType(CacheType::ANIMATE_PROPERTY);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#endif
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsUniRenderVisitor->DrawChildRenderNode(*canvasNode);
 }
 
@@ -2722,19 +2587,10 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSharedTransitionNode001, TestSize.Level2
     transitionNode->SetIsOnTheTree(true);
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#endif
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
 
     ASSERT_FALSE(rsUniRenderVisitor->ProcessSharedTransitionNode(*node));
 }
@@ -2757,19 +2613,10 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSharedTransitionNode002, TestSize.Level2
     transitionNode->SetIsOnTheTree(true);
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#endif
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsUniRenderVisitor->InitNodeCache(*node);
 
     ASSERT_FALSE(rsUniRenderVisitor->ProcessSharedTransitionNode(*node));
@@ -2878,20 +2725,11 @@ HWTEST_F(RSUniRenderVisitorTest, DrawCurrentRefreshRate001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
 
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#endif
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsUniRenderVisitor->DrawCurrentRefreshRate(0, 0);
 }
 
@@ -2999,20 +2837,11 @@ HWTEST_F(RSUniRenderVisitorTest, DrawSurfaceLayer001, TestSize.Level2)
     RSUniRenderUtil::AssignWindowNodes(displayNode, mainThreadNodes, subThreadNodes);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#endif
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
     rsUniRenderVisitor->renderEngine_->Init();
     rsUniRenderVisitor->DrawSurfaceLayer(displayNode, subThreadNodes);
@@ -3134,15 +2963,9 @@ HWTEST_F(RSUniRenderVisitorTest, DrawEffectRenderNodeForDFX002, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
 
     rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
     rsUniRenderVisitor->renderEngine_->Init();
@@ -3173,15 +2996,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessShadowFirst001, TestSize.Level1)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
 
     rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
     rsUniRenderVisitor->renderEngine_->Init();

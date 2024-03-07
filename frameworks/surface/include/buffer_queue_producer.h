@@ -91,6 +91,8 @@ public:
 
     GSError SendDeathRecipientObject() override;
     void OnBufferProducerRemoteDied();
+    GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) override;
+    GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) override;
 
 private:
     GSError CheckConnectLocked();
@@ -124,6 +126,8 @@ private:
     int32_t GetLastFlushedBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t RegisterDeathRecipient(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t AttachBufferToQueueRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t DetachBufferFromQueueRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);

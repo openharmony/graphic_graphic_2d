@@ -18,7 +18,20 @@
 
 #include <mutex>
 #include <vector>
+#include <unordered_map>
 #include <memory>
+
+#ifndef USE_GRAPHIC_TEXT_GINE
+namespace rosen {
+class FontCollection;
+}
+#else
+namespace OHOS {
+namespace Rosen {
+class FontCollection;
+}
+}
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +47,30 @@ public:
 private:
     static inline std::shared_ptr<ObjectMgr> objectMgr = nullptr;
     std::vector<void*> vector_;
+    std::mutex mutex_;
+};
+
+class FontCollectionMgr {
+public:
+    FontCollectionMgr(const FontCollectionMgr&) = delete;
+    FontCollectionMgr& operator=(const FontCollectionMgr&) = delete;
+
+    static FontCollectionMgr& GetInstance();
+
+#ifndef USE_GRAPHIC_TEXT_GINE
+    using FontCollectionType = rosen::FontCollection;
+#else
+    using FontCollectionType = ::OHOS::Rosen::FontCollection;
+#endif
+
+    void Insert(void* key, std::shared_ptr<FontCollectionType> fontCollection);
+    std::shared_ptr<FontCollectionType> Find(void* key);
+    bool Remove(void* key);
+
+private:
+    FontCollectionMgr() {}
+
+    std::unordered_map<void*, std::shared_ptr<FontCollectionType>> collections_;
     std::mutex mutex_;
 };
 } // namespace Drawing

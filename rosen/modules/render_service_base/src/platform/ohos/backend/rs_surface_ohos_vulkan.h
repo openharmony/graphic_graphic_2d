@@ -62,11 +62,7 @@ public:
     void ClearBuffer() override;
     void ResetBufferAge() override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
-#ifndef USE_ROSEN_DRAWING
-    void SetSkContext(sk_sp<GrDirectContext> skContext)
-#else
     void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
-#endif
     {
         mSkContext = skContext;
     }
@@ -78,11 +74,7 @@ private:
     int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> mSkContext = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
-#endif
     int32_t RequestNativeWindowBuffer(
         NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd, bool useAFBC);
     void CreateVkSemaphore(VkSemaphore* semaphore,

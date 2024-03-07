@@ -27,14 +27,10 @@ namespace Drawing {
 #define DRAWING_EXPORT __attribute__((visibility("default")))
 #define DRAWING_IMPORT __attribute__((visibility("default")))
 #endif
-#ifndef USE_ROSEN_DRAWING
-#define DRAWING_API DRAWING_EXPORT
-#else
 #ifdef MODULE_DRAWING
 #define DRAWING_API DRAWING_EXPORT
 #else
 #define DRAWING_API DRAWING_IMPORT
-#endif
 #endif
 #endif
 } // namespace Drawing

@@ -159,19 +159,6 @@ RSProperties::RSProperties()
 
 RSProperties::~RSProperties() = default;
 
-#ifndef USE_ROSEN_DRAWING
-void RSProperties::ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes)
-{
-    for (const auto& type : dirtyTypes) {
-        if (type >= RSModifierType::CUSTOM) {
-            continue;
-        }
-        if (auto& resetFunc = g_propertyResetterLUT[static_cast<uint8_t>(type)]) {
-            resetFunc(this);
-        }
-    }
-}
-#else
 void RSProperties::ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes)
 {
     if (dirtyTypes.none()) {
@@ -185,7 +172,6 @@ void RSProperties::ResetProperty(const std::bitset<static_cast<int>(RSModifierTy
         }
     }
 }
-#endif
 
 void RSProperties::SetBounds(Vector4f bounds)
 {
@@ -421,13 +407,8 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<SkPoint>& offset,
-    const std::optional<SkRect>& clipRect)
-#else
 bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
-#endif
 {
     if (boundsGeo_ == nullptr) {
         return false;
@@ -485,11 +466,7 @@ void RSProperties::ResetSandBox()
     sandbox_ = nullptr;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSProperties::UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix)
-#else
 void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix)
-#endif
 {
     if (!sandbox_) {
         return;
@@ -500,39 +477,22 @@ void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& roo
     }
     auto rootMat = rootMatrix.value();
     bool hasScale = false;
-#ifndef USE_ROSEN_DRAWING
-    // skScaleFactors[0]-minimum scaling factor, skScaleFactors[1]-maximum scaling factor
-    SkScalar skScaleFactors[2];
-    bool getMinMaxScales = rootMat.getMinMaxScales(skScaleFactors);
-    if (getMinMaxScales) {
-        hasScale = !ROSEN_EQ(skScaleFactors[0], 1.f) || !ROSEN_EQ(skScaleFactors[1], 1.f);
-    }
-#else
     // scaleFactors[0]-minimum scaling factor, scaleFactors[1]-maximum scaling factor
     Drawing::scalar scaleFactors[2];
     bool getMinMaxScales = rootMat.GetMinMaxScales(scaleFactors);
     if (getMinMaxScales) {
         hasScale = !ROSEN_EQ(scaleFactors[0], 1.f) || !ROSEN_EQ(scaleFactors[1], 1.f);
     }
-#endif
     if (hasScale) {
         sandbox_->matrix_ = std::nullopt;
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    sandbox_->matrix_ = rootMat.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
-#else
     Drawing::Matrix matrix = rootMatrix.value();
     matrix.PreTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
     sandbox_->matrix_ = matrix;
-#endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::optional<SkMatrix> RSProperties::GetSandBoxMatrix() const
-#else
 std::optional<Drawing::Matrix> RSProperties::GetSandBoxMatrix() const
-#endif
 {
     return sandbox_ ? sandbox_->matrix_ : std::nullopt;
 }
@@ -2138,11 +2098,7 @@ static bool GreatOrEqual(double left, double right)
     return (left - right) > epsilon;
 }
 
-#ifndef USE_ROSEN_DRAWING
-const sk_sp<SkColorFilter>& RSProperties::GetColorFilter() const
-#else
 const std::shared_ptr<Drawing::ColorFilter>& RSProperties::GetColorFilter() const
-#endif
 {
     return colorFilter_;
 }
@@ -2160,11 +2116,7 @@ void RSProperties::GenerateColorFilter()
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkColorFilter> filter = nullptr;
-#else
     std::shared_ptr<Drawing::ColorFilter> filter = nullptr;
-#endif
 
     if (grayScale_.has_value() && GreatNotEqual(*grayScale_, 0.f)) {
         auto grayScale = grayScale_.value();
@@ -2173,16 +2125,11 @@ void RSProperties::GenerateColorFilter()
         matrix[1] = matrix[INDEX_6] = matrix[INDEX_11] = 0.7152f * grayScale; // 0.7152 : gray scale coefficient
         matrix[INDEX_2] = matrix[INDEX_7] = matrix[INDEX_12] = 0.0722f * grayScale; // 0.0722 : gray scale coefficient
         matrix[INDEX_18] = 1.0 * grayScale;
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Matrix(matrix);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     if (brightness_.has_value() && !NearEqual(*brightness_, 1.0)) {
         auto brightness = brightness_.value();
@@ -2191,16 +2138,11 @@ void RSProperties::GenerateColorFilter()
         brightness = brightness - 1;
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = matrix[INDEX_18] = 1.0f;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = brightness;
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Matrix(matrix);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     if (contrast_.has_value() && !NearEqual(*contrast_, 1.0)) {
         auto contrast = contrast_.value();
@@ -2210,16 +2152,11 @@ void RSProperties::GenerateColorFilter()
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = contrast;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = contrastValue128 * (1 - contrast) / contrastValue255;
         matrix[INDEX_18] = 1.0f;
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Matrix(matrix);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     if (saturate_.has_value() && !NearEqual(*saturate_, 1.0) && GreatOrEqual(*saturate_, 0.0)) {
         auto saturate = saturate_.value();
@@ -2231,16 +2168,11 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_6] = 0.6094f * (1 - saturate) + saturate; // 0.6094 : saturate coefficient
         matrix[INDEX_12] = 0.0820f * (1 - saturate) + saturate; // 0.0820 : saturate coefficient
         matrix[INDEX_18] = 1.0f;
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Matrix(matrix);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     if (sepia_.has_value() && GreatNotEqual(*sepia_, 0.0)) {
         auto sepia = sepia_.value();
@@ -2257,16 +2189,11 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_11] = 0.534f * sepia;
         matrix[INDEX_12] = 0.131f * sepia;
         matrix[INDEX_18] = 1.0f * sepia;
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Matrix(matrix);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     if (invert_.has_value() && GreatNotEqual(*invert_, 0.0)) {
         auto invert = invert_.value();
@@ -2280,16 +2207,11 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_18] = 1.0f;
         // invert = 0.5 -> RGB = (0.5, 0.5, 0.5) -> image completely gray
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = invert;
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Matrix(matrix);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     if (hueRotate_.has_value() && GreatNotEqual(*hueRotate_, 0.0)) {
         auto hueRotate = hueRotate_.value();
@@ -2320,25 +2242,14 @@ void RSProperties::GenerateColorFilter()
             default:
                 break;
         }
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Matrix(matrix);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     if (colorBlend_.has_value() && *colorBlend_ != RgbPalette::Transparent()) {
         auto colorBlend = colorBlend_.value();
-#ifndef USE_ROSEN_DRAWING
-        filter = SkColorFilters::Blend(
-            SkColorSetARGB(colorBlend.GetAlpha(), colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue()),
-            SkBlendMode::kPlus);
-        colorFilter_ = filter->makeComposed(colorFilter_);
-#else
         filter = Drawing::ColorFilter::CreateBlendModeColorFilter(Drawing::Color::ColorQuadSetARGB(
             colorBlend.GetAlpha(), colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue()),
             Drawing::BlendMode::PLUS);
@@ -2346,7 +2257,6 @@ void RSProperties::GenerateColorFilter()
             filter->Compose(*colorFilter_);
         }
         colorFilter_ = filter;
-#endif
     }
     isDrawn_ = true;
 }

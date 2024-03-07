@@ -23,8 +23,7 @@
 #include <surface_buffer.h>
 #include <unordered_map>
 
-struct NativeWindowMagic : public OHOS::RefBase
-{
+struct NativeWindowMagic : public OHOS::RefBase {
     NativeWindowMagic(NativeObjectMagic m) : magic(m) {}
     virtual ~NativeWindowMagic() {}
     NativeObjectMagic magic;

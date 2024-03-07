@@ -463,21 +463,21 @@ napi_value BuildJsColor(napi_env env, ColorManager::Color color)
 
     napi_create_object(env, &result);
 
-    int color_red = static_cast<int>(color.r * 255.0f);
-    int color_green = static_cast<int>(color.g * 255.0f);
-    int color_blue = static_cast<int>(color.b * 255.0f);
-    int color_alpha = static_cast<int>(color.a * 255.0f);
+    int colorRed = static_cast<int>(color.r * 255.0f);
+    int colorGreen = static_cast<int>(color.g * 255.0f);
+    int colorBlue = static_cast<int>(color.b * 255.0f);
+    int colorAlpha = static_cast<int>(color.a * 255.0f);
 
-    napi_create_int32(env, color_red, &clrRed);
+    napi_create_int32(env, colorRed, &clrRed);
     napi_set_named_property(env, result, "red", clrRed);
 
-    napi_create_int32(env, color_green, &clrGreen);
+    napi_create_int32(env, colorGreen, &clrGreen);
     napi_set_named_property(env, result, "green", clrGreen);
 
-    napi_create_int32(env, color_blue, &clrBlue);
+    napi_create_int32(env, colorBlue, &clrBlue);
     napi_set_named_property(env, result, "blue", clrBlue);
     
-    napi_create_int32(env, color_alpha, &clrAlpha);
+    napi_create_int32(env, colorAlpha, &clrAlpha);
     napi_set_named_property(env, result, "alpha", clrAlpha);
 
     return result;

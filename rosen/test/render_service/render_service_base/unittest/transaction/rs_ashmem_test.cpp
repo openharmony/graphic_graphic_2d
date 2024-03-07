@@ -16,16 +16,10 @@
 #include <sys/mman.h>
 
 #include "gtest/gtest.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImage.h"
-#include "include/core/SkSurface.h"
-#else
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "image/image.h"
 #include "image/image_info.h"
-#endif
 #include "pixel_map.h"
 
 #include "transaction/rs_ashmem_helper.h"
@@ -151,19 +145,6 @@ HWTEST_F(RSAshmemTest, AshmemAllocatorWriteAndCopy001, Function | MediumTest | L
     free(copyData);
 }
 
-#ifndef USE_ROSEN_DRAWING
-static sk_sp<SkImage> CreateSkImage(int width, int height)
-{
-    const SkImageInfo info = SkImageInfo::MakeN32(width, height, kOpaque_SkAlphaType);
-    auto surface(SkSurface::MakeRaster(info));
-    auto canvas = surface->getCanvas();
-    canvas->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
-    canvas->drawRect(SkRect::MakeXYWH(width / 4, height / 4, width / 2, height / 2), paint);
-    return surface->makeImageSnapshot();
-}
-#else
 static std::shared_ptr<Drawing::Image> CreateDrawingImage(int width, int height)
 {
     const Drawing::ImageInfo info =
@@ -178,7 +159,6 @@ static std::shared_ptr<Drawing::Image> CreateDrawingImage(int width, int height)
     canvas->DetachBrush();
     return surface->GetImageSnapshot();
 }
-#endif
 
 /**
  * @tc.name: SkImageAshmem001
@@ -194,23 +174,14 @@ HWTEST_F(RSAshmemTest, SkImageAshmem001, Function | MediumTest | Level2)
     int width = 200;
     int height = 300;
     int pixelBytes = 4;
-#ifndef USE_ROSEN_DRAWING
-    auto skImage = CreateSkImage(width, height);
-    ASSERT_TRUE(skImage != nullptr);
-#else
     auto drawingImage = CreateDrawingImage(width, height);
     ASSERT_TRUE(drawingImage != nullptr);
-#endif
 
     /**
      * @tc.steps: step2. serialize ashmem
      */
     MessageParcel parcel;
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, skImage));
-#else
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, drawingImage));
-#endif
     ASSERT_TRUE(parcel.GetOffsetsSize() > 0);
     ASSERT_TRUE(parcel.GetDataSize() > 0);
     ASSERT_TRUE((int)parcel.GetDataSize() < width * height * pixelBytes);
@@ -226,16 +197,6 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     if (address == nullptr) {
         return nullptr;
     }
-#ifndef USE_ROSEN_DRAWING
-    SkImageInfo info =
-        SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    auto surface = SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-    auto canvas = surface->getCanvas();
-    canvas->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
-    canvas->drawRect(SkRect::MakeXYWH(width / 4, height / 4, width / 2, height / 2), paint);
-#else
     const Drawing::ImageInfo info =
         Drawing::ImageInfo(width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE);
     auto surface(Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes()));
@@ -246,7 +207,6 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     canvas->AttachBrush(brush);
     canvas->DrawRect(Drawing::Rect(width / 4, height / 4, width / 2, height / 2));
     canvas->DetachBrush();
-#endif
     return pixelmap;
 }
 

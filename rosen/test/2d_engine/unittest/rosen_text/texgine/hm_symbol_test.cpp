@@ -51,27 +51,15 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest002, TestSize.Level1)
     TextEngine::TextStyle textStyle;
     style.symbol.SetRenderMode(0); // this 0 is single
     textStyle = AdapterTextEngine::Convert(style);
-#ifndef USE_ROSEN_DRAWING
-    EXPECT_EQ(textStyle.symbol.renderMode_, SymbolRenderingStrategy::SINGLE);
-#else
     EXPECT_EQ(textStyle.symbol.renderMode_, RSSymbolRenderingStrategy::SINGLE);
-#endif
 
     style.symbol.SetRenderMode(2); // this 2 is multiple opacity
     textStyle = AdapterTextEngine::Convert(style);
-#ifndef USE_ROSEN_DRAWING
-    EXPECT_EQ(textStyle.symbol.renderMode_, SymbolRenderingStrategy::MULTIPLE_OPACITY);
-#else
     EXPECT_EQ(textStyle.symbol.renderMode_, RSSymbolRenderingStrategy::MULTIPLE_OPACITY);
-#endif
 
     style.symbol.SetRenderMode(1); // this 1 is multiple color
     textStyle = AdapterTextEngine::Convert(style);
-#ifndef USE_ROSEN_DRAWING
-    EXPECT_EQ(textStyle.symbol.renderMode_, SymbolRenderingStrategy::MULTIPLE_COLOR);
-#else
     EXPECT_EQ(textStyle.symbol.renderMode_, RSSymbolRenderingStrategy::MULTIPLE_COLOR);
-#endif
 }
 
 /*
@@ -81,11 +69,7 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest002, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolTest, OHHmSymbolTest003, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkGlyphID glyphId = 0;
-#else
     uint16_t glyohId = 0;
-#endif
     TextEngine::TextStyle textStyle;
     TextEngine::HMSymbolRun hmSymbolRun = TextEngine::HMSymbolRun();
     SymbolLayers symbolInfo = hmSymbolRun.GetSymbolLayers(glyphId, textStyle.symbol);
@@ -98,11 +82,7 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest003, TestSize.Level1)
  */
 HWTEST_F(OHHmSymbolTest, OHHmSymbolTest004, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkGlyphID glyphId = 3; // this 3 is glyphID of symbol
-#else
     uint16_t glyohId = 3; // this 3 is glyphID of symbol
-#endif
     HMSymbolTxt symbol = HMSymbolTxt();
     Drawing::Color color1 = Drawing::Color::COLOR_BLUE;
     Drawing::Color color2 = Drawing::Color::COLOR_GREEN;

@@ -97,7 +97,7 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Leve
         }
         STEP("2. check the result of UniProcessDataForLtpo") {
             frameRateMgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
-            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag);
+            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag, false);
         }
     }
 }

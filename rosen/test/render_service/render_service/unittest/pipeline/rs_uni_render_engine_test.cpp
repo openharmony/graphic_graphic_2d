@@ -46,13 +46,8 @@ void RSUniRenderEngineTest::TearDown() {}
 HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     ASSERT_NE(canvas, nullptr);
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
@@ -69,13 +64,8 @@ HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
 HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
     ASSERT_NE(canvas, nullptr);
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
@@ -101,10 +91,6 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto buffer = surfaceNode->GetBuffer();
     // End resources definition
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
@@ -115,7 +101,6 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
         drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
         canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
     }
-#endif
     ASSERT_NE(canvas, nullptr);
     std::vector<LayerInfoPtr> layers;
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
@@ -161,10 +146,6 @@ HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
     std::unique_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     // End resources definition
-#ifndef USE_ROSEN_DRAWING
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-#else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
@@ -175,7 +156,6 @@ HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
         drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
         canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
     }
-#endif
     ASSERT_NE(canvas, nullptr);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     BufferDrawParam param;

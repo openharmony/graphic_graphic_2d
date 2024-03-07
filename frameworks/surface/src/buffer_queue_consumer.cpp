@@ -45,6 +45,22 @@ GSError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sp
     return bufferQueue_->ReleaseBuffer(buffer, fence);
 }
 
+GSError BufferQueueConsumer::AttachBufferToQueue(sptr<SurfaceBuffer>& buffer)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->AttachBufferToQueue(buffer, InvokerType::CONSUMER_INVOKER);
+}
+
+GSError BufferQueueConsumer::DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->DetachBufferFromQueue(buffer, InvokerType::CONSUMER_INVOKER);
+}
+
 GSError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     int32_t timeOut = 0;

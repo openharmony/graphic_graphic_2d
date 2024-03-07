@@ -101,52 +101,6 @@ double Draw(TexgineCanvas &texgineCanvas, const std::list<struct TypographyData>
     return y;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void OnDraw(SkCanvas &canvas)
-{
-    g_actualBorderPaint.SetStyle(TexginePaint::STROKE);
-
-    SkPaint borderPaint = g_actualBorderPaint.GetPaint();
-    const SkScalar intervals[2] = {1.0f, 1.0f};
-    // 2 means number of elements in the intervals array
-    borderPaint.setPathEffect(SkDashPathEffect::Make(intervals, 2, 0.0f));
-    TexginePaint paint;
-    paint.SetPaint(borderPaint);
-    g_borderPaint = paint;
-
-    SkPaint testBorderPaint = borderPaint;
-    testBorderPaint.setColor(0xff000000);
-
-    TexginePaint rainbowPaint;
-    rainbowPaint.SetStyle(TexginePaint::Style::FILL);
-
-    canvas.save();
-    // move canvas to (50, 50)
-    canvas.translate(50, 50);
-    double y = 0;
-    TexgineCanvas texgineCanvas;
-    texgineCanvas.SetCanvas(&canvas);
-
-    const auto &tests = FeatureTestCollection::GetInstance().GetTests();
-    for (const auto &ptest : tests) {
-        if (ptest == nullptr) {
-            continue;
-        }
-
-        double yStart = y;
-        canvas.save();
-        canvas.translate(50, 50);   // move canvas to (50, 50)
-        const auto &option = ptest->GetFeatureTestOption();
-        const auto &typographies = ptest->GetTypographies();
-        y = Draw(texgineCanvas, typographies, option, y);
-        canvas.restore();
-        // 800 is the max width of all test
-        canvas.drawRect(SkRect::MakeXYWH(0, yStart, 800, y - yStart), testBorderPaint);
-        SkiaFramework::DrawString(canvas, ptest->GetTestName(), 0, yStart);
-    }
-    canvas.restore();
-}
-#else
 void OnDraw(RSCanvas &canvas)
 {
     g_actualBorderPaint.SetStyle(TexginePaint::STROKE);
@@ -195,7 +149,6 @@ void OnDraw(RSCanvas &canvas)
     }
     canvas.Restore();
 }
-#endif
 } // namespace
 
 int main()

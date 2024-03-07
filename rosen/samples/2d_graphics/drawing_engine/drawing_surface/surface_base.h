@@ -42,9 +42,7 @@ public:
     virtual bool FlushFrame(std::unique_ptr<SurfaceFrame>& frame) = 0;
 
     virtual bool NativeFlushFrame(std::unique_ptr<SurfaceFrame>& frame) = 0;
-#ifdef USE_ROSEN_DRAWING
     virtual Drawing::Canvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
-#endif
     virtual SkCanvas* GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
 
     void SetDrawingProxy(DrawingProxy* proxy)

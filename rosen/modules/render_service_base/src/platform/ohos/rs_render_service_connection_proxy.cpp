@@ -1460,11 +1460,7 @@ int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType&
     return result;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, SkBitmap& bitmap)
-#else
 bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-#endif
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1508,13 +1504,8 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
     return result;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
-#else
 bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-#endif
 {
     MessageParcel data;
     MessageParcel reply;

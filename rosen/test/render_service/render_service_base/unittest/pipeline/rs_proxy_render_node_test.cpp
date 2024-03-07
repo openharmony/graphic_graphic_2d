@@ -53,23 +53,14 @@ HWTEST_F(RSProxyRenderNodeTest, LifeCycel001, TestSize.Level1)
     std::shared_ptr<RSNodeVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
     node->Prepare(visitor);
     node->Process(visitor);
-#ifndef USE_ROSEN_DRAWING
-    auto matrix = SkMatrix::I();
-    auto clipRegion = SkRect::MakeEmpty();
-#else
     auto matrix = Drawing::Matrix();
     auto clipRegion = Drawing::Rect();
-#endif
     node->SetContextMatrix(matrix);
     node->SetContextClipRegion(clipRegion);
     node->ResetContextVariableCache();
     node->SetContextMatrix(matrix);
     node->SetContextAlpha(0.0f);
-#ifndef USE_ROSEN_DRAWING
-    clipRegion = SkRect::MakeWH(10.f, 10.f);
-#else
     clipRegion = Drawing::Rect(0.f, 0.f, 10.f, 10.f);
-#endif
     node->SetContextClipRegion(clipRegion);
 }
 } // namespace Rosen

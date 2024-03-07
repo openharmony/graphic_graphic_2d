@@ -25,11 +25,9 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 
-#ifdef USE_ROSEN_DRAWING
 #include "draw/brush.h"
 #include "draw/color.h"
 #include "draw/pen.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -65,17 +63,12 @@ public:
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
 private:
-#ifndef USE_ROSEN_DRAWING
-    void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha,
-        int strokeWidth = 6);
-#else
     enum class RSPaintStyle {
         FILL,
         STROKE
     };
     void DrawRectOnCanvas(const RectI& dirtyRect, const Drawing::ColorQuad color, RSPaintStyle fillType, float alpha,
         int strokeWidth = 6);
-#endif // USE_ROSEN_DRAWING
     void DrawDirtyRegion();
     // Update damageRegion based on buffer age, and then set it through egl api
 #ifdef NEW_RENDER_CONTEXT
@@ -106,16 +99,11 @@ private:
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 
+    RectF surfaceNodeParentBoundsRect_;
     std::vector<NodeId> childSurfaceNodeIds_;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix parentSurfaceNodeMatrix_;
-    std::optional<SkIRect> effectRegion_ = std::nullopt;
-    std::vector<std::shared_ptr<DrawCmdList>> drawCmdListVector_;
-#else
     Drawing::Matrix parentSurfaceNodeMatrix_;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVector_;
-#endif // USE_ROSEN_DRAWING
 
     std::map<NodeId, std::function<void(float, float, float, float)>> surfaceCallbacks_;
 

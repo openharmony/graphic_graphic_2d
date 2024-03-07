@@ -101,7 +101,7 @@ int32_t HgmCore::InitXmlConfig()
         mParser_ = std::make_unique<XMLParser>();
     }
 
-    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
+    if (mParser_->LoadConfiguration(configFileProduct) != EXEC_SUCCESS) {
         HGM_LOGW("HgmCore failed to load prod xml configuration file");
     }
     if (mParser_->Parse() != EXEC_SUCCESS) {

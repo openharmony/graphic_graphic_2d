@@ -18,11 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkString.h>
-#else
 #include <string>
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -32,21 +28,13 @@ public:
     /*
      * @brief Returns the pointer of SkString
      */
-#ifndef USE_ROSEN_DRAWING
-    SkString *GetString() const;
-#else
     std::string *GetString();
-#endif
 
     /*
      * @brief Sets SkString to TexgineString
      * @param string SkString
      */
-#ifndef USE_ROSEN_DRAWING
-    void SetString(const std::shared_ptr<SkString> string);
-#else
     void SetString(const std::shared_ptr<std::string> string);
-#endif
 
     /*
      * @brief Covert SkString to String
@@ -54,11 +42,7 @@ public:
     std::string ToString() const;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkString> string_ = std::make_shared<SkString>();
-#else
     std::shared_ptr<std::string> string_ = std::make_shared<std::string>();
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

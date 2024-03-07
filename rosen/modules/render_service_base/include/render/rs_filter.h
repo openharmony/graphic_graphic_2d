@@ -21,11 +21,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/gpu/GrDirectContext.h"
-#else
 #include "image/gpu_context.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -40,11 +36,7 @@ class RSB_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     class RSFilterTask {
     public:
-#ifndef USE_ROSEN_DRAWING
-        virtual bool InitSurface(GrRecordingContext* grContext);
-#else
         virtual bool InitSurface(Drawing::GPUContext* grContext);
-#endif
         virtual bool Render();
         virtual bool SaveFilteredImage();
         virtual void SwapInit();

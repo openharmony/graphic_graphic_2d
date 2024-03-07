@@ -40,13 +40,13 @@ const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.Rend
 static std::shared_ptr<RSRenderServiceClient> rsClient = std::make_shared<RSRenderServiceClient>();
 
 namespace {
-const uint8_t* data_ = nullptr;
-size_t size_ = 0;
-size_t pos;
+const uint8_t* g_data = nullptr;
+size_t g_size = 0;
+size_t g_pos;
 } // namespace
 
 /*
- * describe: get data from outside untrusted data(data_) which size is according to sizeof(T)
+ * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
  * tips: only support basic type
  */
 template<class T>
@@ -54,14 +54,14 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (data_ == nullptr || objectSize > size_ - pos) {
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
-    pos += objectSize;
+    g_pos += objectSize;
     return object;
 }
 
@@ -76,9 +76,9 @@ bool DoCommitTransaction(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     auto transactionData = std::make_unique<RSTransactionData>();
     rsClient->CommitTransaction(transactionData);
@@ -128,9 +128,9 @@ bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     MessageParcel datas;
     datas.WriteBuffer(data, size);
@@ -173,9 +173,9 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     static ScreenId screenId = INVALID_SCREEN_ID;
     static ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
@@ -200,9 +200,9 @@ bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = GetData<ScreenId>();
     uint32_t modeId = GetData<uint32_t>();
@@ -292,9 +292,9 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     auto nodeId = GetData<NodeId>();
     float scaleX = GetData<float>();
@@ -316,9 +316,9 @@ bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = GetData<ScreenId>();
     rsClient->GetScreenSupportedModes(id);
@@ -336,9 +336,9 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     int pid = GetData<int>();
     rsClient->GetMemoryGraphic(pid);
@@ -356,9 +356,9 @@ bool DoGetScreenCapability(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = GetData<ScreenId>();
     rsClient->GetScreenCapability(id);
@@ -376,9 +376,9 @@ bool DoGetScreenData(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = GetData<ScreenId>();
     rsClient->GetScreenData(id);
@@ -396,9 +396,9 @@ bool DoGetScreenBacklight(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = GetData<ScreenId>();
     uint32_t level = GetData<uint32_t>();
@@ -418,9 +418,9 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     NodeId id = GetData<NodeId>();
     bool isFromRenderThread = GetData<bool>();
@@ -458,9 +458,9 @@ bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = GetData<ScreenId>();
     int32_t modeIdx = GetData<int32_t>();
@@ -481,9 +481,9 @@ bool DoSetScreenGamutMap(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
     ScreenGamutMap mapMode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
@@ -549,11 +549,7 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
         return false;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bm;
-#else
     Drawing::Bitmap bm;
-#endif
     rsClient->GetBitmap(0, bm);
     return true;
 }
@@ -569,9 +565,9 @@ bool DoSetScreenSkipFrameInterval(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
     uint32_t skipFrameInterval = GetData<uint32_t>();
@@ -605,9 +601,9 @@ bool DoSetAppWindowNum(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     uint32_t num = GetData<uint32_t>();
     rsClient->SetAppWindowNum(num);
@@ -625,9 +621,9 @@ bool DoShowWatermark(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     bool isShow = GetData<bool>();
     std::shared_ptr<Media::PixelMap> pixelMap1;
@@ -663,9 +659,9 @@ bool DoSetHardwareEnabled(const uint8_t* data, size_t size)
     }
 
     // initialize
-    data_ = data;
-    size_ = size;
-    pos = 0;
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     auto isEnabled = GetData<bool>();
     rsClient->SetHardwareEnabled(0, isEnabled, SelfDrawingNodeType::DEFAULT);

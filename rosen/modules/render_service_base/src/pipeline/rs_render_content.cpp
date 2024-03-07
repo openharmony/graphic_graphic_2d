@@ -45,19 +45,12 @@ void RSRenderContent::DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintF
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    auto castRecordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
-    auto drawFunc = [sharedPtr = shared_from_this(), slot](RSPaintFilterCanvas& canvas, const SkRect* rect) -> void {
-        sharedPtr->DrawPropertyDrawable(slot, canvas);
-    };
-#else
     auto castRecordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas());
     auto drawFunc = [sharedPtr = shared_from_this(), slot](Drawing::Canvas* canvas, const Drawing::Rect* rect) -> void {
         if (auto canvasPtr = static_cast<RSPaintFilterCanvas*>(canvas)) {
             sharedPtr->DrawPropertyDrawable(slot, *canvasPtr);
         }
     };
-#endif
     // recording canvas, record lambda that draws the drawable
     castRecordingCanvas->DrawDrawFunc(std::move(drawFunc));
 }
@@ -78,11 +71,6 @@ void RSRenderContent::DrawPropertyDrawableRange(
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    auto castRecordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
-    auto drawFunc = [sharedPtr = shared_from_this(), begin, end](RSPaintFilterCanvas& canvas,
-                        const SkRect* rect) -> void { sharedPtr->DrawPropertyDrawableRange(begin, end, canvas); };
-#else
     auto castRecordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas());
     auto drawFunc =
         [sharedPtr = shared_from_this(), begin, end](Drawing::Canvas* canvas, const Drawing::Rect* rect) -> void {
@@ -90,7 +78,6 @@ void RSRenderContent::DrawPropertyDrawableRange(
             sharedPtr->DrawPropertyDrawableRange(begin, end, *canvasPtr);
         }
     };
-#endif
     // recording canvas, record lambda that draws the drawable
     castRecordingCanvas->DrawDrawFunc(std::move(drawFunc));
 }

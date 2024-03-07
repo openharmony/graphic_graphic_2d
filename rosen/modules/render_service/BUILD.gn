@@ -138,12 +138,6 @@ ohos_shared_library("librender_service") {
   if (rs_enable_parallel_render && rs_enable_gpu) {
     sources += [
       "core/pipeline/parallel_render/rs_filter_sub_thread.cpp",
-      "core/pipeline/parallel_render/rs_node_cost_manager.cpp",
-      "core/pipeline/parallel_render/rs_parallel_hardware_composer.cpp",
-      "core/pipeline/parallel_render/rs_parallel_pack_visitor.cpp",
-      "core/pipeline/parallel_render/rs_parallel_render_manager.cpp",
-      "core/pipeline/parallel_render/rs_parallel_sub_thread.cpp",
-      "core/pipeline/parallel_render/rs_parallel_task_manager.cpp",
       "core/pipeline/parallel_render/rs_render_task.cpp",
       "core/pipeline/parallel_render/rs_sub_thread.cpp",
       "core/pipeline/parallel_render/rs_sub_thread_manager.cpp",

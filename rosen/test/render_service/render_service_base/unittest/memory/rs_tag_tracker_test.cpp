@@ -43,15 +43,7 @@ void RSTagTrackerTest::TearDown() {}
 HWTEST_F(RSTagTrackerTest, TagType2String001, TestSize.Level1)
 {
     NodeId nodeId = static_cast<NodeId>(0);
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
     RSTagTracker tagTracker(nullptr, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
-#else
-    RSTagTracker tagTracker(nullptr, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
-#endif
-#else
-    RSTagTracker tagTracker(nullptr, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER);
-#endif
     ASSERT_EQ("savelayer_draw_node", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_SAVELAYER_DRAW_NODE));
     ASSERT_EQ(
         "restorelayer_draw_node", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE));
@@ -73,20 +65,9 @@ HWTEST_F(RSTagTrackerTest, TagType2String001, TestSize.Level1)
  */
 HWTEST_F(RSTagTrackerTest, RSTagTracker001, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    GrGpuResourceTag tag(0, 0, 0, 0);
-#if defined(NEW_SKIA)
-    GrDirectContext* grDirectContext = nullptr;
-    RSTagTracker tagTracker(grDirectContext, tag);
-#else
-    GrContext* grContext = nullptr;
-    RSTagTracker tagTracker(grContext, tag);
-#endif
-#else
     Drawing::GPUResourceTag tag(0, 0, 0, 0);
     Drawing::GPUContext* gpuContext = nullptr;
     RSTagTracker tagTracker(gpuContext, tag);
-#endif
     tagTracker.SetTagEnd();
 }
 } // namespace OHOS::Rosen

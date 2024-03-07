@@ -30,26 +30,9 @@ public:
     void TearDown() override;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    static sk_sp<SkImage> CreateSkImage();
-#else
     static std::shared_ptr<Drawing::Image> CreateSkImage();
-#endif
 };
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkImage> RSUniRenderUtilTest::CreateSkImage()
-{
-    const SkImageInfo info = SkImageInfo::MakeN32(200, 200, kOpaque_SkAlphaType);
-    auto surface(SkSurface::MakeRaster(info));
-    auto canvas = surface->getCanvas();
-    canvas->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
-    canvas->drawRect(SkRect::MakeXYWH(50, 50, 100, 100), paint);
-    return surface->makeImageSnapshot();
-}
-#else
 std::shared_ptr<Drawing::Image> CreateSkImage()
 {
     const Drawing::ImageInfo info =
@@ -64,7 +47,6 @@ std::shared_ptr<Drawing::Image> CreateSkImage()
     canvas->DetachBrush();
     return surface->GetImageSnapshot();
 }
-#endif
 
 void RSUniRenderUtilTest::SetUpTestCase() {}
 void RSUniRenderUtilTest::TearDownTestCase() {}
@@ -234,12 +216,8 @@ HWTEST_F(RSUniRenderUtilTest, AlignedDirtyRegion_002, Function | SmallTest | Lev
 HWTEST_F(RSUniRenderUtilTest, GetRotationFromMatrix, Function | SmallTest | Level2)
 {
     int angle;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#endif
     angle = RSUniRenderUtil::GetRotationFromMatrix(matrix);
     ASSERT_EQ(angle, 0);
 }
@@ -253,12 +231,8 @@ HWTEST_F(RSUniRenderUtilTest, GetRotationFromMatrix, Function | SmallTest | Leve
 HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest | Level2)
 {
     int angle;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#endif
     angle = RSUniRenderUtil::GetRotationDegreeFromMatrix(matrix);
     ASSERT_EQ(angle, 0);
 }
@@ -272,12 +246,8 @@ HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest 
 HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
 {
     bool is3DRotation;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#endif
     is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
     ASSERT_FALSE(is3DRotation);
 }
@@ -291,12 +261,8 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
 HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
 {
     bool is3DRotation;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(-1, 0, 0, 0, -1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
-#endif
     is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
     ASSERT_TRUE(is3DRotation);
 }
@@ -380,13 +346,8 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
  */
 HWTEST_F(RSUniRenderUtilTest, HandleCaptureNode, Function | SmallTest | Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     RSUniRenderUtil::HandleCaptureNode(*surfaceNode, canvas);
@@ -432,17 +393,6 @@ HWTEST_F(RSUniRenderUtilTest, AssignSubThreadNode, Function | SmallTest | Level2
  */
 HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest | Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1.0, 0.0, 0.1, 0.0, 1.0, 0.1, 0.0, 0.0, 1.0);
-    auto skCanvas = std::make_unique<SkCanvas>(10, 10);
-    auto canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-    auto cachedEffectDataptr = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    RSPaintFilterCanvas::CanvasStatus status{0.0, matrix, cachedEffectDataptr};
-    canvas->SetCanvasStatus(status);
-    RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
-    ASSERT_TRUE(canvas->GetTotalMatrix().getTanslateX() < 0.001);
-    ASSERT_TRUE(canvas->GetTotalMatrix().getTanslateY() < 0.001);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1.0, 0.0, 0.1, 0.0, 1.0, 0.1, 0.0, 0.0, 1.0);
     auto drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
@@ -453,7 +403,6 @@ HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest |
     RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
     ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) < 0.001);
     ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) < 0.001);
-#endif
 }
 
 /*

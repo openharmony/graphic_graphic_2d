@@ -1809,11 +1809,7 @@ HWTEST_F(RSModifierTest, ShadowPathModifier002, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, MaskModifier001, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto value = RSMask::CreateGradientMask(SkPaint());
-#else
     auto value = RSMask::CreateGradientMask(Drawing::Brush());
-#endif
     auto prop = std::make_shared<RSProperty<std::shared_ptr<RSMask>>>(value);
     auto modifier = std::make_shared<RSMaskModifier>(prop);
 
@@ -1843,11 +1839,7 @@ HWTEST_F(RSModifierTest, MaskModifier002, TestSize.Level1)
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetMask(), value);
 
-#ifndef USE_ROSEN_DRAWING
-    value = RSMask::CreateGradientMask(SkPaint());
-#else
     value = RSMask::CreateGradientMask(Drawing::Brush());
-#endif
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetMask(), value);
 }

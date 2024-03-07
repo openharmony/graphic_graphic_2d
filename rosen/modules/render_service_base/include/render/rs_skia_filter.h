@@ -15,44 +15,15 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageFilter.h"
-#include "include/core/SkPaint.h"
-#include "include/effects/SkImageFilters.h"
-#else
 #include "draw/brush.h"
 #include "draw/canvas.h"
 #include "effect/image_filter.h"
-#endif
 
 #include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
-#ifndef USE_ROSEN_DRAWING
-class RSSkiaFilter : public RSFilter {
-public:
-    RSSkiaFilter(sk_sp<SkImageFilter> imagefilter);
-    RSSkiaFilter(const RSSkiaFilter&) = delete;
-    ~RSSkiaFilter() override;
-    SkPaint GetPaint() const;
-    virtual void DrawImageRect(
-        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const;
-    sk_sp<SkImageFilter> GetImageFilter() const;
-    virtual std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const = 0;
-    virtual void PreProcess(sk_sp<SkImage> image) {};
-    virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
-    virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
-    virtual bool CanSkipFrame() const { return false; };
-    virtual void SetCanvasChange(SkMatrix& mat, float surfaceWidth, float surfaceHeight) {};
-    virtual void SetBoundsGeometry(float geoWidth, float geoHeight) {};
-
-protected:
-    sk_sp<SkImageFilter> imageFilter_ = nullptr;
-};
-#else
 class RSDrawingFilter : public RSFilter {
 public:
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imagefilter);
@@ -72,7 +43,6 @@ public:
 protected:
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
 };
-#endif
 } // namespace Rosen
 } // namespace OHOS
 

@@ -55,6 +55,7 @@ ohos_shared_library("libnative_vsync") {
     "hilog:libhilog",
   ]
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

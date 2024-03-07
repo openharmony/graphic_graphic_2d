@@ -18,9 +18,6 @@
 #include "ui/rs_node.h"
 #include "screen_manager/screen_types.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkCanvas;
-#endif
 namespace OHOS {
 namespace Rosen {
 

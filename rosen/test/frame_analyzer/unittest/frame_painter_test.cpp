@@ -18,13 +18,8 @@
 
 #include "frame_collector.h"
 #include "frame_painter.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkBitmap.h"
-#include "include/core/SkCanvas.h"
-#else
 #include "draw/canvas.h"
 #include "image/bitmap.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -67,14 +62,9 @@ HWTEST_F(FramePainterTest, DrawTest1, TestSize.Level1)
     FrameCollector& controller = FrameCollector::GetInstance();
     controller.SetEnabled(true);
     auto framePainter = std::make_shared<FramePainter>(controller);
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-    SkCanvas canvas(bitmap);
-#else
     Drawing::Bitmap bitmap;
     Drawing::Canvas canvas;
     canvas.Bind(bitmap);
-#endif
     framePainter->Draw(canvas);
     ASSERT_TRUE(controller.IsEnabled());
 }
@@ -90,14 +80,9 @@ HWTEST_F(FramePainterTest, DrawTest2, TestSize.Level1)
     FrameCollector& controller = FrameCollector::GetInstance();
     controller.SetEnabled(false);
     auto framePainter = std::make_shared<FramePainter>(controller);
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-    SkCanvas canvas(bitmap);
-#else
     Drawing::Bitmap bitmap;
     Drawing::Canvas canvas;
     canvas.Bind(bitmap);
-#endif
     framePainter->Draw(canvas);
     ASSERT_FALSE(controller.IsEnabled());
 }
@@ -113,14 +98,9 @@ HWTEST_F(FramePainterTest, DrawFPSLine1, TestSize.Level1)
     FrameCollector& controller = FrameCollector::GetInstance();
     controller.SetEnabled(false);
     auto framePainter = std::make_shared<FramePainter>(controller);
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-    SkCanvas canvas(bitmap);
-#else
     Drawing::Bitmap bitmap;
     Drawing::Canvas canvas;
     canvas.Bind(bitmap);
-#endif
     framePainter->DrawFPSLine(canvas, 0, 2.0f, 0xbf00ff00);
     ASSERT_FALSE(controller.IsEnabled());
 }
@@ -136,14 +116,9 @@ HWTEST_F(FramePainterTest, DrawFPSLine2, TestSize.Level1)
     FrameCollector& controller = FrameCollector::GetInstance();
     controller.SetEnabled(false);
     auto framePainter = std::make_shared<FramePainter>(controller);
-#ifndef USE_ROSEN_DRAWING
-    SkBitmap bitmap;
-    SkCanvas canvas(bitmap);
-#else
     Drawing::Bitmap bitmap;
     Drawing::Canvas canvas;
     canvas.Bind(bitmap);
-#endif
     framePainter->DrawFPSLine(canvas, 1, 2.0f, 0xbf00ff00);
     ASSERT_FALSE(controller.IsEnabled());
 }

@@ -65,6 +65,8 @@ template("graphics2d_source_set") {
     cflags_cc += invoker.cflags_cc
     if (use_texgine) {
       defines += [ "USE_TEXGINE" ]
+    } else if (use_skia_txt) {
+      defines += [ "USE_SKIA_TXT" ]
     }
 
     public_deps = []
@@ -531,6 +533,8 @@ if (enable_text_gine) {
   defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   if (use_texgine) {
     defines += [ "USE_TEXGINE" ]
+  } else if (use_skia_txt) {
+    defines += [ "USE_SKIA_TXT" ]
   }
   ohos_shared_library("2d_graphics_drawing") {
     include_dirs = [

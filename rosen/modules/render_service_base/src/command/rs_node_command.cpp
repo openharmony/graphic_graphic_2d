@@ -45,6 +45,15 @@ void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFr
     }
 }
 
+void RSNodeCommandHelper::SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetNodeName(nodeName);
+    }
+}
+
 void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
     bool includeProperty)
 {

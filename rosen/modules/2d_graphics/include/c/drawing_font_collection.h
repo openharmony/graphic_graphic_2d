@@ -54,6 +54,17 @@ extern "C" {
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void);
 
 /**
+ * @brief Creates an <b>OH_Drawing_FontCollection</b> object with shared usage between
+ * <b>OH_Drawing_TypographyCreate</b>.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @return Returns the pointer to the <b>OH_Drawing_FontCollection</b> object created.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_FontCollection* OH_Drawing_CreateSharedFontCollection(void);
+
+/**
  * @brief Releases the memory occupied by an <b>OH_Drawing_FontCollection</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

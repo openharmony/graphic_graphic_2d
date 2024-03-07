@@ -22,14 +22,6 @@
 #include "common/rs_macros.h"
 #include "event_handler.h"
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#include "include/core/SkSurface.h"
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
-#endif
-#endif
 #endif
 
 namespace OHOS::Rosen {
@@ -52,11 +44,6 @@ public:
     bool ImageSupportParallelUpload(int w, int h);
 
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> GetShareGrContext() const;
-    void CleanGrResource();
-    void ReleaseNotUsedPinnedViews();
-#endif
 #endif
 private:
     RSUploadTextureThread();
@@ -81,13 +68,6 @@ private:
     static constexpr int IMG_WIDTH_MAX = 300;
     static constexpr int IMG_HEIGHT_MAX = 300;
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> CreateShareGrContext();
-    void CreateShareEglContext();
-    RenderContext* renderContext_ = nullptr;
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-    EGLContext eglShareContext_ = EGL_NO_CONTEXT;
-#endif
 #endif
 };
 }

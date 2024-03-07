@@ -21,6 +21,7 @@ ohos_unittest("RSScreenManagerTest") {
   module_out_path = module_output_path
 
   sources = [
+    "../pipeline/mock/mock_hdi_device.cpp",
     "rs_screen_manager_test.cpp",
     "rs_screen_test.cpp",
   ]
@@ -44,6 +45,7 @@ ohos_unittest("RSScreenManagerTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -57,13 +59,24 @@ ohos_unittest("RSScreenManagerTest") {
   }
 
   subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 ##############################  RSScreenTest  ##################################
 ohos_unittest("RSScreenTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_screen_test.cpp" ]
+  sources = [
+    "../pipeline/mock/mock_hdi_device.cpp",
+    "rs_screen_test.cpp",
+  ]
 
   configs = [
     ":screen_test",
@@ -84,6 +97,7 @@ ohos_unittest("RSScreenTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -94,6 +108,14 @@ ohos_unittest("RSScreenTest") {
   ]
 
   subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 ###############################################################################

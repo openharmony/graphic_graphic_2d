@@ -18,19 +18,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkData> TexgineData::GetData() const
-#else
 std::shared_ptr<RSData> TexgineData::GetData() const
-#endif
 {
     return data_;
 }
-#ifndef USE_ROSEN_DRAWING
-void TexgineData::SetData(const sk_sp<SkData> &data)
-#else
 void TexgineData::SetData(const std::shared_ptr<RSData> &data)
-#endif
 {
     data_ = data;
 }
@@ -38,11 +30,7 @@ void TexgineData::SetData(const std::shared_ptr<RSData> &data)
 std::shared_ptr<TexgineData> TexgineData::MakeFromFileName(const std::string &path)
 {
     auto data = std::make_shared<TexgineData>();
-#ifndef USE_ROSEN_DRAWING
-    data->SetData(SkData::MakeFromFileName(path.c_str()));
-#else
     data->SetData(RSData::MakeFromFileName(path.c_str()));
-#endif
     return data;
 }
 } // namespace TextEngine

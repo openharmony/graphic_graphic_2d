@@ -14,11 +14,8 @@
  */
 
 #include "modifier/rs_render_modifier.h"
-#ifndef USE_ROSEN_DRAWING
-#else
 #include "draw/color.h"
 #include "image/bitmap.h"
-#endif
 #include <memory>
 #include <unordered_map>
 
@@ -71,11 +68,7 @@ using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
 static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
 #include "modifier/rs_modifiers_def.in"
     { RSModifierType::EXTENDED, [](Parcel& parcel) -> RSRenderModifier* {
-#ifndef USE_ROSEN_DRAWING
-            std::shared_ptr<RSRenderProperty<std::shared_ptr<DrawCmdList>>> prop;
-#else
             std::shared_ptr<RSRenderProperty<std::shared_ptr<Drawing::DrawCmdList>>> prop;
-#endif
             int16_t type;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type)) {
                 return nullptr;
@@ -110,11 +103,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
         },
     },
     { RSModifierType::GEOMETRYTRANS, [](Parcel& parcel) -> RSRenderModifier* {
-#ifndef USE_ROSEN_DRAWING
-            std::shared_ptr<RSRenderProperty<SkMatrix>> prop;
-#else
             std::shared_ptr<RSRenderProperty<Drawing::Matrix>> prop;
-#endif
             int16_t type;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type)) {
                 return nullptr;
@@ -140,15 +129,9 @@ void RSDrawCmdListRenderModifier::Apply(RSModifierContext& context) const
 
 void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
 {
-#ifndef USE_ROSEN_DRAWING
-    if (auto property = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)) {
-        property_->Set(property->Get());
-    }
-#else
     if (auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)) {
         property_->Set(property->Get());
     }
-#endif
 }
 
 bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
@@ -233,45 +216,27 @@ Color RSEnvForegroundColorStrategyRenderModifier::CalculateInvertColor(Color bac
 
 Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSModifierContext& context) const
 {
-#ifndef USE_ROSEN_DRAWING
-    SkAutoCanvasRestore acr(context.canvas_, true);
-#else
     Drawing::AutoCanvasRestore acr(*context.canvas_, true);
-#endif
     if (!context.properties_.GetClipToBounds()) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor not GetClipToBounds");
         Vector4f clipRegion = context.properties_.GetBounds();
-#ifndef USE_ROSEN_DRAWING
-        SkRect rect = SkRect::MakeXYWH(0, 0, clipRegion.z_, clipRegion.w_);
-        context.canvas_->clipRect(rect);
-#else
         Drawing::Rect rect = Drawing::Rect(0, 0, clipRegion.z_, clipRegion.w_);
         context.canvas_->ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
-#endif
     }
     Color backgroundColor = context.properties_.GetBackgroundColor();
     if (backgroundColor.GetAlpha() == 0xff) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor not alpha");
         return CalculateInvertColor(backgroundColor);
     }
-#ifndef USE_ROSEN_DRAWING
-    auto imageSnapshot = context.canvas_->GetSurface()->makeImageSnapshot(context.canvas_->getDeviceClipBounds());
-#else
     auto imageSnapshot = context.canvas_->GetSurface()->GetImageSnapshot(context.canvas_->GetDeviceClipBounds());
-#endif
     if (imageSnapshot == nullptr) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor imageSnapshot null");
         return Color(0);
     }
     auto colorPicker = RSPropertiesPainter::CalcAverageColor(imageSnapshot);
-#ifndef USE_ROSEN_DRAWING
-    return CalculateInvertColor(Color(SkColorGetR(colorPicker), SkColorGetG(colorPicker),
-        SkColorGetB(colorPicker), SkColorGetA(colorPicker)));
-#else
     return CalculateInvertColor(Color(
         Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
         Drawing::Color::ColorQuadGetB(colorPicker), Drawing::Color::ColorQuadGetA(colorPicker)));
-#endif
 }
 
 void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
@@ -291,11 +256,7 @@ void RSGeometryTransRenderModifier::Apply(RSModifierContext& context) const
 
 void RSGeometryTransRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
 {
-#ifndef USE_ROSEN_DRAWING
-    if (auto property = std::static_pointer_cast<RSRenderProperty<SkMatrix>>(prop)) {
-#else
     if (auto property = std::static_pointer_cast<RSRenderProperty<Drawing::Matrix>>(prop)) {
-#endif
         property_->Set(property->Get());
     }
 }

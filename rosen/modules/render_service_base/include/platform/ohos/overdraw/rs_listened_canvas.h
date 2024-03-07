@@ -22,49 +22,6 @@ namespace OHOS {
 namespace Rosen {
 class RSCanvasListener;
 
-#ifndef USE_ROSEN_DRAWING
-class RSB_EXPORT RSListenedCanvas : public RSPaintFilterCanvas {
-public:
-    RSListenedCanvas(SkCanvas* canvas, float alpha = 1.0f);
-    RSListenedCanvas(SkSurface* skSurface, float alpha = 1.0f);
-
-    void SetListener(const std::shared_ptr<RSCanvasListener> &listener);
-
-    void onDrawPaint(const SkPaint& paint) override;
-    void onDrawRect(const SkRect& rect, const SkPaint& paint) override;
-    void onDrawRRect(const SkRRect& rrect, const SkPaint& paint) override;
-    void onDrawDRRect(const SkRRect& outer, const SkRRect& inner,
-                      const SkPaint& paint) override;
-    void onDrawOval(const SkRect& rect, const SkPaint& paint) override;
-    void onDrawArc(const SkRect& rect, SkScalar startAngle, SkScalar sweepAngle, bool useCenter,
-                   const SkPaint& paint) override;
-    void onDrawPath(const SkPath& path, const SkPaint& paint) override;
-    void onDrawRegion(const SkRegion& region, const SkPaint& paint) override;
-    void onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y,
-                        const SkPaint& paint) override;
-    void onDrawPatch(const SkPoint cubics[12], const SkColor colors[4],
-                     const SkPoint texCoords[4], SkBlendMode mode,
-                     const SkPaint& paint) override;
-    void onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[],
-                      const SkPaint& paint) override;
-    void onDrawAnnotation(const SkRect& rect, const char key[], SkData* value) override;
-    void onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rect) override;
-    void onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix) override;
-    void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
-                       const SkPaint* paint) override;
-#ifdef NEW_SKIA
-    void onDrawImageRect2(const SkImage* image, const SkRect& src, const SkRect& dst,
-            const SkSamplingOptions& samplingOptions, const SkPaint* paint, SrcRectConstraint constraint) override;
-#else
-    void onDrawImageRect(const SkImage* image, const SkRect* src, const SkRect& dst,
-            const SkPaint* paint, SrcRectConstraint constraint) override;
-#endif
-
-private:
-    std::shared_ptr<RSCanvasListener> listener_ = nullptr;
-};
-
-#else
 class RSB_EXPORT RSListenedCanvas : public RSPaintFilterCanvas {
 public:
     RSListenedCanvas(Drawing::Canvas& canvas, float alpha = 1.0f);
@@ -111,7 +68,6 @@ public:
 private:
     std::shared_ptr<RSCanvasListener> listener_ = nullptr;
 };
-#endif // USE_ROSEN_DRAWING
 } // namespace Rosen
 } // namespace OHOS
 

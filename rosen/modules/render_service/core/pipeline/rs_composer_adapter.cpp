@@ -27,9 +27,7 @@
 #include "rs_trace.h"
 #include "string_utils.h"
 
-#ifdef USE_ROSEN_DRAWING
 #include "draw/canvas.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -190,67 +188,6 @@ bool RSComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) const
     return false;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
-{
-    const auto& property = node.GetRenderProperties();
-    const auto frameWidth = info.buffer->GetSurfaceBufferWidth();
-    const auto frameHeight = info.buffer->GetSurfaceBufferHeight();
-    const int boundsWidth = static_cast<int>(property.GetBoundsWidth());
-    const int boundsHeight = static_cast<int>(property.GetBoundsHeight());
-    const Gravity frameGravity = property.GetFrameGravity();
-    // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
-        return;
-    }
-    RS_TRACE_NAME_FMT("%s DealWithNodeGravity %d", node.GetName().c_str(), static_cast<int>(frameGravity));
-    // get current node's translate matrix and calculate gravity matrix.
-#ifdef NEW_SKIA
-    auto translateMatrix = SkMatrix::Translate(
-        std::ceil(node.GetTotalMatrix().getTranslateX()), std::ceil(node.GetTotalMatrix().getTranslateY()));
-#else
-    auto translateMatrix = SkMatrix::MakeTrans(
-        std::ceil(node.GetTotalMatrix().getTranslateX()), std::ceil(node.GetTotalMatrix().getTranslateY()));
-#endif
-    SkMatrix gravityMatrix;
-    (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
-        RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);
-
-    // create a canvas to calculate new dstRect and new srcRect
-    int32_t screenWidth = screenInfo_.width;
-    int32_t screenHeight = screenInfo_.height;
-    const auto screenRotation = screenInfo_.rotation;
-    if (screenRotation == ScreenRotation::ROTATION_90 || screenRotation == ScreenRotation::ROTATION_270) {
-        std::swap(screenWidth, screenHeight);
-    }
-    auto canvas = std::make_unique<SkCanvas>(screenWidth, screenHeight);
-    canvas->concat(translateMatrix);
-    SkRect clipRect;
-    gravityMatrix.mapRect(&clipRect, SkRect::MakeWH(frameWidth, frameHeight));
-    canvas->clipRect(clipRect);
-    canvas->concat(gravityMatrix);
-    SkIRect newDstRect = canvas->getDeviceClipBounds();
-    // we make the newDstRect as the intersection of new and old dstRect when frameSize > boundsSize.
-    newDstRect.intersect(SkIRect::MakeXYWH(info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h));
-    auto localRect = canvas->getLocalClipBounds();
-    int left = std::clamp<int>(localRect.left(), 0, frameWidth);
-    int top = std::clamp<int>(localRect.top(), 0, frameHeight);
-    int width = std::clamp<int>(localRect.width(), 0, frameWidth - left);
-    int height = std::clamp<int>(localRect.height(), 0, frameHeight - top);
-    GraphicIRect newSrcRect = {left, top, width, height};
-
-    RS_LOGD("RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d"
-        " %{public}d %{public}d %{public}d], newDstRect[%{public}d %{public}d %{public}d %{public}d],"\
-        " oldSrcRect[%{public}d %{public}d %{public}d %{public}d], newSrcRect[%{public}d %{public}d"
-        " %{public}d %{public}d].", node.GetName().c_str(), static_cast<int>(frameGravity),
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-        newDstRect.left(), newDstRect.top(), newDstRect.width(), newDstRect.height(),
-        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
-        newSrcRect.x, newSrcRect.y, newSrcRect.w, newSrcRect.h);
-    info.dstRect = {newDstRect.left(), newDstRect.top(), newDstRect.width(), newDstRect.height()};
-    info.srcRect = newSrcRect;
-}
-#else
 void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
 {
     const auto& property = node.GetRenderProperties();
@@ -309,7 +246,6 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     info.dstRect = {newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()};
     info.srcRect = newSrcRect;
 }
-#endif
 
 void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node)
 {
@@ -622,18 +558,11 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 
     auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
     auto matrix = surfaceNode.GetTotalMatrix();
-#ifndef USE_ROSEN_DRAWING
-    float value[9];
-    matrix.get9(value);
-
-    int rAngle = static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
-#else
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
 
     int rAngle = static_cast<int>(
         -round(atan2(value[Drawing::Matrix::SKEW_X], value[Drawing::Matrix::SCALE_X]) * (180 / PI)));
-#endif
     // transfer the result to anti-clockwise degrees
     // only rotation with 90°, 180°, 270° are composed through hardware,
     // in which situation the transformation of the layer needs to be set.

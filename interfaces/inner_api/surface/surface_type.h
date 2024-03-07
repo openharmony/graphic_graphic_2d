@@ -55,8 +55,8 @@ using GraphicCompositionType = enum {
     GRAPHIC_COMPOSITION_DEVICE_CLEAR, /**< Device clear composition type, the device will clear the target region. */
     GRAPHIC_COMPOSITION_CLIENT_CLEAR, /**< Client clear composition type, the service will clear the target region. */
     GRAPHIC_COMPOSITION_TUNNEL,       /**< Tunnel composition type, used for tunnel. */
-    GRAPHIC_COMPOSITION_BUTT,
-    GRAPHIC_COMPOSITION_SOLID_COLOR   /**< used for SetLayerColor. */
+    GRAPHIC_COMPOSITION_SOLID_COLOR,  /**< used for SetLayerColor. */
+    GRAPHIC_COMPOSITION_BUTT
 };
 
 using GraphicLayerAlpha = struct {

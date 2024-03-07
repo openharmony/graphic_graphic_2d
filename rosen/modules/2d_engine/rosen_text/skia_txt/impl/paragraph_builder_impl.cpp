@@ -32,15 +32,6 @@ int ConvertToSkFontWeight(FontWeight fontWeight)
     return static_cast<int>(fontWeight) * weightBase + weightBase;
 }
 
-#ifndef USE_ROSEN_DRAWING
-SkFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
-{
-    auto weight = ConvertToSkFontWeight(fontWeight);
-    auto slant = fontStyle == FontStyle::NORMAL ?
-        SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant;
-    return SkFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
-}
-#else
 RSFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
 {
     auto weight = ConvertToSkFontWeight(fontWeight);
@@ -48,7 +39,6 @@ RSFontStyle MakeFontStyle(FontWeight fontWeight, FontStyle fontStyle)
         RSFontStyle::Slant::UPRIGHT_SLANT : RSFontStyle::Slant::ITALIC_SLANT;
     return RSFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
 }
-#endif
 
 SkFontArguments MakeFontArguments(const FontVariations& fontVariations)
 {

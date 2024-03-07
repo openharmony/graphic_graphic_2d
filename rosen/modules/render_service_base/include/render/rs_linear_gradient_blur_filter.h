@@ -18,20 +18,12 @@
 #include "render/rs_skia_filter.h"
 #include "render/rs_gradient_blur_para.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/effects/SkRuntimeEffect.h"
-#else
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-class RSB_EXPORT RSLinearGradientBlurFilter : public RSSkiaFilter {
-#else
 class RSB_EXPORT RSLinearGradientBlurFilter : public RSDrawingFilter {
-#endif
 public:
     RSLinearGradientBlurFilter(const std::shared_ptr<RSLinearGradientBlurPara>& para, const float geoWidth,
         const float geoHeight);
@@ -47,21 +39,6 @@ public:
         geoHeight_ = geoHeight;
     }
 
-#ifndef USE_ROSEN_DRAWING
-    void DrawImageRect(
-        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
-    void PreProcess(sk_sp<SkImage> image) override {};
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override
-    {
-        return nullptr;
-    }
-    void SetCanvasChange(SkMatrix& mat, float surfaceWidth, float surfaceHeight) override
-    {
-        mat_ = mat;
-        surfaceWidth_ = surfaceWidth;
-        surfaceHeight_ = surfaceHeight;
-    }
-#else
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
@@ -75,7 +52,6 @@ public:
         surfaceWidth_ = surfaceWidth;
         surfaceHeight_ = surfaceHeight;
     }
-#endif
 
 private:
     static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
@@ -91,25 +67,6 @@ private:
     inline static float surfaceWidth_ = 0.f;
     inline static float surfaceHeight_ = 0.f;
 
-#ifndef USE_ROSEN_DRAWING
-    static SkRect::Rect ComputeRectBeforeClip(const uint8_t directionBias, const SkRect& dst);
-    static uint8_t CalcDirectionBias(const SkMatrix& mat);
-    static bool GetGradientDirectionPoints(SkPoint (&pts)[2],
-                                const SkRect& clipBounds, GradientDirection direction);
-    static sk_sp<SkShader> MakeAlphaGradientShader(const SkRect& clipBounds,
-                                const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias);
-    static void DrawMaskLinearGradientBlur(const sk_sp<SkImage>& image, SkCanvas& canvas,
-        std::shared_ptr<RSSkiaFilter>& blurFilter, sk_sp<SkShader> alphaGradientShader, const SkRect& dst);
-    static sk_sp<SkShader> MakeMaskLinearGradientBlurShader(sk_sp<SkShader> srcImageShader,
-        sk_sp<SkShader> blurImageShader, sk_sp<SkShader> gradientShader);
-    static void DrawMeanLinearGradientBlur(const sk_sp<SkImage>& image, SkCanvas& canvas,
-        float radius, sk_sp<SkShader> alphaGradientShader, const SkRect& dst);
-
-    static sk_sp<SkRuntimeEffect> horizontalMeanBlurShaderEffect_;
-    static sk_sp<SkRuntimeEffect> verticalMeanBlurShaderEffect_;
-    static sk_sp<SkRuntimeEffect> maskBlurShaderEffect_;
-    inline static SkMatrix mat_;
-#else
     static Drawing::Rect ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst);
     static uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
     static bool GetGradientDirectionPoints(
@@ -129,7 +86,6 @@ private:
     static std::shared_ptr<Drawing::RuntimeEffect> verticalMeanBlurShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> maskBlurShaderEffect_;
     inline static Drawing::Matrix mat_;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

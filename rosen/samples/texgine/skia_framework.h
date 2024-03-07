@@ -39,11 +39,7 @@ class PointerFilter;
 
 class SkiaFramework {
 public:
-#ifndef USE_ROSEN_DRAWING
-    using DrawFunc = std::function<void(SkCanvas &canvas)>;
-#else
     using DrawFunc = std::function<void(RSCanvas &canvas)>;
-#endif
     using ResizeFunc = std::function<void(int width, int height)>;
 
     SkiaFramework();
@@ -75,35 +71,18 @@ public:
     double GetWindowScale() const;
     void Run();
 
-#ifndef USE_ROSEN_DRAWING
-    static void DrawString(SkCanvas &canvas, const std::string &str, double x, double y);
-    static SkPoint3 MeasureString(const std::string &str);
-
-    virtual void DrawBefore(SkCanvas &canvas);
-    virtual void DrawAfter(SkCanvas &canvas);
-    void DrawColorPicker(SkCanvas &canvas, SkBitmap &bitmap);
-#else
     static void DrawString(RSCanvas &canvas, const std::string &str, double x, double y);
     virtual void DrawBefore(RSCanvas &canvas);
     virtual void DrawAfter(RSCanvas &canvas);
     void DrawColorPicker(RSCanvas &canvas, RSDrawing::Bitmap &bitmap);
-#endif
 
 private:
     friend class PointerFilter;
     void UIThreadMain();
     void UpdateInvertMatrix();
-#ifndef USE_ROSEN_DRAWING
-    void ProcessBitmap(SkBitmap &bitmap, const OHOS::sptr<OHOS::SurfaceBuffer> buffer);
-#else
     void ProcessBitmap(RSDrawing::Bitmap &bitmap, const OHOS::sptr<OHOS::SurfaceBuffer> buffer);
-#endif
     void PrepareVsyncFunc();
-#ifndef USE_ROSEN_DRAWING
-    void DrawPathAndString(SkCanvas &canvas, SkFont &font, SkPaint &paint1, SkPaint &paint2);
-#else
     void DrawPathAndString(RSCanvas &canvas, RSFont &font, RSDrawing::Pen &paint1, RSDrawing::Pen &paint2);
-#endif
 
     DrawFunc onDraw_ = nullptr;
     ResizeFunc onResize_ = nullptr;
@@ -130,15 +109,9 @@ private:
     std::atomic<int> scalex_ = 0;
     std::atomic<int> scaley_ = 0;
     std::atomic<double> scalediff_ = 0;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix scaleMat_;
-    SkMatrix mat_;
-    SkMatrix invmat_;
-#else
     RSDrawing::Matrix scaleMat_;
     RSDrawing::Matrix mat_;
     RSDrawing::Matrix invmat_;
-#endif
 };
 
 #endif // ROSEN_SAMPLES_TEXGINE_SKIA_FRAMEWORK_H

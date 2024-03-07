@@ -21,10 +21,6 @@
 
 #include "image_source.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
-#endif
 
 #include "pixel_map.h"
 #include "wm/window.h"
@@ -53,11 +49,7 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorWHITE);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
-#endif
 
     rsUiDirector->SetRoot(rootNode->GetId());
     canvasNode = RSCanvasNode::Create();
@@ -139,44 +131,19 @@ int main()
     }
 
     cout << "rs pixelmap demo stage 3: canvas draw" << endl;
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint;
-#else
     Drawing::Brush brush;
-#endif
     auto canvas = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
     cout << "DrawPixelMap" << endl;
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    canvas->DrawPixelMap(pixelmap, 100, 200, SkSamplingOptions(), nullptr);
-    cout << "DrawPixelMapRect" << endl;
-    canvas->DrawPixelMapRect(pixelmap, SkRect::MakeXYWH(10, 10, 200, 200), SkRect::MakeXYWH(20, 300, 400, 600),
-        SkSamplingOptions(), &paint);
-#else
-    canvas->DrawPixelMap(pixelmap, 100, 200);
-    cout << "DrawPixelMapRect" << endl;
-    canvas->DrawPixelMapRect(pixelmap, SkRect::MakeXYWH(10, 10, 200, 200), SkRect::MakeXYWH(20, 300, 400, 600), &paint);
-#endif
-#else
     canvas->AttachBrush(brush);
     canvas->DrawPixelMapRect(pixelmap, Drawing::Rect(10, 10, 210, 210), Drawing::Rect(20, 300, 420, 900));
     canvas->DetachBrush();
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-    SkVector radii_[4] = { { 10, 10 }, { 10, 10 }, { 10, 10 }, { 10, 10 } };
-#else
     std::vector<Drawing::Point> radii_ = { { 10, 10 }, { 10, 10 }, { 10, 10 }, { 10, 10 } };
-#endif
     RsImageInfo rsImageInfo(5, 1, radii_, 0, 0, 0, 0);
     cout << "DrawPixelMapWithParm" << endl;
-#ifndef USE_ROSEN_DRAWING
-    canvas->DrawPixelMapWithParm(pixelmap, rsImageInfo, paint);
-#else
     canvas->AttachBrush(brush);
     canvas->DrawPixelMapWithParm(pixelmap, rsImageInfo);
     canvas->DetachBrush();
-#endif
     cout << "FinishRecording" << endl;
     canvasNode->FinishRecording();
     cout << "SendMessages" << endl;

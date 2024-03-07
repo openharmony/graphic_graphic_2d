@@ -446,8 +446,7 @@ void RSRenderThread::ApplyModifiers()
     if (context_->activeNodesInRoot_.empty()) {
         return;
     }
-    RS_TRACE_NAME_FMT("ApplyModifiers (PropertyDrawableEnable %s)",
-        RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
+    RS_TRACE_NAME("RSRenderThread::ApplyModifiers (PropertyDrawableEnable TRUE)");
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> nodesThatNeedsRegenerateChildren;
     context_->globalRootRenderNode_->ApplyModifiers();
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {

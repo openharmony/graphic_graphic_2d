@@ -880,7 +880,8 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     /*
      * If app adds the first frame when power on the screen, delete the code
      */
-    if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+    if (status == ScreenPowerStatus::POWER_STATUS_ON ||
+        status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {
         auto mainThread = RSMainThread::Instance();
         if (mainThread == nullptr) {
             return;
@@ -890,13 +891,14 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         });
         if (screenPowerStatus_.count(id) == 0 ||
             screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF ||
-            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_FAKE) {
+            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_FAKE ||
+            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED) {
             mainThread->ForceRefreshForUni();
         } else {
             mainThread->RequestNextVSync();
         }
 
-        RS_LOGD("[UL_POWER]RSScreenManager %{public}s: Set system power on, request a frame", __func__);
+        RS_LOGD("[UL_POWER]RSScreenManager %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
     }
     screenPowerStatus_[id] = status;
 }

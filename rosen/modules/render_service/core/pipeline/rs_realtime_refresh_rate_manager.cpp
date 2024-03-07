@@ -34,12 +34,14 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
     if (enableState_ == enable) {
         return;
     }
-    RS_LOGI("RSRealtimeRefreshRateManager state change: %{public}d -> %{public}d", static_cast<bool>(enableState_), enable);
+    RS_LOGI("RSRealtimeRefreshRateManager state change: %{public}d -> %{public}d",
+        static_cast<bool>(enableState_), enable);
     enableState_ = enable;
 
     static constexpr uint8_t IDLE_FPS_THRESHOLD = 8;
     static auto NS_PER_S = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count();
-    static auto NS_FPS_SHOW_INTERVAL = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(250));
+    static auto NS_FPS_SHOW_INTERVAL =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(250));
 
     static std::mutex threadMutex;
     static std::condition_variable threadCondVar;

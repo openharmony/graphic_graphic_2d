@@ -88,6 +88,8 @@ public:
     MOCK_METHOD4(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t, uint32_t&));
     MOCK_METHOD2(CloseLayer, int32_t(uint32_t, uint32_t));
     MOCK_METHOD0(Destroy, void());
+
+    static GraphicDispPowerStatus powerStatusMock_;
 };
 } // namespace Mock
 } // namespace Rosen

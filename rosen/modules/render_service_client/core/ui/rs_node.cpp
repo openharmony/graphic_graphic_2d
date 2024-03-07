@@ -845,6 +845,7 @@ void RSNode::SetSkew(const Vector2f& skew)
 
 void RSNode::SetSkewX(float skewX)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::SKEW);
     if (iter == propertyModifiers_.end()) {
         SetSkew(skewX, 0.f);
@@ -862,6 +863,7 @@ void RSNode::SetSkewX(float skewX)
 
 void RSNode::SetSkewY(float skewY)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::SKEW);
     if (iter == propertyModifiers_.end()) {
         SetSkew(0.f, skewY);
@@ -1314,6 +1316,18 @@ void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent)
 void RSNode::SetFreeze(bool isFreeze)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
+}
+
+void RSNode::SetNodeName(const std::string& nodeName)
+{
+    if (nodeName_ != nodeName) {
+        nodeName_ = nodeName;
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(GetId(), nodeName_);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+    }
 }
 
 void RSNode::SetSpherizeDegree(float spherizeDegree)
@@ -2013,7 +2027,6 @@ const std::optional<NodeId> RSNode::GetChildIdByIndex(int index) const
 {
     int childrenTotal = static_cast<int>(children_.size());
     if (childrenTotal <= 0 || index < -1 || index >= childrenTotal) {
-        ROSEN_LOGE("RSNode::GetChildIdByIndex, index out of bound");
         return std::nullopt;
     }
     if (index == -1) {

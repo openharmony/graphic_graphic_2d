@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef NATIVE_MODULE_OHOS_EFFECT_H_
-#define NATIVE_MODULE_OHOS_EFFECT_H_
+#ifndef NATIVE_MODULE_OHOS_EFFECT_H
+#define NATIVE_MODULE_OHOS_EFFECT_H
 
 #include "napi/native_node_api.h"
 #include "color_picker_napi.h"
 #include "filter_napi.h"
 
-#endif /* NATIVE_MODULE_OHOS_EFFECT_H_ */
+#endif /* NATIVE_MODULE_OHOS_EFFECT_H */

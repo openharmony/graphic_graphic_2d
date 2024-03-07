@@ -21,11 +21,7 @@
 #include <string>
 #include <unistd.h>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkImage.h"
-#else
 #include "image/image.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -46,11 +42,7 @@ public:
     RSSurfaceExt& operator=(const RSSurfaceExt&&) = delete;
 
 #ifdef USE_SURFACE_TEXTURE
-#ifndef USE_ROSEN_DRAWING
-    virtual void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const SkRect& clipRect) = 0;
-#else
     virtual void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) = 0;
-#endif
     virtual void UpdateSurfaceDefaultSize(float width, float height) = 0;
     virtual void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) = 0;
     virtual void SetUpdateCallback(const RSSurfaceTextureUpdateCallBack& updateCallback) = 0;

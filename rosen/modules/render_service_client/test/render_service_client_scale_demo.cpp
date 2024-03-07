@@ -17,10 +17,6 @@
 #include <random>
 #include <string>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkColor.h"
-#include "include/core/SkTextBlob.h"
-#endif
 
 #include "refbase.h"
 #include "render_context/render_context.h"
@@ -133,27 +129,8 @@ public:
                 std::cout << "Failed to create canvas!" << std::endl;
                 return;
             }
-#ifndef USE_ROSEN_DRAWING
-            canvas->clear(SK_ColorWHITE);
-            SkPaint paint;
-            paint.setAntiAlias(true);
-            paint.setStyle(SkPaint::kFill_Style);
-            paint.setStrokeWidth(20); // line width: 20
-            paint.setStrokeJoin(SkPaint::kRound_Join);
-            paint.setColor(SK_ColorBLUE);
-            std::string scaleInfo;
-            scaleInfo += ("ScaleX: " + std::to_string(scaleX) + "\n");
-            scaleInfo += ("ScaleY: " + std::to_string(scaleY) + "\n");
-            sk_sp<SkTextBlob> scaleInfoTextBlob = SkTextBlob::MakeFromString(
-                scaleInfo.c_str(), SkFont(nullptr, 16.0f, 1.0f, 0.0f)); // font size: 16
-            canvas->drawTextBlob(scaleInfoTextBlob.get(), 20, 50, paint); // start point is (20, 50)
-            sk_sp<SkTextBlob> pivotInfoTextBlob = SkTextBlob::MakeFromString(
-                pivotInfo.c_str(), SkFont(nullptr, 16.0f, 1.0f, 0.0f)); // font size: 16
-            canvas->drawTextBlob(pivotInfoTextBlob.get(), 20, 100, paint); // start point is (20, 100)
-#else
             canvas->clear(Drawing::Color::COLOR_WHITE);
             std::cout << "Drawing does not support TextBlob" << std::endl;
-#endif
             frame->SetDamageRegion(0, 0, BUFFER_WIDTH, BUFFER_HEIGHT);
             rsSurface->FlushFrame(frame);
 

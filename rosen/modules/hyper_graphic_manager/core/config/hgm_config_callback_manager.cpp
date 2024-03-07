@@ -95,6 +95,7 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
 
 void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (animDynamicCfgCallbacks_.empty()) {
         return;
     }

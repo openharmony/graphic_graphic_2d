@@ -44,11 +44,7 @@ void RSSkiaFilterTest::TearDown() {}
 HWTEST_F(RSSkiaFilterTest, ExtractSkImage, TestSize.Level1)
 {
     RSBlurFilter rsBlurFilter(0, 1);
-#ifndef USE_ROSEN_DRAWING
-    rsBlurFilter.GetPaint();
-#else
     rsBlurFilter.GetBrush();
-#endif
 
     rsBlurFilter.GetImageFilter();
 }

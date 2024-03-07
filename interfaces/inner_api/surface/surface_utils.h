@@ -43,7 +43,7 @@ private:
     SurfaceUtils() = default;
     virtual ~SurfaceUtils();
     std::array<float, 16> MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat);
-    static constexpr int64_t TRANSFORM_MATRIX_ELE_COUNT = 16;
+    static constexpr int32_t TRANSFORM_MATRIX_ELE_COUNT = 16;
     void ComputeTransformByMatrix(GraphicTransformType& transform,
         std::array<float, TRANSFORM_MATRIX_ELE_COUNT> *transformMatrix);
     std::unordered_map<uint64_t, sptr<Surface>> surfaceCache_;

@@ -190,15 +190,9 @@ private:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
-#ifndef USE_ROSEN_DRAWING
-    bool GetBitmap(NodeId id, SkBitmap& bitmap) override;
-    bool GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
-        const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList) override;
-#else
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) override;
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList) override;
-#endif
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 

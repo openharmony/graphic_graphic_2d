@@ -116,6 +116,9 @@ public:
     bool IsDVsyncOn();
     void MarkRSNotRendering();
     void UnmarkRSNotRendering();
+    void MarkRSAnimate();
+    void UnmarkRSAnimate();
+    bool HasPendingUIRNV();
 
 private:
 
@@ -159,6 +162,7 @@ private:
     uint32_t generatorRefreshRate_ = 0;
 #if defined(RS_ENABLE_DVSYNC)
     sptr<DVsync> dvsync_ = nullptr;
+    bool pendingRNVInVsync_ = false;
 #endif
     bool isRs_ = false;
 };

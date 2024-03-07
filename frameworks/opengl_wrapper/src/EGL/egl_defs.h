@@ -21,6 +21,7 @@
 #include "../hook.h"
 namespace OHOS {
 struct EglWrapperDispatchTable {
+    enum { GLESV1_INDEX = 0, GLESV2_INDEX = 1 };
     inline EglWrapperDispatchTable() noexcept : isLoad(false) {}
     WrapperHookTable    wrapper;
     EglHookTable        egl;
@@ -39,7 +40,12 @@ extern const std::map<std::string, EglWrapperFuncPointer> gExtensionMap;
 
 extern GlHookTable gGlHookNoContext;
 extern EglWrapperDispatchTable gWrapperHook;
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+extern GlHookTable g_glHookCSDR;
+extern GlHookTable g_glHookSingle;
+#endif
 
 using EglWrapperDispatchTablePtr = EglWrapperDispatchTable *;
 }; // namespace OHOS
+
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_DEFS_H

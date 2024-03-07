@@ -49,20 +49,6 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
     NativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
         width, height);
-#ifndef USE_ROSEN_DRAWING
-    if (!backendTexture.isValid()) {
-        DestroyNativeWindowBuffer(nativeWindowBuffer);
-        return nullptr;
-    }
-    GrVkImageInfo imageInfo;
-    backendTexture.getVkImageInfo(&imageInfo);
-
-    return std::make_unique<NativeVkImageRes>(
-        nativeWindowBuffer,
-        backendTexture,
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            imageInfo.fImage, imageInfo.fAlloc.fMemory));
-#else
     if (!backendTexture.IsValid()) {
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
@@ -73,7 +59,6 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             backendTexture.GetTextureInfo().GetVKTextureInfo()->vkImage,
             backendTexture.GetTextureInfo().GetVKTextureInfo()->vkAlloc.memory));
-#endif
 }
 
 std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
