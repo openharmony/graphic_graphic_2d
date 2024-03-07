@@ -552,20 +552,6 @@ HWTEST_F(RSUniRenderVisitorTest, CopyVisitorInfosTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CopyPropertyForParallelVisitorTest
- * @tc.desc: Test RSUniRenderVisitorTest.CopyPropertyForParallelVisitorTest
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, CopyPropertyForParallelVisitorTest, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    auto newRsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    newRsUniRenderVisitor->CopyPropertyForParallelVisitor(rsUniRenderVisitor.get());
-    ASSERT_EQ(rsUniRenderVisitor->doAnimate_, newRsUniRenderVisitor->doAnimate_);
-}
-
-/**
  * @tc.name: ClearTransparentBeforeSaveLayerTest
  * @tc.desc: Test RSUniRenderVisitorTest.ClearTransparentBeforeSaveLayerTest
  * @tc.type: FUNC
@@ -1332,32 +1318,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareEffectRenderNode001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CopyForParallelPrepare001
- * @tc.desc: Test RSUniRenderVisitorTest.CopyForParallelPrepare api
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, CopyForParallelPrepare001, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto rsUniRenderVisitorCopy = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitorCopy, nullptr);
-    auto rsContext = std::make_shared<RSContext>();
-    RSSurfaceRenderNodeConfig config;
-    RSDisplayNodeConfig displayConfig;
-    config.id = 10;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(20, displayConfig, rsContext->weak_from_this());
-    rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
-    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
-    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
-    rsUniRenderVisitorCopy->PrepareDisplayRenderNode(*rsDisplayRenderNode);
-    rsUniRenderVisitorCopy->dirtySurfaceNodeMap_.emplace(rsSurfaceRenderNode->GetId(), rsSurfaceRenderNode);
-    rsUniRenderVisitor->CopyForParallelPrepare(rsUniRenderVisitorCopy);
-}
-
-/**
  * @tc.name: DrawDirtyRectForDFX001
  * @tc.desc: Test RSUniRenderVisitorTest.DrawDirtyRectForDFX api
  * @tc.type: FUNC
@@ -1424,24 +1384,6 @@ HWTEST_F(RSUniRenderVisitorTest, DrawSurfaceOpaqueRegionForDFX001, TestSize.Leve
     Occlusion::Region region{rect};
     surfaceNode->opaqueRegion_ = region;
     rsUniRenderVisitor->DrawSurfaceOpaqueRegionForDFX(*surfaceNode);
-}
-
-/**
- * @tc.name: ProcessParallelDisplayRenderNode001
- * @tc.desc: Test RSUniRenderVisitorTest.ProcessParallelDisplayRenderNode api
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, ProcessParallelDisplayRenderNode001, TestSize.Level1)
-{
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(node, nullptr);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->ProcessParallelDisplayRenderNode(*node);
 }
 
 /**
@@ -1566,22 +1508,6 @@ HWTEST_F(RSUniRenderVisitorTest, FinishOffscreenRender001, TestSize.Level1)
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
     rsUniRenderVisitor->canvasBackup_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-}
-
-/**
- * @tc.name: ParallelRenderEnableHardwareComposer001
- * @tc.desc: Test RSUniRenderVisitorTest.ParallelRenderEnableHardwareComposer api
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, ParallelRenderEnableHardwareComposer001, TestSize.Level1)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->ParallelRenderEnableHardwareComposer(*surfaceNode);
 }
 
 /**
@@ -1722,7 +1648,6 @@ HWTEST_F(RSUniRenderVisitorTest, AdjustLocalZOrder001, TestSize.Level2)
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->isParallel_ = false;
 
     rsUniRenderVisitor->CollectAppNodeForHwc(appWindowNode);
     ASSERT_NE(rsUniRenderVisitor->appWindowNodesInZOrder_.size(), 0);

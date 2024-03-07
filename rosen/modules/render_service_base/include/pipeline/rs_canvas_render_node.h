@@ -72,7 +72,6 @@ private:
     void DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas);
 
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
-    mutable std::mutex canvasNodeProcessMutex_;
 
     friend class RSColorfulShadowDrawable;
     friend class RSRenderTransition;

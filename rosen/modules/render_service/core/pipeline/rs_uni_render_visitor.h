@@ -86,7 +86,6 @@ public:
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
-    bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
     void ChangeCacheRenderNodeMap(RSRenderNode& node, const uint32_t count = 0);
     void UpdateCacheRenderNodeMap(RSRenderNode& node);
     bool GenerateNodeContentCache(RSRenderNode& node);
@@ -138,15 +137,10 @@ public:
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
 #endif
-    void UpdateHardwareEnabledInfoBeforeCreateLayer();
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
 
-    void CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor);
-    // Some properties defined before ProcessSurfaceRenderNode() may be used in
-    // ProcessSurfaceRenderNode() method. We should copy these properties in parallel render.
-    void CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor);
     bool GetIsPartialRenderEnabled() const
     {
         return isPartialRenderEnabled_;
@@ -328,9 +322,6 @@ private:
     // offscreen render related
     void PrepareOffscreenRender(RSRenderNode& node);
     void FinishOffscreenRender(bool isMirror = false);
-    void ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node);
-    bool AdaptiveSubRenderThreadMode(bool doParallel);
-    void ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node);
     // close partialrender when perform window animation
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
     bool DrawBlurInCache(RSRenderNode& node);
@@ -355,7 +346,6 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
     // Use in vulkan parallel rendering
-    void ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node);
     bool IsOutOfScreenRegion(RectI rect);
 
     ScreenInfo screenInfo_;
@@ -449,11 +439,6 @@ private:
     bool isSurfaceDirtyNodeLimited_ = false;
 
     bool isDirtyRegionAlignedEnable_ = false;
-    std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
-#if defined(RS_ENABLE_PARALLEL_RENDER)
-    uint32_t parallelRenderVisitorIndex_ = 0;
-#endif
-    ParallelRenderingType parallelRenderType_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
 
@@ -488,19 +473,12 @@ private:
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
-#if defined(RS_ENABLE_PARALLEL_RENDER)
-    bool isCalcCostEnable_ = false;
-#endif
     // adapt to sceneboard, mark if the canvasNode within the scope of surfaceNode
     bool isSubNodeOfSurfaceInPrepare_ = false;
     bool isSubNodeOfSurfaceInProcess_ = false;
 
     uint32_t appWindowNum_ = 0;
 
-    bool isParallel_ = false;
-#if defined(RS_ENABLE_PARALLEL_RENDER)
-    bool doParallelRender_ = false;
-#endif
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
     std::optional<Drawing::Matrix> displayNodeMatrix_;
