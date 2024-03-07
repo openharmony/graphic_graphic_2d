@@ -74,7 +74,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 // ============================================================================
@@ -89,7 +88,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSClipToFrameDrawable : public RSPropertyDrawable {
@@ -102,7 +100,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 // ============================================================================
@@ -117,7 +114,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSEndBlendModeDrawable : public RSPropertyDrawable {
@@ -130,7 +126,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 } // namespace OHOS::Rosen

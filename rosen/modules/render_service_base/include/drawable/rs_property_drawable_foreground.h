@@ -40,7 +40,6 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     bool needSync_ = false;
     std::optional<Vector4f> aiInvert_;
     std::optional<Vector4f> stagingAiInvert_;
@@ -57,7 +56,6 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     bool needSync_ = false;
     std::shared_ptr<Drawing::ColorFilter> filter_;
     std::shared_ptr<Drawing::ColorFilter> stagingFilter_;
@@ -74,7 +72,6 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     bool needSync_ = false;
     float lightUpEffectDegree_ = 1.0f;
     float stagingLightUpEffectDegree_ = 1.0f;
@@ -106,7 +103,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSPointLightDrawable : public RSPropertyDrawable {
@@ -119,7 +115,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder_;
 
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
@@ -142,7 +137,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
         const std::shared_ptr<RSBorder>& border, const bool& isOutline);
 };
@@ -156,7 +150,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSParticleDrawable : public RSPropertyDrawable {
@@ -168,7 +161,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSPixelStretchDrawable : public RSDrawable {
@@ -182,7 +174,6 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     bool needSync_ = false;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> stagingPixelStretch_;

@@ -34,7 +34,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     static void DrawColorfulShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path);
     static void DrawShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path);
 };
@@ -47,7 +46,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 // ============================================================================
@@ -62,7 +60,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSBackgroundShaderDrawable : public RSPropertyDrawable {
@@ -75,7 +72,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {
@@ -88,7 +84,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
 };
 
 class RSBackgroundFilterDrawable : public RSDrawable {
@@ -102,7 +97,6 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     bool needSync_ = false;
     std::shared_ptr<RSFilter> filter_;
     std::shared_ptr<RSFilter> stagingFilter_;
@@ -118,7 +112,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-    static bool ParamCheck(const RSRenderNode& node);
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
     static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(
         float dynamicLightUpRate, float dynamicLightUpDeg);
