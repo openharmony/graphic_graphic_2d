@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_BASE_H_
-#define ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_BASE_H_
+#ifndef ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_BASE_H
+#define ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_BASE_H
 
 #include <memory>
 #include <vector>
@@ -34,4 +34,4 @@ public:
     virtual void LoadSystemFont() = 0;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_BASE_H_
+#endif // ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_BASE_H

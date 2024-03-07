@@ -33,7 +33,7 @@ void FontFeaturesSetFeatureFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<FontFeatures> fontFeatures = std::make_shared<FontFeatures>();
-    if(fontFeatures == nullptr) {
+    if (fontFeatures == nullptr) {
         return;
     }
     std::string ftag = GetStringFromData();

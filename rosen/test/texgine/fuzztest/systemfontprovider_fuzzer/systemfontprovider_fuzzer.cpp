@@ -33,7 +33,7 @@ void SystemFontProviderMatchFamilyFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<SystemFontProvider> systemFontProvider = SystemFontProvider::GetInstance();
-    if(systemFontProvider == nullptr) {
+    if (systemFontProvider == nullptr) {
         return;
     }
     std::string familyName = GetStringFromData();

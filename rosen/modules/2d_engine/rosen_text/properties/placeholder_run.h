@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ROSEN_TEXT_PROPERTIES_PLACEHOLDERALIGNMENT_H_
-#define ROSEN_TEXT_PROPERTIES_PLACEHOLDERALIGNMENT_H_
+#ifndef ROSEN_TEXT_PROPERTIES_PLACEHOLDERALIGNMENT_H
+#define ROSEN_TEXT_PROPERTIES_PLACEHOLDERALIGNMENT_H
 
 #include "rosen_text/properties/text_style.h"
 
@@ -41,4 +41,4 @@ public:
     double baselineOffset_ = 0;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_PLACEHOLDERALIGNMENT_H_
+#endif // ROSEN_TEXT_PROPERTIES_PLACEHOLDERALIGNMENT_H

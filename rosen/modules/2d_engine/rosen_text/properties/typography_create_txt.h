@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_TXT_H_
-#define ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_TXT_H_
+#ifndef ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_TXT_H
+#define ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_TXT_H
 
 #include <string>
 
@@ -44,4 +44,4 @@ public:
     std::shared_ptr<txt::ParagraphBuilderTxt> paragraphBuilderTxt_;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_TXT_H_
+#endif // ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_TXT_H

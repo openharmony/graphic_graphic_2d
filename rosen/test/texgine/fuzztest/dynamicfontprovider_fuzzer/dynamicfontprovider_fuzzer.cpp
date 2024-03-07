@@ -33,7 +33,7 @@ void DynamicFontProviderLoadFontFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<DynamicFontProvider> dynamicFontProvider = DynamicFontProvider::Create();
-    if(dynamicFontProvider == nullptr) {
+    if (dynamicFontProvider == nullptr) {
         return;
     }
     std::string familyName = GetStringFromData();
@@ -53,7 +53,7 @@ void DynamicFontProviderMatchFamilyFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<DynamicFontProvider> dynamicFontProvider = DynamicFontProvider::Create();
-    if(dynamicFontProvider == nullptr) {
+    if (dynamicFontProvider == nullptr) {
         return;
     }
     std::string familyName = GetStringFromData();

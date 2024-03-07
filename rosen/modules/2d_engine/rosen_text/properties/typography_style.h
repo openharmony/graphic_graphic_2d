@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERTIES_PARAGRAPHY_STYLE_H_
-#define ROSEN_TEXT_PROPERTIES_PARAGRAPHY_STYLE_H_
+#ifndef ROSEN_TEXT_PROPERTIES_PARAGRAPHY_STYLE_H
+#define ROSEN_TEXT_PROPERTIES_PARAGRAPHY_STYLE_H
 
 #include <climits>
 #include <vector>
@@ -92,4 +92,4 @@ public:
     TextAlign EffectiveAlign() const;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_PARAGRAPHY_STYLE_H_
+#endif // ROSEN_TEXT_PROPERTIES_PARAGRAPHY_STYLE_H

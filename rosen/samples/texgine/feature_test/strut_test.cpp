@@ -69,7 +69,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         option_.needRainbowChar = true;
 

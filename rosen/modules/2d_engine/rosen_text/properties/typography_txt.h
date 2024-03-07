@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERITES_TYPOGRAPHY_TXT_H_
-#define ROSEN_TEXT_PROPERITES_TYPOGRAPHY_TXT_H_
+#ifndef ROSEN_TEXT_PROPERITES_TYPOGRAPHY_TXT_H
+#define ROSEN_TEXT_PROPERITES_TYPOGRAPHY_TXT_H
 
 #include <vector>
 #include "rosen_text/properties/text_style.h"
@@ -63,4 +63,4 @@ private:
     std::unique_ptr<txt::Paragraph> paragraphTxt_;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERITES_TYPOGRAPHY_TXT_H_
+#endif // ROSEN_TEXT_PROPERITES_TYPOGRAPHY_TXT_H

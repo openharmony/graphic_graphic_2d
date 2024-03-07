@@ -27,7 +27,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         TypographyStyle ys = { .maxLines = 1, .ellipsis = u"\u2026" };
 

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_BASE_H_
-#define ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_BASE_H_
+#ifndef ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_BASE_H
+#define ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_BASE_H
 
 #include <memory>
 #include <string>
@@ -41,4 +41,4 @@ public:
     TypographyCreateBase& operator=(const TypographyCreateBase&) = delete;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_BASE_H_
+#endif // ROSEN_TEXT_PROPERTIES_TYPOGRAPHY_CREATE_BASE_H

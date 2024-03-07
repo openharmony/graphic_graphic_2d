@@ -58,7 +58,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (auto &info : g_infos) {
             auto builder = TypographyBuilder::Create();

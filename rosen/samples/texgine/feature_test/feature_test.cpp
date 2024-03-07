@@ -63,7 +63,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (const auto &info : g_infos) {
             auto dfProvider = DynamicFileFontProvider::Create();

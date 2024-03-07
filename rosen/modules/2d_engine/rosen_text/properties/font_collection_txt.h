@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_H_
-#define ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_H_
+#ifndef ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_H
+#define ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_H
 
 #include <memory>
 #include <vector>
@@ -57,4 +57,4 @@ private:
     FontCollectionTxt& operator=(const FontCollectionTxt&) = delete;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_H_
+#endif // ROSEN_TEXT_PROPERTIES_FONT_COLLECTION_TXT_H

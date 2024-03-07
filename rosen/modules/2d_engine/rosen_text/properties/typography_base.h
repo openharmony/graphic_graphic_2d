@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERITES_TYPOGRAPHY_BASE_H_
-#define ROSEN_TEXT_PROPERITES_TYPOGRAPHY_BASE_H_
+#ifndef ROSEN_TEXT_PROPERITES_TYPOGRAPHY_BASE_H
+#define ROSEN_TEXT_PROPERITES_TYPOGRAPHY_BASE_H
 
 #include <vector>
 #include "rosen_text/properties/text_style.h"
@@ -57,4 +57,4 @@ public:
     virtual size_t GetLineCount();
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_UI_TEXT_TYPOGRAPHY_H_
+#endif // ROSEN_TEXT_UI_TEXT_TYPOGRAPHY_H

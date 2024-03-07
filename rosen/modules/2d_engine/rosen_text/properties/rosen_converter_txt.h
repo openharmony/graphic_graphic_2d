@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERTIES_ROSEN_CONVERT_TXT_H_
-#define ROSEN_TEXT_PROPERTIES_ROSEN_CONVERT_TXT_H_
+#ifndef ROSEN_TEXT_PROPERTIES_ROSEN_CONVERT_TXT_H
+#define ROSEN_TEXT_PROPERTIES_ROSEN_CONVERT_TXT_H
 
 #include "minikin/LineBreaker.h"
 #include "rosen_text/properties/text_style.h"
@@ -52,4 +52,4 @@ TypographyProperties::PositionAndAffinity TxtConvertPosAndAffinity(
     txt::Paragraph::PositionWithAffinity& posAndAffinity);
 TypographyProperties::Range<size_t> TxtConvertRange(txt::Paragraph::Range<size_t>& txtRange);
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_ROSEN_CONVERT_TXT_H_
+#endif // ROSEN_TEXT_PROPERTIES_ROSEN_CONVERT_TXT_H

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_PROPERTIES_TEXT_STYLE_H_
-#define ROSEN_TEXT_PROPERTIES_TEXT_STYLE_H_
+#ifndef ROSEN_TEXT_PROPERTIES_TEXT_STYLE_H
+#define ROSEN_TEXT_PROPERTIES_TEXT_STYLE_H
 
 #include <map>
 #include <string>
@@ -121,4 +121,4 @@ public:
     bool equals(const TextStyle& rhs) const;
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_PROPERTIES_TEXT_STYLE_H_
+#endif // ROSEN_TEXT_PROPERTIES_TEXT_STYLE_H

@@ -367,7 +367,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (auto &emoji : g_emojis) {
             TypographyStyle tystyle;

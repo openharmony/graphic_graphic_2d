@@ -192,7 +192,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess4, TestSize.Level1)
 HWTEST_F(BidiProcesserTest, DoBidiProcess5, TestSize.Level1)
 {
     // set ubidi_countRuns return 0
-    InitMyMockVars({.size = 0,});
+    InitMyMockVars({.size = 0});
 
     EXPECT_NO_THROW({
         auto ret = bp.DoBidiProcess(cgs1_, TextDirection::LTR);
@@ -209,7 +209,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess5, TestSize.Level1)
 HWTEST_F(BidiProcesserTest, DoBidiProcess6, TestSize.Level1)
 {
     // -1, 1: Set the output parameter of ubidi_getVisualRun
-    InitMyMockVars({.start = {-1}, .length = {1},});
+    InitMyMockVars({.start = {-1}, .length = {1}});
 
     try {
         bp.DoBidiProcess(cgs1_, TextDirection::LTR);
@@ -226,7 +226,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess6, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, DoBidiProcess7, TestSize.Level1)
 {
-    InitMyMockVars({.start = {1}, .length = {-1},});
+    InitMyMockVars({.start = {1}, .length = {-1}});
 
     try {
         bp.DoBidiProcess(cgs1_, TextDirection::LTR);
@@ -276,7 +276,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess9, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, DoBidiProcess10, TestSize.Level1)
 {
-    InitMyMockVars({.rtl = UBIDI_LTR,});
+    InitMyMockVars({.rtl = UBIDI_LTR});
 
     EXPECT_NO_THROW({
         auto ret = bp.DoBidiProcess(cgs1_, TextDirection::LTR);

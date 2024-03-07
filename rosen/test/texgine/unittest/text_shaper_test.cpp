@@ -155,7 +155,7 @@ HWTEST_F(TextShaperTest, DoShape3, TestSize.Level1)
     EXPECT_NO_THROW({
         TextShaper shaper;
         shaper.DoShape(span, style, {}, FontProviders::Create());
-        ASSERT_EQ(style.fontFamilies , g_tsMockvars.catchedGenerateFontCollectionFamilies);
+        ASSERT_EQ(style.fontFamilies, g_tsMockvars.catchedGenerateFontCollectionFamilies);
     });
 }
 

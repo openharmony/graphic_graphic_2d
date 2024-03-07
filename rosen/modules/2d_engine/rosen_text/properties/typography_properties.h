@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_TEXT_TYPOGRAPHY_PROPERTIES_H_
-#define ROSEN_TEXT_TYPOGRAPHY_PROPERTIES_H_
+#ifndef ROSEN_TEXT_TYPOGRAPHY_PROPERTIES_H
+#define ROSEN_TEXT_TYPOGRAPHY_PROPERTIES_H
 
 #include "rosen_text/properties/typography_style.h"
 #include "utils/rect.h"
@@ -75,4 +75,4 @@ public:
     };
 };
 } // namespace rosen
-#endif // ROSEN_TEXT_TYPOGRAPHY_PROPERTIES_H_
+#endif // ROSEN_TEXT_TYPOGRAPHY_PROPERTIES_H

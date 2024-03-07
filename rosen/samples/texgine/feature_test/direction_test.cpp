@@ -34,7 +34,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (const auto &dir : {TextDirection::LTR, TextDirection::RTL}) {
             TypographyStyle tystyle = {
