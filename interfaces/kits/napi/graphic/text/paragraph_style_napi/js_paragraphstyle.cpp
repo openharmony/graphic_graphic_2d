@@ -25,7 +25,7 @@ napi_value JsParagraphStyle::Init(napi_env env, napi_value exportObj)
 
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
         LOGE("Failed to define ParagraphStyle class");
         return nullptr;
@@ -68,7 +68,7 @@ napi_value JsParagraphStyle::Constructor(napi_env env, napi_callback_info info)
     JsParagraphStyle *jsParagraphStyle = new(std::nothrow) JsParagraphStyle(paragraphStyle);
 
     status = napi_wrap(env, jsThis, jsParagraphStyle,
-                       JsParagraphStyle::Destructor, nullptr, nullptr);
+        JsParagraphStyle::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsParagraphStyle;
         LOGE("Failed to wrap native instance");
