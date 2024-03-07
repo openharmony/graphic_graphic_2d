@@ -1420,11 +1420,11 @@ void RSRenderNode::ApplyModifiers()
 #endif
 
     UpdateShouldPaint();
-    // Temporary code, copy matrix into render params
-    // TODO: only run UpdateRenderParams on matrix change
-    if (!stagingRenderParams_) {
+    if (stagingRenderParams_ == nullptr) {
         InitRenderParams();
     }
+    // Temporary code, copy matrix into render params
+    // TODO: only run UpdateRenderParams on matrix change
     UpdateRenderParams();
     UpdateDrawableVec();
 

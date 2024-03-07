@@ -261,9 +261,11 @@ enum DrawableVecStatus : uint8_t {
     FG_BOUNDS_PROPERTY = 1 << 2,
     CLIP_TO_FRAME      = 1 << 3,
     FRAME_PROPERTY     = 1 << 4,
-    HAS_CHILDREN       = 1 << 5,
+    HAVE_ALPHA         = 1 << 5,
+    HAVE_ENV_CHANGE    = 1 << 6,
     BOUNDS_MASK        = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
-    FRAME_MASK         = CLIP_TO_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
+    FRAME_MASK         = CLIP_TO_FRAME | FRAME_PROPERTY,
+    OTHER_MASK         = HAVE_ALPHA | HAVE_ENV_CHANGE,
 };
 
 constexpr std::array boundsSlotsToErase = {
@@ -278,6 +280,11 @@ constexpr std::array boundsSlotsToErase = {
 constexpr std::array frameSlotsToErase = {
     RSDrawableSlot::SAVE_FRAME,
     RSDrawableSlot::RESTORE_FRAME,
+};
+
+constexpr std::array globalSlotsToErase = {
+    RSDrawableSlot::SAVE_ALL,
+    RSDrawableSlot::RESTORE_ALL,
 };
 
 inline static bool HasPropertyDrawableInRange(
@@ -309,12 +316,24 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
             drawableVec, RSDrawableSlot::FG_PROPERTIES_BEGIN, RSDrawableSlot::FG_PROPERTIES_END)) {
         result |= DrawableVecStatus::FG_BOUNDS_PROPERTY;
     }
-    if (HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CONTENT_PROPERTIES_END)) {
+
+    // If we have any frame properties EXCEPT children
+    if (HasPropertyDrawableInRange(drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CHILDREN) ||
+        drawableVec[static_cast<size_t>(RSDrawableSlot::FOREGROUND_STYLE)]) {
         result |= DrawableVecStatus::FRAME_PROPERTY;
     }
 
-    // TODO: determine if we need save ALPHA/BlendMode/EffectData etc in SAVE_ALL
+    if (drawableVec[static_cast<size_t>(RSDrawableSlot::ALPHA)]) {
+        result |= DrawableVecStatus::HAVE_ALPHA;
+    }
+    // Foreground color & Background Effect & Blend Mode should be processed here
+    if (drawableVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] ||
+        drawableVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)] ||
+        drawableVec[static_cast<size_t>(RSDrawableSlot::BLEND_MODE)] ||
+        (node.GetType() == RSRenderNodeType::EFFECT_NODE &&
+            drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)])) {
+        result |= DrawableVecStatus::HAVE_ENV_CHANGE;
+    }
 
     return result;
 }
@@ -404,11 +423,30 @@ static void OptimizeFrameSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawab
 
     // PLANNING: if both clipToFrame and clipToBounds are set, and frame == bounds, we don't need an extra clip
     if (flags & DrawableVecStatus::FRAME_PROPERTY) {
-        // save/restore
+        // if we
         SaveRestoreHelper(
             drawableVec, RSDrawableSlot::SAVE_FRAME, RSDrawableSlot::RESTORE_FRAME, RSPaintFilterCanvas::kCanvas);
-    } else {
-        // no need to save/clip/restore
+    }
+}
+
+static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)
+{
+    // Erase existing save/clip/restore before re-generating
+    for (auto& slot : globalSlotsToErase) {
+        drawableVec[static_cast<size_t>(slot)] = nullptr;
+    }
+
+    auto saveType = RSPaintFilterCanvas::SaveType::kNone;
+    if (flags & DrawableVecStatus::HAVE_ALPHA) {
+        saveType = RSPaintFilterCanvas::SaveType::kAlpha;
+    }
+    if (flags & DrawableVecStatus::HAVE_ENV_CHANGE) {
+        saveType = RSPaintFilterCanvas::SaveType::kEnv;
+    }
+
+    if (saveType != RSPaintFilterCanvas::SaveType::kNone) {
+        // add necessary save/restore type
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_ALL, RSDrawableSlot::RESTORE_ALL, saveType);
     }
 }
 } // namespace
@@ -420,6 +458,11 @@ void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t
 
     // calculate new drawable map status
     auto drawableVecStatusNew = CalculateDrawableVecStatus(node, drawableVec);
+    
+    if (drawableVecStatus == drawableVecStatusNew) {
+        // nothing to do
+        return;
+    }
 
     // calculate changed bits
     uint8_t changedBits = drawableVecStatus ^ drawableVecStatusNew;
@@ -431,8 +474,10 @@ void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t
         // update frame save/clip if need
         OptimizeFrameSaveRestore(node, drawableVec, drawableVecStatusNew);
     }
-
-    // TODO: add SAVE_ALL and RESTORE_ALL if we have alpha/blend/effect
+    if (changedBits & OTHER_MASK) {
+        // update children save/clip if need
+        OptimizeGlobalSaveRestore(node, drawableVec, drawableVecStatusNew);
+    }
 
     drawableVecStatus = drawableVecStatusNew;
 }
