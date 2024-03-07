@@ -1616,4 +1616,43 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest049, TestSize.Level
     bool linestyleOnly = false;
     OH_Drawing_SetTypographyTextLineStyleOnly(typoStyle, linestyleOnly);
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest050
+ * @tc.desc: test for getting numbers for textstyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest050, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleColor(txtStyle, 1);
+    EXPECT_EQ(OH_Drawing_TextStyleGetColor(txtStyle), 1);
+    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_SOLID);
+    EXPECT_EQ(OH_Drawing_TextStyleGetDecorationStyle(txtStyle), 0);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_100);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 0);
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_NORMAL);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(txtStyle), 0);
+    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaseLine(txtStyle), 0);
+    const char* fontFamilies[] = {"Roboto"};
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+    size_t fontFamiliesNumber;
+    char** fontFamiliesList = OH_Drawing_TextStyleGetFontFamilies(txtStyle, &fontFamiliesNumber);
+    EXPECT_EQ(fontFamiliesList != nullptr, true);
+    OH_Drawing_TextStyleDestroyFontFamilies(fontFamiliesList, fontFamiliesNumber);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 60);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(txtStyle), 60);
+    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, 20);
+    EXPECT_EQ(OH_Drawing_TextStyleGetLetterSpacing(txtStyle), 20);
+    OH_Drawing_SetTextStyleWordSpacing(txtStyle, 80);
+    EXPECT_EQ(OH_Drawing_TextStyleGetWordSpacing(txtStyle), 80);
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, 0.0);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontHeight(txtStyle), 0.0);
+    bool halfLeading = true;
+    OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
+    EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(txtStyle), true);
+    OH_Drawing_SetTextStyleLocale(txtStyle, "en");
+    EXPECT_EQ(std::strcmp(OH_Drawing_TextStyleGetLocale(txtStyle), "en"), 0);
+}
 }
