@@ -1470,7 +1470,7 @@ void RSRenderNode::UpdateDrawableVec()
 
         // Step 4: Generate drawCmdList from drawables
         // TODO: use correct W/H instead of 0
-        auto recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0, true);
+        auto recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, true);
         for (const auto& drawable : drawableVec_) {
             if (drawable) {
                 recordingCanvas_->DrawDrawFunc(drawable->CreateDrawFunc());

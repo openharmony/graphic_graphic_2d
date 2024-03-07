@@ -24,7 +24,7 @@ namespace OHOS::Rosen {
 RSDrawable::Ptr RSChildrenDrawableContent::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSChildrenDrawableContent>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -69,7 +69,7 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawableContent::CreateDrawFunc() c
 RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, RSModifierType type)
 {
     if (auto ret = std::make_shared<RSCustomModifierDrawable>(type); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -121,7 +121,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
 RSDrawable::Ptr RSAlphaDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSAlphaDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }

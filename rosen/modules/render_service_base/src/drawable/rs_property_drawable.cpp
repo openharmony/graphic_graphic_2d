@@ -67,7 +67,7 @@ public:
     explicit RSPropertyDrawCmdListRecorder(int width, int height)
     {
         // PLANNING: use RSRenderNode to determine the correct recording canvas size
-        recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(width, height, true);
+        recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, true);
     }
 
     virtual ~RSPropertyDrawCmdListRecorder()
@@ -116,7 +116,7 @@ private:
 RSDrawable::Ptr RSFrameOffsetDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSFrameOffsetDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -140,7 +140,7 @@ bool RSFrameOffsetDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSClipToBoundsDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -168,7 +168,7 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode &node)
 RSDrawable::Ptr RSClipToFrameDrawable::OnGenerate(const RSRenderNode &node)
 {
     if (auto ret = std::make_shared<RSClipToFrameDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -191,7 +191,7 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode &node)
 RSDrawable::Ptr RSBackgroundColorDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSBackgroundColorDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -221,7 +221,7 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSBackgroundShaderDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSBackgroundShaderDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -250,7 +250,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSBackgroundImageDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSBackgroundImageDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -282,7 +282,7 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSBackgroundFilterDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -320,7 +320,7 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundFilterDrawable::CreateDrawFunc() 
 RSDrawable::Ptr RSBorderDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSBorderDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -395,7 +395,7 @@ void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canva
 RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSOutlineDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -412,7 +412,7 @@ bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSShadowDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -547,7 +547,7 @@ void RSShadowDrawable::DrawShadowInner(const RSProperties& properties, Drawing::
 RSDrawable::Ptr RSForegroundColorDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSForegroundColorDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -574,7 +574,7 @@ bool RSForegroundColorDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSForegroundFilterDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -612,7 +612,7 @@ Drawing::RecordingCanvas::DrawFunc RSForegroundFilterDrawable::CreateDrawFunc() 
 RSDrawable::Ptr RSPixelStretchDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSPixelStretchDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -658,7 +658,7 @@ Drawing::RecordingCanvas::DrawFunc RSPixelStretchDrawable::CreateDrawFunc() cons
 RSDrawable::Ptr RSDynamicLightUpDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSDynamicLightUpDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -714,7 +714,7 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBl
 RSDrawable::Ptr RSLightUpEffectDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSLightUpEffectDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -752,7 +752,7 @@ Drawing::RecordingCanvas::DrawFunc RSLightUpEffectDrawable::CreateDrawFunc() con
 RSDrawable::Ptr RSColorFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSColorFilterDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -790,7 +790,7 @@ Drawing::RecordingCanvas::DrawFunc RSColorFilterDrawable::CreateDrawFunc() const
 RSDrawable::Ptr RSMaskDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSMaskDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -864,7 +864,7 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSBinarizationDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSBinarizationDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -902,7 +902,7 @@ Drawing::RecordingCanvas::DrawFunc RSBinarizationDrawable::CreateDrawFunc() cons
 RSDrawable::Ptr RSParticleDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSParticleDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -973,7 +973,7 @@ bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSBeginBlendModeDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSBeginBlendModeDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -1018,7 +1018,7 @@ bool RSBeginBlendModeDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSEndBlendModeDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSEndBlendModeDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
@@ -1046,7 +1046,7 @@ bool RSEndBlendModeDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSPointLightDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSPointLightDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 };
