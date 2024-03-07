@@ -2257,7 +2257,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level2)
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetSecurityLayer(true);
-    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
 
     NodeId id = 0;
