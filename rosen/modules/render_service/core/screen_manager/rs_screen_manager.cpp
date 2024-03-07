@@ -24,6 +24,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
+#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -573,6 +574,18 @@ void RSScreenManager::HandleDefaultScreenDisConnectedLocked()
     }
 }
 
+// if SetVirtualScreenSurface success, force a refresh of one frame, avoiding prolong black screen
+void RSScreenManager::ForceRefreshOneFrame() const
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        mainThread->PostTask([mainThread]() {
+            mainThread->SetDirtyFlag();
+        });
+        mainThread->ForceRefreshForUni();
+    }
+}
+
 void RSScreenManager::SetDefaultScreenId(ScreenId id)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -793,14 +806,8 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     }
     screens_.at(id)->SetProducerSurface(surface);
     RS_LOGD("RSScreenManager %{public}s: set virtual screen surface success!", __func__);
-    // if SetVirtualScreenSurface success, force a refresh of one frame, avoiding prolong black screen
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread != nullptr) {
-        mainThread->PostTask([mainThread]() {
-            mainThread->SetDirtyFlag();
-        });
-        mainThread->ForceRefreshForUni();
-    }
+    RS_OPTIONAL_TRACE_NAME("RSScreenManager::SetVirtualScreenSurface, ForceRefreshOneFrame.");
+    ForceRefreshOneFrame();
     return SUCCESS;
 }
 
@@ -852,6 +859,8 @@ int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width,
     }
     screens_.at(id)->SetResolution(width, height);
     RS_LOGD("RSScreenManager %{public}s: set virtual screen resolution success", __func__);
+    RS_OPTIONAL_TRACE_NAME("RSScreenManager::SetVirtualScreenResolution, ForceRefreshOneFrame.");
+    ForceRefreshOneFrame();
     return SUCCESS;
 }
 
@@ -1207,6 +1216,8 @@ int32_t RSScreenManager::SetScreenGamutMapLocked(ScreenId id, ScreenGamutMap mod
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
+    RS_OPTIONAL_TRACE_NAME("RSScreenManager::SetScreenGamutMapLocked, ForceRefreshOneFrame.");
+    ForceRefreshOneFrame();
     return screens_.at(id)->SetScreenGamutMap(mode);
 }
 
