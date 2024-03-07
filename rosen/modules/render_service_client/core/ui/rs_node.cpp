@@ -529,11 +529,14 @@ void RSNode::SetBounds(float positionX, float positionY, float width, float heig
 
 void RSNode::SetBoundsWidth(float width)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
-    if (iter == propertyModifiers_.end()) {
-        SetBounds(0.f, 0.f, width, 0.f);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::BOUNDS);
+        if (iter == propertyModifiers_.end()) {
+            SetBounds(0.f, 0.f, width, 0.f);
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
@@ -548,11 +551,14 @@ void RSNode::SetBoundsWidth(float width)
 
 void RSNode::SetBoundsHeight(float height)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
-    if (iter == propertyModifiers_.end()) {
-        SetBounds(0.f, 0.f, 0.f, height);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::BOUNDS);
+        if (iter == propertyModifiers_.end()) {
+            SetBounds(0.f, 0.f, 0.f, height);
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
@@ -578,11 +584,14 @@ void RSNode::SetFrame(float positionX, float positionY, float width, float heigh
 
 void RSNode::SetFramePositionX(float positionX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::FRAME);
-    if (iter == propertyModifiers_.end()) {
-        SetFrame(positionX, 0.f, 0.f, 0.f);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::FRAME);
+        if (iter == propertyModifiers_.end()) {
+            SetFrame(positionX, 0.f, 0.f, 0.f);
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
@@ -596,11 +605,14 @@ void RSNode::SetFramePositionX(float positionX)
 
 void RSNode::SetFramePositionY(float positionY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::FRAME);
-    if (iter == propertyModifiers_.end()) {
-        SetFrame(0.f, positionY, 0.f, 0.f);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::FRAME);
+        if (iter == propertyModifiers_.end()) {
+            SetFrame(0.f, positionY, 0.f, 0.f);
+            return;
+        }
     }
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
     if (property == nullptr) {
@@ -613,8 +625,8 @@ void RSNode::SetFramePositionY(float positionY)
 
 void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     if (!parentPosition.has_value()) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         auto iter = propertyModifiers_.find(RSModifierType::SANDBOX);
         if (iter != propertyModifiers_.end()) {
             RemoveModifier(iter->second);
@@ -643,11 +655,14 @@ void RSNode::SetPivot(float pivotX, float pivotY)
 
 void RSNode::SetPivotX(float pivotX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
-    if (iter == propertyModifiers_.end()) {
-        SetPivot(pivotX, 0.5f);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::PIVOT);
+        if (iter == propertyModifiers_.end()) {
+            SetPivot(pivotX, 0.5f);
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
@@ -661,11 +676,14 @@ void RSNode::SetPivotX(float pivotX)
 
 void RSNode::SetPivotY(float pivotY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
-    if (iter == propertyModifiers_.end()) {
-        SetPivot(0.5f, pivotY);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::PIVOT);
+        if (iter == propertyModifiers_.end()) {
+            SetPivot(0.5f, pivotY);
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
@@ -737,11 +755,14 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 }
 void RSNode::SetTranslateX(float translate)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
-    if (iter == propertyModifiers_.end()) {
-        SetTranslate({ translate, 0.f });
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
+        if (iter == propertyModifiers_.end()) {
+            SetTranslate({ 0.f, translate });
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
@@ -755,13 +776,15 @@ void RSNode::SetTranslateX(float translate)
 
 void RSNode::SetTranslateY(float translate)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
-    if (iter == propertyModifiers_.end()) {
-        SetTranslate({ 0.f, translate });
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
+        if (iter == propertyModifiers_.end()) {
+            SetTranslate({ 0.f, translate });
+            return;
+        }
     }
-
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
@@ -793,11 +816,14 @@ void RSNode::SetScale(const Vector2f& scale)
 
 void RSNode::SetScaleX(float scaleX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::SCALE);
-    if (iter == propertyModifiers_.end()) {
-        SetScale(scaleX, 1.f);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::SCALE);
+        if (iter == propertyModifiers_.end()) {
+            SetScale(scaleX, 1.f);
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
@@ -811,11 +837,14 @@ void RSNode::SetScaleX(float scaleX)
 
 void RSNode::SetScaleY(float scaleY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto iter = propertyModifiers_.find(RSModifierType::SCALE);
-    if (iter == propertyModifiers_.end()) {
-        SetScale(1.f, scaleY);
-        return;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        iter = propertyModifiers_.find(RSModifierType::SCALE);
+        if (iter == propertyModifiers_.end()) {
+            SetScale(1.f, scaleY);
+            return;
+        }
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
