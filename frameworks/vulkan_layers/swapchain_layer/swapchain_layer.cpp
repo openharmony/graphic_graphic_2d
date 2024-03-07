@@ -64,8 +64,8 @@ struct LayerData {
 };
 
 namespace {
-constexpr uint32_t MIN_BUFFER_SIZE = 3;
-constexpr uint32_t MAX_BUFFER_SIZE = 32;
+constexpr uint32_t MIN_BUFFER_SIZE = SURFACE_DEFAULT_QUEUE_SIZE;
+constexpr uint32_t MAX_BUFFER_SIZE = SURFACE_MAX_QUEUE_SIZE;
 struct LoaderVkLayerDispatchTable;
 typedef uintptr_t DispatchKey;
 
@@ -620,6 +620,7 @@ static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHa
     if (allocator == nullptr) {
         allocator = &GetDefaultAllocator();
     }
+    window->surface->CleanCache();
     swapchain->~Swapchain();
     allocator->pfnFree(allocator->pUserData, swapchain);
 }
