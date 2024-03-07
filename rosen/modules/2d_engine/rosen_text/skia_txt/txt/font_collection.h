@@ -20,6 +20,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <mutex>
 
 #include "modules/skparagraph/include/FontCollection.h"
 #include "txt/asset_font_manager.h"
@@ -55,6 +56,7 @@ private:
     bool enableFontFallback_;
 
     sk_sp<skia::textlayout::FontCollection> sktFontCollection_;
+    mutable std::mutex collectionMutex_;
 
     std::vector<std::shared_ptr<RSFontMgr>> GetFontManagerOrder() const;
 

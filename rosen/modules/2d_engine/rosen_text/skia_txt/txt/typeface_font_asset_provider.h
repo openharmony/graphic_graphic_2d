@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 #include "include/core/SkFontMgr.h"
 #include "txt/font_asset_provider.h"
@@ -67,6 +68,7 @@ public:
 private:
     std::unordered_map<std::string, sk_sp<TypefaceFontStyleSet>> registeredFamilies_;
     std::vector<std::string> familyNames_;
+    mutable std::mutex assetMutex_;
 
     DISALLOW_COPY_AND_ASSIGN(TypefaceFontAssetProvider);
 };

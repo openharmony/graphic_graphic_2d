@@ -15,6 +15,8 @@
 
 #include "typography.h"
 
+#include <mutex>
+
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "impl/paragraph_impl.h"
@@ -23,6 +25,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+std::mutex g_layoutMutex;
+}
+
 TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
 {
     rect = rec;
@@ -108,6 +114,7 @@ float Typography::DetectIndents(size_t index)
 
 void Typography::Layout(double width)
 {
+    std::unique_lock lock(g_layoutMutex);
     return paragraph_->Layout(width);
 }
 
