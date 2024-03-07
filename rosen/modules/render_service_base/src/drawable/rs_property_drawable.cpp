@@ -327,6 +327,10 @@ RSDrawable::Ptr RSBorderDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 {
+    auto& border = node.GetRenderProperties().GetBorder();
+    if (!border || !border->HasBorder()) {
+        return false;
+    }
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     const RSProperties& properties = node.GetRenderProperties();
@@ -337,10 +341,6 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
-    if (!border || !border->HasBorder()) {
-        return;
-    }
-
     Drawing::Brush brush;
     Drawing::Pen pen;
     brush.SetAntiAlias(true);
@@ -353,43 +353,46 @@ void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canva
         canvas.AttachBrush(brush);
         canvas.DrawNestedRoundRect(roundRect, innerRoundRect);
         canvas.DetachBrush();
-    } else {
-        bool isZero = isOutline ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
-        if (isZero && border->ApplyFourLine(pen)) {
-            RectF rectf = isOutline ?
-                properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect();
-            border->PaintFourLine(canvas, pen, rectf);
-        } else if (border->ApplyPathStyle(pen)) {
-            auto borderWidth = border->GetWidth();
-            RRect rrect = RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline);
-            rrect.rect_.width_ -= borderWidth;
-            rrect.rect_.height_ -= borderWidth;
-            rrect.rect_.Move(borderWidth / PARAM_TWO, borderWidth / PARAM_TWO);
-            Drawing::Path borderPath;
-            borderPath.AddRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rrect));
-            canvas.AttachPen(pen);
-            canvas.DrawPath(borderPath);
-            canvas.DetachPen();
-        } else {
-            Drawing::AutoCanvasRestore acr(canvas, true);
-            auto rrect = RSPropertyDrawableUtils::RRect2DrawingRRect(
-                RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline));
-            canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
-            auto innerRoundRect = RSPropertyDrawableUtils::RRect2DrawingRRect(
-                RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(properties, border, isOutline));
-            canvas.ClipRoundRect(innerRoundRect, Drawing::ClipOp::DIFFERENCE, true);
-            Drawing::scalar centerX = innerRoundRect.GetRect().GetLeft() + innerRoundRect.GetRect().GetWidth() / 2;
-            Drawing::scalar centerY = innerRoundRect.GetRect().GetTop() + innerRoundRect.GetRect().GetHeight() / 2;
-            Drawing::Point center = { centerX, centerY };
-            auto rect = rrect.GetRect();
-            Drawing::SaveLayerOps slr(&rect, nullptr);
-            canvas.SaveLayer(slr);
-            border->PaintTopPath(canvas, pen, rrect, center);
-            border->PaintRightPath(canvas, pen, rrect, center);
-            border->PaintBottomPath(canvas, pen, rrect, center);
-            border->PaintLeftPath(canvas, pen, rrect, center);
-        }
+        return;
     }
+    bool isZero = isOutline ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
+    if (isZero && border->ApplyFourLine(pen)) {
+        RectF rectf =
+            isOutline ? properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect();
+        border->PaintFourLine(canvas, pen, rectf);
+        return;
+    }
+    if (border->ApplyPathStyle(pen)) {
+        auto borderWidth = border->GetWidth();
+        RRect rrect = RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline);
+        rrect.rect_.width_ -= borderWidth;
+        rrect.rect_.height_ -= borderWidth;
+        rrect.rect_.Move(borderWidth / PARAM_TWO, borderWidth / PARAM_TWO);
+        Drawing::Path borderPath;
+        borderPath.AddRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rrect));
+        canvas.AttachPen(pen);
+        canvas.DrawPath(borderPath);
+        canvas.DetachPen();
+        return;
+    }
+
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    auto rrect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+        RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline));
+    canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
+    auto innerRoundRect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+        RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(properties, border, isOutline));
+    canvas.ClipRoundRect(innerRoundRect, Drawing::ClipOp::DIFFERENCE, true);
+    Drawing::scalar centerX = innerRoundRect.GetRect().GetLeft() + innerRoundRect.GetRect().GetWidth() / 2;
+    Drawing::scalar centerY = innerRoundRect.GetRect().GetTop() + innerRoundRect.GetRect().GetHeight() / 2;
+    Drawing::Point center = { centerX, centerY };
+    auto rect = rrect.GetRect();
+    Drawing::SaveLayerOps slr(&rect, nullptr);
+    canvas.SaveLayer(slr);
+    border->PaintTopPath(canvas, pen, rrect, center);
+    border->PaintRightPath(canvas, pen, rrect, center);
+    border->PaintBottomPath(canvas, pen, rrect, center);
+    border->PaintLeftPath(canvas, pen, rrect, center);
 }
 
 RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
