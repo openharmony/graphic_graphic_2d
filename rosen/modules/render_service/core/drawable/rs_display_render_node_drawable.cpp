@@ -59,7 +59,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
         return;
     }
 
-    auto compositeType = displayNodeSp->GetCompositeType();
+    // auto compositeType = displayNodeSp->GetCompositeType();
+    auto compositeType = RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
     // can cache?
     auto processor = RSProcessorFactory::CreateProcessor(compositeType);
     if (processor == nullptr) {

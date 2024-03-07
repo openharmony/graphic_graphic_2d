@@ -67,7 +67,7 @@ public:
     explicit RSPropertyDrawCmdListRecorder(int width, int height)
     {
         // PLANNING: use RSRenderNode to determine the correct recording canvas size
-        recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, true);
+        recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, false);
     }
 
     virtual ~RSPropertyDrawCmdListRecorder()
@@ -82,11 +82,11 @@ public:
         return recordingCanvas_;
     }
 
-    std::shared_ptr<Drawing::DrawCmdList>&& EndRecordingAndReturnRecordingList()
+    std::shared_ptr<Drawing::DrawCmdList> EndRecordingAndReturnRecordingList()
     {
         auto displayList = recordingCanvas_->GetDrawCmdList();
         recordingCanvas_.reset();
-        return std::move(displayList);
+        return displayList;
     }
 
 protected:

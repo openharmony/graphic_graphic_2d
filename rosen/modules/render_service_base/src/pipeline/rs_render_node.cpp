@@ -198,16 +198,12 @@ const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
-{
-    InitRenderParams();
-}
+{}
 
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
-{
-    InitRenderParams();
-}
+{}
 
 bool RSRenderNode::GetIsTextureExportNode() const
 {
@@ -1302,7 +1298,8 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 
 void RSRenderNode::UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
-    stagingDrawCmdList_ = drawCmdList;
+    // stagingDrawCmdList_ = drawCmdList;
+    (void)drawCmdList;
 }
 
 void RSRenderNode::SetNeedSyncFlag(bool needSync)
@@ -1425,6 +1422,9 @@ void RSRenderNode::ApplyModifiers()
     UpdateShouldPaint();
     // Temporary code, copy matrix into render params
     // TODO: only run UpdateRenderParams on matrix change
+    if (stagingRenderParams_) {
+        InitRenderParams();
+    }
     UpdateRenderParams();
     UpdateDrawableVec();
 
@@ -1470,7 +1470,7 @@ void RSRenderNode::UpdateDrawableVec()
 
         // Step 4: Generate drawCmdList from drawables
         // TODO: use correct W/H instead of 0
-        auto recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, true);
+        auto recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, false);
         for (const auto& drawable : drawableVec_) {
             if (drawable) {
                 recordingCanvas_->DrawDrawFunc(drawable->CreateDrawFunc());

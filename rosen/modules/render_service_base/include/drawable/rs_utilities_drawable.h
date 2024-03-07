@@ -41,8 +41,8 @@ public:
 
 private:
     bool needSync_ = false;
-    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> childrenDrawables_;
-    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawables_;
+    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
+    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
     friend class RSChildrenDrawable;
 };
 
@@ -63,8 +63,8 @@ private:
     RSModifierType type_;
 
     bool needSync_ = false;
-    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> drawCmdList_;
-    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdList_;
+    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
+    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
     friend class RSCustomModifierDrawable;
 };
 

@@ -1348,7 +1348,7 @@ void RSUniRenderVisitor::RecordDrawCmdList(RSRenderNode& node)
             break;
     }
     node.ProcessTransitionAfterChildren(*recordingCanvas);
-    node.UpdateStagingDrawCmdList(extendRecodingCanvas->GetDrawCmdList());
+    // node.UpdateStagingDrawCmdList(extendRecodingCanvas->GetDrawCmdList());
     node.SetNeedSyncFlag(true);
     recordingCanvas.reset();
 }
