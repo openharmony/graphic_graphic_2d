@@ -287,11 +287,11 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     if (width_ <= 0 || height_ <= 0) {
         return;
     }
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (canvas.GetDrawingType() == DrawingType::RECORDING) {
         PlaybackToDrawCmdList(static_cast<RecordingCanvas&>(canvas).GetDrawCmdList());
         return;
     }
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
 #ifdef ROSEN_OHOS
     // invalidate cache if high contrast flag changed
     if (isCached_ && canvas.isHighContrastEnabled() != cachedHighContrast_) {
@@ -449,7 +449,9 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
 
 void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
+        std::lock_guard<std::recursive_mutex> lock(drawCmdList->mutex_);
         drawCmdList->drawOpItems_.insert(drawCmdList->drawOpItems_.end(), drawOpItems_.begin(), drawOpItems_.end());
         return;
     }
@@ -460,19 +462,25 @@ void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList
     }
 
 #ifdef SUPPORT_OHOS_PIXMAP
-    drawCmdList->imageObjectVec_.swap(imageObjectVec_);
+    {
+        std::lock_guard<std::mutex> lock(drawCmdList->imageObjectMutex_);
+        drawCmdList->imageObjectVec_.swap(imageObjectVec_);
+    }
 #endif
-    drawCmdList->imageBaseObjVec_.swap(imageBaseObjVec_);
+    {
+        std::lock_guard<std::mutex> lock(drawCmdList->imageBaseObjMutex_);
+        drawCmdList->imageBaseObjVec_.swap(imageBaseObjVec_);
+    }
     size_t size = opAllocator_.GetSize() - offset_;
     auto imageData = GetAllImageData();
     auto bitmapData = GetAllBitmapData();
     drawCmdList->opAllocator_.Add(addr, size);
     if (imageData.first != nullptr && imageData.second != 0) {
-        drawCmdList->imageAllocator_.Add(imageData.first, imageData.second);
+        drawCmdList->AddImageData(imageData.first, imageData.second);
     }
 
     if (bitmapData.first != nullptr && bitmapData.second != 0) {
-        drawCmdList->bitmapAllocator_.Add(bitmapData.first, bitmapData.second);
+        drawCmdList->AddBitmapData(bitmapData.first, bitmapData.second);
     }
 }
 
