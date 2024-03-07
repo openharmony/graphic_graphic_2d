@@ -1422,7 +1422,7 @@ void RSRenderNode::ApplyModifiers()
     UpdateShouldPaint();
     // Temporary code, copy matrix into render params
     // TODO: only run UpdateRenderParams on matrix change
-    if (stagingRenderParams_) {
+    if (!stagingRenderParams_) {
         InitRenderParams();
     }
     UpdateRenderParams();
