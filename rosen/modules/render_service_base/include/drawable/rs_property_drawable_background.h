@@ -32,6 +32,7 @@ public:
     RSShadowDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
     static void DrawColorfulShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path);

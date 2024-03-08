@@ -76,6 +76,21 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
+{
+    return [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas) {
+            // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
+            // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
+            Drawing::AutoCanvasRestore rst(*canvas, true);
+            auto matrix = canvas->GetTotalMatrix();
+            matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
+            matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+            canvas->SetMatrix(matrix);
+        }
+    };
+}
+
 void RSShadowDrawable::DrawColorfulShadowInner(
     const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path)
 {
@@ -109,24 +124,15 @@ void RSShadowDrawable::DrawShadowInner(const RSProperties& properties, Drawing::
     // shadow alpha follow setting
     auto shadowAlpha = spotColor.GetAlpha();
     auto deviceClipBounds = canvas.GetDeviceClipBounds();
-
-    // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
-    // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
-    Drawing::AutoCanvasRestore rst(canvas, true);
-    auto matrix = canvas.GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
-    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
-    canvas.SetMatrix(matrix);
-
     RSColor colorPicked;
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr &&
         properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (RSPropertyDrawableUtils::PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
-            RSPropertyDrawableUtils::GetDarkColor(colorPicked);
-        } else {
-            shadowAlpha = 0;
-        }
+        // if (RSPropertyDrawableUtils::PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
+        //     RSPropertyDrawableUtils::GetDarkColor(colorPicked);
+        // } else {
+        //     shadowAlpha = 0;
+        // }
         if (!colorPickerTask->GetFirstGetColorFinished()) {
             shadowAlpha = 0;
         }
