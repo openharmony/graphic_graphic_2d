@@ -58,8 +58,13 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
     if (drawCmdList_ == nullptr) {
         return;
     }
+    auto& renderParams = renderNode_->GetRenderParams();
+    Drawing::Rect bounds;
+    if (renderParams) {
+        bounds = renderParams->GetBounds();
+    }
     Drawing::AutoCanvasRestore arc(*canvas, true);
-    drawCmdList_->Playback(*canvas);
+    drawCmdList_->Playback(*canvas, &bounds);
 }
 
 } // namespace OHOS::Rosen
