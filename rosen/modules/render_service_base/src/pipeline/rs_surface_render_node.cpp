@@ -1415,6 +1415,15 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
         IsOpaqueRegionChanged();
 }
 
+bool RSSurfaceRenderNode::CheckParticipateInOcclusion() const
+{
+    // TODO: Need consider others situation
+    if (IsTransparent() || !GetAnimateState()) {
+        return false;
+    }
+    return true;
+}
+
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation)
 {
     auto absRect = GetDstRect();

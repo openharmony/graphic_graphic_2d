@@ -311,6 +311,7 @@ public:
     bool IsNeedSetVSync();
 
     void SetContextBounds(const Vector4f bounds);
+    bool CheckParticipateInOcclusion() const;
 
     void OnApplyModifiers() override;
 

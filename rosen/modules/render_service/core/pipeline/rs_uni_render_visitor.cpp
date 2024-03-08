@@ -1200,8 +1200,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     needRecalculateOcclusion_ = false;
     accumulatedOcclusionRegion_.Reset();
-    while (!curMainAndLeashWindowNodesIds_.empty()) {
-        curMainAndLeashWindowNodesIds_.pop();
+    if (!curMainAndLeashWindowNodesIds_.empty()) {
+        std::queue<NodeId>().swap(curMainAndLeashWindowNodesIds_);
     }
 
     // TODO: Occulusion check whether to applymodifiers.
@@ -1266,6 +1266,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
 
     node.ApplyModifiers();
+    node.CleanDstRectChanged();
 
     if (dirtyFlag_ || node.IsDirty()) {
         dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
@@ -1303,8 +1304,10 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
         Occlusion::Region curRegion { occlusionRect };    
         Occlusion::Region subResult = curRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(curRegion);
-    } 
-    accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
+    }
+    if (node.CheckParticipateInOcclusion()) {
+        accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
+    }
 }
 
 void RSUniRenderVisitor::RecordDrawCmdList(RSRenderNode& node)
