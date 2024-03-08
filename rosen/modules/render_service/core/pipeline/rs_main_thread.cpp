@@ -1169,7 +1169,11 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
     this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
+#ifdef DEBUG_MULTI_THREAD
+    RSUniRenderThread::Instance().PostTask(
+#else
     PostTask(
+#endif
         [this, moment, deeply]() {
             auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
             if (!grContext) {

@@ -42,6 +42,8 @@ public:
     void RenderFrames();
     void Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams);
     void PostTask(const std::function<void()>& task);
+    void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
     void PostSyncTask(const std::function<void()>& task);
     void Render();
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
