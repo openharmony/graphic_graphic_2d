@@ -59,6 +59,8 @@ void RSDrawFrame::PostAndWait()
 void RSDrawFrame::Sync()
 {
     RS_TRACE_NAME_FMT("Sync");
+    RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode()->Sync();
+
     auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
     for (auto& [id, weakPtr] : pendingSyncNodes) {
         if (auto node = weakPtr.lock()) {
