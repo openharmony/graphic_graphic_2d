@@ -61,7 +61,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
 {
     voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
     auto& hgmCore = HgmCore::Instance();
-    curRefreshRateMode_ = static_cast<RefreshRateMode>(hgmCore.GetCurrentRefreshRateMode());
+    curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
 
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
     auto screenList = hgmCore.GetScreenIds();
@@ -90,8 +90,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
-
-        HgmConfigCallbackManager::GetInstance()->SyncRefreshRateModeChangeCallback(mode);
     });
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 }
@@ -511,9 +509,9 @@ void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
     }
 }
 
-void HgmFrameRateManager::HandleRefreshRateMode(RefreshRateMode refreshRateMode)
+void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
 {
-    HGM_LOGI("HandleRefreshRateMode curMode:%{public}d", static_cast<int>(refreshRateMode));
+    HGM_LOGI("HandleRefreshRateMode curMode:%{public}d", refreshRateMode);
     if (curRefreshRateMode_ == refreshRateMode) {
         return;
     }
