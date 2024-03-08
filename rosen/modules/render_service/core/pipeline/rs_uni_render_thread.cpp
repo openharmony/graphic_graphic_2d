@@ -82,6 +82,14 @@ void RSUniRenderThread::PostTask(const std::function<void()>& task)
     handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
+void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+    AppExecFwk::EventQueue::Priority priority)
+{
+    if (handler_) {
+        handler_->PostTask(task, name, delayTime, priority);
+    }
+}
+
 void RSUniRenderThread::PostSyncTask(const std::function<void()>& task)
 {
     if (!handler_) {
