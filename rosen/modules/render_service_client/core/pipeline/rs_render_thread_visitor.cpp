@@ -171,6 +171,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (curDirtyManager_ == nullptr) {
         return;
     }
+    node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     // If rt buffer switches to be available
