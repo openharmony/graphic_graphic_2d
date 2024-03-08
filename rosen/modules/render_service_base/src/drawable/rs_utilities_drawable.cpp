@@ -114,7 +114,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawCmdList : ptr->drawCmdListVec_) {
-            drawCmdList->Playback(*canvas);
+            drawCmdList->Playback(*canvas, rect);
         }
     };
 }
