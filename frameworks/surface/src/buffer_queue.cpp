@@ -108,7 +108,7 @@ GSError BufferQueue::PopFromFreeList(sptr<SurfaceBuffer> &buffer,
         }
     }
 
-    if (freeList_.empty()) {
+    if (freeList_.empty() || GetUsedSize() < GetQueueSize()) {
         buffer = nullptr;
         return GSERROR_NO_BUFFER;
     }
