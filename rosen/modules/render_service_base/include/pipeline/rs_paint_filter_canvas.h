@@ -161,9 +161,9 @@ public:
     void RestoreEnvToCount(int count);
 
     // blendmode related
-    int SaveBlendMode();
+    // int SaveBlendMode();
     void SetBlendMode(std::optional<int> blendMode);
-    void RestoreBlendMode();
+    // void RestoreBlendMode();
 
     // save/restore utils
     struct SaveStatus {
@@ -240,6 +240,7 @@ protected:
     using Env = struct {
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
+        std::optional<int> blendMode_;
     };
     const std::stack<float>& GetAlphaStack();
     const std::stack<Env>& GetEnvStack();
@@ -264,7 +265,6 @@ private:
     Drawing::Surface* surface_ = nullptr;
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
-    std::stack<std::optional<int>> blendModeStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };

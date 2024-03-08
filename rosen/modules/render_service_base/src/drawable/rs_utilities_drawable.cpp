@@ -24,7 +24,7 @@ namespace OHOS::Rosen {
 RSDrawable::Ptr RSChildrenDrawableContent::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSChildrenDrawableContent>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -38,9 +38,9 @@ bool RSChildrenDrawableContent::OnUpdate(const RSRenderNode& node)
 
     // Regenerate children drawables
     needSync_ = true;
-    stagingChildrenDrawables_.clear();
+    stagingChildrenDrawableVec_.clear();
     for (const auto& child : *children) {
-        stagingChildrenDrawables_.push_back(RSRenderNodeDrawableAdapter::OnGenerate(child));
+        stagingChildrenDrawableVec_.push_back(RSRenderNodeDrawableAdapter::OnGenerate(child));
     }
     return true;
 }
@@ -50,16 +50,16 @@ void RSChildrenDrawableContent::OnSync()
     if (!needSync_) {
         return;
     }
-    childrenDrawables_ = std::move(stagingChildrenDrawables_);
+    std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
+    stagingChildrenDrawableVec_.clear();
     needSync_ = false;
 }
 
-// RSDrawable::Ptr RSChildrenDrawableContent::CreateDrawable() const
 Drawing::RecordingCanvas::DrawFunc RSChildrenDrawableContent::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawableContent>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (const auto& drawable : ptr->childrenDrawables_) {
+        for (const auto& drawable : ptr->childrenDrawableVec_) {
             drawable->OnDraw(canvas);
         }
     };
@@ -69,7 +69,7 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawableContent::CreateDrawFunc() c
 RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, RSModifierType type)
 {
     if (auto ret = std::make_shared<RSCustomModifierDrawable>(type); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }
@@ -84,14 +84,14 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
 
     // regenerate stagingDrawCmdList_
     needSync_ = true;
-    stagingDrawCmdList_.clear();
+    stagingDrawCmdListVec_.clear();
     for (const auto& modifier : itr->second) {
         auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
         if (property == nullptr) {
             continue;
         }
         if (const auto& drawCmdList = property->GetRef()) {
-            stagingDrawCmdList_.push_back(drawCmdList);
+            stagingDrawCmdListVec_.push_back(drawCmdList);
         }
     }
     return true;
@@ -102,7 +102,8 @@ void RSCustomModifierDrawable::OnSync()
     if (!needSync_) {
         return;
     }
-    drawCmdList_ = std::move(stagingDrawCmdList_);
+    std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
+    stagingDrawCmdListVec_.clear();
     needSync_ = false;
 }
 
@@ -110,7 +111,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
 {
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (const auto& drawCmdList : ptr->drawCmdList_) {
+        for (const auto& drawCmdList : ptr->drawCmdListVec_) {
             drawCmdList->Playback(*canvas);
         }
     };
@@ -121,7 +122,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
 RSDrawable::Ptr RSAlphaDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSAlphaDrawable>(); ret->OnUpdate(node)) {
-        return ret;
+        return std::move(ret);
     }
     return nullptr;
 }

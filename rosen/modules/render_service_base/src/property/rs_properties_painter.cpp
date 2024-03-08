@@ -1778,7 +1778,7 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
 
     // fast blend mode
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
-        canvas.SaveBlendMode();
+        canvas.SaveEnv();
         canvas.SetBlendMode({ blendMode - 1 }); // map blendMode to SkBlendMode
         return;
     }
@@ -1793,7 +1793,7 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
     blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
     canvas.SaveLayer(maskLayerRec);
-    canvas.SaveBlendMode();
+    canvas.SaveEnv();
     canvas.SetBlendMode(std::nullopt);
     canvas.SaveAlpha();
     canvas.SetAlpha(1.0f);
@@ -1810,9 +1810,9 @@ void RSPropertiesPainter::EndBlendMode(RSPaintFilterCanvas& canvas, const RSProp
     }
 
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
-        canvas.RestoreBlendMode();
+        canvas.RestoreEnv();
     } else {
-        canvas.RestoreBlendMode();
+        canvas.RestoreEnv();
         canvas.RestoreAlpha();
         canvas.Restore();
     }

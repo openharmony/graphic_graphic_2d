@@ -48,12 +48,18 @@ void RSDrawFrame::RenderFrame()
 void RSDrawFrame::PostAndWait()
 {
     RS_TRACE_NAME_FMT("PostAndWait");
+#ifdef DEBUG_MULTI_THREAD
     std::unique_lock<std::mutex> frameLock(frameMutex_);
     canUnblockMainThread = false;
     unirenderInstance_.PostTask([this]() {
         RenderFrame();
     });
     frameCV_.wait(frameLock, [this] {return canUnblockMainThread;});
+#else
+    unirenderInstance_.PostSyncTask([this]() {
+        RenderFrame();
+    });
+#endif
 }
 
 void RSDrawFrame::Sync()

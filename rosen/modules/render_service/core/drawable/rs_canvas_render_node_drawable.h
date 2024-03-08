@@ -28,7 +28,7 @@ public:
     void OnDraw(Drawing::Canvas* canvas) const override;
 
 private:
-    using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
+    using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
     static Registrar instance_;
 };
 

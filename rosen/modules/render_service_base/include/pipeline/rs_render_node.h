@@ -672,7 +672,7 @@ private:
     RSDrawable::Vec drawableVec_;
 
     bool renderParamNeedSync_ = false;
-    virtual void OnInitRenderParams();
+    virtual void InitRenderParams();
     std::unique_ptr<RSRenderParams> renderParams_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
 

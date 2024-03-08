@@ -550,7 +550,7 @@ bool RSSystemProperties::GetUIFirstEnabled()
 #ifdef ROSEN_EMULATOR
     return false;
 #else
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;

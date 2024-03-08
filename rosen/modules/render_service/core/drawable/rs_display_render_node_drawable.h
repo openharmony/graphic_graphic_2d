@@ -17,6 +17,8 @@
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_DISPLAY_RENDER_NODE_DRAWABLE_H
 
 #include "drawable/rs_render_node_drawable.h"
+#include "pipeline/rs_recording_canvas.h"
+#include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
 class RSDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
@@ -28,8 +30,13 @@ public:
     void OnDraw(Drawing::Canvas* canvas) const override;
 
 private:
+    std::shared_ptr<RenderContext> GetRenderContext() const;
+    void TryCapture(float width, float height) const;
+    void EndCapture() const;
+    mutable std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
+    mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
 };
 
 } // namespace OHOS::Rosen

@@ -25,7 +25,7 @@
 namespace OHOS::Rosen {
 class RSRenderNode;
 namespace Drawing {
-    class Canvas;
+class Canvas;
 }
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter {

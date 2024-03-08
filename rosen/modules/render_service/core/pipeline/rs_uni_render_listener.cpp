@@ -16,7 +16,6 @@
 #include "pipeline/rs_uni_render_listener.h"
 
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -35,13 +34,6 @@ void RSUniRenderListener::OnBufferAvailable()
     }
     RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
-#if (defined RS_ENABLE_PARALLEL_RENDER) && (defined RS_ENABLE_VK)
-    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && node->IsParallelDisplayNode()) {
-        RSParallelRenderManager::Instance()->NotifyUniRenderFinish();
-        return;
-    }
-#endif
     RSMainThread::Instance()->NotifyUniRenderFinish();
 }
 }
