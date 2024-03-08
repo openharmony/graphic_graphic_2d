@@ -251,6 +251,7 @@ void RSPathAnimation::InitRotationId(const std::shared_ptr<RSNode>& node)
 
 PropertyId RSPathAnimation::GetRotationPropertyId(const std::shared_ptr<RSNode>& node)
 {
+    std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
     auto iter = node->propertyModifiers_.find(RSModifierType::ROTATION);
     if (iter != node->propertyModifiers_.end()) {
         return iter->second->GetPropertyId();
@@ -266,6 +267,7 @@ PropertyId RSPathAnimation::GetRotationPropertyId(const std::shared_ptr<RSNode>&
 
 void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const float rotation)
 {
+    std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
     auto iter = node->modifiers_.find(rotationId_);
     if (iter != node->modifiers_.end()) {
         auto modifier = iter->second;
