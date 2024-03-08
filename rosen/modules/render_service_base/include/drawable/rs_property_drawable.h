@@ -42,6 +42,7 @@ protected:
 
     friend class RSPropertyDrawCmdListUpdater;
     friend class RSPropertyDrawableNG;
+    friend class RSShadowDrawable;
 };
 
 class ExtendRecordingCanvas;
