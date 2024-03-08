@@ -50,7 +50,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (auto &info : g_infos) {
             TypographyStyle tystyle;

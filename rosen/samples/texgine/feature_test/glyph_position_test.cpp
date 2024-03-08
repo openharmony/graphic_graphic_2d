@@ -58,7 +58,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         TextStyle xs;
         xs.fontFamilies = {"Segoe UI Emoji"};

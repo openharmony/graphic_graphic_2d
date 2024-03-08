@@ -47,7 +47,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (auto &info : g_infos) {
             TypographyStyle ys = { .maxLines = 1, .ellipsis = u"\u2026" };

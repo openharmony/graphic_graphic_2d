@@ -33,7 +33,7 @@ void FontProvidersGenerateFontCollectionFuzzTest(const uint8_t* data, size_t siz
     g_pos = 0;
 
     auto fontProviders = FontProviders::Create();
-    if(fontProviders == nullptr) {
+    if (fontProviders == nullptr) {
         return;
     }
     std::string familyName = GetStringFromData();

@@ -77,7 +77,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (auto &[ys, title, limit, text, as] : g_datas) {
             auto builder = TypographyBuilder::Create(ys);

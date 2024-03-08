@@ -34,7 +34,7 @@ void TypographyBuilderAppendSpanFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::unique_ptr<TypographyBuilder> typographyBuilder = TypographyBuilder::Create();
-    if(typographyBuilder == nullptr) {
+    if (typographyBuilder == nullptr) {
         return;
     }
     std::string text = GetStringFromData();

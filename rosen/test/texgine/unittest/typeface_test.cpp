@@ -68,7 +68,7 @@ size_t TexgineTypeface::GetTableSize(uint32_t tag) const
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length,void* data) const
+size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const
 {
     return g_typefaceMockvars.dataLength[g_typefaceMockvars.lengthIndex++];
 }

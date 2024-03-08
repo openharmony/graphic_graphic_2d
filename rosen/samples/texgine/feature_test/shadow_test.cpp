@@ -118,7 +118,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         for (auto &[text, style] : g_datas) {
             auto builder = TypographyBuilder::Create();

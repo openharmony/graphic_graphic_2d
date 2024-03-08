@@ -67,7 +67,7 @@ class AlignTest : public TestFeature {
 public:
     AlignTest() : TestFeature("AlignTest") {}
 
-    void Layout()
+    void Layout() override
     {
         TexginePaint background;
         uint32_t color = 0xff00ff00;

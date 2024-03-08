@@ -27,7 +27,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         auto builder = TypographyBuilder::Create({});
         TextStyle tstyle;

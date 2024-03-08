@@ -86,7 +86,7 @@ void hb_font_destroy(hb_font_t *)
 {
 }
 
-void hb_face_destroy (hb_face_t *)
+void hb_face_destroy(hb_face_t *)
 {
 }
 
@@ -311,7 +311,7 @@ HWTEST_F(MeasurerImplTest, SeekTypeface1, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, SeekTypeface2, TestSize.Level1)
 {
-    InitMiMockVars({}, {{.start = 0, .end = 2},});
+    InitMiMockVars({}, {{.start = 0, .end = 2}});
     text_ = {'a', 'b'};
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetRange(0, 2);
@@ -328,7 +328,7 @@ HWTEST_F(MeasurerImplTest, SeekTypeface2, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, SeekTypeface3, TestSize.Level1)
 {
-    InitMiMockVars({.retvalTypefaceHas = false}, {{.start = 0, .end = 2},});
+    InitMiMockVars({.retvalTypefaceHas = false}, {{.start = 0, .end = 2}});
     text_ = {'a', 'b'};
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetRange(0, 2);
@@ -344,7 +344,7 @@ HWTEST_F(MeasurerImplTest, SeekTypeface3, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, SeekTypeface4, TestSize.Level1)
 {
-    InitMiMockVars({.retvalTypefaceHas = false}, {{.start = 0, .end = 2},});
+    InitMiMockVars({.retvalTypefaceHas = false}, {{.start = 0, .end = 2}});
     text_ = {'a'};
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetRange(0, 2);
@@ -372,7 +372,7 @@ HWTEST_F(MeasurerImplTest, SeekScript1, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, SeekScript2, TestSize.Level1)
 {
-    InitMiMockVars({.retvalUnicodeScript = {HB_SCRIPT_HAN}}, {{.start = 0, .end = 1},});
+    InitMiMockVars({.retvalUnicodeScript = {HB_SCRIPT_HAN}}, {{.start = 0, .end = 1}});
     MeasurerImpl mi(text_, fontCollection_);
 
     ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, mi.SeekScript(mRuns));

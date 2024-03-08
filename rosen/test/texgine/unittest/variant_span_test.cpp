@@ -63,7 +63,8 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     g_variantMockvars.catchedPaintOffsetY = offsetY;
 }
 
-void TextSpan::PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY, const std::vector<TextShadow> &shadows)
+void TextSpan::PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY,
+    const std::vector<TextShadow> &shadows)
 {
     g_variantMockvars.calledTimesPaintShadow++;
     g_variantMockvars.catchedPaintShadowCanvas = &canvas;

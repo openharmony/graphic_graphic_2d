@@ -32,7 +32,7 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         auto builder = TypographyBuilder::Create();
         builder->AppendSpan("你好");

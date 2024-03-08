@@ -80,13 +80,13 @@ public:
     static void SetUpTestCase()
     {
         tpstyle_.fontFamilies = {"seguiemj"};
-        cgs1_.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}, .visibleWidth = 14,});
-        cgs1_.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}, .visibleWidth = 10,});
-        cgs1_.PushBack({.chars = TextConverter::ToUTF16("s"), .glyphs = {{0x0166, 7.28}}, .visibleWidth = 8,});
-        cgs1_.PushBack({.chars = TextConverter::ToUTF16("t"), .glyphs = {{0x016E, 5.88}}, .visibleWidth = 6,});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}, .visibleWidth = 14});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}, .visibleWidth = 10});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("s"), .glyphs = {{0x0166, 7.28}}, .visibleWidth = 8});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("t"), .glyphs = {{0x016E, 5.88}}, .visibleWidth = 6});
 
         cgs2_ = cgs1_;
-        cgs2_.PushBack({.chars = TextConverter::ToUTF16(" "), .glyphs = {{0x0002, 4.32}}, .invisibleWidth = 5,});
+        cgs2_.PushBack({.chars = TextConverter::ToUTF16(" "), .glyphs = {{0x0002, 4.32}}, .invisibleWidth = 5});
     }
 
     void PrepareWordBreak(int ret, CharGroups &cgs, WordBreakType type = WordBreakType::BREAK_WORD)

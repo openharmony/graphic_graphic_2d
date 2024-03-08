@@ -69,7 +69,7 @@ class AlignmentTest : public TestFeature {
 public:
     AlignmentTest() : TestFeature("AlignmentTest") {}
 
-    void Layout()
+    void Layout() override
     {
         option_.needRainbowChar = true;
         TextStyle textStyle = {

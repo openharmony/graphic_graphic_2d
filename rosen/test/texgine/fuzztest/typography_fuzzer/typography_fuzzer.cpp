@@ -34,7 +34,7 @@ void TypographySetIndentsFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::unique_ptr<TypographyBuilder> typographyBuilder = TypographyBuilder::Create();
-    if(typographyBuilder == nullptr) {
+    if (typographyBuilder == nullptr) {
         return;
     }
     std::shared_ptr<Typography> typography = typographyBuilder->Build();
@@ -57,7 +57,7 @@ void TypographyLayoutFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::unique_ptr<TypographyBuilder> typographyBuilder = TypographyBuilder::Create();
-    if(typographyBuilder == nullptr) {
+    if (typographyBuilder == nullptr) {
         return;
     }
     std::string text = GetStringFromData();
@@ -80,7 +80,7 @@ void TypographyPaintFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::unique_ptr<TypographyBuilder> typographyBuilder = TypographyBuilder::Create();
-    if(typographyBuilder == nullptr) {
+    if (typographyBuilder == nullptr) {
         return;
     }
     std::shared_ptr<Typography> typography = typographyBuilder->Build();
@@ -103,7 +103,7 @@ void TypographyGetTextRectsByBoundaryFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::unique_ptr<TypographyBuilder> typographyBuilder = TypographyBuilder::Create();
-    if(typographyBuilder == nullptr) {
+    if (typographyBuilder == nullptr) {
         return;
     }
     std::shared_ptr<Typography> typography = typographyBuilder->Build();
@@ -128,7 +128,7 @@ void TypographyGetGlyphIndexByCoordinateFuzzTest(const uint8_t* data, size_t siz
     g_pos = 0;
 
     std::unique_ptr<TypographyBuilder> typographyBuilder = TypographyBuilder::Create();
-    if(typographyBuilder == nullptr) {
+    if (typographyBuilder == nullptr) {
         return;
     }
     std::shared_ptr<Typography> typography = typographyBuilder->Build();
@@ -150,7 +150,7 @@ void TypographyGetWordBoundaryByIndexFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::unique_ptr<TypographyBuilder> typographyBuilder = TypographyBuilder::Create();
-    if(typographyBuilder == nullptr) {
+    if (typographyBuilder == nullptr) {
         return;
     }
     std::shared_ptr<Typography> typography = typographyBuilder->Build();

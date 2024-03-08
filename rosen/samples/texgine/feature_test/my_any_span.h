@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef ROSEN_SAMPLES_TEXGINE_FEATURE_TEST_MY_ANY_SPAN_H
+#define ROSEN_SAMPLES_TEXGINE_FEATURE_TEST_MY_ANY_SPAN_H
+
 #include "texgine/any_span.h"
 
 namespace OHOS {
@@ -81,3 +84,5 @@ private:
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
+
+#endif // ROSEN_SAMPLES_TEXGINE_FEATURE_TEST_MY_ANY_SPAN_H

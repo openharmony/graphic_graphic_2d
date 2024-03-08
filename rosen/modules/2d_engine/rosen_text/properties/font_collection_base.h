@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_UI_TEXT_FONT_COLLECTION_BASE_H_
-#define ROSEN_UI_TEXT_FONT_COLLECTION_BASE_H_
+#ifndef ROSEN_UI_TEXT_FONT_COLLECTION_BASE_H
+#define ROSEN_UI_TEXT_FONT_COLLECTION_BASE_H
 
 #include <memory>
 #include <vector>
@@ -33,4 +33,4 @@ public:
     FontCollectionBase& operator=(const FontCollectionBase&) = delete;
 };
 } // namespace rosen
-#endif // ROSEN_UI_TEXT_FONT_COLLECTION_BASE_H_
+#endif // ROSEN_UI_TEXT_FONT_COLLECTION_BASE_H

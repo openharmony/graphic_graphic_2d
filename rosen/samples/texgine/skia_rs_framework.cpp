@@ -84,6 +84,7 @@ public:
 private:
     void ProcessSinglePointerEvent(const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent) const;
     void ProcessPointerEvents(const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent) const;
+    void SingleActionFunc(const uint32_t action, int x, int y) const;
     void ProcessSingleAction(const uint32_t action, int x, int y) const;
 
     SkiaFramework* sf = nullptr;
@@ -137,7 +138,7 @@ void PointerFilter::ProcessSinglePointerEvent(const std::shared_ptr<OHOS::MMI::P
     ProcessSingleAction(action, x, y);
 }
 
-void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) const
+void PointerFilter::SingleActionFunc(const uint32_t action, int x, int y) const
 {
     if (sf->left_ && action == MMIPE::POINTER_ACTION_DOWN) {
         sf->dirty_ = true;
@@ -153,7 +154,6 @@ void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) con
         sf->dirty_ = true;
         sf->left_ = false;
     }
-
     if (sf->right_ && action == MMIPE::POINTER_ACTION_DOWN) {
         sf->dirty_ = true;
         sf->downRX_ = x;
@@ -163,7 +163,6 @@ void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) con
         sf->dirty_ = true;
         sf->x_ = x;
         sf->y_ = y;
-
 #ifndef USE_ROSEN_DRAWING
         sf->mat_ = SkMatrix::Translate(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
         sf->diffx_ = sf->x_ - sf->downRX_;
@@ -180,6 +179,11 @@ void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) con
 #endif
         sf->UpdateInvertMatrix();
     }
+}
+
+void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) const
+{
+    SingleActionFunc(action, x, y);
     if (sf->right_ && action == MMIPE::POINTER_ACTION_UP) {
         sf->dirty_ = true;
         sf->right_ = false;
@@ -329,7 +333,7 @@ void SkiaFramework::Run()
     // input
     auto mmi = MMI::InputManager::GetInstance();
     if (mmi == nullptr) {
-       return;
+        return;
     }
 
     auto filter = std::make_shared<PointerFilter>(this);
@@ -376,7 +380,6 @@ void SkiaFramework::PrepareVsyncFunc()
         if (surface == nullptr) {
             return;
         }
-
         sptr<SurfaceBuffer> buffer;
         int32_t releaseFence;
         BufferRequestConfig config = {
@@ -386,10 +389,8 @@ void SkiaFramework::PrepareVsyncFunc()
             .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
             .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         };
-
         SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, config);
         LOGI("request buffer ret is: %{public}s", SurfaceErrorStr(ret).c_str());
-
         if (buffer == nullptr) {
             LOGE("request buffer failed: buffer is nullptr");
             return;
@@ -398,7 +399,6 @@ void SkiaFramework::PrepareVsyncFunc()
             LOGE("get virAddr failed: virAddr is nullptr");
             return;
         }
-
         auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
         LOGI("buffer width:%{public}d, height:%{public}d", buffer->GetWidth(), buffer->GetHeight());
 #ifndef USE_ROSEN_DRAWING
@@ -417,7 +417,6 @@ void SkiaFramework::PrepareVsyncFunc()
         if (auto res = memcpy_s(addr, addrSize, bitmapAddr, addrSize); res != EOK) {
             LOGI("memcpy_s failed");
         }
-
         BufferFlushConfig flushConfig = { .damage = { .w = buffer->GetWidth(), .h = buffer->GetHeight(), }, };
         ret = surface->FlushBuffer(buffer, -1, flushConfig);
         LOGI("flushBuffer ret is: %{public}s", SurfaceErrorStr(ret).c_str());
