@@ -522,6 +522,7 @@ private:
     bool forceUIFirstChanged_ = false;
     RSDrawFrame drawFrame_;
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
+    RsParallelType rsParallelType_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

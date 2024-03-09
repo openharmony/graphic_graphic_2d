@@ -34,6 +34,12 @@ enum class QuickSkipPrepareType {
     CONTENT_DIRTY_CACHE_SURFACE,  // 5, simplify dirty cache surface's subtree preparation
 };
 
+enum class RsParallelType {
+    RS_PARALLEL_TYPE_ASYNC = 0,         // 0, The main thread and render thread execute asynchronous, default type
+    RS_PARALLEL_TYPE_SYNC = 1,          // 1, The main thread and render thread execute synchronously
+    RS_PARALLEL_TYPE_SINGLE_THREAD = 2, // 2, Render in main thread, execute synchronously
+};
+
 class RSB_EXPORT RSSystemParameters final {
 public:
     ~RSSystemParameters() = default;
@@ -42,6 +48,7 @@ public:
     static bool GetDrawingCacheEnabledDfx();
     static bool GetShowRefreshRateEnabled();
     static QuickSkipPrepareType GetQuickSkipPrepareType();
+    static RsParallelType GetRsParallelType();
     static bool GetVSyncControlEnabled();
     static bool GetSystemAnimatedScenesEnabled();
     static bool GetFilterCacheOcculusionEnabled();
