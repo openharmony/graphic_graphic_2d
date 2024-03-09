@@ -540,6 +540,7 @@ private:
     bool isChildrenSorted_ = true;
 
     void UpdateFullChildrenListIfNeeded();
+    void ClearFullChildrenListInternal();
     void GenerateFullChildrenList();
     void ResortChildren();
 
