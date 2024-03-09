@@ -39,7 +39,7 @@ HWTEST_F(RSSurfaceNodeOperationTest, GetInstance001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRsRenderContext001
+ * @tc.name: ProcessRSSurfaceNode001
  * @tc.desc:
  * @tc.type:FUNC
  */
