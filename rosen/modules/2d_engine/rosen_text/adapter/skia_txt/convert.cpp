@@ -79,6 +79,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .ellipsis = style.ellipsis,
         .locale = style.locale,
         .textSplitRatio = style.textSplitRatio,
+        .textOverflower = style.Ellipsized(),
     };
 }
 
