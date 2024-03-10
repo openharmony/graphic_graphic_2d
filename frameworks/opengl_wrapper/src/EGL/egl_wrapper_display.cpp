@@ -69,13 +69,7 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
                 *minor = table->minor;
             }
             refCnt_++;
-
-            if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
-                BlobCache::Get()->Init();
-                table->egl.eglSetBlobCacheFuncsANDROID(disp_, BlobCache::setBlobFunc, BlobCache::getBlobFunc);
-            } else {
-                WLOGE("eglSetBlobCacheFuncsANDROID not found.");
-            }
+            BlobCache::Get()->Init(this);
         } else {
             WLOGE("eglInitialize Error.");
         }
@@ -102,6 +96,7 @@ EGLBoolean EglWrapperDisplay::Terminate()
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad) {
         if (table->egl.eglTerminate) {
+            BlobCache::Get()->Terminate();
             ClearObjects();
             return table->egl.eglTerminate(disp_);
         }
