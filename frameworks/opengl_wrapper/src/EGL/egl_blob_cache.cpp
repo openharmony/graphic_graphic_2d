@@ -14,8 +14,16 @@
  */
 #include "egl_blob_cache.h"
 #include "../wrapper_log.h"
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <errors.h>
+#include <cinttypes>
+#include <unistd.h>
+#include <fcntl.h>
+#include <thread>
 
 namespace OHOS {
+static const char* CACHE_MAGIC = "OSOH";
 BlobCache* BlobCache::blobCache_;
 
 BlobCache* BlobCache::Get()
@@ -51,15 +59,48 @@ BlobCache::BlobCache()
     head_->next_ = tail_;
     tail_->prev_ = head_;
     blobSizeMax_ = MAX_SHADER;
+    maxShaderSize_ = MAX_SHADER_SIZE;
+    initStatus_ = false;
+    fileName_ = std::string("/blobShader");
+    saveStatus_ = false;
     blobSize_ = 0;
 }
 
 BlobCache::~BlobCache()
 {
+    if (blobCache_) {
+        blobCache_ = nullptr;
+    }
 }
 
-void BlobCache::Init()
+void BlobCache::Terminate()
 {
+    if (blobCache_) {
+        blobCache_->WriteToDisk();
+    }
+    blobCache_ = nullptr;
+}
+
+int BlobCache::GetMapSize() const
+{
+    if (blobCache_) {
+        return (int)mBlobMap_.size();
+    }
+    return 0;
+}
+
+void BlobCache::Init(EglWrapperDisplay* display)
+{
+    if (!initStatus_) {
+        return;
+    }
+    EglWrapperDispatchTablePtr table = &gWrapperHook;
+    if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
+        table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
+                                               BlobCache::setBlobFunc, BlobCache::getBlobFunc);
+    } else {
+        WLOGE("eglSetBlobCacheFuncsANDROID not found.");
+    }
 }
 
 void BlobCache::setBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
@@ -76,6 +117,7 @@ EGLsizeiANDROID BlobCache::getBlobFunc(const void *key, EGLsizeiANDROID keySize,
 void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
                         EGLsizeiANDROID valueSize)
 {
+    std::lock_guard<std::mutex> lock(blobmutex_);
     if (keySize <= 0) {
         return;
     }
@@ -84,7 +126,6 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     if (it != mBlobMap_.end()) {
         free(it->second->data);
         if (valueSize < 0) {
-            WLOGE("valueSize error");
             return;
         }
         it->second->data = malloc(valueSize);
@@ -95,7 +136,6 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
         it->first->prev_ = head_;
         return;
     }
-
     if (blobSize_ >= blobSizeMax_) {
         int count = 0;
         while (count <= MAX_SHADER_DELETE) {
@@ -107,7 +147,6 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
             ++count;
         }
     }
-
     std::shared_ptr<Blob> valueBlob = std::make_shared<Blob>(value, (size_t)valueSize);
     mBlobMap_.emplace(keyBlob, valueBlob);
     head_->next_->prev_ = keyBlob;
@@ -115,11 +154,23 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     head_->next_ = keyBlob;
     keyBlob->prev_ = head_;
     ++blobSize_;
+    if (!saveStatus_) {
+        saveStatus_ = true;
+        std::thread deferSaveThread([this]() {
+            sleep(DEFER_SAVE_MIN);
+            if (blobCache_) {
+                blobCache_->WriteToDisk();
+            }
+            saveStatus_ = false;
+        });
+        deferSaveThread.detach();
+    }
 }
 
 EGLsizeiANDROID BlobCache::getBlob(const void *key, EGLsizeiANDROID keySize, void *value,
                                    EGLsizeiANDROID valueSize)
 {
+    std::lock_guard<std::mutex> lock(blobmutex_);
     EGLsizeiANDROID ret = 0;
     if (keySize <= 0) {
         return ret;
@@ -147,7 +198,199 @@ EGLsizeiANDROID BlobCache::getBlob(const void *key, EGLsizeiANDROID keySize, voi
 
 void BlobCache::SetCacheDir(const std::string dir)
 {
-    cacheDir_ = dir;
+    struct stat dirStat;
+    if (stat(dir.c_str(), &dirStat) != 0) {
+        WLOGE("inputdir not Create");
+        initStatus_ = false;
+        return;
+    }
+
+    struct stat cachedirstat;
+    struct stat ddkdirstat;
+    cacheDir_ = dir + std::string("/blobShader");
+    ddkCacheDir_ = dir + std::string("/ddkShader");
+
+    if (stat(cacheDir_.c_str(), &cachedirstat) != 0) {
+        initStatus_ = false;
+        int ret = mkdir(cacheDir_.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
+        if (ret == -1) {
+            initStatus_ = false;
+            WLOGE("cacheDir_ not Create");
+        } else {
+            initStatus_ = true;
+        }
+    } else {
+        initStatus_ = true;
+    }
+
+    if (stat(ddkCacheDir_.c_str(), &ddkdirstat) != 0) {
+        int ret = mkdir(ddkCacheDir_.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH);
+        if (ret == -1 && errno != EEXIST) {
+            WLOGE("ddkCacheDir_ not Create");
+        }
+    }
+}
+
+void BlobCache::SetCacheShaderSize(int shadermax)
+{
+    if (shadermax <= 0 || shadermax > MAX_SHADER) {
+        return;
+    }
+    blobSizeMax_ = shadermax;
+}
+
+static inline size_t Formatfile(size_t size)
+{
+    return (size + FORMAT_OFFSET) & ~FORMAT_OFFSET;
+}
+
+size_t BlobCache::GetCacheSize() const
+{
+    size_t headSize = sizeof(CacheHeader);
+    size_t ret = 0;
+    for (auto item = mBlobMap_.begin(); item != mBlobMap_.end(); ++item) {
+        size_t innerSize = headSize + item->first->dataSize + item->second->dataSize;
+        ret += Formatfile(innerSize);
+    }
+    return ret;
+}
+
+void BlobCache::WriteToDisk()
+{
+    std::lock_guard<std::mutex> lock(blobmutex_);
+    struct stat dirStat;
+    if (stat(cacheDir_.c_str(), &dirStat) != 0) {
+        return;
+    }
+    std::string storefile = cacheDir_ + fileName_;
+    int fd = open(storefile.c_str(), O_CREAT | O_EXCL | O_RDWR, 0);
+    if (fd == -1) {
+        if (errno == EEXIST) {
+            if (unlink(storefile.c_str()) == -1) {
+                return;
+            }
+            fd = open(storefile.c_str(), O_CREAT | O_EXCL | O_RDWR, 0);
+        }
+        if (fd == -1) {
+            return;
+        }
+    }
+    size_t filesize = GetCacheSize();
+    size_t headsize = sizeof(CacheHeader);
+    size_t bufsize = filesize + CACHE_HEAD;
+    uint8_t *buf = new uint8_t[bufsize];
+    size_t offset = CACHE_HEAD;
+    for (auto item = mBlobMap_.begin(); item != mBlobMap_.end(); ++item) {
+        CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[offset]);
+        size_t keysize = item->first->dataSize;
+        size_t valuesize = item->second->dataSize;
+        eheader->keySize = keysize;
+        eheader->valueSize = valuesize;
+        memcpy_s(eheader->mData, keysize, item->first->data, keysize);
+        memcpy_s(eheader->mData + keysize, valuesize, item->second->data, valuesize);
+        size_t innerSize = headsize + keysize + valuesize;
+        offset += Formatfile(innerSize);
+    }
+    if (memcpy_s(buf, bufsize, CACHE_MAGIC, CACHE_MAGIC_HEAD) != 0) {
+        delete[] buf;
+        close(fd);
+        return;
+    }
+    uint32_t *crc = reinterpret_cast<uint32_t*>(buf + CACHE_MAGIC_HEAD);
+    *crc = CrcGen(buf + CACHE_HEAD, filesize);
+    if (write(fd, buf, bufsize) != -1) {
+        fchmod(fd, S_IRUSR);
+    }
+    delete[] buf;
+    close(fd);
+}
+
+void BlobCache::ReadFromDisk()
+{
+    struct stat dirStat;
+    if (stat(cacheDir_.c_str(), &dirStat) != 0) {
+        WLOGE("cacheDir_ not Create");
+        return;
+    }
+    std::string storefile = cacheDir_ + fileName_;
+    int fd = open(storefile.c_str(), O_RDONLY, 0);
+    if (fd == -1) {
+    }
+    struct stat bufstat;
+    if (fstat(fd, &bufstat) == -1) {
+        close(fd);
+        return;
+    }
+    size_t filesize = bufstat.st_size;
+    if (filesize > maxShaderSize_ + maxShaderSize_ || filesize <= 0) {
+        close(fd);
+    }
+    uint8_t *buf = reinterpret_cast<uint8_t*>(mmap(nullptr, filesize, PROT_READ, MAP_PRIVATE, fd, 0));
+    if (buf == MAP_FAILED) {
+        close(fd);
+        return;
+    }
+    if (!ValidFile(buf, filesize)) {
+        munmap(buf, filesize);
+        close(fd);
+        return;
+    }
+    size_t headsize = sizeof(CacheHeader);
+    size_t byteoffset = CACHE_HEAD;
+    while (byteoffset < filesize - CACHE_HEAD) {
+        const CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[byteoffset]);
+        size_t keysize = eheader->keySize;
+        size_t valuesize = eheader->valueSize;
+        if (byteoffset + headsize + keysize > filesize) {
+            break;
+        }
+        const uint8_t *key = eheader->mData;
+        if (byteoffset + headsize + keysize + valuesize > filesize) {
+            break;
+        }
+        const uint8_t *value = eheader->mData + keysize;
+        setBlob(key, (EGLsizeiANDROID)keysize, value, (EGLsizeiANDROID)valuesize);
+        size_t innerSize = headsize + keysize + valuesize;
+        byteoffset += Formatfile(innerSize);
+    }
+    munmap(buf, filesize);
+    close(fd);
+}
+
+//CRC standard function
+uint32_t BlobCache::CrcGen(const uint8_t *buf, size_t len)
+{
+    const uint32_t polynoimal = 0xEDB88320;
+    uint32_t crc = 0xFFFFFFFF;
+
+    for (size_t i = 0; i < len ; ++i) {
+        crc ^= (static_cast<uint32_t>(buf[i]) << CRC_NUM);
+        for (size_t j = 0; j < BYTE_SIZE; ++j) {
+            if (crc & 0x80000000) {
+                crc = (crc << 1) ^ polynoimal;
+            } else {
+                crc <<= 1;
+            }
+        }
+    }
+    return crc;
+}
+
+bool BlobCache::ValidFile(uint8_t *buf, size_t len)
+{
+    if (memcmp(buf, CACHE_MAGIC, CACHE_MAGIC_HEAD) != 0) {
+        WLOGE("CACHE_MAGIC failed");
+        return false;
+    }
+
+    uint32_t* crcfile = reinterpret_cast<uint32_t*>(buf + CACHE_MAGIC_HEAD);
+    uint32_t crccur = CrcGen(buf + CACHE_HEAD, len - CACHE_HEAD);
+    if (crccur != *crcfile) {
+        WLOGE("crc check failed");
+        return false;
+    }
+
+    return true;
 }
 
 void EglSetCacheDir(const std::string dir)
