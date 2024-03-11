@@ -366,6 +366,10 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const RSProperties& properties = node.GetRenderProperties();
+    if (properties.GetIlluminated() == nullptr) {
+        ROSEN_LOGE("RSPointLightDrawable::OnUpdate illuminated is null.");
+        return false;
+    }
     const auto& lightSources = properties.GetIlluminated()->GetLightSources();
     if (lightSources.empty()) {
         ROSEN_LOGE("RSPointLightDrawable::OnUpdate lightSourceList is empty.");
