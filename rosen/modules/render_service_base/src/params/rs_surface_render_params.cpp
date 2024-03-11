@@ -18,4 +18,24 @@
 namespace OHOS::Rosen {
 RSSurfaceRenderParams::RSSurfaceRenderParams() {}
 
+void RSSurfaceRenderParams::SetOcclusionVisible(bool visible)
+{
+    if (occlusionVisible_ == visible) {
+        return;
+    }
+    occlusionVisible_ = visible;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetOcclusionVisible() const
+{
+    return occlusionVisible_;
+}
+
+void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
+{
+    auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
+    targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
+    RSRenderParams::OnSync(target);
+}
 } // namespace OHOS::Rosen

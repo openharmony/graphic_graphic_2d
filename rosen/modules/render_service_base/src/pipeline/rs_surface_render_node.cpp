@@ -25,6 +25,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -1884,6 +1885,32 @@ Vector2f RSSurfaceRenderNode::GetGravityTranslate(float imgWidth, float imgHeigh
     RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
         imgWidth, imgHeight, gravityMatrix);
     return {gravityMatrix.Get(Drawing::Matrix::TRANS_X), gravityMatrix.Get(Drawing::Matrix::TRANS_Y)};
+}
+
+void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetOcclusionVisible(visible);
+        if (stagingRenderParams_->NeedSync()) {
+            if (auto context = GetContext().lock()) {
+                context->AddPendingSyncNode(shared_from_this());
+            } else {
+                RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
+                OnSync();
+            }
+        }
+    } else {
+        RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible stagingSurfaceParams is null");
+    }
+
+    isOcclusionVisible_ = visible;
+}
+
+void RSSurfaceRenderNode::InitRenderParams()
+{
+    stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>();
+    renderParams_ = std::make_unique<RSSurfaceRenderParams>();
 }
 } // namespace Rosen
 } // namespace OHOS
