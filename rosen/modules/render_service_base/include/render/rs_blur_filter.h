@@ -45,7 +45,7 @@ public:
     std::shared_ptr<RSFilter> Negate() override;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
-    void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) override;
+    void SetGreyCoef(const std::optional<Vector2f>& greyCoef) override;
 
     bool CanSkipFrame() const override;
 
@@ -56,10 +56,8 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
-    bool isGreyCoefValid_ = false;
     bool useKawase_ = false;
+    std::optional<Vector2f> greyCoef_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -259,8 +259,7 @@ public:
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
-    void SetGreyCoef1(const float greyCoef1);
-    void SetGreyCoef2(const float greyCoef2);
+    void SetGreyCoef(const Vector2f greyCoef);
     void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
 
     void SetShadowColor(uint32_t colorValue);

@@ -204,17 +204,14 @@ public:
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
-    void SetGreyCoef1(float greyCoef1);
-    void SetGreyCoef2(float greyCoef2);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     bool NeedFilter() const;
-    float GetGreyCoef1() const;
-    float GetGreyCoef2() const;
-    bool IsGreyAdjustmentValid() const;
+    void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
+    const std::optional<Vector2f>& GetGreyCoef() const;
 
     // shadow properties
     void SetShadowColor(Color color);
@@ -433,19 +430,21 @@ private:
     std::optional<float> dynamicLightUpDegree_;
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
+    std::optional<Vector2f> greyCoef_;
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();
     void CalculatePixelStretch();
     void CalculateFrameOffset();
+    void CheckGreyCoef();
+    void ApplyGreyCoef();
 
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
     bool filterNeedUpdate_ = false;
+    bool greyCoefNeedUpdate_ = false;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     bool needFilter_ = false;

@@ -87,8 +87,8 @@ public:
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
     static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(
         float dynamicLightUpRate, float dynamicLightUpDeg);
-    static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2);
+    static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(
+        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Vector2f& greyCoef);
 
     // EffectView and useEffect
     static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
