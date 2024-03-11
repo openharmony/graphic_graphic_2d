@@ -612,12 +612,24 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
-    out += ", GetBootAnimation: " + std::to_string(GetBootAnimation());
-    out += ", isContainBootAnimation_: " + std::to_string(isContainBootAnimation_);
-    out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
-    out += ", isPropertyDirty: " + std::to_string(GetRenderProperties().IsDirty());
-    out += ", isSubTreeDirty: " + std::to_string(static_cast<int>(isSubTreeDirty_));
-    out += ", IsPureContainer: " + std::to_string(IsPureContainer());
+    if (GetBootAnimation()) {
+        out += ", GetBootAnimation: true";
+    }
+    if (isContainBootAnimation_) {
+        out += ", isContainBootAnimation: true";
+    }
+    if (dirtyStatus_ != NodeDirty::CLEAN) {
+        out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
+    }
+    if (GetRenderProperties().IsDirty()) {
+        out += ", isPropertyDirty: true";
+    }
+    if (isSubTreeDirty_) {
+        out += ", isSubTreeDirty: true";
+    }
+    if (IsPureContainer()) {
+        out += ", IsPureContainer: true";
+    }
     DumpDrawCmdModifiers(out);
     animationManager_.DumpAnimations(out);
     out += "\n";
@@ -1361,10 +1373,28 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 // Drawing is not supported
 }
 
+void RSRenderNode::ApplyPositionZModifier() {
+    constexpr auto positionZModifierType = static_cast<size_t>(RSModifierType::POSITION_Z);
+    if (!dirtyTypes_.test(positionZModifierType)) {
+        return;
+    }
+
+    GetMutableRenderProperties().SetPositionZ(0.0f);
+    RSModifierContext context = { GetMutableRenderProperties() };
+    for (auto& [id, modifier] : modifiers_) {
+        if (modifier->GetType() == RSModifierType::POSITION_Z) {
+            modifier->Apply(context);
+        }
+    }
+
+    dirtyTypes_.reset(positionZModifierType);
+}
+
 void RSRenderNode::ApplyModifiers()
 {
     if (!isFullChildrenListValid_ || !isChildrenSorted_) {
         UpdateFullChildrenListIfNeeded();
+        AddDirtyType(RSModifierType::CHILDREN);
     }
     // quick reject test
     if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
@@ -2235,10 +2265,8 @@ void RSRenderNode::UpdateFullChildrenListIfNeeded()
 {
     if (!isFullChildrenListValid_) {
         GenerateFullChildrenList();
-        AddDirtyType(RSModifierType::CHILDREN);
     } else if (!isChildrenSorted_) {
         ResortChildren();
-        AddDirtyType(RSModifierType::CHILDREN);
     }
 }
 
@@ -2295,6 +2323,11 @@ void RSRenderNode::GenerateFullChildrenList()
         }
     });
 
+    // temporary fix for wrong z-order
+    for (auto& child : *fullChildrenList) {
+        child->ApplyPositionZModifier();
+    }
+
     // Step 3: Sort all children by z-order
     std::stable_sort(
         fullChildrenList->begin(), fullChildrenList->end(), [](const auto& first, const auto& second) -> bool {
@@ -2317,6 +2350,11 @@ void RSRenderNode::ResortChildren()
 {
     // Make a copy of the fullChildrenList for sorting
     auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+
+    // temporary fix for wrong z-order
+    for (auto& child : *fullChildrenList) {
+        child->ApplyPositionZModifier();
+    }
 
     // Sort the children by their z-order
     std::stable_sort(

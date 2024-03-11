@@ -444,6 +444,7 @@ public:
 
     void MarkNonGeometryChanged();
     void ApplyModifiers();
+    void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
 
     virtual RectI GetFilterRect() const;
