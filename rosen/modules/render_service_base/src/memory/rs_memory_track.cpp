@@ -125,6 +125,7 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
 float MemoryTrack::GetAppMemorySizeInMB()
 {
     float total = 0.f;
+    std::lock_guard<std::mutex> lock(mutex_);
     for (auto& [_, memInfo] : memPicRecord_) {
         total += static_cast<float>(memInfo.size);
     }
