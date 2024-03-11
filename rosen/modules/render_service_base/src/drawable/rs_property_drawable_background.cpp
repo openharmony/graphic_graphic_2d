@@ -30,80 +30,68 @@ std::shared_ptr<Drawing::RuntimeEffect> RSDynamicLightUpDrawable::dynamicLightUp
 
 RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSShadowDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
+    RSDrawable::Ptr ret = nullptr;
+    if (node.GetRenderProperties().GetShadowMask()) {
+        ret = std::make_shared<RSColorfulShadowDrawable>();
+    } else {
+        ret = std::make_shared<RSShadowDrawable>();
+    }
+    if (ret->OnUpdate(node)) {
+        return ret;
     }
     return nullptr;
 };
 
 bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
-    // regenerate stagingDrawCmdList_
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
     const RSProperties& properties = node.GetRenderProperties();
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    const RectF absBounds = { 0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight() };
-    RRect rrect = RRect(absBounds, properties.GetCornerRadius());
-    // RRect rrect = properties.GetRRect();
-    // skip shadow if not valid or cache is enabled
-    if (properties.IsSpherizeValid() || !properties.IsShadowValid() ||
-        canvas.GetCacheType() == Drawing::CacheType::ENABLED) {
+    // skip shadow if not valid
+    if (!properties.IsShadowValid()) {
         return false;
     }
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    Drawing::Path path;
-    if (properties.GetShadowPath() && properties.GetShadowPath()->GetDrawingPath().IsValid()) {
-        path = properties.GetShadowPath()->GetDrawingPath();
-        if (!properties.GetShadowIsFilled()) {
-            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-        }
-    } else if (properties.GetClipBounds()) {
-        path = properties.GetClipBounds()->GetDrawingPath();
-        if (!properties.GetShadowIsFilled()) {
-            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-        }
-    } else {
-        path.AddRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rrect));
-        if (!properties.GetShadowIsFilled()) {
-            canvas.ClipRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rrect), Drawing::ClipOp::DIFFERENCE, true);
-        }
-    }
-    if (properties.GetShadowMask()) {
-        DrawColorfulShadowInner(properties, canvas, path);
-    } else {
-        DrawShadowInner(properties, canvas, path);
-    }
+    stagingShadowParam_ = {properties.GetShadowColor(), properties.GetShadowColorStrategy(),
+        properties.GetShadowElevation(), properties.GetShadowRadius(), properties.GetShadowOffsetX(),
+        properties.GetShadowOffsetY(), properties.GetShadowIsFilled(), properties.GetRRect(),
+        properties.GetColorPickerCacheTaskShadow(), properties.GetShadowPath(), properties.GetClipBounds()};
     return true;
+}
+
+void RSShadowDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    shadowParam_ = std::move(stagingShadowParam_);
+    needSync_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        const auto& drawCmdList = ptr->drawCmdList_;
-        if (canvas == nullptr || drawCmdList == nullptr) {
-            return;
+        if (canvas) {
+            RSPropertyDrawableUtils::DrawShadow(canvas, ptr->shadowParam_);
         }
-        // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
-        // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
-        Drawing::AutoCanvasRestore rst(*canvas, true);
-        auto matrix = canvas->GetTotalMatrix();
-        matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
-        matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
-        canvas->SetMatrix(matrix);
-        drawCmdList->Playback(*canvas);
     };
 }
 
-void RSShadowDrawable::DrawColorfulShadowInner(
-    const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path)
+bool RSColorfulShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
+    // regenerate stagingDrawCmdList_
+    RSPropertyDrawCmdListUpdater updater(0, 0, this);
+    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
+    const RSProperties& properties = node.GetRenderProperties();
+    // skip shadow if not valid or cache is enabled
+    if (!properties.IsShadowValid() || canvas.GetCacheType() == Drawing::CacheType::ENABLED) {
+        return false;
+    }
+    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(canvas, properties.GetShadowIsFilled(),
+        properties.GetShadowPath(), properties.GetClipBounds(), properties.GetRRect());
     // blurRadius calculation is based on the formula in Canvas::DrawShadow, 0.25f and 128.0f are constants
     const Drawing::scalar blurRadius =
         properties.GetShadowElevation() > 0.f
             ? 0.25f * properties.GetShadowElevation() * (1 + properties.GetShadowElevation() / 128.0f)
             : properties.GetShadowRadius();
-
     // save layer, draw image with clipPath, blur and draw back
     Drawing::Brush blurBrush;
     Drawing::Filter filter;
@@ -119,56 +107,7 @@ void RSShadowDrawable::DrawColorfulShadowInner(
     // if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(properties.backref_.lock())) {
     //     node->InternalDrawContent(canvas);
     // }
-}
-
-void RSShadowDrawable::DrawShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path)
-{
-    path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
-    Color spotColor = properties.GetShadowColor();
-    // shadow alpha follow setting
-    auto shadowAlpha = spotColor.GetAlpha();
-    auto deviceClipBounds = canvas.GetDeviceClipBounds();
-    RSColor colorPicked;
-    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr &&
-        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        // if (RSPropertyDrawableUtils::PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
-        //     RSPropertyDrawableUtils::GetDarkColor(colorPicked);
-        // } else {
-        //     shadowAlpha = 0;
-        // }
-        if (!colorPickerTask->GetFirstGetColorFinished()) {
-            shadowAlpha = 0;
-        }
-    } else {
-        shadowAlpha = spotColor.GetAlpha();
-        colorPicked = spotColor;
-    }
-
-    if (properties.GetShadowElevation() > 0.f) {
-        Drawing::Point3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
-        std::vector<Drawing::Point> pt { { path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2,
-            path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2 } };
-        canvas.GetTotalMatrix().MapPoints(pt, pt, 1);
-        Drawing::Point3 lightPos = { pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT };
-        Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
-        ambientColor.MultiplyAlpha(canvas.GetAlpha());
-        spotColor.MultiplyAlpha(canvas.GetAlpha());
-        canvas.DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
-            Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
-    } else {
-        Drawing::Brush brush;
-        brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-            shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
-        brush.SetAntiAlias(true);
-        Drawing::Filter filter;
-        filter.SetMaskFilter(
-            Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
-        brush.SetFilter(filter);
-        canvas.AttachBrush(brush);
-        canvas.DrawPath(path);
-        canvas.DetachBrush();
-    }
+    return true;
 }
 
 RSDrawable::Ptr RSMaskDrawable::OnGenerate(const RSRenderNode& node)

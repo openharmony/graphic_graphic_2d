@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_UTILS_H
 
 #include "property/rs_properties.h"
+#include "drawable/rs_property_drawable_background.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,8 +29,8 @@ public:
         const bool& isOutline);
     static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool& isOutline);
-    static bool PickColor(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& drPath,
-        Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds, RSColor& colorPicked);
+    static bool PickColor(Drawing::Canvas& canvas, const std::shared_ptr<RSColorPickerCacheTask>& colorPickerTask,
+        Drawing::Path& drPath, Drawing::Matrix& matrix, RSColor& colorPicked);
     static void GetDarkColor(RSColor& color);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const bool isForegroundFilter);
@@ -40,6 +41,9 @@ public:
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
         const RectF& boundsRect, const bool boundsGeoValid);
+    static Drawing::Path CreateShadowPath(Drawing::Canvas& canvas, bool shadowIsFilled,
+        const std::shared_ptr<RSPath> shadowPath, const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
+    static void DrawShadow(Drawing::Canvas* canvas, const ShadowParam& shadowParam);
 
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

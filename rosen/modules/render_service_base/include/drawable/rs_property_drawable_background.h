@@ -16,7 +16,9 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_BACKGROUND_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_BACKGROUND_H
 
+#include "common/rs_color.h"
 #include "drawable/rs_property_drawable.h"
+#include "property/rs_color_picker_cache_task.h"
 
 namespace OHOS::Rosen {
 class RSProperties;
@@ -25,18 +27,42 @@ namespace Drawing {
 class RuntimeEffect;
 }
 
-class RSShadowDrawable : public RSPropertyDrawable {
+struct ShadowParam {
+    Color color;
+    int colorStrategy;
+    float elevation;
+    float radius;
+    float offsetX;
+    float offsetY;
+    bool isFilled;
+    RRect rrect;
+    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask;
+    std::shared_ptr<RSPath> shadowPath;
+    std::shared_ptr<RSPath> clipBounds;
+};
+
+class RSShadowDrawable : public RSDrawable {
 public:
-    RSShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
-    {}
     RSShadowDrawable() = default;
+    ~RSShadowDrawable() override = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static void DrawColorfulShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path);
-    static void DrawShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path);
+    bool needSync_ = false;
+    ShadowParam shadowParam_;
+    ShadowParam stagingShadowParam_;
+};
+
+class RSColorfulShadowDrawable : public RSPropertyDrawable {
+public:
+    RSColorfulShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) :
+        RSPropertyDrawable(std::move(drawCmdList))
+    {}
+    RSColorfulShadowDrawable() = default;
+    bool OnUpdate(const RSRenderNode& node) override;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {
