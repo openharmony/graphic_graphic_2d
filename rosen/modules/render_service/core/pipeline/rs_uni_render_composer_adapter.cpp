@@ -109,7 +109,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
         static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyWidth())),
         static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyHeight()))
     };
-    info.boundRect = info.dstRect;
+    const auto& property = node.GetRenderProperties();
+    info.boundRect = { 0, 0,
+        static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};;
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;

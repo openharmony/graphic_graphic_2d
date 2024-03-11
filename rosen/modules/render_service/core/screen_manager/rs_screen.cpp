@@ -550,7 +550,7 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "backlight=" + std::to_string(GetScreenBacklight());
         dumpString += ", ";
         ScreenTypeDump(dumpString);
-        AppendFormat(dumpString, ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=true\n",
+        AppendFormat(dumpString, ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=false\n",
             width_, height_, phyWidth_, phyHeight_);
         dumpString += "\n";
         ModeInfoDump(dumpString);
