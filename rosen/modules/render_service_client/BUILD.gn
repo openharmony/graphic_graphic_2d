@@ -106,6 +106,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",
       "core/ui/rs_effect_node.cpp",
+      "core/ui/rs_ext_node_operation.cpp",
       "core/ui/rs_frame_rate_linker.cpp",
       "core/ui/rs_frame_rate_policy.cpp",
       "core/ui/rs_node.cpp",
@@ -116,7 +117,6 @@ template("render_service_client_source_set") {
       "core/ui/rs_texture_export.cpp",
       "core/ui/rs_ui_director.cpp",
       "core/ui/rs_ui_share_context.cpp",
-      "core/ui/rs_ext_node_operation.cpp",
     ]
 
     if (is_cross_platform) {
@@ -218,7 +218,8 @@ template("render_service_client_source_set") {
     }
 
     if (defined(graphic_2d_broker_configs.vendor_root)) {
-      sources += graphic_2d_broker_configs.librender_service_client_ext_broker_sources
+      sources +=
+          graphic_2d_broker_configs.librender_service_client_ext_broker_sources
       sources -= graphic_2d_broker_configs.librender_service_client_ext_broker_sources_del
       external_deps += [ "ipc:ipc_single" ]
       external_deps += [ "samgr:samgr_proxy" ]
