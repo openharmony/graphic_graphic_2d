@@ -2586,6 +2586,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 region.GetBoundaryPath(&dirtyPath);
                 canvas_->ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
 #endif
+                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             }
         } else {
             canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
