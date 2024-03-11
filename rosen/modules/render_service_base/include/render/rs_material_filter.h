@@ -84,7 +84,7 @@ public:
     bool IsNearEqual(
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
     bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
-    void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) override;
+    void SetGreyCoef(const std::optional<Vector2f>& greyCoef) override;
  
     // color picker subthread
     const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;
@@ -94,10 +94,8 @@ private:
     float radius_ {};
     float saturation_ = 1.f;
     float brightness_ = 1.f;
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
-    bool isGreyCoefValid_ = false;
     RSColor maskColor_ = RSColor();
+    std::optional<Vector2f> greyCoef_;
 
     std::shared_ptr<Drawing::ColorFilter> GetColorFilter(float sat, float brightness);
     std::shared_ptr<Drawing::ImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
