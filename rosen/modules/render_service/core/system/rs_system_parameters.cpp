@@ -68,6 +68,14 @@ QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
     return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));
 }
 
+RsParallelType RSSystemParameters::GetRsParallelType()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.parallel.type", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<RsParallelType>(ConvertToInt(type, 0));
+}
+
 bool RSSystemParameters::GetVSyncControlEnabled()
 {
     static bool vsyncControlEnabled =

@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 RSDrawFrame::RSDrawFrame() : unirenderInstance_(RSUniRenderThread::Instance())
+                           , rsParallelType_(RSSystemParameters::GetRsParallelType())
 {
 
 }
@@ -47,19 +48,28 @@ void RSDrawFrame::RenderFrame()
 
 void RSDrawFrame::PostAndWait()
 {
-    RS_TRACE_NAME_FMT("PostAndWait");
-#ifdef DEBUG_MULTI_THREAD
-    std::unique_lock<std::mutex> frameLock(frameMutex_);
-    canUnblockMainThread = false;
-    unirenderInstance_.PostTask([this]() {
-        RenderFrame();
-    });
-    frameCV_.wait(frameLock, [this] {return canUnblockMainThread;});
-#else
-    unirenderInstance_.PostSyncTask([this]() {
-        RenderFrame();
-    });
-#endif
+    RS_TRACE_NAME_FMT("PostAndWait, parallel type %d", static_cast<int>(rsParallelType_));
+    switch (rsParallelType_) {
+        case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
+            unirenderInstance_.PostSyncTask([this]() {
+                RenderFrame();
+            });
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
+            RenderFrame();
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
+        default: {
+            std::unique_lock<std::mutex> frameLock(frameMutex_);
+            canUnblockMainThread = false;
+            unirenderInstance_.PostTask([this]() {
+                RenderFrame();
+            });
+            frameCV_.wait(frameLock, [this] {return canUnblockMainThread;});
+        }
+    }
 }
 
 void RSDrawFrame::Sync()

@@ -241,6 +241,7 @@ RSMainThread* RSMainThread::Instance()
 }
 
 RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id())
+                             , rsParallelType_(RSSystemParameters::GetRsParallelType())
 {
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
@@ -1169,11 +1170,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
     this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
-#ifdef DEBUG_MULTI_THREAD
-    RSUniRenderThread::Instance().PostTask(
-#else
-    PostTask(
-#endif
+    auto task =
         [this, moment, deeply]() {
             auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
             if (!grContext) {
@@ -1193,9 +1190,16 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
             this->clearMemoryFinished_ = true;
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
-        },
-        CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
-            / GetRefreshRate());
+        };
+    if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+        PostTask(task,
+            CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
+                / GetRefreshRate());
+    } else {
+        RSUniRenderThread::Instance().PostTask(task,
+            CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
+                / GetRefreshRate());
+    }
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
