@@ -612,12 +612,24 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
-    out += ", GetBootAnimation: " + std::to_string(GetBootAnimation());
-    out += ", isContainBootAnimation_: " + std::to_string(isContainBootAnimation_);
-    out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
-    out += ", isPropertyDirty: " + std::to_string(GetRenderProperties().IsDirty());
-    out += ", isSubTreeDirty: " + std::to_string(static_cast<int>(isSubTreeDirty_));
-    out += ", IsPureContainer: " + std::to_string(IsPureContainer());
+    if (GetBootAnimation()) {
+        out += ", GetBootAnimation: true";
+    }
+    if (isContainBootAnimation_) {
+        out += ", isContainBootAnimation: true";
+    }
+    if (dirtyStatus_ != NodeDirty::CLEAN) {
+        out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
+    }
+    if (GetRenderProperties().IsDirty()) {
+        out += ", isPropertyDirty: true";
+    }
+    if (isSubTreeDirty_) {
+        out += ", isSubTreeDirty: true";
+    }
+    if (IsPureContainer()) {
+        out += ", IsPureContainer: true";
+    }
     DumpDrawCmdModifiers(out);
     animationManager_.DumpAnimations(out);
     out += "\n";
