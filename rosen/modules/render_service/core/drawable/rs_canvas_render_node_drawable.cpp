@@ -47,11 +47,14 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
         RS_LOGE("params is nullptr");
         return;
     }
+    if (!params->GetShouldPaint()) {
+        return;
+    }
     Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ConcatMatrix(params->GetMatrix());
-    bool quickjected = canvas->QuickReject(params->GetBounds());
-    if (quickjected) {
-        RS_LOGE("this drawable has quickjected");
+    bool quickRejected = canvas->QuickReject(params->GetBounds());
+    if (quickRejected) {
+        RS_LOGD("this drawable has quickRejected");
     }
     RSRenderNodeDrawable::OnDraw(canvas);
 }

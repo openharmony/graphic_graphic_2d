@@ -63,7 +63,6 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
     if (renderParams) {
         bounds = renderParams->GetBounds();
     }
-    Drawing::AutoCanvasRestore arc(*canvas, true);
     drawCmdList_->Playback(*canvas, &bounds);
 }
 

@@ -252,6 +252,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas, const std::sha
     //     filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
     // }
 
+    Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
@@ -284,6 +285,7 @@ void RSPropertyDrawableUtils::DrawColorFilter(Drawing::Canvas* canvas,
         return;
     }
     imageSnapshot->HintCacheGpuResource();
+    Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     Drawing::SamplingOptions options(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     canvas->AttachBrush(brush);
@@ -318,6 +320,7 @@ void RSPropertyDrawableUtils::DrawLightUpEffect(Drawing::Canvas* canvas, const f
     auto shader = Drawing::ShaderEffect::CreateLightUp(lightUpEffectDegree, *imageShader);
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     canvas->Translate(clipBounds.GetLeft(), clipBounds.GetTop());
     canvas->DrawBackground(brush);
@@ -388,6 +391,7 @@ void RSPropertyDrawableUtils::DrawBinarization(Drawing::Canvas* canvas, const st
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
     brush.SetAntiAlias(true);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     canvas->Translate(clipBounds.GetLeft(), clipBounds.GetTop());
     canvas->DrawBackground(brush);
@@ -470,7 +474,7 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
         }
     }
 
-    canvas->Save();
+    Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->Translate(bounds.GetLeft(), bounds.GetTop());
     Drawing::SamplingOptions samplingOptions;
     constexpr static float EPS = 1e-5f;
@@ -493,7 +497,6 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
             pixelStretch->x_ + bounds.GetWidth(), pixelStretch->y_ + bounds.GetHeight()));
         canvas->DetachBrush();
     }
-    canvas->Restore();
 }
 } // namespace Rosen
 } // namespace OHOS

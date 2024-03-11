@@ -301,9 +301,7 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (!children_.empty() || !disappearingChildren_.empty()) {
         isFullChildrenListValid_ = false;
     } else { // directly clear children list
-        isFullChildrenListValid_ = true;
-        isChildrenSorted_ = true;
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+        ClearFullChildrenListInternal();
     }
 }
 
@@ -419,9 +417,7 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     if (!children_.empty() || !disappearingChildren_.empty()) {
         isFullChildrenListValid_ = false;
     } else { // directly clear children list
-        isFullChildrenListValid_ = true;
-        isChildrenSorted_ = true;
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+        ClearFullChildrenListInternal();
     }
 }
 
@@ -471,9 +467,7 @@ void RSRenderNode::ClearChildren()
     if (!disappearingChildren_.empty()) {
         isFullChildrenListValid_ = false;
     } else { // directly clear children list
-        isFullChildrenListValid_ = true;
-        isChildrenSorted_ = true;
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+        ClearFullChildrenListInternal();
     }
 }
 
@@ -1432,6 +1426,10 @@ void RSRenderNode::ApplyModifiers()
     if (renderParamNeedSync_ || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
         if (auto context = GetContext().lock()) {
             context->AddPendingSyncNode(shared_from_this());
+        } else {
+            ROSEN_LOGE("RSRenderNode::ApplyModifiers context is null");
+            // Temporary code
+            OnSync();
         }
     }
 
@@ -2255,14 +2253,20 @@ void RSRenderNode::UpdateFullChildrenListIfNeeded()
     }
 }
 
+void RSRenderNode::ClearFullChildrenListInternal()
+{
+    std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+    isFullChildrenListValid_ = true;
+    isChildrenSorted_ = true;
+    AddDirtyType(RSModifierType::CHILDREN);
+}
+
 void RSRenderNode::GenerateFullChildrenList()
 {
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
     if (children_.empty() && disappearingChildren_.empty()) {
         auto prevFullChildrenList = fullChildrenList_;
-        isFullChildrenListValid_ = true;
-        isChildrenSorted_ = true;
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+        ClearFullChildrenListInternal();
         return;
     }
 

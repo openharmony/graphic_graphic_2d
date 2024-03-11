@@ -121,9 +121,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
     TryCapture(renderNode_->GetRenderProperties().GetBoundsWidth(), renderNode_->GetRenderProperties().GetBoundsHeight());
 
     // canvas draw
-    curCanvas_->Save();
-    RSRenderNodeDrawable::OnDraw(curCanvas_.get());
-    curCanvas_->Restore();
+    {
+        Drawing::AutoCanvasRestore acr(*curCanvas_, true);
+        RSRenderNodeDrawable::OnDraw(curCanvas_.get());
+    }
 
     // Finish recording skia op
     EndCapture();
