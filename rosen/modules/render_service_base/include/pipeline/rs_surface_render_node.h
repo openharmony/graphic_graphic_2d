@@ -904,6 +904,16 @@ public:
         return !cornerRadius.IsZero();
     }
 
+    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    {
+        bufferRelMatrix_ = matrix;
+    }
+
+    const Drawing::Matrix& GetBufferRelMatrix() const
+    {
+        return bufferRelMatrix_;
+    }
+
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -1116,6 +1126,7 @@ private:
     bool hasTransparentSurface_ = false;
     bool forceUIFirst_ = false;
     bool forceUIFirstChanged_ = false;
+    Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
