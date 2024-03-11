@@ -403,10 +403,7 @@ public:
         alphaChanged_ = true;
     }
 
-    void SetOcclusionVisible(bool visible)
-    {
-        isOcclusionVisible_ = visible;
-    }
+    void SetOcclusionVisible(bool visible);
 
     bool GetOcclusionVisible() const
     {
@@ -934,7 +931,7 @@ private:
     void UpdateHistoryUnsubmittedDirtyInfo();
     bool IsHardwareDisabledBySrcRect() const;
     bool IsYUVBufferFormat() const;
-
+    void InitRenderParams() override;
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;

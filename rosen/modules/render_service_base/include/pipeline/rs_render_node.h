@@ -509,6 +509,13 @@ protected:
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    
+    virtual void InitRenderParams();
+    void OnSync();
+
+    std::unique_ptr<RSRenderParams> renderParams_;
+    std::unique_ptr<RSRenderParams> stagingRenderParams_;
+
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
     bool isNodeSingleFrameComposer_ = false;
@@ -676,13 +683,6 @@ private:
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     RSDrawable::Vec drawableVec_;
-
-    bool renderParamNeedSync_ = false;
-    virtual void InitRenderParams();
-    std::unique_ptr<RSRenderParams> renderParams_;
-    std::unique_ptr<RSRenderParams> stagingRenderParams_;
-
-    void OnSync();
 
     friend class DrawFuncOpItem;
     friend class RSContext;

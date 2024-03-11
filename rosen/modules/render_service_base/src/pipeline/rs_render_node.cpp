@@ -1442,7 +1442,7 @@ void RSRenderNode::ApplyModifiers()
     UpdateRenderParams();
     UpdateDrawableVec();
 
-    if (renderParamNeedSync_ || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
+    if (stagingRenderParams_->NeedSync() || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
         if (auto context = GetContext().lock()) {
             context->AddPendingSyncNode(shared_from_this());
         } else {
@@ -2796,8 +2796,6 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
     stagingRenderParams_->SetShouldPaint(shouldPaint_);
-
-    renderParamNeedSync_ |= stagingRenderParams_->NeedSync();
 }
 
 void RSRenderNode::OnSync()
@@ -2807,9 +2805,8 @@ void RSRenderNode::OnSync()
         drawCmdListNeedSync_ = false;
     }
 
-    if (renderParamNeedSync_) {
+    if (stagingRenderParams_ && stagingRenderParams_->NeedSync()) {
         stagingRenderParams_->OnSync(renderParams_);
-        renderParamNeedSync_ = false;
     }
 
     if (!dirtySlots_.empty()) {

@@ -14,10 +14,11 @@
  */
 
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
-
+#include "rs_trace.h"
 namespace OHOS::Rosen {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
 
@@ -39,6 +40,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
 
     if (!canvas) {
         RS_LOGE("There is no canvas in drawable");
+        return;
+    }
+    auto& params = renderNode_->GetRenderParams();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
+        return;
+    }
+    if (!surfaceParams->GetOcclusionVisible()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip name:%" PRIu64"", renderNode_->GetId());
         return;
     }
 

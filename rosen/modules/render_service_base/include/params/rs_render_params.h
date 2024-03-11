@@ -44,9 +44,10 @@ public:
     RSRenderParams& operator=(RSRenderParams&&) = delete;
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target);
+protected:
+    bool needSync_ = false;
 
 private:
-    bool needSync_ = false;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
     bool shouldPaint_;
