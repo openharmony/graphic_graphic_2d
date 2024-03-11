@@ -679,7 +679,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     Drawing::Matrix matrix;
     auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
     auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
-    matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
+    auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
+    auto ty = params.dstRect.GetTop() - params.srcRect.GetTop() * sy;
+    matrix.SetScaleTranslate(sx, sy, tx, ty);
     Drawing::SamplingOptions samplingOptions;
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = Drawing::SamplingOptions();

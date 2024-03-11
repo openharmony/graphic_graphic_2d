@@ -3986,8 +3986,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 params.targetColorGamut = newColorSpace_;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
                 auto screenManager = CreateOrGetScreenManager();
-                auto ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
-                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
+                std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+                if (node.GetAncestorDisplayNode().lock() != nullptr) {
+                    ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+                }
+                if (ancestor != nullptr) {
+                    params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
+                }
 #endif
                 auto bgColor = property.GetBackgroundColor();
                 if ((node.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&

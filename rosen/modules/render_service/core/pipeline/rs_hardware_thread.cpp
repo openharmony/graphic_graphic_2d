@@ -490,7 +490,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             Drawing::Matrix matrix;
             auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
             auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
-            matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
+            auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
+            auto ty = params.dstRect.GetTop() - params.srcRect.GetTop() * sy;
+            matrix.SetScaleTranslate(sx, sy, tx, ty);
             auto imageShader = Drawing::ShaderEffect::CreateImageShader(
                 *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
             if (imageShader == nullptr) {
