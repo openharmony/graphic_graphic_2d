@@ -74,6 +74,7 @@ void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     if (!visitor) {
         return;
     }
+    RSRenderNode::ApplyModifiers();
     visitor->QuickPrepareCanvasRenderNode(*this);  
 }
 

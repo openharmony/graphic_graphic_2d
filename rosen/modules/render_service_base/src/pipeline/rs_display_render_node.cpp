@@ -53,6 +53,7 @@ void RSDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     if (!visitor) {
         return;
     }
+    RSRenderNode::ApplyModifiers();
     visitor->QuickPrepareDisplayRenderNode(*this);
 }
 

@@ -499,7 +499,7 @@ bool RSSystemProperties::GetKawaseOriginalEnabled()
 bool RSSystemProperties::GetQuickPrepareEnabled()
 {
     static bool quickPrepareEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.quickPrepareEnabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.quickPrepareEnabled", "1")).c_str()) != 0;
     return quickPrepareEnabled;
 }
 
