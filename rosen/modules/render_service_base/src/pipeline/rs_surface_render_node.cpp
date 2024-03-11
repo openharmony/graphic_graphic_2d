@@ -1908,6 +1908,14 @@ void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
     isOcclusionVisible_ = visible;
 }
 
+void RSSurfaceRenderNode::UpdatePartialRenderParams()
+{
+    auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    targetSurfaceParams->SetVisibleRegion(visibleRegion_);
+    dirtyManager_->OnSync();
+    targetSurfaceParams->OnSync(renderParams_);
+}
+
 void RSSurfaceRenderNode::InitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>();

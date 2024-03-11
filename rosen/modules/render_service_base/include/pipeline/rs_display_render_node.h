@@ -238,6 +238,10 @@ public:
         return curAllSurfaces_;
     }
 
+    void UpdatePartialRenderParams();
+    void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
+    std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
+
     void UpdateRotation();
     bool IsRotationChanged() const;
     bool IsFirstTimeToProcessor() const {
@@ -277,6 +281,9 @@ public:
     }
 
 private:
+    void InitRenderParams() override;
+    // vector of sufacenodes will records dirtyregions by itself
+    std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;

@@ -458,8 +458,6 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
-    // vector of sufacenodes will records dirtyregions by itself
-    std::vector<RSSurfaceRenderNode*> curMainAndLeashSurfaceNodes_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;

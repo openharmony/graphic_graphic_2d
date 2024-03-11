@@ -18,4 +18,21 @@
 namespace OHOS::Rosen {
 RSDisplayRenderParams::RSDisplayRenderParams() {}
 
+void RSDisplayRenderParams::SetAllMainAndLeashSurfaces(
+    std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces)
+{
+    std::swap(allMainAndLeashSurfaces_, allMainAndLeashSurfaces);
+}
+
+void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
+{
+    auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
+    if (targetDisplayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderParams::OnSync targetDisplayParams is nullptr");
+        return;
+    }
+    targetDisplayParams->SetAllMainAndLeashSurfaces(allMainAndLeashSurfaces_);
+    RSRenderParams::OnSync(target);
+}
+
 } // namespace OHOS::Rosen

@@ -912,6 +912,7 @@ public:
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     bool GetHasTransparentSurface() const;
+    void UpdatePartialRenderParams();
 
     bool HasWindowCorner()
     {

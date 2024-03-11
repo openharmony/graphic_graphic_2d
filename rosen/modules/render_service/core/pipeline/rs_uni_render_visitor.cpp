@@ -1190,7 +1190,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         return;
     }
     curDisplayDirtyManager_->Clear();
-    curMainAndLeashSurfaceNodes_.clear();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSUniRenderVisitor::QuickPrepareDisplayRenderNode ScreenManager is nullptr");
@@ -1221,6 +1220,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
 
     MapAbsDirtyRectForMainWindow();
+    curDisplayNode_->UpdatePartialRenderParams();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
     HandleColorGamuts(node, screenManager);
     HandlePixelFormat(node, screenManager);
@@ -1250,7 +1250,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         curSurfaceDirtyManager_->Clear();
         filterInGlobal_ = curSurfaceNode_->IsTransparent();
         curMainAndLeashWindowNodesIds_.push(node.GetId());
-        curMainAndLeashSurfaceNodes_.push_back(curSurfaceNode_.get());
+        curDisplayNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
     }
     bool dirtyFlag = dirtyFlag_;
     needRecalculateOcclusion_ = needRecalculateOcclusion_ ||
@@ -1419,14 +1419,17 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 
 void RSUniRenderVisitor::MapAbsDirtyRectForMainWindow() const
 {
-    std::for_each(curMainAndLeashSurfaceNodes_.rbegin(), curMainAndLeashSurfaceNodes_.rend(),
-        [](RSSurfaceRenderNode* surfaceNode) {
+    auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
+    std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
+        [](RSBaseRenderNode::SharedPtr& nodePtr) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (surfaceNode->IsMainWindowType()) {
             auto dirtyManager = surfaceNode->GetDirtyManager();
             auto dirtyRect = dirtyManager->GetCurrentFrameDirtyRegion();
             auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
-            dirtyManager->SetCurrentFrameMapAbsDirtyRect(
+            dirtyManager->SetCurrentFrameDirtyRect(
                 geoPtr->MapAbsRect(dirtyRect.ConvertTo<float>()));
+            surfaceNode->UpdatePartialRenderParams();
         }
     });
 }

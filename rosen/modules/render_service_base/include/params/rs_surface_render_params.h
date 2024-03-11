@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
 
 #include "params/rs_render_params.h"
+#include "common/rs_occlusion_region.h"
 
 namespace OHOS::Rosen {
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
@@ -25,10 +26,15 @@ public:
     virtual ~RSSurfaceRenderParams() = default;
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const;
+    Occlusion::Region GetVisibleRegion() const;
+    void SetVisibleRegion(const Occlusion::Region& visibleRegion);
+
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
+
 protected:
 private:
     bool occlusionVisible_ = true;
+    Occlusion::Region visibleRegion_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

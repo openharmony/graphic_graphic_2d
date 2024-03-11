@@ -16,6 +16,7 @@
 #include "pipeline/rs_display_render_node.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "params/rs_display_render_params.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
@@ -156,6 +157,25 @@ void RSDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
 bool RSDisplayRenderNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+void RSDisplayRenderNode::InitRenderParams()
+{
+    stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>();
+    renderParams_ = std::make_unique<RSDisplayRenderParams>();
+}
+
+void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
+{
+   curMainAndLeashSurfaceNodes_.push_back(surface); 
+}
+
+void RSDisplayRenderNode::UpdatePartialRenderParams()
+{
+    auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    targetDisplayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
+    dirtyManager_->OnSync();
+    curMainAndLeashSurfaceNodes_.clear();
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
