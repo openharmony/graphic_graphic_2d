@@ -43,6 +43,11 @@ void BootVideoPlayer::SetPlayerSurface(const sptr<Surface>& surface)
     }
     surface_ = surface;
 }
+
+std::shared_ptr<Media::Player> BootVideoPlayer::GetPlayer()
+{
+    return mediaPlayer_;
+}
 #endif
 
 bool BootVideoPlayer::PlayVideo()
@@ -88,7 +93,6 @@ bool BootVideoPlayer::PlayVideo()
         LOGE("PlayVideo Prepare fail, errorCode:%{public}d", ret);
         return false;
     }
-    mediaPlayer_->Play();
     LOGI("PlayVideo end");
     return true;
 #else
@@ -160,7 +164,11 @@ void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, co
             LOGI("PlayerCallback: Bitrate Collect");
             break;
         case Media::INFO_TYPE_STATE_CHANGE:
-            LOGI("PlayerCallback: State Change");
+            LOGI("PlayerCallback: State Change, current state is %{public}d", extra);
+            if (Media::PlayerStates::PLAYER_PREPARED == extra) {
+                LOGI("Begin to play");
+                boot_->GetPlayer()->Play();
+            }
             break;
         case Media::INFO_TYPE_POSITION_UPDATE: {
             LOGD("PlayerCallback: Position Update");
