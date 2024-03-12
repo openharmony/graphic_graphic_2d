@@ -301,21 +301,6 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
     return isDrawTextAsBitmap_;
 }
 
-int RSSystemProperties::GetDumpRSTreeCount()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.dumpRSTreeCount", "0");
-    int changed = 0;
-    const char *num = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(num, 0);
-}
-
-void RSSystemProperties::SetDumpRSTreeCount(int count)
-{
-    count = (count > 0) ? count : 0;
-    system::SetParameter("debug.graphic.dumpRSTreeCount", std::to_string(count));
-    RS_LOGD("RSSystemProperties::SetDumpRSTreeCount %{public}d", count);
-}
-
 void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
     cacheEnabledForRotation_ = flag;

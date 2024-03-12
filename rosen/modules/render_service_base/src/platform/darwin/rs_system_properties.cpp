@@ -47,16 +47,6 @@ void RSSystemProperties::SetRecordingDisenabled()
     return;
 }
 
-int RSSystemProperties::GetDumpRSTreeCount()
-{
-    return 0;
-}
-
-void RSSystemProperties::SetDumpRSTreeCount(int count)
-{
-    return;
-}
-
 std::string RSSystemProperties::GetRecordingFile()
 {
     return "";

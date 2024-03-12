@@ -46,7 +46,7 @@ private:
     void DumpAllNodesMemSize(std::string& dumpString) const;
     void DumpHelpInfo(std::string& dumpString) const;
     void DumpRSEvenParam(std::string& dumpString) const;
-    void DumpRenderServiceTree(std::string& dumpString) const;
+    void DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame = true) const;
     void DumpRefreshRateCounts(std::string& dumpString) const;
     void DumpClearRefreshRateCounts(std::string& dumpString) const;
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;

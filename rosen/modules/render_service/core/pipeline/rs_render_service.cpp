@@ -310,11 +310,11 @@ void RSRenderService::DumpRSEvenParam(std::string& dumpString) const
     mainThread_->RsEventParamDump(dumpString);
 }
 
-void RSRenderService::DumpRenderServiceTree(std::string& dumpString) const
+void RSRenderService::DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame) const
 {
     dumpString.append("\n");
     dumpString.append("-- RenderServiceTreeDump: \n");
-    mainThread_->RenderServiceTreeDump(dumpString);
+    mainThread_->RenderServiceTreeDump(dumpString, forceDumpSingleFrame);
 }
 
 void RSRenderService::DumpRefreshRateCounts(std::string& dumpString) const
@@ -448,6 +448,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg4(u"nodeNotOnTree");
     std::u16string arg5(u"allSurfacesMem");
     std::u16string arg6(u"RSTree");
+    std::u16string arg6_1(u"MultiRSTrees");
     std::u16string arg7(u"EventParamList");
     std::u16string arg8(u"h");
     std::u16string arg9(u"allInfo");
@@ -483,6 +484,10 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (argSets.count(arg9) || argSets.count(arg6) != 0) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpRenderServiceTree(dumpString); }).wait();
+    }
+    if (argSets.count(arg9) || argSets.count(arg6_1) != 0) {
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() {DumpRenderServiceTree(dumpString, false); }).wait();
     }
     if (argSets.count(arg9) ||argSets.count(arg7) != 0) {
         mainThread_->ScheduleTask(

@@ -119,8 +119,6 @@ public:
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
-    static int GetDumpRSTreeCount();
-    static void SetDumpRSTreeCount(int count);
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();

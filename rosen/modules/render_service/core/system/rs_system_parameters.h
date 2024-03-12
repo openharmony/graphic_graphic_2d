@@ -37,6 +37,8 @@ enum class QuickSkipPrepareType {
 class RSB_EXPORT RSSystemParameters final {
 public:
     ~RSSystemParameters() = default;
+    static int GetDumpRSTreeCount();
+    static void SetDumpRSTreeCount(int count);
     static bool GetCalcCostEnabled();
     static bool GetDrawingCacheEnabled();
     static bool GetDrawingCacheEnabledDfx();
