@@ -151,10 +151,10 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSBackgroundColorDrawable::OnGenerate,               // BACKGROUND_COLOR,
     RSBackgroundShaderDrawable::OnGenerate,              // BACKGROUND_SHADER,
     RSBackgroundImageDrawable::OnGenerate,               // BACKGROUND_IMAGE,
-    nullptr,                                             // BACKGROUND_FILTER,
+    RSBackgroundFilterDrawable::OnGenerate,              // BACKGROUND_FILTER,
     nullptr,                                             // USE_EFFECT,
     ModifierGenerator<RSModifierType::BACKGROUND_STYLE>, // BACKGROUND_STYLE,
-    nullptr,                                             // DYNAMIC_LIGHT_UP,
+    RSDynamicLightUpDrawable::OnGenerate,                // DYNAMIC_LIGHT_UP,
     nullptr,                                             // ENV_FOREGROUND_COLOR_STRATEGY,
     nullptr,                                             // BG_RESTORE_BOUNDS,
 
@@ -168,14 +168,14 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                             // RESTORE_FRAME,
 
     // FG properties in Bounds clip
-    nullptr,                               // FG_SAVE_BOUNDS,
-    nullptr,                               // FG_CLIP_TO_BOUNDS,
-    nullptr,                               // BINARIZATION,
-    nullptr,                               // COLOR_FILTER,
-    nullptr,                               // LIGHT_UP_EFFECT,
-    nullptr,                               // FOREGROUND_FILTER,
-    RSForegroundColorDrawable::OnGenerate, // FOREGROUND_COLOR,
-    nullptr,                               // FG_RESTORE_BOUNDS,
+    nullptr,                                // FG_SAVE_BOUNDS,
+    nullptr,                                // FG_CLIP_TO_BOUNDS,
+    nullptr,                                // BINARIZATION,
+    nullptr,                                // COLOR_FILTER,
+    RSLightUpEffectDrawable::OnGenerate,    // LIGHT_UP_EFFECT,
+    RSForegroundFilterDrawable::OnGenerate, // FOREGROUND_FILTER,
+    RSForegroundColorDrawable::OnGenerate,  // FOREGROUND_COLOR,
+    nullptr,                                // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
     nullptr,                                          // POINT_LIGHT,
@@ -437,17 +437,18 @@ static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         drawableVec[static_cast<size_t>(slot)] = nullptr;
     }
 
-    auto saveType = RSPaintFilterCanvas::SaveType::kNone;
+    uint8_t saveType = RSPaintFilterCanvas::SaveType::kNone;
     if (flags & DrawableVecStatus::HAVE_ALPHA) {
-        saveType = RSPaintFilterCanvas::SaveType::kAlpha;
+        saveType |= RSPaintFilterCanvas::SaveType::kAlpha;
     }
     if (flags & DrawableVecStatus::HAVE_ENV_CHANGE) {
-        saveType = RSPaintFilterCanvas::SaveType::kEnv;
+        saveType |= RSPaintFilterCanvas::SaveType::kEnv;
     }
 
     if (saveType != RSPaintFilterCanvas::SaveType::kNone) {
         // add necessary save/restore type
-        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_ALL, RSDrawableSlot::RESTORE_ALL, saveType);
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_ALL, RSDrawableSlot::RESTORE_ALL,
+            static_cast<RSPaintFilterCanvas::SaveType>(saveType));
     }
 }
 } // namespace

@@ -95,10 +95,9 @@ bool RSFrameOffsetDrawable::OnUpdate(const RSRenderNode& node)
 // ============================================================================
 RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSClipToBoundsDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
+    auto ret = std::make_shared<RSClipToBoundsDrawable>();
+    ret->OnUpdate(node);
+    return std::move(ret);
 };
 
 bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)

@@ -17,6 +17,7 @@
 
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/runtime_blender_builder.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
@@ -332,6 +333,10 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
 
 RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
+    // Temporary disable filter for effect render node
+    if (node.IsInstanceOf<RSEffectRenderNode>()) {
+        return nullptr;
+    }
     if (auto ret = std::make_shared<RSBackgroundFilterDrawable>(); ret->OnUpdate(node)) {
         return std::move(ret);
     }
