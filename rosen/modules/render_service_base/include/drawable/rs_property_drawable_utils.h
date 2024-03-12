@@ -42,8 +42,6 @@ public:
         const RectF& boundsRect, const bool boundsGeoValid);
     static Drawing::Path CreateShadowPath(Drawing::Canvas& canvas, bool shadowIsFilled,
         const std::shared_ptr<RSPath> shadowPath, const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
-    static void DrawShadow(Drawing::Canvas* canvas, const std::optional<RSShadow>& rsShadow, const RRect& rrect,
-        const std::shared_ptr<RSPath>& clipBounds);
 
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
