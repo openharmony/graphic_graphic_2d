@@ -74,13 +74,13 @@ char* OH_Drawing_FontMgrGetFamilyName(OH_Drawing_FontMgr* cFontMgr, int index, i
     return fontMgr->GetFamilyName(index, len);
 }
 
-void OH_Drawing_DestroyFamilyName(char* familyName)
+void OH_Drawing_DestroyFamilyName(char** familyName)
 {
-    if (familyName == nullptr) {
+    if (familyName == nullptr || *familyName == nullptr) {
         return;
     }
-    delete familyName;
-    familyName = nullptr;
+    delete (*familyName);
+    *familyName = nullptr;
 }
 
 OH_Drawing_FontStyleSet* OH_Drawing_FontStyleSetCreate(OH_Drawing_FontMgr* cFontMgr, int index)

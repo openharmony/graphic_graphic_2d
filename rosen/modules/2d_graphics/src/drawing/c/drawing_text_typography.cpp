@@ -1287,17 +1287,17 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
     return fontList;
 }
 
-void OH_Drawing_DestroySystemFontList(char** fontList, size_t num)
+void OH_Drawing_DestroySystemFontList(char*** fontList, size_t num)
 {
-    if (fontList == nullptr) {
+    if (fontList == nullptr || *fontList == nullptr || num <= 0) {
         return;
     }
     for (size_t i = 0; i < num; ++i) {
-        delete[] fontList[i];
-        fontList[i] = nullptr;
+        delete[] (*fontList)[i];
+        (*fontList)[i] = nullptr;
     }
-    delete[] fontList;
-    fontList = nullptr;
+    delete[] *fontList;
+    *fontList = nullptr;
 }
 
 OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontParser* fontParser, const char* name)
