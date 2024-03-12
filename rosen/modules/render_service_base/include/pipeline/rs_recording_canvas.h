@@ -17,6 +17,8 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H
 
 #include "recording/recording_canvas.h"
+#include <mutex>
+#include <queue>
 #include "pipeline/rs_draw_cmd.h"
 
 namespace OHOS {
@@ -26,8 +28,11 @@ class PixelMap;
 namespace Rosen {
 class RSB_EXPORT ExtendRecordingCanvas : public Drawing::RecordingCanvas {
 public:
-    ExtendRecordingCanvas(int width, int weight, bool addDrawOpImmediate = true);
+    ExtendRecordingCanvas(int32_t width, int32_t weight, bool addDrawOpImmediate = true);
     ~ExtendRecordingCanvas() override = default;
+    static std::unique_ptr<ExtendRecordingCanvas> Obtain(int32_t width, int32_t height, 
+        bool addDrawOpImmediate = true);
+    static void Recycle(std::unique_ptr<ExtendRecordingCanvas>& canvas);
     void DrawImageWithParm(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
     void DrawPixelMapWithParm(const std::shared_ptr<Media::PixelMap>& pixelMap,
@@ -46,6 +51,9 @@ private:
     void AddDrawOpImmediate(Args&&... args);
     template<typename T, typename... Args>
     void AddDrawOpDeferred(Args&&... args);
+    static constexpr int MAX_CANVAS_SIZE = 5;
+    static inline std::mutex canvasMutex_;
+    static inline std::queue<std::unique_ptr<ExtendRecordingCanvas>> canvasPool_;
 };
 } // namespace Rosen
 } // namespace OHOS

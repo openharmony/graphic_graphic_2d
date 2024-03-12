@@ -48,7 +48,7 @@ RSPropertyDrawCmdListUpdater::RSPropertyDrawCmdListUpdater(int width, int height
     : target_(target)
 {
     // PLANNING: use RSRenderNode to determine the correct recording canvas size
-    recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, false);
+    recordingCanvas_ = ExtendRecordingCanvas::Obtain(10, 10, false);
 }
 
 RSPropertyDrawCmdListUpdater::~RSPropertyDrawCmdListUpdater()
@@ -56,6 +56,7 @@ RSPropertyDrawCmdListUpdater::~RSPropertyDrawCmdListUpdater()
     if (recordingCanvas_ && target_) {
         target_->stagingDrawCmdList_ = recordingCanvas_->GetDrawCmdList();
         target_->needSync_ = true;
+        ExtendRecordingCanvas::Recycle(recordingCanvas_);
         recordingCanvas_.reset();
         target_ = nullptr;
     } else {

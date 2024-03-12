@@ -61,8 +61,7 @@ public:
 #endif
 
     void Clear() const;
-
-    void ResetCanvas(int32_t width, int32_t height);
+    void Reset(int32_t width, int32_t height, bool addDrawOpImmediate = true);
 
     void DrawPoint(const Point& point) override;
     void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;
