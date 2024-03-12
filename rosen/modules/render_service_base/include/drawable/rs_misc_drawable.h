@@ -29,10 +29,10 @@
 namespace OHOS::Rosen {
 // RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
 class RSRenderNodeDrawableAdapter;
-class RSChildrenDrawableContent : public RSDrawable {
+class RSChildrenDrawable : public RSDrawable {
 public:
-    RSChildrenDrawableContent() = default;
-    ~RSChildrenDrawableContent() override = default;
+    RSChildrenDrawable() = default;
+    ~RSChildrenDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& content) override;

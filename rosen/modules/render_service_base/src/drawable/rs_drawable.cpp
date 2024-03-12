@@ -163,7 +163,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSFrameOffsetDrawable::OnGenerate,                   // FRAME_OFFSET,
     RSClipToFrameDrawable::OnGenerate,                   // CLIP_TO_FRAME,
     ModifierGenerator<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
-    RSChildrenDrawableContent::OnGenerate,               // CHILDREN,
+    RSChildrenDrawable::OnGenerate,                      // CHILDREN,
     ModifierGenerator<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,
     nullptr,                                             // RESTORE_FRAME,
 
