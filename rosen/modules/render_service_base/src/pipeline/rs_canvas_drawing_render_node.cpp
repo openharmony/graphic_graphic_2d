@@ -81,6 +81,10 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
         if (sharedTexture->IsTextureBacked()) {
             RS_LOGI("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture from texture to raster image");
             sharedTexture = sharedTexture->MakeRasterImage();
+            if (!sharedTexture) {
+                RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture: MakeRasterImage failed");
+                return false;
+            }
         }
     }
     canvas_->DrawImage(*sharedTexture, 0.f, 0.f, Drawing::SamplingOptions());
@@ -158,6 +162,11 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     canvas.AttachPaint(paint);
     if (canvas.GetRecordingState()) {
         auto cpuImage = image_->MakeRasterImage();
+        if (!cpuImage) {
+            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: MakeRasterImage failed");
+            canvas.DetachPaint();
+            return;
+        }
         canvas.DrawImage(*cpuImage, 0.f, 0.f, samplingOptions);
     } else {
         canvas.DrawImage(*image_, 0.f, 0.f, samplingOptions);
