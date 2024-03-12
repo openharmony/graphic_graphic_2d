@@ -148,4 +148,20 @@ HWTEST_F(RSDisplayRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
     ASSERT_FALSE(node->GetBootAnimation());
 }
 
+/**
+ * @tc.name: SetRootIdOfCaptureWindow
+ * @tc.desc: Test SetRootIdOfCaptureWindow
+ * @tc.type:FUNC
+ * @tc.require:issueI981R9
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetRootIdOfCaptureWindow, TestSize.Level2)
+{
+    auto childNode = std::make_shared<RSRenderNode>(id, context);
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
+    ASSERT_NE(childNode, nullptr);
+    ASSERT_NE(displayNode, nullptr);
+
+    displayNode->SetRootIdOfCaptureWindow(childNode->GetId());
+    ASSERT_EQ(displayNode->GetRootIdOfCaptureWindow(), childNode->GetId());
+}
 } // namespace OHOS::Rosen
