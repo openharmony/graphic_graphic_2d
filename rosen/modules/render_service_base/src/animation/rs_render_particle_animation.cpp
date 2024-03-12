@@ -50,6 +50,12 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
         property->Set(renderParticleVector_);
     }
     auto target = GetTarget();
+    if (!target) {
+        return true;
+    } else if (!target->IsOnTheTree() || !target->GetRenderProperties().GetVisible()) {
+        target->RemoveModifier(property_->GetId());
+        return true;
+    }
     if (particleSystem_ == nullptr || particleSystem_->IsFinish()) {
         if (target) {
             target->RemoveModifier(property_->GetId());
