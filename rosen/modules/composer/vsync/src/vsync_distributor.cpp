@@ -410,8 +410,8 @@ void VSyncDistributor::ThreadMain()
             }
             // if getting switched into vsync mode after sleep
             if (!IsDVsyncOn()) {
-                ScopedBytrace func("NOAccumulateInVsync");
-                lastDVsyncTS_.store(0)  // ensure further OnVSyncEvent do not skip
+                ScopedBytrace func("NoAccumulateInVsync");
+                lastDVsyncTS_.store(0);  // ensure further OnVSyncEvent do not skip
                 for (auto conn : conns) {
                     RequestNextVSync(conn);
                 }  // resend RNV for vsync

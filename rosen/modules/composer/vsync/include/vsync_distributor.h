@@ -162,7 +162,7 @@ private:
     uint32_t generatorRefreshRate_ = 0;
 #if defined(RS_ENABLE_DVSYNC)
     sptr<DVsync> dvsync_ = nullptr;
-    bool pendingRNVInVsync_ = false;
+    bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync
     std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
 #endif
     bool isRs_ = false;

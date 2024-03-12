@@ -2419,7 +2419,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifdef OHOS_PLATFORM
             RSJankStats::GetInstance().SetSkipDisplayNode();
 #endif
-            RSMainThread::Instance()->rsVSyncDistributor_->MarkRSNotRendering();
             resetRotate_ = CheckIfNeedResetRotate();
             if (!IsHardwareComposerEnabled()) {
                 RSMainThread::Instance()->rsVSyncDistributor_->MarkRSNotRendering();

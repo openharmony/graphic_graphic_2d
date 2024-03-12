@@ -283,7 +283,7 @@ void RSMainThread::Init()
         // may mark rsnotrendering
         Render();
 
-        // move rnv after mark rsnotrendring
+        // move rnv after mark rsnotrendering
         if (needRequestNextVsyncAnimate_ || rsVSyncDistributor_->HasPendingUIRNV()) {
             rsVSyncDistributor_->MarkRSAnimate();
             RequestNextVSync("animate", timestamp_);
@@ -2152,7 +2152,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
-        // Call real RequestNextVsync Later for dvsync on
         if (!rsVSyncDistributor_->IsDVsyncOn()) {
             RequestNextVSync("animate", timestamp_);
         } else {
