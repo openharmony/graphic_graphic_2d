@@ -213,7 +213,7 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_trace.cpp",
 
     #drawable
-    "src/drawable/rs_utilities_drawable.cpp",
+    "src/drawable/rs_misc_drawable.cpp",
     "src/drawable/rs_render_node_drawable_adapter.cpp",
     "src/drawable/rs_property_drawable.cpp",
     "src/drawable/rs_property_drawable_utils.cpp",

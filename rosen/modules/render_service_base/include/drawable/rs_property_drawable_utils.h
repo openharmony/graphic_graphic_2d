@@ -24,24 +24,27 @@ class RSPropertyDrawableUtils {
 public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
-    static RRect GetRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
-        const bool& isOutline);
-    static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
-        const bool& isOutline);
+    static RRect GetRRectForDrawingBorder(
+        const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);
+    static RRect GetInnerRRectForDrawingBorder(
+        const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static bool PickColor(Drawing::Canvas& canvas, const std::shared_ptr<RSColorPickerCacheTask>& colorPickerTask,
         Drawing::Path& drPath, Drawing::Matrix& matrix, RSColor& colorPicked);
     static void GetDarkColor(RSColor& color);
-    static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-        const bool isForegroundFilter);
+    static void DrawFilter(
+        Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter, const bool isForegroundFilter);
     static void DrawColorFilter(Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter);
     static void DrawLightUpEffect(Drawing::Canvas* canvas, const float lightUpEffectDegree);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high,
-        float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high, float thresholdLow,
+        float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
         const RectF& boundsRect, const bool boundsGeoValid);
     static Drawing::Path CreateShadowPath(Drawing::Canvas& canvas, bool shadowIsFilled,
         const std::shared_ptr<RSPath> shadowPath, const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
+
+    static void BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType);
+    static void EndBlendMode(RSPaintFilterCanvas& canvas);
 
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

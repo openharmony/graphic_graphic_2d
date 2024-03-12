@@ -15,10 +15,10 @@
 
 #include "drawable/rs_drawable.h"
 
+#include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
-#include "drawable/rs_utilities_drawable.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
@@ -147,7 +147,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     // BG properties in Bounds Clip
     nullptr,                                             // BG_SAVE_BOUNDS,
     nullptr,                                             // CLIP_TO_BOUNDS,
-    nullptr,                                             // BLEND_MODE,
+    RSBeginBlendModeDrawable::OnGenerate,                // BLEND_MODE,
     RSBackgroundColorDrawable::OnGenerate,               // BACKGROUND_COLOR,
     RSBackgroundShaderDrawable::OnGenerate,              // BACKGROUND_SHADER,
     RSBackgroundImageDrawable::OnGenerate,               // BACKGROUND_IMAGE,
@@ -185,8 +185,8 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                          // PIXEL_STRETCH,
 
     // Restore state
-    nullptr, // RESTORE_BLEND_MODE,
-    nullptr, // RESTORE_ALL,
+    RSEndBlendModeDrawable::OnGenerate, // RESTORE_BLEND_MODE,
+    nullptr,                            // RESTORE_ALL,
 };
 
 } // namespace
@@ -302,7 +302,7 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
 
     // color blend mode has implicit dependency on clipToBounds
     if (properties.GetClipToBounds() || properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
-        properties.GetColorBlendMode()) {
+        properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE)) {
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
     if (properties.GetClipToFrame()) {
@@ -459,7 +459,7 @@ void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t
 
     // calculate new drawable map status
     auto drawableVecStatusNew = CalculateDrawableVecStatus(node, drawableVec);
-    
+
     if (drawableVecStatus == drawableVecStatusNew) {
         // nothing to do
         return;

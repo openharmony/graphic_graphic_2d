@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "drawable/rs_utilities_drawable.h"
+#include "drawable/rs_misc_drawable.h"
 
+#include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "pipeline/rs_render_node.h"
 
@@ -200,6 +201,88 @@ Drawing::RecordingCanvas::DrawFunc RSCustomRestoreDrawable::CreateDrawFunc() con
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         // return to previous save count
         paintFilterCanvas->RestoreStatus(*content);
+    };
+}
+
+RSDrawable::Ptr RSBeginBlendModeDrawable::OnGenerate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    auto blendMode = properties.GetColorBlendMode();
+    if (blendMode == static_cast<int>(RSColorBlendMode::NONE)) {
+        // no blend
+        return nullptr;
+    }
+
+    return std::make_shared<RSBeginBlendModeDrawable>(blendMode, properties.GetColorBlendApplyType());
+}
+
+bool RSBeginBlendModeDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    auto blendMode = properties.GetColorBlendMode();
+    if (blendMode == static_cast<int>(RSColorBlendMode::NONE)) {
+        // no blend
+        return false;
+    }
+
+    stagingBlendMode_ = blendMode;
+    stagingBlendApplyType_ = properties.GetColorBlendApplyType();
+
+    return true;
+}
+
+void RSBeginBlendModeDrawable::OnSync()
+{
+    if (needSync_ == false) {
+        return;
+    }
+    blendMode_ = stagingBlendMode_;
+    blendApplyType_ = stagingBlendApplyType_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSBeginBlendModeDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSBeginBlendModeDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas) {
+            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+            RSPropertyDrawableUtils::BeginBlendMode(*paintFilterCanvas, ptr->blendMode_, ptr->blendApplyType_);
+        }
+    };
+}
+
+RSDrawable::Ptr RSEndBlendModeDrawable::OnGenerate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (properties.GetColorBlendMode() == static_cast<int>(RSColorBlendMode::NONE) ||
+        properties.GetColorBlendApplyType() == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        // no blend
+        return nullptr;
+    }
+
+    return std::make_shared<RSEndBlendModeDrawable>();
+};
+
+bool RSEndBlendModeDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (properties.GetColorBlendMode() == static_cast<int>(RSColorBlendMode::NONE) ||
+        properties.GetColorBlendApplyType() == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        // no blend
+        return false;
+    }
+
+    return true;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSEndBlendModeDrawable::CreateDrawFunc() const
+{
+    return [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas) {
+            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+            RSPropertyDrawableUtils::EndBlendMode(*paintFilterCanvas);
+        }
     };
 }
 } // namespace OHOS::Rosen
