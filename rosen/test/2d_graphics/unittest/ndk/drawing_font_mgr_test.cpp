@@ -40,7 +40,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest001, TestSize.Level1)
 
     int familyNameSize = 0;
     char *familyName = OH_Drawing_FontMgrGetFamilyName(mgr, 0, &familyNameSize);
-    OH_Drawing_DestroyFamilyName(familyName);
+    OH_Drawing_DestroyFamilyName(&familyName);
 
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontStyleSetCreate(mgr, 0);
     EXPECT_NE(fontStyleSet, nullptr);
@@ -72,7 +72,8 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest002, TestSize.Level1)
     OH_Drawing_TypefaceDestroy(typeface);
 
     const char *bcp47[] = {"zh-Hans"};
-    OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(mgr, matchFamilyName, &normalForm, bcp47, 1, ' ');
+    OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(
+	    mgr, matchFamilyName, &normalForm, bcp47, 1, ' ');
     EXPECT_NE(CharTypeface, nullptr);
     OH_Drawing_TypefaceDestroy(CharTypeface);
 

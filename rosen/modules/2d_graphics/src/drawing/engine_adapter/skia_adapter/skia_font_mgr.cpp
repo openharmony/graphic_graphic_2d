@@ -134,7 +134,7 @@ char* SkiaFontMgr::GetFamilyName(int index, int* len) const
 }
 
 FontStyleSet* SkiaFontMgr::CreateStyleSet(int index) const
-{ 
+{
     if (index < 0 || skFontMgr_ == nullptr) {
         return nullptr;
     }

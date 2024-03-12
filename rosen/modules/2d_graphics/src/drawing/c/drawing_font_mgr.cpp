@@ -138,9 +138,8 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_Font
     if (fontMgr == nullptr || fontStyle == nullptr) {
         return nullptr;
     }
-    OH_Drawing_Typeface* typeface = (OH_Drawing_Typeface*)fontMgr->MatchFamilyStyleCharacter(familyName, *fontStyle, bcp47, bcp47Count, character);
+    OH_Drawing_Typeface* typeface = (OH_Drawing_Typeface*)fontMgr->MatchFamilyStyleCharacter(
+	    familyName, *fontStyle, bcp47, bcp47Count, character);
     delete fontStyle;
     return typeface;
 }
-
-
