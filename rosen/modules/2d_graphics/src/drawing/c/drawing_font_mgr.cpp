@@ -25,8 +25,6 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-// static std::mutex g_typefaceLockMutex;
-// static std::unordered_map<void*, std::shared_ptr<Typeface>> g_typefaceMap;
 static std::mutex g_fontMgrLockMutex;
 static std::unordered_map<void*, std::shared_ptr<FontMgr>> g_fontMgrMap;
 
@@ -34,11 +32,6 @@ static FontMgr* CastToFontMgr(OH_Drawing_FontMgr* cFontMgr)
 {
     return reinterpret_cast<FontMgr*>(cFontMgr);
 }
-
-// static const FontStyle* CastToFontStyle(const OH_Drawing_FontForm* cFontStyle)
-// {
-//     return reinterpret_cast<const FontStyle*>(cFontStyle);
-// }
 
 static FontStyleSet* CastToFontStyleSet(OH_Drawing_FontStyleSet* cFontStyleSet)
 {
@@ -83,14 +76,10 @@ char* OH_Drawing_FontMgrGetFamilyName(OH_Drawing_FontMgr* cFontMgr, int index, i
 
 void OH_Drawing_DestroyFamilyName(char* familyName)
 {
-    // LOGE("Ziruo OH_Drawing_DestroyFamilyName 000");
     if (familyName == nullptr) {
-        // LOGE("Ziruo OH_Drawing_DestroyFamilyName 001");
         return;
     }
-    // LOGE("Ziruo OH_Drawing_DestroyFamilyName 111");
     delete familyName;
-    // LOGE("Ziruo OH_Drawing_DestroyFamilyName 222");
     familyName = nullptr;
 }
 
@@ -101,7 +90,6 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontStyleSetCreate(OH_Drawing_FontMgr* cFont
         return nullptr;
     }
     return (OH_Drawing_FontStyleSet*)fontMgr->CreateStyleSet(index);
-    // return nullptr;
 }
 
 void OH_Drawing_DestroyFontStyleSet(OH_Drawing_FontStyleSet* cfontStyleSet)
@@ -121,15 +109,6 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr* cFont
     return (OH_Drawing_FontStyleSet*)fontMgr->MatchFamily(familyName);
 }
 
-// OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(const OH_Drawing_FontMgr* cFontMgr, const char* familyName)
-// {
-//     const FontMgr* fontMgr = CastToFontMgr(cFontMgr);
-//     if (fontMgr == nullptr) {
-//         return nullptr;
-//     }
-//     return (OH_Drawing_FontStyleSet*)fontMgr->MatchFamily(familyName);
-// }
-
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr* cFontMgr, const char* familyName,
     OH_Drawing_FontForm* fontForm)
 {
@@ -146,17 +125,6 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr* cFon
     delete fontStyle;
     return typeface;
 }
-
-// OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(const OH_Drawing_FontMgr* cFontMgr, const char* familyName,
-//                                                         const OH_Drawing_FontForm* cFontStyle)
-// {
-//     const FontMgr* fontMgr = CastToFontMgr(cFontMgr);
-//     const FontStyle* fontStyle = CastToFontStyle(cFontStyle);
-//     if (fontMgr == nullptr || fontStyle == nullptr) {
-//         return nullptr;
-//     }
-//     return (OH_Drawing_Typeface*)fontMgr->MatchFamilyStyle(familyName, *fontStyle);
-// }
 
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr* cFontMgr, const char familyName[],
     OH_Drawing_FontForm* fontForm, const char* bcp47[], int bcp47Count, int32_t character)
@@ -175,42 +143,4 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_Font
     return typeface;
 }
 
-// OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(const OH_Drawing_FontMgr* cFontMgr, const char familyName[],
-//                                                                  const OH_Drawing_FontForm* fontForm,
-//                                                                  const char* bcp47[], int bcp47Count, int32_t character)
-// {
-//     const FontMgr* fontMgr = CastToFontMgr(cFontMgr);
-//     const FontStyle* fontStyle = CastToFontStyle(fontForm);
-//     if (fontMgr == nullptr || fontStyle == nullptr) {
-//         return nullptr;
-//     }
-//     return (OH_Drawing_Typeface*)fontMgr->MatchFamilyStyleCharacter(familyName, *fontStyle, bcp47, bcp47Count, character);
-// }
 
-// void OH_Drawing_FontStyleSetDestroy(OH_Drawing_FontStyleSet* cFontStyleSet)
-// {
-//     delete CastToFontStyleSet(cFontStyleSet);
-// }
-
-// OH_Drawing_FontForm* OH_Drawing_FontFormCreate(uint32_t weight, uint32_t width, OH_Drawing_FontStyleSlant slant)
-// {
-//     return (OH_Drawing_FontForm*)new FontStyle(weight, width, static_cast<FontStyle::Slant>(slant));
-// }
-
-// void OH_Drawing_FontFormDestroy(OH_Drawing_FontForm* cFontStyle)
-// {
-//     delete CastToFontStyle(cFontStyle);
-// }
-
-// copy
-
-
-
-
-
-// OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr*, char*);
-
-// OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*, char* , OH_Drawing_FontForm*);
-
-// OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr*, char familyName[],
-//     OH_Drawing_FontForm*, char* bcp47[], int bcp47Count, int32_t character);
