@@ -37,6 +37,7 @@ public:
     void SetVideoPath(const std::string& path);
 #ifdef PLAYER_FRAMEWORK_ENABLE
     void SetPlayerSurface(const OHOS::sptr<OHOS::Surface>& surface);
+    std::shared_ptr<Media::Player> GetPlayer();
 #endif
     void SetCallback(const FrameCallback* cb)
     {
