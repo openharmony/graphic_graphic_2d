@@ -18,7 +18,7 @@
 
 #include "common/rs_color.h"
 #include "drawable/rs_property_drawable.h"
-#include "property/rs_color_picker_cache_task.h"
+#include "render/rs_shadow.h"
 
 namespace OHOS::Rosen {
 class RSProperties;

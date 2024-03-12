@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_UTILS_H
 
 #include "property/rs_properties.h"
-#include "drawable/rs_property_drawable_background.h"
 
 namespace OHOS {
 namespace Rosen {
