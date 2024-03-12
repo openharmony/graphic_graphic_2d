@@ -45,7 +45,7 @@ HWTEST_F(RSExtNodeOperationTest, GetInstance001, TestSize.Level1)
  */
 HWTEST_F(RSExtNodeOperationTest, CheckNeedToProcess001, TestSize.Level1)
 {
-    bool ret = RSExtNodeOperation::GetInstance().CheckNeedToProcess001("test_id");
+    bool ret = RSExtNodeOperation::GetInstance().CheckNeedToProcess("test_id");
     ASSERT_FALSE(ret);
 }
 
