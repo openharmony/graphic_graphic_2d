@@ -128,9 +128,15 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
 
     // Finish recording skia op
     EndCapture();
+
+    RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
     renderFrame->Flush();
+    RS_TRACE_END();
+
+    RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable CommitLayer");
     processor->ProcessDisplaySurface(*displayNodeSp);
     processor->PostProcess(displayNodeSp.get());
+    RS_TRACE_END();
 }
 
 std::shared_ptr<RenderContext> RSDisplayRenderNodeDrawable::GetRenderContext() const

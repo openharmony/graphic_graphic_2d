@@ -49,18 +49,22 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
         return;
     }
     if (!surfaceParams->GetOcclusionVisible()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip name:%" PRIu64"", renderNode_->GetId());
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip Node:%" PRIu64"", renderNode_->GetId());
         return;
     }
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
-
     auto surfaceNode = renderNode_->ReinterpretCastTo<RSSurfaceRenderNode>();
     if (surfaceNode != nullptr && !surfaceNode->IsNotifyUIBufferAvailable()) {
         // Notify UI buffer available, temporarily fix
         auto mutableSurfaceNode = std::const_pointer_cast<RSSurfaceRenderNode>(surfaceNode);
         mutableSurfaceNode->NotifyUIBufferAvailable();
     }
+    if (!surfaceNode) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw Name:%s Id:%llu",
+        surfaceNode->GetName().c_str(), renderNode_->GetId());
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen
