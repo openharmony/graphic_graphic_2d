@@ -2155,9 +2155,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         // Call real RequestNextVsync Later for dvsync on
         if (!rsVSyncDistributor_->IsDVsyncOn()) {
             RequestNextVSync("animate", timestamp_);
-        }
-        // call real RequestNextVSync later for dvsync on
-        else {
+        } else {
             needRequestNextVsyncAnimate_ = true;  // set the member variable instead of directly calling rnv
             RS_TRACE_NAME("rs_RequestNextVSync");
         }
