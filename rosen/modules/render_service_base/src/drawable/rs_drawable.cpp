@@ -152,7 +152,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSBackgroundShaderDrawable::OnGenerate,              // BACKGROUND_SHADER,
     RSBackgroundImageDrawable::OnGenerate,               // BACKGROUND_IMAGE,
     RSBackgroundFilterDrawable::OnGenerate,              // BACKGROUND_FILTER,
-    nullptr,                                             // USE_EFFECT,
+    RSUseEffectDrawable::OnGenerate,                     // USE_EFFECT,
     ModifierGenerator<RSModifierType::BACKGROUND_STYLE>, // BACKGROUND_STYLE,
     RSDynamicLightUpDrawable::OnGenerate,                // DYNAMIC_LIGHT_UP,
     nullptr,                                             // ENV_FOREGROUND_COLOR_STRATEGY,

@@ -257,6 +257,68 @@ void RSPropertyDrawableUtils::DrawFilter(
     filter->PostProcess(*canvas);
 }
 
+void RSPropertyDrawableUtils::DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter)
+{
+    if (rsFilter == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");
+        return;
+    }
+    auto surface = canvas->GetSurface();
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect surface null");
+        return;
+    }
+    auto imageRect = canvas->GetDeviceClipBounds();
+    auto imageSnapshot = surface->GetImageSnapshot(imageRect);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect image snapshot null");
+        return;
+    }
+
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+// #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+//     // Optional use cacheManager to draw filter
+//     if (auto& cacheManager = properties.GetFilterCacheManager(false);
+//         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
+//         auto node = properties.backref_.lock();
+//         if (node == nullptr) {
+//             ROSEN_LOGE("DrawBackgroundEffect::node is null");
+//             return;
+//         }
+//         auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>();
+//         if (effectNode == nullptr) {
+//             ROSEN_LOGE("DrawBackgroundEffect::node reinterpret cast failed.");
+//         }
+//         // node is freeze or screen rotating, force cache filterred snapshot.
+//         auto forceCacheFlags = std::make_tuple(effectNode->IsStaticCached(), effectNode->GetRotationChanged());
+//         auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter, bounds, bounds, forceCacheFlags);
+//         canvas.SetEffectData(data);
+//         return;
+//     }
+// #endif
+    filter->PreProcess(imageSnapshot);
+    // create a offscreen skSurface
+    std::shared_ptr<Drawing::Surface> offscreenSurface =
+        surface->MakeSurface(imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+    if (offscreenSurface == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect offscreenSurface null");
+        return;
+    }
+    RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
+    auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
+    auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+    filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
+    filter->PostProcess(offscreenCanvas);
+
+    auto imageCache = offscreenSurface->GetImageSnapshot();
+    if (imageCache == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect imageCache snapshot null");
+        return;
+    }
+    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect));
+    canvas->SetEffectData(std::move(data));
+}
+
 void RSPropertyDrawableUtils::DrawColorFilter(
     Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter)
 {
@@ -521,6 +583,35 @@ Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(Drawing::Canvas& canvas,
         canvas.ClipRoundRect(roundRect, Drawing::ClipOp::DIFFERENCE, true);
     }
     return path;
+}
+
+void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
+{
+    const auto& effectData = canvas->GetEffectData();
+    if (effectData == nullptr || effectData->cachedImage_ == nullptr || !RSSystemProperties::GetEffectMergeEnabled()) {
+        return;
+    }
+
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    canvas->ResetMatrix();
+    auto visibleRect = canvas->GetVisibleRect();
+    visibleRect.Round();
+    auto visibleIRect = Drawing::RectI(
+        static_cast<int>(visibleRect.GetLeft()), static_cast<int>(visibleRect.GetTop()),
+        static_cast<int>(visibleRect.GetRight()), static_cast<int>(visibleRect.GetBottom()));
+    if (!visibleIRect.IsEmpty()) {
+        canvas->ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
+    }
+    Drawing::Brush brush;
+    canvas->AttachBrush(brush);
+    // dstRect: canvas clip region
+    Drawing::Rect dstRect = canvas->GetDeviceClipBounds();
+    // srcRect: map dstRect onto cache coordinate
+    Drawing::Rect srcRect = dstRect;
+    srcRect.Offset(-effectData->cachedRect_.GetLeft(), -effectData->cachedRect_.GetTop());
+    canvas->DrawImageRect(*effectData->cachedImage_, srcRect, dstRect,
+                         Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas->DetachBrush();
 }
 
 void RSPropertyDrawableUtils::BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType)
