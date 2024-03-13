@@ -21,16 +21,16 @@
 
 namespace OHOS::Rosen {
 
-// ==================== RSChildrenDrawableContent =====================
-RSDrawable::Ptr RSChildrenDrawableContent::OnGenerate(const RSRenderNode& node)
+// ==================== RSChildrenDrawable =====================
+RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSChildrenDrawableContent>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSChildrenDrawable>(); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
 }
 
-bool RSChildrenDrawableContent::OnUpdate(const RSRenderNode& node)
+bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto children = node.GetSortedChildren();
 
@@ -45,7 +45,7 @@ bool RSChildrenDrawableContent::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSChildrenDrawableContent::OnSync()
+void RSChildrenDrawable::OnSync()
 {
     if (!needSync_) {
         return;
@@ -55,9 +55,9 @@ void RSChildrenDrawableContent::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSChildrenDrawableContent::CreateDrawFunc() const
+Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
-    auto ptr = std::static_pointer_cast<const RSChildrenDrawableContent>(shared_from_this());
+    auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawable : ptr->childrenDrawableVec_) {
             drawable->OnDraw(*canvas);
@@ -221,6 +221,7 @@ bool RSBeginBlendModeDrawable::OnUpdate(const RSRenderNode& node)
 
     stagingBlendMode_ = blendMode;
     stagingBlendApplyType_ = properties.GetColorBlendApplyType();
+    needSync_ = false;
 
     return true;
 }

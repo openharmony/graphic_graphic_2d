@@ -1507,44 +1507,6 @@ void RSRenderNode::UpdateDrawableVec()
 #endif
 }
 
-// void RSRenderNode::UpdateDrawableVec()
-// {
-// #ifndef ROSEN_ARKUI_X
-//     // Collect dirty slots
-//     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
-//     if (!GetIsUsedBySubThread()) {
-//         UpdateDrawableVecInternal(dirtySlots);
-//     } else if (auto context = context_.lock()) {
-//         context->PostTask([weakPtr = weak_from_this(), dirtySlots]() {
-//             if (auto node = weakPtr.lock()) {
-//                 node->UpdateDrawableVecInternal(dirtySlots);
-//             }
-//         });
-//     } else {
-//         ROSEN_LOGI("%{public}s GetIsUsedBySubThread[%{public}d].", __func__, GetIsUsedBySubThread());
-//         UpdateDrawableVecInternal(dirtySlots);
-//     }
-// #endif
-// }
-
-// void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
-// {
-// #ifndef ROSEN_ARKUI_X
-//      // initialize necessary save/clip/restore
-//     if (drawableVecStatus_ == 0) {
-//         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
-//     }
-//     // Update or regenerate drawable
-//     bool drawableChanged =
-//         RSPropertyDrawable::UpdateDrawableVec(*renderContent_, renderContent_->propertyDrawablesVec_, dirtySlots);
-//     // if 1. first initialized or 2. any drawables changed, update save/clip/restore
-//     if (drawableChanged || drawableVecStatus_ == 0) {
-//         RSPropertyDrawable::UpdateSaveRestore(
-//             *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
-//     }
-// #endif
-// }
-
 void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
 {
     if (!region.has_value()) {

@@ -421,6 +421,11 @@ RSDrawable::Ptr RSDynamicLightUpDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
 {
+    const RSProperties& properties = node.GetRenderProperties();
+    if (properties.IsDynamicLightUpValid()) {
+        return false;
+    }
+
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     Drawing::Surface* surface = canvas.GetSurface();
@@ -428,7 +433,6 @@ bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
         ROSEN_LOGE("RSDynamicLightUpDrawable::OnUpdate surface is null");
         return false;
     }
-    const RSProperties& properties = node.GetRenderProperties();
     auto blender = MakeDynamicLightUpBlender(properties.GetDynamicLightUpRate().value() * canvas.GetAlpha(),
         properties.GetDynamicLightUpDegree().value() * canvas.GetAlpha());
     Drawing::Brush brush;

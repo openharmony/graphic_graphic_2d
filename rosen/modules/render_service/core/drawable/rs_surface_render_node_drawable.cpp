@@ -56,6 +56,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     }
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw Name:%s Id:%llu",
         surfaceNode->GetName().c_str(), renderNode_->GetId());
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen

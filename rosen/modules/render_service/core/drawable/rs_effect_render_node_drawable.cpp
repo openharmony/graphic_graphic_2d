@@ -33,7 +33,13 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
     RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
-
+    auto& params = renderNode_->GetRenderParams();
+    if (!params) {
+        RS_LOGE("params is nullptr");
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen

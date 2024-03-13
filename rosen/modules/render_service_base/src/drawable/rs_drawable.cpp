@@ -28,7 +28,7 @@ namespace {
 constexpr int DIRTY_LUT_SIZE = static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE);
 static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
     RSDrawableSlot::INVALID,           // INVALID
-    RSDrawableSlot::INVALID,           // BOUNDS
+    RSDrawableSlot::CLIP_TO_BOUNDS,    // BOUNDS
     RSDrawableSlot::FRAME_OFFSET,      // FRAME
     RSDrawableSlot::INVALID,           // POSITION_Z
     RSDrawableSlot::INVALID,           // PIVOT
@@ -43,7 +43,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::INVALID,           // TRANSLATE
     RSDrawableSlot::INVALID,           // TRANSLATE_Z
     RSDrawableSlot::INVALID,           // SUBLAYER_TRANSFORM
-    RSDrawableSlot::INVALID,           // CORNER_RADIUS
+    RSDrawableSlot::CLIP_TO_BOUNDS,    // CORNER_RADIUS
     RSDrawableSlot::ALPHA,             // ALPHA
     RSDrawableSlot::ALPHA,             // ALPHA_OFFSCREEN
     RSDrawableSlot::FOREGROUND_COLOR,  // FOREGROUND_COLOR
@@ -163,15 +163,15 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSFrameOffsetDrawable::OnGenerate,                   // FRAME_OFFSET,
     RSClipToFrameDrawable::OnGenerate,                   // CLIP_TO_FRAME,
     ModifierGenerator<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
-    RSChildrenDrawableContent::OnGenerate,               // CHILDREN,
+    RSChildrenDrawable::OnGenerate,                      // CHILDREN,
     ModifierGenerator<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,
     nullptr,                                             // RESTORE_FRAME,
 
     // FG properties in Bounds clip
     nullptr,                                // FG_SAVE_BOUNDS,
     nullptr,                                // FG_CLIP_TO_BOUNDS,
-    nullptr,                                // BINARIZATION,
-    nullptr,                                // COLOR_FILTER,
+    RSBinarizationDrawable::OnGenerate,     // BINARIZATION,
+    RSColorFilterDrawable::OnGenerate,      // COLOR_FILTER,
     RSLightUpEffectDrawable::OnGenerate,    // LIGHT_UP_EFFECT,
     RSForegroundFilterDrawable::OnGenerate, // FOREGROUND_FILTER,
     RSForegroundColorDrawable::OnGenerate,  // FOREGROUND_COLOR,
