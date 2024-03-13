@@ -135,6 +135,8 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_image.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_image_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_mask_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix44.cpp",
@@ -182,6 +184,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/text/typeface.cpp",
       "$drawing_src_dir/utils/camera3d.cpp",
       "$drawing_src_dir/utils/data.cpp",
+      "$drawing_src_dir/utils/kawase_blur_utils.cpp",
       "$drawing_src_dir/utils/matrix.cpp",
       "$drawing_src_dir/utils/matrix44.cpp",
       "$drawing_src_dir/utils/memory_stream.cpp",
@@ -481,6 +484,8 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_image.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_image_filter.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
+    "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur.cpp",
+    "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur_filter.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_mask_filter.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_paint.cpp",
@@ -497,6 +502,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "$drawing_src_dir/image/pixmap.cpp",
     "$drawing_src_dir/text/text.cpp",
     "$drawing_src_dir/utils/camera3d.cpp",
+    "$drawing_src_dir/utils/kawase_blur_utils.cpp",
     "$drawing_src_dir/utils/matrix.cpp",
   ]
 

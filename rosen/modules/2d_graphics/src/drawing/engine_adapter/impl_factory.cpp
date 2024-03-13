@@ -429,6 +429,16 @@ std::shared_ptr<ResourceHolderImpl> ImplFactory::CreateResourceHolderImpl()
 #endif
     return EngineImplFactory::CreateResourceHolder();
 }
+
+std::unique_ptr<KawaseBlurImpl> ImplFactory::CreateKawaseBlurImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateKawaseBlur();
+    }
+#endif
+    return EngineImplFactory::CreateKawaseBlur();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

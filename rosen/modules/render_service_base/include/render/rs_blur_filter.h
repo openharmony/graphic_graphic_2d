@@ -56,7 +56,6 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-    bool useKawase_ = false;
     std::optional<Vector2f> greyCoef_;
 };
 } // namespace Rosen
