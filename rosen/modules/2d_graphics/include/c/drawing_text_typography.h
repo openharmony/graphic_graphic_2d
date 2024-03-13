@@ -1240,7 +1240,7 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser*, size_t*);
  * @brief Releases the memory occupied by a list of system font names.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param char** Indicates the pointer to a list of system font names.
+ * @param char Indicates the pointer to a list of system font names.
  * @param size_t The number of obtained system font names.
  * @since 12
  * @version 1.0
@@ -1252,7 +1252,7 @@ void OH_Drawing_DestroySystemFontList(char***, size_t);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontParser Indicates the pointer to the font parser object <b>OH_Drawing_FontParser</b>.
- * @param char** font name.
+ * @param char font name.
  * @return Returns system fonts information.
  * @since 12
  * @version 1.0
