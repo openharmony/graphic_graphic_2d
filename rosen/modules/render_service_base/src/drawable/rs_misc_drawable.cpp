@@ -221,7 +221,7 @@ bool RSBeginBlendModeDrawable::OnUpdate(const RSRenderNode& node)
 
     stagingBlendMode_ = blendMode;
     stagingBlendApplyType_ = properties.GetColorBlendApplyType();
-    needSync_ = false;
+    needSync_ = true;
 
     return true;
 }
