@@ -346,6 +346,25 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     visitor->QuickPrepareSurfaceRenderNode(*this); 
 }
 
+bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal)
+{
+    // force preparation case
+    if (IsLeashWindow()) {
+        SetSubTreeDirty(false);
+        UpdateChildrenOutOfRectFlag(false); // collect again
+        return true;
+    }
+    return RSRenderNode::IsSubTreeNeedPrepare(needMap, filterInGlobal);
+}
+
+void RSSurfaceRenderNode::UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode)
+{
+    if (curSurfaceNode && curSurfaceNode->GetId() == GetId()) {
+        RSRenderNode::UpdateAbsDrawRect(nullptr);
+        return;
+    }
+    RSRenderNode::UpdateAbsDrawRect(curSurfaceNode);
+}
 
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
@@ -1396,6 +1415,20 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
     containerRegion_ = absRegion.Sub(innerRectRegion);
 }
 
+void RSSurfaceRenderNode::OnSync()
+{
+    dirtyManager_->OnSync();
+    if (this->IsMainWindowType()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        if (surfaceParams == nullptr) {
+            RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
+            return;
+        }
+        surfaceParams->SetNeedSync(true);
+    }
+    RSRenderNode::OnSync();
+}
+
 bool RSSurfaceRenderNode::CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const
 {
     if (surfaceNodesIds.empty()) {
@@ -1420,7 +1453,7 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
 bool RSSurfaceRenderNode::CheckParticipateInOcclusion() const
 {
     // TODO: Need consider others situation
-    if (IsTransparent() || !GetAnimateState()) {
+    if (IsTransparent() || GetAnimateState()) {
         return false;
     }
     return true;
@@ -1908,10 +1941,29 @@ void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
     isOcclusionVisible_ = visible;
 }
 
+void RSSurfaceRenderNode::UpdatePartialRenderParams()
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::UpdatePartialRenderParams surfaceParams is null");
+        return;
+    }
+    surfaceParams->SetVisibleRegion(visibleRegion_);
+}
+
 void RSSurfaceRenderNode::InitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>();
     renderParams_ = std::make_unique<RSSurfaceRenderParams>();
+}
+void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams surfaceParams is null");
+        return;
+    }
+    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
 }
 } // namespace Rosen
 } // namespace OHOS

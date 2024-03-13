@@ -32,10 +32,26 @@ bool RSSurfaceRenderParams::GetOcclusionVisible() const
     return occlusionVisible_;
 }
 
+Occlusion::Region RSSurfaceRenderParams::GetVisibleRegion() const
+{
+    return visibleRegion_;
+}
+
+void RSSurfaceRenderParams::SetVisibleRegion(const Occlusion::Region& visibleRegion)
+{
+    visibleRegion_ = visibleRegion;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
+    if (targetSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderParams::OnSync targetSurfaceParams is nullptr");
+        return;
+    }
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
+    targetSurfaceParams->SetVisibleRegion(visibleRegion_);
     RSRenderParams::OnSync(target);
 }
+
 } // namespace OHOS::Rosen

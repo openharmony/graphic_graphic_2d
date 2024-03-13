@@ -1316,12 +1316,13 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
-    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE && colorPickerTaskShadow_ == nullptr) {
-        CreateColorPickerTaskForShadow();
-        colorPickerTaskShadow_->SetShadowColorStrategy(shadowColorStrategy);
+    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE &&
+        shadow_->GetColorPickerCacheTask() == nullptr) {
+        auto colorPickerTaskShadow = std::make_shared<RSColorPickerCacheTask>();
+        colorPickerTaskShadow->SetShadowColorStrategy(shadowColorStrategy);
+        shadow_->SetColorPickerCacheTask(colorPickerTaskShadow);
     }
 }
-
 
 const Color& RSProperties::GetShadowColor() const
 {
@@ -2742,14 +2743,6 @@ void RSProperties::ClearFilterCache()
         filter->ReleaseColorPickerFilter();
     }
 }
-
-void RSProperties::CreateColorPickerTaskForShadow()
-{
-    if (colorPickerTaskShadow_ == nullptr) {
-        colorPickerTaskShadow_ = std::make_shared<RSColorPickerCacheTask>();
-    }
-}
-
 #endif
 
 void RSProperties::OnApplyModifiers()
@@ -2917,17 +2910,16 @@ int RSProperties::GetColorBlendApplyType() const
 
 const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const
 {
-    return colorPickerTaskShadow_;
+    return shadow_ ? shadow_->GetColorPickerCacheTask() : nullptr;
 }
 
 void RSProperties::ReleaseColorPickerTaskShadow() const
 {
-    if (colorPickerTaskShadow_ == nullptr) {
+    if (!shadow_ || shadow_->GetColorPickerCacheTask() == nullptr) {
         return;
     }
-    colorPickerTaskShadow_->ReleaseColorPicker();
+    shadow_->GetColorPickerCacheTask()->ReleaseColorPicker();
 }
-
 
 bool RSProperties::GetHaveEffectRegion() const
 {

@@ -91,7 +91,7 @@ enum class RSDrawableSlot : uint8_t {
 
     // Annotations: Please remember to update this when new slots are added.
     // NOTE: MAX and *_END enums are using the one-past-the-end style.
-    BG_PROPERTIES_BEGIN      = BACKGROUND_COLOR,
+    BG_PROPERTIES_BEGIN      = BLEND_MODE,
     BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY + 1,
     CONTENT_PROPERTIES_BEGIN = FRAME_OFFSET,
     CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,

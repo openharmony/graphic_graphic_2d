@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
 
 #include "params/rs_render_params.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
 class RSDisplayRenderParams : public RSRenderParams {
@@ -24,7 +25,14 @@ public:
     explicit RSDisplayRenderParams();
     virtual ~RSDisplayRenderParams() = default;
 
+    std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces();
+    void SetAllMainAndLeashSurfaces(
+        std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
+
+    void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
+
 private:
+    std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H

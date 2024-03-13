@@ -133,14 +133,15 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
     return dirtyRegion_;
 }
 
-void RSDirtyRegionManager::SetCurrentFrameMapAbsDirtyRect(const RectI& dirtyRect)
+void RSDirtyRegionManager::SetCurrentFrameDirtyRect(const RectI& dirtyRect)
 {
-    currentFrameMapAbsDirtyRect_ = dirtyRect;
+    currentFrameDirtyRegion_ = dirtyRect;
 }
 
-const RectI& RSDirtyRegionManager::GetCurrentFrameMpsAbsDirtyRect() const
+void RSDirtyRegionManager::OnSync()
 {
-    return currentFrameMapAbsDirtyRect_;
+    isSync_ = true;
+    syncCurrentFrameDirtyRegion_ = currentFrameDirtyRegion_;
 }
 
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
@@ -197,7 +198,6 @@ void RSDirtyRegionManager::Clear()
 {
     dirtyRegion_.Clear();
     currentFrameDirtyRegion_.Clear();
-    currentFrameMapAbsDirtyRect_.Clear();
     visitedDirtyRegions_.clear();
     mergedDirtyRegions_.clear();
     cacheableFilterRects_.clear();
@@ -221,6 +221,7 @@ bool RSDirtyRegionManager::IsDirty() const
 
 void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
 {
+    auto currentFrameDirtyRegion = isSync_ ? syncCurrentFrameDirtyRegion_ : currentFrameDirtyRegion_;
     if (enableAligned) {
         UpdateDirtyByAligned();
     }
@@ -229,22 +230,14 @@ void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
         AlignHistory();
     }
     isDirtyRegionAlignedEnable_ = enableAligned;
-    if (!isDisplayDirtyManager_ && RSSystemProperties::GetQuickPrepareEnabled()) {
-        PushHistory(currentFrameMapAbsDirtyRect_);
-        dirtyRegion_ = MergeHistory(bufferAge_, currentFrameMapAbsDirtyRect_);
-    } else {
-        PushHistory(currentFrameDirtyRegion_);
-        dirtyRegion_ = MergeHistory(bufferAge_, currentFrameDirtyRegion_);
-    }
+    PushHistory(currentFrameDirtyRegion);
+    dirtyRegion_ = MergeHistory(bufferAge_, currentFrameDirtyRegion);
 }
 
 void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
 {
-    if (RSSystemProperties::GetQuickPrepareEnabled()) {  
-        currentFrameMapAbsDirtyRect_ = GetPixelAlignedRect(currentFrameMapAbsDirtyRect_, alignedBits);
-    } else {
-        currentFrameDirtyRegion_ = GetPixelAlignedRect(currentFrameDirtyRegion_, alignedBits);       
-    }
+    auto& currentFrameDirtyRegion = isSync_ ? syncCurrentFrameDirtyRegion_ : currentFrameDirtyRegion_;
+    currentFrameDirtyRegion = GetPixelAlignedRect(currentFrameDirtyRegion, alignedBits);       
 }
 
 void RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType,

@@ -93,7 +93,7 @@ public:
     const RectI& GetDirtyRegion() const;
     // return mapAbs dirtyRegion
     const RectI& GetCurrentFrameMpsAbsDirtyRect() const;
-    void SetCurrentFrameMapAbsDirtyRect(const RectI& dirtyRect);
+    void SetCurrentFrameDirtyRect(const RectI& dirtyRect);
     /*  return merged historical region upside down in left-bottom origin coordinate
         reason: when use OpenGL SetDamageRegion, coordinate system conversion exists.
     */
@@ -131,6 +131,8 @@ public:
         }
         return false;
     }
+    // OnSync must be excuted after UpdateDirty API
+    void OnSync();
 
     // added for dirty region dfx
     void UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE,
@@ -167,7 +169,7 @@ private:
     RectI surfaceRect_;             // dirtyregion clipbounds
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
-    RectI currentFrameMapAbsDirtyRect_;   // currentFrameDirtyRegion after mapAbsrect.
+    RectI syncCurrentFrameDirtyRegion_; // sync currentFrameDirtyRegion_ for replay.
     std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion
     std::vector<RectI> cacheableFilterRects_ = {};  // node's region if filter cachable
     std::vector<RectI> mergedDirtyRegions_ = {};
@@ -186,6 +188,7 @@ private:
     bool isDirtyRegionAlignedEnable_ = false;
     bool isFilterCacheRectValid_ = true;
     bool isDisplayDirtyManager_ = false;
+    std::atomic<bool> isSync_ = false;
 
     // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
     // For example when dirtymanager is used in cachesurface when surfacenode's

@@ -97,6 +97,8 @@ public:
                                 bool onlyFirstLevel);
     virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
+    // if subtree dirty or child filter need prepare
+    virtual bool IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;
@@ -190,6 +192,8 @@ public:
 
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleFilter(bool val);
+    bool ChildHasVisibleEffect() const;
+    void SetChildHasVisibleEffect(bool val);
 
     NodeId GetInstanceRootNodeId() const;
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
@@ -261,9 +265,6 @@ public:
     // store prev surface subtree's must-renewed info that need prepare
     virtual void StoreMustRenewedInfo();
     bool HasMustRenewedInfo() const;
-    // collect all subnodes using effect
-    void SetUseEffectNodes(bool val);
-    bool HasUseEffectNodes() const;
     bool HasSubSurface() const;
 
     bool NeedInitCacheSurface() const;
@@ -446,6 +447,8 @@ public:
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
+    // update node's abs draw region (including childrenRect)
+    virtual void UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode);
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
@@ -511,7 +514,7 @@ protected:
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     
     virtual void InitRenderParams();
-    void OnSync();
+    virtual void OnSync();
 
     std::unique_ptr<RSRenderParams> renderParams_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
@@ -569,6 +572,7 @@ private:
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
+    bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
 
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();
@@ -620,8 +624,6 @@ private:
     // since cache preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool cacheGeoPreparationDelay_ = false;
-    // specify if any subnode uses effect, not including itself
-    bool hasEffectNode_ = false;
 
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};

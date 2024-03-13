@@ -352,6 +352,9 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
 
 void RSRenderNode::MapChildrenRect()
 {
+    if (childrenRect_.IsEmpty()) {
+        return;
+    }
     if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
         childrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
     }
@@ -855,6 +858,33 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     ApplyModifiers();
     visitor->QuickPrepareChildren(*this);
+}
+
+bool RSRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal)
+{
+    // stop visit invisible or clean without filter subtree
+    if (!ShouldPaint()) {
+        UpdateChildrenOutOfRectFlag(false); // not need to consider
+        RS_TRACE_NAME_FMT("RSRenderNode::IsSubTreeNeedPrepare node[%s] not ShouldPaint",
+            std::to_string(GetId()).c_str());
+        return false;
+    }
+    if (IsSubTreeDirty()) {
+        // reset iff traverses dirty subtree
+        SetSubTreeDirty(false);
+        UpdateChildrenOutOfRectFlag(false); // collect again
+        return true;
+    }
+    // for clean subtree, map childrenrect if node is (geo)dirty
+    if (needMap) {
+        MapChildrenRect();
+    }
+    if (ChildHasVisibleFilter()) {
+        RS_TRACE_NAME_FMT("RSRenderNode::IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
+            GetId(), filterInGlobal);
+    }
+    // if clean without filter skip subtree
+    return ChildHasVisibleFilter() ? filterInGlobal : false;
 }
 
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -1506,44 +1536,6 @@ void RSRenderNode::UpdateDrawableVec()
     }
 #endif
 }
-
-// void RSRenderNode::UpdateDrawableVec()
-// {
-// #ifndef ROSEN_ARKUI_X
-//     // Collect dirty slots
-//     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
-//     if (!GetIsUsedBySubThread()) {
-//         UpdateDrawableVecInternal(dirtySlots);
-//     } else if (auto context = context_.lock()) {
-//         context->PostTask([weakPtr = weak_from_this(), dirtySlots]() {
-//             if (auto node = weakPtr.lock()) {
-//                 node->UpdateDrawableVecInternal(dirtySlots);
-//             }
-//         });
-//     } else {
-//         ROSEN_LOGI("%{public}s GetIsUsedBySubThread[%{public}d].", __func__, GetIsUsedBySubThread());
-//         UpdateDrawableVecInternal(dirtySlots);
-//     }
-// #endif
-// }
-
-// void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
-// {
-// #ifndef ROSEN_ARKUI_X
-//      // initialize necessary save/clip/restore
-//     if (drawableVecStatus_ == 0) {
-//         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
-//     }
-//     // Update or regenerate drawable
-//     bool drawableChanged =
-//         RSPropertyDrawable::UpdateDrawableVec(*renderContent_, renderContent_->propertyDrawablesVec_, dirtySlots);
-//     // if 1. first initialized or 2. any drawables changed, update save/clip/restore
-//     if (drawableChanged || drawableVecStatus_ == 0) {
-//         RSPropertyDrawable::UpdateSaveRestore(
-//             *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
-//     }
-// #endif
-// }
 
 void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
 {
@@ -2425,6 +2417,14 @@ void RSRenderNode::SetChildHasVisibleFilter(bool val)
 {
     childHasVisibleFilter_ = val;
 }
+bool RSRenderNode::ChildHasVisibleEffect() const
+{
+    return childHasVisibleEffect_;
+}
+void RSRenderNode::SetChildHasVisibleEffect(bool val)
+{
+    childHasVisibleEffect_ = val;
+}
 NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
     return instanceRootNodeId_;
@@ -2580,22 +2580,12 @@ bool RSRenderNode::GetCacheGeoPreparationDelay() const
 
 void RSRenderNode::StoreMustRenewedInfo()
 {
-    mustRenewedInfo_ = hasHardwareNode_ || hasFilter_ || hasEffectNode_;
+    mustRenewedInfo_ = hasHardwareNode_ || childHasVisibleFilter_ || childHasVisibleEffect_;
 }
 
 bool RSRenderNode::HasMustRenewedInfo() const
 {
     return mustRenewedInfo_;
-}
-
-void RSRenderNode::SetUseEffectNodes(bool val)
-{
-    hasEffectNode_ = val;
-}
-
-bool RSRenderNode::HasUseEffectNodes() const
-{
-    return hasEffectNode_;
 }
 
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
@@ -2796,6 +2786,27 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
     stagingRenderParams_->SetShouldPaint(shouldPaint_);
+}
+
+void RSRenderNode::UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode)
+{
+    // may null during bootanimation
+    if (!stagingRenderParams_) {
+        RS_LOGW("UpdateAbsDrawRect stagingRenderParams_ is nullptr");
+        return;
+    }
+    auto drawRect = oldDirty_.JoinRect(childrenRect_);
+    // [planning] remove if stable
+    std::string info = "drawRect " + drawRect.ToString();
+    if (curSurfaceNode) {
+        // nodes within should match curSurface geoMatrix
+        if (auto geoPtr = curSurfaceNode->GetRenderProperties().GetBoundsGeometry()) {
+            drawRect = geoPtr->MapAbsRect(drawRect.ConvertTo<float>());
+            info += "-map->" + drawRect.ToString();
+        }
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateAbsDrawRect node[%llu]: %s", GetId(), info.c_str());
+    stagingRenderParams_->SetAbsDrawRect(drawRect);
 }
 
 void RSRenderNode::OnSync()

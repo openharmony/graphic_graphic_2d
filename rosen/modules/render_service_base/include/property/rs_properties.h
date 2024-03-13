@@ -459,14 +459,12 @@ private:
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
-    void CreateColorPickerTaskForShadow();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
     static const bool FilterCacheEnabled;
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTaskShadow_ = nullptr;
 
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;

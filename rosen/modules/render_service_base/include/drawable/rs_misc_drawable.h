@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_UTILITIES_DRAWABLE_H
-#define RENDER_SERVICE_BASE_DRAWABLE_RS_UTILITIES_DRAWABLE_H
+#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_MISC_DRAWABLE_H
+#define RENDER_SERVICE_BASE_DRAWABLE_RS_MISC_DRAWABLE_H
 
 #include <bitset>
 #include <cstdint>
@@ -29,10 +29,10 @@
 namespace OHOS::Rosen {
 // RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
 class RSRenderNodeDrawableAdapter;
-class RSChildrenDrawableContent : public RSDrawable {
+class RSChildrenDrawable : public RSDrawable {
 public:
-    RSChildrenDrawableContent() = default;
-    ~RSChildrenDrawableContent() override = default;
+    RSChildrenDrawable() = default;
+    ~RSChildrenDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& content) override;
@@ -146,5 +146,38 @@ protected:
     float stagingAlpha_ = 0.0f;
     bool stagingOffscreen_ = false;
 };
+
+// ============================================================================
+// Blend Mode
+class RSBeginBlendModeDrawable : public RSDrawable {
+public:
+    RSBeginBlendModeDrawable(int blendMode, int blendApplyType) : blendMode_(blendMode), blendApplyType_(blendApplyType)
+    {}
+    ~RSBeginBlendModeDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    int blendMode_;
+    int blendApplyType_;
+
+    int stagingBlendMode_;
+    int stagingBlendApplyType_;
+};
+
+class RSEndBlendModeDrawable : public RSDrawable {
+public:
+    RSEndBlendModeDrawable() = default;
+    ~RSEndBlendModeDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override {};
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+};
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_UTILITIES_DRAWABLE_H
+#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_MISC_DRAWABLE_H

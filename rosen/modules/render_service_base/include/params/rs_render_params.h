@@ -32,10 +32,14 @@ public:
     virtual void SetBoundsRect(Drawing::RectF boundsRect);
     const Drawing::Rect GetBounds() const;
 
+    virtual void SetAbsDrawRect(RectI absDrawRect);
+    const RectI GetAbsDrawRect() const;
+
     bool GetShouldPaint() const;
     void SetShouldPaint(bool shouldPaint);
 
     bool NeedSync() const;
+    void SetNeedSync(bool needSync);
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
@@ -50,6 +54,8 @@ protected:
 private:
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
+    // this rect should map display coordination
+    RectI absDrawRect_;
     bool shouldPaint_;
 };
 } // namespace OHOS::Rosen

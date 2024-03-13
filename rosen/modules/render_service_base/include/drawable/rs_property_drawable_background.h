@@ -33,10 +33,15 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+};
 
-private:
-    static void DrawColorfulShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path);
-    static void DrawShadowInner(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Path& path);
+class RSColorfulShadowDrawable : public RSPropertyDrawable {
+public:
+    RSColorfulShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) :
+        RSPropertyDrawable(std::move(drawCmdList))
+    {}
+    RSColorfulShadowDrawable() = default;
+    bool OnUpdate(const RSRenderNode& node) override;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {
@@ -89,7 +94,8 @@ private:
 
 class RSBackgroundFilterDrawable : public RSDrawable {
 public:
-    RSBackgroundFilterDrawable() = default;
+    RSBackgroundFilterDrawable(const std::shared_ptr<RSFilter>& rsFilter) : filter_(rsFilter)
+    {}
     ~RSBackgroundFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
@@ -101,6 +107,33 @@ private:
     bool needSync_ = false;
     std::shared_ptr<RSFilter> filter_;
     std::shared_ptr<RSFilter> stagingFilter_;
+};
+
+class RSBackgroundEffectDrawable : public RSDrawable {
+public:
+    RSBackgroundEffectDrawable(const std::shared_ptr<RSFilter>& rsFilter) : filter_(rsFilter)
+    {}
+    ~RSBackgroundEffectDrawable() override = default;
+
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
+};
+
+class RSUseEffectDrawable : public RSDrawable {
+public:
+    RSUseEffectDrawable() = default;
+    ~RSUseEffectDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override {};
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 };
 
 class RSDynamicLightUpDrawable : public RSPropertyDrawable {

@@ -15,10 +15,10 @@
 
 #include "drawable/rs_drawable.h"
 
+#include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
-#include "drawable/rs_utilities_drawable.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
@@ -28,7 +28,7 @@ namespace {
 constexpr int DIRTY_LUT_SIZE = static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE);
 static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
     RSDrawableSlot::INVALID,           // INVALID
-    RSDrawableSlot::INVALID,           // BOUNDS
+    RSDrawableSlot::CLIP_TO_BOUNDS,    // BOUNDS
     RSDrawableSlot::FRAME_OFFSET,      // FRAME
     RSDrawableSlot::INVALID,           // POSITION_Z
     RSDrawableSlot::INVALID,           // PIVOT
@@ -43,7 +43,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::INVALID,           // TRANSLATE
     RSDrawableSlot::INVALID,           // TRANSLATE_Z
     RSDrawableSlot::INVALID,           // SUBLAYER_TRANSFORM
-    RSDrawableSlot::INVALID,           // CORNER_RADIUS
+    RSDrawableSlot::CLIP_TO_BOUNDS,    // CORNER_RADIUS
     RSDrawableSlot::ALPHA,             // ALPHA
     RSDrawableSlot::ALPHA,             // ALPHA_OFFSCREEN
     RSDrawableSlot::FOREGROUND_COLOR,  // FOREGROUND_COLOR
@@ -147,14 +147,14 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     // BG properties in Bounds Clip
     nullptr,                                             // BG_SAVE_BOUNDS,
     nullptr,                                             // CLIP_TO_BOUNDS,
-    nullptr,                                             // BLEND_MODE,
+    RSBeginBlendModeDrawable::OnGenerate,                // BLEND_MODE,
     RSBackgroundColorDrawable::OnGenerate,               // BACKGROUND_COLOR,
     RSBackgroundShaderDrawable::OnGenerate,              // BACKGROUND_SHADER,
     RSBackgroundImageDrawable::OnGenerate,               // BACKGROUND_IMAGE,
-    nullptr,                                             // BACKGROUND_FILTER,
-    nullptr,                                             // USE_EFFECT,
+    RSBackgroundFilterDrawable::OnGenerate,              // BACKGROUND_FILTER,
+    RSUseEffectDrawable::OnGenerate,                     // USE_EFFECT,
     ModifierGenerator<RSModifierType::BACKGROUND_STYLE>, // BACKGROUND_STYLE,
-    nullptr,                                             // DYNAMIC_LIGHT_UP,
+    RSDynamicLightUpDrawable::OnGenerate,                // DYNAMIC_LIGHT_UP,
     nullptr,                                             // ENV_FOREGROUND_COLOR_STRATEGY,
     nullptr,                                             // BG_RESTORE_BOUNDS,
 
@@ -163,19 +163,19 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSFrameOffsetDrawable::OnGenerate,                   // FRAME_OFFSET,
     RSClipToFrameDrawable::OnGenerate,                   // CLIP_TO_FRAME,
     ModifierGenerator<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
-    RSChildrenDrawableContent::OnGenerate,               // CHILDREN,
+    RSChildrenDrawable::OnGenerate,                      // CHILDREN,
     ModifierGenerator<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,
     nullptr,                                             // RESTORE_FRAME,
 
     // FG properties in Bounds clip
-    nullptr,                               // FG_SAVE_BOUNDS,
-    nullptr,                               // FG_CLIP_TO_BOUNDS,
-    nullptr,                               // BINARIZATION,
-    nullptr,                               // COLOR_FILTER,
-    nullptr,                               // LIGHT_UP_EFFECT,
-    nullptr,                               // FOREGROUND_FILTER,
-    RSForegroundColorDrawable::OnGenerate, // FOREGROUND_COLOR,
-    nullptr,                               // FG_RESTORE_BOUNDS,
+    nullptr,                                // FG_SAVE_BOUNDS,
+    nullptr,                                // FG_CLIP_TO_BOUNDS,
+    RSBinarizationDrawable::OnGenerate,     // BINARIZATION,
+    RSColorFilterDrawable::OnGenerate,      // COLOR_FILTER,
+    RSLightUpEffectDrawable::OnGenerate,    // LIGHT_UP_EFFECT,
+    RSForegroundFilterDrawable::OnGenerate, // FOREGROUND_FILTER,
+    RSForegroundColorDrawable::OnGenerate,  // FOREGROUND_COLOR,
+    nullptr,                                // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
     nullptr,                                          // POINT_LIGHT,
@@ -185,8 +185,8 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                          // PIXEL_STRETCH,
 
     // Restore state
-    nullptr, // RESTORE_BLEND_MODE,
-    nullptr, // RESTORE_ALL,
+    RSEndBlendModeDrawable::OnGenerate, // RESTORE_BLEND_MODE,
+    nullptr,                            // RESTORE_ALL,
 };
 
 } // namespace
@@ -302,7 +302,7 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
 
     // color blend mode has implicit dependency on clipToBounds
     if (properties.GetClipToBounds() || properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
-        properties.GetColorBlendMode()) {
+        properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE)) {
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
     if (properties.GetClipToFrame()) {
@@ -437,17 +437,18 @@ static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         drawableVec[static_cast<size_t>(slot)] = nullptr;
     }
 
-    auto saveType = RSPaintFilterCanvas::SaveType::kNone;
+    uint8_t saveType = RSPaintFilterCanvas::SaveType::kNone;
     if (flags & DrawableVecStatus::HAVE_ALPHA) {
-        saveType = RSPaintFilterCanvas::SaveType::kAlpha;
+        saveType |= RSPaintFilterCanvas::SaveType::kAlpha;
     }
     if (flags & DrawableVecStatus::HAVE_ENV_CHANGE) {
-        saveType = RSPaintFilterCanvas::SaveType::kEnv;
+        saveType |= RSPaintFilterCanvas::SaveType::kEnv;
     }
 
     if (saveType != RSPaintFilterCanvas::SaveType::kNone) {
         // add necessary save/restore type
-        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_ALL, RSDrawableSlot::RESTORE_ALL, saveType);
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_ALL, RSDrawableSlot::RESTORE_ALL,
+            static_cast<RSPaintFilterCanvas::SaveType>(saveType));
     }
 }
 } // namespace
@@ -459,7 +460,7 @@ void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t
 
     // calculate new drawable map status
     auto drawableVecStatusNew = CalculateDrawableVecStatus(node, drawableVec);
-    
+
     if (drawableVecStatus == drawableVecStatusNew) {
         // nothing to do
         return;

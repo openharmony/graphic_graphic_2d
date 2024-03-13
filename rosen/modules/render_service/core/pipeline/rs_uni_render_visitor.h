@@ -59,8 +59,6 @@ public:
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
     /* Prepare relevant calculation */
-    // if subtree dirty or child filter need prepare
-    bool IsSubTreeNeedPrepare(RSRenderNode& node, std::shared_ptr<RSRenderNode> parent = nullptr) const;
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     // restore node's flag and filter dirty collection
@@ -458,8 +456,6 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
-    // vector of sufacenodes will records dirtyregions by itself
-    std::vector<RSSurfaceRenderNode*> curMainAndLeashSurfaceNodes_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;

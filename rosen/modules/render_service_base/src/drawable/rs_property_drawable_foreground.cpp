@@ -138,9 +138,7 @@ Drawing::RecordingCanvas::DrawFunc RSLightUpEffectDrawable::CreateDrawFunc() con
 {
     auto ptr = std::static_pointer_cast<const RSLightUpEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas) {
-            RSPropertyDrawableUtils::DrawLightUpEffect(canvas, ptr->lightUpEffectDegree_);
-        }
+        RSPropertyDrawableUtils::DrawLightUpEffect(canvas, ptr->lightUpEffectDegree_);
     };
 }
 
@@ -366,6 +364,10 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const RSProperties& properties = node.GetRenderProperties();
+    if (properties.GetIlluminated() == nullptr) {
+        ROSEN_LOGE("RSPointLightDrawable::OnUpdate illuminated is null.");
+        return false;
+    }
     const auto& lightSources = properties.GetIlluminated()->GetLightSources();
     if (lightSources.empty()) {
         ROSEN_LOGE("RSPointLightDrawable::OnUpdate lightSourceList is empty.");

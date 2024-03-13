@@ -35,15 +35,10 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
     return std::make_unique<RSSurfaceRenderNodeDrawable>(std::move(node));
 }
 
-void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
+void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
     if (!renderNode_) {
         RS_LOGE("There is no CanvasNode in RSSurfaceRenderNodeDrawable");
-        return;
-    }
-
-    if (!canvas) {
-        RS_LOGE("There is no canvas in drawable");
         return;
     }
 
@@ -52,15 +47,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
 
     auto& params = renderNode_->GetRenderParams();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
-
-    auto rscanvas = std::make_shared<RSPaintFilterCanvas>(static_cast<RSPaintFilterCanvas*>(canvas));
-    if (!rscanvas) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
 
-    if (!surfaceParams) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
+    auto rscanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    if (!rscanvas) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
         return;
     }
 
@@ -69,7 +63,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
         return;
     }
 
-    RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
     RS_TRACE_NAME(
         "RSSurfaceRenderNodeDrawable::OnDraw:[" + surfaceNode->GetName() + "] " +
         surfaceNode->GetDstRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
@@ -111,6 +104,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
 
     nodeSp->ProcessRenderBeforeChildren(*rscanvas);
 
+    //TODO: read from renderParams
     if (surfaceNode->GetBuffer() != nullptr) {
         surfaceNode->SetGlobalAlpha(1.0f);
         int threadIndex = 0;
@@ -118,10 +112,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
         params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         auto screenManager = CreateOrGetScreenManager();
+        //TODO: read from renderParams
+        if (!surfaceNode->GetAncestorDisplayNode().lock()) {
+            RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
+            return;
+        }
         auto ancestor = surfaceNode->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
         params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
 #endif
         auto bgColor = property.GetBackgroundColor();
+        //TODO: read from renderParams
         if ((surfaceNode->GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
             (bgColor != RgbPalette::Transparent())) {
                 auto bounds = RSPropertiesPainter::Rect2DrawingRect(property.GetBoundsRect());
@@ -147,9 +147,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
     }
 
     if (surfaceNode != nullptr && !surfaceNode->IsNotifyUIBufferAvailable()) {
+        // Notify UI buffer available, temporarily fix
         auto mutableSurfaceNode = std::const_pointer_cast<RSSurfaceRenderNode>(surfaceNode);
         mutableSurfaceNode->NotifyUIBufferAvailable();
     }
     RSRenderNodeDrawable::OnDraw(canvas);
-}     
+}
 } // namespace OHOS::Rosen

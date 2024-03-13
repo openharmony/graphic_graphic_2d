@@ -103,31 +103,5 @@ public:
 private:
 };
 
-// ============================================================================
-// Blend Mode
-class RSBeginBlendModeDrawable : public RSPropertyDrawable {
-public:
-    RSBeginBlendModeDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSBeginBlendModeDrawable() : RSPropertyDrawable() {}
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-
-private:
-};
-
-class RSEndBlendModeDrawable : public RSPropertyDrawable {
-public:
-    RSEndBlendModeDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSEndBlendModeDrawable() : RSPropertyDrawable() {}
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-
-private:
-};
-
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_H

@@ -95,10 +95,9 @@ bool RSFrameOffsetDrawable::OnUpdate(const RSRenderNode& node)
 // ============================================================================
 RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSClipToBoundsDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
+    auto ret = std::make_shared<RSClipToBoundsDrawable>();
+    ret->OnUpdate(node);
+    return std::move(ret);
 };
 
 bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
@@ -139,79 +138,6 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     updater.GetRecordingCanvas()->ClipRect(
         RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetFrameRect()), Drawing::ClipOp::INTERSECT, false);
-    return true;
-}
-
-RSDrawable::Ptr RSBeginBlendModeDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSBeginBlendModeDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-};
-
-bool RSBeginBlendModeDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    auto blendMode = properties.GetColorBlendMode();
-    if (blendMode == 0) {
-        // no blend
-        return false;
-    }
-
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // fast blend mode
-    if (properties.GetColorBlendApplyType() == static_cast<int>(RSColorBlendApplyType::FAST)) {
-        // TODO canvas.SaveBlendMode, canvas.SetBlendMode
-        // canvas.SaveBlendMode();
-        // canvas.SetBlendMode({ blendMode - 1 }); // map blendMode to SkBlendMode
-        return true;
-    }
-
-    // save layer mode
-    auto matrix = canvas.GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
-    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
-    canvas.SetMatrix(matrix);
-    Drawing::Brush blendBrush_;
-    blendBrush_.SetAlphaF(canvas.GetAlpha());
-    blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
-    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
-    canvas.SaveLayer(maskLayerRec);
-    // TODO canvas.SaveBlendMode, canvas.SetBlendMode, canvas.SaveAlpha, canvas.SetAlpha
-    // canvas.SaveBlendMode();
-    // canvas.SetBlendMode(std::nullopt);
-    // canvas.SaveAlpha();
-    // canvas.SetAlpha(1.0f);
-    return true;
-}
-
-RSDrawable::Ptr RSEndBlendModeDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSEndBlendModeDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-};
-
-bool RSEndBlendModeDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    if (properties.GetColorBlendMode() == 0) {
-        // no blend
-        return false;
-    }
-
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // TODO canvas.RestoreBlendMode
-    // canvas.RestoreBlendMode();
-    if (properties.GetColorBlendApplyType() != static_cast<int>(RSColorBlendApplyType::FAST)) {
-        // TODO canvas.RestoreAlpha
-        // canvas.RestoreAlpha();
-    }
-    canvas.Restore();
     return true;
 }
 

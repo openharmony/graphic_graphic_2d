@@ -30,20 +30,16 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
     return std::make_unique<RSEffectRenderNodeDrawable>(std::move(node));
 }
 
-void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
+void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
-    if (!renderNode_) {
-        RS_LOGE("There is no CanvasNode in RSEffectRenderNodeDrawable");
-        return;
-    }
-
-    if (!canvas) {
-        RS_LOGE("There is no canvas in drawable");
-        return;
-    }
-
     RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
-
+    auto& params = renderNode_->GetRenderParams();
+    if (!params) {
+        RS_LOGE("params is nullptr");
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen
