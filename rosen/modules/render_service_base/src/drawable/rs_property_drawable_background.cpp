@@ -351,7 +351,18 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     if (rsFilter == nullptr) {
         return false;
     }
+    needSync_ = true;
+    stagingFilter_ = rsFilter;
     return true;
+}
+
+void RSBackgroundFilterDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    filter_ = std::move(stagingFilter_);
+    needSync_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundFilterDrawable::CreateDrawFunc() const
@@ -370,7 +381,18 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
     if (rsFilter == nullptr) {
         return false;
     }
+    needSync_ = true;
+    stagingFilter_ = rsFilter;
     return true;
+}
+
+void RSBackgroundEffectDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    filter_ = std::move(stagingFilter_);
+    needSync_ = false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() const

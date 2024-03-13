@@ -100,11 +100,13 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override {};
+    void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
+    bool needSync_ = false;
     std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
 };
 
 class RSBackgroundEffectDrawable : public RSDrawable {
@@ -114,11 +116,13 @@ public:
     ~RSBackgroundEffectDrawable() override = default;
 
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override {};
+    void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
+    bool needSync_ = false;
     std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
 };
 
 class RSUseEffectDrawable : public RSDrawable {
