@@ -132,8 +132,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     BufferDrawParam param;
 
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
         param.buffer = surfaceNode->GetBuffer();
 
@@ -168,8 +167,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
  */
 HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
 {
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!RSSystemProperties::IsUseVulkan()) {
         auto renderEngine = std::make_shared<RSRenderEngine>();
         renderEngine->Init();
         auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -238,7 +236,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams, TestSize.Level1)
     auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
     drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
     RSPaintFilterCanvas recordingCanvas(drawingRecordingCanvas.get());
-    
+
     NodeId id = 0;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(id, config);

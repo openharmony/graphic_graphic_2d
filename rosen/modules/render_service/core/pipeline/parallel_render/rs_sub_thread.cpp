@@ -258,8 +258,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         auto gpuContext = std::make_shared<Drawing::GPUContext>();
         Drawing::GPUContextOptions options;
         auto handler = std::make_shared<MemoryHandler>();

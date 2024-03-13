@@ -211,6 +211,11 @@ public:
         return RSSystemProperties::systemGpuApiType_;
     }
 
+    static inline bool IsUseVulkan()
+    {
+        return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
+    }
+
 private:
     RSSystemProperties() = default;
 

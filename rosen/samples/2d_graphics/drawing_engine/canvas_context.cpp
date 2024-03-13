@@ -30,8 +30,7 @@ CanvasContext* CanvasContext::Create()
     switch (type) {
         case RenderBackendType::VULKAN:
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (RSSystemProperties::IsUseVulkan()) {
                 std::cout << "CanvasContext::Create with vulkan backend" << std::endl;
                 return new CanvasContext(std::make_unique<VulkanRenderBackend>());
             }

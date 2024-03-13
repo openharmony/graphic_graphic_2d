@@ -48,8 +48,7 @@ void CacheDataTest::TearDown() {}
 HWTEST_F(CacheDataTest, cachedata_init_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -75,8 +74,7 @@ HWTEST_F(CacheDataTest, cachedata_init_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, serialized_size_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -106,8 +104,7 @@ HWTEST_F(CacheDataTest, serialized_size_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -135,8 +132,7 @@ HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, serialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -166,8 +162,7 @@ HWTEST_F(CacheDataTest, serialization_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -197,8 +192,7 @@ HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -229,8 +223,7 @@ HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -269,8 +262,7 @@ HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }

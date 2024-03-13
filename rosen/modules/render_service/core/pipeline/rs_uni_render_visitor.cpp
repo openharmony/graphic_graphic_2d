@@ -2502,8 +2502,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         bool clipPath = false;
 #ifdef RS_ENABLE_VK
         int saveCountBeforeClip = 0;
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             saveCountBeforeClip = canvas_->Save();
         }
 #endif
@@ -2542,8 +2541,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 for (auto& r : rects) {
                     int32_t topAfterFlip = 0;
 #ifdef RS_ENABLE_VK
-                    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    if (RSSystemProperties::IsUseVulkan()) {
                         topAfterFlip = r.top_;
                     } else {
                         topAfterFlip = static_cast<int32_t>(screenInfo_.GetRotatedHeight()) - r.GetBottom();
@@ -2573,8 +2571,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 clipPath = true;
 #ifdef RS_ENABLE_VK
-                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                if (RSSystemProperties::IsUseVulkan()) {
                     canvas_->ClipRegion(region);
                 } else {
                     Drawing::Path dirtyPath;
@@ -2705,8 +2702,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mainThread->RemoveTask(CLEAR_GPU_CACHE);
         }
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             canvas_->RestoreToCount(saveCountBeforeClip);
         }
 #endif
@@ -3445,8 +3441,7 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
     for (const Occlusion::Rect& rect : rects) {
         // origin transformation
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             retRects.emplace_back(RectI(rect.left_, rect.top_,
                 rect.right_ - rect.left_, rect.bottom_ - rect.top_));
         } else {
@@ -3836,8 +3831,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         node.SetDrawingGPUContext(renderEngine_->GetSkContext().get());
     }
 #endif
