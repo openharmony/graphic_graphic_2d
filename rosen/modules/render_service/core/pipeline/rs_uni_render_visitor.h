@@ -59,8 +59,6 @@ public:
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
     /* Prepare relevant calculation */
-    // if subtree dirty or child filter need prepare
-    bool IsSubTreeNeedPrepare(RSRenderNode& node, std::shared_ptr<RSRenderNode> parent = nullptr) const;
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     // restore node's flag and filter dirty collection

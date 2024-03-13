@@ -298,6 +298,8 @@ public:
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    // keep specified nodetype preparation
+    virtual bool IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -314,6 +316,8 @@ public:
     bool CheckParticipateInOcclusion() const;
 
     void OnApplyModifiers() override;
+    // do not map for curSurface itself
+    virtual void UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode) override;
 
     void SetTotalMatrix(const Drawing::Matrix& totalMatrix)
     {
