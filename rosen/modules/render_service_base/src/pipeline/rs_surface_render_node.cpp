@@ -346,6 +346,25 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     visitor->QuickPrepareSurfaceRenderNode(*this); 
 }
 
+bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal)
+{
+    // force preparation case
+    if (IsLeashWindow()) {
+        SetSubTreeDirty(false);
+        UpdateChildrenOutOfRectFlag(false); // collect again
+        return true;
+    }
+    return RSRenderNode::IsSubTreeNeedPrepare(needMap, filterInGlobal);
+}
+
+void RSSurfaceRenderNode::UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode)
+{
+    if (curSurfaceNode && curSurfaceNode->GetId() == GetId()) {
+        RSRenderNode::UpdateAbsDrawRect(nullptr);
+        return;
+    }
+    RSRenderNode::UpdateAbsDrawRect(curSurfaceNode);
+}
 
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {

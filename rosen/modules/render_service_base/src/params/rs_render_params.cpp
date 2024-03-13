@@ -40,9 +40,24 @@ void RSRenderParams::SetBoundsRect(Drawing::RectF boundsRect)
     boundsRect_ = boundsRect;
     needSync_ = true;
 }
+
 const Drawing::Rect RSRenderParams::GetBounds() const
 {
     return boundsRect_;
+}
+
+void RSRenderParams::SetAbsDrawRect(RectI absDrawRect)
+{
+    if (absDrawRect_ == absDrawRect) {
+        return;
+    }
+    absDrawRect_ = absDrawRect;
+    needSync_ = true;
+}
+
+const RectI RSRenderParams::GetAbsDrawRect() const
+{
+    return absDrawRect_;
 }
 
 void RSRenderParams::SetShouldPaint(bool shouldPaint)
