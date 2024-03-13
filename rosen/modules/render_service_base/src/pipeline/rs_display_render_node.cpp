@@ -165,6 +165,18 @@ void RSDisplayRenderNode::InitRenderParams()
     renderParams_ = std::make_unique<RSDisplayRenderParams>();
 }
 
+void RSDisplayRenderNode::OnSync()
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::OnSync displayParams is null");
+        return;
+    }
+    dirtyManager_->OnSync();
+    displayParams->SetNeedSync(true);
+    RSRenderNode::OnSync();
+}
+
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
 {
    curMainAndLeashSurfaceNodes_.push_back(surface); 
@@ -172,9 +184,12 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
 
 void RSDisplayRenderNode::UpdatePartialRenderParams()
 {
-    auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
-    targetDisplayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
-    dirtyManager_->OnSync();
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdatePartialRenderParams displayParams is null");
+        return;
+    }
+    displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
     curMainAndLeashSurfaceNodes_.clear();
 }
 

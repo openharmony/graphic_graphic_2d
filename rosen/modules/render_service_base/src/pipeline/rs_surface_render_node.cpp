@@ -1396,6 +1396,20 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
     containerRegion_ = absRegion.Sub(innerRectRegion);
 }
 
+void RSSurfaceRenderNode::OnSync()
+{
+    dirtyManager_->OnSync();
+    if (this->IsMainWindowType()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        if (surfaceParams == nullptr) {
+            RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
+            return;
+        }
+        surfaceParams->SetNeedSync(true);
+    }
+    RSRenderNode::OnSync();
+}
+
 bool RSSurfaceRenderNode::CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const
 {
     if (surfaceNodesIds.empty()) {
@@ -1420,7 +1434,7 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
 bool RSSurfaceRenderNode::CheckParticipateInOcclusion() const
 {
     // TODO: Need consider others situation
-    if (IsTransparent() || !GetAnimateState()) {
+    if (IsTransparent() || GetAnimateState()) {
         return false;
     }
     return true;
@@ -1910,10 +1924,12 @@ void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
 
 void RSSurfaceRenderNode::UpdatePartialRenderParams()
 {
-    auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    targetSurfaceParams->SetVisibleRegion(visibleRegion_);
-    dirtyManager_->OnSync();
-    targetSurfaceParams->OnSync(renderParams_);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::UpdatePartialRenderParams surfaceParams is null");
+        return;
+    }
+    surfaceParams->SetVisibleRegion(visibleRegion_);
 }
 
 void RSSurfaceRenderNode::InitRenderParams()

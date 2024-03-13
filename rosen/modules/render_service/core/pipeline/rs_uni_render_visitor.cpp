@@ -1196,6 +1196,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         return;
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
+    curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+    RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
     // todo: update rotation based on screenInfo
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
@@ -1248,6 +1250,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             return;
         }
         curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         filterInGlobal_ = curSurfaceNode_->IsTransparent();
         curMainAndLeashWindowNodesIds_.push(node.GetId());
         curDisplayNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
@@ -1300,7 +1303,7 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
         Occlusion::Rect occlusionRect = node.GetSurfaceOcclusionRect(true);
         Occlusion::Region curRegion { occlusionRect };    
         Occlusion::Region subResult = curRegion.Sub(accumulatedOcclusionRegion_);
-        node.SetVisibleRegion(curRegion);
+        node.SetVisibleRegion(subResult);
     }
     if (node.CheckParticipateInOcclusion()) {
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
@@ -1423,6 +1426,7 @@ void RSUniRenderVisitor::MapAbsDirtyRectForMainWindow() const
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
         [](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
+        RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         if (surfaceNode->IsMainWindowType()) {
             auto dirtyManager = surfaceNode->GetDirtyManager();
             auto dirtyRect = dirtyManager->GetCurrentFrameDirtyRegion();

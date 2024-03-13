@@ -920,7 +920,8 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
-
+protected:
+    void OnSync() override;
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
