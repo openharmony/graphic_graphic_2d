@@ -138,9 +138,7 @@ Drawing::RecordingCanvas::DrawFunc RSLightUpEffectDrawable::CreateDrawFunc() con
 {
     auto ptr = std::static_pointer_cast<const RSLightUpEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas) {
-            RSPropertyDrawableUtils::DrawLightUpEffect(canvas, ptr->lightUpEffectDegree_);
-        }
+        RSPropertyDrawableUtils::DrawLightUpEffect(canvas, ptr->lightUpEffectDegree_);
     };
 }
 

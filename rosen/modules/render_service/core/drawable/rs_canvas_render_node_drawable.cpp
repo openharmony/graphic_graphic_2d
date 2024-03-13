@@ -30,18 +30,11 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
     return std::make_unique<RSCanvasRenderNodeDrawable>(std::move(node));
 }
 
-void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
+/*
+* This function will be called recursively many times, and the logic should be as concise as possible.
+*/
+void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
-    if (!renderNode_) {
-        RS_LOGE("There is no CanvasNode in drawable");
-        return;
-    }
-
-    if (!canvas) {
-        RS_LOGE("There is no canvas in drawable");
-        return;
-    }
-
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
         RS_LOGE("params is nullptr");
@@ -50,9 +43,9 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
     if (!params->GetShouldPaint()) {
         return;
     }
-    Drawing::AutoCanvasRestore acr(*canvas, true);
-    canvas->ConcatMatrix(params->GetMatrix());
-    bool quickRejected = canvas->QuickReject(params->GetBounds());
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
+    bool quickRejected = canvas.QuickReject(params->GetBounds());
     if (quickRejected) {
         RS_LOGD("this drawable has quickRejected");
     }

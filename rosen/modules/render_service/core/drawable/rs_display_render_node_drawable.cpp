@@ -40,7 +40,7 @@ RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_pt
     return std::make_unique<RSDisplayRenderNodeDrawable>(std::move(node));
 }
 
-void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
+void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
     (void)canvas;
 
@@ -123,20 +123,22 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
     // canvas draw
     {
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-        RSRenderNodeDrawable::OnDraw(curCanvas_.get());
+        RSRenderNodeDrawable::OnDraw(*curCanvas_);
     }
 
     // Finish recording skia op
     EndCapture();
 
-    RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
-    renderFrame->Flush();
-    RS_TRACE_END();
+    {
+        RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable Flush");
+        renderFrame->Flush();
+    }
 
-    RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable CommitLayer");
-    processor->ProcessDisplaySurface(*displayNodeSp);
-    processor->PostProcess(displayNodeSp.get());
-    RS_TRACE_END();
+    {
+        RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable CommitLayer");
+        processor->ProcessDisplaySurface(*displayNodeSp);
+        processor->PostProcess(displayNodeSp.get());
+    }
 }
 
 std::shared_ptr<RenderContext> RSDisplayRenderNodeDrawable::GetRenderContext() const

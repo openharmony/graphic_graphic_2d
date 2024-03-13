@@ -43,17 +43,11 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
     return nullptr;
 }
 
-void RSRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
+/*
+* This function will be called recursively many times, and the logic should be as concise as possible.
+*/
+void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
-    if (renderNode_ == nullptr) {
-        return;
-    }
-
-    if (!canvas) {
-        RS_LOGE("There is no canvas in drawable");
-        return;
-    }
-
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
     if (drawCmdList_ == nullptr) {
         return;
@@ -63,7 +57,7 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas* canvas) const
     if (renderParams) {
         bounds = renderParams->GetBounds();
     }
-    drawCmdList_->Playback(*canvas, &bounds);
+    drawCmdList_->Playback(canvas, &bounds);
 }
 
 } // namespace OHOS::Rosen

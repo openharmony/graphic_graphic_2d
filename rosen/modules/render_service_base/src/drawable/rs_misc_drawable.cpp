@@ -33,9 +33,6 @@ RSDrawable::Ptr RSChildrenDrawableContent::OnGenerate(const RSRenderNode& node)
 bool RSChildrenDrawableContent::OnUpdate(const RSRenderNode& node)
 {
     auto children = node.GetSortedChildren();
-    if (children == nullptr || children->empty()) {
-        return false;
-    }
 
     // Regenerate children drawables
     needSync_ = true;
@@ -63,7 +60,7 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawableContent::CreateDrawFunc() c
     auto ptr = std::static_pointer_cast<const RSChildrenDrawableContent>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawable : ptr->childrenDrawableVec_) {
-            drawable->OnDraw(canvas);
+            drawable->OnDraw(*canvas);
         }
     };
 }
@@ -90,9 +87,6 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     stagingDrawCmdListVec_.clear();
     for (const auto& modifier : itr->second) {
         auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
-        if (property == nullptr) {
-            continue;
-        }
         if (const auto& drawCmdList = property->GetRef()) {
             stagingDrawCmdListVec_.push_back(drawCmdList);
         }
@@ -245,10 +239,8 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlendModeDrawable::CreateDrawFunc() co
 {
     auto ptr = std::static_pointer_cast<const RSBeginBlendModeDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas) {
-            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            RSPropertyDrawableUtils::BeginBlendMode(*paintFilterCanvas, ptr->blendMode_, ptr->blendApplyType_);
-        }
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RSPropertyDrawableUtils::BeginBlendMode(*paintFilterCanvas, ptr->blendMode_, ptr->blendApplyType_);
     };
 }
 
@@ -279,10 +271,8 @@ bool RSEndBlendModeDrawable::OnUpdate(const RSRenderNode& node)
 Drawing::RecordingCanvas::DrawFunc RSEndBlendModeDrawable::CreateDrawFunc() const
 {
     return [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas) {
-            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            RSPropertyDrawableUtils::EndBlendMode(*paintFilterCanvas);
-        }
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RSPropertyDrawableUtils::EndBlendMode(*paintFilterCanvas);
     };
 }
 } // namespace OHOS::Rosen

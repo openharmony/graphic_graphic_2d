@@ -111,7 +111,7 @@ void RSUniRenderThread::Render()
 
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
-    rootNodeDrawable_->OnDraw(&canvas);
+    rootNodeDrawable_->OnDraw(canvas);
 }
 
 } // namespace Rosen
