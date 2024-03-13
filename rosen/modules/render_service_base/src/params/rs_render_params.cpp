@@ -53,9 +53,15 @@ void RSRenderParams::SetShouldPaint(bool shouldPaint)
     shouldPaint_ = shouldPaint;
     needSync_ = true;
 }
+
 bool RSRenderParams::GetShouldPaint() const
 {
     return shouldPaint_;
+}
+
+void RSRenderParams::SetNeedSync(bool needSync)
+{
+    needSync_ = needSync;
 }
 
 bool RSRenderParams::NeedSync() const

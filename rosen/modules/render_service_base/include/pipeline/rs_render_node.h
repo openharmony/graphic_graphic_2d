@@ -511,7 +511,7 @@ protected:
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     
     virtual void InitRenderParams();
-    void OnSync();
+    virtual void OnSync();
 
     std::unique_ptr<RSRenderParams> renderParams_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;

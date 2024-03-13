@@ -36,6 +36,7 @@ public:
     void SetShouldPaint(bool shouldPaint);
 
     bool NeedSync() const;
+    void SetNeedSync(bool needSync);
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;

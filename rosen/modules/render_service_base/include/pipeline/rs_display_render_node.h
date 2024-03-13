@@ -280,6 +280,8 @@ public:
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
 
+protected:
+    void OnSync() override;
 private:
     void InitRenderParams() override;
     // vector of sufacenodes will records dirtyregions by itself

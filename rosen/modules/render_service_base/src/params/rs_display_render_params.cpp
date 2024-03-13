@@ -18,6 +18,11 @@
 namespace OHOS::Rosen {
 RSDisplayRenderParams::RSDisplayRenderParams() {}
 
+std::vector<RSBaseRenderNode::SharedPtr>& RSDisplayRenderParams::GetAllMainAndLeashSurfaces()
+{
+    return allMainAndLeashSurfaces_;
+}
+
 void RSDisplayRenderParams::SetAllMainAndLeashSurfaces(
     std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces)
 {
