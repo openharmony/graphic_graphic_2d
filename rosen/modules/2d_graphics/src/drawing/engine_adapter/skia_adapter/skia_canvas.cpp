@@ -177,7 +177,6 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
 
 void SkiaCanvas::DrawSdf(const SDFShapeImpl& shape)
 {
-    LOGD("drawsdf begin %{public}d", __LINE__);
     SkSurface* skSurface = skCanvas_->getSurface();
     if (skSurface == nullptr) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
@@ -201,18 +200,12 @@ void SkiaCanvas::DrawSdf(const SDFShapeImpl& shape)
         int maxlen = 20; // maximum length of string needed is 20.
         for (int i = 1; i <= num; i++) {
             char buf[maxlen] = {0};
-            int ret = sprintf_s(buf, maxlen, "para%d", i);
-            if (ret == 0) {
-                LOGD("sdf concatenating character strings fail.");
-            }
+            (void)sprintf_s(buf, maxlen, "para%d", i);
             builder.uniform(buf) = para[i-1];
         }
         for (int i = 1; i <= num1; i++) {
             char buf[maxlen] = {0};
-            int ret = sprintf_s(buf, maxlen, "transpara%d", i);
-            if (ret == 0) {
-                LOGD("sdf concatenating character strings fail.");
-            }
+            (void)sprintf_s(buf, maxlen, "transpara%d", i);
             builder.uniform(buf) = para1[i-1];
         }
         std::vector<float> color = shape.GetColorPara();
@@ -231,7 +224,6 @@ void SkiaCanvas::DrawSdf(const SDFShapeImpl& shape)
     SkPaint paint;
     paint.setShader(shader);
     skCanvas_->drawPaint(paint);
-    LOGD("drawsdf end %{public}d", __LINE__);
 }
 
 void SkiaCanvas::DrawPoint(const Point& point)
