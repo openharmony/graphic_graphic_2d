@@ -48,7 +48,7 @@ config("export_config") {
     defines = [ "ACE_ENABLE_GPU" ]
   }
 
-  if (graphic_2d_feature_enable_ddgr_opinc) {
+  if (graphic_2d_feature_enable_opinc) {
     defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 }
@@ -122,6 +122,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_blender.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_camera.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_canvas.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_canvas_autocache.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_color_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_color_space.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_data.cpp",
@@ -235,7 +236,7 @@ template("graphics2d_source_set") {
       defines += [ "ROSEN_EMULATOR" ]
     }
 
-    if (graphic_2d_feature_enable_ddgr_opinc) {
+    if (graphic_2d_feature_enable_opinc) {
       defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
     }
 
@@ -264,9 +265,7 @@ template("graphics2d_source_set") {
         graphic_2d_feature_enable_ddgr) {
       defines += [ "ENABLE_DDGR_OPTIMIZE" ]
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
-
       include_dirs += ddgr_adapter_opt_set.drawing_ddgr_adapter_include_set
-
       public_deps += [ "$graphic_2d_ext_root/ddgr:libddgr" ]
     }
 

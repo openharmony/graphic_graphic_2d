@@ -180,9 +180,6 @@ void RSProperties::SetBounds(Vector4f bounds)
     boundsGeo_->SetRect(bounds.x_, bounds.y_, bounds.z_, bounds.w_);
     hasBounds_ = true;
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -192,9 +189,6 @@ void RSProperties::SetBoundsSize(Vector2f size)
     hasBounds_ = true;
     geoDirty_ = true;
     contentDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -220,9 +214,6 @@ void RSProperties::SetBoundsPosition(Vector2f position)
 {
     boundsGeo_->SetPosition(position.x_, position.y_);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -230,9 +221,6 @@ void RSProperties::SetBoundsPositionX(float positionX)
 {
     boundsGeo_->SetX(positionX);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -240,9 +228,6 @@ void RSProperties::SetBoundsPositionY(float positionY)
 {
     boundsGeo_->SetY(positionY);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -288,9 +273,6 @@ void RSProperties::SetFrame(Vector4f frame)
     }
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -299,9 +281,6 @@ void RSProperties::SetFrameSize(Vector2f size)
     frameGeo_->SetSize(size.x_, size.y_);
     geoDirty_ = true;
     contentDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -325,9 +304,6 @@ void RSProperties::SetFramePosition(Vector2f position)
 {
     frameGeo_->SetPosition(position.x_, position.y_);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -335,9 +311,6 @@ void RSProperties::SetFramePositionX(float positionX)
 {
     frameGeo_->SetX(positionX);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -345,9 +318,6 @@ void RSProperties::SetFramePositionY(float positionY)
 {
     frameGeo_->SetY(positionY);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -645,21 +615,11 @@ void RSProperties::SetSkewY(float skewY)
     SetDirty();
 }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-bool RSProperties::GetOpincPropDirty() const
-{
-    return isOpincPropDirty_ && !alphaNeedApply_;
-}
-#endif
-
 void RSProperties::SetTranslate(Vector2f translate)
 {
     boundsGeo_->SetTranslateX(translate[0]);
     boundsGeo_->SetTranslateY(translate[1]);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -667,9 +627,6 @@ void RSProperties::SetTranslateX(float translate)
 {
     boundsGeo_->SetTranslateX(translate);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -677,9 +634,6 @@ void RSProperties::SetTranslateY(float translate)
 {
     boundsGeo_->SetTranslateY(translate);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -1565,9 +1519,6 @@ void RSProperties::ResetDirty()
     isDirty_ = false;
     geoDirty_ = false;
     contentDirty_ = false;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = false;
-#endif
 }
 
 bool RSProperties::IsDirty() const

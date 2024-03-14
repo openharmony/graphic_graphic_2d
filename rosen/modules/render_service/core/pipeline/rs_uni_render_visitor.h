@@ -127,9 +127,6 @@ public:
         drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
     }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
-#endif
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
@@ -410,15 +407,12 @@ private:
     bool isSubSurfaceEnabled_ = false;
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     bool autoCacheEnable_ = false;
-    bool autoCacheChildDisable_ = false;
     bool autoCacheDrawingEnable_ = false;
     RSRenderNode::RSAutoCache::NodeStragyType nodeCacheType_ = RSRenderNode::RSAutoCache::CACHE_NONE;
     bool unchangeMark_ = false;
+    bool unchangeMarkEnable_ = false;
     bool isDiscardSurface_ = true;
     std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
-    int opNodeDepth_ = 0;
-    bool opIncSubtreePropDirty_ = false;
-    Drawing::Rect opincRootRect_;
     bool isOpincDropNodeExt_ = true;
 #endif
 

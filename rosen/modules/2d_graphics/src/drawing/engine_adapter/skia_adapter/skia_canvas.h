@@ -34,6 +34,9 @@
 #include "skia_picture.h"
 #include "skia_region.h"
 #include "skia_vertices.h"
+// opinc_begin
+#include "skia_canvas_op.h"
+// opinc_end
 
 #include "common/rs_macros.h"
 #include "impl_interface/core_canvas_impl.h"
@@ -104,11 +107,8 @@ public:
     Drawing::OpListHandle EndOpRecording() override;
     void DrawOpList(Drawing::OpListHandle handle) override;
     int CanDrawOpList(Drawing::OpListHandle handle) override;
-    void PreOpListDrawArea(const Matrix& matrix) override;
-    bool CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound = nullptr) override;
-    Drawing::OpListHandle GetOpListDrawArea() override;
-    void OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-        const SamplingOptions& sampling, SrcRectConstraint constraint) override;
+    bool OpCalculateBefore(const Matrix& matrix) override;
+    std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) override;
     // opinc_end
 
     // image
@@ -173,6 +173,10 @@ private:
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
+    // opinc_begin
+    SkCanvas* skCanvasBackup_;
+    std::shared_ptr<SkiaCanvasOp> skiaCanvasOp_ = nullptr;
+    // opinc_end
     SkiaPaint skiaPaint_;
 };
 } // namespace Drawing

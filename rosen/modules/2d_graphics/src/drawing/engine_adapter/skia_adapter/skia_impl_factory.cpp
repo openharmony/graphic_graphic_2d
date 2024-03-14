@@ -49,6 +49,9 @@
 #include "skia_adapter/skia_trace_memory_dump.h"
 #include "skia_adapter/skia_memory_stream.h"
 #include "skia_adapter/skia_gradient_blur.h"
+// opinc_begin
+#include "skia_adapter/skia_oplist_handle.h"
+// opinc_end
 
 namespace OHOS {
 namespace Rosen {
@@ -172,7 +175,7 @@ std::unique_ptr<SurfaceImpl> SkiaImplFactory::CreateSurface()
 // opinc_begin
 std::unique_ptr<OpListHandleImpl> SkiaImplFactory::CreateOplistHandle()
 {
-    return nullptr;
+    return std::make_unique<SkiaOpListHandle>();
 }
 // opinc_end
 

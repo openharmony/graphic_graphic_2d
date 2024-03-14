@@ -259,8 +259,8 @@ public:
     bool HasUseEffectNodes() const;
     bool HasSubSurface() const;
 
-    bool NeedInitCacheSurface() const;
-    bool NeedInitCacheCompletedSurface() const;
+    bool NeedInitCacheSurface();
+    bool NeedInitCacheCompletedSurface();
     bool IsPureContainer() const;
     bool IsContentNode() const;
 
@@ -316,8 +316,6 @@ public:
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    bool IsOnTreeDirty();
-    void SetDirtyByOnTree(bool forceAddToActiveList = false);
     Vector4f GetOptionBufferBound() const;
     Vector2f GetOpincBufferSize() const;
     Drawing::Rect GetOpincBufferBound() const;
@@ -473,6 +471,7 @@ public:
     class RSAutoCache;
     const std::shared_ptr<RSAutoCache>& GetAutoCache();
     bool isOpincRectOutParent_ = false;
+    bool isOpincPrepareDis_ = false;
 #endif
 
 #ifdef RS_ENABLE_STACK_CULLING
@@ -492,9 +491,6 @@ protected:
 
     enum class NodeDirty {
         CLEAN = 0,
-    #ifdef DDGR_ENABLE_FEATURE_OPINC
-        ON_TREE_DIRTY,
-    #endif
         DIRTY,
     };
     void SetClean();
