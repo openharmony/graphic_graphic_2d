@@ -175,6 +175,65 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
     return skCanvas_->readPixels(skBitmap, srcX, srcY);
 }
 
+void SkiaCanvas::DrawSdf(const SDFShapeImpl& shape)
+{
+    LOGD("drawsdf begin %{public}d", __LINE__);
+    SkSurface* skSurface = skCanvas_->getSurface();
+    if (skSurface == nullptr) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    SkAutoCanvasRestore acr(skCanvas_, true);
+    auto clipBounds = skCanvas_->getDeviceClipBounds();
+    auto image = skSurface->makeImageSnapshot(clipBounds);
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shape.Getshader()));
+    if (effect == nullptr) {
+        LOGD("add shader err %{public}d", __LINE__);
+    }
+    float width = skCanvas_->imageInfo().width();
+    SkRuntimeShaderBuilder builder(effect);
+    if (shape.GetParaNum() > 0) {
+        std::vector<float> para = shape.GetPara();
+        std::vector<float> para1 = shape.GetTransPara();
+        int num1 = para1.size();
+        int num = para.size();
+        int maxlen = 20; // maximum length of string needed is 20.
+        for (int i = 1; i <= num; i++) {
+            char buf[maxlen] = {0};
+            int ret = sprintf_s(buf, maxlen, "para%d", i);
+            if (ret == 0) {
+                LOGD("sdf concatenating character strings fail.");
+            }
+            builder.uniform(buf) = para[i-1];
+        }
+        for (int i = 1; i <= num1; i++) {
+            char buf[maxlen] = {0};
+            int ret = sprintf_s(buf, maxlen, "transpara%d", i);
+            if (ret == 0) {
+                LOGD("sdf concatenating character strings fail.");
+            }
+            builder.uniform(buf) = para1[i-1];
+        }
+        std::vector<float> color = shape.GetColorPara();
+        builder.uniform("fillcolpara1") = color[0];
+        builder.uniform("fillcolpara2") = color[1]; // color_[1] is fillcolor green channel.
+        builder.uniform("fillcolpara3") = color[2]; // color_[2] is fillcolor blue channel. 
+        builder.uniform("strokecolpara1") = color[3]; // color_[3] is strokecolor red channel.
+        builder.uniform("strokecolpara2") = color[4]; // color_[4] is strokecolor green channel.
+        builder.uniform("strokecolpara3") = color[5]; // color_[5] is strokecolor blue channel.
+        builder.uniform("sdfalpha") = color[6]; // color_[6] is color alpha channel.
+        float size = shape.GetSize();
+        builder.uniform("sdfsize") = size;
+    }
+    builder.uniform("width") = width;
+    auto shader = builder.makeShader(nullptr, false);
+    SkPaint paint;
+    paint.setShader(shader);
+    skCanvas_->drawPaint(paint);
+    LOGD("drawsdf end %{public}d", __LINE__);
+}
+
 void SkiaCanvas::DrawPoint(const Point& point)
 {
     if (!skCanvas_) {

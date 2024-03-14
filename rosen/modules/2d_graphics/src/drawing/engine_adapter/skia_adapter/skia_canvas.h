@@ -71,6 +71,7 @@ public:
     bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY) override;
 
     // shapes
+    void DrawSDF(const SDFShapeImpl& shape) override;
     void DrawPoint(const Point& point) override;
     void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;
     void DrawLine(const Point& startPt, const Point& endPt) override;

@@ -74,6 +74,21 @@ void RSPaintFilterCanvasBase::DrawPoint(const Point& point)
 #endif
 }
 
+void RSPaintFilterCanvasBase::DrawSDF(const SDFShapeImpl& shape)
+{
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr && OnFilter()) {
+            (*iter)->DrawSDF(shape);
+        }
+    }
+#else
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawSDF(shape);
+    }
+#endif
+}
+
 void RSPaintFilterCanvasBase::DrawPoints(PointMode mode, size_t count, const Point pts[])
 {
 #ifdef ENABLE_RECORDING_DCL

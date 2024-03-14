@@ -82,6 +82,11 @@ static const Image& CastToImage(const OH_Drawing_Image& cImage)
     return reinterpret_cast<const Image&>(cImage);
 }
 
+static const SDFShapeImpl& CastToSDFShape(const OH_Drawing_SDF& cSDFShape)
+{
+    return reinterpret_cast<const SDFShapeImpl&>(cSDFShape);
+}
+
 static const SamplingOptions& CastToSamplingOptions(const OH_Drawing_SamplingOptions& cSamplingOptions)
 {
     return reinterpret_cast<const SamplingOptions&>(cSamplingOptions);
@@ -275,6 +280,18 @@ void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect
         return;
     }
     canvas->DrawRect(CastToRect(*cRect));
+}
+
+void OH_Drawing_CanvasDrawSDF(OH_Drawing_Canvas* cCanvas, const OH_Drawing_SDF* cShape)
+{
+    if (cShape == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawSdf(CastToSDFShape(*cShape));
 }
 
 void OH_Drawing_CanvasDrawCircle(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Point* cPoint, float radius)
