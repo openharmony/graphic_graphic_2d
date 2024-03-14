@@ -80,9 +80,6 @@ typedef enum {
  * @brief Creates an <b>OH_Drawing_SDF</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param intervals Indicates a array which contain an even number of entries.
- * @param count Indicates the number of elements of the intervals array.
- * @param phase Indicates the offset into intervals array.
  * @return Returns the pointer to the <b>OH_Drawing_SDF</b> object created.
  * @since 12
  * @version 1.0
