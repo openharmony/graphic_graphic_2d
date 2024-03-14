@@ -76,6 +76,18 @@ RsParallelType RSSystemParameters::GetRsParallelType()
     return static_cast<RsParallelType>(ConvertToInt(type, 0));
 }
 
+RsSurfaceCaptureType RSSystemParameters::GetRsSurfaceCaptureType()
+{
+    if (GetRsParallelType() == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+        return RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD;
+    }
+    static CachedHandle g_Handle =
+        CachedParameterCreate("persist.sys.graphic.surface_capture.type", "1"); // TODO, change 1 -> 0
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<RsSurfaceCaptureType>(ConvertToInt(type, 1)); // TODO, change 1 -> 0
+}
+
 bool RSSystemParameters::GetVSyncControlEnabled()
 {
     static bool vsyncControlEnabled =
