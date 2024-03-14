@@ -190,7 +190,7 @@ public:
 
     ScreenRotation GetRotation() const;
 
-    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager()
+    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const
     {
         return dirtyManager_;
     }

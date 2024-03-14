@@ -66,7 +66,7 @@ public:
     void ClipDirtyRectWithinSurface();
     // clear allinfo except dirtyregion history
     void Clear();
-    
+
     // update current frame's visited dirtyregion
     void UpdateVisitedDirtyRects(const std::vector<RectI>& rects);
     RectI GetIntersectedVisitedDirtyRect(const RectI& absRect) const;
@@ -87,6 +87,8 @@ public:
         return isFilterCacheRectValid_;
     }
 
+    // return sync frame dirtyregion, witch can only be changed in render thread
+    const RectI& GetSyncCurrentFrameDirtyRegion();
     // return current frame dirtyregion, can be changed in prepare and process (displaynode) stage
     const RectI& GetCurrentFrameDirtyRegion();
     // return merged historical region

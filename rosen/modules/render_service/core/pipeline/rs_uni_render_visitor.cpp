@@ -1273,7 +1273,7 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
     // Update node visbleRegion
     if (needRecalculateOcclusion_) {
         Occlusion::Rect occlusionRect = node.GetSurfaceOcclusionRect(true);
-        Occlusion::Region curRegion { occlusionRect };    
+        Occlusion::Region curRegion { occlusionRect };
         Occlusion::Region subResult = curRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(subResult);
     }
@@ -1925,7 +1925,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     PrepareChildren(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     node.SetEffectRegion(effectRegion_);
-    
+
     if (node.GetRenderProperties().NeedFilter()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
@@ -2719,14 +2719,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_OPTIONAL_TRACE_END();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge, isDirtyRegionAlignedEnable_);
             Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
-                displayNodePtr, RSMainThread::Instance()->GetDrawStatusVec(), isDirtyRegionAlignedEnable_);
+                displayNodePtr->GetCurAllSurfaces(), RSMainThread::Instance()->GetDrawStatusVec(), isDirtyRegionAlignedEnable_);
             dirtyRegionTest = dirtyRegion;
             if (isDirtyRegionAlignedEnable_) {
                 SetSurfaceGlobalAlignedDirtyRegion(displayNodePtr, dirtyRegion);
             } else {
                 SetSurfaceGlobalDirtyRegion(displayNodePtr);
             }
-            rects = GetDirtyRects(dirtyRegion);
+            rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo_);
             if (!rects.empty()) {
                 GpuDirtyRegion::GetInstance().UpdateActiveDirtyRegionAreasAndFrameNumberForXpower(node.GetScreenId(),
                                                                                                   rects);
@@ -2794,7 +2794,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isUIFirst_) {
             int saveCount = canvas_->Save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
-            
+
             bool displayNodeRotationChanged = node.IsRotationChanged();
             // enable cache if screen rotation
             canvas_->SetCacheType((isScreenRotationAnimating_ || displayNodeRotationChanged)
@@ -3487,7 +3487,7 @@ void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNo
             UpdateHardwareNodeStatusBasedOnFilter(currentSurfaceNode, prevHwcEnabledNodes, displayDirtyManager);
         }
     }
-    
+
     for (auto it = displayNode->GetCurAllSurfaces().begin(); it != displayNode->GetCurAllSurfaces().end();) {
         auto currentSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (currentSurfaceNode == nullptr) {
@@ -3645,30 +3645,6 @@ void RSUniRenderVisitor::AlignGlobalAndSurfaceDirtyRegions(std::shared_ptr<RSDis
         }
         surfaceNode->GetDirtyManager()->UpdateDirtyByAligned();
     }
-}
-
-std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &region)
-{
-    const std::vector<Occlusion::Rect>& rects = region.GetRegionRects();
-    std::vector<RectI> retRects;
-    for (const Occlusion::Rect& rect : rects) {
-        // origin transformation
-#ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-            retRects.emplace_back(RectI(rect.left_, rect.top_,
-                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-        } else {
-            retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
-                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-        }
-#else
-        retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
-            rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-#endif
-    }
-    RS_LOGD("GetDirtyRects size %{public}d %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
-    return retRects;
 }
 
 void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
@@ -4690,6 +4666,23 @@ void RSUniRenderVisitor::ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<
         isOpDropped_ = false;
         RS_TRACE_NAME("ClosePartialRender 0 Window Animation");
     }
+}
+
+void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams)
+{
+    if (!renderThreadParams) {
+        RS_LOGE("RSUniRenderVisitor::SetUniRenderThreadParam renderThreadParams is nullptr");
+        return;
+    }
+    renderThreadParams->isPartialRenderEnabled_ = isPartialRenderEnabled_;
+    renderThreadParams->isDirtyRegionDfxEnabled_ = isDirtyRegionDfxEnabled_;
+    renderThreadParams->isDisplayDirtyDfxEnabled_ = isDisplayDirtyDfxEnabled_;
+    renderThreadParams->isOpaqueRegionDfxEnabled_ = isOpaqueRegionDfxEnabled_;
+    renderThreadParams->isVisibleRegionDfxEnabled_ = isVisibleRegionDfxEnabled_;
+    renderThreadParams->isVisibleRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
+    renderThreadParams->isVisibleRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
+    renderThreadParams->dirtyRegionDebugType_ = dirtyRegionDebugType_;
+    renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);
 }
 
 void RSUniRenderVisitor::SetHardwareEnabledNodes(

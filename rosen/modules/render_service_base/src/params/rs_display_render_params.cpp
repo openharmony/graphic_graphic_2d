@@ -15,6 +15,7 @@
 
 #include "params/rs_display_render_params.h"
 
+#include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
 RSDisplayRenderParams::RSDisplayRenderParams() {}
 

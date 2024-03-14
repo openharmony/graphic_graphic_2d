@@ -16,9 +16,11 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_DISPLAY_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_DISPLAY_RENDER_NODE_DRAWABLE_H
 
+#include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable.h"
-#include "pipeline/rs_recording_canvas.h"
-#include "render_context/render_context.h"
+#include "pipeline/rs_base_render_engine.h"
+#include "pipeline/rs_processor_factory.h"
+#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
 class RSDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
@@ -30,10 +32,9 @@ public:
     void OnDraw(Drawing::Canvas& canvas) const override;
 
 private:
-    std::shared_ptr<RenderContext> GetRenderContext() const;
-    void TryCapture(float width, float height) const;
-    void EndCapture() const;
-    mutable std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
+    std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
+        std::shared_ptr<RSProcessor> processor, ScreenInfo& screenInfo) const;
+
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;

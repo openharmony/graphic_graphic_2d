@@ -21,7 +21,6 @@
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
 #include "transaction/rs_render_service_client.h"
-
 namespace OHOS {
 namespace Rosen {
 RSDisplayRenderNode::RSDisplayRenderNode(
@@ -179,7 +178,7 @@ void RSDisplayRenderNode::OnSync()
 
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
 {
-   curMainAndLeashSurfaceNodes_.push_back(surface); 
+   curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
 void RSDisplayRenderNode::UpdatePartialRenderParams()

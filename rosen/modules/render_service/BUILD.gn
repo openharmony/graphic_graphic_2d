@@ -130,6 +130,12 @@ ohos_shared_library("librender_service") {
     "core/drawable/rs_canvas_render_node_drawable.cpp",
   ]
 
+  #dfx
+  sources += [
+    "core/drawable/dfx/rs_drity_rects_dfx.cpp",
+    "core/drawable/dfx/rs_skp_capture_dfx.cpp",
+  ]
+
   if (rs_enable_eglimage) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }

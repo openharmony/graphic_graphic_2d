@@ -16,11 +16,12 @@
 #ifndef RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
 #define RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
 
+#include "common/rs_macros.h"
 #include "params/rs_render_params.h"
-#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
-class RSDisplayRenderParams : public RSRenderParams {
+class RSB_EXPORT RSDisplayRenderParams : public RSRenderParams {
 public:
     explicit RSDisplayRenderParams();
     virtual ~RSDisplayRenderParams() = default;

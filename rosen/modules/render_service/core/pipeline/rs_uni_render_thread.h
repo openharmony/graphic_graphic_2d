@@ -53,6 +53,14 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
     uint32_t GetRefreshRate() const;
+    std::vector<NodeId>& GetDrawStatusVec()
+    {
+        return curDrawStatusVec_;
+    }
+    const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams()
+    {
+        return renderThreadParams_;
+    }
 
 private:
     RSUniRenderThread();
@@ -64,7 +72,7 @@ private:
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSContext> context_;
     std::unique_ptr<RSRenderNodeDrawable> rootNodeDrawable_;
-
+    std::vector<NodeId> curDrawStatusVec_;
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync from main thread
 
     // Those variable is used to manage memory.

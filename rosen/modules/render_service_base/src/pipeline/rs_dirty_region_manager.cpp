@@ -15,6 +15,11 @@
 
 #include "pipeline/rs_dirty_region_manager.h"
 
+#include <string>
+
+#include "rs_trace.h"
+
+#include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
 RSDirtyRegionManager::RSDirtyRegionManager()
@@ -121,6 +126,11 @@ void RSDirtyRegionManager::ClipDirtyRectWithinSurface()
     int height = std::min(currentFrameDirtyRegion_.GetBottom(), surfaceRect_.GetBottom()) - top;
     // If new region is invalid, currentFrameDirtyRegion_ would be reset as [0, 0, 0, 0]
     currentFrameDirtyRegion_ = ((width <= 0) || (height <= 0)) ? RectI() : RectI(left, top, width, height);
+}
+
+const RectI& RSDirtyRegionManager::GetSyncCurrentFrameDirtyRegion()
+{
+    return syncCurrentFrameDirtyRegion_;
 }
 
 const RectI& RSDirtyRegionManager::GetCurrentFrameDirtyRegion()
@@ -237,7 +247,7 @@ void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
 void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
 {
     auto& currentFrameDirtyRegion = isSync_ ? syncCurrentFrameDirtyRegion_ : currentFrameDirtyRegion_;
-    currentFrameDirtyRegion = GetPixelAlignedRect(currentFrameDirtyRegion, alignedBits);       
+    currentFrameDirtyRegion = GetPixelAlignedRect(currentFrameDirtyRegion, alignedBits);
 }
 
 void RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType,

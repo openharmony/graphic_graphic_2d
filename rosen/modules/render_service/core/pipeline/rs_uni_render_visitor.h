@@ -25,6 +25,7 @@
 
 #include "rs_base_render_engine.h"
 
+#include "params/rs_render_thread_params.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
@@ -135,6 +136,7 @@ public:
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
 #endif
+    void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
@@ -214,7 +216,6 @@ private:
 
     void MapAbsDirtyRectForMainWindow() const;
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
-    std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
      * when process canvas culling, canvas intersect with surface's visibledirty region or
@@ -481,7 +482,7 @@ private:
     mutable std::mutex copyVisitorInfosMutex_;
     bool resetRotate_ = false;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
-    // variable for occlusion 
+    // variable for occlusion
     bool needRecalculateOcclusion_ = false;
     Occlusion::Region accumulatedOcclusionRegion_;
 
@@ -527,7 +528,7 @@ private:
     void UpdateVirtualScreenFilterAppRootId(const RSRenderNode::SharedPtr& node);
 
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
-    
+
     // dfx for effect render node
     void DrawEffectRenderNodeForDFX();
     std::vector<RectI> nodesUseEffectFallbackForDfx_;

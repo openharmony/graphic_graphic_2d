@@ -23,7 +23,25 @@ class RSB_EXPORT RSRenderThreadParams {
 public:
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
+
+    bool IsPartialRenderEnabled()
+    {
+        return isPartialRenderEnabled_;
+    }
+
 private:
+    // RSDirtyRectsDfx dfx
+    std::vector<std::string> dfxTargetSurfaceNames_;
+    bool isPartialRenderEnabled_ = false;
+    bool isDirtyRegionDfxEnabled_ = false;
+    bool isTargetDirtyRegionDfxEnabled_ = false;
+    bool isDisplayDirtyDfxEnabled_ = false;
+    bool isOpaqueRegionDfxEnabled_ = false;
+    bool isVisibleRegionDfxEnabled_ = false;
+    DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
+
+    friend class RSUniRenderVisitor;
+    friend class RSDirtyRectsDfx;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
