@@ -406,6 +406,25 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
+bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& parent,
+    bool needParentOffset, const std::optional<Drawing::Rect>& clipRect)
+{
+    if (boundsGeo_ == nullptr) {
+        return false;
+    }
+    auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
+    auto parentGeo = parent ? parentProperties->GetBoundsGeometry() : nullptr;
+    // [planning] surfaceNode use frame instead
+    std::optional<Drawing::Point> offset;
+    if (parentProperties && needParentOffset) {
+        offset = Drawing::Point { parentProperties->GetFrameOffsetX(), parentProperties->GetFrameOffsetY() };
+    }
+    CheckEmptyBounds();
+    auto prevAbsMatrix = boundsGeo_->GetAbsMatrix();
+    boundsGeo_->UpdateMatrix(parentGeo, offset, clipRect);
+    return !(prevAbsMatrix == boundsGeo_->GetAbsMatrix());
+}
+
 bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
 {

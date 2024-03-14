@@ -357,15 +357,6 @@ bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal
     return RSRenderNode::IsSubTreeNeedPrepare(needMap, filterInGlobal, isOccluded);
 }
 
-void RSSurfaceRenderNode::UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode)
-{
-    if (curSurfaceNode && curSurfaceNode->GetId() == GetId()) {
-        RSRenderNode::UpdateAbsDrawRect(nullptr);
-        return;
-    }
-    RSRenderNode::UpdateAbsDrawRect(curSurfaceNode);
-}
-
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

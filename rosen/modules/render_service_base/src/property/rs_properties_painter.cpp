@@ -869,6 +869,27 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     canvas.DetachBrush();
 }
 
+void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
+    const RSProperties& properties, const bool isAbsCoordinate)
+{
+    auto& pixelStretch = properties.GetPixelStretch();
+    if (!pixelStretch.has_value()) {
+        return;
+    }
+    auto boundsRect = properties.GetBoundsRect();
+    auto scaledBounds = RectF(boundsRect.left_ - pixelStretch->x_, boundsRect.top_ - pixelStretch->y_,
+        boundsRect.width_ + pixelStretch->x_ + pixelStretch->z_,
+        boundsRect.height_ + pixelStretch->y_ + pixelStretch->w_);
+    auto geoPtr = properties.GetBoundsGeometry();
+    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+    auto drawingRect = Rect2DrawingRect(scaledBounds);
+    matrix.MapRect(drawingRect, drawingRect);
+    dirtyPixelStretch.left_ = std::floor(drawingRect.GetLeft());
+    dirtyPixelStretch.top_ = std::floor(drawingRect.GetTop());
+    dirtyPixelStretch.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
+    dirtyPixelStretch.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
+}
+
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     auto& pixelStretch = properties.GetPixelStretch();
@@ -1072,7 +1093,7 @@ void RSPropertiesPainter::DrawFrame(
 }
 
 RRect RSPropertiesPainter::GetRRectForDrawingBorder(const RSProperties& properties,
-    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
+    const std::shared_ptr<RSBorder>& border, const bool isOutline)
 {
     if (!border) {
         return RRect();
@@ -1084,7 +1105,7 @@ RRect RSPropertiesPainter::GetRRectForDrawingBorder(const RSProperties& properti
 }
 
 RRect RSPropertiesPainter::GetInnerRRectForDrawingBorder(const RSProperties& properties,
-    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
+    const std::shared_ptr<RSBorder>& border, const bool isOutline)
 {
     if (!border) {
         return RRect();
@@ -1237,7 +1258,7 @@ void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, Drawin
 }
 
 void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
-    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
+    const std::shared_ptr<RSBorder>& border, const bool isOutline)
 {
     if (!border || !border->HasBorder()) {
         return;
@@ -1301,7 +1322,7 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, Drawing::Ca
 }
 
 void RSPropertiesPainter::GetOutlineDirtyRect(RectI& dirtyOutline,
-    const RSProperties& properties, const bool& isAbsCoordinate)
+    const RSProperties& properties, const bool isAbsCoordinate)
 {
     auto outline = properties.GetOutline();
     if (!outline || !outline->HasBorder()) {

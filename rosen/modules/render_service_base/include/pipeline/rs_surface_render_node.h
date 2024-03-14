@@ -316,8 +316,6 @@ public:
     bool CheckParticipateInOcclusion() const;
 
     void OnApplyModifiers() override;
-    // do not map for curSurface itself
-    virtual void UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode) override;
 
     void SetTotalMatrix(const Drawing::Matrix& totalMatrix)
     {

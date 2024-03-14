@@ -213,6 +213,14 @@ public:
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
+    const RectI& GetSelfDrawRect() const;
+    const RectI& GetAbsRect() const;
+
+    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty,
+        std::optional<RectI> clipRect = std::nullopt);
+    // update node's abs draw region (including childrenRect)
+    void UpdateAbsDrawRect();
+
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt);
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
@@ -447,8 +455,6 @@ public:
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
-    // update node's abs draw region (including childrenRect)
-    virtual void UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode);
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
@@ -578,6 +584,13 @@ private:
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
 
+    void CollectAndUpdateAbsShadowRect();
+    void CollectAndUpdateAbsOutlineRect();
+    void CollectAndUpdateAbsPixelStretchRect();
+    // update drawrect based on self's info
+    void UpdateSelfDrawRect();
+    void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect = std::nullopt);
+    
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
 
@@ -661,6 +674,11 @@ private:
     float boundsHeight_ = 0.0f;
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
+    // including enlarged draw region
+    RectI selfDrawRect_;
+    RectI absShadowRect_;
+    RectI absOutlineRect_;
+    RectI absPixelStretchRect_;
 
     bool isTextureExportNode_ = false;
 

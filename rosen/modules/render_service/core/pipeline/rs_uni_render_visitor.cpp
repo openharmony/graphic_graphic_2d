@@ -1594,11 +1594,7 @@ void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
     }
     node.UpdateParentChildrenRect(node.GetParent().lock());
     // since axes switch in rootRenderNode, nodes within LeashWindow should not match again
-    if (curSurfaceNode_ && curSurfaceNode_->IsLeashWindow()) {
-        node.UpdateAbsDrawRect(nullptr);
-    } else {
-        node.UpdateAbsDrawRect(curSurfaceNode_);
-    }
+    node.UpdateAbsDrawRect();
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
