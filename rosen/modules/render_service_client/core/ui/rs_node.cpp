@@ -760,7 +760,7 @@ void RSNode::SetTranslateX(float translate)
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
         if (iter == propertyModifiers_.end()) {
-            SetTranslate({ 0.f, translate });
+            SetTranslate({ translate, 0.f });
             return;
         }
     }
