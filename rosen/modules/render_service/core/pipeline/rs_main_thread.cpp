@@ -544,10 +544,10 @@ void RSMainThread::ProcessCommand()
     }
     switch(context_->purgeType_) {
         case RSContext::PurgeType::GENTLY:
-            ClearMemoryCache(context_->clearMoment_, false);
+            RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, false);
             break;
         case RSContext::PurgeType::STRONGLY:
-            ClearMemoryCache(context_->clearMoment_, true);
+            RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, true);
             break;
         default:
             break;
@@ -2330,7 +2330,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_LOGD("RSMainThread: clear cpu cache pid:%{public}d", remotePid);
         if (!IsResidentProcess(remotePid)) {
-            ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true);
+            RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true);
         }
         lastCleanCacheTimestamp_ = timestamp_;
 #endif
@@ -2873,7 +2873,7 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
                 RS_TRACE_NAME_FMT("System is low memory, HandleOnTrim Enter level:%d", level);
                 switch (level) {
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_CRITICAL:
-                        ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
+                        RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
                         break;
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_LOW:
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_MODERATE:

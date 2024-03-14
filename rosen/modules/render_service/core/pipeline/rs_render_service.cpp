@@ -59,8 +59,8 @@ bool RSRenderService::Init()
             return false;
         }
     } else {
-        RSHardwareThread::Instance().Start();
         RSUniRenderThread::Instance().Start();
+        RSHardwareThread::Instance().Start();
     }
 
     auto generator = CreateVSyncGenerator();
