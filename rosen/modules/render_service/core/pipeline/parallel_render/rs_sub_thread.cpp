@@ -286,6 +286,11 @@ void RSSubThread::ResetGrContext()
     grContext_->FreeGpuResources();
 }
 
+void RSSubThread::ThreadSafetyReleaseTexture()
+{
+    grContext_->FreeGpuResources();
+}
+
 void RSSubThread::ReleaseSurface()
 {
     std::lock_guard<std::mutex> lock(mutex_);

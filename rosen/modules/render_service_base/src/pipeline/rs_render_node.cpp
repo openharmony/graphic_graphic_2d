@@ -134,6 +134,10 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
     vkContext.vkBindImageMemory(device, image, memory, 0);
 
+    OHOS::Rosen::RsVulkanMemStat& memStat = vkContext.GetRsVkMemStat();
+    auto time = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::system_clock::now());
+    std::string timeStamp = std::to_string(static_cast<uint64_t>(time.time_since_epoch().count()));
+    memStat.InsertResource(timeStamp, static_cast<uint64_t>(memRequirements.size));
     OHOS::Rosen::Drawing::BackendTexture backendTexture(true);
     OHOS::Rosen::Drawing::TextureInfo textureInfo;
     textureInfo.SetWidth(width);
@@ -144,6 +148,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
     vkImageInfo->vkImage = image;
     vkImageInfo->vkAlloc.memory = memory;
     vkImageInfo->vkAlloc.size = memRequirements.size;
+    vkImageInfo->vkAlloc.statName = timeStamp;
 
     SetVkImageInfo(vkImageInfo, imageInfo);
     textureInfo.SetVKTextureInfo(vkImageInfo);
@@ -159,7 +164,7 @@ void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
     renderContent_->type_ = GetType();
-    renderContent_->renderProperties_.backref_ = weak_from_this();
+    renderContent_->GetMutableRenderProperties().backref_ = weak_from_this();
     SetDirty(true);
 }
 
@@ -1599,7 +1604,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
             return;
         }
         cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,

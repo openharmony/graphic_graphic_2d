@@ -135,7 +135,7 @@ std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
+        return DDGRStaticFactory::MakeRenderTarget(gpuContext, imageInfo, budgeted);
     }
 #endif
     return EngineStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);

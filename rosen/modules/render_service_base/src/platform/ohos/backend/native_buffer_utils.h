@@ -34,15 +34,21 @@ namespace NativeBufferUtils {
 void DeleteVkImage(void* context);
 class VulkanCleanupHelper {
 public:
-    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory)
+    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory,
+        const std::string& statName = "")
         : fDevice_(vkContext.GetDevice()),
           fImage_(image),
           fMemory_(memory),
           fDestroyImage_(vkContext.vkDestroyImage),
           fFreeMemory_(vkContext.vkFreeMemory),
+          fStatName(statName),
           fRefCnt_(1) {}
     ~VulkanCleanupHelper()
     {
+        if (fStatName.length()) {
+            RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
+            memStat.DeleteResource(fStatName);
+        }
         fDestroyImage_(fDevice_, fImage_, nullptr);
         fFreeMemory_(fDevice_, fMemory_, nullptr);
     }
@@ -66,6 +72,7 @@ private:
     VkDeviceMemory fMemory_;
     PFN_vkDestroyImage fDestroyImage_;
     PFN_vkFreeMemory fFreeMemory_;
+    std::string fStatName;
     mutable std::atomic<int32_t> fRefCnt_;
 };
 

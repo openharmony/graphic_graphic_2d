@@ -258,6 +258,16 @@ template("graphics2d_source_set") {
 
     defines += [ "USE_ACE_SKIA" ]
 
+    if (defined(graphic_2d_feature_enable_ddgr) &&
+        graphic_2d_feature_enable_ddgr) {
+      defines += [ "ENABLE_DDGR_OPTIMIZE" ]
+      sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
+
+      include_dirs += ddgr_adapter_opt_set.drawing_ddgr_adapter_include_set
+
+      public_deps += [ "$graphic_2d_ext_root/ddgr:libddgr" ]
+    }
+
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_texgine) {

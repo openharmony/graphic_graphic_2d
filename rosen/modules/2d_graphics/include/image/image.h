@@ -54,6 +54,7 @@ struct VKAlloc {
     VkDeviceSize offset = 0;
     VkDeviceSize size = 0;
     uint32_t flags = 0;
+    std::string statName = "";
 };
 
 struct VKYcbcrConversionInfo {

@@ -396,6 +396,11 @@ std::shared_ptr<FontMgrImpl> ImplFactory::CreateDefaultFontMgrImpl()
 #ifndef USE_TEXGINE
 std::shared_ptr<FontMgrImpl> ImplFactory::CreateDynamicFontMgrImpl()
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateDynamicFontMgr();
+    }
+#endif
     return EngineImplFactory::CreateDynamicFontMgr();
 }
 #endif
