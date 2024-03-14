@@ -32,6 +32,18 @@ constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 };
 
+thread_local bool RSUniRenderThread::isInCaptureFlag_ = false;
+
+void RSUniRenderThread::SetIsInCapture(bool flag)
+{
+    isInCaptureFlag_ = flag;
+}
+
+bool RSUniRenderThread::GetIsInCapture()
+{
+    return isInCaptureFlag_;
+}
+
 RSUniRenderThread& RSUniRenderThread::Instance()
 {
     static RSUniRenderThread instance;

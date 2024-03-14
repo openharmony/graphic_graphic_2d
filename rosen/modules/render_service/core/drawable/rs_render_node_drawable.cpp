@@ -52,6 +52,14 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.endIndex_);
 }
 
+/*
+* This function will be called recursively many times, and the logic should be as concise as possible.
+*/
+void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+{
+    RSRenderNodeDrawable::OnDraw(canvas);
+}
+
 void RSRenderNodeDrawable::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.backgroundEndIndex_);

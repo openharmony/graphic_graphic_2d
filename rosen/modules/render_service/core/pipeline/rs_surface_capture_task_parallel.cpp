@@ -31,6 +31,7 @@
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -96,8 +97,16 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGE("RSSurfaceCaptureTaskParallel::Run: surface is nullptr!");
         return false;
     }
-    visitor_->SetSurface(surface.get());
-    node->Process(visitor_);
+    if (rsSurfaceCaptureType_ == RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_RENDER_THREAD_VISITOR) {
+        visitor_->SetSurface(surface.get());
+        node->Process(visitor_);
+    } else {
+        auto rootNodeDrawable = std::make_unique<RSRenderNodeDrawable>(node);
+        RSUniRenderThread::SetIsInCapture(true);
+        RSPaintFilterCanvas canvas(surface.get());
+        rootNodeDrawable->OnCapture(canvas);
+        RSUniRenderThread::SetIsInCapture(false);
+    }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled() && !isProcOnBgThread_) {

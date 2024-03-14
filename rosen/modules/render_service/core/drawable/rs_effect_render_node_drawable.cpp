@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_effect_render_node.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
@@ -32,6 +33,11 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
+    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+        RSEffectRenderNodeDrawable::OnCapture(canvas);
+        return;
+    }
+
     RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
@@ -41,5 +47,18 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
     RSRenderNodeDrawable::OnDraw(canvas);
+}
+
+void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+{
+    RS_LOGD("RSEffectRenderNodeDrawable::OnCapture node: %{public}" PRIu64, renderNode_->GetId());
+    auto& params = renderNode_->GetRenderParams();
+    if (!params) {
+        RS_LOGE("params is nullptr");
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
+    RSRenderNodeDrawable::OnCapture(canvas);
 }
 } // namespace OHOS::Rosen

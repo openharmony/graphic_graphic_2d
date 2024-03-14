@@ -28,6 +28,7 @@ public:
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) const override;
+    void OnCapture(Drawing::Canvas& canvas) const override;
 
 private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;

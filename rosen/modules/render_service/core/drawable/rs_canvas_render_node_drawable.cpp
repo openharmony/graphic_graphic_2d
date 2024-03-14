@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -35,6 +36,11 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
 */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
+    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+        RSCanvasRenderNodeDrawable::OnCapture(canvas);
+        return;
+    }
+
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
         RS_LOGE("params is nullptr");
@@ -50,5 +56,23 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         RS_LOGD("this drawable has quickRejected");
     }
     RSRenderNodeDrawable::OnDraw(canvas);
+}
+
+/*
+* This function will be called recursively many times, and the logic should be as concise as possible.
+*/
+void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+{
+    auto& params = renderNode_->GetRenderParams();
+    if (!params) {
+        return;
+    }
+    if (!params->GetShouldPaint()) {
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
+
+    RSRenderNodeDrawable::OnCapture(canvas);
 }
 } // namespace OHOS::Rosen

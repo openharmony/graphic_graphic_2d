@@ -62,6 +62,9 @@ public:
         return renderThreadParams_;
     }
 
+    static void SetIsInCapture(bool flag);
+    static bool GetIsInCapture();
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -79,6 +82,7 @@ private:
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
+    static thread_local bool isInCaptureFlag_; // true if in capture mode
 };
 } // namespace Rosen
 } // namespace OHOS

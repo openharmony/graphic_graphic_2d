@@ -131,6 +131,11 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(std::sh
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
+    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+        RSDisplayRenderNodeDrawable::OnCapture(canvas);
+        return;
+    }
+
     // canvas will generate in every request frame
     (void)canvas;
 
@@ -206,6 +211,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     processor->ProcessDisplaySurface(*displayNodeSp);
     processor->PostProcess(displayNodeSp.get());
     RS_TRACE_END();
+}
+
+void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+{
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    RSRenderNodeDrawable::OnCapture(canvas);
 }
 
 } // namespace OHOS::Rosen

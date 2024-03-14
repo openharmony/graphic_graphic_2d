@@ -19,6 +19,7 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "pipeline/rs_surface_capture_task.h"
+#include "system/rs_system_parameters.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,6 +27,7 @@ class RSSurfaceCaptureTaskParallel {
 public:
     explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
         : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread)
+        , rsSurfaceCaptureType_(RSSystemParameters::GetRsSurfaceCaptureType())
         , rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTaskParallel() = default;
 
@@ -57,6 +59,7 @@ private:
 
     // if true, do surfaceCapture on background thread
     bool isProcOnBgThread_ = false;
+    RsSurfaceCaptureType rsSurfaceCaptureType_;
     RsParallelType rsParallelType_;
 };
 } // namespace Rosen

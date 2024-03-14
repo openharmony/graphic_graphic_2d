@@ -41,6 +41,7 @@ public:
 
     // This method can only be called in RenderThread
     virtual void OnDraw(Drawing::Canvas& canvas) const = 0;
+    virtual void OnCapture(Drawing::Canvas& canvas) const = 0;
 
     using Ptr = std::unique_ptr<RSRenderNodeDrawableAdapter>;
     static Ptr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);

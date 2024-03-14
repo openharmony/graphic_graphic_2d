@@ -44,6 +44,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         return;
     }
 
+    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+        RSSurfaceRenderNodeDrawable::OnCapture(canvas);
+        return;
+    }
+
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
 
@@ -154,5 +159,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         mutableSurfaceNode->NotifyUIBufferAvailable();
     }
     RSRenderNodeDrawable::OnDraw(canvas);
+}
+
+void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+{
+    RSRenderNodeDrawable::OnCapture(canvas);
 }
 } // namespace OHOS::Rosen
