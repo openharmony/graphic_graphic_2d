@@ -168,6 +168,34 @@ HWTEST_F(ImageFilterTest, ImageFilterCreateTest004, TestSize.Level1)
     auto imageFilter = std::make_shared<ImageFilter>(ImageFilter::FilterType::COMPOSE, imageFilter1, imageFilter2);
     ASSERT_TRUE(imageFilter != nullptr);
 }
+
+/*
+ * @tc.name: CreateBlendImageFilterTest001
+ * @tc.desc: test for creating a filter takes an BlendMode
+ *           and uses it to composite the two filters together.
+ * @tc.type: FUNC
+ * @tc.require: I77M3W
+ */
+HWTEST_F(ImageFilterTest, CreateBlendImageFilterTest001, TestSize.Level1)
+{
+    auto imageFilter1 = ImageFilter::CreateBlurImageFilter(10.0f, 20.0f, TileMode::CLAMP, nullptr);
+    auto imageFilter2 = ImageFilter::CreateOffsetImageFilter(30.0f, 40.0f, nullptr);
+    auto imageFilter = ImageFilter::CreateBlendImageFilter(BlendMode::CLEAR, imageFilter1, imageFilter2);
+    EXPECT_TRUE(imageFilter != nullptr);
+}
+
+/*
+ * @tc.name: CreateShaderImageFilterTest001
+ * @tc.desc: test for creating a filter that fills the output with the per-pixel evaluation of the ShaderEffect.
+ * @tc.type: FUNC
+ * @tc.require: I77M3W
+ */
+HWTEST_F(ImageFilterTest, CreateShaderImageFilterTest001, TestSize.Level1)
+{
+    std::shared_ptr<ShaderEffect> effect = ShaderEffect::CreateColorShader(0);
+    auto imageFilter = ImageFilter::CreateShaderImageFilter(effect);
+    EXPECT_TRUE(imageFilter != nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
