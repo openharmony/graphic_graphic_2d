@@ -28,6 +28,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -103,6 +104,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     int width = 0;
     int height = 0;
     RS_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::ProcessRenderContents %llu", GetId());
+    std::lock_guard<std::mutex> lockTask(taskMutex_);
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
     }
@@ -133,6 +135,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
+    isNeedProcess_ = false;
 
     Rosen::Drawing::Matrix mat;
     if (RSPropertiesPainter::GetGravityMatrix(
@@ -172,6 +175,21 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         canvas.DrawImage(*image_, 0.f, 0.f, samplingOptions);
     }
     canvas.DetachPaint();
+}
+
+void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
+{
+    auto task = [this]() {
+        std::lock_guard<std::mutex> lockTask(taskMutex_);
+        if (!canvas_) {
+            return;
+        }
+        RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
+        ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
+        ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
+        isNeedProcess_ = false;
+    };
+    RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }
 
 void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds)
@@ -251,6 +269,7 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
         drawCmdList->Playback(*context.canvas_);
         drawCmdList->ClearOp();
     }
+    context.canvas_->Flush();
     it->second.clear();
 }
 
@@ -397,6 +416,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
             if (auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get()) {
                 std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
                 drawCmdLists_[drawCmdModifier.first].emplace_back(cmd);
+                isNeedProcess_ = true;
                 // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
                 // too many drawOp, so we need to add the limit of drawcmdlists.
                 while (GetOldDirtyInSurface().IsEmpty() &&

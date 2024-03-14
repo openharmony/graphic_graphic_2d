@@ -16,6 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CANVAS_DRAWING_RENDER_NODE_H
 #define ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CANVAS_DRAWING_RENDER_NODE_H
 
+#include <atomic>
 #include <functional>
 #include <memory>
 
@@ -49,9 +50,10 @@ public:
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
 
-    void SetSurfaceClearFunc(ThreadInfo threadInfo)
+    void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
     {
         curThreadInfo_ = threadInfo;
+        threadId_ = threadId;
     }
 
     uint32_t GetTid() const
@@ -62,6 +64,11 @@ public:
     void AddDirtyType(RSModifierType type) override;
     void ClearOp();
     void ResetSurface();
+    bool IsNeedProcess() const
+    {
+        return isNeedProcess_;
+    }
+    void PlaybackInCorrespondThread();
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
@@ -83,6 +90,9 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
+    std::mutex taskMutex_;
+    std::atomic<bool> isNeedProcess_ = false;
+    pid_t threadId_ = 0;
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
 };

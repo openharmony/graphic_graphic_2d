@@ -4394,7 +4394,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
             // The second param is null, 0 is an invalid value.
             RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
         };
-        drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
+        auto threadId = RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIndex_];
+        drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc }, threadId);
     }
     CheckAndSetNodeCacheType(node);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
