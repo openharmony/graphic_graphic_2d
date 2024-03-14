@@ -212,7 +212,11 @@ private:
     void DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
         DirtyRegionType dirtyType, bool isDrawn = true);
 
-    void MapAbsDirtyRectForMainWindow() const;
+    bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
+    bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
+    void UpdateSurfaceDirtyAndGlobalDirty() const;
+    void CheckMergeSurfaceDirtysForDisplay(
+        std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, RectI& dirtyRect) const;
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:

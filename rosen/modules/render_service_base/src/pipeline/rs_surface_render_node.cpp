@@ -346,7 +346,7 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     visitor->QuickPrepareSurfaceRenderNode(*this); 
 }
 
-bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal)
+bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool isOccluded)
 {
     // force preparation case
     if (IsLeashWindow()) {
@@ -354,7 +354,7 @@ bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    return RSRenderNode::IsSubTreeNeedPrepare(needMap, filterInGlobal);
+    return RSRenderNode::IsSubTreeNeedPrepare(needMap, filterInGlobal, isOccluded);
 }
 
 void RSSurfaceRenderNode::UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSurfaceNode)

@@ -860,13 +860,13 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->QuickPrepareChildren(*this);
 }
 
-bool RSRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal)
+bool RSRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool isOccluded)
 {
     // stop visit invisible or clean without filter subtree
-    if (!ShouldPaint()) {
+    if (!ShouldPaint() || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
-        RS_TRACE_NAME_FMT("RSRenderNode::IsSubTreeNeedPrepare node[%s] not ShouldPaint",
-            std::to_string(GetId()).c_str());
+        RS_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
+            GetId(), ShouldPaint(), isOccluded);
         return false;
     }
     if (IsSubTreeDirty()) {
@@ -880,7 +880,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal)
         MapChildrenRect();
     }
     if (ChildHasVisibleFilter()) {
-        RS_TRACE_NAME_FMT("RSRenderNode::IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
+        RS_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
     // if clean without filter skip subtree
