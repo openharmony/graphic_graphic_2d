@@ -1190,7 +1190,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         QuickPrepareChildren(node);
     }
 
-    MapAbsDirtyRectForMainWindow();
+    UpdateSurfaceDirtyAndGlobalDirty();
     curDisplayNode_->UpdatePartialRenderParams();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
     HandleColorGamuts(node, screenManager);
@@ -1208,55 +1208,26 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
         static_cast<int>(node.GetSurfaceNodeType()), node.IsSubTreeDirty());
     // 0. init curSurface* info and check current node need to tranverse
-    auto nodeParent = node.GetParent().lock();
-    if (node.IsMainWindowType() || node.IsLeashWindow()) {
-        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-        curSurfaceDirtyManager_ = node.GetDirtyManager();
-        if (!curSurfaceDirtyManager_ || !curSurfaceNode_) {
-            RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode %{public}s has invalid"
-                " SurfaceDirtyManager or node ptr", node.GetName().c_str());
-            return;
-        }
-        curSurfaceDirtyManager_->Clear();
-        curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
-        filterInGlobal_ = curSurfaceNode_->IsTransparent();
-        curMainAndLeashWindowNodesIds_.push(node.GetId());
-        curDisplayNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
-    }
-    // set for boot animation
-    node.SetAncestorDisplayNode(curDisplayNode_);
-    node.UpdateAncestorDisplayNodeInRenderParams();
-    bool dirtyFlag = dirtyFlag_;
-    needRecalculateOcclusion_ = needRecalculateOcclusion_ ||
-        node.CheckIfOcclusionReusable(preMainAndLeashWindowNodesIds_);
-
-    // 1. Update matrix and collect dirty region
-    RectI prepareClipRect = prepareClipRect_;
-    auto& property = node.GetMutableRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
-    if (geoPtr == nullptr) {
+    if (!BeforeUpdateSurfaceDirtyCalc(node)) {
+        RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode BeforeUpdateSurfaceDirtyCalc fail");
         return;
     }
-    node.CleanDstRectChanged();
-
+    // 1. Update matrix and collect dirty region
+    bool dirtyFlag = dirtyFlag_;
+    RectI prepareClipRect = prepareClipRect_;
     if (dirtyFlag_ || node.IsDirty()) {
-        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
+        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, node.GetParent().lock(),
+            dirtyFlag_, prepareClipRect_);
     }
-    node.SetDstRect(geoPtr->GetAbsRect());
-    node.UpdatePositionZ();
-    // 1.1 Update Occlusion info before children preparation
-    if (node.IsMainWindowType()) {
-        CalculateOcclusion(node);
-        RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode visibleRegion:%s",
-            node.GetVisibleRegion().GetRegionInfo().c_str());
+    if (!AfterUpdateSurfaceDirtyCalc(node)) {
+        RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode AfterUpdateSurfaceDirtyCalc fail");
+        return;
     }
-
     // 2. Recursively traverse child nodes
-    if (node.IsSubTreeNeedPrepare(dirtyFlag_, filterInGlobal_) || !IsSubTreeOccluded(node)) {
+    if (node.IsSubTreeNeedPrepare(dirtyFlag_, filterInGlobal_, IsSubTreeOccluded(node))) {
         QuickPrepareChildren(node);
     }
     PrepareChildrenAfter(node);
-
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
@@ -1393,22 +1364,132 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     }
 }
 
-void RSUniRenderVisitor::MapAbsDirtyRectForMainWindow() const
+bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
+{
+    // 1. init and record surface info
+    if (node.IsMainWindowType() || node.IsLeashWindow()) {
+        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        curSurfaceDirtyManager_ = node.GetDirtyManager();
+        if (!curSurfaceDirtyManager_ || !curSurfaceNode_) {
+            RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode %{public}s has invalid"
+                " SurfaceDirtyManager or node ptr", node.GetName().c_str());
+            return false;
+        }
+        curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        filterInGlobal_ = curSurfaceNode_->IsTransparent();
+        curMainAndLeashWindowNodesIds_.push(node.GetId());
+        curDisplayNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
+    }
+    // 2. update surface info and CheckIfOcclusionReusable
+    node.SetAncestorDisplayNode(curDisplayNode_); // set for boot animation
+    node.UpdateAncestorDisplayNodeInRenderParams();
+    node.CleanDstRectChanged();
+    needRecalculateOcclusion_ = needRecalculateOcclusion_ ||
+        node.CheckIfOcclusionReusable(preMainAndLeashWindowNodesIds_);
+    return true;
+}
+
+bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
+{
+    // 1 update surface info
+    auto geoPtr = node.GetMutableRenderProperties().GetBoundsGeometry();
+    if (geoPtr == nullptr) {
+        return false;
+    }
+    node.SetDstRect(geoPtr->GetAbsRect());
+    node.UpdatePositionZ();
+    curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty());
+    // 2 Update Occlusion info before children preparation
+    if (node.IsMainWindowType()) {
+        CalculateOcclusion(node);
+        RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode visibleRegion:%s",
+            node.GetVisibleRegion().GetRegionInfo().c_str());
+    }
+    return true;
+}
+
+void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty() const
 {
     auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
-        [](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
+        auto dirtyManager = surfaceNode->GetDirtyManager();
+        auto dirtyRect = dirtyManager->GetCurrentFrameDirtyRegion();
+        // 1. calculate abs dirtyrect and update partialRenderParams
         if (surfaceNode->IsMainWindowType()) {
-            auto dirtyManager = surfaceNode->GetDirtyManager();
-            auto dirtyRect = dirtyManager->GetCurrentFrameDirtyRegion();
             auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
             dirtyManager->SetCurrentFrameDirtyRect(
                 geoPtr->MapAbsRect(dirtyRect.ConvertTo<float>()));
             surfaceNode->UpdatePartialRenderParams();
         }
+        // 2. check surface node dirtyrect need merge into displayDirtyManager
+        CheckMergeSurfaceDirtysForDisplay(surfaceNode, dirtyRect);
     });
+    curDisplayNode_->ClearCurrentSurfacePos();
+}
+
+void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(
+    std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, RectI& dirtyRect) const
+{
+    if (surfaceNode->IsTransparent()) {
+        // 1 Handles the case of transparent surface, merge transparent dirty rect
+        RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(dirtyRect);
+        if (!transparentDirtyRect.IsEmpty()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s",
+                surfaceNode->GetName().c_str(), transparentDirtyRect.ToString().c_str());
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(transparentDirtyRect);
+        }           
+    }
+    if (surfaceNode->GetZorderChanged()) {
+        // 2 Zorder changed case, merge surface dest Rect
+        RS_LOGD("CalcDirtyDisplayRegion merge GetZorderChanged %{public}s rect %{public}s",
+            surfaceNode->GetName().c_str(), surfaceNode->GetDstRect().ToString().c_str());
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetDstRect());
+    }
+    // 3 surfacePos chanded case, merge surface lastframe pos or curframe pos
+    RectI lastFrameSurfacePos = curDisplayNode_->GetLastFrameSurfacePos(surfaceNode->GetId());
+    RectI currentFrameSurfacePos = curDisplayNode_->GetCurrentFrameSurfacePos(surfaceNode->GetId());
+    if (surfaceNode->GetAnimateState() || lastFrameSurfacePos != currentFrameSurfacePos) {
+        RS_LOGD("CalcDirtyDisplayRegion merge surface pos changed %{public}s lastFrameRect %{public}s"
+            " currentFrameRect %{public}s", surfaceNode->GetName().c_str(), lastFrameSurfacePos.ToString().c_str(),
+            currentFrameSurfacePos.ToString().c_str());
+        if (!lastFrameSurfacePos.IsEmpty()) {
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(lastFrameSurfacePos);
+        }
+        if (!currentFrameSurfacePos.IsEmpty()) {
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(currentFrameSurfacePos);
+        }
+    }
+    // 4 shadow disappear and appear case.
+    bool isShadowDisappear = !surfaceNode->GetRenderProperties().IsShadowValid() && surfaceNode->IsShadowValidLastFrame();
+    if (surfaceNode->GetRenderProperties().IsShadowValid() || isShadowDisappear) {
+        RectI shadowDirtyRect = surfaceNode->GetOldDirtyInSurface().IntersectRect(dirtyRect);
+        // There are two situation here:
+        // 1. SurfaceNode first has shadow or shadow radius is larger than the last frame,
+        // dirtyRect == surfaceNode->GetOldDirtyInSurface()
+        // 2. SurfaceNode remove shadow or shadow radius is smaller than the last frame,
+        // dirtyRect > surfaceNode->GetOldDirtyInSurface()
+        // So we should always merge dirtyRect here.
+        if (!shadowDirtyRect.IsEmpty()) {
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRect);
+            RS_LOGD("CalcDirtyDisplayRegion merge ShadowValid %{public}s rect %{public}s",
+                surfaceNode->GetName().c_str(), dirtyRect.ToString().c_str());
+        }
+        if (isShadowDisappear) {
+            surfaceNode->SetShadowValidLastFrame(false);
+        }
+    }
+    // 5 handle last and curframe surfaces which appear or disappear case
+    std::vector<RectI> surfaceChangedRects = curDisplayNode_->GetSurfaceChangedRects();
+    for (auto& surfaceChangedRect : surfaceChangedRects) {
+        RS_LOGD("CalcDirtyDisplayRegion merge Surface closed %{public}s", surfaceChangedRect.ToString().c_str());
+        if (!surfaceChangedRect.IsEmpty()) {
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(surfaceChangedRect);
+        }
+    } 
 }
 
 void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)

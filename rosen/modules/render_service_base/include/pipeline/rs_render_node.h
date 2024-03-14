@@ -98,7 +98,7 @@ public:
     virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal);
+    virtual bool IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;
