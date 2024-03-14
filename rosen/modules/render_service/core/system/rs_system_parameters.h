@@ -40,6 +40,12 @@ enum class RsParallelType {
     RS_PARALLEL_TYPE_SINGLE_THREAD = 2, // 2, Render in main thread, execute synchronously
 };
 
+enum class RsSurfaceCaptureType {
+    RS_SURFACE_CAPTURE_TYPE_RENDER_THREAD = 0,         // 0, Run SurfaceCapture in render thread, default type
+    RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD = 1,           // 1, Run SurfaceCapture in main thread
+    RS_SURFACE_CAPTURE_TYPE_RENDER_THREAD_VISITOR = 2, // 2, Run SurfaceCapture in render thread using RSSurfaceCaptureVisitor
+};
+
 class RSB_EXPORT RSSystemParameters final {
 public:
     ~RSSystemParameters() = default;
@@ -49,6 +55,7 @@ public:
     static bool GetShowRefreshRateEnabled();
     static QuickSkipPrepareType GetQuickSkipPrepareType();
     static RsParallelType GetRsParallelType();
+    static RsSurfaceCaptureType GetRsSurfaceCaptureType();
     static bool GetVSyncControlEnabled();
     static bool GetSystemAnimatedScenesEnabled();
     static bool GetFilterCacheOcculusionEnabled();

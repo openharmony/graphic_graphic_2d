@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
+#include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -37,6 +38,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -56,6 +58,7 @@ RSRenderServiceConnection::RSRenderServiceConnection(
     : remotePid_(remotePid),
       renderService_(renderService),
       mainThread_(mainThread),
+      renderThread_(RSUniRenderThread::Instance()),
       screenManager_(screenManager),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
@@ -538,23 +541,36 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
-            !node->IsOnTheTree() : false;
-        std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
-            RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
-            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-            RSSurfaceCaptureTask task(id, scaleX, scaleY, isProcOnBgThread);
-            if (!task.Run(callback)) {
-                callback->OnSurfaceCapture(id, nullptr);
+        if (RSSystemParameters::GetRsSurfaceCaptureType() == RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
+            auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+            auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+            auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
+                !node->IsOnTheTree() : false;
+            std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
+                RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
+                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+                RSSurfaceCaptureTask task(id, scaleX, scaleY, isProcOnBgThread);
+                if (!task.Run(callback)) {
+                    callback->OnSurfaceCapture(id, nullptr);
+                }
+                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+            };
+            if (isProcOnBgThread) {
+                RSBackgroundThread::Instance().PostTask(captureTask);
+            } else {
+                mainThread_->PostTask(captureTask);
             }
-            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        };
-        if (isProcOnBgThread) {
-            RSBackgroundThread::Instance().PostTask(captureTask);
         } else {
-            mainThread_->PostTask(captureTask);
+            std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
+                RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
+                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+                RSSurfaceCaptureTaskParallel task(id, scaleX, scaleY);
+                if (!task.Run(callback)) {
+                    callback->OnSurfaceCapture(id, nullptr);
+                }
+                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+            };
+            renderThread_.PostTask(captureTask);
         }
     } else {
         TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY);
