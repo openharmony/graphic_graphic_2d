@@ -60,7 +60,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         return;
     }
 
-    if (!surfaceParams->GetOcclusionVisible()) {
+    if (surfaceNode->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip Node:%" PRIu64"", renderNode_->GetId());
         return;
     }
