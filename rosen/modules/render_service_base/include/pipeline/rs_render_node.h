@@ -671,6 +671,7 @@ private:
 
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
+    void UpdateDisplayList();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;
 
@@ -679,9 +680,16 @@ private:
     void OnRegister(const std::weak_ptr<RSContext>& context);
 
     // Test pipeline
+    struct displayListIndex {
+        int8_t shadowIndex_ = -1;
+        int8_t bgEndIndex_ = -1;
+        int8_t fgBeginIndex_ = -1;
+    };
     bool drawCmdListNeedSync_ = false;
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
-    std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
+    displayListIndex displayListIndex_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
+    displayListIndex stagingDisplayListIndex_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     RSDrawable::Vec drawableVec_;

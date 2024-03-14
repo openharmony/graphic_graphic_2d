@@ -14,9 +14,9 @@
  */
 
 #include "drawable/rs_canvas_render_node_drawable.h"
-#include "platform/common/rs_log.h"
+
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -49,6 +49,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     if (quickRejected) {
         RS_LOGD("this drawable has quickRejected");
     }
-    RSRenderNodeDrawable::OnDraw(canvas);
+    ReplayDisplayList(canvas);
 }
 } // namespace OHOS::Rosen

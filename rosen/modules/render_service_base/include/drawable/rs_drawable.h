@@ -31,8 +31,9 @@ class RSRenderNode;
 class RSRenderContent;
 
 // NOTE: MUST update DrawableGeneratorLut in rs_drawable_content.cpp when new slots are added
-enum class RSDrawableSlot : uint8_t {
-    SAVE_ALL,
+enum class RSDrawableSlot : int8_t {
+    INVALID = -1,
+    SAVE_ALL = 0,
 
     // Bounds Geometry
     ALPHA,
@@ -86,8 +87,6 @@ enum class RSDrawableSlot : uint8_t {
     RESTORE_BLEND_MODE,
     RESTORE_ALL,
 
-    // Invalid
-    INVALID,
 
     // Annotations: Please remember to update this when new slots are added.
     // NOTE: MAX and *_END enums are using the one-past-the-end style.
@@ -97,7 +96,8 @@ enum class RSDrawableSlot : uint8_t {
     CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
     FG_PROPERTIES_BEGIN      = BINARIZATION,
     FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
-    MAX                      = INVALID,
+    MIN                      = SAVE_ALL,
+    MAX                      = RESTORE_ALL + 1,
 };
 
 // pure virtual base class

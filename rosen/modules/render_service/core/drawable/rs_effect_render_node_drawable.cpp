@@ -14,9 +14,9 @@
  */
 
 #include "drawable/rs_effect_render_node_drawable.h"
-#include "platform/common/rs_log.h"
+
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
@@ -40,6 +40,6 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
-    RSRenderNodeDrawable::OnDraw(canvas);
+    ReplayDisplayList(canvas);
 }
 } // namespace OHOS::Rosen

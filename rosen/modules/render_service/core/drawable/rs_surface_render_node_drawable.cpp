@@ -14,14 +14,16 @@
  */
 
 #include "drawable/rs_surface_render_node_drawable.h"
+
+#include "rs_trace.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "params/rs_surface_render_params.h"
-#include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
-#include "common/rs_obj_abs_geometry.h"
-#include "rs_trace.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -151,6 +153,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         auto mutableSurfaceNode = std::const_pointer_cast<RSSurfaceRenderNode>(surfaceNode);
         mutableSurfaceNode->NotifyUIBufferAvailable();
     }
-    RSRenderNodeDrawable::OnDraw(canvas);
+    ReplayDisplayList(canvas);
 }
 } // namespace OHOS::Rosen

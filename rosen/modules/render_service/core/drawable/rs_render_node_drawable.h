@@ -13,15 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
-#define RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
+#ifndef RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
+#define RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
 
 #include <memory>
 
+#include "draw/canvas.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
+
+enum class ReplayType : uint8_t {
+    // Default
+    REPLAY_ALL,
+    // Shadow batching
+    REPLAY_ONLY_SHADOW,
+    REPLAY_ALL_EXCEPT_SHADOW,
+    // For surface render node
+    REPLAY_BG_ONLY,
+    REPLAY_FG_ONLY,
+    REPLAY_ONLY_CONTENT,
+};
 
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
@@ -36,7 +49,9 @@ protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 
+    void ReplayDisplayList(Drawing::Canvas& canvas, ReplayType type = ReplayType::REPLAY_ALL) const;
+
     std::shared_ptr<const RSRenderNode> renderNode_;
 };
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
+#endif // RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H

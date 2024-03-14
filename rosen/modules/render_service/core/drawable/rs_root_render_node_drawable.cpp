@@ -14,9 +14,9 @@
  */
 
 #include "drawable/rs_root_render_node_drawable.h"
-#include "platform/common/rs_log.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+
 #include "pipeline/rs_root_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSRootRenderNodeDrawable::Registrar RSRootRenderNodeDrawable::instance_;

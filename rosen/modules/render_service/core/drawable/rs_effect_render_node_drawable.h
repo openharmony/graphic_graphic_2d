@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H
-#define RENDER_SERVICE_BASE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H
-
-#include <memory>
+#ifndef RENDER_SERVICE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H
+#define RENDER_SERVICE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H
 
 #include "drawable/rs_render_node_drawable.h"
 
@@ -36,4 +34,4 @@ private:
     static Registrar instance_;
 };
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H
+#endif // RENDER_SERVICE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H

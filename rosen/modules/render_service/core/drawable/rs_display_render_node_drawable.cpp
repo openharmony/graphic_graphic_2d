@@ -14,8 +14,10 @@
  */
 
 #include "drawable/rs_display_render_node_drawable.h"
+
 #include <memory>
 
+#include "benchmarks/rs_recording_thread.h"
 #include "rs_trace.h"
 
 #include "pipeline/rs_base_render_engine.h"
@@ -26,7 +28,6 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "benchmarks/rs_recording_thread.h"
 
 namespace OHOS::Rosen {
 RSDisplayRenderNodeDrawable::Registrar RSDisplayRenderNodeDrawable::instance_;
@@ -123,7 +124,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     // canvas draw
     {
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-        RSRenderNodeDrawable::OnDraw(*curCanvas_);
+        ReplayDisplayList(*curCanvas_);
     }
 
     // Finish recording skia op
