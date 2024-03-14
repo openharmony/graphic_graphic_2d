@@ -153,6 +153,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         auto mutableSurfaceNode = std::const_pointer_cast<RSSurfaceRenderNode>(surfaceNode);
         mutableSurfaceNode->NotifyUIBufferAvailable();
     }
-    ReplayDisplayList(canvas);
+    RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen

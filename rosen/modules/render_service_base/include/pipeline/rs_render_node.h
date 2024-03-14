@@ -680,15 +680,18 @@ private:
     void OnRegister(const std::weak_ptr<RSContext>& context);
 
     // Test pipeline
-    struct displayListIndex {
-        int8_t shadowIndex_ = -1;
-        int8_t bgEndIndex_ = -1;
-        int8_t fgBeginIndex_ = -1;
+    struct DrawCmdIndex {
+        int8_t shadowIndex_          = -1;
+        int8_t backgroundEndIndex_   = -1;
+        int8_t childrenIndex_        = -1;
+        int8_t contentIndex_         = -1;
+        int8_t foregroundBeginIndex_ = -1;
+        int8_t endIndex_             = -1;
     };
     bool drawCmdListNeedSync_ = false;
-    displayListIndex displayListIndex_;
+    DrawCmdIndex drawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
-    displayListIndex stagingDisplayListIndex_;
+    DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;

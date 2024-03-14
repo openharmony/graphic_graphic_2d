@@ -124,7 +124,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     // canvas draw
     {
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-        ReplayDisplayList(*curCanvas_);
+        RSRenderNodeDrawable::OnDraw(*curCanvas_);
     }
 
     // Finish recording skia op

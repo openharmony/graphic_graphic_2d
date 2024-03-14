@@ -40,6 +40,6 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
-    ReplayDisplayList(canvas);
+    RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen

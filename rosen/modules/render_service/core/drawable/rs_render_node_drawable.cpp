@@ -42,11 +42,6 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
 */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
-    ReplayDisplayList(canvas, ReplayType::REPLAY_ALL);
-}
-
-void RSRenderNodeDrawable::ReplayDisplayList(Drawing::Canvas& canvas, ReplayType type) const
-{
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
     if (drawCmdList_.empty()) {
         return;
@@ -54,42 +49,42 @@ void RSRenderNodeDrawable::ReplayDisplayList(Drawing::Canvas& canvas, ReplayType
     auto& renderParams = renderNode_->GetRenderParams();
     Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
-    auto drawRange = [&](int8_t begin, int8_t end) {
-        for (auto i = begin; i < end; i++) {
-            drawCmdList_[i](&canvas, &bounds);
-        }
-    };
+    DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.endIndex_);
+}
 
-    const auto& drawCmdIndex = renderNode_->displayListIndex_;
-    switch (type) {
-        case ReplayType::REPLAY_ALL:
-            drawRange(0, drawCmdList_.size());
-            break;
-        case ReplayType::REPLAY_ONLY_SHADOW:
-            if (drawCmdIndex.shadowIndex_ != -1) {
-                drawRange(0, drawCmdIndex.shadowIndex_);
-            }
-            break;
-        case ReplayType::REPLAY_ALL_EXCEPT_SHADOW:
-            if (drawCmdIndex.shadowIndex_ == -1) {
-                drawRange(0, drawCmdList_.size());
-            } else {
-                drawRange(0, drawCmdIndex.shadowIndex_);
-                // Skip shadow and replay the rest
-                drawRange(drawCmdIndex.shadowIndex_ + 1, drawCmdList_.size());
-            }
-            break;
-        case ReplayType::REPLAY_BG_ONLY:
-            drawRange(0, drawCmdIndex.bgEndIndex_);
-            break;
-        case ReplayType::REPLAY_FG_ONLY:
-            drawRange(drawCmdIndex.fgBeginIndex_, drawCmdList_.size());
-            break;
-        case ReplayType::REPLAY_ONLY_CONTENT:
-            drawRange(drawCmdIndex.bgEndIndex_, drawCmdIndex.fgBeginIndex_);
-            break;
-        default: 
-            break;
+void RSRenderNodeDrawable::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.backgroundEndIndex_);
+}
+
+void RSRenderNodeDrawable::DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    auto index = renderNode_->drawCmdIndex_.contentIndex_;
+    if (index == -1) {
+        return;
+    }
+    renderNode_->drawCmdList_[index](&canvas, &rect);
+}
+
+void RSRenderNodeDrawable::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const {
+    renderNode_->drawCmdList_[renderNode_->drawCmdIndex_.childrenIndex_](&canvas, &rect);
+    auto index = renderNode_->drawCmdIndex_.childrenIndex_;
+    if (index == -1) {
+        return;
+    }
+    renderNode_->drawCmdList_[index](&canvas, &rect);
+}
+
+void RSRenderNodeDrawable::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const {
+    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.foregroundBeginIndex_, renderNode_->drawCmdIndex_.endIndex_);
+}
+
+void RSRenderNodeDrawable::DrawRangeImpl(
+    Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
+{
+    const auto& drawCmdList_ = renderNode_->drawCmdList_;
+    for (auto i = start; i < end; i++) {
+        drawCmdList_[i](&canvas, &rect);
     }
 }
 

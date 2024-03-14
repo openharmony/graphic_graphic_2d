@@ -49,9 +49,15 @@ protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 
-    void ReplayDisplayList(Drawing::Canvas& canvas, ReplayType type = ReplayType::REPLAY_ALL) const;
+    void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     std::shared_ptr<const RSRenderNode> renderNode_;
+
+private:
+    void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H

@@ -1548,16 +1548,21 @@ void RSRenderNode::UpdateDisplayList()
 
     // Convert drawableVec_ to drawable func vector, and record index for important drawables
     UpdateDrawableRange(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::SHADOW);
-    stagingDisplayListIndex_.shadowIndex_ =
+    stagingDrawCmdIndex_.shadowIndex_ =
         drawableVec_[static_cast<int8_t>(RSDrawableSlot::SHADOW)] != nullptr ? stagingDrawCmdList_.size() : -1;
 
     UpdateDrawableRange(RSDrawableSlot::SHADOW, RSDrawableSlot::CONTENT_STYLE);
-    stagingDisplayListIndex_.bgEndIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.contentIndex_ =
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] != nullptr ? stagingDrawCmdList_.size() : -1;
 
     UpdateDrawableRange(RSDrawableSlot::CONTENT_STYLE, RSDrawableSlot::FOREGROUND_STYLE);
-    stagingDisplayListIndex_.fgBeginIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.childrenIndex_ =
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] != nullptr ? stagingDrawCmdList_.size() : -1;
 
     UpdateDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::MAX);
+    stagingDrawCmdIndex_.endIndex_ = stagingDrawCmdList_.size();
 
     drawCmdListNeedSync_ = true;
 #endif
@@ -2840,7 +2845,7 @@ void RSRenderNode::OnSync()
     if (drawCmdListNeedSync_) {
         std::swap(stagingDrawCmdList_, drawCmdList_ );
         stagingDrawCmdList_.clear();
-        displayListIndex_ = stagingDisplayListIndex_;
+        drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
     }
 

@@ -49,6 +49,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     if (quickRejected) {
         RS_LOGD("this drawable has quickRejected");
     }
-    ReplayDisplayList(canvas);
+    RSRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen
