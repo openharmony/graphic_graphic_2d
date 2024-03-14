@@ -41,7 +41,7 @@ bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlying
 Security::AccessToken::ATokenTypeEnum RSInterfaceCodeAccessVerifierBase::GetTokenType() const
 {
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    return Security::AccessToken::AccessTokenKit::GetTokenType(tokenId);
+    return Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
 }
 
 Security::AccessToken::AccessTokenID RSInterfaceCodeAccessVerifierBase::GetTokenID() const
