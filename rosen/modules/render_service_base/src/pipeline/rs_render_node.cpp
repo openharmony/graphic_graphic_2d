@@ -1960,6 +1960,81 @@ const std::shared_ptr<RSRenderNode::RSAutoCache>& RSRenderNode::GetAutoCache()
 }
 #endif
 
+#ifdef RS_ENABLE_STACK_CULLING
+void RSRenderNode::SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam)
+{
+    if (!isFullSurfaceOpaquCanvasNode_) {
+        int32_t tempValue = coldDownCounter_;
+        coldDownCounter_ = (coldDownCounter_ + 1) % MAX_COLD_DOWN_NUM;
+        if (tempValue != 0) {
+            return;
+        }
+    } else {
+        coldDownCounter_ = 0;
+    }
+
+    isFullSurfaceOpaquCanvasNode_ = false;
+    if (!ROSEN_EQ(GetGlobalAlpha(), 1.0f) || HasFilter()) {
+        return;
+    }
+
+    if (GetRenderProperties().GetBackgroundColor().GetAlpha() < 255) {
+        return;
+    }
+
+    if (!curSurfaceNodeParam) {
+        return;
+    }
+
+    auto curSurfaceNode = (static_cast<const RSSurfaceRenderNode*>(curSurfaceNodeParam.get()));
+    auto surfaceNodeAbsRect = curSurfaceNode->GetOldDirty();
+    auto absRect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+    if (surfaceNodeAbsRect.IsInsideOf(absRect)) {
+        isFullSurfaceOpaquCanvasNode_ = true;
+
+        auto rsParent = GetParent().lock();
+        while (rsParent) {
+            //skip whern another child has set its parent or reach rootnode
+            if (rsParent->hasChildFullSurfaceOpaquCanvasNode_) {
+                break;
+            }
+
+            rsParent->hasChildFullSurfaceOpaquCanvasNode_ = true;
+            if (rsParent->IsInstanceOf<RSRootRenderNode>()) {
+                break;
+            }
+
+            rsParent = rsParent->GetParent().lock();
+        }
+    }
+}
+
+void RSRenderNode::SetSubNodesCovered()
+{
+    if (hasChildFullSurfaceOpaquCanvasNode_) {
+        auto sortedChildren_ = GetSortedChildren();
+        if (sortedChildren_->size() <= 1) {
+            return;
+        }
+
+        bool found = false;
+        for (auto child = sortedChildren_->rbegin(); child != sortedChildren_->rend(); child++) {
+            if (!found && ((*child)->isFullSurfaceOpaquCanvasNode_ || (*child)->hasChildFullSurfaceOpaquCanvasNode_)) {
+                found = true;
+                continue;
+            }
+            if (found) {
+                (*child)->isCoveredByOtherNode_ = true;
+            }
+        }
+    }
+}
+void RSRenderNode::ResetSubNodesCovered()
+{
+    hasChildFullSurfaceOpaquCanvasNode_ = false;
+}
+#endif
+
 void RSRenderNode::ResetFilterRectsInCache(const std::unordered_set<NodeId>& curRects)
 {
     curCacheFilterRects_ = curRects;

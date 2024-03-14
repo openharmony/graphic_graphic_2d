@@ -203,6 +203,10 @@ public:
     static bool IsOpincRealDrawCacheEnable();
 #endif
 
+#ifdef RS_ENABLE_STACK_CULLING
+    static bool GetViewOcclusionCullingEnabled();
+#endif
+
     static bool GetDumpUICaptureEnabled();
     static bool GetDumpUIPixelmapEnabled();
 

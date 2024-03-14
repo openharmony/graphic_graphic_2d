@@ -53,9 +53,14 @@ declare_args() {
   }
 }
 
+declare_args() {
+  graphic_2d_feature_enable_stack_culling = false
+}
+
 if (graphic_2d_feature_product == "phone") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_stack_culling = true
 }
 
 gpu_defines = []
@@ -86,6 +91,9 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_GL",
       "RS_ENABLE_GL",
     ]
+  }
+  if (graphic_2d_feature_enable_stack_culling) {
+    gpu_defines += [ "RS_ENABLE_STACK_CULLING" ]
   }
   if (graphic_2d_feature_enable_recording_dcl) {
     rs_enable_recording_dcl = true

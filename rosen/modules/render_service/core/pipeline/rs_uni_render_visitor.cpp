@@ -1662,6 +1662,12 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER;
     }
 #endif
+
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        node.SetFullSurfaceOpaqueMarks(curSurfaceNode_);
+    }
+#endif
 }
 
 void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
@@ -2067,6 +2073,12 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
         return;
     }
 
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        node.SetSubNodesCovered();
+    }
+#endif
+
     CheckSkipRepeatShadow(node, false);
     const auto children = node.GetSortedChildren();
 
@@ -2087,6 +2099,11 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     }
 
     CheckSkipRepeatShadow(node, true);
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        node.ResetSubNodesCovered();
+    }
+#endif
 }
 
 void RSUniRenderVisitor::ProcessChildrenForScreenRecordingOptimization(
@@ -4273,6 +4290,27 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
     node.MarkNodeSingleFrameComposer(isNodeSingleFrameComposer_);
+
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        if (node.isCoveredByOtherNode_ && isSubNodeOfSurfaceInProcess_) {
+            RS_LOGD("%lu [%d %d %d] is coverd by other node SKIP, curSurface %lu %s. %s",
+                node.GetId(), node.isFullSurfaceOpaquCanvasNode_, node.hasChildFullSurfaceOpaquCanvasNode_,
+                node.isCoveredByOtherNode_, (curSurfaceNode_ ? curSurfaceNode_->GetId() : 0),
+                (curSurfaceNode_ ? curSurfaceNode_->GetName() : "N/A"),
+                (node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect()).ToString().c_str());
+            RS_OPTIONAL_TRACE_NAME_FMT("%lu [%d %d %d] is coverd by other node SKIP, curSurface %lu %s. %s",
+                node.GetId(), node.isFullSurfaceOpaquCanvasNode_, node.hasChildFullSurfaceOpaquCanvasNode_,
+                node.isCoveredByOtherNode_, (curSurfaceNode_ ? curSurfaceNode_->GetId() : 0),
+                (curSurfaceNode_ ? curSurfaceNode_->GetName() : "N/A"),
+                (node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect()).ToString().c_str());
+
+            node.isCoveredByOtherNode_ = false;
+            return;
+        }
+    }
+#endif
+
     if ((isOpDropped_ && (curSurfaceNode_ != nullptr)) || isCanvasNodeSkipDfxEnabled_) {
         // If all the child nodes have drawing areas that do not exceed the current node, then current node
         // can be directly skipped if not intersect with any dirtyregion.

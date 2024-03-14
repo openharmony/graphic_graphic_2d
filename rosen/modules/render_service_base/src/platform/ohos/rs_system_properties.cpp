@@ -708,6 +708,15 @@ bool RSSystemProperties::GetAutoCacheDebugEnabled()
 }
 #endif
 
+
+#ifdef RS_ENABLE_STACK_CULLING
+bool GetViewOcclusionCullingEnabled()
+{
+    static bool stackViewCullingEnabled = system::GetBoolParameter("persist.sys.graphic.stack.culling.enabled", true);
+    return stackViewCullingEnabled;
+}
+#endif
+
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     static bool subSurfaceEnabled =
