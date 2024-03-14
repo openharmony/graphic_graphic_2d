@@ -38,7 +38,7 @@ public:
     void AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
 
-    void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
+    static void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         std::vector<RSGroupSetting> &groupSettings,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
     ~SymbolNodeBuild() {}

@@ -245,7 +245,7 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
     }
 
     if (!sklineMetrics.fLineMetrics.empty()) {
-        auto &skFontMetrics = sklineMetrics.fLineMetrics.at(sklineMetrics.fStartIndex).font_metrics;
+        const auto &skFontMetrics = sklineMetrics.fLineMetrics.at(sklineMetrics.fStartIndex).font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         if (oneLine) {
             lineMetrics->ascender = sklineMetrics.fAscent;
@@ -324,7 +324,7 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
     }
 
     if (!skLineMetrics.fLineMetrics.empty()) {
-        auto &skFontMetrics = skLineMetrics.fLineMetrics.at(skLineMetrics.fStartIndex).font_metrics;
+        const auto &skFontMetrics = skLineMetrics.fLineMetrics.at(skLineMetrics.fStartIndex).font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         lineMetrics->capHeight = skFontMetrics.fCapHeight;
         lineMetrics->xHeight = skFontMetrics.fXHeight;
