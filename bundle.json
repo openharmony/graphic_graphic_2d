@@ -80,8 +80,7 @@
           "memmgr_plugin",
           "sensor",
           "qos_manager",
-          "video_processing_engine",
-          "vulkan-headers"
+          "video_processing_engine"
         ],
         "third_party": [
           "flutter",
