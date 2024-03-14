@@ -15,12 +15,22 @@
 #include "pipeline/rs_uni_render_thread.h"
 
 #include "rs_trace.h"
+#include "hgm_core.h"
 
+#include "common/rs_common_def.h"
+#include "include/core/SkGraphics.h"
+#include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
+constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
+};
 
 RSUniRenderThread& RSUniRenderThread::Instance()
 {
@@ -112,6 +122,76 @@ void RSUniRenderThread::Render()
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
     rootNodeDrawable_->OnDraw(canvas);
+}
+
+bool RSUniRenderThread::GetClearMemoryFinished() const
+{
+    return clearMemoryFinished_;
+}
+
+bool RSUniRenderThread::GetClearMemDeeply() const
+{
+    return clearMemDeeply_;
+}
+
+void RSUniRenderThread::SetClearMoment(ClearMemoryMoment moment)
+{
+    if (UNLIKELY(!context_)) {
+        return;
+    }
+    context_->SetClearMoment(moment);
+}
+
+ClearMemoryMoment RSUniRenderThread::GetClearMoment() const
+{
+    if (UNLIKELY(!context_)) {
+        return ClearMemoryMoment::NO_CLEAR;
+    }
+    return context_->GetClearMoment();
+}
+
+uint32_t RSUniRenderThread::GetRefreshRate() const
+{
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderThread::GetRefreshRate screenManager is nullptr");
+        return 60; // The default refreshrate is 60
+    }
+    return HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
+}
+
+void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
+{
+    if (!RSSystemProperties::GetReleaseResourceEnabled()) {
+        return;
+    }     
+    this->clearMemoryFinished_ = false;
+    this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
+    this->SetClearMoment(moment);
+    auto task =
+        [this, moment, deeply]() {
+            auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+            if (UNLIKELY(!grContext)) {
+                return;
+            }
+            RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
+            RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+            SKResourceManager::Instance().ReleaseResource();
+            grContext->Flush();
+            SkGraphics::PurgeAllCaches(); // clear cpu cache
+            if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+            } else {
+                MemoryManager::ReleaseUnlockGpuResource(grContext);
+            }
+            grContext->FlushAndSubmit(true);
+            this->clearMemoryFinished_ = true;
+            this->clearMemDeeply_ = false;
+            this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
+        };
+    PostTask(task, CLEAR_GPU_CACHE,
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
+                / GetRefreshRate());
 }
 
 } // namespace Rosen

@@ -68,6 +68,16 @@ void RSContext::MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType)
     purgeType_ = purgeType;
 }
 
+void RSContext::SetClearMoment(ClearMemoryMoment moment)
+{
+    clearMoment_ = moment;
+}
+
+ClearMemoryMoment RSContext::GetClearMoment() const
+{
+    return clearMoment_;
+}
+
 void RSContext::Initialize()
 {
     nodeMap.Initialize(weak_from_this());

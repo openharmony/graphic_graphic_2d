@@ -113,6 +113,9 @@ public:
         }
     }
 
+    void SetClearMoment(ClearMemoryMoment moment);
+    ClearMemoryMoment GetClearMoment() const;
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();

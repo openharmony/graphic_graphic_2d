@@ -47,6 +47,12 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     void Render();
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
+    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply);
+    bool GetClearMemoryFinished() const;
+    bool GetClearMemDeeply() const;
+    void SetClearMoment(ClearMemoryMoment moment);
+    ClearMemoryMoment GetClearMoment() const;
+    uint32_t GetRefreshRate() const;
 
 private:
     RSUniRenderThread();
@@ -60,6 +66,11 @@ private:
     std::unique_ptr<RSRenderNodeDrawable> rootNodeDrawable_;
 
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync from main thread
+
+    // Those variable is used to manage memory.
+    bool clearMemoryFinished_ = true;
+    bool clearMemDeeply_ = false;
+    DeviceType deviceType_ = DeviceType::PHONE;
 };
 } // namespace Rosen
 } // namespace OHOS
