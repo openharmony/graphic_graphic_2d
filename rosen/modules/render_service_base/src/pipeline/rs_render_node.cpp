@@ -1517,15 +1517,7 @@ void RSRenderNode::UpdateDrawableVec()
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
 
         // Step 4: Generate drawCmdList from drawables
-        // TODO: use correct W/H instead of 0
-        auto recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(10, 10, false);
-        for (const auto& drawable : drawableVec_) {
-            if (drawable) {
-                recordingCanvas_->DrawDrawFunc(drawable->CreateDrawFunc());
-            }
-        }
-        stagingDrawCmdList_ = recordingCanvas_->GetDrawCmdList();
-        drawCmdListNeedSync_ = true;
+        UpdateDisplayList();
     }
 
     // Merge dirty slots
@@ -1534,6 +1526,45 @@ void RSRenderNode::UpdateDrawableVec()
     } else {
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
+#endif
+}
+
+void RSRenderNode::UpdateDisplayList()
+{
+#ifndef ROSEN_ARKUI_X
+    stagingDrawCmdList_.clear();
+
+    // Note: the loop range is [begin, end).
+    auto UpdateDrawableRange = [&](RSDrawableSlot begin, RSDrawableSlot end) -> void {
+        auto beginIndex = static_cast<int8_t>(begin);
+        auto endIndex = static_cast<int8_t>(end);
+        for (int8_t i = beginIndex; i < endIndex; ++i) {
+            if (const auto & drawable = drawableVec_[i]) {
+                stagingDrawCmdList_.emplace_back(drawable->CreateDrawFunc());
+            }
+        }
+
+    };
+
+    // Convert drawableVec_ to drawable func vector, and record index for important drawables
+    UpdateDrawableRange(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::SHADOW);
+    stagingDrawCmdIndex_.shadowIndex_ =
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::SHADOW)] != nullptr ? stagingDrawCmdList_.size() : -1;
+
+    UpdateDrawableRange(RSDrawableSlot::SHADOW, RSDrawableSlot::CONTENT_STYLE);
+    stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.contentIndex_ =
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] != nullptr ? stagingDrawCmdList_.size() : -1;
+
+    UpdateDrawableRange(RSDrawableSlot::CONTENT_STYLE, RSDrawableSlot::FOREGROUND_STYLE);
+    stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.childrenIndex_ =
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] != nullptr ? stagingDrawCmdList_.size() : -1;
+
+    UpdateDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::MAX);
+    stagingDrawCmdIndex_.endIndex_ = stagingDrawCmdList_.size();
+
+    drawCmdListNeedSync_ = true;
 #endif
 }
 
@@ -2812,7 +2843,9 @@ void RSRenderNode::UpdateAbsDrawRect(const std::shared_ptr<RSRenderNode>& curSur
 void RSRenderNode::OnSync()
 {
     if (drawCmdListNeedSync_) {
-        drawCmdList_ = std::move(stagingDrawCmdList_);
+        std::swap(stagingDrawCmdList_, drawCmdList_ );
+        stagingDrawCmdList_.clear();
+        drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
     }
 

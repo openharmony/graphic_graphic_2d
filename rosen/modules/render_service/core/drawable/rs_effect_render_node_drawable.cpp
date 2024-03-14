@@ -14,9 +14,9 @@
  */
 
 #include "drawable/rs_effect_render_node_drawable.h"
-#include "platform/common/rs_log.h"
+
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;

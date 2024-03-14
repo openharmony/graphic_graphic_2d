@@ -189,73 +189,6 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                            // RESTORE_ALL,
 };
 
-} // namespace
-
-// ==================== RSDrawable =====================
-std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
-    ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec)
-{
-    if (dirtyTypes.none()) {
-        return {};
-    }
-
-    // Step 1: calculate dirty slots by looking up g_propertyToDrawableLut
-    std::unordered_set<RSDrawableSlot> dirtySlots;
-    for (size_t type = 0; type < static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE); type++) {
-        if (!dirtyTypes.test(type)) {
-            continue;
-        }
-        auto dirtySlot = g_propertyToDrawableLut[type];
-        if (dirtySlot != RSDrawableSlot::INVALID) {
-            dirtySlots.emplace(dirtySlot);
-        }
-    }
-
-    // Step 2: expand dirty slots by rules
-    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)]) {
-            dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
-        }
-    }
-
-    // Step 3: if bounds changed, every existing drawable needs to be updated
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS))) {
-        for (size_t i = 0; i < drawableVec.size(); i++) {
-            if (drawableVec[i]) {
-                dirtySlots.emplace(static_cast<RSDrawableSlot>(i));
-            }
-        }
-    }
-
-    return dirtySlots;
-}
-
-bool RSDrawable::UpdateDirtySlots(
-    const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots)
-{
-    // Update or generate all dirty slots
-    bool drawableAddedOrRemoved = false;
-    for (const auto& slot : dirtySlots) {
-        if (auto& drawable = drawableVec[static_cast<size_t>(slot)]) {
-            // If the slot is already created, call OnUpdate
-            if (!drawable->OnUpdate(node)) {
-                // If the slot is no longer needed, destroy it
-                drawable.reset();
-                drawableAddedOrRemoved = true;
-            }
-        } else if (auto& generator = g_drawableGeneratorLut[static_cast<int>(slot)]) {
-            // If the slot is not created, call OnGenerate
-            if (auto drawable = generator(node)) {
-                drawableVec[static_cast<size_t>(slot)] = std::move(drawable);
-                drawableAddedOrRemoved = true;
-            }
-        }
-    }
-
-    return drawableAddedOrRemoved;
-}
-
-namespace {
 enum DrawableVecStatus : uint8_t {
     CLIP_TO_BOUNDS     = 1 << 0,
     BG_BOUNDS_PROPERTY = 1 << 1,
@@ -267,25 +200,6 @@ enum DrawableVecStatus : uint8_t {
     BOUNDS_MASK        = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
     FRAME_MASK         = CLIP_TO_FRAME | FRAME_PROPERTY,
     OTHER_MASK         = HAVE_ALPHA | HAVE_ENV_CHANGE,
-};
-
-constexpr std::array boundsSlotsToErase = {
-    RSDrawableSlot::BG_SAVE_BOUNDS,
-    RSDrawableSlot::CLIP_TO_BOUNDS,
-    RSDrawableSlot::BG_RESTORE_BOUNDS,
-    RSDrawableSlot::FG_SAVE_BOUNDS,
-    RSDrawableSlot::FG_CLIP_TO_BOUNDS,
-    RSDrawableSlot::FG_RESTORE_BOUNDS,
-};
-
-constexpr std::array frameSlotsToErase = {
-    RSDrawableSlot::SAVE_FRAME,
-    RSDrawableSlot::RESTORE_FRAME,
-};
-
-constexpr std::array globalSlotsToErase = {
-    RSDrawableSlot::SAVE_ALL,
-    RSDrawableSlot::RESTORE_ALL,
 };
 
 inline static bool HasPropertyDrawableInRange(
@@ -339,30 +253,34 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     return result;
 }
 
-inline static std::pair<RSDrawable::Ptr, RSDrawable::Ptr> GenerateSaveRestore(
+inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlot slot1, RSDrawableSlot slot2,
     RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::kCanvas)
 {
     if (type == RSPaintFilterCanvas::kNone) {
-        return {};
-    } else if (type == RSPaintFilterCanvas::kCanvas) {
+        return;
+    }
+    if (type == RSPaintFilterCanvas::kCanvas) {
         auto count = std::make_shared<uint32_t>(UINT_MAX);
-        return { std::make_unique<RSSaveDrawable>(count), std::make_unique<RSRestoreDrawable>(count) };
+        drawableVec[static_cast<size_t>(slot1)] = std::make_unique<RSSaveDrawable>(count);
+        drawableVec[static_cast<size_t>(slot2)] = std::make_unique<RSRestoreDrawable>(count);
     } else {
         auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
-        return { std::make_unique<RSCustomSaveDrawable>(status, type),
-            std::make_unique<RSCustomRestoreDrawable>(status) };
+        drawableVec[static_cast<size_t>(slot1)] = std::make_unique<RSCustomSaveDrawable>(status, type);
+        drawableVec[static_cast<size_t>(slot2)] = std::make_unique<RSCustomRestoreDrawable>(status);
     }
-}
-
-inline static void SaveRestoreHelper(
-    RSDrawable::Vec& drawableVec, RSDrawableSlot slot1, RSDrawableSlot slot2, RSPaintFilterCanvas::SaveType saveType)
-{
-    std::tie(drawableVec[static_cast<size_t>(slot1)], drawableVec[static_cast<size_t>(slot2)]) =
-        GenerateSaveRestore(saveType);
 }
 
 static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)
 {
+    constexpr static std::array boundsSlotsToErase = {
+        RSDrawableSlot::BG_SAVE_BOUNDS,
+        RSDrawableSlot::CLIP_TO_BOUNDS,
+        RSDrawableSlot::BG_RESTORE_BOUNDS,
+        RSDrawableSlot::FG_SAVE_BOUNDS,
+        RSDrawableSlot::FG_CLIP_TO_BOUNDS,
+        RSDrawableSlot::FG_RESTORE_BOUNDS,
+    };
+
     // Erase existing save/clip/restore before re-generating
     for (auto& slot : boundsSlotsToErase) {
         drawableVec[static_cast<size_t>(slot)] = nullptr;
@@ -417,6 +335,10 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 
 static void OptimizeFrameSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)
 {
+    constexpr static std::array frameSlotsToErase = {
+        RSDrawableSlot::SAVE_FRAME,
+        RSDrawableSlot::RESTORE_FRAME,
+    };
     // Erase existing save/clip/restore before re-generating
     for (auto& slot : frameSlotsToErase) {
         drawableVec[static_cast<size_t>(slot)] = nullptr;
@@ -432,42 +354,110 @@ static void OptimizeFrameSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawab
 
 static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)
 {
+    constexpr static std::array globalSlotsToErase = {
+        RSDrawableSlot::SAVE_ALL,
+        RSDrawableSlot::RESTORE_ALL,
+    };
     // Erase existing save/clip/restore before re-generating
     for (auto& slot : globalSlotsToErase) {
         drawableVec[static_cast<size_t>(slot)] = nullptr;
     }
 
+    // Parent will do canvas save/restore, we don't need to do it again
     uint8_t saveType = RSPaintFilterCanvas::SaveType::kNone;
     if (flags & DrawableVecStatus::HAVE_ALPHA) {
+        // If we change alpha, we need to save alpha
         saveType |= RSPaintFilterCanvas::SaveType::kAlpha;
     }
     if (flags & DrawableVecStatus::HAVE_ENV_CHANGE) {
+        // If we change env(fg color, effect, blendMode etc), we need to save env
         saveType |= RSPaintFilterCanvas::SaveType::kEnv;
     }
 
-    if (saveType != RSPaintFilterCanvas::SaveType::kNone) {
-        // add necessary save/restore type
-        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_ALL, RSDrawableSlot::RESTORE_ALL,
-            static_cast<RSPaintFilterCanvas::SaveType>(saveType));
+    if (saveType == RSPaintFilterCanvas::SaveType::kNone) {
+        return;
     }
+    // add save/restore with needed type
+    SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_ALL, RSDrawableSlot::RESTORE_ALL,
+        static_cast<RSPaintFilterCanvas::SaveType>(saveType));
 }
 } // namespace
+
+std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
+    ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec)
+{
+    // Step 1.1: calculate dirty slots by looking up g_propertyToDrawableLut
+    std::unordered_set<RSDrawableSlot> dirtySlots;
+    for (size_t type = 0; type < static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE); type++) {
+        if (!dirtyTypes.test(type)) {
+            continue;
+        }
+        auto dirtySlot = g_propertyToDrawableLut[type];
+        if (dirtySlot != RSDrawableSlot::INVALID) {
+            dirtySlots.emplace(dirtySlot);
+        }
+    }
+
+    // Step 1.2: expand dirty slots by rules
+    // TODO: border etc. should be updated when border radius changed
+    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
+        if (drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)]) {
+            dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
+        }
+    }
+
+    // Step 1.3: if bounds changed, every existing drawable needs to be updated
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS))) {
+        for (size_t i = 0; i < drawableVec.size(); i++) {
+            if (drawableVec[i]) {
+                dirtySlots.emplace(static_cast<RSDrawableSlot>(i));
+            }
+        }
+    }
+
+    return dirtySlots;
+}
+
+bool RSDrawable::UpdateDirtySlots(
+    const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots)
+{
+    // Step 2: Update or generate all dirty slots
+    bool drawableAddedOrRemoved = false;
+    for (const auto& slot : dirtySlots) {
+        if (auto& drawable = drawableVec[static_cast<size_t>(slot)]) {
+            // If the slot is already created, call OnUpdate
+            if (!drawable->OnUpdate(node)) {
+                // If the slot is no longer needed, destroy it
+                drawable.reset();
+                drawableAddedOrRemoved = true;
+            }
+        } else if (auto& generator = g_drawableGeneratorLut[static_cast<int>(slot)]) {
+            // If the slot is not created, call OnGenerate
+            if (auto drawable = generator(node)) {
+                drawableVec[static_cast<size_t>(slot)] = std::move(drawable);
+                drawableAddedOrRemoved = true;
+            }
+        }
+    }
+
+    return drawableAddedOrRemoved;
+}
 
 void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus)
 {
     // ====================================================================
     // Step 3: Universal save/clip/restore optimization
 
-    // calculate new drawable map status
+    // Step 3.1: calculate new drawable map status
     auto drawableVecStatusNew = CalculateDrawableVecStatus(node, drawableVec);
 
-    if (drawableVecStatus == drawableVecStatusNew) {
+    uint8_t changedBits = drawableVecStatus ^ drawableVecStatusNew;
+    if (changedBits == 0) {
         // nothing to do
         return;
     }
 
-    // calculate changed bits
-    uint8_t changedBits = drawableVecStatus ^ drawableVecStatusNew;
+    // Step 3.2: update save/clip/restore for changed types
     if (changedBits & BOUNDS_MASK) {
         // update bounds save/clip if need
         OptimizeBoundsSaveRestore(node, drawableVec, drawableVecStatusNew);
@@ -477,7 +467,7 @@ void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t
         OptimizeFrameSaveRestore(node, drawableVec, drawableVecStatusNew);
     }
     if (changedBits & OTHER_MASK) {
-        // update children save/clip if need
+        // update global save/clip if need
         OptimizeGlobalSaveRestore(node, drawableVec, drawableVecStatusNew);
     }
 

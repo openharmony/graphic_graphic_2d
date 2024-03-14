@@ -14,14 +14,16 @@
  */
 
 #include "drawable/rs_surface_render_node_drawable.h"
+
+#include "rs_trace.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "params/rs_surface_render_params.h"
-#include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
-#include "common/rs_obj_abs_geometry.h"
-#include "rs_trace.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;

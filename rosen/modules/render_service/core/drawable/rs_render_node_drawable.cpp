@@ -15,14 +15,8 @@
 
 #include "drawable/rs_render_node_drawable.h"
 
-#include "drawable/rs_canvas_render_node_drawable.h"
-#include "drawable/rs_display_render_node_drawable.h"
-#include "drawable/rs_effect_render_node_drawable.h"
-#include "drawable/rs_root_render_node_drawable.h"
-#include "drawable/rs_surface_render_node_drawable.h"
-#include "platform/common/rs_log.h"
-#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
@@ -49,15 +43,49 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
-    if (drawCmdList_ == nullptr) {
+    if (drawCmdList_.empty()) {
         return;
     }
     auto& renderParams = renderNode_->GetRenderParams();
-    Drawing::Rect bounds;
-    if (renderParams) {
-        bounds = renderParams->GetBounds();
+    Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+
+    DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.endIndex_);
+}
+
+void RSRenderNodeDrawable::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.backgroundEndIndex_);
+}
+
+void RSRenderNodeDrawable::DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    auto index = renderNode_->drawCmdIndex_.contentIndex_;
+    if (index == -1) {
+        return;
     }
-    drawCmdList_->Playback(canvas, &bounds);
+    renderNode_->drawCmdList_[index](&canvas, &rect);
+}
+
+void RSRenderNodeDrawable::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const {
+    renderNode_->drawCmdList_[renderNode_->drawCmdIndex_.childrenIndex_](&canvas, &rect);
+    auto index = renderNode_->drawCmdIndex_.childrenIndex_;
+    if (index == -1) {
+        return;
+    }
+    renderNode_->drawCmdList_[index](&canvas, &rect);
+}
+
+void RSRenderNodeDrawable::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const {
+    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.foregroundBeginIndex_, renderNode_->drawCmdIndex_.endIndex_);
+}
+
+void RSRenderNodeDrawable::DrawRangeImpl(
+    Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
+{
+    const auto& drawCmdList_ = renderNode_->drawCmdList_;
+    for (auto i = start; i < end; i++) {
+        drawCmdList_[i](&canvas, &rect);
+    }
 }
 
 } // namespace OHOS::Rosen
