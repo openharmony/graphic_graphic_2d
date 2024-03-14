@@ -377,12 +377,11 @@ template("graphics2d_source_set") {
           "EGL_EGLEXT_PROTOTYPES",
         ]
       }
-      include_dirs += [ "$graphic_2d_root/interfaces/inner_api/surface" ]
-      public_deps += [
-        "$graphic_2d_root:libgl",
-        "$graphic_2d_root/frameworks/surface:surface",
+      public_deps += [ "$graphic_2d_root:libgl" ]
+      external_deps += [
+        "c_utils:utils",
+        "graphic_surface:surface",
       ]
-      external_deps += [ "c_utils:utils" ]
     }
 
     part_name = "graphic_2d"
@@ -535,12 +534,15 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
 
   if (!is_arkui_x) {
     deps = [
-      "$graphic_2d_root:libsurface",
       # "//third_party/skia_canvaskit0310:skia",
     ]
   }
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+  ]
 
   if (enable_text_gine) {
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]

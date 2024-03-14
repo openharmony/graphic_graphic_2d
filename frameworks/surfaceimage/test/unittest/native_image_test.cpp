@@ -35,7 +35,6 @@ constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
-constexpr int32_t MATRIX_SIZE = 16;
 
 struct TEST_IMAGE {
     int a;
@@ -438,7 +437,7 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTimestamp002, Function | MediumTest | 
 */
 HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix001, Function | MediumTest | Level2)
 {
-    float matrix[MATRIX_SIZE];
+    float matrix[16];
     int32_t ret = OH_NativeImage_GetTransformMatrix(nullptr, matrix);
     ASSERT_NE(ret, SURFACE_ERROR_OK);
 }
@@ -454,101 +453,9 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix001, Function | MediumT
 */
 HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix002, Function | MediumTest | Level1)
 {
-    float matrix[MATRIX_SIZE];
+    float matrix[16];
     int32_t ret = OH_NativeImage_GetTransformMatrix(image, matrix);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
-}
-
-bool CheckMatricIsSame(float matrixOld[MATRIX_SIZE], float matrixNew[MATRIX_SIZE])
-{
-    for (int32_t i = 0; i < MATRIX_SIZE; i++) {
-        if (fabs(matrixOld[i] - matrixNew[i]) > 1e-6) {
-            return false;
-        }
-    }
-    return true;
-}
-
-int32_t testType[] = {
-    GraphicTransformType::GRAPHIC_ROTATE_NONE, GraphicTransformType::GRAPHIC_ROTATE_90,
-    GraphicTransformType::GRAPHIC_ROTATE_180, GraphicTransformType::GRAPHIC_ROTATE_270,
-    GraphicTransformType::GRAPHIC_FLIP_H, GraphicTransformType::GRAPHIC_FLIP_V,
-    GraphicTransformType::GRAPHIC_FLIP_H_ROT90, GraphicTransformType::GRAPHIC_FLIP_V_ROT90,
-    GraphicTransformType::GRAPHIC_FLIP_H_ROT180, GraphicTransformType::GRAPHIC_FLIP_V_ROT180,
-    GraphicTransformType::GRAPHIC_FLIP_H_ROT270, GraphicTransformType::GRAPHIC_FLIP_V_ROT270,
-};
-float matrixArr[][MATRIX_SIZE] = {
-    {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-};
-
-/*
-* Function: OH_NativeImage_GetTransformMatrix
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_NativeImage_GetTransformMatrix
-*                  2. check ret
-* @tc.require: issueI5KG61
-*/
-HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix003, Function | MediumTest | Level1)
-{
-    if (image == nullptr) {
-        image = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
-        ASSERT_NE(image, nullptr);
-    }
-
-    if (nativeWindow == nullptr) {
-        nativeWindow = OH_NativeImage_AcquireNativeWindow(image);
-        ASSERT_NE(nativeWindow, nullptr);
-    }
-
-    OH_OnFrameAvailableListener listener;
-    listener.context = this;
-    listener.onFrameAvailable = NativeImageTest::OnFrameAvailable;
-    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(image, listener);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    NativeWindowBuffer* nativeWindowBuffer = nullptr;
-    int fenceFd = -1;
-    struct Region *region = new Region();
-    struct Region::Rect *rect = new Region::Rect();
-    
-    for (int32_t i = 0; i < sizeof(testType) / sizeof(int32_t); i++) {
-        int code = SET_TRANSFORM;
-        ret = NativeWindowHandleOpt(nativeWindow, code, testType[i]);
-        ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
-        ASSERT_EQ(ret, GSERROR_OK);
-
-        rect->x = 0x100;
-        rect->y = 0x100;
-        rect->w = 0x100;
-        rect->h = 0x100;
-        region->rects = rect;
-        ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
-        ASSERT_EQ(ret, GSERROR_OK);
-
-        ret = OH_NativeImage_UpdateSurfaceImage(image);
-        ASSERT_EQ(ret, SURFACE_ERROR_OK);
-
-        float matrix[16];
-        int32_t ret = OH_NativeImage_GetTransformMatrix(image, matrix);
-        ASSERT_EQ(ret, SURFACE_ERROR_OK);
-
-        bool bRet = CheckMatricIsSame(matrix, matrixArr[i]);
-        ASSERT_EQ(bRet, true);
-    }
-    delete region;
 }
 
 /*

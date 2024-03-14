@@ -380,19 +380,21 @@ ohos_source_set("render_service_base_src") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/utils",
-    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/interfaces/inner_api/surface",
   ]
+
   include_dirs += [ "//third_party/skia/src" ]
+
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
+
   external_deps = [ "hilog:libhilog" ]
 
   if (graphic_2d_feature_enable_opinc) {
@@ -503,6 +505,7 @@ ohos_shared_library("librender_service_base") {
     ":render_service_base_src",
     "src/platform:platform",
   ]
+
   external_deps = [ "hilog:libhilog" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {

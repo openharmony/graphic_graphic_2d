@@ -136,29 +136,6 @@
         "inner_kits": [
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-            "header": {
-              "header_files": [
-                "buffer_extra_data.h",
-                "egl_data.h",
-                "egl_surface.h",
-                "external_window.h",
-                "native_buffer.h",
-                "native_buffer_inner.h",
-                "ibuffer_consumer_listener.h",
-                "ibuffer_producer.h",
-                "iconsumer_surface.h",
-                "surface.h",
-                "surface_buffer.h",
-                "surface_type.h",
-                "surface_utils.h",
-                "window.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/surface"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
             "header": {
               "header_files": [

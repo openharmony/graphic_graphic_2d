@@ -14,16 +14,16 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("HdiLayerFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test/fuzztest/hdilayer_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/composer/hdi_backend/test/fuzztest/hdilayer_fuzzer"
   module_out_path = module_output_path
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
   cflags = [
@@ -33,13 +33,11 @@ ohos_fuzztest("HdiLayerFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "hdilayer_fuzzer.cpp" ]
-  deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
   ]
 }

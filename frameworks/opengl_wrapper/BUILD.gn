@@ -235,7 +235,6 @@ ohos_executable("opengl_wrapper_native_test") {
   sources = [ "test/opengl_wrapper_native_test.cpp" ]
 
   include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/render_service_client",
   ]

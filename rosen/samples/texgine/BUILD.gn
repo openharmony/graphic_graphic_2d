@@ -99,6 +99,7 @@ ohos_source_set("texgine_sample") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
   ]

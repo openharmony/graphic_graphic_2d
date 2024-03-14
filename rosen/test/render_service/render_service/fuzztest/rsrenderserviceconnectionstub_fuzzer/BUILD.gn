@@ -28,7 +28,6 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "../../../../../modules/render_service/core",
     "../../../../../modules/render_service_base/src",
     "../../../../../test/include",
-    "$graphic_2d_root/frameworks/surface/include",
     "$memmgr_root/interface/innerkits/include",
     "$memmgr_root/services/memmgrservice/include/memory_level_manager",
     "$memmgr_plugin_root/interface/innerkits/include",

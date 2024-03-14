@@ -38,13 +38,9 @@ config("pipeline_test") {
 ## Build RSBaseRenderEngineTest
 ohos_systemtest("RSBaseRenderEngineTest") {
   module_out_path = module_output_path
-  include_dirs = [ "$graphic_2d_root/frameworks/surface/include" ]
   sources = [ "rs_base_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
+  external_deps = []
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -63,10 +59,7 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
   module_out_path = module_output_path
   sources = [ "rs_drop_frame_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
+  external_deps = []
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -86,10 +79,7 @@ ohos_systemtest("RSRenderServiceTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
+  external_deps = []
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -110,11 +100,7 @@ if (graphic_2d_feature_rs_enable_uni_render) {
     module_out_path = module_output_path
     sources = [ "rs_uni_render_test.cpp" ]
     deps = [ ":rs_test_common" ]
-    external_deps = [
-      "c_utils:utils",
-      "hilog:libhilog",
-      "init:libbegetutil",
-    ]
+    external_deps = []
     defines = []
     defines += gpu_defines
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -175,7 +161,7 @@ ohos_static_library("rs_test_common") {
 
   public_deps += [ "../../../../../modules/2d_graphics:2d_graphics" ]
 
-  external_deps = [
+  public_external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",

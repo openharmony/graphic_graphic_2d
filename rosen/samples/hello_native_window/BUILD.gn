@@ -24,14 +24,6 @@ config("hello_native_window_config") {
   ]
 }
 
-config("hello_native_window_public_config") {
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-  ]
-}
-
 ohos_executable("hello_native_window") {
   install_enable = true
 
@@ -39,10 +31,10 @@ ohos_executable("hello_native_window") {
 
   configs = [ ":hello_native_window_config" ]
 
-  public_configs = [ ":hello_native_window_public_config" ]
-
-  deps = [ "//foundation/graphic/graphic_2d/frameworks/surface:surface" ]
-
+  external_deps = [
+    "graphic_surface:surface",
+    "ipc:ipc_core",
+  ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

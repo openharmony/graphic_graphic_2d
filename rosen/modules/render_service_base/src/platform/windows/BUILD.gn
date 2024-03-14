@@ -38,10 +38,7 @@ ohos_source_set("windows") {
     "rs_vsync_client_windows.cpp",
   ]
 
-  include_dirs = [
-    "$rosen_root/modules/render_service_base/include",
-    "$graphic_2d_root/interfaces/inner_api/surface",
-  ]
+  include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
   defines += [ "MODULE_RSB" ]
   if (enable_glfw_window) {
@@ -68,7 +65,10 @@ ohos_source_set("windows") {
     defines += [ "USE_ROSEN_DRAWING" ]
     public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "graphic_surface:surface",
+    "hilog:libhilog",
+  ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

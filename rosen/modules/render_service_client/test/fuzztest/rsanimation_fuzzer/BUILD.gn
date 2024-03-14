@@ -42,6 +42,7 @@ ohos_fuzztest("RSAnimationFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
   ]
 }

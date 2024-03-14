@@ -53,9 +53,11 @@ ohos_static_library("fence_test_common") {
 
   public_deps = [
     "//foundation/graphic/graphic_2d:libfence",
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
   ]
+
+  public_external_deps = [ "graphic_surface:surface" ]
+
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

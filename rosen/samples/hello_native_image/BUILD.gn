@@ -27,8 +27,6 @@ config("hello_native_image_config") {
 
 config("hello_native_image_public_config") {
   include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/surface",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils",
     "//drivers/peripheral/base",
@@ -52,9 +50,10 @@ ohos_executable("hello_native_image") {
 
   deps = [
     "$graphic_2d_root:libgl",
-    "$graphic_2d_root/frameworks/surface:surface",
     "$graphic_2d_root/frameworks/surfaceimage:libnative_image",
   ]
+
+  external_deps = [ "graphic_surface:surface" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

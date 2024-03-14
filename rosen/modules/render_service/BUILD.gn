@@ -155,8 +155,6 @@ ohos_shared_library("librender_service") {
   include_dirs = [
     "core",
     "core/round_corner_display",
-    "$graphic_2d_root/frameworks/surface/include",
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
@@ -187,7 +185,6 @@ ohos_shared_library("librender_service") {
   }
 
   deps = [
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
@@ -245,6 +242,7 @@ ohos_shared_library("librender_service") {
     "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
     "graphic_surface:frame_report",
+    "graphic_surface:surface",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -331,14 +329,13 @@ ohos_executable("render_service") {
 
   include_dirs = [
     "core",
+    "$graphic_2d_root/interfaces/inner_api/common",
     "//commonlibrary/c_utils/base/include",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/utils/color_manager/export",
   ]
 
   deps = [
     ":librender_service",
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
