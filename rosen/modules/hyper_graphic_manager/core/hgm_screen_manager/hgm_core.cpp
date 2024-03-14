@@ -153,7 +153,7 @@ void HgmCore::SetLtpoConfig()
     }
 
     HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \
-        "pipelineOffsetPulseNum: %{public}d", ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_);
+        "pipelineOffsetPulseNum: %{public}d", ltpoEnabled_.load(), maxTE_.load(), alignRate_, pipelineOffsetPulseNum_);
 }
 
 void HgmCore::RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback)

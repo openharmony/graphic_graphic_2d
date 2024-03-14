@@ -1179,7 +1179,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     // 2. update Matrix
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr != nullptr) {
-        geoPtr->UpdateByMatrixFromSelf();
         if (geoPtr->IsNeedClientCompose()) {
             isHardwareForcedDisabled_ = true;
         }
