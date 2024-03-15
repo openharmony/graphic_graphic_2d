@@ -143,7 +143,6 @@ private:
     int64_t wakeupDelay_;
 
     std::vector<Listener> listeners_;
-
     std::mutex mutex_;
     std::condition_variable con_;
     std::mutex waitForTimeoutMtx_;
