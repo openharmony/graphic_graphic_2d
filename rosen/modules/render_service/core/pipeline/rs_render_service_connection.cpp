@@ -1169,11 +1169,7 @@ void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
             "pid = %{public}d renderTid = %{public}d ",
         info.bundleName.c_str(), info.uid, info.state, info.pid, info.renderTid);
 
-    if (info.state == 1) {
-        FrameReport::GetInstance().SetGameScene(true);
-    } else if (info.state == 0) {
-        FrameReport::GetInstance().SetGameScene(false);
-    }
+    FrameReport::GetInstance().SetGameScene(info.pid, info.state);
 }
 
 void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
