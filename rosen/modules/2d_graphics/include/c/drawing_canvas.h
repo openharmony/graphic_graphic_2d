@@ -243,11 +243,11 @@ void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas*, const OH_Drawing_Rect*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @param OH_Drawing_SDF Indicates the pointer to an <b>OH_Drawing_SDF</b> object.
+ * @param OH_Drawing_Sdf Indicates the pointer to an <b>OH_Drawing_Sdf</b> object.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_CanvasDrawSDF(OH_Drawing_Canvas*, const OH_Drawing_SDF*);
+void OH_Drawing_CanvasDrawSdf(OH_Drawing_Canvas*, const OH_Drawing_Sdf*);
 
 /**
  * @brief Draws a circle.

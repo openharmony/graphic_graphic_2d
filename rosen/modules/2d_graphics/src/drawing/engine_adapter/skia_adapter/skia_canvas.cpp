@@ -197,21 +197,20 @@ void SkiaCanvas::DrawSdf(const SDFShapeImpl& shape)
         std::vector<float> para1 = shape.GetTransPara();
         int num1 = para1.size();
         int num = para.size();
-        int maxlen = 20; // maximum length of string needed is 20.
         for (int i = 1; i <= num; i++) {
-            char buf[maxlen] = {0};
-            (void)sprintf_s(buf, maxlen, "para%d", i);
+            char buf[10] = {0}; // maximum length of string needed is 10.
+            (void)sprintf_s(buf, 10, "para%d", i); // maximum length of string needed is 10.
             builder.uniform(buf) = para[i-1];
         }
         for (int i = 1; i <= num1; i++) {
-            char buf[maxlen] = {0};
-            (void)sprintf_s(buf, maxlen, "transpara%d", i);
+            char buf[15] = {0}; // maximum length of string needed is 15.
+            (void)sprintf_s(buf, 15, "transpara%d", i); // maximum length of string needed is 15.
             builder.uniform(buf) = para1[i-1];
         }
         std::vector<float> color = shape.GetColorPara();
         builder.uniform("fillcolpara1") = color[0];
         builder.uniform("fillcolpara2") = color[1]; // color_[1] is fillcolor green channel.
-        builder.uniform("fillcolpara3") = color[2]; // color_[2] is fillcolor blue channel. 
+        builder.uniform("fillcolpara3") = color[2]; // color_[2] is fillcolor blue channel.
         builder.uniform("strokecolpara1") = color[3]; // color_[3] is strokecolor red channel.
         builder.uniform("strokecolpara2") = color[4]; // color_[4] is strokecolor green channel.
         builder.uniform("strokecolpara3") = color[5]; // color_[5] is strokecolor blue channel.

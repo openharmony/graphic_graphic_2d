@@ -21,23 +21,23 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static SDFShapeImpl* CastToSDFShape(OH_Drawing_SDF* cShape)
+static SDFShapeImpl* CastToSdfShape(OH_Drawing_Sdf* cShape)
 {
     return reinterpret_cast<SDFShapeImpl*>(cShape);
 }
 
-OH_Drawing_SDF* OH_Drawing_SDFCreate()
+OH_Drawing_Sdf* OH_Drawing_SdfCreate()
 {
-    return (OH_Drawing_SDF*)new SDFShapeImpl
+    return (OH_Drawing_Sdf*)new SDFShapeImpl
 }
 
-void OH_Drawing_SDFDestroy(OH_Drawing_SDF* cShape)
+void OH_Drawing_SdfDestroy(OH_Drawing_Sdf* cShape)
 {
-   delete CastToSDFShape(cShape);
+    delete CastToSdfShape(cShape);
 }
 
-void OH_Drawing_SDFBuildShader(OH_Drawing_SDF* cShape)
+void OH_Drawing_SdfBuildShader(OH_Drawing_Sdf* cShape)
 {
-    SDFShapeImpl* shape = CastToSDFShape(cShaper);
+    SDFShapeImpl* shape = CastToSdfShape(cShaper);
     shape->BuildShader();
 }

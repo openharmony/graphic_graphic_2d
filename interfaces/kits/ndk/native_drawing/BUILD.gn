@@ -31,7 +31,6 @@ ohos_ndk_headers("native_drawing_header") {
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_matrix.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_memory_stream.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_path.h",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_sdf_shaper.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_path_effect.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_pen.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_point.h",
@@ -39,6 +38,7 @@ ohos_ndk_headers("native_drawing_header") {
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_register_font.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_round_rect.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_sampling_options.h",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_sdf_shaper.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_shader_effect.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_text_blob.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/include/c/drawing_text_declaration.h",
@@ -67,7 +67,6 @@ ohos_ndk_library("libnative_drawing_ndk") {
     "native_drawing/drawing_matrix.h",
     "native_drawing/drawing_memory_stream.h",
     "native_drawing/drawing_path.h",
-    "native_drawing/drawing_sdf_shaper.h",
     "native_drawing/drawing_path_effect.h",
     "native_drawing/drawing_pen.h",
     "native_drawing/drawing_point.h",
@@ -81,5 +80,6 @@ ohos_ndk_library("libnative_drawing_ndk") {
     "native_drawing/drawing_typeface.h",
     "native_drawing/drawing_types.h",
     "native_drawing/drawing_sampling_options.h",
+    "native_drawing/drawing_sdf_shaper.h",
   ]
 }

@@ -75,28 +75,28 @@ typedef enum {
     SD_PART_RING,
     SD_QUESTION_MARK,
     END,
-} OH_Drawing_SDFType;
+} OH_Drawing_SdfType;
 /**
- * @brief Creates an <b>OH_Drawing_SDF</b> object.
+ * @brief Creates an <b>OH_Drawing_Sdf</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return Returns the pointer to the <b>OH_Drawing_SDF</b> object created.
+ * @return Returns the pointer to the <b>OH_Drawing_Sdf</b> object created.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_SDF* OH_Drawing_SDFCreate(void);
+OH_Drawing_Sdf* OH_Drawing_SdfCreate(void);
 
 /**
- * @brief Destroys an <b>OH_Drawing_SDF</b> object and reclaims the memory occupied by the object.
+ * @brief Destroys an <b>OH_Drawing_Sdf</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_SDF Indicates the pointer to an <b>OH_Drawing_SDF</b> object.
+ * @param OH_Drawing_Sdf Indicates the pointer to an <b>OH_Drawing_Sdf</b> object.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_SDFDestroy(OH_Drawing_SDF*);
+void OH_Drawing_SdfDestroy(OH_Drawing_Sdf*);
 
-void OH_Drawing_SDFBuildShader(OH_Drawing_SDF*);
+void OH_Drawing_SdfBuildShader(OH_Drawing_Sdf*);
 
 #ifdef __cplusplus
 }

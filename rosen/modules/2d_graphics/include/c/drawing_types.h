@@ -235,7 +235,7 @@ typedef struct OH_Drawing_SamplingOptions OH_Drawing_SamplingOptions;
  * @since 12
  * @version 1.0
  */
-typedef struct OH_Drawing_SDF OH_Drawing_SDF;
+typedef struct OH_Drawing_Sdf OH_Drawing_Sdf;
 
 /**
  * @brief Defines a textBlobBuilder, which is used to build the textBlob.
