@@ -214,9 +214,10 @@ private:
     void DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
         DirtyRegionType dirtyType, bool isDrawn = true);
 
+    bool InitDisplayInfo(RSDisplayRenderNode& node);
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
-    void UpdateSurfaceDirtyAndGlobalDirty() const;
+    void UpdateSurfaceDirtyAndGlobalDirty();
     void CheckMergeSurfaceDirtysForDisplay(
         std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, RectI& dirtyRect) const;
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
@@ -351,6 +352,7 @@ private:
     // Use in vulkan parallel rendering
     bool IsOutOfScreenRegion(RectI rect);
 
+    sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
