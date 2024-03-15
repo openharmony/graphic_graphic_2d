@@ -188,10 +188,10 @@ private:
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO
-    uint32_t pendingScreenRefreshRate_ = 0;
-    uint64_t timestamp_ = 0;
-    bool ltpoEnabled_ = false;
-    uint32_t maxTE_ = 0;
+    std::atomic<uint32_t> pendingScreenRefreshRate_ = 0;
+    std::atomic<uint64_t> timestamp_ = 0;
+    std::atomic<bool> ltpoEnabled_ = false;
+    std::atomic<uint32_t> maxTE_ = 0;
     uint32_t alignRate_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;

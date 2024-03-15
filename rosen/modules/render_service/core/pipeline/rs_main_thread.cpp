@@ -1928,7 +1928,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
     if (receiver_ != nullptr) {
         requestNextVsyncNum_++;
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
-            RS_LOGW("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_);
+            RS_LOGW("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
         }
         receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);
     }
