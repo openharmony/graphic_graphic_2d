@@ -23,6 +23,12 @@
 #include <string>
 #include "vsync_log.h"
 
+#ifdef COMPOSER_SCHED_ENABLE
+#include "system_ability_definition.h"
+#include "if_system_ability_manager.h"
+#include <iservice_registry.h>
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace impl {
@@ -115,6 +121,9 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
 
 void VSyncGenerator::ThreadLoop()
 {
+#ifdef COMPOSER_SCHED_ENABLE
+    SubScribeSystemAbility();
+#endif
     // set thread priorty
     SetThreadHighPriority();
 
@@ -397,6 +406,28 @@ VsyncError VSyncGenerator::UpdateReferenceTimeLocked(int64_t referenceTime)
         referenceTime_ = referenceTime;
     }
     return VSYNC_ERROR_OK;
+}
+
+void VSyncGenerator::SubScribeSystemAbility()
+{
+    VLOGI("%{public}s", __func__);
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        VLOGE("%{public}s failed to get system ability manager client", __func__);
+        return;
+    }
+    std::string threadName = "VSyncGenerator";
+    std::string strUid = std::to_string(getuid());
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+
+    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
+    if (ret != ERR_OK) {
+        VLOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
+        saStatusChangeListener_ = nullptr;
+    }
 }
 
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)

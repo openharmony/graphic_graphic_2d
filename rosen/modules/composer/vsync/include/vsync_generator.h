@@ -26,6 +26,7 @@
 #include <thread>
 #include <condition_variable>
 #include "vsync_type.h"
+#include "vsync_system_ability_listener.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -118,7 +119,7 @@ private:
     };
 
     VSyncGenerator();
-    ~VSyncGenerator() noexcept override;
+     ~VSyncGenerator()  override;
 
     int64_t ComputeNextVSyncTimeStamp(int64_t now, int64_t referenceTime);
     std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t occurTimestamp, int64_t referenceTime);
@@ -136,7 +137,11 @@ private:
         int64_t occurReferenceTime, bool isWakeup);
     VsyncError UpdatePeriodLocked(int64_t period);
     VsyncError UpdateReferenceTimeLocked(int64_t referenceTime);
+#ifdef COMPOSER_SCHED_ENABLE
+    void SubScribeSystemAbility();
+#endif
 
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_;
     int64_t phase_;
     int64_t referenceTime_;

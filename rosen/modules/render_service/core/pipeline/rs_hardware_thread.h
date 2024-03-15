@@ -22,6 +22,9 @@
 #include "event_handler.h"
 #include "hdi_backend.h"
 #include "rs_main_thread.h"
+#ifdef RES_SCHED_ENABLE
+#include "vsync_system_ability_listener.h"
+#endif
 
 namespace OHOS::Rosen {
 using UniFallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers,
@@ -61,6 +64,10 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
+#ifdef RES_SCHED_ENABLE
+    void SubScribeSystemAbility();
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
     static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers);

@@ -28,6 +28,8 @@
 #include "vsync_controller.h"
 #include "vsync_connection_stub.h"
 
+#include "vsync_system_ability_listener.h"
+
 #if defined(RS_ENABLE_DVSYNC)
 #include "dvsync.h"
 #endif
@@ -145,6 +147,11 @@ private:
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
 
+#ifdef COMPOSER_SCHED_ENABLE
+    void SubScribeSystemAbility(const std::string& threadName);
+#endif
+
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
     sptr<VSyncController> controller_;
     std::mutex mutex_;
