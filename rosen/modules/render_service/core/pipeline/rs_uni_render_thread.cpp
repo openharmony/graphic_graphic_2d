@@ -172,6 +172,13 @@ uint32_t RSUniRenderThread::GetRefreshRate() const
     return HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
 }
 
+void RSUniRenderThread::DumpMem(DfxString& log)
+{
+    PostSyncTask([&log, this]() {
+        MemoryManager::DumpDrawingGpuMemory(log, GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    });
+}
+
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {

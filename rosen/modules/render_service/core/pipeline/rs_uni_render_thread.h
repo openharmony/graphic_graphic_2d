@@ -47,12 +47,15 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     void Render();
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
+
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply);
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
     uint32_t GetRefreshRate() const;
+    void DumpMem(DfxString& log);
+
     std::vector<NodeId>& GetDrawStatusVec()
     {
         return curDrawStatusVec_;

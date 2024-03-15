@@ -18,6 +18,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -82,6 +83,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 
     Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
     surfaceNode->SetDrawingGPUContext(gpuContext);
+
+    RSTagTracker tagTracker(gpuContext, surfaceNode->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
 
     surfaceNode->UpdateFilterCacheStatusWithVisible(true);
 

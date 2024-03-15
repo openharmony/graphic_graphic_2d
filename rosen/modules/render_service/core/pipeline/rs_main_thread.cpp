@@ -2431,6 +2431,9 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
         }
     }
     if (type.empty() || type == MEM_GPU_TYPE) {
+        RSUniRenderThread::Instance().DumpMem(log);
+    }
+    if (type.empty() || type == MEM_GPU_TYPE) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
             subThreadManager->DumpMem(log);
