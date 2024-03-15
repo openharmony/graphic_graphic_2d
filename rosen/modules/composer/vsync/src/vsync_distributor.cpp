@@ -401,6 +401,7 @@ void VSyncDistributor::ThreadMain()
             {
                 std::unique_lock<std::mutex> locker(mutex_);
                 dvsync_->MarkDistributorSleep(true);
+                dvsync_->DVsyncNotify();
                 dvsync_->DelayBeforePostEvent(timestamp, locker);
                 dvsync_->MarkDistributorSleep(false);
             }
