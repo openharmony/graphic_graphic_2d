@@ -503,6 +503,16 @@ void CoreCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
         impl_->BuildOverDraw(canvas);
     }
 }
+
+void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
+{
+    impl_->BuildNoDraw(width, height);
+}
+
+void CoreCanvas::Reset(int32_t width, int32_t height)
+{
+    impl_->Reset(width, height);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

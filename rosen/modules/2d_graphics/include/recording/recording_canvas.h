@@ -35,9 +35,9 @@ namespace Drawing {
  * and is used to record the sequence of draw calls for the canvas.
  * Draw calls are kept in linear memory in DrawCmdList, Subsequent playback can be performed through DrawCmdList.
  */
-class DRAWING_API RecordingCanvas : public Canvas {
+class DRAWING_API RecordingCanvas : public NoDrawCanvas {
 public:
-    RecordingCanvas(int width, int height, bool addDrawOpImmediate = true);
+    RecordingCanvas(int32_t width, int32_t height, bool addDrawOpImmediate = true);
     ~RecordingCanvas() override = default;
 
     std::shared_ptr<DrawCmdList> GetDrawCmdList() const;
@@ -60,6 +60,8 @@ public:
 #endif
 
     void Clear() const;
+
+    void ResetCanvas(int32_t width, int32_t height);
 
     void DrawPoint(const Point& point) override;
     void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;

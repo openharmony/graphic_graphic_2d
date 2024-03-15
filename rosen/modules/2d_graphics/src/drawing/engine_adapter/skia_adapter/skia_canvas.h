@@ -163,6 +163,10 @@ public:
 
     void BuildOverDraw(std::shared_ptr<Canvas> canvas) override;
 
+    void BuildNoDraw(int32_t width, int32_t height) override;
+
+    void Reset(int32_t width, int32_t height) override;
+
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);

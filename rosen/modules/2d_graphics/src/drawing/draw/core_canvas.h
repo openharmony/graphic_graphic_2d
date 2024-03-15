@@ -654,6 +654,8 @@ public:
 
 protected:
     CoreCanvas(int32_t width, int32_t height);
+    void BuildNoDraw(int32_t width, int32_t height);
+    void Reset(int32_t width, int32_t height);
     Paint paintBrush_;
     Paint paintPen_;
 
