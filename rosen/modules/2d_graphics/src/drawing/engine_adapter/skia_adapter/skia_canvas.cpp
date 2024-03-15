@@ -184,8 +184,8 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
     }
-    std::string shader = shape.Getshader();
-    if (shader.size() == 0) {
+    std::string shaderString = shape.Getshader();
+    if (shaderString.size() == 0) {
         LOGD("sdf shape is empty, return on line %{public}d", __LINE__);
         return;
     }
@@ -193,7 +193,7 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
     auto clipBounds = skCanvas_->getDeviceClipBounds();
     auto image = skSurface->makeImageSnapshot(clipBounds);
     auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shape.Getshader()));
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shaderString));
     float width = skCanvas_->imageInfo().width();
     SkRuntimeShaderBuilder builder(effect);
     if (shape.GetParaNum() > 0) {
