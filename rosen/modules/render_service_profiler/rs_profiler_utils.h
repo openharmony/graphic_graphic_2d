@@ -20,9 +20,12 @@
 #include <string>
 #include <vector>
 
-#define HGM_EFUNC OHOS::HiviewDFX::HiLog::Error
-#define HGM_CPRINTF(func, fmt, ...) func({ LOG_CORE, 0xD001400, "RRI2D" }, fmt, ##__VA_ARGS__)
-#define HGM_LOGE(fmt, ...) HGM_CPRINTF(HGM_EFUNC, fmt, ##__VA_ARGS__)
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 1400
+
+#undef LOG_TAG
+#define LOG_TAG "RRI2D"
+#define HGM_LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 
 namespace OHOS::Rosen {
 class ArgList final {

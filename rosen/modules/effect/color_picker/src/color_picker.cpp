@@ -61,20 +61,20 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     uint32_t &errorCode)
 {
     if (pixmap == nullptr) {
-        HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with null pixmap.");
+        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with null pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
     
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
     if (scaledPixelMap == nullptr) {
-        HiLog::Info(LABEL, "[ColorPicker]failed to scale pixelmap, scaledPixelMap is nullptr.");
+        EFFECT_LOG_I("[ColorPicker]failed to scale pixelmap, scaledPixelMap is nullptr.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
     ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap);
     if (colorPicker == nullptr) {
-        HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with pixmap.");
+        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
@@ -87,7 +87,7 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     double* coordinates, uint32_t &errorCode)
 {
     if (pixmap == nullptr) {
-        HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with null pixmap.");
+        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with null pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
@@ -95,7 +95,7 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
     ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap, coordinates);
     if (colorPicker == nullptr) {
-        HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with pixmap.");
+        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
@@ -130,7 +130,7 @@ uint32_t ColorPicker::GetMainColor(ColorManager::Color &color)
     int x = 0;
     int y = 0;
     bool bSucc = pixelMap->GetARGB32Color(x, y, colorVal);
-    HiLog::Info(LABEL, "[newpix].argb.ret=%{public}d, %{public}x", bSucc, colorVal);
+    EFFECT_LOG_I("[newpix].argb.ret=%{public}d, %{public}x", bSucc, colorVal);
     color = ColorManager::Color(colorVal);
     return SUCCESS;
 }
