@@ -119,7 +119,7 @@ private:
     };
 
     VSyncGenerator();
-     ~VSyncGenerator()  override;
+    ~VSyncGenerator()  override;
 
     int64_t ComputeNextVSyncTimeStamp(int64_t now, int64_t referenceTime);
     std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t occurTimestamp, int64_t referenceTime);
@@ -148,7 +148,7 @@ private:
     int64_t wakeupDelay_;
 
     std::vector<Listener> listeners_;
-    
+
     std::mutex mutex_;
     std::condition_variable con_;
     std::mutex waitForTimeoutMtx_;
