@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_BACKGROUND_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_BACKGROUND_H
 
+#include <utility>
+
 #include "drawable/rs_property_drawable.h"
 
 namespace OHOS::Rosen {
@@ -94,8 +96,7 @@ private:
 
 class RSBackgroundFilterDrawable : public RSDrawable {
 public:
-    RSBackgroundFilterDrawable(const std::shared_ptr<RSFilter>& rsFilter) : filter_(rsFilter)
-    {}
+    RSBackgroundFilterDrawable(std::shared_ptr<RSFilter> rsFilter) : filter_(std::move(rsFilter)) {}
     ~RSBackgroundFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
@@ -111,8 +112,7 @@ private:
 
 class RSBackgroundEffectDrawable : public RSDrawable {
 public:
-    RSBackgroundEffectDrawable(const std::shared_ptr<RSFilter>& rsFilter) : filter_(rsFilter)
-    {}
+    RSBackgroundEffectDrawable(std::shared_ptr<RSFilter> rsFilter) : filter_(std::move(rsFilter)) {}
     ~RSBackgroundEffectDrawable() override = default;
 
     bool OnUpdate(const RSRenderNode& node) override;
@@ -136,19 +136,26 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 };
 
-class RSDynamicLightUpDrawable : public RSPropertyDrawable {
+class RSDynamicLightUpDrawable : public RSDrawable {
 public:
-    RSDynamicLightUpDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
+    explicit RSDynamicLightUpDrawable(float dynamicLightUpRate, float dynamicLightUpDeg)
+        : dynamicLightUpRate_(dynamicLightUpRate), dynamicLightUpDeg_(dynamicLightUpDeg)
     {}
-    RSDynamicLightUpDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
     static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(
         float dynamicLightUpRate, float dynamicLightUpDeg);
+
+    bool needSync_ = false;
+    float dynamicLightUpRate_ = 0.0f;
+    float dynamicLightUpDeg_ = 0.0f;
+    float stagingDynamicLightUpRate_ = 0.0f;
+    float stagingDynamicLightUpDeg_ = 0.0f;
 };
 
 } // namespace OHOS::Rosen
