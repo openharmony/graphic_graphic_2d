@@ -36,7 +36,31 @@ GSError ProducerSurfaceDelegator::ReleaseBuffer(const sptr<SurfaceBuffer> &buffe
 
 GSError ProducerSurfaceDelegator::ClearBufferSlot(int32_t slot)
 {
+    (void)slot;
     return GSERROR_OK;
+}
+
+GSError ProducerSurfaceDelegator::ClearAllBuffers()
+{
+    return GSERROR_OK;
+}
+
+void ProducerSurfaceDelegator::AddBufferLocked(const sptr<SurfaceBuffer>& buffer, int32_t slot)
+{
+    (void)buffer;
+    (void)slot;
+}
+
+sptr<SurfaceBuffer> ProducerSurfaceDelegator::GetBufferLocked(int32_t slot)
+{
+    (void)slot;
+    return nullptr;
+}
+
+int32_t ProducerSurfaceDelegator::GetSlotLocked(const sptr<SurfaceBuffer>& buffer)
+{
+    (void)buffer;
+    return 0;
 }
 
 GSError ProducerSurfaceDelegator::CancelBuffer(int32_t slot, int32_t fenceFd)

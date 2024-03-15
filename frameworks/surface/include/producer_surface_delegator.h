@@ -33,16 +33,21 @@ public:
     GSError QueueBuffer(int32_t slot, int32_t acquireFence);
     GSError ReleaseBuffer(const sptr<SurfaceBuffer> &buffer, const sptr<SyncFence> &fence);
     GSError ClearBufferSlot(int32_t slot);
+    GSError ClearAllBuffers();
     GSError CancelBuffer(int32_t slot, int32_t fenceFd);
     GSError DetachBuffer(int32_t slot);
     int OnDequeueBuffer(MessageParcel &data, MessageParcel &reply);
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    std::map<int32_t, sptr<SurfaceBuffer>> map_;
+    std::map<int32_t, std::vector<sptr<SurfaceBuffer>>> map_;
     std::vector<sptr<SurfaceBuffer>> pendingReleaseBuffer_;
     std::mutex mapMutex_;
     std::mutex mstate_;
+
+    void AddBufferLocked(const sptr<SurfaceBuffer>& buffer, int32_t slot);
+    sptr<SurfaceBuffer> GetBufferLocked(int32_t slot);
+    int32_t GetSlotLocked(const sptr<SurfaceBuffer>& buffer);
 };
 } // namespace OHOS
 #endif // PRODUCER_SURFACE_DELEGATOR_H
