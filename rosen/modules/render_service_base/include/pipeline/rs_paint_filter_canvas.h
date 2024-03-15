@@ -46,6 +46,7 @@ public:
     std::shared_ptr<Drawing::GPUContext> GetGPUContext() override;
 #endif
 
+    void DrawSdf(const Drawing::SDFShapeBase& shape) override;
     void DrawPoint(const Drawing::Point& point) override;
     void DrawPoints(Drawing::PointMode mode, size_t count, const Drawing::Point pts[]) override;
     void DrawLine(const Drawing::Point& startPt, const Drawing::Point& endPt) override;

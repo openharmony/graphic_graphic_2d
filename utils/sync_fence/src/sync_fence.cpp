@@ -36,10 +36,16 @@ namespace {
 #define LOG_DOMAIN 0xD001400
 #undef LOG_TAG
 #define LOG_TAG "SyncFence"
-#define UTILS_LOGE(...) (void)HILOG_ERROR(LOG_CORE, __VA_ARGS__)
-#define UTILS_LOGW(...) (void)HILOG_WARN(LOG_CORE, __VA_ARGS__)
-#define UTILS_LOGI(...) (void)HILOG_INFO(LOG_CORE, __VA_ARGS__)
-#define UTILS_LOGD(...) (void)HILOG_DEBUG(LOG_CORE, __VA_ARGS__)
+
+#define B_CPRINTF(func, fmt, ...) \
+    func(LOG_CORE, "<%{public}d>%{public}s: " fmt, \
+        __LINE__, __func__, ##__VA_ARGS__)
+        
+#define UTILS_LOGD(fmt, ...) B_CPRINTF(HILOG_DEBUG, fmt, ##__VA_ARGS__)
+#define UTILS_LOGI(fmt, ...) B_CPRINTF(HILOG_INFO, fmt, ##__VA_ARGS__)
+#define UTILS_LOGW(fmt, ...) B_CPRINTF(HILOG_WARN, fmt, ##__VA_ARGS__)
+#define UTILS_LOGE(fmt, ...) B_CPRINTF(HILOG_ERROR, fmt, ##__VA_ARGS__)
+
 constexpr int32_t INVALID_FD = -1;
 }  // namespace
 
@@ -50,7 +56,7 @@ const ns_sec_t SyncFence::FENCE_PENDING_TIMESTAMP = INT64_MAX;
 SyncTimeline::SyncTimeline() noexcept
 {
     if (!IsSupportSoftwareSync()) {
-        UTILS_LOGE(LOG_CORE, "don't support SyncTimeline");
+        UTILS_LOGE("don't support SyncTimeline");
         return;
     }
     int32_t fd = CreateSyncTimeline();
@@ -96,7 +102,7 @@ int32_t SyncTimeline::GenerateFence(std::string name, uint32_t point)
     }
     int32_t fd = CreateSyncFence(timeLineFd_, name.c_str(), point);
     if (fd < 0) {
-        UTILS_LOGE(LOG_CORE, "Fail to CreateSyncFence");
+        UTILS_LOGE("Fail to CreateSyncFence");
         return -1;
     }
     return fd;
@@ -145,14 +151,14 @@ int SyncFence::SyncMerge(const char *name, int fd1, int fd2)
     struct sync_merge_data syncMergeData = {0};
     syncMergeData.fd2 = fd2;
     if (strcpy_s(syncMergeData.name, sizeof(syncMergeData.name), name)) {
-        UTILS_LOGE(LOG_CORE, "SyncMerge ctrcpy fence name failed.");
+        UTILS_LOGE("SyncMerge ctrcpy fence name failed.");
         return retCode;
     }
 
     retCode = ioctl(fd1, SYNC_IOC_MERGE, &syncMergeData);
     if (retCode < 0) {
         errno = EINVAL;
-        UTILS_LOGE(LOG_CORE, "Fence merge failed, errno is %{public}d.", errno);
+        UTILS_LOGE("Fence merge failed, errno is %{public}d.", errno);
         return retCode;
     }
 
@@ -177,7 +183,7 @@ sptr<SyncFence> SyncFence::MergeFence(const std::string &name,
     }
 
     if (newFenceFd == INVALID_FD) {
-        UTILS_LOGE(LOG_CORE, "sync_merge(%{public}s) failed, error: %{public}s (%{public}d)",
+        UTILS_LOGE("sync_merge(%{public}s) failed, error: %{public}s (%{public}d)",
                      name.c_str(), strerror(errno), errno);
         return INVALID_FENCE;
     }
@@ -220,19 +226,19 @@ std::vector<SyncPointInfo> SyncFence::GetFenceInfo()
     (void)memset_s(&arg, sizeof(struct sync_file_info), 0, sizeof(struct sync_file_info));
     int32_t ret = ioctl(fenceFd_, SYNC_IOC_FILE_INFO, &arg);
     if (ret < 0) {
-        UTILS_LOGD(LOG_CORE, "GetFenceInfo SYNC_IOC_FILE_INFO ioctl failed, ret: %{public}d", ret);
+        UTILS_LOGD("GetFenceInfo SYNC_IOC_FILE_INFO ioctl failed, ret: %{public}d", ret);
         return {};
     }
 
     if (arg.num_fences <= 0) {
-        UTILS_LOGD(LOG_CORE, "GetFenceInfo arg.num_fences failed, num_fences: %{public}d", arg.num_fences);
+        UTILS_LOGD("GetFenceInfo arg.num_fences failed, num_fences: %{public}d", arg.num_fences);
         return {};
     }
     // to malloc sync_file_info and the number of 'sync_fence_info' memory
     size_t syncFileInfoMemSize = sizeof(struct sync_file_info) + sizeof(struct sync_fence_info) * arg.num_fences;
     infoPtr = (struct sync_file_info *)malloc(syncFileInfoMemSize);
     if (infoPtr == nullptr) {
-        UTILS_LOGD(LOG_CORE, "GetFenceInfo malloc failed oom");
+        UTILS_LOGD("GetFenceInfo malloc failed oom");
         return {};
     }
     (void)memset_s(infoPtr, syncFileInfoMemSize, 0, syncFileInfoMemSize);
@@ -241,7 +247,7 @@ std::vector<SyncPointInfo> SyncFence::GetFenceInfo()
 
     ret = ioctl(fenceFd_, SYNC_IOC_FILE_INFO, infoPtr);
     if (ret < 0) {
-        UTILS_LOGE(LOG_CORE, "GetTotalFenceInfo SYNC_IOC_FILE_INFO ioctl failed, ret: %{public}d", ret);
+        UTILS_LOGE("GetTotalFenceInfo SYNC_IOC_FILE_INFO ioctl failed, ret: %{public}d", ret);
         free(infoPtr);
         return {};
     }
@@ -315,7 +321,7 @@ void SyncFence::WriteToMessageParcel(MessageParcel &parcel)
     parcel.WriteInt32(fence);
 
     if (fence < 0) {
-        UTILS_LOGD(LOG_CORE, "WriteToMessageParcel fence is invalid : %{public}d", fence);
+        UTILS_LOGD("WriteToMessageParcel fence is invalid : %{public}d", fence);
         return;
     }
 

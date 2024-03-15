@@ -24,6 +24,7 @@
 #include "draw/path.h"
 #include "draw/paint.h"
 #include "draw/shadow.h"
+#include "draw/sdf_shaper_base.h"
 // opinc_begin
 #include "draw/OpListHandle.h"
 // opinc_end
@@ -81,6 +82,7 @@ public:
     virtual bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY) = 0;
     // shapes
     virtual void DrawPoint(const Point& point) = 0;
+    virtual void DrawSdf(const SDFShapeBase& shape) = 0;
     virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]) = 0;
     virtual void DrawLine(const Point& startPt, const Point& endPt) = 0;
     virtual void DrawRect(const Rect& rect) = 0;

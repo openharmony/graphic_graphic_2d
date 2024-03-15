@@ -1729,9 +1729,6 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
 #endif
         auto image = std::make_shared<Drawing::Image>();
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-        if (Rosen::RSSystemProperties::GetGpuApiType() == Rosen::GpuApiType::DDGR) {
-            origin = Drawing::TextureOrigin::TOP_LEFT;
-        }
         Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
             Drawing::ALPHATYPE_PREMUL };
 #ifdef RS_ENABLE_GL

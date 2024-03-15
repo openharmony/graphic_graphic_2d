@@ -31,10 +31,16 @@ namespace {
 #define LOG_DOMAIN 0xD001400
 #undef LOG_TAG
 #define LOG_TAG "LocalSocketPair"
-#define UTILS_LOGE(...) (void)HILOG_ERROR(LOG_CORE, __VA_ARGS__)
-#define UTILS_LOGW(...) (void)HILOG_WARN(LOG_CORE, __VA_ARGS__)
-#define UTILS_LOGI(...) (void)HILOG_INFO(LOG_CORE, __VA_ARGS__)
-#define UTILS_LOGD(...) (void)HILOG_DEBUG(LOG_CORE, __VA_ARGS__)
+
+#define B_CPRINTF(func, fmt, ...) \
+    func(LOG_CORE, "<%{public}d>%{public}s: " fmt, \
+        __LINE__, __func__, ##__VA_ARGS__)
+
+#define UTILS_LOGD(fmt, ...) B_CPRINTF(HILOG_DEBUG, fmt, ##__VA_ARGS__)
+#define UTILS_LOGI(fmt, ...) B_CPRINTF(HILOG_INFO, fmt, ##__VA_ARGS__)
+#define UTILS_LOGW(fmt, ...) B_CPRINTF(HILOG_WARN, fmt, ##__VA_ARGS__)
+#define UTILS_LOGE(fmt, ...) B_CPRINTF(HILOG_ERROR, fmt, ##__VA_ARGS__)
+
 constexpr int32_t SOCKET_PAIR_SIZE = 2;
 constexpr int32_t INVALID_FD = -1;
 constexpr int32_t ERRNO_EAGAIN = -1;
@@ -50,7 +56,7 @@ LocalSocketPair::LocalSocketPair()
 
 LocalSocketPair::~LocalSocketPair()
 {
-    UTILS_LOGD(LOG_CORE, "%{public}s close socketpair, sendFd : %{public}d, receiveFd : %{public}d",
+    UTILS_LOGD("%{public}s close socketpair, sendFd : %{public}d, receiveFd : %{public}d",
                  __func__, sendFd_, receiveFd_);
     if ((sendFd_ != INVALID_FD) || (receiveFd_ != INVALID_FD)) {
         g_fdCnt--;
@@ -66,21 +72,21 @@ int32_t LocalSocketPair::SetSockopt(size_t sendSize, size_t receiveSize, int32_t
         if (ret != 0) {
             CloseFd(socketPair[0]);
             CloseFd(socketPair[1]);
-            UTILS_LOGE(LOG_CORE, "%{public}s setsockopt socketpair %{public}d sendbuffer size failed", __func__, i);
+            UTILS_LOGE("%{public}s setsockopt socketpair %{public}d sendbuffer size failed", __func__, i);
             return -1;
         }
         ret = setsockopt(socketPair[i], SOL_SOCKET, SO_RCVBUF, &receiveSize, sizeof(receiveSize));
         if (ret != 0) {
             CloseFd(socketPair[0]);
             CloseFd(socketPair[1]);
-            UTILS_LOGE(LOG_CORE, "%{public}s setsockopt socketpair %{public}d receivebuffer size failed", __func__, i);
+            UTILS_LOGE("%{public}s setsockopt socketpair %{public}d receivebuffer size failed", __func__, i);
             return -1;
         }
         ret = fcntl(socketPair[i], F_SETFL, O_NONBLOCK);
         if (ret != 0) {
             CloseFd(socketPair[0]);
             CloseFd(socketPair[1]);
-            UTILS_LOGE(LOG_CORE, "%{public}s fcntl socketpair %{public}d nonblock failed", __func__, i);
+            UTILS_LOGE("%{public}s fcntl socketpair %{public}d nonblock failed", __func__, i);
             return -1;
         }
     }
@@ -90,14 +96,14 @@ int32_t LocalSocketPair::SetSockopt(size_t sendSize, size_t receiveSize, int32_t
 int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
 {
     if ((sendFd_ != INVALID_FD) || (receiveFd_ != INVALID_FD)) {
-        UTILS_LOGD(LOG_CORE, "%{public}s already create socketpair", __func__);
+        UTILS_LOGD("%{public}s already create socketpair", __func__);
         return 0;
     }
 
     int32_t socketPair[SOCKET_PAIR_SIZE] = { 0 };
     if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, socketPair) != 0) {
         ScopedBytrace func("Create socketpair failed, errno = " + std::to_string(errno));
-        UTILS_LOGE(LOG_CORE, "%{public}s create socketpair failed", __func__);
+        UTILS_LOGE("%{public}s create socketpair failed", __func__);
         return -1;
     }
     if (socketPair[0] == 0 || socketPair[1] == 0) {
@@ -107,7 +113,7 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
         CloseFd(unusedFds[1]);
         if (err != 0) {
             ScopedBytrace func2("Create socketpair failed for the second time, errno = " + std::to_string(errno));
-            UTILS_LOGE(LOG_CORE, "%{public}s create socketpair failed", __func__);
+            UTILS_LOGE("%{public}s create socketpair failed", __func__);
             return -1;
         }
     }
@@ -119,11 +125,11 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
     }
     sendFd_ = socketPair[0];
     receiveFd_ = socketPair[1];
-    UTILS_LOGD(LOG_CORE, "%{public}s create socketpair success, receiveFd_ : %{public}d, sendFd_ : %{public}d", __func__,
-                 receiveFd_, sendFd_);
+    UTILS_LOGD("%{public}s create socketpair success, receiveFd_ : %{public}d, sendFd_ : %{public}d",
+                __func__, receiveFd_, sendFd_);
     g_fdCnt++;
     if (g_fdCnt > LEAK_FD_CNT) {
-        UTILS_LOGW(LOG_CORE, "%{public}s fdCnt: %{public}d", __func__, g_fdCnt);
+        UTILS_LOGW("%{public}s fdCnt: %{public}d", __func__, g_fdCnt);
     }
 
     return 0;
@@ -132,7 +138,7 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
 int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
 {
     if (vaddr == nullptr || sendFd_ < 0) {
-        UTILS_LOGE(LOG_CORE, "%{public}s failed, param is invalid", __func__);
+        UTILS_LOGE("%{public}s failed, param is invalid", __func__);
         return -1;
     }
     ssize_t length = TEMP_FAILURE_RETRY(send(sendFd_, vaddr, size, MSG_DONTWAIT | MSG_NOSIGNAL));
@@ -141,7 +147,7 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
         ScopedBytrace func("SocketPair SendData failed, errno = " + std::to_string(errnoRecord) +
                             ", sendFd_ = " + std::to_string(sendFd_) + ", receiveFd_ = " + std::to_string(receiveFd_) +
                             ", length = " + std::to_string(length));
-        UTILS_LOGD(LOG_CORE, "%{public}s send failed:%{public}d, length = %{public}d",
+        UTILS_LOGD("%{public}s send failed:%{public}d, length = %{public}d",
                      __func__, errnoRecord, static_cast<int32_t>(length));
         if (errnoRecord == EAGAIN) {
             return ERRNO_EAGAIN;
@@ -155,7 +161,7 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
 int32_t LocalSocketPair::ReceiveData(void *vaddr, size_t size)
 {
     if (vaddr == nullptr || (receiveFd_ < 0)) {
-        UTILS_LOGE(LOG_CORE, "%{public}s failed, vaddr is null or receiveFd_ invalid", __func__);
+        UTILS_LOGE("%{public}s failed, vaddr is null or receiveFd_ invalid", __func__);
         return -1;
     }
     ssize_t length;

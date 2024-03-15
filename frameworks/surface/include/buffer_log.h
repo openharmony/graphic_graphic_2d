@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace {
-// The "0xD001401" is the domain ID for surface module that alloted by the OS.
+// The "0xD001401" is the domain ID for graphic module that alloted by the OS.
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001401
 #undef LOG_TAG
