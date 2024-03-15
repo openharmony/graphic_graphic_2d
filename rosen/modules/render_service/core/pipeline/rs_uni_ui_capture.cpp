@@ -250,7 +250,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
     canvas_->Scale(scaleX_, scaleY_);
     canvas_->SetDisableFilterCache(true);
     canvas_->SetRecordingState(true);
-    canvas_->SetRecordDrawable(true);
 }
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessChildren(RSRenderNode& node)
