@@ -348,9 +348,9 @@ public:
     void SetDrawingCacheRootId(NodeId id);
     NodeId GetDrawingCacheRootId() const;
     // record cache geodirty for preparation optimization
-    void SetCacheGeoPreparationDelay(bool val);
-    void ResetCacheGeoPreparationDelay();
-    bool GetCacheGeoPreparationDelay() const;
+    void SetGeoUpdateDelay(bool val);
+    void ResetGeoUpdateDelay();
+    bool GetGeoUpdateDelay() const;
     bool HasAnimation() const;
 
     bool HasFilter() const;

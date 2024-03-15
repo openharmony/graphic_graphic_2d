@@ -2596,15 +2596,15 @@ void RSRenderNode::ResetDrawingCacheNeedUpdate()
 {
     drawingCacheNeedUpdate_ = false;
 }
-void RSRenderNode::SetCacheGeoPreparationDelay(bool val)
+void RSRenderNode::SetGeoUpdateDelay(bool val)
 {
     cacheGeoPreparationDelay_ = cacheGeoPreparationDelay_ || val;
 }
-void RSRenderNode::ResetCacheGeoPreparationDelay()
+void RSRenderNode::ResetGeoUpdateDelay()
 {
     cacheGeoPreparationDelay_ = false;
 }
-bool RSRenderNode::GetCacheGeoPreparationDelay() const
+bool RSRenderNode::GetGeoUpdateDelay() const
 {
     return cacheGeoPreparationDelay_;
 }
