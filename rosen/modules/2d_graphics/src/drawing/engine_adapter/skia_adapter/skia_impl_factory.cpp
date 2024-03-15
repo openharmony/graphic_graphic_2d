@@ -48,6 +48,7 @@
 #include "skia_adapter/skia_text_blob_builder.h"
 #include "skia_adapter/skia_trace_memory_dump.h"
 #include "skia_adapter/skia_memory_stream.h"
+#include "skia_adapter/skia_gradient_blur.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -266,6 +267,11 @@ std::shared_ptr<ResourceHolderImpl> SkiaImplFactory::CreateResourceHolder()
 std::unique_ptr<KawaseBlurImpl> SkiaImplFactory::CreateKawaseBlur()
 {
     return std::make_unique<SkiaKawaseBlur>();
+}
+
+std::unique_ptr<GradientBlurImpl> SkiaImplFactory::CreateGradientBlur()
+{
+    return std::make_unique<SkiaGradientBlur>();
 }
 } // namespace Drawing
 } // namespace Rosen

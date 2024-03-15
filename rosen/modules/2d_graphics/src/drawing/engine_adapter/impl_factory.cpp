@@ -444,6 +444,16 @@ std::unique_ptr<KawaseBlurImpl> ImplFactory::CreateKawaseBlurImpl()
 #endif
     return EngineImplFactory::CreateKawaseBlur();
 }
+
+std::unique_ptr<GradientBlurImpl> ImplFactory::CreateGradientBlurImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateGradientBlur();
+    }
+#endif
+    return EngineImplFactory::CreateGradientBlur();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
