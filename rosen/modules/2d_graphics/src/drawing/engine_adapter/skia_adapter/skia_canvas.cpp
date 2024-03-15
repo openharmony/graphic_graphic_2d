@@ -29,6 +29,8 @@
 #include "skia_image_info.h"
 #include "skia_data.h"
 #include "skia_text_blob.h"
+#include "skia_surface.h"
+#include "include/effects/SkRuntimeEffect.h"
 
 #include "draw/core_canvas.h"
 #include "draw/canvas.h"
@@ -174,6 +176,58 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
     }
     const SkBitmap& skBitmap = dstBitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
     return skCanvas_->readPixels(skBitmap, srcX, srcY);
+}
+
+void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
+{
+    SkSurface* skSurface = skCanvas_->getSurface();
+    if (skSurface == nullptr) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    std::string shaderString = shape.Getshader();
+    if (shaderString.size() == 0) {
+        LOGD("sdf shape is empty, return on line %{public}d", __LINE__);
+        return;
+    }
+    SkAutoCanvasRestore acr(skCanvas_, true);
+    auto clipBounds = skCanvas_->getDeviceClipBounds();
+    auto image = skSurface->makeImageSnapshot(clipBounds);
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shaderString));
+    float width = skCanvas_->imageInfo().width();
+    SkRuntimeShaderBuilder builder(effect);
+    if (shape.GetParaNum() > 0) {
+        std::vector<float> para = shape.GetPara();
+        std::vector<float> para1 = shape.GetTransPara();
+        int num1 = para1.size();
+        int num = para.size();
+        for (int i = 1; i <= num; i++) {
+            char buf[10] = {0}; // maximum length of string needed is 10.
+            (void)sprintf_s(buf, sizeof(buf), "para%d", i);
+            builder.uniform(buf) = para[i-1];
+        }
+        for (int i = 1; i <= num1; i++) {
+            char buf[15] = {0}; // maximum length of string needed is 15.
+            (void)sprintf_s(buf, sizeof(buf), "transpara%d", i);
+            builder.uniform(buf) = para1[i-1];
+        }
+        std::vector<float> color = shape.GetColorPara();
+        builder.uniform("fillcolpara1") = color[0];
+        builder.uniform("fillcolpara2") = color[1]; // color_[1] is fillcolor green channel.
+        builder.uniform("fillcolpara3") = color[2]; // color_[2] is fillcolor blue channel.
+        builder.uniform("strokecolpara1") = color[3]; // color_[3] is strokecolor red channel.
+        builder.uniform("strokecolpara2") = color[4]; // color_[4] is strokecolor green channel.
+        builder.uniform("strokecolpara3") = color[5]; // color_[5] is strokecolor blue channel.
+        builder.uniform("sdfalpha") = color[6]; // color_[6] is color alpha channel.
+        float size = shape.GetSize();
+        builder.uniform("sdfsize") = size;
+    }
+    builder.uniform("width") = width;
+    auto shader = builder.makeShader(nullptr, false);
+    SkPaint paint;
+    paint.setShader(shader);
+    skCanvas_->drawPaint(paint);
 }
 
 void SkiaCanvas::DrawPoint(const Point& point)

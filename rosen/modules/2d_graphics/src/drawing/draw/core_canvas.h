@@ -192,6 +192,12 @@ public:
     virtual void DrawPoint(const Point& point);
 
     /**
+     * @brief Describing a graph by combining directed vector fields.
+     * @param shape describes the combination of a group of sdf entities.
+     */
+    virtual void DrawSdf(const SDFShapeBase& shape);
+
+    /**
      * @brief If mode is LINES_POINTMODE, each pair of points draws a line segment. One line
      * is drawn for every two points; each point is used once. If count is odd, the final point is ignored.
      * If mode is POLYGON_POINTMODE, each adjacent pair of points draws a line segment. count minus one lines

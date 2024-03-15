@@ -89,6 +89,12 @@ void CoreCanvas::DrawPoint(const Point& point)
     impl_->DrawPoint(point);
 }
 
+void CoreCanvas::DrawSdf(const SDFShapeBase& shape)
+{
+    AttachPaint();
+    impl_->DrawSdf(shape);
+}
+
 void CoreCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
 {
     AttachPaint();
