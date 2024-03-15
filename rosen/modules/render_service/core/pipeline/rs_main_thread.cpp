@@ -352,7 +352,7 @@ void RSMainThread::Init()
         auto gpuContext = isUniRender_? uniRenderEngine_->GetDrawingContext()->GetDrawingContext() :
             renderEngine_->GetDrawingContext()->GetDrawingContext();
 #else
-        auto gpuContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetDrGPUContext() :
+        auto gpuContext = isUniRender_? GetRenderEngine()->GetRenderContext()->GetDrGPUContext() :
             renderEngine_->GetRenderContext()->GetDrGPUContext();
 #endif
         if (gpuContext == nullptr) {
