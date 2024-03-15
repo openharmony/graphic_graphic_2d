@@ -220,6 +220,26 @@ ScreenId RSScreenManager::GetActiveScreenId()
 }
 #endif
 
+bool RSScreenManager::IsAllScreensPowerOff() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenPowerStatus_.empty()) {
+        return false;
+    }
+    for (const auto &[id, powerStatus] : screenPowerStatus_) {
+        auto iter = screens_.find(id);
+        if (iter != screens_.end() && iter->second->IsVirtual()) {
+            continue;
+        }
+        // we also need to consider the AOD mode(POWER_STATUS_SUSPEND)
+        if (powerStatus != ScreenPowerStatus::POWER_STATUS_OFF &&
+            powerStatus != ScreenPowerStatus::POWER_STATUS_SUSPEND) {
+            return false;
+        }
+    }
+    return true;
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 float RSScreenManager::GetScreenBrightnessNits(ScreenId id)
 {

@@ -2110,10 +2110,17 @@ void RSMainThread::Animate(uint64_t timestamp)
     RSRenderAnimation::isCalcAnimateVelocity_ = isRateDeciderEnabled;
     uint32_t totalAnimationSize = 0;
     uint32_t animatingNodeSize = context_->animatingNodeList_.size();
+    bool needPrintAnimationDFX = false;
+    std::set<pid_t> animationPids;
+    if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
+        auto screenManager = CreateOrGetScreenManager();
+        needPrintAnimationDFX = screenManager != nullptr && screenManager->IsAllScreensPowerOff();
+    }
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
-        &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
+        &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue, &needPrintAnimationDFX,
+        &animationPids](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
@@ -2148,8 +2155,19 @@ void RSMainThread::Animate(uint64_t timestamp)
             }
             curWinAnim = true;
         }
+        if (needPrintAnimationDFX && needRequestNextVsync && node->animationManager_.GetAnimationsSize() > 0) {
+            animationPids.insert(node->animationManager_.GetAnimationPid());
+        }
         return !hasRunningAnimation;
     });
+    if (needPrintAnimationDFX && needRequestNextVsync && animationPids.size() > 0) {
+        std::string pidList;
+        for (auto& pid : animationPids) {
+            pidList += "[" + std::to_string(pid) + "]";
+        }
+        RS_TRACE_NAME_FMT("Animate from pid %s", pidList.c_str());
+    }
+
     RS_TRACE_NAME_FMT("Animate [nodeSize, totalAnimationSize] is [%lu, %lu]", animatingNodeSize, totalAnimationSize);
     if (!isCalculateAnimationValue && needRequestNextVsync) {
         RS_TRACE_NAME("Animation running empty");
