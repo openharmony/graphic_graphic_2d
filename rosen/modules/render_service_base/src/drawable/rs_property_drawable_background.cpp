@@ -63,6 +63,7 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     }
 
     const RSProperties& properties = node.GetRenderProperties();
+    Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(canvas, properties.GetShadowIsFilled(),
         properties.GetShadowPath(), properties.GetClipBounds(), properties.GetRRect());
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
@@ -142,6 +143,7 @@ bool RSColorfulShadowDrawable::OnUpdate(const RSRenderNode& node)
     if (!properties.IsShadowValid() || canvas.GetCacheType() == Drawing::CacheType::ENABLED) {
         return false;
     }
+    Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(canvas, properties.GetShadowIsFilled(),
         properties.GetShadowPath(), properties.GetClipBounds(), properties.GetRRect());
     // blurRadius calculation is based on the formula in Canvas::DrawShadow, 0.25f and 128.0f are constants

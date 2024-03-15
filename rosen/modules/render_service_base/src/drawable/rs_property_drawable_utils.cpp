@@ -559,7 +559,6 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
 Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(Drawing::Canvas& canvas, bool shadowIsFilled,
     const std::shared_ptr<RSPath> shadowPath, const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect)
 {
-    Drawing::AutoCanvasRestore acr(canvas, true);
     if (shadowPath && shadowPath->GetDrawingPath().IsValid()) {
         Drawing::Path path = shadowPath->GetDrawingPath();
         if (!shadowIsFilled) {
