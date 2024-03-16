@@ -177,8 +177,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         currentRate = currentRate, timestamp = currTimestamp]() {
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
-
-        if (FrameReport::GetInstance().IsGameScene()) {
+        bool hasGameScene = FrameReport::GetInstance().HasGameScene();
+        if (hasGameScene) {
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
@@ -194,7 +194,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         output->ReleaseLayers();
         RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
 
-        if (FrameReport::GetInstance().IsGameScene()) {
+        if (hasGameScene) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             FrameReport::GetInstance().SetLastSwapBufferTime(endTimeNs - startTimeNs);
