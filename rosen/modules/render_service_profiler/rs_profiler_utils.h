@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
-#define HGM_EFUNC OHOS::HiviewDFX::HiLog::Error
-#define HGM_CPRINTF(func, fmt, ...) func({ LOG_CORE, 0xD001400, "RRI2D" }, fmt, ##__VA_ARGS__)
-#define HGM_LOGE(fmt, ...) HGM_CPRINTF(HGM_EFUNC, fmt, ##__VA_ARGS__)
+#ifdef REPLAY_TOOL_CLIENT
+#include "rs_adapt.h"
+#endif
 
 namespace OHOS::Rosen {
 class ArgList final {
@@ -122,7 +122,30 @@ constexpr float MILLI = 1e-3f; // NOLINT
 constexpr float MICRO = 1e-6f; // NOLINT
 constexpr float NANO = 1e-9f;  // NOLINT
 
+FILE* FileOpen(const std::string& path, const std::string& openOptions);
+void FileClose(FILE* file);
+bool IsFileValid(FILE* file);
+size_t FileSize(FILE* file);
+size_t FileTell(FILE* file);
+void FileSeek(FILE* file, int64_t offset, int origin);
+void FileRead(FILE* file, void* data, size_t size);
+void FileWrite(FILE* file, const void* data, size_t size);
+
+template<typename T>
+void FileRead(FILE* file, T* data, size_t size)
+{
+    FileRead(file, reinterpret_cast<void*>(data), size);
+}
+
+template<typename T>
+void FileWrite(FILE* file, const T* data, size_t size)
+{
+    FileWrite(file, reinterpret_cast<const void*>(data), size);
+}
+
+// deprecated
 void FileRead(void* data, size_t size, size_t count, FILE* file);
+void FileWrite(const void* data, size_t size, size_t count, FILE* file);
 
 template<typename T>
 void FileRead(T* data, size_t size, size_t count, FILE* file)
@@ -130,19 +153,58 @@ void FileRead(T* data, size_t size, size_t count, FILE* file)
     FileRead(reinterpret_cast<void*>(data), size, count, file);
 }
 
-void FileWrite(const void* data, size_t size, size_t count, FILE* file);
-
 template<typename T>
 void FileWrite(const T* data, size_t size, size_t count, FILE* file)
 {
     FileWrite(reinterpret_cast<const void*>(data), size, count, file);
 }
+// end of deprecation
 
-void FileSeek(FILE* stream, int64_t offset, int origin);
+constexpr pid_t ExtractPid(uint64_t id)
+{
+    constexpr uint32_t bits = 32u;
+    return static_cast<pid_t>(id >> bits);
+}
 
-FILE* FileOpen(const std::string& path, const std::string& openOptions);
+constexpr pid_t GetMockPid(pid_t pid)
+{
+    constexpr uint32_t bits = 30u;
+    return (1 << bits) | pid;
+}
 
-void FileClose(FILE* file);
+constexpr uint64_t ExtractNodeId(uint64_t id)
+{
+    constexpr uint32_t mask = 0xFFFFFFFF;
+    return (id & mask);
+}
+
+constexpr uint64_t ComposeNodeId(uint64_t pid, uint64_t nodeId)
+{
+    constexpr uint32_t bits = 32u;
+    return (pid << bits) | nodeId;
+}
+
+constexpr uint64_t ComposeMockNodeId(uint64_t id, uint64_t nodeId)
+{
+    return ComposeNodeId(GetMockPid(id), nodeId);
+}
+
+constexpr uint64_t GetRootNodeId(uint64_t id)
+{
+    return ComposeNodeId(id, 1);
+}
+
+constexpr uint64_t PatchNodeId(uint64_t id)
+{
+    constexpr uint32_t bits = 62u;
+    return id | (static_cast<uint64_t>(1) << bits);
+}
+
+constexpr uint64_t IsNodeIdPatched(uint64_t id)
+{
+    constexpr uint32_t bits = 62u;
+    return id & (static_cast<uint64_t>(1) << bits);
+}
 
 } // namespace OHOS::Rosen::Utils
 
