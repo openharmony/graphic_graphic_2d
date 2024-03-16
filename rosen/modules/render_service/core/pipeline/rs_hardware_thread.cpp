@@ -198,7 +198,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     };
     unExcuteTaskNum_++;
 
-    if (!hgmCore.GetLtpoEnabled() || RSMainThread::Instance()->rsVSyncDistributor_->IsDVsyncOn()) {
+    if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
