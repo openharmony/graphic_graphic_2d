@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,8 +41,8 @@ public:
     virtual Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const = 0;
 
     virtual int CountFamilies() const = 0;
-    virtual char* GetFamilyName(int index, int* len) const = 0;
-    virtual FontStyleSet* CreateStyleSet(int index) const = 0;
+    virtual void GetFamilyName(int index, std::string& str) const = 0;
+    virtual std::shared_ptr<FontStyleSet> CreateStyleSet(int index) const = 0;
 protected:
     FontMgrImpl() noexcept = default;
 };

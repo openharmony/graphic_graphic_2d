@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,6 @@
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_typeface.h"
-#include <securec.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -116,45 +115,17 @@ int SkiaFontMgr::CountFamilies() const
     return skFontMgr_->countFamilies();
 }
 
-static bool CopySkStrData(char** destination, const SkString& source)
+void SkiaFontMgr::GetFamilyName(int index, std::string& str) const
 {
-    if (destination == nullptr || source.isEmpty()) {
-        return false;
+    if (index < 0 || skFontMgr_ == nullptr) {
+        return;
     }
-    size_t destinationSize = source.size() + 1;
-    *destination = new char[destinationSize];
-    if (*destination == nullptr) {
-        return false;
-    }
-    auto retCopy = strcpy_s(*destination, destinationSize, source.c_str());
-    if (retCopy != 0) {
-        delete[] *destination;
-        return false;
-    }
-    return true;
+    SkString skName;
+    skFontMgr_->getFamilyName(index, &skName);
+    str.assign(skName.c_str());
 }
 
-char* SkiaFontMgr::GetFamilyName(int index, int* len) const
-{
-    if (index < 0 || len == nullptr || skFontMgr_ == nullptr) {
-        return nullptr;
-    }
-    SkString* skName = new SkString();
-    if (skName == nullptr) {
-        return nullptr;
-    }
-    skFontMgr_->getFamilyName(index, skName);
-    *len = skName->size();
-    char* familyName = nullptr;
-    auto retCopy = CopySkStrData(&familyName, *skName);
-    delete skName;
-    if (!retCopy) {
-        return nullptr;
-    }
-    return familyName;
-}
-
-FontStyleSet* SkiaFontMgr::CreateStyleSet(int index) const
+std::shared_ptr<FontStyleSet> SkiaFontMgr::CreateStyleSet(int index) const
 {
     if (index < 0 || skFontMgr_ == nullptr) {
         return nullptr;
@@ -165,7 +136,7 @@ FontStyleSet* SkiaFontMgr::CreateStyleSet(int index) const
     }
     sk_sp<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
-    return new FontStyleSet(fontStyleSetImpl);
+    return std::make_shared<FontStyleSet>(FontStyleSet(fontStyleSetImpl));
 }
 
 } // namespace Drawing

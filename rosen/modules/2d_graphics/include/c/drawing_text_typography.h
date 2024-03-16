@@ -1245,7 +1245,7 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser*, size_t*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_DestroySystemFontList(char***, size_t);
+void OH_Drawing_DestroySystemFontList(char**, size_t);
 
 /**
  * @brief Gets information about the system font by font name.

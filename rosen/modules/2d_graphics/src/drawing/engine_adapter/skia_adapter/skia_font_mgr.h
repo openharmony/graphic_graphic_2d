@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,8 +51,8 @@ public:
     Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const override;
 
     int CountFamilies() const override;
-    char* GetFamilyName(int index, int* len) const override;
-    FontStyleSet* CreateStyleSet(int index) const override;
+    void GetFamilyName(int index, std::string& str) const override;
+    std::shared_ptr<FontStyleSet> CreateStyleSet(int index) const override;
 
 private:
     sk_sp<SkFontMgr> skFontMgr_;

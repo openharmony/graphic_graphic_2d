@@ -169,13 +169,13 @@ int OH_Drawing_FontMgrGetFamiliesCount(OH_Drawing_FontMgr*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
- * @param int The index to get the font family name.
- * @param int Used to return the size of the font family name array.
+ * @param index The index to get the font family name.
+ * @param len Used to return the size of the font family name array.
  * @return Returns the font family name corresponding to the index value.
  * @since 12
  * @version 1.0
  */
-char* OH_Drawing_FontMgrGetFamilyName(OH_Drawing_FontMgr*, int, int*);
+char* OH_Drawing_FontMgrGetFamilyName(OH_Drawing_FontMgr*, int index, int* len);
 
 /**
  * @brief Releases the memory occupied by font family name.
@@ -185,19 +185,19 @@ char* OH_Drawing_FontMgrGetFamilyName(OH_Drawing_FontMgr*, int, int*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_DestroyFamilyName(char**);
+void OH_Drawing_DestroyFamilyName(char* familyName);
 
 /**
  * @brief Creates an <b>OH_Drawing_FontStyleSet</b> object by <b>OH_Drawing_FontMgr</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
- * @param int The index used to get the font style set object from the font manager object.
+ * @param index The index used to get the font style set object from the font manager object.
  * @return Returns the pointer to the <b>OH_Drawing_FontStyleSet</b> object created.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_FontStyleSet* OH_Drawing_FontStyleSetCreate(OH_Drawing_FontMgr*, int);
+OH_Drawing_FontStyleSet* OH_Drawing_FontStyleSetCreate(OH_Drawing_FontMgr*, int index);
 
 /**
  * @brief Releases the memory occupied by an <b>OH_Drawing_FontStyleSet</b> object.
@@ -214,42 +214,42 @@ void OH_Drawing_DestroyFontStyleSet(OH_Drawing_FontStyleSet*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
- * @param char The family name of a font style set to be matched.
+ * @param familyName The family name of a font style set to be matched.
  * @return Returns the pointer to the <b>OH_Drawing_FontStyleSet</b> object matched.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr*, const char*);
+OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr*, const char* familyName);
 
 /**
  * @brief Get the pointer to an <b>OH_Drawing_Typeface</b> object based on the given font style and family name.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
- * @param char The family name of a font style set to be matched.
+ * @param familyName The family name of a font style set to be matched.
  * @param OH_Drawing_FontForm Indicates the pointer to an <b>OH_Drawing_FontForm</b> object.
  * @return Returns the pointer to the <b>OH_Drawing_Typeface</b> object matched.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*, const char*, OH_Drawing_FontForm*);
+OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*, const char* familyName, OH_Drawing_FontForm*);
 
 /**
  * @brief Get the pointer to an <b>OH_Drawing_Typeface</b> object for the given character.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
- * @param char The family name of a font style set to be matched.
+ * @param familyName The family name of a font style set to be matched.
  * @param OH_Drawing_FontForm Indicates the pointer to an <b>OH_Drawing_FontForm</b> object.
- * @param char An array of languages which indicate the language of character.
- * @param int The array size of bcp47.
- * @param int32_t A UTF8 value to be matched.
+ * @param bcp47 An array of languages which indicate the language of character.
+ * @param bcp47Count The array size of bcp47.
+ * @param character A UTF8 value to be matched.
  * @return Returns the pointer to the <b>OH_Drawing_Typeface</b> object matched.
  * @since 12
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr*, const char familyName[],
-    OH_Drawing_FontForm*, const char* bcp47[], int, int32_t);
+    OH_Drawing_FontForm*, const char* bcp47[], int bcp47Count, int32_t character);
 
 #ifdef __cplusplus
 }

@@ -67,6 +67,41 @@ size_t ObjectMgr::ObjectCount()
 {
     return vector_.size();
 }
+
+TypefaceMgr& TypefaceMgr::GetInstance()
+{
+    static TypefaceMgr instance;
+    return instance;
+}
+
+void TypefaceMgr::Insert(void* key, std::shared_ptr<Typeface> typeface)
+{
+    std::unique_lock lock(mutex_);
+    typeface_.insert({key, std::move(typeface)});
+}
+
+std::shared_ptr<Typeface> TypefaceMgr::Find(void* key)
+{
+    std::unique_lock lock(mutex_);
+    auto iter = typeface_.find(key);
+    if (iter != typeface_.end()) {
+        return iter->second;
+    } else {
+        return {nullptr};
+    }
+}
+
+bool TypefaceMgr::Remove(void* key)
+{
+    std::unique_lock lock(mutex_);
+    auto iter = typeface_.find(key);
+    if (iter != typeface_.end()) {
+        typeface_.erase(iter);
+        return true;
+    } else {
+        return false;
+    }
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
