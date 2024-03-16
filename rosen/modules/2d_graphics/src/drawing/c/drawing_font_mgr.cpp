@@ -31,7 +31,6 @@ static std::mutex g_fontMgrLockMutex;
 static std::mutex g_fontStyleSetLockMutex;
 static std::unordered_map<void*, std::shared_ptr<FontMgr>> g_fontMgrMap;
 static std::unordered_map<void*, std::shared_ptr<FontStyleSet>> g_fontStyleSetMap;
-static std::shared_ptr<ObjectMgr> objectMgr = ObjectMgr::GetInstance();
 
 static FontMgr* CastToFontMgr(OH_Drawing_FontMgr* drawingFontMgr)
 {
