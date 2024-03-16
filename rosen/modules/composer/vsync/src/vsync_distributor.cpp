@@ -27,9 +27,9 @@
 #include "vsync_generator.h"
 
 #ifdef COMPOSER_SCHED_ENABLE
-#include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
+#include "system_ability_definition.h"
 #endif
 
 namespace OHOS {
@@ -500,7 +500,7 @@ void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uin
 
 void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
 {
-    VLOGI("%{public}s", __func__);
+    VLOGD("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {

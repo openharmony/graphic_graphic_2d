@@ -24,9 +24,9 @@
 #include "vsync_log.h"
 
 #ifdef COMPOSER_SCHED_ENABLE
-#include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
+#include "system_ability_definition.h"
 #endif
 
 namespace OHOS {
@@ -410,7 +410,7 @@ VsyncError VSyncGenerator::UpdateReferenceTimeLocked(int64_t referenceTime)
 
 void VSyncGenerator::SubScribeSystemAbility()
 {
-    VLOGI("%{public}s", __func__);
+    VLOGD("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {

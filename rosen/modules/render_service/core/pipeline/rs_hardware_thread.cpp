@@ -95,14 +95,14 @@ void RSHardwareThread::Start()
     if (handler_) {
         ScheduleTask(
             [this]() {
-#ifdef RES_SCHED_ENABLE
-                SubScribeSystemAbility();
-#endif
                 auto screenManager = CreateOrGetScreenManager();
                 if (screenManager == nullptr || !screenManager->Init()) {
                     RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
                     return;
                 }
+#ifdef RES_SCHED_ENABLE
+                SubScribeSystemAbility();
+#endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
                 uniRenderEngine_->Init(true);
                 hardwareTid_ = gettid();
