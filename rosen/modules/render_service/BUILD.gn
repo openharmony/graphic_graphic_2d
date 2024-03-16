@@ -196,8 +196,7 @@ ohos_shared_library("librender_service") {
 
   if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
       use_rosen_drawing) {
-    deps +=
-        [
+    deps += [
           "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
           "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
         ]
@@ -209,6 +208,7 @@ ohos_shared_library("librender_service") {
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_archive.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_network.cpp",
@@ -216,12 +216,9 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_utils.cpp",
-      "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
     ]
   }
-  include_dirs += [
-    "$graphic_2d_root/rosen/modules/render_service_profiler"
-  ]
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
   public_deps = [
     "//third_party/libpng:libpng",
@@ -264,6 +261,7 @@ ohos_shared_library("librender_service") {
   }
 
   external_deps = [
+    "battery_manager:batterysrv_client",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
@@ -272,13 +270,12 @@ ohos_shared_library("librender_service") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
-    "hiview:libucollection_utility",
-    "battery_manager:batterysrv_client"
   ]
   if (use_video_processing_engine) {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
