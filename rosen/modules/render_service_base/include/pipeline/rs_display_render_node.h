@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <mutex>
+
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
 #include <iconsumer_surface.h>
@@ -29,6 +30,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
+#include "screen_manager/rs_screen_info.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "rs_render_surface.h"
 #else
@@ -238,7 +240,7 @@ public:
         return curAllSurfaces_;
     }
 
-    void UpdatePartialRenderParams();
+    void UpdatePartialRenderParams(ScreenInfo& screenInfo);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 

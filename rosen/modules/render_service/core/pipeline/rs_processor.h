@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSRcdSurfaceRenderNode;
+class RSDisplayRenderParams;
 class RSProcessor {
 public:
     RSProcessor() = default;
@@ -34,9 +35,8 @@ public:
 
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
-
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                      std::shared_ptr<RSBaseRenderEngine> renderEngine);
+        std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false);
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
     virtual void PostProcess(RSDisplayRenderNode* node = nullptr) = 0;
@@ -51,6 +51,7 @@ public:
     }
 
 protected:
+    bool InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirroredId, std::shared_ptr<RSBaseRenderEngine> renderEngine);
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
     void CalculateScreenTransformMatrix(const RSDisplayRenderNode& node);

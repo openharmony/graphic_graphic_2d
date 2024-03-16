@@ -29,9 +29,16 @@ public:
         return isPartialRenderEnabled_;
     }
 
+
+    bool IsRegionDebugEnabled()
+    {
+        return isRegionDebugEnabled_;
+    }
+
 private:
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
+    bool isRegionDebugEnabled_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isDirtyRegionDfxEnabled_ = false;
     bool isTargetDirtyRegionDfxEnabled_ = false;

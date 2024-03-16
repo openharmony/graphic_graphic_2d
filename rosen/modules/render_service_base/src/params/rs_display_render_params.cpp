@@ -38,7 +38,33 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         return;
     }
     targetDisplayParams->SetAllMainAndLeashSurfaces(allMainAndLeashSurfaces_);
+    targetDisplayParams->offsetX_ = offsetX_;
+    targetDisplayParams->offsetY_ = offsetY_;
+    targetDisplayParams->nodeRotation_ = nodeRotation_;
+    targetDisplayParams->screenRotation_ = screenRotation_;
+    targetDisplayParams->screenId_ = screenId_;
+    targetDisplayParams->mirroredId_ = mirroredId_;
+    targetDisplayParams->compositeType_ = compositeType_;
+    targetDisplayParams->mirrorSource_ = mirrorSource_;
+    targetDisplayParams->screenInfo_ = std::move(screenInfo_);
     RSRenderParams::OnSync(target);
+}
+
+std::string RSDisplayRenderParams::ToString() const
+{
+    std::string ret = RSRenderParams::ToString() + "\nRSDisplayRenderParams: {\n";
+    ret += RENDER_BASIC_PARAM_TO_STRING(offsetX_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(offsetY_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(int(nodeRotation_));
+    ret += RENDER_BASIC_PARAM_TO_STRING(int(screenRotation_));
+    ret += RENDER_BASIC_PARAM_TO_STRING(screenId_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(mirroredId_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(compositeType_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(allMainAndLeashSurfaces_.size());
+    // ret += RENDER_BASIC_PARAM_TO_STRING(mirrorSource_);
+    ret += RENDER_PARAM_TO_STRING(screenInfo_);
+    ret += "}";
+    return ret;
 }
 
 } // namespace OHOS::Rosen

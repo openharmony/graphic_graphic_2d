@@ -34,9 +34,9 @@ RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 }
 
 bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                std::shared_ptr<RSBaseRenderEngine> renderEngine)
+                                std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
         return false;
     }
     // In uni render mode, we can handle screen rotation in the rendering process,
@@ -44,7 +44,7 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
-    return uniComposerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_);
+    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
 }
 
 void RSUniRenderProcessor::PostProcess(RSDisplayRenderNode* node)

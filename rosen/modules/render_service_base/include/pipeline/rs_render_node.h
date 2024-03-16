@@ -472,6 +472,8 @@ public:
 
     void MarkParentNeedRegenerateChildren() const;
 
+    std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
+
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
 
     void UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
@@ -512,7 +514,7 @@ protected:
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
-    
+
     virtual void InitRenderParams();
     virtual void OnSync();
 
