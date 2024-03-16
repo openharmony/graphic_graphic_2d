@@ -494,7 +494,8 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
     }
 
     if (IsUniRender()) {
-        if (hasSecurityOrSkipLayer_) {
+        bool isCurtainScreenOn = RSMainThread::Instance()->IsCurtainScreenOn();
+        if (hasSecurityOrSkipLayer_ || isCurtainScreenOn) {
             RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
                 process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.", node.GetId());
 

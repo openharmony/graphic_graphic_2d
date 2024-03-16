@@ -524,6 +524,10 @@ private:
     std::vector<RectI> nodesUseEffectForDfx_;
     // pair<ApplyBackgroundEffectNodeList, ApplyBackgroundEffectFallbackNodeList>
     std::unordered_map<NodeId, std::pair<std::vector<RectI>, std::vector<RectI>>> effectNodeMapForDfx_;
+
+    // use for curtain screen
+    void DrawCurtainScreen();
+    bool isCurtainScreenOn_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

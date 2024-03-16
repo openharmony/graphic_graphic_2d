@@ -1153,5 +1153,13 @@ void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsin
         renderService->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
     }
 }
+
+void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

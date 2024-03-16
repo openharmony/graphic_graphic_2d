@@ -469,5 +469,9 @@ void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* conf
 void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 {
 }
+
+void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -270,6 +270,8 @@ public:
 
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    bool IsCurtainScreenOn() const;
     void NotifySurfaceCapProcFinish();
     void WaitUntilSurfaceCapProcFinished();
     void SetSurfaceCapProcFinished(bool flag);
@@ -554,6 +556,7 @@ private:
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
+    bool isCurtainScreenOn_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

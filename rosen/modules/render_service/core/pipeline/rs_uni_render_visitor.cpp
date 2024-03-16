@@ -77,6 +77,7 @@ constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
 constexpr int ROTATION_90 = 90;
 constexpr int ROTATION_270 = 270;
+constexpr int MAX_ALPHA = 255;
 constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -201,6 +202,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     isPc_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
+    isCurtainScreenOn_ = RSMainThread::Instance()->IsCurtainScreenOn();
 }
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
@@ -2329,7 +2331,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
         if (mirrorNode->GetSecurityDisplay() != isSecurityDisplay_ && processor &&
             (hasCaptureWindow_[mirrorNode->GetScreenId()] || displayHasSecSurface_[mirrorNode->GetScreenId()] ||
-            displayHasSkipSurface_[mirrorNode->GetScreenId()] || !screenInfo_.filteredAppSet.empty())) {
+            displayHasSkipSurface_[mirrorNode->GetScreenId()] || !screenInfo_.filteredAppSet.empty() ||
+            isCurtainScreenOn_)) {
             if (isPc_&& hasCaptureWindow_[mirrorNode->GetScreenId()]) {
                 processor->MirrorScenePerf();
             }
@@ -2404,6 +2407,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         ProcessChildren(node);
         DrawWatermarkIfNeed(node);
+        DrawCurtainScreen();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     } else if (drivenInfo_ && drivenInfo_->currDrivenRenderMode == DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode DrivenUniRenderMode is REUSE_WITH_CLIP_HOLE");
@@ -2664,6 +2668,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             ProcessUnpairedSharedTransitionNode();
         }
         DrawWatermarkIfNeed(node);
+        DrawCurtainScreen();
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
         if (isPartialRenderEnabled_) {
             if (isDirtyRegionDfxEnabled_) {
@@ -5011,6 +5016,20 @@ bool RSUniRenderVisitor::IsOutOfScreenRegion(RectI rect)
     }
 
     return false;
+}
+
+void RSUniRenderVisitor::DrawCurtainScreen()
+{
+    if (!isCurtainScreenOn_) {
+        return;
+    }
+    float screenWidth = static_cast<float>(screenInfo_.width);
+    float screenHeight = static_cast<float>(screenInfo_.height);
+    Drawing::Brush brush;
+    brush.SetARGB(MAX_ALPHA, 0, 0, 0); // not transparent black
+    canvas_->AttachBrush(brush);
+    canvas_->DrawRect(Drawing::Rect(0, 0, screenWidth, screenHeight));
+    canvas_->DetachBrush();
 }
 } // namespace Rosen
 } // namespace OHOS

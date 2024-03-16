@@ -1360,6 +1360,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
             break;
         }
+
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto isCurtainScreenOn = data.ReadBool();
+            SetCurtainScreenUsingStatus(isCurtainScreenOn);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
