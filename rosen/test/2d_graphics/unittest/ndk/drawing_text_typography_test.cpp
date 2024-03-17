@@ -1648,7 +1648,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest050, TestSize.Level
     EXPECT_EQ(strFeature != nullptr, true);
     OH_Drawing_DestroyFontFeature(strFeature);
     OH_Drawing_TextStyleClearFontFeature(txtStyle);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFeatureSize(txtStyle), 0);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 0);
     double lineShift = 1.5;
     OH_Drawing_TextStyleSetBaseLineShift(txtStyle, lineShift);
     EXPECT_EQ(OH_Drawing_TextStyleGetBaseLineShift(txtStyle), 1.5);
