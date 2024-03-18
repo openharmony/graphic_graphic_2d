@@ -15,6 +15,7 @@
 
 #include "drawable/rs_property_drawable_background.h"
 
+#include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -441,32 +442,50 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
 
 RSDrawable::Ptr RSDynamicLightUpDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSDynamicLightUpDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
+    const RSProperties& properties = node.GetRenderProperties();
+    if (!properties.IsDynamicLightUpValid()) {
+        return nullptr;
     }
-    return nullptr;
+
+    return std::make_shared<RSDynamicLightUpDrawable>(
+        properties.GetDynamicLightUpDegree().value(), properties.GetDynamicLightUpRate().value());
 };
 
 bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    if (properties.IsDynamicLightUpValid()) {
+    if (!properties.IsDynamicLightUpValid()) {
         return false;
     }
 
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    Drawing::Surface* surface = canvas.GetSurface();
-    if (surface == nullptr) {
-        ROSEN_LOGE("RSDynamicLightUpDrawable::OnUpdate surface is null");
-        return false;
-    }
-    auto blender = MakeDynamicLightUpBlender(properties.GetDynamicLightUpRate().value() * canvas.GetAlpha(),
-        properties.GetDynamicLightUpDegree().value() * canvas.GetAlpha());
-    Drawing::Brush brush;
-    brush.SetBlender(blender);
-    canvas.DrawBackground(brush);
+    stagingDynamicLightUpDeg_ = properties.GetDynamicLightUpDegree().value();
+    stagingDynamicLightUpRate_ = properties.GetDynamicLightUpRate().value();
+    needSync_ = true;
+
     return true;
+}
+
+void RSDynamicLightUpDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    dynamicLightUpRate_ = stagingDynamicLightUpRate_;
+    dynamicLightUpDeg_ = stagingDynamicLightUpDeg_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSDynamicLightUpDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        auto blender = MakeDynamicLightUpBlender(ptr->dynamicLightUpRate_ * paintFilterCanvas->GetAlpha(),
+            ptr->dynamicLightUpDeg_ * paintFilterCanvas->GetAlpha());
+        Drawing::Brush brush;
+        brush.SetBlender(blender);
+        paintFilterCanvas->DrawBackground(brush);
+    };
 }
 
 std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(

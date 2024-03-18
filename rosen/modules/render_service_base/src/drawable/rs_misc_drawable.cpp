@@ -276,4 +276,45 @@ Drawing::RecordingCanvas::DrawFunc RSEndBlendModeDrawable::CreateDrawFunc() cons
         RSPropertyDrawableUtils::EndBlendMode(*paintFilterCanvas);
     };
 }
+
+// ============================================================================
+// EnvFGColor
+RSDrawable::Ptr RSEnvFGColorDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSEnvFGColorDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+bool RSEnvFGColorDrawable::OnUpdate(const RSRenderNode& node)
+{
+    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto itr = drawCmdModifiers.find(RSModifierType::ENV_FOREGROUND_COLOR);
+    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
+        return false;
+    }
+    const auto & modifier = itr->second.back();
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(modifier->GetProperty());
+    stagingEnvFGColor_ = renderProperty->Get();
+    needSync_ = true;
+    return true;
+}
+void RSEnvFGColorDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    envFGColor_ = stagingEnvFGColor_;
+    needSync_ = false;
+}
+Drawing::RecordingCanvas::DrawFunc RSEnvFGColorDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSEnvFGColorDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        // TODO: implement alpha offscreen
+        paintFilterCanvas->SetEnvForegroundColor(ptr->envFGColor_);
+    };
+}
+
 } // namespace OHOS::Rosen

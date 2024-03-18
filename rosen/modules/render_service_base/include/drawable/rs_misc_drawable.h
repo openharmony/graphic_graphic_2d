@@ -148,6 +148,25 @@ protected:
 };
 
 // ============================================================================
+// EnvFGColor
+class RSEnvFGColorDrawable : public RSDrawable {
+public:
+    explicit RSEnvFGColorDrawable() = default;
+    ~RSEnvFGColorDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+protected:
+    bool needSync_ = false;
+    Color envFGColor_;
+    Color stagingEnvFGColor_;
+};
+
+// ============================================================================
 // Blend Mode
 class RSBeginBlendModeDrawable : public RSDrawable {
 public:

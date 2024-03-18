@@ -98,6 +98,7 @@ RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 {
     auto ret = std::make_shared<RSClipToBoundsDrawable>();
     ret->OnUpdate(node);
+    ret->OnSync();
     return std::move(ret);
 };
 
