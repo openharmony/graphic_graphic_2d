@@ -202,7 +202,7 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
     return lb.BreakLines(newSpans, tstyle, widthLimit, indents_);
 }
 
-std::vector<LineMetrics> Shaper::DoShape(const std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
+std::vector<LineMetrics> Shaper::DoShape(const std::vector<VariantSpan> &spans, const TypographyStyle &tstyle,
     const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
 #ifdef LOGGER_ENABLE_SCOPE
