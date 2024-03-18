@@ -26,6 +26,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "hgm_frame_rate_manager.h"
 #include "platform/common/rs_log.h"
@@ -184,7 +185,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         output->ReleaseLayers();
         RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
-
+        // TO-DO
+        RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();
         if (FrameReport::GetInstance().IsGameScene()) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();

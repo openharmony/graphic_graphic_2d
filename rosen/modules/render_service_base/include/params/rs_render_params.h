@@ -16,11 +16,15 @@
 #ifndef RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 
+#include "common/rs_common_def.h"
 #include "common/rs_rect.h"
 #include "property/rs_properties.h"
 #include "utils/matrix.h"
 
 namespace OHOS::Rosen {
+#define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string("param[") + #basicType + "]:" + std::to_string(basicType) + "\n")
+#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string("param[") + #rect + "]:" + rect.ToString() + "\n")
+#define RENDER_PARAM_TO_STRING(param) (std::string("param[") + #param + "]:" + param.ToString() + "\n")
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams() = default;
@@ -41,6 +45,11 @@ public:
     bool NeedSync() const;
     void SetNeedSync(bool needSync);
 
+    inline NodeId GetId() const
+    {
+        return id_;
+    }
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -48,10 +57,15 @@ public:
     RSRenderParams& operator=(RSRenderParams&&) = delete;
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target);
+
+    // dfx
+    virtual std::string ToString() const;
+
 protected:
     bool needSync_ = false;
 
 private:
+    NodeId id_;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
     // this rect should map display coordination

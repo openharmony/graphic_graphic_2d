@@ -1009,6 +1009,11 @@ const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
     return renderContent_;
 }
 
+std::unique_ptr<RSRenderParams>& RSRenderNode::GetStagingRenderParams()
+{
+    return stagingRenderParams_;
+}
+
 const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
 {
     return renderParams_;

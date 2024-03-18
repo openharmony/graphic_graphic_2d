@@ -47,6 +47,8 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     void Render();
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
+    void NotifyDisplayNodeBufferReleased();
+    bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply);
     bool GetClearMemoryFinished() const;
@@ -80,6 +82,12 @@ private:
     std::unique_ptr<RSRenderNodeDrawable> rootNodeDrawable_;
     std::vector<NodeId> curDrawStatusVec_;
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync from main thread
+
+    // used for blocking renderThread before displayNode has no freed buffer to request
+    mutable std::mutex displayNodeBufferReleasedMutex_;
+    bool displayNodeBufferReleased_ = false;
+    // used for stalling renderThread before displayNode has no freed buffer to request
+    std::condition_variable displayNodeBufferReleasedCond_;
 
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;

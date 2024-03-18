@@ -32,9 +32,10 @@ RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
 }
 
 bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                     std::shared_ptr<RSBaseRenderEngine> renderEngine)
+                                     std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    // TODO adapt isRenderThread
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
         return false;
     }
 

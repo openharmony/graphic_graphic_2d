@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_render_params.h"
+#include <string>
 
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
@@ -88,7 +89,17 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->SetMatrix(matrix_);
     target->SetBoundsRect(boundsRect_);
     target->shouldPaint_ = shouldPaint_;
+    target->id_ = id_;
     needSync_ = false;
+}
+
+std::string RSRenderParams::ToString() const
+{
+    std::string ret = "\nRSRenderParams:";
+    ret += RENDER_BASIC_PARAM_TO_STRING(id_);
+    ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);
+    return ret;
 }
 
 } // namespace OHOS::Rosen

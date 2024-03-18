@@ -29,9 +29,10 @@
 namespace OHOS {
 namespace Rosen {
 bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                       std::shared_ptr<RSBaseRenderEngine> renderEngine)
+                                       std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    // TO-DO adapt isRenderThread
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
         return false;
     }
 
@@ -219,13 +220,13 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
             std::swap(mainWidth_, mainHeight_);
         }
-        
+
         auto rotation = canvasRotation_ ? node.GetScreenRotation() : node.GetOriginScreenRotation();
         if (rotation == ScreenRotation::ROTATION_90 ||
             rotation == ScreenRotation::ROTATION_270) {
             std::swap(mainWidth_, mainHeight_);
         }
-        
+
         ScaleMirrorIfNeed(node);
         RotateMirrorCanvasIfNeed(node, canvasRotation_);
 

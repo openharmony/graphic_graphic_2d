@@ -32,6 +32,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_display_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -1154,6 +1155,14 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         RS_LOGE("RSUniRenderVisitor::QuickPrepareDisplayRenderNode InitDisplayInfo fail");
         return;
     }
+    RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
+    // todo: update rotation based on screenInfo
+    dirtyFlag_ = isDirty_ || node.IsRotationChanged();
+    needRecalculateOcclusion_ = false;
+    accumulatedOcclusionRegion_.Reset();
+    if (!curMainAndLeashWindowNodesIds_.empty()) {
+        std::queue<NodeId>().swap(curMainAndLeashWindowNodesIds_);
+    }
 
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
@@ -1163,7 +1172,9 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
 
     UpdateSurfaceDirtyAndGlobalDirty();
-    curDisplayNode_->UpdatePartialRenderParams();
+    curDisplayNode_->UpdatePartialRenderParams(screenInfo_);
+    std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
+
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
 }
@@ -1382,6 +1393,25 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     if (geoPtr->IsNeedClientCompose()) {
         isHardwareForcedDisabled_ = true;
     }
+
+    // 5. check compositeType
+    auto mirrorNode = node.GetMirrorSource().lock();
+    switch (screenInfo_.state) {
+        case ScreenState::PRODUCER_SURFACE_ENABLE:
+            node.SetCompositeType(mirrorNode ?
+                RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
+                RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+            break;
+        case ScreenState::HDI_OUTPUT_ENABLE:
+            node.SetCompositeType(node.IsForceSoftComposite() ?
+                RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE :
+                RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+            break;
+        default:
+            RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenState unsupported");
+            return false;
+    }
+
     return true;
 }
 
@@ -1466,7 +1496,7 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
             RS_OPTIONAL_TRACE_NAME_FMT("CheckMergeSurfaceDirtysForDisplay merge transparent dirty rect %s rect %s",
                 surfaceNode->GetName().c_str(), transparentDirtyRect.ToString().c_str());
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(transparentDirtyRect);
-        }           
+        }
     }
     if (surfaceNode->GetZorderChanged()) {
         // 2 Zorder changed case, merge surface dest Rect
@@ -1514,7 +1544,7 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
         if (!surfaceChangedRect.IsEmpty()) {
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(surfaceChangedRect);
         }
-    } 
+    }
 }
 
 void RSUniRenderVisitor::CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
@@ -4825,6 +4855,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
         return;
     }
     renderThreadParams->isPartialRenderEnabled_ = isPartialRenderEnabled_;
+    renderThreadParams->isRegionDebugEnabled_ = isRegionDebugEnabled_;
     renderThreadParams->isDirtyRegionDfxEnabled_ = isDirtyRegionDfxEnabled_;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = isDisplayDirtyDfxEnabled_;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = isOpaqueRegionDfxEnabled_;

@@ -215,6 +215,7 @@ private:
         DirtyRegionType dirtyType, bool isDrawn = true);
 
     bool InitDisplayInfo(RSDisplayRenderNode& node);
+
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();

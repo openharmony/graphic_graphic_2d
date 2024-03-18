@@ -16,10 +16,14 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_DISPLAY_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_DISPLAY_RENDER_NODE_DRAWABLE_H
 
+#include <memory>
+
+#include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_surface_handler.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
@@ -34,7 +38,7 @@ public:
 
 private:
     std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
-        std::shared_ptr<RSProcessor> processor, ScreenInfo& screenInfo) const;
+        RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor) const;
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

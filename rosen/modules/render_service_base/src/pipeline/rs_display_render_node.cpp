@@ -181,7 +181,7 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
    curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
-void RSDisplayRenderNode::UpdatePartialRenderParams()
+void RSDisplayRenderNode::UpdatePartialRenderParams(ScreenInfo& screenInfo)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
@@ -190,6 +190,15 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
     curMainAndLeashSurfaceNodes_.clear();
+
+    displayParams->screenId_ = GetScreenId();
+    displayParams->offsetX_ = GetDisplayOffsetX();
+    displayParams->offsetY_ = GetDisplayOffsetY();
+    displayParams->mirrorSource_ = GetMirrorSource();
+    displayParams->nodeRotation_ = GetRotation();
+    displayParams->screenRotation_ = GetScreenRotation();
+    displayParams->compositeType_ = GetCompositeType();
+    displayParams->screenInfo_ = std::move(screenInfo);
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

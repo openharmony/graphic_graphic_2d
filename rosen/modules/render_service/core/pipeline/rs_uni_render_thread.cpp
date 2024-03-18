@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "pipeline/rs_uni_render_thread.h"
+#include <memory>
 
 #include "rs_trace.h"
 #include "hgm_core.h"
@@ -21,6 +22,7 @@
 #include "include/core/SkGraphics.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
@@ -30,6 +32,7 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
+constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 };
 
 thread_local bool RSUniRenderThread::isInCaptureFlag_ = false;
@@ -135,6 +138,26 @@ void RSUniRenderThread::Render()
     Drawing::Canvas canvas;
     rootNodeDrawable_->OnDraw(canvas);
 }
+
+bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+{
+    std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
+    displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
+    if (surfaceHandler->GetConsumer()->QueryIfBufferAvailable()) {
+        return true;
+    }
+    return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(WAIT_FOR_RELEASED_BUFFER_TIMEOUT), [this]() { return displayNodeBufferReleased_; });
+}
+
+void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
+{
+    RS_TRACE_NAME("RSUniRenderThread::NotifyDisplayNodeBufferReleased");
+    std::lock_guard<std::mutex> lock(displayNodeBufferReleasedMutex_);
+    displayNodeBufferReleased_ = true;
+    displayNodeBufferReleasedCond_.notify_one();
+}
+
 
 bool RSUniRenderThread::GetClearMemoryFinished() const
 {
