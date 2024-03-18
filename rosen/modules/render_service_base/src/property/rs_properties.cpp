@@ -419,7 +419,6 @@ bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& p
     if (parentProperties && needParentOffset) {
         offset = Drawing::Point { parentProperties->GetFrameOffsetX(), parentProperties->GetFrameOffsetY() };
     }
-    CheckEmptyBounds();
     auto prevAbsMatrix = boundsGeo_->GetAbsMatrix();
     boundsGeo_->UpdateMatrix(parentGeo, offset, clipRect);
     return !(prevAbsMatrix == boundsGeo_->GetAbsMatrix());

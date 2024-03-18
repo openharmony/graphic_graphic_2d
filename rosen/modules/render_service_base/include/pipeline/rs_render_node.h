@@ -214,12 +214,12 @@ public:
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectI& GetSelfDrawRect() const;
-    const RectI& GetAbsRect() const;
+    const RectI& GetAbsDrawRect() const;
 
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty,
         std::optional<RectI> clipRect = std::nullopt);
-    // update node's abs draw region (including childrenRect)
-    void UpdateAbsDrawRect();
+    // update node's local draw region (based on node itself, including childrenRect)
+    void UpdateLocalDrawRect();
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt);
@@ -586,9 +586,9 @@ private:
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
 
-    void CollectAndUpdateAbsShadowRect();
-    void CollectAndUpdateAbsOutlineRect();
-    void CollectAndUpdateAbsPixelStretchRect();
+    void CollectAndUpdateLocalShadowRect();
+    void CollectAndUpdateLocalOutlineRect();
+    void CollectAndUpdateLocalPixelStretchRect();
     // update drawrect based on self's info
     void UpdateSelfDrawRect();
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect = std::nullopt);
@@ -678,9 +678,11 @@ private:
     bool geometryChangeNotPerceived_ = false;
     // including enlarged draw region
     RectI selfDrawRect_;
-    RectI absShadowRect_;
-    RectI absOutlineRect_;
-    RectI absPixelStretchRect_;
+    RectI localShadowRect_;
+    RectI localOutlineRect_;
+    RectI localPixelStretchRect_;
+    // map parentMatrix
+    RectI absDrawRect_;
 
     bool isTextureExportNode_ = false;
 

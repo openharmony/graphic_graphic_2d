@@ -36,8 +36,8 @@ public:
     virtual void SetBoundsRect(Drawing::RectF boundsRect);
     const Drawing::Rect GetBounds() const;
 
-    virtual void SetAbsDrawRect(RectI absDrawRect);
-    const RectI GetAbsDrawRect() const;
+    virtual void SetLocalDrawRect(RectI localDrawRect);
+    const RectI GetLocalDrawRect() const;
 
     bool GetShouldPaint() const;
     void SetShouldPaint(bool shouldPaint);
@@ -69,7 +69,7 @@ private:
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
     // this rect should map display coordination
-    RectI absDrawRect_;
+    RectI localDrawRect_;
     bool shouldPaint_;
 };
 } // namespace OHOS::Rosen

@@ -47,18 +47,18 @@ const Drawing::Rect RSRenderParams::GetBounds() const
     return boundsRect_;
 }
 
-void RSRenderParams::SetAbsDrawRect(RectI absDrawRect)
+void RSRenderParams::SetLocalDrawRect(RectI localDrawRect)
 {
-    if (absDrawRect_ == absDrawRect) {
+    if (localDrawRect_ == localDrawRect) {
         return;
     }
-    absDrawRect_ = absDrawRect;
+    localDrawRect_ = localDrawRect;
     needSync_ = true;
 }
 
-const RectI RSRenderParams::GetAbsDrawRect() const
+const RectI RSRenderParams::GetLocalDrawRect() const
 {
-    return absDrawRect_;
+    return localDrawRect_;
 }
 
 void RSRenderParams::SetShouldPaint(bool shouldPaint)
