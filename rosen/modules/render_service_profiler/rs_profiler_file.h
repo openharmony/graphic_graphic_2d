@@ -70,7 +70,7 @@ public:
     void SetWriteTime(double time);
     double GetWriteTime() const;
 
-    std::string& GetHeaderFirstFrame();
+    const std::string& GetHeaderFirstFrame() const;
     void AddHeaderFirstFrame(const std::string& dataFirstFrame);
 
     void AddHeaderPid(pid_t pid);

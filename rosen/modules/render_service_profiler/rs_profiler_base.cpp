@@ -52,10 +52,11 @@ static uint64_t g_pauseAfterTime = 0;
 static uint64_t g_pauseCumulativeTime = 0;
 static int64_t g_transactionTimeCorrection = 0;
 
+static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
+
 constexpr size_t GetParcelMaxCapacity()
 {
-    constexpr size_t parcelMaxCapacity = 234 * 1024 * 1024;
-    return parcelMaxCapacity;
+    return PARCEL_MAX_CAPACITY;
 }
 
 bool RSProfiler::IsEnabled()

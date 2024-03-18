@@ -603,7 +603,7 @@ bool RSFile::TrackEOF(LayerTrackPtr track, uint32_t layer) const
     return layerData.*track.index >= (layerData.*track.markup).size();
 }
 
-std::string& RSFile::GetHeaderFirstFrame()
+const std::string& RSFile::GetHeaderFirstFrame() const
 {
     return headerFirstFrame_;
 }

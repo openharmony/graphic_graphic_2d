@@ -19,7 +19,9 @@
 #include <fcntl.h>
 #include <filesystem>
 #include <sstream>
+#include <string>
 #include <unistd.h>
+#include "directory_ex.h"
 
 #ifndef REPLAY_TOOL_CLIENT
 #include "rs_profiler.h"
@@ -84,9 +86,14 @@ FILE* FileOpen(const std::string& path, const std::string& openOptions)
         g_recordInMemory.seekp(0);
         return g_recordInMemoryFile;
     }
-    auto file = fopen(path.c_str(), openOptions.c_str());
+    std::string newPath;
+    if (!PathToRealPath(path, newPath)) {
+        RS_LOGE("%s file is nullptr!", path.c_str());
+        return nullptr;
+    }
+    auto file = fopen(newPath.c_str(), openOptions.c_str());
     if (!IsFileValid(file)) {
-        RS_LOGE("Cant open file '%s'!", path.c_str()); // NOLINT
+        RS_LOGE("Cant open file '%s'!", newPath.c_str()); // NOLINT
     }
     return file;
 }
@@ -103,7 +110,7 @@ void FileClose(FILE* file)
 
 bool IsFileValid(FILE* file)
 {
-    return file;
+    return file != nullptr;
 }
 
 size_t FileSize(FILE* file)

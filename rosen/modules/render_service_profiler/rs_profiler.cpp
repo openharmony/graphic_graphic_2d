@@ -199,7 +199,7 @@ void RSProfiler::OnRecvParcel(const MessageParcel* parcel, RSTransactionData* da
 
 void RSProfiler::CreateMockConnection(pid_t pid)
 {
-    if (!IsEnabled()) {
+    if (!IsEnabled() || !g_renderService) {
         return;
     }
 
@@ -238,7 +238,7 @@ RSRenderServiceConnection* RSProfiler::GetConnection(pid_t pid)
 
 pid_t RSProfiler::GetConnectionPid(RSRenderServiceConnection* connection)
 {
-    if (!g_renderService) {
+    if (!g_renderService || !connection) {
         return 0;
     }
 
@@ -360,6 +360,9 @@ void RSProfiler::HiddenSpaceTurnOn()
 
     const auto& rootRenderNode = g_renderServiceContext->GetGlobalRootRenderNode();
     auto& children = rootRenderNode->GetChildren();
+    if (children.empty()) {
+        return;
+    }
     if (auto& displayNode = children.front()) {
         if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
             g_childOfDisplayNodes = displayNode->GetChildren();
@@ -378,6 +381,9 @@ void RSProfiler::HiddenSpaceTurnOff()
 {
     const auto& rootRenderNode = g_renderServiceContext->GetGlobalRootRenderNode();
     const auto& children = rootRenderNode->GetChildren();
+    if (children.empty()) {
+        return;
+    }
     if (auto& displayNode = children.front()) {
         displayNode->ClearChildren();
         for (const auto& child : g_childOfDisplayNodes) {
@@ -549,7 +555,9 @@ void RSProfiler::DumpConnections(const ArgList& args)
             out += " ";
             out += content;
         }
-
+        if (Utils::IsFileValid(file)) {
+            Utils::FileClose(file);
+        }
         out += "\n";
     }
     Respond(out);
