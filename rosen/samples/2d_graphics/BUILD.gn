@@ -199,9 +199,7 @@ ohos_executable("drawing_sample_replayer") {
     "-Wno-error=deprecated-declarations",
   ]
 
-  sources = [
-    "drawing_sample_replayer.cpp",
-  ]
+  sources = [ "drawing_sample_replayer.cpp" ]
 
   include_dirs = [
     "include",
