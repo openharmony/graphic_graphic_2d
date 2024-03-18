@@ -1453,8 +1453,10 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
 void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
 {
     auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
+    // this is used to record mainAndLeash surface accumulatedDirtyRegion by Pre-order traversal
+    Occlusion::Region accumulatedDirtyRegion;
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
-        [this](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this, &accumulatedDirtyRegion](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         auto dirtyManager = surfaceNode->GetDirtyManager();
@@ -1470,7 +1472,10 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
         // 3. check surface node's transparent dirtyrect need merge into displayDirtyManager
         CheckMergeTransparentDirtysForDisplay(surfaceNode);
+        // 4. check filter node need merge into displayDirtyManager
+        CheckMergeTransparentFilterForDisplay(surfaceNode, accumulatedDirtyRegion);
     });
+    CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
 }
@@ -1581,29 +1586,81 @@ void RSUniRenderVisitor::CheckMergeTransparentDirtysForDisplay(std::shared_ptr<R
     }
 }
 
-void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
+void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
+    std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    Occlusion::Region& accumulatedDirtyRegion)
 {
-    if (node.GetRenderProperties().NeedFilter()) {
-        auto curDirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-        auto globalFilterRect = RectI();
-        if (curSurfaceNode_ && curSurfaceNode_->IsTransparent()) {
-            if (auto geoPtr = node.GetRenderProperties().GetBoundsGeometry()) {
-                // since node's geoMatrix matches surfaceNode after update, map again to display
-                globalFilterRect = geoPtr->MapAbsRect(node.GetOldDirtyInSurface().ConvertTo<float>());
-                globalFilterRects_.emplace_back(globalFilterRect);
-            }
-        } else if (!curSurfaceNode_) {
-            globalFilterRect = node.GetOldDirtyInSurface();
-            globalFilterRects_.emplace_back(globalFilterRect);
-        }
-        if (curDirtyManager) {
-            if (curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(node.GetOldDirtyInSurface())) {
-                curDirtyManager->MergeDirtyRect(node.GetOldDirtyInSurface());
-            } else if (!globalFilterRect.IsEmpty()) {
-                globalCleanFilter_[node.GetId()] = {globalFilterRect, curDirtyManager};
+    if (surfaceNode->IsMainWindowType() && surfaceNode->GetVisibleRegion().IsEmpty()) {
+        RS_LOGD("RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay surface:%{public}s "
+            "which is occluded don't need to process filter", surfaceNode->GetName().c_str());
+        return;
+    }
+    auto filterVecIter = transparentCleanFilter_.find(surfaceNode->GetId());
+    if (filterVecIter != transparentCleanFilter_.end()) {
+        RS_LOGD("RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay surface:%{public}s "
+            "has transparentCleanFilter", surfaceNode->GetName().c_str());
+        // check accumulatedDirtyRegion influence filter nodes which in the current surface 
+        for (auto it = filterVecIter->second.begin(); it != filterVecIter->second.end(); ++it) {
+            auto filterRegion = Occlusion::Region{ Occlusion::Rect{ *it } };
+            auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
+            if (!filterDirtyRegion.IsEmpty()) {     
+                const auto& rect = filterDirtyRegion.GetBoundRef();  
+                curDisplayNode_->GetDirtyManager()->MergeDirtyRect(
+                RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });       
+            } else {
+                globalFilter_.insert(*it);
             }
         }
     }
+    auto surfaceDirtyRegion = Occlusion::Region{
+        Occlusion::Rect{ surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion() } };
+    accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
+}
+
+void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion)
+{
+    // [planning] if not allowed containerNode filter, The following processing logic can be removed
+    // Recursively traverses container nodes need filter
+    for (auto it = containerFilter_.begin(); it != containerFilter_.end(); ++it) {
+        auto filterRegion = Occlusion::Region{ Occlusion::Rect{ *it } };
+        auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
+        if (!filterDirtyRegion.IsEmpty()) {
+            const auto& rect = filterDirtyRegion.GetBoundRef();
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(
+                RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+        } else {
+            globalFilter_.insert(*it);
+        }
+    }
+
+    // Recursively traverses until the globalDirty do not change
+    for (auto it = globalFilter_.begin(); it != globalFilter_.end();) {
+        auto lastGlobalDirtyRect = curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion();
+        auto filterRegion = Occlusion::Region{ Occlusion::Rect{ *it } };
+        auto lastGlobalDirtyRegion = Occlusion::Region{ Occlusion::Rect{ lastGlobalDirtyRect } };
+        auto filterDirtyRegion = filterRegion.And(lastGlobalDirtyRegion);
+        if (!filterDirtyRegion.IsEmpty()) {
+            const auto& rect = filterDirtyRegion.GetBoundRef();
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(
+                RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+            it = globalFilter_.erase(it);
+            if (lastGlobalDirtyRect != curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion()) {
+                // When DisplayDirtyRegion is changed, collect dirty filter region from begin.
+                // After all filter region is added, the cycle will definitely stop.
+                it = globalFilter_.begin();
+            }
+        } else {
+            ++it;
+        }
+    }
+}
+
+void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
+{
+    if (node.GetRenderProperties().NeedFilter()) {
+        UpdateDirtysAndRedordInfoByFilter(node);
+    }
+
     if (auto nodeParent = node.GetParent().lock()) {
         if (node.GetRenderProperties().NeedFilter() || node.ChildHasVisibleFilter()) {
             nodeParent->SetChildHasVisibleFilter(true);
@@ -1618,6 +1675,38 @@ void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
         node.UpdateAbsDrawRect(nullptr);
     } else {
         node.UpdateAbsDrawRect(curSurfaceNode_);
+    }
+}
+
+void RSUniRenderVisitor::UpdateDirtysAndRedordInfoByFilter(RSRenderNode& node)
+{
+    auto curDirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
+    auto globalFilterRect = node.GetOldDirtyInSurface();
+    if (curSurfaceNode_) {
+        if (auto geoPtr = node.GetRenderProperties().GetBoundsGeometry()) {
+            // since node's geoMatrix matches surfaceNode after update, map again to display
+            globalFilterRect = geoPtr->MapAbsRect(globalFilterRect.ConvertTo<float>());
+        }
+        bool isIntersect = curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
+        if (isIntersect) {
+            curDirtyManager->MergeDirtyRect(globalFilterRect);  
+        }
+        if (curSurfaceNode_->IsTransparent()) {
+            globalFilterRects_.emplace_back(globalFilterRect);
+            if (isIntersect) {
+                curDisplayDirtyManager_->MergeDirtyRect(globalFilterRect);
+            } else {
+                // record nodes which has transparent clean filter
+                transparentCleanFilter_[curSurfaceNode_->GetId()].push_back(globalFilterRect);
+            }
+        } else {
+            // record surface nodes and nodes in surface which has clean filter
+            globalFilter_.insert(globalFilterRect);
+        }
+    } else {
+        globalFilterRects_.emplace_back(globalFilterRect);
+        // record container nodes which need filter
+        containerFilter_.insert(globalFilterRect);  
     }
 }
 
