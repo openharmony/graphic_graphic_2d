@@ -1155,14 +1155,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         RS_LOGE("RSUniRenderVisitor::QuickPrepareDisplayRenderNode InitDisplayInfo fail");
         return;
     }
-    RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
-    // todo: update rotation based on screenInfo
-    dirtyFlag_ = isDirty_ || node.IsRotationChanged();
-    needRecalculateOcclusion_ = false;
-    accumulatedOcclusionRegion_.Reset();
-    if (!curMainAndLeashWindowNodesIds_.empty()) {
-        std::queue<NodeId>().swap(curMainAndLeashWindowNodesIds_);
-    }
 
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
@@ -1173,8 +1165,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
 
     UpdateSurfaceDirtyAndGlobalDirty();
     curDisplayNode_->UpdatePartialRenderParams(screenInfo_);
-    std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
-
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
 }
