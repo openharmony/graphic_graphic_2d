@@ -64,7 +64,7 @@ void RSJankStats::SetStartTime()
     isFirstSetStart_ = false;
 }
 
-void RSJankStats::SetEndTime(bool discardJankFrames)
+void RSJankStats::SetEndTime(bool discardJankFrames, uint32_t dynamicRefreshRate)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (startTime_ == TIMESTAMP_INITIAL || startTimeSteady_ == TIMESTAMP_INITIAL) {
@@ -83,19 +83,19 @@ void RSJankStats::SetEndTime(bool discardJankFrames)
             ReportEventResponse(jankFrames);
             jankFrames.isUpdateJankFrame_ = true;
         }
-        // do not consider jank frame at the first frame of explicit/implicit animation
-        // do not consider jank frame at the end frame of implicit animation
-        // do not consider jank frame when isSkipDisplayNode_ is true in explicit animation
+        // do not consider jank frame 1) at the first frame of explicit/implicit animation; 2) at the end frame of
+        // implicit animation; 3) when isSkipDisplayNode_ is true in explicit animation
         if (jankFrames.isUpdateJankFrame_ && !jankFrames.isFirstFrame_ && !(!jankFrames.isDisplayAnimator_ &&
             (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_)) &&
             !(jankFrames.isDisplayAnimator_ && isSkipDisplayNode_)) {
-            UpdateJankFrame(jankFrames);
+            UpdateJankFrame(jankFrames, dynamicRefreshRate);
         }
         if (jankFrames.isReportEventComplete_) {
             ReportEventComplete(jankFrames);
         }
         if (jankFrames.isReportEventJankFrame_) {
             ReportEventJankFrame(jankFrames, false);
+            ReportEventHitchTimeRatio(jankFrames, false);
         }
         if (jankFrames.isReportEventResponse_ && !jankFrames.isAnimationEnded_) {
             SetAnimationTraceBegin(animationId, jankFrames);
@@ -175,8 +175,11 @@ void RSJankStats::SetRSJankStats()
     }
 }
 
-void RSJankStats::UpdateJankFrame(JankFrames& jankFrames)
+void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefreshRate)
 {
+    if (jankFrames.startTime_ == TIMESTAMP_INITIAL) {
+        jankFrames.startTime_ = startTime_;
+    }
     if (jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL) {
         jankFrames.startTimeSteady_ = startTimeSteady_;
     }
@@ -205,6 +208,21 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames)
     } else {
         jankFrames.seqMissedFrames_ = 0;
     }
+
+    // hitch time ratio
+    jankFrames.lastTotalHitchTimeSteady_ = jankFrames.totalHitchTimeSteady_;
+    jankFrames.lastTotalFrameTimeSteadyForHTR_ = jankFrames.totalFrameTimeSteadyForHTR_;
+    if (dynamicRefreshRate == 0) {
+        dynamicRefreshRate = STANDARD_REFRESH_RATE;
+    }
+    const float standardFrameTime = S_TO_MS / dynamicRefreshRate;
+    const int64_t frameTimeForHTR = endTimeSteady_ - startTimeSteady_;
+    const float frameHitchTime = std::max<float>(0.f, frameTimeForHTR - standardFrameTime);
+    const bool isCalculateOnVsyncTimeForHTR = jankFrames.isFirstFrame_ || isFirstSetEnd_;
+    const int64_t frameDurationForHTR =
+        (isCalculateOnVsyncTimeForHTR ? frameTimeForHTR : (endTimeSteady_ - lastEndTimeSteady_));
+    jankFrames.totalHitchTimeSteady_ += frameHitchTime;
+    jankFrames.totalFrameTimeSteadyForHTR_ += frameDurationForHTR;
 }
 
 void RSJankStats::ReportJankStats()
@@ -315,6 +333,7 @@ void RSJankStats::HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bo
     }
     if (jankFrames.isSetReportEventJankFrame_) {
         ReportEventJankFrame(jankFrames, isReportTaskDelayed);
+        ReportEventHitchTimeRatio(jankFrames, isReportTaskDelayed);
     }
     if (jankFrames.isSetReportEventJankFrame_) {
         RecordAnimationDynamicFrameRate(jankFrames, isReportTaskDelayed);
@@ -413,6 +432,47 @@ void RSJankStats::ReportEventJankFrame(const JankFrames& jankFrames, bool isRepo
             jankFrames.lastMaxFrameTimeSteady_), "AVERAGE_FRAMETIME", aveFrameTimeSteady,
             "MAX_SEQ_MISSED_FRAMES", jankFrames.lastMaxSeqMissedFrames_, "IS_FOLD_DISP", IS_FOLD_DISP,
             "BUNDLE_NAME_EX", info.note);
+    }
+}
+
+void RSJankStats::ReportEventHitchTimeRatio(const JankFrames& jankFrames, bool isReportTaskDelayed) const
+{
+    auto reportName = "INTERACTION_HITCH_TIME_RATIO";
+    const auto &info = jankFrames.info_;
+    int64_t beginVsyncTime = ConvertTimeToSystime(info.beginVsyncTime);
+    if (!isReportTaskDelayed) {
+        if (jankFrames.totalFrameTimeSteadyForHTR_ <= 0) {
+            ROSEN_LOGD("RSJankStats::ReportEventHitchTimeRatio duration is zero, nothing need to report");
+            return;
+        }
+        float hitchTimeRatio = jankFrames.totalHitchTimeSteady_ / (jankFrames.totalFrameTimeSteadyForHTR_ / S_TO_MS);
+        RS_TRACE_NAME_FMT("RSJankStats::ReportEventHitchTimeRatio hitch time ratio is %g ms/s: %s",
+                          hitchTimeRatio, GetSceneDescription(info).c_str());
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
+            "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
+            "PAGE_URL", info.pageUrl, "UI_START_TIME", static_cast<uint64_t>(beginVsyncTime),
+            "RS_START_TIME", static_cast<uint64_t>(jankFrames.startTime_), "DURATION",
+            static_cast<uint64_t>(jankFrames.totalFrameTimeSteadyForHTR_), "HITCH_TIME",
+            static_cast<uint64_t>(jankFrames.totalHitchTimeSteady_), "HITCH_TIME_RATIO", hitchTimeRatio,
+            "IS_FOLD_DISP", IS_FOLD_DISP, "BUNDLE_NAME_EX", info.note);
+    } else {
+        if (jankFrames.lastTotalFrameTimeSteadyForHTR_ <= 0) {
+            ROSEN_LOGD("RSJankStats::ReportEventHitchTimeRatio duration is zero, nothing need to report");
+            return;
+        }
+        float hitchTimeRatio =
+            jankFrames.lastTotalHitchTimeSteady_ / (jankFrames.lastTotalFrameTimeSteadyForHTR_ / S_TO_MS);
+        RS_TRACE_NAME_FMT("RSJankStats::ReportEventHitchTimeRatio hitch time ratio is %g ms/s: %s",
+                          hitchTimeRatio, GetSceneDescription(info).c_str());
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
+            "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
+            "PAGE_URL", info.pageUrl, "UI_START_TIME", static_cast<uint64_t>(beginVsyncTime),
+            "RS_START_TIME", static_cast<uint64_t>(jankFrames.startTime_), "DURATION",
+            static_cast<uint64_t>(jankFrames.lastTotalFrameTimeSteadyForHTR_), "HITCH_TIME",
+            static_cast<uint64_t>(jankFrames.lastTotalHitchTimeSteady_), "HITCH_TIME_RATIO", hitchTimeRatio,
+            "IS_FOLD_DISP", IS_FOLD_DISP, "BUNDLE_NAME_EX", info.note);
     }
 }
 
