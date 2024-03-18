@@ -419,6 +419,8 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread001, Function | SmallTest | L
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
 
     auto mainThread = RSMainThread::Instance();
@@ -440,6 +442,8 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread002, Function | SmallTest | L
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
     surfaceNode->SetHasSharedTransitionNode(true);
     
@@ -463,6 +467,8 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread003, Function | SmallTest | L
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
     surfaceNode->SetHasSharedTransitionNode(false);
     
@@ -473,5 +479,50 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread003, Function | SmallTest | L
         ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()),
             surfaceNode->QuerySubAssignable(displayNode->IsRotationChanged()));
     }
+}
+
+/*
+ * @tc.name: IsNodeAssignSubThread004
+ * @tc.desc: test IsNodeAssignSubThread for self drawing node & self drawing window node
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread004, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
+    auto selfDrawingWindowNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(selfDrawingNode, nullptr);
+    ASSERT_NE(selfDrawingWindowNode, nullptr);
+    displayNode->AddChild(selfDrawingNode);
+    displayNode->AddChild(selfDrawingWindowNode);
+    selfDrawingNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    selfDrawingWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE);
+    
+    ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(selfDrawingNode, displayNode->IsRotationChanged()), false);
+    ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(selfDrawingWindowNode, displayNode->IsRotationChanged()), false);
+}
+
+/*
+ * @tc.name: IsNodeAssignSubThread005
+ * @tc.desc: test IsNodeAssignSubThread while cache is waiting for process
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread005, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->AddChild(surfaceNode);
+    surfaceNode->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+    
+    ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()), false);
 }
 } // namespace OHOS::Rosen
