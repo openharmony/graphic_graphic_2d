@@ -218,8 +218,10 @@ private:
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
-    void CheckMergeSurfaceDirtysForDisplay(
-        std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, RectI& dirtyRect) const;
+
+    void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+    void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
