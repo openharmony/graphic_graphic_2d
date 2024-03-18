@@ -80,7 +80,8 @@
           "sensor",
           "qos_manager",
           "video_processing_engine",
-          "vulkan-headers"
+          "vulkan-headers",
+          "input"
         ],
         "third_party": [
           "flutter",
