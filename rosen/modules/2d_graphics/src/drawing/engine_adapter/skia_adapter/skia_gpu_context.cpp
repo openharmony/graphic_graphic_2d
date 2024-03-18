@@ -104,7 +104,8 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 #ifdef RS_ENABLE_VK
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
     InitSkExecutor();
@@ -116,7 +117,8 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
 
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
     if (options.GetPersistentCache() != nullptr) {

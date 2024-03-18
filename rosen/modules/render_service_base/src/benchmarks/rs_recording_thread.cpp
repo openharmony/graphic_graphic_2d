@@ -69,7 +69,8 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         Drawing::GPUContextOptions options;
         auto handler = std::make_shared<MemoryHandler>();
         std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();

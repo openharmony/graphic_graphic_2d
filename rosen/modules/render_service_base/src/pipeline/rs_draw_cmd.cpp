@@ -42,7 +42,8 @@ constexpr int32_t CORNER_SIZE = 4;
 #ifdef RS_ENABLE_VK
 Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
-    if (!RSSystemProperties::IsUseVukan()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return Drawing::COLORTYPE_RGBA_8888;
     }
     switch (vkFormat) {
@@ -117,7 +118,8 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
         }
 #endif
 #if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::IsUseVukan()) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()))) {
                 rsImage_->SetDmaImage(image_);
             }
@@ -234,7 +236,8 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer)
 {
-    if (!RSSystemProperties::IsUseVukan()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
     if (surfaceBuffer == nullptr) {
@@ -300,7 +303,8 @@ RSExtendImageObject::~RSExtendImageObject()
     }
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::IsUseVukan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
             cleanupHelper = cleanUpHelper_]() {
             if (nativeWindowBuffer != nullptr) {
@@ -639,7 +643,8 @@ void DrawSurfaceBufferOpItem::Clear()
 void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 {
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         DrawWithVulkan(canvas);
         return;
     }

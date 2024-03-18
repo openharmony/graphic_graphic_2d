@@ -130,7 +130,8 @@ RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
         glRect = dirtyRegion_;
     }
 
-    if (!RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         // left-top to left-bottom corner(in current surface)
         glRect.top_ = surfaceRect_.height_ - glRect.top_ - glRect.height_;
     }
@@ -141,7 +142,8 @@ RectI RSDirtyRegionManager::GetRectFlipWithinSurface(const RectI& rect) const
 {
     RectI glRect = rect;
 
-    if (!RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         // left-top to left-bottom corner(in current surface)
         glRect.top_ = surfaceRect_.height_ - rect.top_ - rect.height_;
     }

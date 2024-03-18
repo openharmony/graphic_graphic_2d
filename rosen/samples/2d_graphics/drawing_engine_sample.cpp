@@ -214,7 +214,8 @@ SurfaceError DrawingEngineSample::DoDraw()
     std::unique_ptr<SurfaceFrame> surfaceFrame;
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         // For skia and DDGR by Nativewindow
         surfaceFrame = surface_->NativeRequestFrame(drawingWidth, drawingHeight);
         if (surfaceFrame == nullptr) {
@@ -232,7 +233,8 @@ SurfaceError DrawingEngineSample::DoDraw()
     Drawing::Canvas* drcanvas = surface_->GetCanvas(surfaceFrame);
     ExcuteBenchMark(drcanvas);
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         // For skia and DDGR by Nativewindow
         surface_->NativeFlushFrame(surfaceFrame);
     } else {

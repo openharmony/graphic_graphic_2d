@@ -99,7 +99,8 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* 
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -115,7 +116,8 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendTexture(GPUContext* gpuCo
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
 #ifdef ENABLE_DDGR_OPTIMIZE

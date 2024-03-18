@@ -245,7 +245,8 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
         }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         renderContext_->SetUpGpuContext(nullptr);
     }
 #endif

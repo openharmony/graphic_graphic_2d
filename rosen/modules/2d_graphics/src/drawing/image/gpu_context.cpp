@@ -34,7 +34,8 @@ bool GPUContext::BuildFromGL(const GPUContextOptions& options)
 #ifdef RS_ENABLE_VK
 bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
     return impl_->BuildFromVK(context);
@@ -42,7 +43,8 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
 
 bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
     return impl_->BuildFromVK(context, options);

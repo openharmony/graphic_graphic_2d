@@ -357,7 +357,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqsVK;
@@ -466,7 +467,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
 #endif
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::IsUseVulkan()) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                 Drawing::ColorType colorType = GetColorTypeFromBufferFormat(params.buffer->GetFormat());
                 auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
                     params.buffer, params.acquireFence);
@@ -544,7 +546,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     renderFrame->Flush();
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         imageCacheSeqsVK.clear();
     }
 #endif
