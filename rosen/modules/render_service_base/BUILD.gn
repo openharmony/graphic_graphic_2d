@@ -470,6 +470,8 @@ ohos_source_set("render_service_base_src") {
 
 config("render_service_base_all_deps_config") {
   include_dirs = [ "include" ]
+  cflags_cc = [ "-Wno-implicit-function-declaration" ]
+  cflags_c = [ "-Wno-implicit-function-declaration" ]
 }
 
 config("render_service_base_link_config") {
