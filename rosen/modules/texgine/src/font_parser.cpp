@@ -340,7 +340,7 @@ std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts(const std
 
 class SystemFont {
 public:
-    SystemFont(const char* fPath = SYSTEM_FONT_PATH)
+    explicit SystemFont(const char* fPath = SYSTEM_FONT_PATH)
     {
         ParseConfig(fPath);
     }

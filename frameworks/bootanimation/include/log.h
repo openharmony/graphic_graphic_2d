@@ -29,13 +29,22 @@ namespace OHOS {
 #define BPUBU64  "%{public}llu"
 #endif
 
-static OHOS::HiviewDFX::HiLogLabel label_boot = { LOG_CORE, 0xD001400, "BootAnimation" };
-#define LOGD(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
-#define LOGI(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
-#define LOGW(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
-#define LOGE(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
-#define LOGPRINT(func, fmt, ...) func(label_boot, \
-    "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
+#undef LOG_TAG
+#define LOG_TAG "BootAnimation"
+
+#define LOGI(format, ...) \
+    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGD(format, ...) \
+    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGE(format, ...) \
+    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGW(format, ...) \
+    HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
+#define LOGF(format, ...) \
+    HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_LOG_H

@@ -823,7 +823,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
     }
 }
 
-void HgmFrameRateManager::HandleTempEvent(std::string tempEventName, bool eventStatus, uint32_t min, uint32_t max)
+void HgmFrameRateManager::HandleTempEvent(
+    const std::string& tempEventName, bool eventStatus, uint32_t min, uint32_t max)
 {
     RS_TRACE_NAME_FMT("HandleTempEvent TempEvent:%s, status:%u, value:[%d-%d]",
         tempEventName.c_str(), eventStatus, min, max);

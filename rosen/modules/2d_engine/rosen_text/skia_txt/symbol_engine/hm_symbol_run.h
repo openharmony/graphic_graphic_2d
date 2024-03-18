@@ -36,7 +36,7 @@ public:
 
     RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
 
-    void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
+    static void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
         const std::vector<RSSColor>& colors, RSSymbolLayers& symbolInfo);
     
     bool GetAnimationGroups(const uint32_t glyphid, const RSEffectStrategy effectStrategy,

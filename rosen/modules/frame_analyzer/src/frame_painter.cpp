@@ -23,9 +23,13 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "FramePainter" };
-} // namespace
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 1400
+
+#undef LOG_TAG
+#define LOG_TAG "FramePainter"
+#define LOGW(fmt, ...) HILOG_WARN(LOG_CORE, fmt, ##__VA_ARGS__)
+#define LOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
 
 FramePainter::FramePainter(FrameCollector &collector) : collector_(collector)
 {
@@ -39,7 +43,7 @@ void FramePainter::Draw(Drawing::Canvas &canvas)
 
     auto width = canvas.GetWidth();
     auto height = canvas.GetHeight();
-    ::OHOS::HiviewDFX::HiLog::Debug(LABEL, "FramePainter::Draw %{public}dx%{public}d", width, height);
+    LOGD("FramePainter::Draw %{public}dx%{public}d", width, height);
 
     constexpr auto normalFPS = 60;
     constexpr auto slowFPS = normalFPS / 2;
@@ -116,7 +120,7 @@ std::vector<struct FramePainter::TimeBar> FramePainter::GenerateTimeBars(
             constexpr double nanosecondsToMilliseconds = 1e6;
             double diffMs = (rit->times[i + 1] - rit->times[i]) / nanosecondsToMilliseconds;
             if (diffMs < 0) {
-                ::OHOS::HiviewDFX::HiLog::Warn(LABEL, "FramePainter::Draw %{public}zu range is negative", i);
+                LOGW("FramePainter::Draw %{public}zu range is negative", i);
                 continue;
             } else if (diffMs == 0) {
                 continue;

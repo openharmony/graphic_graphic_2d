@@ -20,17 +20,17 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
 // The "0xD001400" is the domain ID for graphic module that allocated by the OS.
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "RSWindowAnimation" };
-}
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 1404
 
-#define ___WALOG(func, fmt, ...) func(LABEL, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#undef LOG_TAG
+#define LOG_TAG "RSWindowAnimation"
 
-#define WALOGD(fmt, ...) ___WALOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
-#define WALOGI(fmt, ...) ___WALOG(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
-#define WALOGW(fmt, ...) ___WALOG(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
-#define WALOGE(fmt, ...) ___WALOG(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
+#define WALOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
+#define WALOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
+#define WALOGW(fmt, ...) HILOG_WARN(LOG_CORE, fmt, ##__VA_ARGS__)
+#define WALOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 } // namespace Rosen
 } // namespace OHOS
 
