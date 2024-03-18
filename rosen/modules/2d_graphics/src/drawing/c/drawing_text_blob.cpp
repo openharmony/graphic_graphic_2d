@@ -131,8 +131,8 @@ void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rec
 const OH_Drawing_RunBuffer* OH_Drawing_TextBlobBuilderAllocRunPos(OH_Drawing_TextBlobBuilder* cTextBlobBuilder,
     const OH_Drawing_Font* cFont, int32_t count, const OH_Drawing_Rect* cRect)
 {
-    if (cFont == nullptr || count < 0) {
-        LOGE("cFont is nullptr or count < 0");
+    if (cFont == nullptr || count <= 0) {
+        LOGE("cFont is nullptr or count <= 0");
         return nullptr;
     }
     TextBlobBuilder* textBlobBuilder = CastToTextBlobBuilder(cTextBlobBuilder);
