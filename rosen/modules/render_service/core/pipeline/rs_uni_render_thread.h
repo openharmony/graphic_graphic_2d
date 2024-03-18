@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_PIPELINE_RS_UNI_RENDER_THREAD_H
 
 #include <memory>
+#include <string>
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
@@ -57,6 +58,7 @@ public:
     ClearMemoryMoment GetClearMoment() const;
     uint32_t GetRefreshRate() const;
     void DumpMem(DfxString& log);
+    void TrimMem(std::string& dumpString, std::string& type);
 
     std::vector<NodeId>& GetDrawStatusVec()
     {

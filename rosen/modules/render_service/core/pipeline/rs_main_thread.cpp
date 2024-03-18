@@ -2356,51 +2356,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
     if (!argSets.empty()) {
         type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
     }
-#ifdef NEW_RENDER_CONTEXT
-    auto gpuContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
-#else
-    auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-#endif
-    if (type.empty()) {
-        gpuContext->Flush();
-        SkGraphics::PurgeAllCaches();
-        gpuContext->FreeGpuResources();
-        gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-        MemoryHandler::ClearShader();
-#else
-        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-        rendercontext->CleanAllShaderCache();
-#endif
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "cpu") {
-        gpuContext->Flush();
-        SkGraphics::PurgeAllCaches();
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "gpu") {
-        gpuContext->Flush();
-        gpuContext->FreeGpuResources();
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "uihidden") {
-        gpuContext->Flush();
-        gpuContext->PurgeUnlockAndSafeCacheGpuResources();
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "shader") {
-#ifdef NEW_RENDER_CONTEXT
-        MemoryHandler::ClearShader();
-#else
-        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-        rendercontext->CleanAllShaderCache();
-#endif
-    } else if (type == "flushcache") {
-        int ret = mallopt(M_FLUSH_THREAD_CACHE, 0);
-        dumpString.append("flushcache " + std::to_string(ret) + "\n");
-    } else {
-        uint32_t pid = static_cast<uint32_t>(std::stoll(type));
-        Drawing::GPUResourceTag tag(pid, 0, 0, 0);
-        MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
-    }
-    dumpString.append("trimMem: " + type + "\n");
+    RSUniRenderThread::Instance().TrimMem(dumpString, type);
 #endif
 }
 

@@ -15,6 +15,7 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include <memory>
 
+#include <malloc.h>
 #include "rs_trace.h"
 #include "hgm_core.h"
 
@@ -193,6 +194,58 @@ uint32_t RSUniRenderThread::GetRefreshRate() const
         return 60; // The default refreshrate is 60
     }
     return HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
+}
+
+void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
+{
+    auto task = [this, &dumpString, &type] {
+        auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (type.empty()) {
+            gpuContext->Flush();
+            SkGraphics::PurgeAllCaches();
+            gpuContext->FreeGpuResources();
+            gpuContext->PurgeUnlockedResources(true);
+#ifdef NEW_RENDER_CONTEXT
+            MemoryHandler::ClearShader();
+#else
+            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+            rendercontext->CleanAllShaderCache();
+#endif
+            gpuContext->FlushAndSubmit(true);
+        } else if (type == "cpu") {
+            gpuContext->Flush();
+            SkGraphics::PurgeAllCaches();
+            gpuContext->FlushAndSubmit(true);
+        } else if (type == "gpu") {
+            gpuContext->Flush();
+            gpuContext->FreeGpuResources();
+            gpuContext->FlushAndSubmit(true);
+        } else if (type == "uihidden") {
+            gpuContext->Flush();
+            gpuContext->PurgeUnlockAndSafeCacheGpuResources();
+            gpuContext->FlushAndSubmit(true);
+        } else if (type == "unlock") {
+            gpuContext->Flush();
+            gpuContext->PurgeUnlockedResources(false);
+            gpuContext->FlushAndSubmit(true);
+        } else if (type == "shader") {
+#ifdef NEW_RENDER_CONTEXT
+            MemoryHandler::ClearShader();
+#else
+            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+            rendercontext->CleanAllShaderCache();
+#endif
+        } else if (type == "flushcache") {
+            int ret = mallopt(M_FLUSH_THREAD_CACHE, 0);
+            dumpString.append("flushcache " + std::to_string(ret) + "\n");
+        } else {
+            uint32_t pid = static_cast<uint32_t>(std::stoll(type));
+            Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+            MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
+        }
+        dumpString.append("trimMem: " + type + "\n");
+    };
+    PostSyncTask(task);
 }
 
 void RSUniRenderThread::DumpMem(DfxString& log)
