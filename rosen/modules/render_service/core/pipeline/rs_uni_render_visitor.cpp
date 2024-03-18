@@ -3880,8 +3880,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isOpDropped_ && node.IsAppWindow()) {
         const auto& visibleRegions = node.GetVisibleRegion().GetRegionRects();
         if (visibleRegions.size() == 1) {
-            canvas_->SetVisibleRect(Drawing::Rect(
-                visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
+            auto visibleRect = Drawing::Rect(
+                visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_);
+            Drawing::Matrix inverse;
+            if (displayNodeMatrix_.has_value() && displayNodeMatrix_.value().Invert(inverse)) {
+                inverse.MapRect(visibleRect, visibleRect);
+            }
+            canvas_->SetVisibleRect(visibleRect);
         }
     }
 
