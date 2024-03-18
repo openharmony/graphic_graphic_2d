@@ -263,14 +263,14 @@ RSDrawable::Ptr RSBorderDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 {
-    auto& border = node.GetRenderProperties().GetBorder();
+    const RSProperties& properties = node.GetRenderProperties();
+    auto& border = properties.GetBorder();
     if (!border || !border->HasBorder()) {
         return false;
     }
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    const RSProperties& properties = node.GetRenderProperties();
-    DrawBorder(properties, *updater.GetRecordingCanvas(), properties.GetBorder(), false);
+    DrawBorder(properties, *updater.GetRecordingCanvas(), border, false);
     return true;
 }
 
@@ -341,10 +341,14 @@ RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 {
+    const RSProperties& properties = node.GetRenderProperties();
+    auto& outline = properties.GetBorder();
+    if (!outline || !outline->HasBorder()) {
+        return false;
+    }
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    const RSProperties& properties = node.GetRenderProperties();
-    RSBorderDrawable::DrawBorder(properties, *updater.GetRecordingCanvas(), properties.GetOutline(), true);
+    RSBorderDrawable::DrawBorder(properties, *updater.GetRecordingCanvas(), outline, true);
     return true;
 }
 

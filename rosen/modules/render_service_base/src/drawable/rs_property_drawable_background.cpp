@@ -29,8 +29,6 @@ namespace {
 bool g_forceBgAntiAlias = true;
 }
 
-std::shared_ptr<Drawing::RuntimeEffect> RSDynamicLightUpDrawable::dynamicLightUpBlenderEffect_ = nullptr;
-
 RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 {
     // skip shadow if not valid
@@ -448,7 +446,7 @@ RSDrawable::Ptr RSDynamicLightUpDrawable::OnGenerate(const RSRenderNode& node)
     }
 
     return std::make_shared<RSDynamicLightUpDrawable>(
-        properties.GetDynamicLightUpDegree().value(), properties.GetDynamicLightUpRate().value());
+        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value());
 };
 
 bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
@@ -458,8 +456,8 @@ bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
 
-    stagingDynamicLightUpDeg_ = properties.GetDynamicLightUpDegree().value();
     stagingDynamicLightUpRate_ = properties.GetDynamicLightUpRate().value();
+    stagingDynamicLightUpDeg_ = properties.GetDynamicLightUpDegree().value();
     needSync_ = true;
 
     return true;
@@ -480,8 +478,8 @@ Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() co
     auto ptr = std::static_pointer_cast<const RSDynamicLightUpDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        auto blender = MakeDynamicLightUpBlender(ptr->dynamicLightUpRate_ * paintFilterCanvas->GetAlpha(),
-            ptr->dynamicLightUpDeg_ * paintFilterCanvas->GetAlpha());
+        auto alpha = paintFilterCanvas->GetAlpha();
+        auto blender = ptr->MakeDynamicLightUpBlender(alpha);
         Drawing::Brush brush;
         brush.SetBlender(blender);
         paintFilterCanvas->DrawBackground(brush);
@@ -489,7 +487,7 @@ Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() co
 }
 
 std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(
-    float dynamicLightUpRate, float dynamicLightUpDeg)
+    float alpha) const
 {
     static constexpr char prog[] = R"(
         uniform float dynamicLightUpRate;
@@ -504,6 +502,8 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBl
             return vec4(R, G, B, 1.0);
         }
     )";
+    static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_ = nullptr;
+
     if (dynamicLightUpBlenderEffect_ == nullptr) {
         dynamicLightUpBlenderEffect_ = Drawing::RuntimeEffect::CreateForBlender(prog);
         if (dynamicLightUpBlenderEffect_ == nullptr) {
@@ -511,10 +511,9 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBl
             return nullptr;
         }
     }
-    std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder =
-        std::make_shared<Drawing::RuntimeBlenderBuilder>(dynamicLightUpBlenderEffect_);
-    builder->SetUniform("dynamicLightUpRate", dynamicLightUpRate);
-    builder->SetUniform("dynamicLightUpDeg", dynamicLightUpDeg);
+    auto builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(dynamicLightUpBlenderEffect_);
+    builder->SetUniform("dynamicLightUpRate", dynamicLightUpRate_ * alpha);
+    builder->SetUniform("dynamicLightUpDeg", dynamicLightUpDeg_ * alpha);
     return builder->MakeBlender();
 }
 

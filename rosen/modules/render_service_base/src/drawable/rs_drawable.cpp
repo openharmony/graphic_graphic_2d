@@ -140,7 +140,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSAlphaDrawable::OnGenerate,                   // ALPHA,
     RSMaskDrawable::OnGenerate,                    // MASK,
     ModifierGenerator<RSModifierType::TRANSITION>, // TRANSITION,
-    nullptr,                                       // ENV_FOREGROUND_COLOR,
+    RSEnvFGColorDrawable::OnGenerate,              // ENV_FOREGROUND_COLOR,
     RSShadowDrawable::OnGenerate,                  // SHADOW,
     RSOutlineDrawable::OnGenerate,                 // OUTLINE,
 
