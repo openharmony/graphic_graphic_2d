@@ -71,13 +71,15 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     }
     auto emitRate = particleParams_->GetEmitRate();
     auto maxParticle = particleParams_->GetParticleCount();
-    auto lifeTime = particleParams_->GetParticleLifeTime();
+    auto lifeTimeStart = particleParams_->GetLifeTimeStartValue();
+    auto lifeTimeEnd = particleParams_->GetLifeTimeEndValue();
     float last = particleCount_;
     particles_.clear();
     if (maxParticle == -1) {
         maxParticle = INT32_MAX;
     }
-    if (maxParticle <= 0 || lifeTime == 0 || emitRate == 0 || last > static_cast<float>(maxParticle)) {
+    if (maxParticle <= 0 || (lifeTimeStart == 0 && lifeTimeEnd == 0) || emitRate == 0 ||
+        last > static_cast<float>(maxParticle)) {
         emitFinish_ = true;
         return;
     }

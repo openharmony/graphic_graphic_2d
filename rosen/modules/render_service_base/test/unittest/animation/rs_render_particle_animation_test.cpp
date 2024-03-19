@@ -49,7 +49,7 @@ void RSRenderParticleAnimationTest::SetUp()
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(3000, 3000); // 3000 is lifeTime.
     ParticleType type = ParticleType::POINTS;
     float radius = 10.f;
     std::shared_ptr<RSImage> image;
@@ -84,8 +84,9 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
     EXPECT_TRUE(particleSystem_ != nullptr);
     particleSystem_->CreateEmitter();
-    particleSystem_->Emit(NS_TO_S);
-    particleSystem_->UpdateParticle(NS_TO_S);
+    auto activeParticles = renderParticleAnimation->GetRenderParticle().GetParticleVector();
+    particleSystem_->Emit(NS_TO_S, activeParticles);
+    particleSystem_->UpdateParticle(NS_TO_S, activeParticles);
     particleAnimate = renderParticleAnimation->Animate(NS_TO_S);
     EXPECT_TRUE(particleAnimate);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate001 end";

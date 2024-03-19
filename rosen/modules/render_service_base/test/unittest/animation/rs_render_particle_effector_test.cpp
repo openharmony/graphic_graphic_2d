@@ -65,7 +65,7 @@ void RSRenderParticleEffectorTest::SetEmitConfig()
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(3000, 3000); // 3000 is lifeTime.
     ParticleType type = ParticleType::POINTS;
     float radius = 1;
     std::shared_ptr<RSImage> image;
@@ -125,7 +125,7 @@ void RSRenderParticleEffectorTest::SetUp()
     particle = std::make_shared<RSRenderParticle>(params);
     std::vector<std::shared_ptr<RSRenderParticle>> particles;
     particles.push_back(particle);
-    effector = std::make_shared<RSRenderParticleEffector>(particles);
+    effector = std::make_shared<RSRenderParticleEffector>();
 }
 void RSRenderParticleEffectorTest::TearDown() {}
 
@@ -137,7 +137,7 @@ void RSRenderParticleEffectorTest::TearDown() {}
 HWTEST_F(RSRenderParticleEffectorTest, UpdateColor001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColor001 start";
-    effector->UpdateColor(deltaTime);
+    effector->UpdateColor(particle, deltaTime);
     EXPECT_TRUE(particle->GetColor() != Color::FromArgbInt(0x00000000));
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColor001 end";
 }
@@ -150,7 +150,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateColor001, TestSize.Level1)
 HWTEST_F(RSRenderParticleEffectorTest, UpdateOpacity001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateOpacity001 start";
-    effector->UpdateOpacity(deltaTime);
+    effector->UpdateOpacity(particle, deltaTime);
     EXPECT_TRUE(particle->GetOpacity() != 0.f);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateOpacity001 end";
 }
@@ -162,7 +162,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateOpacity001, TestSize.Level1)
 HWTEST_F(RSRenderParticleEffectorTest, UpdateScale001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateScale001 start";
-    effector->UpdateScale(deltaTime);
+    effector->UpdateScale(particle, deltaTime);
     EXPECT_TRUE(particle->GetScale() != 0.f);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateScale001 end";
 }
@@ -174,7 +174,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateScale001, TestSize.Level1)
 HWTEST_F(RSRenderParticleEffectorTest, UpdateSpin001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateSpin001 start";
-    effector->UpdateSpin(deltaTime);
+    effector->UpdateSpin(particle, deltaTime);
     EXPECT_TRUE(particle->GetSpin() != 0.f);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateSpin001 end";
 }
@@ -225,14 +225,14 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateEffect001, TestSize.Level1)
     particle = std::make_shared<RSRenderParticle>(params);
     std::vector<std::shared_ptr<RSRenderParticle>> particles;
     particles.push_back(particle);
-    effector = std::make_shared<RSRenderParticleEffector>(particles);
-    effector->UpdateColor(deltaTime);
+    effector = std::make_shared<RSRenderParticleEffector>();
+    effector->UpdateColor(particle, deltaTime);
     EXPECT_TRUE(particle->GetColor() != Color::FromArgbInt(0x00000000));
-    effector->UpdateOpacity(deltaTime);
+    effector->UpdateOpacity(particle, deltaTime);
     EXPECT_TRUE(particle->GetOpacity() != 0.f);
-    effector->UpdateScale(deltaTime);
+    effector->UpdateScale(particle, deltaTime);
     EXPECT_TRUE(particle->GetScale() != 0.f);
-    effector->UpdateSpin(deltaTime);
+    effector->UpdateSpin(particle, deltaTime);
     EXPECT_TRUE(particle->GetSpin() != 0.f);
 }
 
@@ -249,7 +249,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateColorCurve001, TestSize.Level1)
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(3000, 3000); // 3000 is lifeTime.
     ParticleType type = ParticleType::POINTS;
     float radius = 1;
     std::shared_ptr<RSImage> image;
@@ -285,8 +285,8 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateColorCurve001, TestSize.Level1)
     particle = std::make_shared<RSRenderParticle>(params);
     std::vector<std::shared_ptr<RSRenderParticle>> particles;
     particles.push_back(particle);
-    effector = std::make_shared<RSRenderParticleEffector>(particles);
-    effector->UpdateColor(deltaTime);
+    effector = std::make_shared<RSRenderParticleEffector>();
+    effector->UpdateColor(particle, deltaTime);
     EXPECT_TRUE(particle->GetColor() != Color::FromArgbInt(0x00000000));
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColorCurve001 end";
 }
@@ -304,7 +304,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationRandom001, TestSize.Lev
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    int lifeTime = 3000;
+    Range<int64_t> lifeTime = Range<int64_t>(3000, 3000); // 3000 is lifeTime.
     ParticleType type = ParticleType::POINTS;
     float radius = 1;
     std::shared_ptr<RSImage> image;
@@ -334,8 +334,8 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationRandom001, TestSize.Lev
     particle->SetActiveTime(activeTime);
     std::vector<std::shared_ptr<RSRenderParticle>> particles;
     particles.push_back(particle);
-    effector = std::make_shared<RSRenderParticleEffector>(particles);
-    effector->ApplyEffectorToParticle(activeTime);
+    effector = std::make_shared<RSRenderParticleEffector>();
+    effector->Update(particle, activeTime);
     EXPECT_TRUE(particle->GetActiveTime() == 200000);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationRandom001 end";
 }
@@ -381,9 +381,9 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationCurve001, TestSize.Leve
     particle->SetActiveTime(activeTime);
     std::vector<std::shared_ptr<RSRenderParticle>> particles;
     particles.push_back(particle);
-    effector = std::make_shared<RSRenderParticleEffector>(particles);
-    effector->UpdateAccelerationValue(deltaTime);
-    effector->UpdateAccelerationAngle(deltaTime);
+    effector = std::make_shared<RSRenderParticleEffector>();
+    effector->UpdateAccelerationValue(particle, deltaTime);
+    effector->UpdateAccelerationAngle(particle, deltaTime);
     EXPECT_TRUE(particle->GetAccelerationValue() != 0.f);
     EXPECT_TRUE(particle->GetAccelerationAngle() != 0.f);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationCurve001 end";

@@ -18,29 +18,22 @@
 
 #include "rs_render_particle_emitter.h"
 
-
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSRenderParticleSystem {
+class RSB_EXPORT RSRenderParticleSystem : RSRenderParticleEffector {
 public:
     explicit RSRenderParticleSystem(const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams);
     virtual ~RSRenderParticleSystem() = default;
     RSRenderParticleSystem() = default;
     void CreateEmitter();
     void ClearEmitter();
-    void CreateEffector();
-    std::vector<std::shared_ptr<RSRenderParticle>> Simulation(int64_t deltaTime);
-    void Emit(int64_t deltaTime);
-    void UpdateParticle(int64_t deltaTime);
-    std::vector<std::shared_ptr<RSRenderParticle>> GetActiveParticles();
-    bool IsFinish();
+    void Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_);
+    void UpdateParticle(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_);
+    bool IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_);
 
 private:
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_ = {};
     std::vector<std::shared_ptr<RSRenderParticleEmitter>> emitters_ = {};
-    std::vector<std::shared_ptr<RSRenderParticle>> activeParticles_ = {};
-    
-    std::shared_ptr<RSRenderParticleEffector> effector_;
 };
 } // namespace Rosen
 } // namespace OHOS
