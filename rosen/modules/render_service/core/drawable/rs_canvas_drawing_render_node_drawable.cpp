@@ -76,10 +76,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     DrawRenderContent(*canvasDrawingNodeRenderContent, canvas, bounds);
 
     // 3. Draw children of this drawing node by the main canvas.
-    DrawChildren(canvas, bounds);
+    // DrawChildren(canvas, bounds);
 
     // 4. Draw foreground of this drawing node by the main canvas.
-    DrawForeground(canvas, bounds);
+    // DrawForeground(canvas, bounds);
 }
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
