@@ -77,20 +77,17 @@ private:
     float stagingLightUpEffectDegree_ = 1.0f;
 };
 
-class RSForegroundFilterDrawable : public RSDrawable {
+class RSForegroundFilterDrawable : public RSFilterDrawable {
 public:
     RSForegroundFilterDrawable() = default;
     ~RSForegroundFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-
-private:
-    bool needSync_ = false;
-    std::shared_ptr<RSFilter> filter_;
-    std::shared_ptr<RSFilter> stagingFilter_;
+    bool IsForeground() const override
+    {
+        return true;
+    }
 };
 
 class RSForegroundColorDrawable : public RSPropertyDrawable {

@@ -1089,13 +1089,13 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
         return;
     }
     prevVisible_ = visible;
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!visible && !filterNodes_.empty() && !isOcclusionVisibleWithoutFilter_) {
-        for (auto& node : filterNodes_) {
-            node->GetMutableRenderProperties().ClearFilterCache();
-        }
-    }
-#endif
+// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+//     if (!visible && !filterNodes_.empty() && !isOcclusionVisibleWithoutFilter_) {
+//         for (auto& node : filterNodes_) {
+//             node->GetMutableRenderProperties().ClearFilterCache();
+//         }
+//     }
+// #endif
 }
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged)

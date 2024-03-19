@@ -59,7 +59,7 @@ public:
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
     void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const bool needSnapshotOutset = true, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
+        const bool isForegroundFilter = false, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
 
     // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the

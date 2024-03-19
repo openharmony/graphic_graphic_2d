@@ -125,7 +125,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
 }
 
 void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect, bool isForeground)
 {
     if (NeedForceCache()) {
         return;

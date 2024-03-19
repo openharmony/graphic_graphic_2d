@@ -33,7 +33,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "draw/surface.h"
-#include "drawable/rs_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
@@ -222,7 +222,7 @@ public:
     void UpdateLocalDrawRect();
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-        std::optional<RectI> clipRect = std::nullopt);
+        std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode);
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();
@@ -265,8 +265,8 @@ public:
 
     // update parent's children rect including childRect and itself
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
-    virtual void UpdateFilterCacheManagerWithCacheRegion(
-        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect = std::nullopt);
+    virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
+        const std::optional<RectI>& clipRect = std::nullopt, bool isForground = false);
 
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
@@ -403,7 +403,7 @@ public:
 
     void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
     bool IsBackgroundFilterCacheValid() const;
-    virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = true);
+    virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -718,6 +718,14 @@ private:
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     RSDrawable::Vec drawableVec_;
+
+    // for blur cache
+    RectI lastFilterRegion_;
+    bool backgroundFilterRegionChanged_ = false;
+    bool backgroundFilterInteractWithDirty_ = false;
+    bool foregroundFilterRegionChanged_ = false;
+    bool foregroundFilterInteractWithDirty_ = false;
+    void ClearFilterCacheFlags();
 
     friend class DrawFuncOpItem;
     friend class RSContext;
