@@ -34,7 +34,7 @@ struct FrameMsg {
     std::string abilityName;
 };
 
-void DrawEventReport(FrameMsg& frameMsg, std::string stringId)
+void DrawEventReport(const FrameMsg &frameMsg, const std::string &stringId)
 {
 #ifdef ROSEN_OHOS
     int32_t pid = OHOS::GetRealPid();

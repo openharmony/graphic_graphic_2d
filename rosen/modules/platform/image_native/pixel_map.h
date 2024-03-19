@@ -192,7 +192,7 @@ public:
         transformData = transformData_;
     }
 
-    NATIVEEXPORT void SetTransformData(TransformData transformData)
+    NATIVEEXPORT void SetTransformData(const TransformData &transformData)
     {
         transformData_ = transformData;
     }
