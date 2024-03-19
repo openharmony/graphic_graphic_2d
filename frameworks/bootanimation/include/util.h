@@ -32,8 +32,6 @@
 #include <ipc_skeleton.h>
 #include <iservice_registry.h>
 #include <iremote_object.h>
-#include <include/core/SkImage.h>
-#include <include/core/SkRefCnt.h>
 #include <platform/ohos/rs_irender_service.h>
 #include <system_ability_definition.h>
 
@@ -46,19 +44,19 @@ using MemStruct = struct MemStruct {
 public:
     char* memBuffer = nullptr;
     unsigned long bufsize = 0;
-    sk_sp<SkData> skData_ = nullptr;
+    std::shared_ptr<Rosen::Drawing::Data> data_ = nullptr;
     ~MemStruct()
     {
-        if (skData_ != nullptr) {
-            skData_ = nullptr;
+        if (data_ != nullptr) {
+            data_ = nullptr;
         } else {
             free(memBuffer);
             memBuffer = nullptr;
         }
     }
-    void setOwnerShip(sk_sp<SkData>& skData)
+    void setOwnerShip(std::shared_ptr<Rosen::Drawing::Data>& data)
     {
-        skData_ = skData;
+        data_ = data;
     }
     void SetBufferSize(unsigned long ibufsize)
     {
@@ -75,7 +73,7 @@ public:
 using ImageStruct = struct ImageStruct {
 public:
     std::string fileName = {};
-    sk_sp<SkImage> imageData = nullptr;
+    std::shared_ptr<Rosen::Drawing::Image> imageData = nullptr;
     MemStruct memPtr;
     ~ImageStruct()
     {
