@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "drawable/rs_property_drawable.h"
+#include "common/rs_color.h"
 
 namespace OHOS::Rosen {
 class RSProperties;
@@ -27,12 +28,37 @@ namespace Drawing {
 class RuntimeEffect;
 }
 
-class RSShadowDrawable : public RSPropertyDrawable {
+class RSShadowDrawable : public RSDrawable {
 public:
-    RSShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
-    {}
     RSShadowDrawable() = default;
+    ~RSShadowDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    Drawing::Path path_;
+    Drawing::Path stagingPath_;
+    Color color_;
+    Color stagingColor_;
+    float offsetX_;
+    float stagingOffsetX_;
+    float offsetY_;
+    float stagingOffsetY_;
+    float elevation_;
+    float stagingElevation_;
+    bool isFilled_;
+    bool stagingIsFilled_;
+};
+
+class RSMaskShadowDrawable : public RSPropertyDrawable {
+public:
+    RSMaskShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+        : RSPropertyDrawable(std::move(drawCmdList))
+    {}
+    RSMaskShadowDrawable() = default;
     bool OnUpdate(const RSRenderNode& node) override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 };

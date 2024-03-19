@@ -176,6 +176,17 @@ void RSPropertyDrawableUtils::GetDarkColor(RSColor& color)
     }
 }
 
+void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
+{
+    // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
+    // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
+    Drawing::AutoCanvasRestore rst(*canvas, true);
+    auto matrix = canvas->GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas->SetMatrix(matrix);
+}
+
 void RSPropertyDrawableUtils::DrawFilter(
     Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter, const bool isForegroundFilter)
 {
@@ -556,32 +567,39 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     }
 }
 
-Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(Drawing::Canvas& canvas, bool shadowIsFilled,
-    const std::shared_ptr<RSPath> shadowPath, const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect)
+Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(const std::shared_ptr<RSPath> rsPath,
+    const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect)
 {
-    if (shadowPath && shadowPath->GetDrawingPath().IsValid()) {
-        Drawing::Path path = shadowPath->GetDrawingPath();
-        if (!shadowIsFilled) {
-            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-        }
-        return path;
-    }
-
-    if (clipBounds) {
-        Drawing::Path path = clipBounds->GetDrawingPath();
-        if (!shadowIsFilled) {
-            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-        }
-        return path;
-    }
-
     Drawing::Path path;
-    Drawing::RoundRect roundRect = RRect2DrawingRRect(rrect);
-    path.AddRoundRect(roundRect);
-    if (!shadowIsFilled) {
-        canvas.ClipRoundRect(roundRect, Drawing::ClipOp::DIFFERENCE, true);
+    if (rsPath && rsPath->GetDrawingPath().IsValid()) {
+        path = rsPath->GetDrawingPath();
+    } else if (clipBounds) {
+        path = clipBounds->GetDrawingPath();
+    } else {
+        path.AddRoundRect(RRect2DrawingRRect(rrect));
     }
     return path;
+}
+
+void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
+    const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor)
+{
+    CeilMatrixTrans(canvas);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    if (!isFilled) {
+        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
+    path.Offset(offsetX, offsetY);
+    Drawing::Point3 planeParams = {0.0f, 0.0f, elevation};
+    std::vector<Drawing::Point> pt{{path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2,
+        path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2}};
+    canvas->GetTotalMatrix().MapPoints(pt, pt, 1);
+    Drawing::Point3 lightPos = {pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT};
+    Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
+    ambientColor.MultiplyAlpha(canvas->GetAlpha());
+    spotColor.MultiplyAlpha(canvas->GetAlpha());
+    canvas->DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
+        Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
 }
 
 void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)

@@ -38,8 +38,10 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
     RSDrawable::Ptr ret = nullptr;
     if (node.GetRenderProperties().GetShadowMask()) {
         ret = std::make_shared<RSColorfulShadowDrawable>();
-    } else {
+    } else if (node.GetRenderProperties().GetShadowElevation() > 0.f) {
         ret = std::make_shared<RSShadowDrawable>();
+    } else {
+        ret = std::make_shared<RSMaskShadowDrawable>();
     }
     if (ret->OnUpdate(node)) {
         return ret;
@@ -48,6 +50,54 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 };
 
 bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    // skip shadow if not valid
+    if (!properties.IsShadowValid()) {
+        return false;
+    }
+
+    stagingPath_ = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
+        properties.GetClipBounds(), properties.GetRRect());
+    stagingOffsetX_ = properties.GetShadowOffsetX();
+    stagingOffsetY_ = properties.GetShadowOffsetY();
+    stagingElevation_ = properties.GetShadowElevation();
+    stagingColor_ = properties.GetShadowColor();
+    stagingIsFilled_ = properties.GetShadowIsFilled();
+    needSync_ = true;
+    return true;
+}
+
+void RSShadowDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    path_ = std::move(stagingPath_);
+    color_ = std::move(stagingColor_);
+    offsetX_ = stagingOffsetX_;
+    offsetY_ = stagingOffsetY_;
+    elevation_ = stagingElevation_;
+    isFilled_ = stagingIsFilled_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        // skip shadow if cache is enabled
+        if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
+            ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
+            return;
+        }
+        Drawing::Path path = ptr->path_;
+        RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
+            ptr->elevation_, ptr->isFilled_, ptr->color_);
+    };
+}
+
+bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
     // skip shadow if not valid
     if (!node.GetRenderProperties().IsShadowValid()) {
@@ -63,8 +113,11 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
 
     const RSProperties& properties = node.GetRenderProperties();
     Drawing::AutoCanvasRestore acr(canvas, true);
-    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(canvas, properties.GetShadowIsFilled(),
-        properties.GetShadowPath(), properties.GetClipBounds(), properties.GetRRect());
+    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
+        properties.GetClipBounds(), properties.GetRRect());
+    if (!properties.GetShadowIsFilled()) {
+        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
     // shadow alpha follow setting
@@ -86,49 +139,26 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
         colorPicked = spotColor;
     }
 
-    if (properties.GetShadowElevation() > 0.f) {
-        Drawing::Point3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
-        // std::vector<Drawing::Point> pt{{path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2,
-        //     path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2}};
-        // canvas.GetTotalMatrix().MapPoints(pt, pt, 1);
-        float centerX = path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2;
-        float centerY = path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2;
-        Drawing::Point3 lightPos = {centerX, centerY, DEFAULT_LIGHT_HEIGHT};
-        Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
-        // ambientColor.MultiplyAlpha(canvas.GetAlpha());
-        // spotColor.MultiplyAlpha(canvas.GetAlpha());
-        canvas.DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
-            Drawing::Color(ambientColor.AsArgbInt()), Drawing::Color(spotColor.AsArgbInt()),
-            Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
-    } else {
-        Drawing::Brush brush;
-        brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-            shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
-        brush.SetAntiAlias(true);
-        Drawing::Filter filter;
-        filter.SetMaskFilter(
-            Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
-        brush.SetFilter(filter);
-        canvas.AttachBrush(brush);
-        canvas.DrawPath(path);
-        canvas.DetachBrush();
-    }
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::ColorQuadSetARGB(
+        shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
+    brush.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetMaskFilter(
+        Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
+    brush.SetFilter(filter);
+    canvas.AttachBrush(brush);
+    canvas.DrawPath(path);
+    canvas.DetachBrush();
     return true;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
+Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
 {
-    auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
+    auto ptr = std::static_pointer_cast<const RSMaskShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        const auto& drawCmdList = ptr->drawCmdList_;
-        // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
-        // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
-        Drawing::AutoCanvasRestore rst(*canvas, true);
-        auto matrix = canvas->GetTotalMatrix();
-        matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
-        matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
-        canvas->SetMatrix(matrix);
-        drawCmdList->Playback(*canvas);
+        RSPropertyDrawableUtils::CeilMatrixTrans(canvas);
+        ptr->drawCmdList_->Playback(*canvas);
     };
 }
 
@@ -143,8 +173,11 @@ bool RSColorfulShadowDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
-    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(canvas, properties.GetShadowIsFilled(),
-        properties.GetShadowPath(), properties.GetClipBounds(), properties.GetRRect());
+    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
+        properties.GetClipBounds(), properties.GetRRect());
+    if (!properties.GetShadowIsFilled()) {
+        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
     // blurRadius calculation is based on the formula in Canvas::DrawShadow, 0.25f and 128.0f are constants
     const Drawing::scalar blurRadius =
         properties.GetShadowElevation() > 0.f
@@ -326,7 +359,6 @@ bool RSBackgroundImageDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     // only disable antialias when background is rect and g_forceBgAntiAlias is false
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
-    // paint backgroundColor
     Drawing::Brush brush;
     brush.SetAntiAlias(antiAlias);
     auto boundsRect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
