@@ -19,13 +19,13 @@
 #include <functional>
 #include <memory>
 
+#include "pipeline/rs_canvas_drawing_render_node_content.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 
 namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
-using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 class RSRecordingCanvas;
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
@@ -34,9 +34,14 @@ public:
     using SharedPtr = std::shared_ptr<RSCanvasDrawingRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::CANVAS_DRAWING_NODE;
 
-    explicit RSCanvasDrawingRenderNode(NodeId id,
-        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
+    explicit RSCanvasDrawingRenderNode(
+        NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     virtual ~RSCanvasDrawingRenderNode();
+
+    // Used in uni render thread.
+    void InitRenderContent();
+
+    std::shared_ptr<RSCanvasDrawingRenderNodeContent> GetRenderContent();
 
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
 
@@ -85,6 +90,9 @@ private:
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
+
+    // Used in uni render thread.
+    std::shared_ptr<RSCanvasDrawingRenderNodeContent> canvasDrawingNodeRenderContent_;
 };
 
 } // namespace Rosen

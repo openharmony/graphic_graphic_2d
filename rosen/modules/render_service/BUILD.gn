@@ -123,6 +123,7 @@ ohos_shared_library("librender_service") {
 
   #drawable
   sources += [
+    "core/drawable/rs_canvas_drawing_render_node_drawable.cpp",
     "core/drawable/rs_surface_render_node_drawable.cpp",
     "core/drawable/rs_root_render_node_drawable.cpp",
     "core/drawable/rs_render_node_drawable.cpp",

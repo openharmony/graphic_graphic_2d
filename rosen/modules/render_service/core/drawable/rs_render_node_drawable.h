@@ -43,8 +43,10 @@ public:
     ~RSRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
-    void OnDraw(Drawing::Canvas& canvas) const override;
-    void OnCapture(Drawing::Canvas& canvas) const override;
+    void Draw(Drawing::Canvas& canvas) const override;
+
+    virtual void OnDraw(Drawing::Canvas& canvas) const;
+    virtual void OnCapture(Drawing::Canvas& canvas) const;
 
 protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;

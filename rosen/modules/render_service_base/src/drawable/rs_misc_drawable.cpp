@@ -60,7 +60,7 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawable : ptr->childrenDrawableVec_) {
-            drawable->OnDraw(*canvas);
+            drawable->Draw(*canvas);
         }
     };
 }
@@ -88,10 +88,12 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     for (const auto& modifier : itr->second) {
         auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
         if (const auto& drawCmdList = property->GetRef()) {
-            stagingDrawCmdListVec_.push_back(drawCmdList);
+            if (drawCmdList->GetWidth() > 0 && drawCmdList->GetHeight() > 0) {
+                stagingDrawCmdListVec_.push_back(drawCmdList);
+            }
         }
     }
-    return true;
+    return !stagingDrawCmdListVec_.empty();
 }
 
 void RSCustomModifierDrawable::OnSync()
@@ -293,7 +295,7 @@ bool RSEnvFGColorDrawable::OnUpdate(const RSRenderNode& node)
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return false;
     }
-    const auto & modifier = itr->second.back();
+    const auto& modifier = itr->second.back();
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(modifier->GetProperty());
     stagingEnvFGColor_ = renderProperty->Get();
     needSync_ = true;

@@ -15,15 +15,15 @@
 
 #include "drawable/rs_render_node_drawable.h"
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 
-RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : renderNode_(std::move(node))
-{}
+RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node) : renderNode_(std::move(node)) {}
 
 RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
@@ -37,9 +37,18 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
     return nullptr;
 }
 
+void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas) const
+{
+    if (UNLIKELY(RSUniRenderThread::GetIsInCapture())) {
+        OnCapture(canvas);
+    } else {
+        OnDraw(canvas);
+    }
+}
+
 /*
-* This function will be called recursively many times, and the logic should be as concise as possible.
-*/
+ * This function will be called recursively many times, and the logic should be as concise as possible.
+ */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
@@ -53,8 +62,8 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 }
 
 /*
-* This function will be called recursively many times, and the logic should be as concise as possible.
-*/
+ * This function will be called recursively many times, and the logic should be as concise as possible.
+ */
 void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
 {
     RSRenderNodeDrawable::OnDraw(canvas);
@@ -74,7 +83,8 @@ void RSRenderNodeDrawable::DrawContent(Drawing::Canvas& canvas, const Drawing::R
     renderNode_->drawCmdList_[index](&canvas, &rect);
 }
 
-void RSRenderNodeDrawable::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const {
+void RSRenderNodeDrawable::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
     renderNode_->drawCmdList_[renderNode_->drawCmdIndex_.childrenIndex_](&canvas, &rect);
     auto index = renderNode_->drawCmdIndex_.childrenIndex_;
     if (index == -1) {
@@ -83,7 +93,8 @@ void RSRenderNodeDrawable::DrawChildren(Drawing::Canvas& canvas, const Drawing::
     renderNode_->drawCmdList_[index](&canvas, &rect);
 }
 
-void RSRenderNodeDrawable::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const {
+void RSRenderNodeDrawable::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
     DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.foregroundBeginIndex_, renderNode_->drawCmdIndex_.endIndex_);
 }
 

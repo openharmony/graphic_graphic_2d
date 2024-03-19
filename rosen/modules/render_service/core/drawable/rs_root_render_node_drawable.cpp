@@ -16,8 +16,8 @@
 #include "drawable/rs_root_render_node_drawable.h"
 
 #include "pipeline/rs_root_render_node.h"
-#include "platform/common/rs_log.h"
 #include "pipeline/rs_uni_render_thread.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSRootRenderNodeDrawable::Registrar RSRootRenderNodeDrawable::instance_;
@@ -33,11 +33,6 @@ RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<c
 
 void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
-    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
-        RSRootRenderNodeDrawable::OnCapture(canvas);
-        return;
-    }
-
     RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
 
     RSCanvasRenderNodeDrawable::OnDraw(canvas);

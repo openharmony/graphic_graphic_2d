@@ -16,8 +16,8 @@
 #include "drawable/rs_canvas_render_node_drawable.h"
 
 #include "pipeline/rs_canvas_render_node.h"
-#include "platform/common/rs_log.h"
 #include "pipeline/rs_uni_render_thread.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -32,15 +32,10 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
 }
 
 /*
-* This function will be called recursively many times, and the logic should be as concise as possible.
-*/
+ * This function will be called recursively many times, and the logic should be as concise as possible.
+ */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
-    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
-        RSCanvasRenderNodeDrawable::OnCapture(canvas);
-        return;
-    }
-
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
         RS_LOGE("params is nullptr");
@@ -53,14 +48,14 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     canvas.ConcatMatrix(params->GetMatrix());
     bool quickRejected = canvas.QuickReject(params->GetBounds());
     if (quickRejected) {
-        RS_LOGD("this drawable has quickRejected");
+        return;
     }
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 
 /*
-* This function will be called recursively many times, and the logic should be as concise as possible.
-*/
+ * This function will be called recursively many times, and the logic should be as concise as possible.
+ */
 void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
 {
     auto& params = renderNode_->GetRenderParams();

@@ -45,11 +45,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         return;
     }
 
-    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
-        RSSurfaceRenderNodeDrawable::OnCapture(canvas);
-        return;
-    }
-
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
 
@@ -67,17 +62,17 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     }
 
     if (surfaceNode->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip Node:%" PRIu64"", renderNode_->GetId());
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip Node:%" PRIu64 "", renderNode_->GetId());
         return;
     }
 
-    RS_TRACE_NAME(
-        "RSSurfaceRenderNodeDrawable::OnDraw:[" + surfaceNode->GetName() + "] " +
-        surfaceNode->GetDstRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
+    RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnDraw:[" + surfaceNode->GetName() + "] " +
+                  surfaceNode->GetDstRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ",child size:%{public}u,"
-        "name:%{public}s,OcclusionVisible:%{public}d",
-        surfaceNode->GetId(), surfaceNode->GetChildrenCount(), surfaceNode->GetName().c_str(), surfaceNode->GetOcclusionVisible());
+            "name:%{public}s,OcclusionVisible:%{public}d",
+        surfaceNode->GetId(), surfaceNode->GetChildrenCount(), surfaceNode->GetName().c_str(),
+        surfaceNode->GetOcclusionVisible());
 
     auto renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 
@@ -95,7 +90,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
             surfaceNode->GetId());
         return;
     }
-    
+
     RSAutoCanvasRestore acr(rscanvas);
 
     rscanvas->MultiplyAlpha(property.GetAlpha());
@@ -114,7 +109,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 
     nodeSp->ProcessRenderBeforeChildren(*rscanvas);
 
-    //TODO: read from renderParams
+    // TODO: read from renderParams
     if (surfaceNode->GetBuffer() != nullptr) {
         surfaceNode->SetGlobalAlpha(1.0f);
         int threadIndex = 0;
@@ -122,7 +117,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         auto screenManager = CreateOrGetScreenManager();
-        //TODO: read from renderParams
+        // TODO: read from renderParams
         if (!surfaceNode->GetAncestorDisplayNode().lock()) {
             RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
             return;
@@ -131,25 +126,25 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
 #endif
         auto bgColor = property.GetBackgroundColor();
-        //TODO: read from renderParams
+        // TODO: read from renderParams
         if ((surfaceNode->GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
             (bgColor != RgbPalette::Transparent())) {
-                auto bounds = RSPropertiesPainter::Rect2DrawingRect(property.GetBoundsRect());
-                Drawing::SaveLayerOps layerOps(&bounds, nullptr);
-                rscanvas->SaveLayer(layerOps);
-                rscanvas->SaveAlpha();
-                rscanvas->SetAlpha(1.0f);
-                Drawing::Brush brush;
-                brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
-                rscanvas->AttachBrush(brush);
-                rscanvas->DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(property.GetRRect()));
-                rscanvas->DetachBrush();
-                renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
-                rscanvas->RestoreAlpha();
-                rscanvas->Restore();
+            auto bounds = RSPropertiesPainter::Rect2DrawingRect(property.GetBoundsRect());
+            Drawing::SaveLayerOps layerOps(&bounds, nullptr);
+            rscanvas->SaveLayer(layerOps);
+            rscanvas->SaveAlpha();
+            rscanvas->SetAlpha(1.0f);
+            Drawing::Brush brush;
+            brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+            rscanvas->AttachBrush(brush);
+            rscanvas->DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(property.GetRRect()));
+            rscanvas->DetachBrush();
+            renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
+            rscanvas->RestoreAlpha();
+            rscanvas->Restore();
         } else {
-                renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
-        }   
+            renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
+        }
     }
 
     if (isSelfDrawingSurface) {

@@ -177,11 +177,6 @@ static inline void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region)
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 {
-    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
-        RSDisplayRenderNodeDrawable::OnCapture(canvas);
-        return;
-    }
-
     // canvas will generate in every request frame
     (void)canvas;
 
@@ -235,9 +230,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 
     auto drSurface = renderFrame->GetFrame()->GetSurface();
     if (!drSurface) {
-         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw DrawingSurface is null");
-         return;
-     }
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw DrawingSurface is null");
+        return;
+    }
 
     curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
     if (!curCanvas_) {
