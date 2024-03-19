@@ -338,6 +338,14 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     }
 }
 
+void RSRenderNode::ResetChildRelevantFlags()
+{
+    childHasVisibleFilter_ = false;
+    childHasVisibleEffect_ = false;
+    childrenRect_ = RectI();
+    hasChildrenOutOfRect_ = false;
+}
+
 void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
 {
     if (!subRect.IsEmpty()) {
@@ -347,16 +355,6 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
         } else {
             childrenRect_ = childrenRect_.JoinRect(subRect);
         }
-    }
-}
-
-void RSRenderNode::MapChildrenRect()
-{
-    if (childrenRect_.IsEmpty()) {
-        return;
-    }
-    if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
-        childrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
     }
 }
 
@@ -869,13 +867,13 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->QuickPrepareChildren(*this);
 }
 
-bool RSRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool isOccluded)
+bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
 {
     // stop visit invisible or clean without filter subtree
-    if (!ShouldPaint() || isOccluded) {
+    if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
         RS_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
-            GetId(), ShouldPaint(), isOccluded);
+            GetId(), shouldPaint_, isOccluded);
         return false;
     }
     if (IsSubTreeDirty()) {
@@ -883,10 +881,6 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool 
         SetSubTreeDirty(false);
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
-    }
-    // for clean subtree, map childrenrect if node is (geo)dirty
-    if (needMap) {
-        MapChildrenRect();
     }
     if (ChildHasVisibleFilter()) {
         RS_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
@@ -1123,7 +1117,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     if (accumGeoDirty || GetRenderProperties().NeedClip() ||
         GetRenderProperties().geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
         accumGeoDirty = GetMutableRenderProperties().UpdateGeometryByParent(parent,
-            !IsInstanceOf<RSSurfaceRenderNode>(), GetContextClipRegion());
+            !IsInstanceOf<RSSurfaceRenderNode>(), GetContextClipRegion()) || accumGeoDirty;
         // TODO double check if it would be covered by updateself without geo update
         auto geoPtr = GetRenderProperties().boundsGeo_;
         if (accumGeoDirty && geoPtr) {
@@ -1133,14 +1127,14 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     // 3. update dirtyRegion if needed
     UpdateFilterCacheWithDirty(dirtyManager, false);
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
-    if ((IsDirty() || accumGeoDirty) && (ShouldPaint() || isLastVisible_)) {
+    if ((IsDirty() || accumGeoDirty) && (shouldPaint_ || isLastVisible_)) {
         // update FrontgroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
     }
     // 4. reset dirty status
     SetClean();
     GetMutableRenderProperties().ResetDirty();
-    isLastVisible_ = ShouldPaint();
+    isLastVisible_ = shouldPaint_;
     return accumGeoDirty;
 }
 
@@ -1329,9 +1323,28 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
     }
 }
 
+void RSRenderNode::MapAndUpdateChildrenRect()
+{
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    if (!shouldPaint_ || geoPtr == nullptr) {
+        return;
+    }
+    auto childRect = selfDrawRect_;
+    // all child must map to its direct parent
+    if (!childrenRect_.IsEmpty()) {
+        // clean subtree means childrenRect maps to parent already
+        childRect = childRect.JoinRect(childrenRect_);
+    }
+    // map before update parent
+    childRect = geoPtr->MapRect(childRect.ConvertTo<float>(), geoPtr->GetMatrix());
+    if (auto parentNode = parent_.lock()) {
+        parentNode->UpdateChildrenRect(childRect);
+    }
+}
+
 void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const
 {
-    if (!ShouldPaint() || (oldDirty_.IsEmpty() && GetChildrenRect().IsEmpty())) {
+    if (!shouldPaint_ || (oldDirty_.IsEmpty() && GetChildrenRect().IsEmpty())) {
         return;
     }
     auto renderParent = (parentNode);
@@ -2730,15 +2743,15 @@ void RSRenderNode::ResetDrawingCacheNeedUpdate()
 }
 void RSRenderNode::SetGeoUpdateDelay(bool val)
 {
-    cacheGeoPreparationDelay_ = cacheGeoPreparationDelay_ || val;
+    geoUpdateDelay_ = geoUpdateDelay_ || val;
 }
 void RSRenderNode::ResetGeoUpdateDelay()
 {
-    cacheGeoPreparationDelay_ = false;
+    geoUpdateDelay_ = false;
 }
 bool RSRenderNode::GetGeoUpdateDelay() const
 {
-    return cacheGeoPreparationDelay_;
+    return geoUpdateDelay_;
 }
 
 void RSRenderNode::StoreMustRenewedInfo()
