@@ -147,7 +147,7 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(float alpha) const;
+    static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(float rate, float degree, float alpha);
 
     bool needSync_ = false;
     float dynamicLightUpRate_ = 0.0f;
