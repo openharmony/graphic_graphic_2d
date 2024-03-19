@@ -13,35 +13,36 @@
  * limitations under the License.
  */
 
+#include <message_parcel.h>
 #include <securec.h>
 #include <surface_buffer.h>
-#include <message_parcel.h>
 #include <sys/mman.h>
 
-#include "ipc_file_descriptor.h"
 #include "media_errors.h"
 #include "pixel_map.h"
-#include "rs_profiler_base.h"
+#include "rs_profiler.h"
 #include "rs_profiler_utils.h"
+
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS::Media {
 
-struct ImageSourceContext {
-    ImageSourceContext(uint64_t id, Parcel& parcel) : id { id }, parcel { parcel } {}
+struct UnmarshallingContext {
+    UnmarshallingContext(uint64_t id, Parcel& parcel) : id { id }, parcel { parcel } {}
 
-    static constexpr int headerLength = 24; // NOLINT
+    static constexpr int headerLength = 24;                  // NOLINT
     static constexpr int maxPictureSize = 600 * 1024 * 1024; // NOLINT
 
-    bool GatherImageFromFile(Rosen::ImageCacheRecord* file)
+    bool GatherImageFromFile(Rosen::ImageCacheRecord* record)
     {
-        if (bufferSize <= 0 || bufferSize > ImageSourceContext::maxPictureSize) {
+        if (bufferSize <= 0 || bufferSize > UnmarshallingContext::maxPictureSize) {
             return false;
         }
         base = static_cast<uint8_t*>(malloc(bufferSize));
         if (!base) {
             return false;
         }
-        if (memmove_s(base, bufferSize, file->image.get(), bufferSize) != 0) {
+        if (memmove_s(base, bufferSize, record->image.get(), bufferSize) != 0) {
             delete base;
             base = nullptr;
             return false;
@@ -74,10 +75,10 @@ private:
     static int32_t GetPixelBytes(const PixelFormat& pixelFormat);
     static int32_t SurfaceBufferReference(void* buffer);
 
-    static bool UnmarshallingInitContext(ImageSourceContext& context);
-    static bool UnmarshallFromSharedMem(ImageSourceContext& context);
-    static bool UnmarshallFromDMA(ImageSourceContext& context);
-    static PixelMap* UnmarshallingFinalize(ImageSourceContext& context);
+    static bool UnmarshallingInitContext(UnmarshallingContext& context);
+    static bool UnmarshallFromSharedMem(UnmarshallingContext& context);
+    static bool UnmarshallFromDMA(UnmarshallingContext& context);
+    static PixelMap* UnmarshallingFinalize(UnmarshallingContext& context);
 };
 
 int32_t ImageSource::GetPixelBytes(const PixelFormat& pixelFormat)
@@ -135,7 +136,7 @@ int32_t ImageSource::SurfaceBufferReference(void* buffer)
     return SUCCESS;
 }
 
-bool ImageSource::UnmarshallingInitContext(ImageSourceContext& context)
+bool ImageSource::UnmarshallingInitContext(UnmarshallingContext& context)
 {
     if (!context.pixelMap) {
         return false;
@@ -165,49 +166,51 @@ bool ImageSource::UnmarshallingInitContext(ImageSourceContext& context)
     return true;
 }
 
-bool ImageSource::UnmarshallFromSharedMem(ImageSourceContext& context)
+bool ImageSource::UnmarshallFromSharedMem(UnmarshallingContext& context)
 {
-    int fd = context.pixelMap->ReadFileDescriptor(context.parcel);
-    if (fd < 0) {
-        Rosen::ImageCacheRecord* ptr = Rosen::RSProfilerBase::ReplayImageGet(context.id);
-
-        if (ptr != nullptr && static_cast<uint32_t>(context.bufferSize) == ptr->imageSize) {
-            if (!context.GatherImageFromFile(ptr)) {
+    constexpr int32_t invalidFileDescriptor = -1;
+    const int32_t fileDescriptor = Rosen::RSProfiler::IsParcelMock(context.parcel)
+                                       ? invalidFileDescriptor
+                                       : context.pixelMap->ReadFileDescriptor(context.parcel);
+    if (fileDescriptor < 0) {
+        auto imageCacheRecord = Rosen::RSProfiler::GetImage(context.id);
+        if (imageCacheRecord && static_cast<uint32_t>(context.bufferSize) == imageCacheRecord->imageSize) {
+            if (!context.GatherImageFromFile(imageCacheRecord)) {
                 return false;
             }
-            context.parcel.SkipBytes(ImageSourceContext::headerLength);
+            context.parcel.SkipBytes(UnmarshallingContext::headerLength);
         } else {
             return false;
         }
     } else {
-        void* ptr = ::mmap(nullptr, context.bufferSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        void* ptr = ::mmap(nullptr, context.bufferSize, PROT_READ | PROT_WRITE, MAP_SHARED, fileDescriptor, 0);
         if (ptr == MAP_FAILED) { // NOLINT
-            ptr = ::mmap(nullptr, context.bufferSize, PROT_READ, MAP_SHARED, fd, 0);
+            ptr = ::mmap(nullptr, context.bufferSize, PROT_READ, MAP_SHARED, fileDescriptor, 0);
             if (ptr == MAP_FAILED) { // NOLINT
-                ::close(fd);
+                ::close(fileDescriptor);
                 return false;
             }
         }
 
-        Rosen::RSProfilerBase::ReplayImageAdd(context.id, ptr, context.bufferSize, context.headerLength);
+        Rosen::RSProfiler::AddImage(context.id, ptr, context.bufferSize, context.headerLength);
 
         context.context = new int32_t();
         if (context.context == nullptr) {
             ::munmap(ptr, context.bufferSize);
-            ::close(fd);
+            ::close(fileDescriptor);
             return false;
         }
-        *static_cast<int32_t*>(context.context) = fd;
+        *static_cast<int32_t*>(context.context) = fileDescriptor;
         context.base = static_cast<uint8_t*>(ptr);
     }
     return true;
 }
 
-bool ImageSource::UnmarshallFromDMA(ImageSourceContext& context)
+bool ImageSource::UnmarshallFromDMA(UnmarshallingContext& context)
 {
-    Rosen::ImageCacheRecord* ptr = Rosen::RSProfilerBase::ReplayImageGet(context.id);
-
-    if (ptr == nullptr) {
+    auto imageCacheRecord =
+        Rosen::RSProfiler::IsParcelMock(context.parcel) ? Rosen::RSProfiler::GetImage(context.id) : nullptr;
+    if (!imageCacheRecord) {
         const size_t size1 = context.parcel.GetReadableBytes();
 
         // original code
@@ -221,11 +224,11 @@ bool ImageSource::UnmarshallFromDMA(ImageSourceContext& context)
 
         const size_t size2 = context.parcel.GetReadableBytes();
 
-        Rosen::RSProfilerBase::ReplayImageAdd(context.id, virAddr, context.bufferSize, size1 - size2);
+        Rosen::RSProfiler::AddImage(context.id, virAddr, context.bufferSize, size1 - size2);
     } else {
         context.allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
-        context.parcel.SkipBytes(ptr->skipBytes);
-        if (!context.GatherImageFromFile(ptr)) {
+        context.parcel.SkipBytes(imageCacheRecord->skipBytes);
+        if (!context.GatherImageFromFile(imageCacheRecord)) {
             return false;
         }
     }
@@ -233,7 +236,7 @@ bool ImageSource::UnmarshallFromDMA(ImageSourceContext& context)
     return true;
 }
 
-PixelMap* ImageSource::UnmarshallingFinalize(ImageSourceContext& context)
+PixelMap* ImageSource::UnmarshallingFinalize(UnmarshallingContext& context)
 {
     uint32_t ret = context.pixelMap->SetImageInfo(context.imgInfo);
     if (ret != SUCCESS) {
@@ -260,7 +263,7 @@ PixelMap* ImageSource::UnmarshallingFinalize(ImageSourceContext& context)
 
 PixelMap* ImageSource::Unmarshalling(uint64_t id, Parcel& parcel)
 {
-    ImageSourceContext context { id, parcel };
+    UnmarshallingContext context { id, parcel };
 
     if (!UnmarshallingInitContext(context)) {
         return nullptr;
@@ -295,12 +298,54 @@ PixelMap* ImageSource::Unmarshalling(uint64_t id, Parcel& parcel)
 
 namespace OHOS::Rosen {
 
-using PixelMapHelper = OHOS::Media::ImageSource;
+using PixelMapHelper = Media::ImageSource;
 
-OHOS::Media::PixelMap* RSProfilerBase::PixelMapUnmarshalling(Parcel& parcel)
+Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
 {
+    if (!IsEnabled()) {
+        return Media::PixelMap::Unmarshalling(parcel);
+    }
     const uint64_t id = Utils::ComposeNodeId(parcel.ReadInt32(), parcel.ReadInt32());
     return PixelMapHelper::Unmarshalling(id, parcel);
+}
+
+bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map)
+{
+    if (!map) {
+        return false;
+    }
+
+    if (!IsEnabled()) {
+        return map->Marshalling(parcel);
+    }
+
+    const pid_t pid = getpid();
+    const uint32_t imageId = GenerateImageId();
+    if (!(parcel.WriteInt32(pid) && parcel.WriteInt32(imageId))) {
+        return false;
+    }
+
+    constexpr size_t imageSizeOffsetCorrection = 44;
+    const size_t imageSizeOffset = parcel.GetWritePosition() + imageSizeOffsetCorrection;
+
+    if (!map->Marshalling(parcel)) {
+        return false;
+    }
+
+    if (!RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id())) {
+        if (void* context = map->GetFd()) {
+            const int32_t fileDescriptor = *static_cast<int32_t*>(context);
+            const uint32_t imageSize = *reinterpret_cast<uint32_t*>(parcel.GetData() + imageSizeOffset);
+            void* image = ::mmap(nullptr, imageSize, PROT_READ, MAP_SHARED, fileDescriptor, 0);
+            if (image != MAP_FAILED) {
+                constexpr uint32_t skipBytes = 24;
+                AddImage(Utils::ComposeNodeId(pid, imageId), image, imageSize, skipBytes);
+                ::munmap(image, imageSize);
+            }
+        }
+    }
+
+    return true;
 }
 
 } // namespace OHOS::Rosen
