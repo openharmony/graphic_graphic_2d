@@ -70,6 +70,7 @@ private:
     Drawing::RectF boundsRect_;
     // this rect should map display coordination
     RectI localDrawRect_;
+    RectI absDrawRect_;
     bool shouldPaint_;
 };
 } // namespace OHOS::Rosen
