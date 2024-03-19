@@ -219,9 +219,14 @@ private:
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
+    void UpdateDirtysAndRedordInfoByFilter(RSRenderNode& node);
 
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+
+    void CheckMergeTransparentFilterForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        Occlusion::Region& accumulatedDirtyRegion);
+    void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
 
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
     /* calculate display/global (between windows) level dirty region, current include:
@@ -509,7 +514,14 @@ private:
     std::unordered_set<NodeId> visitedCacheNodeIds_ = {};
     std::unordered_map<NodeId, std::unordered_set<NodeId>> allCacheFilterRects_ = {};
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
-    std::unordered_map<NodeId, std::pair<RectI, std::shared_ptr<RSDirtyRegionManager>>> globalCleanFilter_;
+   
+    // record nodes in surface which has filter may influence golbalDirty
+    OcclusionRectISet globalFilter_;
+    // record container nodes which need filter
+    OcclusionRectISet containerFilter_;
+    // record nodes which has transparent clean filter
+    std::unordered_map<NodeId, std::vector<RectI>> transparentCleanFilter_;
+
     std::vector<RectI> globalFilterRects_;
     // visible filter in transparent surface or display must prepare
     bool filterInGlobal_ = true;
