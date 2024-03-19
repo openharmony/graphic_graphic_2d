@@ -251,9 +251,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
         ClipRegion(*curCanvas_, region);
+        SetHighContrastIfEnabled(*curCanvas_);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
     }
     rsDirtyRectsDfx.OnDraw(curCanvas_);
+
+    // switch color filtering
+    SwitchColorFilter(*curCanvas_, saveCount);
 
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
     renderFrame->Flush();
@@ -271,4 +275,38 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
     RSRenderNodeDrawable::OnCapture(canvas);
 }
 
+void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
+{
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    ColorFilterMode colorFilterMode = renderEngine->GetColorFilterMode();
+    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
+        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE){
+        return;
+    }
+
+    Drawing::AutoCanvasRestore acr(*curCanvas_, true);
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::SetColorFilterModeToPaint mode:%d",
+        static_cast<int32_t>(colorFilterMode));
+    Drawing::Brush brush;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+#ifdef NEW_RENDER_CONTEXT
+    RSTagTracker tagTracker(
+        renderEngine->GetDrawingContext()->GetDrawingContext(),
+        RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
+#else
+    RSTagTracker tagTracker(
+        renderEngine->GetRenderContext()->GetDrGPUContext(),
+        RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
+#endif
+#endif
+    Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
+    canvas.SaveLayer(slr);
+}
+
+void RSDisplayRenderNodeDrawable::SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const
+{
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
+}
 } // namespace OHOS::Rosen
