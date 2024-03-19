@@ -35,7 +35,7 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return std::make_unique<RSSurfaceRenderNodeDrawable>(std::move(node));
+    return new RSSurfaceRenderNodeDrawable(std::move(node));
 }
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const

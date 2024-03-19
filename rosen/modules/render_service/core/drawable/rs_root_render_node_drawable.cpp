@@ -28,7 +28,7 @@ RSRootRenderNodeDrawable::RSRootRenderNodeDrawable(std::shared_ptr<const RSRende
 
 RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return std::make_unique<RSRootRenderNodeDrawable>(std::move(node));
+    return new RSRootRenderNodeDrawable(std::move(node));
 }
 
 void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const

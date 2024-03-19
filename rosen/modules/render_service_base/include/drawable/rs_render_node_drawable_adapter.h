@@ -30,7 +30,7 @@ class Canvas;
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter {
 public:
-    RSRenderNodeDrawableAdapter() = default;
+    explicit RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node);
     virtual ~RSRenderNodeDrawableAdapter() = default;
 
     // delete
@@ -41,12 +41,16 @@ public:
 
     virtual void Draw(Drawing::Canvas& canvas) const = 0;
 
-    using Ptr = std::unique_ptr<RSRenderNodeDrawableAdapter>;
-    static Ptr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
+    using Ptr = RSRenderNodeDrawableAdapter*;
+    using SharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>;
+    using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
+    static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
 
 protected:
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
     static std::unordered_map<RSRenderNodeType, Generator> GeneratorMap;
+
+    std::shared_ptr<const RSRenderNode> renderNode_;
 
     template<RSRenderNodeType type, Generator generator>
     class RenderNodeDrawableRegistrar {

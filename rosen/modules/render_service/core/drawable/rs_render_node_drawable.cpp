@@ -23,18 +23,13 @@
 namespace OHOS::Rosen {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 
-RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node) : renderNode_(std::move(node)) {}
+RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
+    : RSRenderNodeDrawableAdapter(std::move(node))
+{}
 
 RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    if (node == nullptr) {
-        return nullptr;
-    }
-    auto Generator = GeneratorMap.find(node->GetType());
-    if (Generator != GeneratorMap.end()) {
-        return Generator->second(node);
-    }
-    return nullptr;
+    return new RSRenderNodeDrawable(std::move(node));
 }
 
 void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas) const

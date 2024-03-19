@@ -57,8 +57,6 @@ protected:
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
-    std::shared_ptr<const RSRenderNode> renderNode_;
-
 private:
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
 };

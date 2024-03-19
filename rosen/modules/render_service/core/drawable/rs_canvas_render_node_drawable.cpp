@@ -28,7 +28,7 @@ RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(std::shared_ptr<const RSR
 
 RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return std::make_unique<RSCanvasRenderNodeDrawable>(std::move(node));
+    return new RSCanvasRenderNodeDrawable(std::move(node));
 }
 
 /*

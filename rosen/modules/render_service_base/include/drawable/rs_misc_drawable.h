@@ -41,8 +41,8 @@ public:
 
 private:
     bool needSync_ = false;
-    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
-    std::vector<std::unique_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
     friend class RSChildrenDrawable;
 };
 

@@ -45,7 +45,7 @@ RSDisplayRenderNodeDrawable::RSDisplayRenderNodeDrawable(std::shared_ptr<const R
 
 RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return std::make_unique<RSDisplayRenderNodeDrawable>(std::move(node));
+    return new RSDisplayRenderNodeDrawable(std::move(node));
 }
 
 static inline std::vector<RectI> MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,

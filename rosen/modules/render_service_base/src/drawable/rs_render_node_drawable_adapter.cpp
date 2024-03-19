@@ -21,19 +21,42 @@
 namespace OHOS::Rosen {
 std::unordered_map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 
-RSRenderNodeDrawableAdapter::Ptr RSRenderNodeDrawableAdapter::OnGenerate(
+RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
+    : renderNode_(std::move(node)) {};
+
+RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
+    static std::unordered_map<NodeId, WeakPtr> RenderNodeDrawableCache;
+    static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
+        RenderNodeDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
+        delete ptr;
+    };
+
     if (node == nullptr) {
-        // Empty child should be filtered on RSRenderNode::GenerateFullChildrenList, we should not reach here
-        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node is null");
         return nullptr;
     }
-    if (const auto it = GeneratorMap.find(node->GetType()); it != GeneratorMap.end()) {
-        return it->second(node);
+    auto id = node->GetId();
+
+    // Try to get a cached drawable if it exists.
+    if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
+        if (const auto ptr = cacheIt->second.lock()) {
+            return ptr;
+        } else {
+            RenderNodeDrawableCache.erase(cacheIt);
+        }
     }
-    ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %d is not supported", node->GetType());
-    return nullptr;
+
+    // If we don't have a cached drawable, try to generate a new one and cache it.
+    const auto it = GeneratorMap.find(node->GetType());
+    if (it == GeneratorMap.end()) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %d is not supported", node->GetType());
+        return nullptr;
+    }
+    auto ptr = it->second(node);
+    auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
+    RenderNodeDrawableCache.emplace(id, sharedPtr);
+    return sharedPtr;
 }
 
 } // namespace OHOS::Rosen
