@@ -67,7 +67,14 @@ ohos_unittest("producer_surface_delegator_test") {
 ohos_unittest("consumer_surface_delegator_test") {
   module_out_path = module_out_path
 
-  sources = [ "consumer_surface_delegator_test.cpp" ]
+  sources = []
+  if (defined(
+      graphic_2d_delegator_configs.libsurface_ext_test_consumer_delegator_src)) {
+    sources +=
+        graphic_2d_delegator_configs.libsurface_ext_test_consumer_delegator_src
+  } else {
+    sources += [ "consumer_surface_delegator_test.cpp" ]
+  }
 
   deps = [ ":surface_test_common" ]
 
