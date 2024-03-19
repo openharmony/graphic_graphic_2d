@@ -34,7 +34,6 @@ class ScopedDebugTrace {
 public:
     ScopedDebugTrace(const std::string &traceStr);
     ~ScopedDebugTrace();
-private:
     static bool debugTraceEnabled_;
 };
 

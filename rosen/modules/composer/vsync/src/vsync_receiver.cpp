@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <scoped_bytrace.h>
 #include <fcntl.h>
+#include <hitrace_meter.h>
 #include "event_handler.h"
 #include "graphic_common.h"
 #include "vsync_log.h"
@@ -30,6 +31,7 @@ constexpr int32_t INVALID_FD = -1;
 }
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 {
+    HitracePerScoped perfTrace(ScopedDebugTrace::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
     if (fileDescriptor < 0) {
         return;
     }
