@@ -32,6 +32,7 @@
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 #include "render/rs_material_filter.h"
@@ -224,19 +225,27 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
 }
 
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node,
-    bool forceCPU, uint32_t threadIndex)
+    bool forceCPU, uint32_t threadIndex, bool isRenderThread)
 {
     BufferDrawParam params;
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
+    if (isRenderThread && !nodeParams) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam RenderThread nodeParams is nullptr");
+        return params;
+    }
+    const RSProperties& property = node.GetRenderProperties();
+
     params.threadIndex = threadIndex;
-    params.useBilinearInterpolation = node.NeedBilinearInterpolation();
+    params.useBilinearInterpolation = nodeParams->NeedBilinearInterpolation(); // TO-DO
     params.useCPU = forceCPU;
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
 
-    const RSProperties& property = node.GetRenderProperties();
-    params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+    auto buoundWidth = isRenderThread ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
+    auto buoundHeight = isRenderThread ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
+    params.dstRect = Drawing::Rect(0, 0, buoundWidth, buoundHeight);
 
     const sptr<SurfaceBuffer> buffer = node.GetBuffer();
     if (buffer == nullptr) {
@@ -251,8 +260,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
         return params;
     }
     auto transform = consumer->GetTransform();
-    RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
-    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
+    RectF localBounds = { 0.0f, 0.0f, buoundWidth, buoundHeight };
+    auto gravity = isRenderThread ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     SrcRectScaleDown(params, node);
     return params;

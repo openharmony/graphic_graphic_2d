@@ -19,6 +19,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -48,60 +49,55 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
 
-    auto& params = renderNode_->GetRenderParams();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
 
-    auto rscanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
         return;
     }
 
-    if (surfaceNode->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip Node:%" PRIu64 "", renderNode_->GetId());
+    if (surfaceParams->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s NodeId:%" PRIu64 "",
+            surfaceNode->GetName().c_str(), surfaceParams->GetId());
         return;
     }
 
+    // TO-DO [UI First] Check UpdateCacheSurface
+    // TO-DO [DFX] Draw Context ClipRect
+
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnDraw:[" + surfaceNode->GetName() + "] " +
-                  surfaceNode->GetDstRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
+                  surfaceParams->GetDstRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ",child size:%{public}u,"
             "name:%{public}s,OcclusionVisible:%{public}d",
-        surfaceNode->GetId(), surfaceNode->GetChildrenCount(), surfaceNode->GetName().c_str(),
-        surfaceNode->GetOcclusionVisible());
+        surfaceParams->GetId(), surfaceNode->GetChildrenCount(), surfaceNode->GetName().c_str(),
+        surfaceParams->GetOcclusionVisible());
 
     auto renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 
     Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
-    surfaceNode->SetDrawingGPUContext(gpuContext);
-
-    RSTagTracker tagTracker(gpuContext, surfaceNode->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
+    surfaceNode->SetDrawingGPUContext(gpuContext); // TO-DO
+    RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
 
     surfaceNode->UpdateFilterCacheStatusWithVisible(true);
 
-    const auto& property = surfaceNode->GetRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
-    if (!geoPtr) {
-        RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%{public}" PRIu64 ", get geoPtr failed",
-            surfaceNode->GetId());
-        return;
-    }
+    // TO-DO [Sub Thread] CheckFilterCache
 
     RSAutoCanvasRestore acr(rscanvas);
 
-    rscanvas->MultiplyAlpha(property.GetAlpha());
+    rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
 
-    bool isSelfDrawingSurface = surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-
-    if (isSelfDrawingSurface && !property.IsSpherizeValid()) {
+    bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid()) {
         rscanvas->Save();
     }
 
-    rscanvas->ConcatMatrix(geoPtr->GetMatrix());
+    rscanvas->ConcatMatrix(surfaceParams->GetMatrix());
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
@@ -109,38 +105,36 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 
     nodeSp->ProcessRenderBeforeChildren(*rscanvas);
 
-    // TODO: read from renderParams
     if (surfaceNode->GetBuffer() != nullptr) {
-        surfaceNode->SetGlobalAlpha(1.0f);
+        surfaceNode->SetGlobalAlpha(1.0f); // TO-DO
         int threadIndex = 0;
-        auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, false, threadIndex);
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, false, threadIndex, true);
         params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         auto screenManager = CreateOrGetScreenManager();
-        // TODO: read from renderParams
-        if (!surfaceNode->GetAncestorDisplayNode().lock()) {
+        auto ancestor = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (!ancestor) {
             RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
             return;
         }
-        auto ancestor = surfaceNode->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
-        params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
+        auto ancestorParam = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
+        params.screenBrightnessNits =
+            screenManager->GetScreenBrightnessNits(ancestorParam ? ancestorParam->GetScreenId() : 0);
 #endif
-        auto bgColor = property.GetBackgroundColor();
-        // TODO: read from renderParams
-        if ((surfaceNode->GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
+        auto bgColor = surfaceParams->GetBackgroundColor();
+        if ((surfaceParams->GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
             (bgColor != RgbPalette::Transparent())) {
-            auto bounds = RSPropertiesPainter::Rect2DrawingRect(property.GetBoundsRect());
+            auto bounds = RSPropertiesPainter::Rect2DrawingRect(
+                { 0, 0, surfaceParams->GetBounds().GetWidth(), surfaceParams->GetBounds().GetHeight() });
             Drawing::SaveLayerOps layerOps(&bounds, nullptr);
             rscanvas->SaveLayer(layerOps);
-            rscanvas->SaveAlpha();
             rscanvas->SetAlpha(1.0f);
             Drawing::Brush brush;
             brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
             rscanvas->AttachBrush(brush);
-            rscanvas->DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(property.GetRRect()));
+            rscanvas->DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams->GetRRect()));
             rscanvas->DetachBrush();
             renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
-            rscanvas->RestoreAlpha();
             rscanvas->Restore();
         } else {
             renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
@@ -151,7 +145,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         rscanvas->Restore();
     }
 
-    if (surfaceNode != nullptr && !surfaceNode->IsNotifyUIBufferAvailable()) {
+    if (!surfaceNode->IsNotifyUIBufferAvailable()) {
         // Notify UI buffer available, temporarily fix
         auto mutableSurfaceNode = std::const_pointer_cast<RSSurfaceRenderNode>(surfaceNode);
         mutableSurfaceNode->NotifyUIBufferAvailable();

@@ -343,7 +343,7 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
         return;
     }
     RSRenderNode::ApplyModifiers();
-    visitor->QuickPrepareSurfaceRenderNode(*this); 
+    visitor->QuickPrepareSurfaceRenderNode(*this);
 }
 
 bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool isOccluded)
@@ -1428,7 +1428,7 @@ bool RSSurfaceRenderNode::CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNo
     auto lastFrameSurfaceNodeId = surfaceNodesIds.front();
     surfaceNodesIds.pop();
     if (lastFrameSurfaceNodeId != GetId()) {
-        return true; 
+        return true;
     }
     return false;
 }
@@ -1939,7 +1939,22 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         RS_LOGE("RSSurfaceRenderNode::UpdatePartialRenderParams surfaceParams is null");
         return;
     }
-    surfaceParams->SetVisibleRegion(visibleRegion_);
+
+    if (IsMainWindowType()) {
+        surfaceParams->SetVisibleRegion(visibleRegion_);
+    }
+    auto& properties = GetRenderProperties();
+    surfaceParams->alpha_ = properties.GetAlpha();
+    surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
+    surfaceParams->rsSurfaceNodeType_ = GetSurfaceNodeType();
+    surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
+    surfaceParams->rrect_ = properties.GetRRect();
+    surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
+    surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
+    surfaceParams->isMainWindowType_ = IsMainWindowType();
+    surfaceParams->dstRect_ = GetDstRect();
+    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
+    surfaceParams->frameGravity_ = properties.GetFrameGravity();
 }
 
 void RSSurfaceRenderNode::InitRenderParams()

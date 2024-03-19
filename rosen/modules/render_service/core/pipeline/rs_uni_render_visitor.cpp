@@ -1208,6 +1208,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
+
+    // 3. Staging Surface Node Params
+    node.UpdatePartialRenderParams();
 }
 
 void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
@@ -1466,7 +1469,6 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
             dirtyManager->SetCurrentFrameDirtyRect(
                 geoPtr->MapAbsRect(dirtyRect.ConvertTo<float>()));
-            surfaceNode->UpdatePartialRenderParams();
         }
         // 2. check surface node dirtyrect need merge into displayDirtyManager
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);

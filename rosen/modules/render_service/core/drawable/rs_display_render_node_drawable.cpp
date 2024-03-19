@@ -87,8 +87,8 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         return nullptr;
     }
 
-    if (!processor->Init(
-            *displayNodeSp, params.GetDisplayOffsetX(), params.GetDisplayOffsetY(), INVALID_SCREEN_ID, renderEngine)) {
+    if (!processor->Init(*displayNodeSp, params.GetDisplayOffsetX(), params.GetDisplayOffsetY(), INVALID_SCREEN_ID,
+            renderEngine, true)) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame processor init failed!");
         return nullptr;
     }
