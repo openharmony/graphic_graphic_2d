@@ -320,7 +320,9 @@ private:
     void UpdateUIFirstSwitch();
     // ROG: Resolution Online Government
     void UpdateRogSizeIfNeeded();
+    void UpdateDisplayNodeScreenId();
     uint32_t GetRefreshRate() const;
+    uint32_t GetDynamicRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
@@ -541,8 +543,11 @@ private:
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
 
+    // for statistic of jank frames
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool discardJankFrames_ = false;
+    ScreenId displayNodeScreenId_ = 0;
+
     bool forceUIFirstChanged_ = false;
     bool hasRosenWebNode_ = false;
 };
