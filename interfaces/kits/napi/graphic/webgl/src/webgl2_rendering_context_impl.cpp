@@ -463,6 +463,7 @@ napi_value WebGL2RenderingContextImpl::ClientWaitSync(
     }
     GLuint64 timeout64 = (timeout == -1) ? GL_TIMEOUT_IGNORED : static_cast<GLuint64>(timeout);
     GLenum returnValue = glClientWaitSync(reinterpret_cast<GLsync>(syncId), flags, timeout64);
+
     LOGD("WebGL2 clientWaitSync syncId = %{public}d %{public}u result %{public}u", 
          static_cast<int>(syncId), returnValue, GetError_());
     return NVal::CreateInt64(env, static_cast<int64_t>(returnValue)).val_;
@@ -1234,6 +1235,7 @@ napi_value WebGL2RenderingContextImpl::VertexAttribIPointer(napi_env env, const 
 
     glVertexAttribIPointer(vertexInfo.index, vertexInfo.size, vertexInfo.type, vertexInfo.stride,
         reinterpret_cast<GLvoid*>(vertexInfo.offset));
+    
     LOGD("WebGL vertexAttribPointer index %{public}u offset %{public}u", 
          static_cast<unsigned int>(vertexInfo.index), static_cast<unsigned int>(vertexInfo.offset));
     return NVal::CreateNull(env).val_;
@@ -1385,6 +1387,7 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
     GLsizeiptr dstSize = (ext.length == 0) ? static_cast<GLsizeiptr>(bufferData.GetBufferLength())
                                            : static_cast<GLsizeiptr>(ext.length * bufferData.GetBufferDataSize());
     GLuint dstOffset = static_cast<GLuint>(ext.offset * bufferData.GetBufferDataSize());
+    
     LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{public}p", 
          static_cast<unsigned int>(dstSize), writeBuffer->bufferData_);
 
