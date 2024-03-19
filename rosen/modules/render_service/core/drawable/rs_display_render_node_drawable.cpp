@@ -21,6 +21,7 @@
 #include "benchmarks/rs_recording_thread.h"
 #include "rs_trace.h"
 
+#include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -252,7 +253,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     rsDirtyRectsDfx.OnDraw(curCanvas_);
 
     // switch color filtering
-    SwitchColorFilter(*curCanvas_, saveCount);
+    SwitchColorFilter(*curCanvas_);
 
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
     renderFrame->Flush();
