@@ -19,9 +19,7 @@
 #include <utility>
 
 #include "drawable/rs_property_drawable.h"
-#include "common/rs_rect.h"
-#include "render/rs_path.h"
-#include "render/rs_shadow.h"
+#include "common/rs_color.h"
 
 namespace OHOS::Rosen {
 class RSProperties;
@@ -41,12 +39,18 @@ public:
 
 private:
     bool needSync_ = false;
-    RSShadow shadow_;
-    RSShadow stagingShadow_;
-    RRect rrect_;
-    RRect stagingRRect_;
-    std::shared_ptr<RSPath> clipBounds_;
-    std::shared_ptr<RSPath> stagingClipBounds_;
+    Drawing::Path path_;
+    Drawing::Path stagingPath_;
+    Color color_;
+    Color stagingColor_;
+    float offsetX_;
+    float stagingOffsetX_;
+    float offsetY_;
+    float stagingOffsetY_;
+    float elevation_;
+    float stagingElevation_;
+    bool isFilled_;
+    bool stagingIsFilled_;
 };
 
 class RSMaskShadowDrawable : public RSPropertyDrawable {

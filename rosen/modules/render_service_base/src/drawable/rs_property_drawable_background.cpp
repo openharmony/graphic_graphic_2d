@@ -51,14 +51,20 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
 {
+    const RSProperties& properties = node.GetRenderProperties();
     // skip shadow if not valid
-    if (!node.GetRenderProperties().IsShadowValid()) {
+    if (!properties.IsShadowValid()) {
         return false;
     }
+
+    stagingPath_ = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
+        properties.GetClipBounds(), properties.GetRRect());
+    stagingOffsetX_ = properties.GetShadowOffsetX();
+    stagingOffsetY_ = properties.GetShadowOffsetY();
+    stagingElevation_ = properties.GetShadowElevation();
+    stagingColor_ = properties.GetShadowColor();
+    stagingIsFilled_ = properties.GetShadowIsFilled();
     needSync_ = true;
-    stagingShadow_ = node.GetRenderProperties().GetShadow().value();
-    stagingRRect_ = node.GetRenderProperties().GetRRect();
-    stagingClipBounds_ = node.GetRenderProperties().GetClipBounds();
     return true;
 }
 
@@ -67,9 +73,12 @@ void RSShadowDrawable::OnSync()
     if (!needSync_) {
         return;
     }
-    shadow_ = std::move(stagingShadow_);
-    rrect_ = std::move(stagingRRect_);
-    clipBounds_ = std::move(stagingClipBounds_);
+    path_ = std::move(stagingPath_);
+    color_ = std::move(stagingColor_);
+    offsetX_ = stagingOffsetX_;
+    offsetY_ = stagingOffsetY_;
+    elevation_ = stagingElevation_;
+    isFilled_ = stagingIsFilled_;
     needSync_ = false;
 }
 
@@ -82,7 +91,9 @@ Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
             ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
             return;
         }
-        RSPropertyDrawableUtils::DrawShadow(canvas, ptr->shadow_, ptr->rrect_, ptr->clipBounds_);
+        Drawing::Path path = ptr->path_;
+        RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
+            ptr->elevation_, ptr->isFilled_, ptr->color_);
     };
 }
 
@@ -102,8 +113,11 @@ bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
 
     const RSProperties& properties = node.GetRenderProperties();
     Drawing::AutoCanvasRestore acr(canvas, true);
-    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(canvas, properties.GetShadowIsFilled(),
-        properties.GetShadowPath(), properties.GetClipBounds(), properties.GetRRect());
+    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
+        properties.GetClipBounds(), properties.GetRRect());
+    if (!properties.GetShadowIsFilled()) {
+        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
     // shadow alpha follow setting
@@ -159,8 +173,11 @@ bool RSColorfulShadowDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
-    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(canvas, properties.GetShadowIsFilled(),
-        properties.GetShadowPath(), properties.GetClipBounds(), properties.GetRRect());
+    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
+        properties.GetClipBounds(), properties.GetRRect());
+    if (!properties.GetShadowIsFilled()) {
+        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
     // blurRadius calculation is based on the formula in Canvas::DrawShadow, 0.25f and 128.0f are constants
     const Drawing::scalar blurRadius =
         properties.GetShadowElevation() > 0.f

@@ -42,10 +42,10 @@ public:
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
         const RectF& boundsRect, const bool boundsGeoValid);
-    static Drawing::Path CreateShadowPath(Drawing::Canvas& canvas, bool shadowIsFilled,
-        const std::shared_ptr<RSPath> shadowPath, const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
-    static void DrawShadow(Drawing::Canvas* canvas, const RSShadow& shadow, const RRect& rrect,
-        const std::shared_ptr<RSPath>& clipBounds);
+    static Drawing::Path CreateShadowPath(const std::shared_ptr<RSPath> rsPath,
+        const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
+    static void DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX, const float& offsetY,
+        const float& elevation, const bool& isFilled, Color spotColor);
     static void DrawUseEffect(RSPaintFilterCanvas* canvas);
 
     static void BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType);
