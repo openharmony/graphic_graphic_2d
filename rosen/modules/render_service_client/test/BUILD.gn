@@ -650,6 +650,25 @@ ohos_executable("render_service_client_fingerprint_demo") {
   subsystem_name = "graphic"
 }
 
+ohos_executable("render_service_client__alpha_offscreen_demo") {
+  sources = [ "render_service_client__alpha_offscreen_demo.cpp" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "window_manager:libwm",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
 ohos_executable("render_service_client_first_frame_callback_demo") {
   sources = [ "render_service_client_first_frame_callback_demo.cpp" ]
 
