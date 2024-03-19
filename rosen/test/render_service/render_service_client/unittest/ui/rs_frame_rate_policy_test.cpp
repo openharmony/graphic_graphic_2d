@@ -63,7 +63,7 @@ HWTEST_F(RSFrameRatePolicyTest, GetRefreshRateMode_Test, TestSize.Level1)
 
     instance->RegisterHgmConfigChangeCallback();
 
-    instance->GetRefreshRateMode();
+    instance->GetRefreshRateModeName();
 }
 
 } // namespace Rosen

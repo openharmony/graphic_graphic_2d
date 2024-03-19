@@ -27,18 +27,14 @@ namespace OHOS {
 #define PUBU64 "%{public}llu"
 #endif
 
-#define HGM_DFUNC OHOS::HiviewDFX::HiLog::Debug
-#define HGM_IFUNC OHOS::HiviewDFX::HiLog::Info
-#define HGM_WFUNC OHOS::HiviewDFX::HiLog::Warn
-#define HGM_EFUNC OHOS::HiviewDFX::HiLog::Error
 
 #define HGM_CPRINTF(func, fmt, ...) \
-    func( {LOG_CORE, 0xD001407, "graphic_2d_hgm"}, "<%{public}d>%{public}s: " fmt, \
+    HILOG_IMPL(LOG_CORE, func, 0xD001407, "graphic_2d_hgm", "<%{public}d>%{public}s: " fmt, \
         __LINE__, __func__, ##__VA_ARGS__)
 
-#define HGM_LOGD(fmt, ...) HGM_CPRINTF(HGM_DFUNC, fmt, ##__VA_ARGS__)
-#define HGM_LOGI(fmt, ...) HGM_CPRINTF(HGM_IFUNC, fmt, ##__VA_ARGS__)
-#define HGM_LOGW(fmt, ...) HGM_CPRINTF(HGM_WFUNC, fmt, ##__VA_ARGS__)
-#define HGM_LOGE(fmt, ...) HGM_CPRINTF(HGM_EFUNC, fmt, ##__VA_ARGS__)
+#define HGM_LOGD(fmt, ...) HGM_CPRINTF(LOG_DEBUG, fmt, ##__VA_ARGS__)
+#define HGM_LOGI(fmt, ...) HGM_CPRINTF(LOG_INFO, fmt, ##__VA_ARGS__)
+#define HGM_LOGW(fmt, ...) HGM_CPRINTF(LOG_WARN, fmt, ##__VA_ARGS__)
+#define HGM_LOGE(fmt, ...) HGM_CPRINTF(LOG_ERROR, fmt, ##__VA_ARGS__)
 } // namespace OHOS
 #endif // HGM_CONFIG_LOG_H

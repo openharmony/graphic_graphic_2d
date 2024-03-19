@@ -28,8 +28,16 @@
 
 namespace OHOS {
 namespace Rosen {
+
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 1400
+
+#undef LOG_TAG
+#define LOG_TAG "FrameCollector"
+
+#define LOGW(fmt, ...) HILOG_WARN(LOG_CORE, fmt, ##__VA_ARGS__)
+#define LOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
 namespace {
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "FrameCollector" };
 constexpr int32_t uimarksStart = static_cast<int32_t>(FrameEventType::UIMarksStart);
 constexpr int32_t uimarksEnd = static_cast<int32_t>(FrameEventType::UIMarksEnd) - 1;
 constexpr int32_t loopEnd = static_cast<int32_t>(FrameEventType::LoopEnd) - 1;
@@ -73,8 +81,7 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
 {
     const auto &index = static_cast<int32_t>(type);
     if (index >= static_cast<int32_t>(FrameEventType::Max)) {
-        ::OHOS::HiviewDFX::HiLog::Warn(LABEL,
-            "FrameCollector::MarkFrameEvent index(%{public}d) not exists", static_cast<int32_t>(index));
+        LOGW("FrameCollector::MarkFrameEvent index(%{public}d) not exists", static_cast<int32_t>(index));
         return;
     }
 
@@ -91,8 +98,7 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
         return;
     }
 
-    ::OHOS::HiviewDFX::HiLog::Debug(LABEL, "FrameCollector::MarkFrameEvent "
-        "index(%{public}d) occur at %{public}s", index, std::to_string(timeNs).c_str());
+    LOGD("FrameCollector::MarkFrameEvent index(%{public}d) occur at %{public}s", index, std::to_string(timeNs).c_str());
     ProcessFrameEvent(index, timeNs);
 }
 

@@ -59,13 +59,13 @@ public:
     void HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleTouchEvent(int32_t touchStatus);
-    void HandleTempEvent(std::string tempEventName, bool eventStatus, uint32_t min, uint32_t max);
+    void HandleTempEvent(const std::string& tempEventName, bool eventStatus, uint32_t min, uint32_t max);
 
     void CleanVote(pid_t pid);
-    RefreshRateMode GetCurRefreshRateMode() const { return curRefreshRateMode_; };
+    int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
     ScreenId GetCurScreenId() const { return curScreenId_; };
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
-    void HandleRefreshRateMode(RefreshRateMode refreshRateMode);
+    void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     bool IsLtpo() const { return isLtpo_; };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -131,7 +131,7 @@ private:
     std::unordered_set<pid_t> pidRecord_;
 
     std::string curPkgName_ = "";
-    RefreshRateMode curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;

@@ -26,6 +26,12 @@
 #include "vsync_type.h"
 #include "vsync_generator.h"
 
+#ifdef COMPOSER_SCHED_ENABLE
+#include "if_system_ability_manager.h"
+#include <iservice_registry.h>
+#include "system_ability_definition.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -305,21 +311,23 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
         return;
     }
 
-    {
-        // before con_ wait, notify the rnv_con.
+    // before con_ wait, notify the rnv_con.
 #if defined(RS_ENABLE_DVSYNC)
-        if (IsDVsyncOn()) {
-            dvsync_->DVsyncNotify();
-        }
-#endif
-        con_.wait(locker);
+    if (IsDVsyncOn()) {
+        dvsync_->DVsyncNotify();
     }
+#endif
+    con_.wait(locker);
 
 #if defined(RS_ENABLE_DVSYNC)
+    if (pendingRNVInVsync_) {
+        return;
+    }
     if (IsDVsyncOn()) {
         std::pair<bool, int64_t> result = dvsync_->DoPreExecute(locker, con_);
         if (result.first) {
             event_.timestamp = result.second;
+            lastDVsyncTS_.store(result.second);
             event_.vsyncCount++;
             if (vsyncEnabled_ == false) {
                 ScopedBytrace func(name_ + "_EnableVsync");
@@ -343,6 +351,11 @@ void VSyncDistributor::ThreadMain()
     struct sched_param param = {0};
     param.sched_priority = SCHED_PRIORITY;
     sched_setscheduler(0, SCHED_FIFO, &param);
+
+#ifdef COMPOSER_SCHED_ENABLE
+    std::string threadName = "VSync-" + name_;
+    SubScribeSystemAbility(threadName);
+#endif
 
     int64_t timestamp;
     int64_t vsyncCount;
@@ -399,12 +412,23 @@ void VSyncDistributor::ThreadMain()
             {
                 std::unique_lock<std::mutex> locker(mutex_);
                 dvsync_->MarkDistributorSleep(true);
-            }
-            dvsync_->DelayBeforePostEvent(timestamp);
-            {
-                std::unique_lock<std::mutex> locker(mutex_);
+                dvsync_->DVsyncNotify();
+                dvsync_->DelayBeforePostEvent(timestamp, locker);
                 dvsync_->MarkDistributorSleep(false);
             }
+            // if getting switched into vsync mode after sleep
+            if (!IsDVsyncOn()) {
+                ScopedBytrace func("NoAccumulateInVsync");
+                lastDVsyncTS_.store(0);  // ensure further OnVSyncEvent do not skip
+                for (auto conn : conns) {
+                    RequestNextVSync(conn);
+                }  // resend RNV for vsync
+                continue;  // do not accumulate frame;
+            }
+        }
+        {
+            std::unique_lock<std::mutex> locker(mutex_);
+            pendingRNVInVsync_ = false;
         }
 #endif
         PostVSyncEvent(conns, timestamp);
@@ -432,14 +456,24 @@ void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refres
     vsyncMode_ = vsyncMode;
     event_.period = period;
     if (IsDVsyncOn()) {
-        ScopedBytrace func("VSyncD onVSyncEvent");
+        ScopedBytrace func("VSyncD onVSyncEvent, now" + std::to_string(now));
     } else {
-        ScopedBytrace func("VSync onVSyncEvent");
+        ScopedBytrace func("VSync onVSyncEvent, now" + std::to_string(now));
     }
 
 #if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
         dvsync_->RecordVSync(now, period);
+    }
+
+    dvsync_->NotifyPreexecuteWait();
+
+    int64_t lastDVsyncTS = lastDVsyncTS_.load()
+    // when dvsync switch to vsync, skip all vsync events within one period from the pre-rendered timestamp
+    if (!IsDVsyncOn() && now < (lastDVsyncTS + DVSYNC_ON_PERIOD - MAX_PERIOD_BIAS)) {
+        ScopedBytrace func("skip DVSync prerendered frame, now: " + std::to_string(now) +
+            ",lastDVsyncTS: " + std::to_string(lastDVsyncTS));
+        return;
     }
 
     if (!IsDVsyncOn() || pendingRNVInVsync_)
@@ -461,7 +495,6 @@ void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refres
         std::to_string(IsDVsyncOn()));
     if (!IsDVsyncOn() || pendingRNVInVsync_) {
         con_.notify_all();
-        pendingRNVInVsync_ = false;
     } else {
         // When Dvsync on, if the RequestNextVsync is not invoked within three period and SetVSyncRate
         // is not invoked either, execute DisableVSync.
@@ -485,6 +518,27 @@ void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uin
 {
     std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
     changingConnsRefreshRates_ = refreshRates;
+}
+
+void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
+{
+    VLOGD("%{public}s", __func__);
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        VLOGE("%{public}s failed to get system ability manager client", __func__);
+        return;
+    }
+    std::string strUid = std::to_string(getuid());
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+
+    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
+    if (ret != ERR_OK) {
+        VLOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
+        saStatusChangeListener_ = nullptr;
+    }
 }
 
 void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
@@ -741,8 +795,7 @@ void VSyncDistributor::ChangeConnsRateLocked()
 bool VSyncDistributor::IsDVsyncOn()
 {
 #if defined(RS_ENABLE_DVSYNC)
-    return isRs_ && dvsync_->IsEnabled() &&
-        (abs(event_.period - DVSYNC_ON_PERIOD) < MAX_PERIOD_BIAS);
+    return isRs_ && dvsync_->IsEnabled();
 #else
     return false;
 #endif

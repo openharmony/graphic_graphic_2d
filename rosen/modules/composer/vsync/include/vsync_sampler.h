@@ -81,7 +81,7 @@ private:
     enum : uint32_t { NUM_PRESENT = 8 };
 
     VSyncSampler();
-    ~VSyncSampler() noexcept override;
+    ~VSyncSampler() override;
 
     void UpdateModeLocked();
     void UpdateErrorLocked();

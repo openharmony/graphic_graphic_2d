@@ -36,7 +36,7 @@ public:
     void RegisterHgmConfigChangeCallback();
 
     int32_t GetPreferredFps(const std::string& scene, float speed);
-    int32_t GetRefreshRateMode() const;
+    int32_t GetRefreshRateModeName() const;
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
 
 private:
@@ -49,7 +49,7 @@ private:
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
-    int32_t currentRefreshRateMode_ = 0;
+    int32_t currentRefreshRateModeName_ = 0;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
     std::mutex mutex_;
 };

@@ -107,7 +107,7 @@ void RSCanvasRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& ca
 
 void RSCanvasRenderNode::ProcessShadowBatching(RSPaintFilterCanvas& canvas)
 {
-    Drawing::AutoCanvasRestore acr(canvas, true);
+    RSAutoCanvasRestore acr(&canvas);
     DrawPropertyDrawableRange(RSPropertyDrawableSlot::BOUNDS_MATRIX, RSPropertyDrawableSlot::TRANSITION, canvas);
     DrawPropertyDrawable(RSPropertyDrawableSlot::SHADOW, canvas);
 }

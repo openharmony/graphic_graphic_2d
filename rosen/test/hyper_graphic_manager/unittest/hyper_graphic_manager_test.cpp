@@ -326,7 +326,7 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
     int32_t height = 2772;
     uint32_t rate = 120;
     int32_t mode = 1;
-    RefreshRateMode modeToSet = HGM_REFRESHRATE_MODE_MEDIUM;
+    int32_t modeToSet = 2;
 
     PART("EnvConditions") {
         STEP("get Instance") {
@@ -456,9 +456,9 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
 
     PART("HgmCore") {
         STEP("1. set active mode") {
-            int32_t setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
-            setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_LOW);
-            setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
+            int32_t setResult = instance.SetRefreshRateMode(1);
+            setResult = instance.SetRefreshRateMode(3);
+            setResult = instance.SetRefreshRateMode(1);
             STEP_ASSERT_EQ(setResult, 0);
         }
 
@@ -466,7 +466,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             int32_t setResult = instance.SetScreenRefreshRate(screenId3, 0, rate);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate3);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate2);
-            setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
+            setResult = instance.SetRefreshRateMode(1);
             STEP_ASSERT_GE(setResult, -1);
         }
 
@@ -490,6 +490,47 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             instance.GetScreenCurrentRefreshRate(screenId2);
             std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId2);
             auto screenComponentRefreshRates = instance.GetScreenComponentRefreshRates(screenId2);
+        }
+    }
+}
+
+/**
+ * @tc.name: SetRefreshRateMode002
+ * @tc.desc: HgmCore.SetRefreshRateMode002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest | Level2)
+{
+    auto &instance = HgmCore::Instance();
+    ScreenId screenId2 = 8;
+    sptr<HgmScreen> screen = nullptr;
+    int32_t width = 1344;
+    int32_t height = 2772;
+    uint32_t rate = 120;
+    uint32_t rate2 = 60;
+    int32_t mode = 1;
+    int32_t mode2 = 2;
+    instance.AddScreen(screenId2, 1, screenSize);
+    instance.AddScreenInfo(screenId2, width, height, rate, mode);
+    instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
+
+    PART("HgmCore") {
+        STEP("1. set active mode") {
+            int32_t setResult = instance.SetRefreshRateMode(1);
+            STEP_ASSERT_EQ(setResult, 0);
+            auto refreshRateMode = instance.GetCurrentRefreshRateMode();
+            STEP_ASSERT_EQ(refreshRateMode, 1);
+
+            setResult = instance.SetRefreshRateMode(3);
+            STEP_ASSERT_EQ(setResult, 0);
+            refreshRateMode = instance.GetCurrentRefreshRateMode();
+            STEP_ASSERT_EQ(refreshRateMode, 3);
+
+            setResult = instance.SetRefreshRateMode(1);
+            STEP_ASSERT_EQ(setResult, 0);
+            refreshRateMode = instance.GetCurrentRefreshRateMode();
+            STEP_ASSERT_EQ(refreshRateMode, 1);
         }
     }
 }

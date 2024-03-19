@@ -229,6 +229,8 @@ public:
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 
+    virtual bool IsAllScreensPowerOff() const = 0;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) = 0;
 #endif
@@ -386,6 +388,8 @@ public:
         }
         screens_[rsScreen->Id()] = std::move(rsScreen);
     }
+
+    bool IsAllScreensPowerOff() const override;
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     float GetScreenBrightnessNits(ScreenId id) override;

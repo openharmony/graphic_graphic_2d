@@ -3517,4 +3517,81 @@ HWTEST_F(RSUniRenderVisitorTest, CalcSurfaceFilterNodeDirtyRegion002, TestSize.L
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, displayConfig);
     rsUniRenderVisitor->CalcSurfaceFilterNodeDirtyRegion(surfaceNode, displayNode);
 }
+
+/**
+ * @tc.name: SetHasSharedTransitionNode001
+ * @tc.desc: Test SetHasSharedTransitionNode for leash window node
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderVisitorTest, SetHasSharedTransitionNode001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->SetHasSharedTransitionNode(*surfaceNode, true);
+    ASSERT_FALSE(surfaceNode->GetHasSharedTransitionNode());
+}
+
+/**
+ * @tc.name: SetHasSharedTransitionNode002
+ * @tc.desc: Test SetHasSharedTransitionNode for app window node
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderVisitorTest, SetHasSharedTransitionNode002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->SetHasSharedTransitionNode(*surfaceNode, true);
+    ASSERT_TRUE(surfaceNode->GetHasSharedTransitionNode());
+}
+
+/**
+ * @tc.name: SetHasSharedTransitionNode003
+ * @tc.desc: Test SetHasSharedTransitionNode while node's parent isn't leash window node
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderVisitorTest, SetHasSharedTransitionNode003, TestSize.Level2)
+{
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(node, nullptr);
+    parentNode->AddChild(node);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->SetHasSharedTransitionNode(*node, true);
+    ASSERT_FALSE(parentNode->GetHasSharedTransitionNode());
+}
+
+/**
+ * @tc.name: SetHasSharedTransitionNode004
+ * @tc.desc: Test SetHasSharedTransitionNode while node's parent is leash window node
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderVisitorTest, SetHasSharedTransitionNode004, TestSize.Level2)
+{
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(node, nullptr);
+    parentNode->AddChild(node);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->SetHasSharedTransitionNode(*node, true);
+    ASSERT_TRUE(parentNode->GetHasSharedTransitionNode());
+}
 } // OHOS::Rosen

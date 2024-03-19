@@ -71,7 +71,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         RS_LOGD("RSUniRenderVirtualProcessor::Init, Screen(id %{public}" PRIu64 "), Rotation: %d", node.GetScreenId(),
             static_cast<uint32_t>(mainScreenRotation_));
     }
-    if (mirrorNode && node.IsFirstTimeToProcessor()) {
+    if (mirrorNode && node.IsFirstTimeToProcessor() && !canvasRotation_) {
         if (isPhone_) {
             node.SetOriginScreenRotation(mainScreenRotation_);
         } else {

@@ -18,10 +18,10 @@
 #include "rs_profiler_capture_recorder.h"
 
 #ifndef REPLAY_TOOL_CLIENT
-#include "rs_profiler_base.h"
+#include "rs_profiler.h"
 #include "platform/common/rs_log.h"
 #else
-#include "../rs_log.h"
+#include "rs_log.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -39,7 +39,7 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
     return TryInstantCaptureSKP(width, height);
 }
 
-void RSCaptureRecorder::EndInstantCapture()
+void RSCaptureRecorder::EndInstantCapture() const
 {
     if (!RSSystemProperties::GetInstantRecording()) {
         return;
@@ -51,6 +51,14 @@ void RSCaptureRecorder::EndInstantCapture()
     }
     // for saving .skp file
     EndInstantCaptureSKP();
+}
+
+std::pair<uint32_t, uint32_t> RSCaptureRecorder::GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight)
+{
+    if (RSSystemProperties::GetInstantRecording()) {
+        return std::pair<uint32_t, uint32_t>(displayWidth, displayHeight);
+    }
+    return std::pair<uint32_t, uint32_t>(0, 0);
 }
 
 bool RSCaptureRecorder::PullAndSendRdc()
@@ -80,7 +88,7 @@ ExtendRecordingCanvas* RSCaptureRecorder::TryInstantCaptureDrawing(float width, 
     return recordingCanvas_.get();
 }
 
-void RSCaptureRecorder::EndInstantCaptureDrawing()
+void RSCaptureRecorder::EndInstantCaptureDrawing() const
 {
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();
 
@@ -129,7 +137,7 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCaptureSKP(float width, float heig
     return recordingSkpCanvas_.get();
 }
 
-void RSCaptureRecorder::EndInstantCaptureSKP()
+void RSCaptureRecorder::EndInstantCaptureSKP() const
 {
     Network::SendMessage("Finishing .skp capturing");
 
