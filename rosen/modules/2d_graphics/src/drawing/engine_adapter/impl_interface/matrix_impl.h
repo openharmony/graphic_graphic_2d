@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+enum class ScaleToFit;
 class DRAWING_API Matrix;
 class DRAWING_API Matrix44;
 class MatrixImpl : public BaseImpl {
@@ -67,6 +68,7 @@ public:
     virtual bool Equals(const Matrix& a, const Matrix& b) const = 0;
     virtual void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2) = 0;
+    virtual bool SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf);
     virtual void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const;
     virtual bool MapRect(Rect& dst, const Rect& src) const;
     virtual bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count);

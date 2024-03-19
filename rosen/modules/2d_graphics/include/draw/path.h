@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,6 +56,11 @@ enum class PathOp {
     UNION,
     XOR,
     REVERSE_DIFFERENCE,
+};
+
+enum class PathAddMode {
+    APPEND_PATH_ADD_MODE,
+    EXTEND_PATH_ADD_MODE,
 };
 
 class DRAWING_API Path {
@@ -187,6 +192,16 @@ public:
      * @param endPt end Point of added quad
      */
     virtual void QuadTo(const Point& ctrlPt, const Point endPt);
+    /**
+     * @brief Draws a conic from the last point of a path to the target point.
+     *
+     * @param ctrlX Indicates the x coordinate of the control point
+     * @param ctrlY Indicates the y coordinate of the control point
+     * @param endX Indicates the x coordinate of the target point
+     * @param endY Indicates the y coordinate of the target point
+     * @param weight Indicates the weight of added conic.
+     */
+    virtual void ConicTo(scalar ctrlX, scalar ctrlY, scalar endX, scalar endY, scalar weight);
 
     /**
      * @brief Adds beginning of contour relative to last point. If Path is empty,
@@ -241,12 +256,34 @@ public:
     virtual void RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2);
 
     /**
+     * @brief Adds conic from last point towards vector (dx1, dy1), to vector (dx2, dy2),
+     * weighted by w. If Path is empty, or last Path::Verb is kClose_Verb,
+     * last point is set to (0, 0) before adding conic.
+     *
+     * @param ctrlPtX offset from last point to conic control on x-axis
+     * @param ctrlPtY offset from last point to conic control on y-axis
+     * @param endPtX offset from last point to conic end on x-axis
+     * @param endPtY offset from last point to conic end on y-axis
+     * @param weight weight of added conic
+     */
+    virtual void RConicTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY, scalar weight);
+
+    /**
      * @brief Adds a new contour to the path, defined by the rect, and wound in the specified direction.
      *
      * @param rect Rect to add as a closed contour
      * @param dir Path::PathDirection to orient the new contour
      */
     virtual void AddRect(const Rect& rect, PathDirection dir = PathDirection::CW_DIRECTION);
+
+    /**
+     * @brief Adds a new contour to the path, defined by the rect, and wound in the specified direction.
+     *
+     * @param rect Rect to add as a closed contour
+     * @param dir Path::PathDirection to orient the new contour
+     * @param start Initial corner of Rect to add
+     */
+    virtual void AddRect(const Rect& rect, unsigned start, PathDirection dir = PathDirection::CW_DIRECTION);
     virtual void AddRect(
         scalar left, scalar top, scalar right, scalar bottom, PathDirection dir = PathDirection::CW_DIRECTION);
 
@@ -259,6 +296,17 @@ public:
      * @param dir Path::PathDirection to wind ellipse
      */
     virtual void AddOval(const Rect& oval, PathDirection dir = PathDirection::CW_DIRECTION);
+
+    /**
+     * @brief Adds oval to Path. Oval is upright ellipse bounded by Rect oval with radii equal to
+     * half oval width and half oval height. Oval begins at start and continues clockwise if dir is
+     * PathDirection::CW_DIRECTION, counterclockwise if dir is PathDirection::CCW_DIRECTION.
+     *
+     * @param oval bounds of ellipse added
+     * @param start Index of initial point of ellipse
+     * @param dir Path::PathDirection to wind ellipse
+     */
+    virtual void AddOval(const Rect& oval, unsigned start, PathDirection dir = PathDirection::CCW_DIRECTION);
 
     /**
      * @brief Appends arc to Path, as the start of new contour. Arc added is part of ellipse bounded by oval,
@@ -298,15 +346,17 @@ public:
      * @param src Path Point, and conic weights to add
      * @param dx offset added to src Point array x-axis coordinates
      * @param dy offset added to src Point array y-axis coordinates
+     * @param mode  the add path's add mode
      */
-    virtual void AddPath(const Path& src, scalar dx, scalar dy);
+    virtual void AddPath(const Path& src, scalar dx, scalar dy, PathAddMode mode = PathAddMode::APPEND_PATH_ADD_MODE);
 
     /**
      * @brief Appends src to Path.
      *
      * @param src Path Point, and conic weights to add
+     * @param mode  the add path's add mode
      */
-    virtual void AddPath(const Path& src);
+    virtual void AddPath(const Path& src, PathAddMode mode = PathAddMode::APPEND_PATH_ADD_MODE);
 
     /**
      * @brief Appends src to Path, transformed by matrix.
@@ -314,8 +364,9 @@ public:
      *
      * @param src Path Point, and conic weights to add
      * @param matrix transform applied to src
+     * @param mode  the add path's add mode
      */
-    virtual void AddPath(const Path& src, const Matrix& matrix);
+    virtual void AddPath(const Path& src, const Matrix& matrix, PathAddMode mode = PathAddMode::APPEND_PATH_ADD_MODE);
     virtual bool Contains(scalar x, scalar y) const;
 
     /**
@@ -367,12 +418,33 @@ public:
     virtual void Transform(const Matrix& matrix);
 
     /**
+     * @brief Transforms verb array, Point array, and weight by matrix.
+     * Transform may change verbs and increase their number.
+     * Transformed Path replaces dst; if dst is nullptr, original data is replaced.
+     *
+     * @param matrix  Matrix to apply to Path
+     * @param dst     Overwritten, transformed copy of Path; may be nullptr
+     * @param applyPerspectiveClip    Whether to apply perspective clipping
+     */
+    virtual void TransformWithPerspectiveClip(const Matrix& matrix, Path* dst, bool applyPerspectiveClip);
+
+    /**
      * @brief Offsets Point array by (dx, dy). Path is replaced by offset data.
      *
      * @param dx offset added to Point array x-axis coordinates
      * @param dy offset added to Point array y-axis coordinates
      */
     virtual void Offset(scalar dx, scalar dy);
+
+    /**
+     * @brief Offsets Point array by (dx, dy). Path is replaced by offset data.
+     *
+     * @param dst The pointer of point sets of the dst Path
+     * @param dx offset added to Point array x-axis coordinates
+     * @param dy offset added to Point array y-axis coordinates
+     */
+    virtual void Offset(Path* dst, scalar dx, scalar dy);
+
     virtual bool Op(const Path& path1, Path& path2, PathOp op);
 
     /**

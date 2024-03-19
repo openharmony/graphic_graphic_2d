@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -115,6 +115,225 @@ OH_Drawing_Matrix* OH_Drawing_MatrixCreateTranslation(float dx, float dy);
  */
 void OH_Drawing_MatrixSetMatrix(OH_Drawing_Matrix*, float scaleX, float skewX, float transX,
     float skewY, float scaleY, float transY, float persp0, float persp1, float persp2);
+
+/**
+ * @brief Enumerates of scale to fit flags, how matrix is constructed to map one rect to another.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Scales in x and y to fill destination rect.
+     */
+    SCALE_TO_FIT_FILL,
+    /**
+     * Scales and aligns to left and top.
+     */
+    SCALE_TO_FIT_START,
+    /**
+     * Scales and aligns to center.
+     */
+    SCALE_TO_FIT_CENTER,
+    /**
+     * Scales and aligns to right and bottom.
+     */
+    SCALE_TO_FIT_END,
+} OH_Drawing_ScaleToFit;
+
+/**
+ * @brief Sets matrix to scale and translate src rect to dst rect.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param src Indicates the pointer to an <b>OH_Drawing_Rect</b> object rect to map from.
+ * @param dst Indicates the pointer to an <b>OH_Drawing_Rect</b> object rect to map to.
+ * @param stf Scales to fit enum method.
+ * @return Returns true if dst is empty, and sets matrix to:
+ *         | 0 0 0 |
+ *         | 0 0 0 |
+ *         | 0 0 1 |
+ *
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_MatrixSetRectToRect(OH_Drawing_Matrix*, const OH_Drawing_Rect* src,
+    const OH_Drawing_Rect* dst, OH_Drawing_ScaleToFit stf);
+
+/**
+ * @brief Sets matrix to matrix multiplied by matrix constructed from rotating by degrees
+ * about pivot point(px, py), positive degrees rotates clockwise.
+ *        Given:
+ *
+ *                     | A B C |                        | c -s dx |
+ *            Matrix = | D E F |,  R(degrees, px, py) = | s  c dy |
+ *                     | G H I |                        | 0  0  1 |
+ *
+ *        where:
+ *
+ *            c  = cos(degrees)
+ *            s  = sin(degrees)
+ *            dx =  s * py + (1 - c) * px
+ *            dy = -s * px + (1 - c) * py
+ *
+ *        sets Matrix to:
+ *
+ *                                          | A B C | | c -s dx |   | Ac+Bs -As+Bc A*dx+B*dy+C |
+ *            Matrix * R(degrees, px, py) = | D E F | | s  c dy | = | Dc+Es -Ds+Ec D*dx+E*dy+F |
+ *                                          | G H I | | 0  0  1 |   | Gc+Hs -Gs+Hc G*dx+H*dy+I |
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param degree Indicates the angle of axes relative to upright axes.
+ * @param px Indicates the pivot on x-axis.
+ * @param py Indicates the pivot on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixPreRotate(OH_Drawing_Matrix*, float degree, float px, float py);
+
+/**
+ * @brief Sets matrix to forward scale by sx and sy, about a pivot point at (px, py).
+ *        Given:
+ *
+ *                    | A B C |                       | sx  0 dx |
+ *            Matrix =| D E F |,  S(sx, sy, px, py) = |  0 sy dy |
+ *                    | G H I |                       |  0  0  1 |
+ *
+ *        where:
+ *
+ *            dx = px - sx * px
+ *            dy = py - sy * py
+ *
+ *        sets Matrix to:
+ *
+ *                                         | A B C | | sx  0 dx |   | A*sx B*sy A*dx+B*dy+C |
+ *            Matrix * S(sx, sy, px, py) = | D E F | |  0 sy dy | = | D*sx E*sy D*dx+E*dy+F |
+ *                                         | G H I | |  0  0  1 |   | G*sx H*sy G*dx+H*dy+I |
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param sx Horizontal scale factor.
+ * @param sy Vertical scale factor.
+ * @param px Pivot on x-axis.
+ * @param py Pivot on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixPreScale(OH_Drawing_Matrix*, float sx, float sy, float px, float py);
+
+/**
+ * @brief Sets forward matrix to translate by dx and dy.
+ *        Given:
+ *                     | A B C |               | 1 0 dx |
+ *            Matrix = | D E F |,  T(dx, dy) = | 0 1 dy |
+ *                     | G H I |               | 0 0  1 |
+ *        sets Matrix to:
+ *                                 | A B C | | 1 0 dx |   | A B A*dx+B*dy+C |
+ *            Matrix * T(dx, dy) = | D E F | | 0 1 dy | = | D E D*dx+E*dy+F |
+ *                                 | G H I | | 0 0  1 |   | G H G*dx+H*dy+I |
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param dx Indicates the horizontal translation.
+ * @param dy Indicates the vertical translation.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixPreTranslate(OH_Drawing_Matrix*, float dx, float dy);
+
+/**
+ * @brief Sets matrix to matrix constructed from rotating by degrees about pivot point(px, py),
+ * multiplied by matrix, positive degrees rotates clockwise.
+ *        Given:
+ *
+ *                     | J K L |                        | c -s dx |
+ *            Matrix = | M N O |,  R(degrees, px, py) = | s  c dy |
+ *                     | P Q R |                        | 0  0  1 |
+ *
+ *        where:
+ *
+ *            c  = cos(degrees)
+ *            s  = sin(degrees)
+ *            dx =  s * py + (1 - c) * px
+ *            dy = -s * px + (1 - c) * py
+ *
+ *        sets Matrix to:
+ *
+ *                                          |c -s dx| |J K L|   |cJ-sM+dx*P cK-sN+dx*Q cL-sO+dx+R|
+ *            R(degrees, px, py) * Matrix = |s  c dy| |M N O| = |sJ+cM+dy*P sK+cN+dy*Q sL+cO+dy*R|
+ *                                          |0  0  1| |P Q R|   |         P          Q          R|
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param degree Indicates the angle of axes relative to upright axes.
+ * @param px Indicates the pivot on x-axis.
+ * @param py Indicates the pivot on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixPostRotate(OH_Drawing_Matrix*, float degree, float px, float py);
+
+/**
+ * @brief Sets matrix to backward scale by sx and sy, about a pivot point at (px, py).
+ *        Given:
+ *                     | J K L |                       | sx  0 dx |
+ *            Matrix = | M N O |,  S(sx, sy, px, py) = |  0 sy dy |
+ *                     | P Q R |                       |  0  0  1 |
+ *        where:
+ *            dx = px - sx * px
+ *            dy = py - sy * py
+ *        sets Matrix to:
+ *                                         | sx  0 dx | | J K L |   | sx*J+dx*P sx*K+dx*Q sx*L+dx+R |
+ *            S(sx, sy, px, py) * Matrix = |  0 sy dy | | M N O | = | sy*M+dy*P sy*N+dy*Q sy*O+dy*R |
+ *                                         |  0  0  1 | | P Q R |   |         P         Q         R |
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param sx Horizontal scale factor.
+ * @param sy Vertical scale factor.
+ * @param px Pivot on x-axis.
+ * @param py Pivot on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixPostScale(OH_Drawing_Matrix*, float sx, float sy, float px, float py);
+
+/**
+ * @brief Sets backward matrix to translate by (dx, dy).
+ *        Given:
+ *
+ *                     | J K L |               | 1 0 dx |
+ *            Matrix = | M N O |,  T(dx, dy) = | 0 1 dy |
+ *                     | P Q R |               | 0 0  1 |
+ *
+ *        sets Matrix to:
+ *
+ *                                 | 1 0 dx | | J K L |   | J+dx*P K+dx*Q L+dx*R |
+ *            T(dx, dy) * Matrix = | 0 1 dy | | M N O | = | M+dy*P N+dy*Q O+dy*R |
+ *                                 | 0 0  1 | | P Q R |   |      P      Q      R |
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param dx Indicates the horizontal translation.
+ * @param dy Indicates the vertical translation.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixPostTranslate(OH_Drawing_Matrix*, float dx, float dy);
+
+/**
+ * @brief Reset matrix to identity, which has no effect on mapped point, sets matrix to:
+ *        | 1 0 0 |
+ *        | 0 1 0 |
+ *        | 0 0 1 |
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixReset(OH_Drawing_Matrix*);
 
 /**
  * @brief Sets matrix total to matrix a multiplied by matrix b.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,6 +155,17 @@ void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush*, OH_Drawing_ShaderEffect*
 void OH_Drawing_BrushSetFilter(OH_Drawing_Brush*, OH_Drawing_Filter*);
 
 /**
+ * @brief Gets the filter from a brush.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param OH_Drawing_Filter Indicates the pointer to an <b>OH_Drawing_Filter</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_BrushGetFilter(OH_Drawing_Brush*, OH_Drawing_Filter*);
+
+/**
  * @brief Sets a blender that implements the specified blendmode enum for a brush.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -164,6 +175,16 @@ void OH_Drawing_BrushSetFilter(OH_Drawing_Brush*, OH_Drawing_Filter*);
  * @version 1.0
  */
 void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush*, OH_Drawing_BlendMode);
+
+/**
+ * @brief Resets all brush contents to their initial values.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_BrushReset(OH_Drawing_Brush*);
 
 #ifdef __cplusplus
 }

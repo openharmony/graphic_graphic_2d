@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,6 +43,11 @@ static const Pen& CastToPen(const OH_Drawing_Pen& cPen)
     return reinterpret_cast<const Pen&>(cPen);
 }
 
+static const OHOS::Rosen::Drawing::Region& CastToRegion(const OH_Drawing_Region& cRegion)
+{
+    return reinterpret_cast<const OHOS::Rosen::Drawing::Region&>(cRegion);
+}
+
 static const Bitmap& CastToBitmap(const OH_Drawing_Bitmap& cBitmap)
 {
     return reinterpret_cast<const Bitmap&>(cBitmap);
@@ -56,6 +61,11 @@ static const Drawing::Rect& CastToRect(const OH_Drawing_Rect& cRect)
 static const Point& CastToPoint(const OH_Drawing_Point& cPoint)
 {
     return reinterpret_cast<const Point&>(cPoint);
+}
+
+static const Point CastToPoint(const OH_Drawing_Point2D& cPoint)
+{
+    return {cPoint.x, cPoint.y};
 }
 
 static Point3 CastToPoint3(OH_Drawing_Point3D& cPoint3)
@@ -237,6 +247,127 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path
         return;
     }
     canvas->DrawPath(CastToPath(*cPath));
+}
+
+static PointMode pointModeCastToPointMode(const OH_Drawing_PointMode& pointMode)
+{
+    PointMode mode = PointMode::POINTS_POINTMODE;
+    switch (pointMode) {
+        case POINT_MODE_POINTS:
+            mode = PointMode::POINTS_POINTMODE;
+            break;
+        case POINT_MODE_LINES:
+            mode = PointMode::LINES_POINTMODE;
+            break;
+        case POINT_MODE_POLYGON:
+            mode = PointMode::POLYGON_POINTMODE;
+            break;
+        default:
+            break;
+    }
+    return mode;
+}
+
+void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMode mode,
+    uint32_t count, const OH_Drawing_Point2D* pts)
+{
+    if (pts == nullptr || count == 0) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    Point* point = new Point[count];
+    if (point == nullptr) {
+        return;
+    }
+    for (uint32_t i = 0; i < count; ++i) {
+        point[i] = CastToPoint(pts[i]);
+    }
+    canvas->DrawPoints(pointModeCastToPointMode(mode), count, point);
+    delete [] point;
+}
+
+static VertexMode vertexMmodeCastToVertexMmode(const OH_Drawing_VertexMode& vertexMmode)
+{
+    VertexMode mode = VertexMode::TRIANGLES_VERTEXMODE;
+    switch (vertexMmode) {
+        case VERTEX_MODE_TRIANGLES:
+            mode = VertexMode::TRIANGLES_VERTEXMODE;
+            break;
+        case VERTEX_MODE_TRIANGLES_STRIP:
+            mode = VertexMode::TRIANGLESSTRIP_VERTEXMODE;
+            break;
+        case VERTEX_MODE_TRIANGLE_FAN:
+            mode = VertexMode::TRIANGLEFAN_VERTEXMODE;
+            break;
+        default:
+            break;
+    }
+    return mode;
+}
+
+void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_VertexMode vertexMode,
+    int32_t vertexCount, const OH_Drawing_Point2D* positions, const OH_Drawing_Point2D* texs,
+    const uint32_t* colors, int32_t indexCount, const uint16_t* indices, OH_Drawing_BlendMode mode)
+{
+    if (positions == nullptr || texs == nullptr || colors == nullptr || indices == nullptr
+        || vertexCount < 0 || indexCount < 0) {
+        return;
+    }
+
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+
+    Point* positionsPoint = new Point[vertexCount];
+    if (positionsPoint == nullptr) {
+        return;
+    }
+    for (uint32_t i = 0; i < vertexCount; ++i) {
+        positionsPoint[i] = CastToPoint(positions[i]);
+    }
+    Point* texsPoint = new Point[vertexCount];
+    if (texsPoint == nullptr) {
+        delete [] positionsPoint;
+        return;
+    }
+    for (uint32_t i = 0; i < vertexCount; ++i) {
+        texsPoint[i] = CastToPoint(texs[i]);
+    }
+    Vertices* vertices = new Vertices();
+    vertices->MakeCopy(vertexMmodeCastToVertexMmode(vertexMode), vertexCount, positionsPoint,
+        texsPoint, colors, indexCount, indices);
+    canvas->DrawVertices(*vertices, static_cast<BlendMode>(mode));
+    delete vertices;
+    delete [] positionsPoint;
+    delete [] texsPoint;
+}
+
+void OH_Drawing_CanvasDrawBackground(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Brush* cBrush)
+{
+    if (cBrush == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawBackground(CastToBrush(*cBrush));
+}
+
+void OH_Drawing_CanvasDrawRegion(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Region* cRegion)
+{
+    if (cRegion == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawRegion(CastToRegion(*cRegion));
 }
 
 void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap, float left, float top)
@@ -438,6 +569,15 @@ void OH_Drawing_CanvasScale(OH_Drawing_Canvas* cCanvas, float sx, float sy)
     canvas->Scale(sx, sy);
 }
 
+void OH_Drawing_CanvasSkew(OH_Drawing_Canvas* cCanvas, float sx, float sy)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->Shear(sx, sy);
+}
+
 void OH_Drawing_CanvasClear(OH_Drawing_Canvas* cCanvas, uint32_t color)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
@@ -542,6 +682,27 @@ void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* m
         return;
     }
     canvas->SetMatrix(CastToMatrix(*matrix));
+}
+
+void OH_Drawing_CanvasResetMatrix(OH_Drawing_Canvas* cCanvas)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->ResetMatrix();
+}
+
+void OH_Drawing_CanvasDrawImageRectWithSrc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Image* cImage,
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions,
+    OH_Drawing_SrcRectConstraint constraint)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || cImage == nullptr || src == nullptr || dst == nullptr || cSampingOptions == nullptr) {
+        return;
+    }
+    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*src), CastToRect(*dst),
+        CastToSamplingOptions(*cSampingOptions), static_cast<SrcRectConstraint>(constraint));
 }
 
 void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image* cImage, OH_Drawing_Rect* dst,
