@@ -38,6 +38,11 @@ enum BufferState {
     BUFFER_STATE_ATTACHED,
 };
 
+enum InvokerType {
+    PRODUCER_INVOKER,
+    CONSUMER_INVOKER,
+};
+
 using BufferElement = struct BufferElement {
     sptr<SurfaceBuffer> buffer;
     BufferState state;
@@ -145,6 +150,9 @@ public:
     {
         isCpuAccessable_ = on;
     }
+
+    GSError AttachBufferToQueue(sptr<SurfaceBuffer> &buffer, InvokerType invokerType);
+    GSError DetachBufferFromQueue(sptr<SurfaceBuffer> &buffer, InvokerType invokerType);
 
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);

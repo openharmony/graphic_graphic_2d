@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "screen_manager/screen_types.h"
 #include "animation/rs_frame_rate_range.h"
@@ -26,6 +27,7 @@
 namespace OHOS::Rosen {
 
 constexpr int UNI_APP_PID = -1;
+constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -64,14 +66,6 @@ enum HgmXmlNode {
     HGM_XML_UNDEFINED = 0,
     HGM_XML_PARAM,
     HGM_XML_PARAMS,
-};
-
-enum RefreshRateMode {
-    HGM_REFRESHRATE_MODE_AUTO = -1,
-    HGM_REFRESHRATE_MODE_NULL = 0,
-    HGM_REFRESHRATE_MODE_LOW = 1,
-    HGM_REFRESHRATE_MODE_MEDIUM,
-    HGM_REFRESHRATE_MODE_HIGH,
 };
 
 enum class SceneType {
@@ -127,7 +121,8 @@ public:
 
     std::string defaultRefreshRateMode_ = "-1";
     // <"120", "1">
-    std::unordered_map<std::string, std::string> refreshRateForSettings_;
+    std::vector<std::pair<int32_t, int32_t>> refreshRateForSettings_;
+    bool xmlCompatibleMode_ = false;
     // <"VIRTUAL_AXX", "4">
     std::unordered_map<std::string, std::string> virtualDisplayConfigs_;
     bool virtualDisplaySwitch_;
@@ -154,6 +149,34 @@ public:
         } else {
             return {};
         }
+    }
+
+    int32_t SettingModeId2XmlModeId(int32_t settingModeId)
+    {
+        if (settingModeId < 0 || settingModeId >= static_cast<int32_t>(refreshRateForSettings_.size())) {
+            return 0;
+        }
+        return refreshRateForSettings_[settingModeId].second;
+    }
+
+    int32_t XmlModeId2SettingModeId(int32_t xmlModeId)
+    {
+        auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
+            [=] (auto nameModeId) { return nameModeId.second == xmlModeId; });
+        if (iter != refreshRateForSettings_.end()) {
+            return static_cast<int32_t>(iter - refreshRateForSettings_.begin());
+        }
+        return 0;
+    }
+
+    int32_t GetRefreshRateModeName(int32_t refreshRateModeId)
+    {
+        auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
+            [=] (auto nameModeId) { return nameModeId.second == refreshRateModeId; });
+        if (iter != refreshRateForSettings_.end()) {
+            return iter->first;
+        }
+        return 0;
     }
 };
 } // namespace OHOS

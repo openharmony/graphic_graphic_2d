@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_node_map.h"
 #include "common/rs_common_def.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -108,6 +109,9 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         }
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
+    } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+        canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
     }
     return true;
 }
@@ -131,6 +135,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     drivenRenderNodeMap_.erase(id);
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
+    canvasDrawingNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
@@ -183,6 +188,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return ExtractPid(pair.first) == pid;
     });
 
+    EraseIf(canvasDrawingNodeMap_, [pid](const auto& pair) -> bool {
+        return ExtractPid(pair.first) == pid;
+    });
+
     EraseIf(displayNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid && pair.second) {
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
@@ -201,6 +210,14 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
 {
     for (const auto& [_, node] : renderNodeMap_) {
+        func(node);
+    }
+}
+
+void RSRenderNodeMap::TraverseCanvasDrawingNodes(
+    std::function<void(const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : canvasDrawingNodeMap_) {
         func(node);
     }
 }

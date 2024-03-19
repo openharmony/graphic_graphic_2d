@@ -18,6 +18,8 @@
 
 #include <memory>
 
+#include "rs_spring_model.h"
+
 #include "animation/rs_animation_common.h"
 #include "animation/rs_interpolator.h"
 #include "common/rs_color.h"
@@ -256,6 +258,199 @@ enum class RSValueEstimatorType : int16_t {
     CURVE_VALUE_ESTIMATOR,
     KEYFRAME_VALUE_ESTIMATOR,
     PATH_VALUE_ESTIMATOR,
+};
+
+class RSB_EXPORT RSSpringValueEstimatorBase {
+public:
+    RSSpringValueEstimatorBase() = default;
+    virtual ~RSSpringValueEstimatorBase() = default;
+
+    virtual void SetResponse(const float response) {}
+    virtual void SetDampingRatio(const float dampingRatio) {}
+    virtual float GetResponse() const
+    {
+        return 0.0f;
+    }
+    virtual float GetDampingRatio() const
+    {
+        return 0.0f;
+    }
+    virtual void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& initialVelocity) {}
+    virtual void InitRSSpringValueEstimator(const std::shared_ptr<RSRenderPropertyBase>& property,
+        const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
+        const std::shared_ptr<RSRenderPropertyBase>& lastValue)
+    {}
+    virtual void UpdateStartValueAndLastValue(
+        const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& lastValue)
+    {}
+    virtual void UpdateAnimationValue(const float time, const bool isAdditive) {}
+    virtual std::shared_ptr<RSRenderPropertyBase> GetAnimationProperty() const
+    {
+        return nullptr;
+    }
+    virtual std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const
+    {
+        return nullptr;
+    }
+    virtual float UpdateDuration()
+    {
+        return 0.0f;
+    }
+    virtual void UpdateSpringParameters() {}
+};
+
+template<typename T>
+class RSSpringValueEstimator : public RSSpringValueEstimatorBase {
+public:
+    RSSpringValueEstimator() : RSSpringValueEstimatorBase()
+    {
+        InitSpringModel();
+    }
+
+    ~RSSpringValueEstimator() override = default;
+
+    void InitSpringModel()
+    {
+        if (!springModel_) {
+            springModel_ = std::make_shared<RSSpringModel<T>>();
+        }
+    }
+
+    void SetResponse(const float response) override
+    {
+        if (springModel_) {
+            springModel_->response_ = response;
+        }
+    }
+
+    void SetDampingRatio(const float dampingRatio) override
+    {
+        if (springModel_) {
+            springModel_->dampingRatio_ = dampingRatio;
+        }
+    }
+
+    float GetResponse() const override
+    {
+        if (springModel_) {
+            return springModel_->response_;
+        }
+        return 0.0f;
+    }
+
+    float GetDampingRatio() const override
+    {
+        if (springModel_) {
+            return springModel_->dampingRatio_;
+        }
+        return 0.0f;
+    }
+
+    void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& initialVelocity) override
+    {
+        auto animatableInitialVelocity = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(initialVelocity);
+        if (animatableInitialVelocity != nullptr && springModel_ != nullptr) {
+            springModel_->initialVelocity_ = animatableInitialVelocity->Get();
+        }
+    }
+
+    void InitRSSpringValueEstimator(const std::shared_ptr<RSRenderPropertyBase>& property,
+        const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
+        const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
+    {
+        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
+        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
+        auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(endValue);
+        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        if (animatableProperty && animatableStartValue && animatableEndValue && animatableLastValue) {
+            property_ = animatableProperty;
+            startValue_ = animatableStartValue->Get();
+            endValue_ = animatableEndValue->Get();
+            lastValue_ = animatableLastValue->Get();
+            if (springModel_) {
+                springModel_->initialOffset_ = startValue_ - endValue_;
+            }
+        }
+    }
+
+    void UpdateStartValueAndLastValue(const std::shared_ptr<RSRenderPropertyBase>& startValue,
+        const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
+    {
+        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
+        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        if (animatableStartValue && animatableLastValue) {
+            startValue_ = animatableStartValue->Get();
+            lastValue_ = animatableLastValue->Get();
+            if (springModel_) {
+                springModel_->initialOffset_ = startValue_ - endValue_;
+            }
+        }
+    }
+
+    void UpdateAnimationValue(const float time, const bool isAdditive) override
+    {
+        auto animationValue = GetAnimationValue(time, isAdditive);
+        if (property_ != nullptr) {
+            property_->Set(animationValue);
+        }
+    }
+
+    T GetAnimationValue(const float time, const bool isAdditive)
+    {
+        T currentValue = startValue_;
+        constexpr static float TIME_THRESHOLD = 1e-3f;
+        if (ROSEN_EQ(time, duration_, TIME_THRESHOLD)) {
+            currentValue = endValue_;
+        } else if (springModel_) {
+            currentValue = springModel_->CalculateDisplacement(time) + endValue_;
+        }
+
+        auto animationValue = currentValue;
+        if (isAdditive && property_) {
+            animationValue = property_->Get() + currentValue - lastValue_;
+        }
+        lastValue_ = currentValue;
+        return animationValue;
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetAnimationProperty() const override
+    {
+        return std::make_shared<RSRenderAnimatableProperty<T>>(lastValue_);
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const override
+    {
+        if (!springModel_) {
+            return nullptr;
+        }
+        constexpr float TIME_INTERVAL = 1e-6f; // 1 microsecond
+        T velocity = (springModel_->CalculateDisplacement(time + TIME_INTERVAL) -
+            springModel_->CalculateDisplacement(time)) * (1 / TIME_INTERVAL);
+        return std::make_shared<RSRenderAnimatableProperty<T>>(velocity);
+    }
+
+    float UpdateDuration() override
+    {
+        if (springModel_) {
+            duration_ = springModel_->EstimateDuration();
+        }
+        return duration_;
+    }
+
+    void UpdateSpringParameters() override
+    {
+        if (springModel_) {
+            springModel_->CalculateSpringParameters();
+        }
+    }
+
+private:
+    T startValue_ {};
+    T endValue_ {};
+    T lastValue_ {};
+    float duration_ = 0.3f;
+    std::shared_ptr<RSSpringModel<T>> springModel_;
+    std::shared_ptr<RSRenderAnimatableProperty<T>> property_;
 };
 } // namespace Rosen
 } // namespace OHOS

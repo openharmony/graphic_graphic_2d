@@ -16,16 +16,7 @@
 #ifndef OHOS_MEMORY_HANDLER_H
 #define OHOS_MEMORY_HANDLER_H
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkSurface.h>
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
-#else
-#include <include/gpu/GrContext.h>
-#endif
-#else
 #include "image/gpu_context.h"
-#endif
 #include "cache_data.h"
 #include "shader_cache.h"
 
@@ -33,23 +24,10 @@ namespace OHOS {
 namespace Rosen {
 class MemoryHandler {
 public:
-#ifndef USE_ROSEN_DRAWING
-    static void ConfigureContext(GrContextOptions* context, const char* identity, const size_t size,
-        const std::string& cacheFilePath = mUniRenderCacheDir, bool isUni = true);
-#else
     static void ConfigureContext(Drawing::GPUContextOptions* context, const char* identity, const size_t size,
         const std::string& cacheFilePath = mUniRenderCacheDir, bool isUni = true);
-#endif
     MemoryHandler() = default;
-#ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
-    static void ClearRedundantResources(GrDirectContext* grContext);
-#else
-    static void ClearRedundantResources(GrContext* grContext);
-#endif
-#else
     static void ClearRedundantResources(Drawing::GPUContext* gpuContext);
-#endif
     static std::string QuerryShader();
     static std::string ClearShader();
 private:

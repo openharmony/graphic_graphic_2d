@@ -33,29 +33,7 @@ constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-static GpuApiType SystemGpuApiType()
-{
-    if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
-          (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
-        return GpuApiType::OPENGL;
-    }
-
-    if (std::atoi(system::GetParameter(
-        "persist.sys.graphic.GpuApitype", "-1").c_str()) == (-1)) { // -1 is invalid type
-        return GpuApiType::VULKAN;
-    }
-    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "-1").c_str()) == 0) {
-        return GpuApiType::OPENGL;
-    }
-    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "-1").c_str()) == 2) { // 2 is ddgr type
-        return GpuApiType::DDGR;
-    }
-    return GpuApiType::VULKAN;
-}
-#endif
-
-#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-const GpuApiType RSSystemProperties::systemGpuApiType_ = SystemGpuApiType();
+const GpuApiType RSSystemProperties::systemGpuApiType_ = Drawing::SystemProperties::GetGpuApiType();
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
@@ -201,11 +179,11 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     return hardwareComposerEnabled;
 }
 
-bool RSSystemProperties::GetUseShadowBatchingEnabled()
+bool RSSystemProperties::GetHwcRegionDfxEnabled()
 {
-    static bool useShadowBatching =
-        std::atoi((system::GetParameter("persist.useShadowBatching.enabled", "1")).c_str()) != 0;
-    return useShadowBatching;
+    static bool hwcRegionDfxEnabled = system::GetParameter(
+        "persist.rosen.hwcRegionDfx.enabled", "0") != "0";
+    return hwcRegionDfxEnabled;
 }
 
 bool RSSystemProperties::GetAFBCEnabled()
@@ -323,21 +301,6 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
     return isDrawTextAsBitmap_;
 }
 
-int RSSystemProperties::GetDumpRSTreeCount()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.dumpRSTreeCount", "0");
-    int changed = 0;
-    const char *num = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(num, 0);
-}
-
-void RSSystemProperties::SetDumpRSTreeCount(int count)
-{
-    count = (count > 0) ? count : 0;
-    system::SetParameter("debug.graphic.dumpRSTreeCount", std::to_string(count));
-    RS_LOGD("RSSystemProperties::SetDumpRSTreeCount %{public}d", count);
-}
-
 void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
     cacheEnabledForRotation_ = flag;
@@ -406,14 +369,6 @@ bool RSSystemProperties::GetAnimationCacheEnabled()
     return animationCacheEnabled;
 }
 
-bool RSSystemProperties::GetPropertyDrawableEnable()
-{
-    static bool propertyDrawableEnable =
-        std::atoi((system::GetParameter("persist.propertyDrawableGenerate.enabled", "1")).c_str()) != 0 &&
-        RSUniRenderJudgement::IsUniRender();
-    return propertyDrawableEnable;
-}
-
 float RSSystemProperties::GetAnimationScale()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.animationscale", "1.0");
@@ -454,7 +409,7 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     // Determine whether the filter partial render should be enabled. The default value is 0,
     // which means that it is unenabled.
     static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "1")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "0")).c_str()) != 0;
     return enabled;
 }
 
@@ -750,6 +705,15 @@ DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
 bool RSSystemProperties::GetAutoCacheDebugEnabled()
 {
     return GetDdgrOpincDfxType() == DdgrOpincDfxType::DDGR_OPINC_DFX_AUTO;
+}
+#endif
+
+
+#ifdef RS_ENABLE_STACK_CULLING
+bool GetViewOcclusionCullingEnabled()
+{
+    static bool stackViewCullingEnabled = system::GetBoolParameter("persist.sys.graphic.stack.culling.enabled", true);
+    return stackViewCullingEnabled;
 }
 #endif
 

@@ -301,6 +301,11 @@ bool SkiaPaint::AsBlendMode(const Brush& brush)
     BrushToSkPaint(brush, skPaint);
     return skPaint.asBlendMode().has_value();
 }
+
+void SkiaPaint::Reset()
+{
+    paintInUse_ = 0;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

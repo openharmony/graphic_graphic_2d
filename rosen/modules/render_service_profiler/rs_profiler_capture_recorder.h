@@ -44,15 +44,16 @@ public:
     ~RSCaptureRecorder() = default;
     
     Drawing::Canvas* TryInstantCapture(float width, float height);
-    void EndInstantCapture();
+    void EndInstantCapture() const;
     
     // to check if .rdc is recorded and send the filename to client
     static bool PullAndSendRdc();
+    static std::pair<uint32_t, uint32_t> GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight);
 private:
     ExtendRecordingCanvas* TryInstantCaptureDrawing(float width, float height);
-    void EndInstantCaptureDrawing();
+    void EndInstantCaptureDrawing() const;
     Drawing::Canvas* TryInstantCaptureSKP(float width, float height);
-    void EndInstantCaptureSKP();
+    void EndInstantCaptureSKP() const;
 
     // used for .rdc capturing
     std::unique_ptr<ExtendRecordingCanvas> recordingCanvas_;

@@ -48,15 +48,13 @@ public:
         const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void ResetSubThreadGrContext();
     void CancelReleaseResourceTask();
+    void ReleaseTexture();
+    void CancelReleaseTextureTask();
     void DumpMem(DfxString& log);
     float GetAppGpuMemoryInMB();
     std::vector<MemoryGraphic> CountSubMem(int pid);
     void ReleaseSurface(uint32_t threadIndex) const;
-#ifndef USE_ROSEN_DRAWING
-    void AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
-#else
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
-#endif
     std::unordered_map<uint32_t, pid_t> GetReThreadIndexMap() const;
 private:
     RSSubThreadManager() = default;
@@ -78,6 +76,7 @@ private:
     std::shared_ptr<RSFilterSubThread> colorPickerThread_ = nullptr;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
+    bool needCancelReleaseTextureTask_ = false;
 
     bool isRcdServiceRegister_ = false;
 };

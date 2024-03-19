@@ -94,6 +94,8 @@ public:
 
     virtual GSError GetTransform(GraphicTransformType &transform) = 0;
 
+    virtual GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) = 0;
+    virtual GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
 protected:
@@ -126,6 +128,8 @@ protected:
         BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER = 25,
         BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT = 26,
         BUFFER_PRODUCER_GET_TRANSFORM = 27,
+        BUFFER_PRODUCER_ATTACH_BUFFER_TO_QUEUE = 28,
+        BUFFER_PRODUCER_DETACH_BUFFER_FROM_QUEUE = 29,
     };
 };
 } // namespace OHOS

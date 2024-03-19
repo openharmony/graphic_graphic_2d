@@ -17,16 +17,6 @@
 #include <iostream>
 #include <surface.h>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkBitmap.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkColor.h"
-#include "include/core/SkImage.h"
-#include "include/core/SkImageInfo.h"
-#include "include/core/SkPaint.h"
-#include "include/core/SkRect.h"
-#include "include/core/SkTileMode.h"
-#endif
 #include "wm/window.h"
 
 #include "modifier/rs_extended_modifier.h"
@@ -53,31 +43,19 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorYELLOW);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
-#endif
 
     nodes.emplace_back(RSCanvasNode::Create());
     nodes[0]->SetBounds(0, 0, 100, 100);
     nodes[0]->SetFrame(0, 0, 100, 100);
-#ifndef USE_ROSEN_DRAWING
-    nodes[0]->SetBackgroundColor(SK_ColorBLUE);
-#else
     nodes[0]->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
-#endif
 
     rootNode->AddChild(nodes[0], -1);
 
     nodes.emplace_back(RSCanvasNode::Create());
     nodes[1]->SetBounds(0, 200, 200, 200);
     nodes[1]->SetFrame(0, 200, 200, 200);
-#ifndef USE_ROSEN_DRAWING
-    nodes[1]->SetBackgroundColor(SK_ColorBLUE);
-#else
     nodes[1]->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
-#endif
 
     rootNode->AddChild(nodes[0], -1);
     rootNode->AddChild(nodes[1], -1);
@@ -119,23 +97,6 @@ public:
     ~MyModifier() = default;
     void Draw(RSDrawingContext& context) const override
     {
-#ifndef USE_ROSEN_DRAWING
-        SkBitmap bitmap;
-        bitmap.allocN32Pixels(100, 100);
-        bitmap.eraseColor(0xffff7f3f);
-        bitmap.erase(0xff3fff7f, SkIRect::MakeWH(50, 50));
-        bitmap.erase(0xffff3f7f, SkIRect::MakeXYWH(50, 50, 50, 50));
-        SkPaint p;
-#ifdef NEW_SKIA
-        p.setShader(bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions()));
-#else
-        p.setShader(bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat));
-#endif
-        auto animatableProperty = std::static_pointer_cast<RSAnimatableProperty<MyData>>(property_);
-        p.setAlphaf(animatableProperty->Get().data);
-        std::cout << "MyModifier Draw property get  " << animatableProperty->Get().data << std::endl;
-        context.canvas->drawRect(SkRect::MakeWH(context.width, context.height), p);
-#else
         Drawing::Bitmap bitmap;
         bitmap.Build(100, 100, Drawing::BitmapFormat {
             Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_PREMUL});
@@ -164,17 +125,12 @@ public:
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
             *image, Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT, sampling, matrix));
         auto animatableProperty = std::static_pointer_cast<RSAnimatableProperty<MyData>>(property_);
-#ifndef USE_ROSEN_DRAWING
-        brush.SetAlphaf(animatableProperty->Get().data);
-#else
         brush.SetAlphaF(animatableProperty->Get().data);
-#endif
 
         std::cout << "MyModifier Draw property get  " << animatableProperty->Get().data << std::endl;
         context.canvas->AttachBrush(brush);
         context.canvas->DrawRect(Drawing::Rect(0, 0, context.width, context.height));
         context.canvas->DetachBrush();
-#endif
     }
 };
 
@@ -183,18 +139,6 @@ public:
     TransModifier() = default;
     ~TransModifier() = default;
 
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix GeometryEffect(float width, float height) const override
-    {
-        SkMatrix matrix;
-        if (distance_) {
-            matrix.preTranslate(distance_->Get(), distance_->Get());
-            std::cout << "TransModifier GeometryEffect, distance:"<< distance_->Get() << std::endl;
-        }
-
-        return matrix;
-    }
-#else
     Drawing::Matrix GeometryEffect(float width, float height) const override
     {
         Drawing::Matrix matrix;
@@ -205,7 +149,6 @@ public:
 
         return matrix;
     }
-#endif
 
     void SetTrans(float distance)
     {
@@ -227,19 +170,6 @@ public:
 
     void Draw(RSDrawingContext& context) const override
     {
-#ifndef USE_ROSEN_DRAWING
-        if (!alpha_ || !width_ || !height_ || !backgroundColor_) {
-            SkRect rect = SkRect::MakeXYWH(0, 0, 0, 0);
-            SkPaint p;
-            context.canvas->drawRect(rect, p);
-            return;
-        }
-        SkRect rect = SkRect::MakeXYWH(0, 0, width_->Get(), height_->Get());
-        SkPaint p;
-        p.setColor(backgroundColor_->Get().AsArgbInt());
-        p.setAlphaf(alpha_->Get());
-        context.canvas->drawRect(rect, p);
-#else
         if (!alpha_ || !width_ || !height_ || !backgroundColor_) {
             Drawing::Rect rect;
             Drawing::Brush brush;
@@ -255,7 +185,6 @@ public:
         context.canvas->AttachBrush(brush);
         context.canvas->DrawRect(rect);
         context.canvas->DetachBrush();
-#endif
 
         std::cout << "Draw Get alpha_ " << alpha_->Get() << std::endl;
         std::cout << "Draw Get width_ " << width_->Get() << std::endl;
@@ -401,11 +330,7 @@ int main()
     std::cout << "rs app demo stage " << cnt++ << std::endl;
     nodes[0]->SetBounds(0, 0, 200, 200);
     nodes[0]->SetFrame(0, 0, 200, 200);
-#ifndef USE_ROSEN_DRAWING
-    nodes[0]->SetBorderColor(SK_ColorBLACK);
-#else
     nodes[0]->SetBorderColor(Drawing::Color::COLOR_BLACK);
-#endif
     nodes[0]->SetBorderWidth(10);
     nodes[0]->SetBorderStyle((uint32_t)BorderStyle::SOLID);
     rsUiDirector->SendMessages();

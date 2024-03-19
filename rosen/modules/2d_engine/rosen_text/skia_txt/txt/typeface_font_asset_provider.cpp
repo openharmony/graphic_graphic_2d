@@ -25,16 +25,19 @@ TypefaceFontAssetProvider::~TypefaceFontAssetProvider() = default;
 
 size_t TypefaceFontAssetProvider::GetFamilyCount() const
 {
+    std::unique_lock lock(assetMutex_);
     return familyNames_.size();
 }
 
 std::string TypefaceFontAssetProvider::GetFamilyName(int index) const
 {
+    std::unique_lock lock(assetMutex_);
     return familyNames_[index];
 }
 
 SkFontStyleSet* TypefaceFontAssetProvider::MatchFamily(const std::string& familyName)
 {
+    std::unique_lock lock(assetMutex_);
     auto found = registeredFamilies_.find(CanonicalFamilyName(familyName));
     if (found == registeredFamilies_.end()) {
         return nullptr;
@@ -60,6 +63,8 @@ void TypefaceFontAssetProvider::RegisterTypeface(sk_sp<SkTypeface> typeface, std
     if (familyNameAlias.empty()) {
         return;
     }
+
+    std::unique_lock lock(assetMutex_);
 
     std::string canonicalName = CanonicalFamilyName(familyNameAlias);
     auto iter = registeredFamilies_.find(canonicalName);

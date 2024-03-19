@@ -44,6 +44,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr int SLEEP_TIME_US = 1000;
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
@@ -230,7 +231,8 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 
     auto rsConn = conn_.promote();
     if (rsConn == nullptr) {
-        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: RSRenderServiceConnection was dead, do nothing.");
+        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: "
+            "RSRenderServiceConnection was dead, do nothing.");
         return;
     }
 
@@ -285,7 +287,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
 {
     if (auto preNode = mainThread_->GetContext().GetNodeMap().GetRenderNode(config.id)) {
         RS_LOGE("CreateNodeAndSurface same id node:%{public}" PRIu64 ", type:%d", config.id, preNode->GetType());
-        usleep(1000);
+        usleep(SLEEP_TIME_US);
     }
     std::shared_ptr<RSSurfaceRenderNode> node =
         std::make_shared<RSSurfaceRenderNode>(config, mainThread_->GetContext().weak_from_this());
@@ -453,7 +455,7 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::SetRefreshRateMode");
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    int32_t setResult = hgmCore.SetRefreshRateMode(static_cast<RefreshRateMode>(refreshRateMode));
+    int32_t setResult = hgmCore.SetRefreshRateMode(refreshRateMode);
     RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
     if (setResult != 0) {
         RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
@@ -952,11 +954,7 @@ int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& scre
     return screenManager_->GetScreenType(id, screenType);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnection::GetBitmap(NodeId id, SkBitmap& bitmap)
-#else
 bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-#endif
 {
     if (!mainThread_->IsIdle()) {
         return false;
@@ -978,20 +976,11 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
         RSTaskDispatcher::GetInstance().PostTask(
             RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getBitmapTask, true);
     }
-#ifndef USE_ROSEN_DRAWING
-    return !bitmap.empty();
-#else
     return !bitmap.IsEmpty();
-#endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnection::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
-#else
 bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-#endif
 {
     auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
     if (node == nullptr) {
@@ -1180,11 +1169,7 @@ void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
             "pid = %{public}d renderTid = %{public}d ",
         info.bundleName.c_str(), info.uid, info.state, info.pid, info.renderTid);
 
-    if (info.state == 1) {
-        FrameReport::GetInstance().SetGameScene(true);
-    } else if (info.state == 0) {
-        FrameReport::GetInstance().SetGameScene(false);
-    }
+    FrameReport::GetInstance().SetGameScene(info.pid, info.state);
 }
 
 void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)

@@ -139,25 +139,13 @@ void Typography::Layout(double width)
 
 void Typography::Paint(SkCanvas *canvas, double x, double y)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto texgineCanvas = std::make_shared<TextEngine::TexgineCanvas>();
-    texgineCanvas->SetCanvas(canvas);
-    return typography_->Paint(*texgineCanvas, x, y);
-#endif
 }
 
 void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<Drawing::CoreCanvasImpl> coreCanvas = drawCanvas->GetCanvasData();
-    auto drawingCanvas = static_cast<Drawing::SkiaCanvas *>(coreCanvas.get());
-    auto canvas = drawingCanvas->ExportSkCanvas();
-    Paint(canvas, x, y);
-#else
     auto texgineCanvas = std::make_shared<TextEngine::TexgineCanvas>();
     texgineCanvas->SetCanvas(drawCanvas);
     return typography_->Paint(*texgineCanvas, x, y);
-#endif
 }
 
 std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,

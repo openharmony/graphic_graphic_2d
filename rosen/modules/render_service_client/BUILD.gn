@@ -106,6 +106,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",
       "core/ui/rs_effect_node.cpp",
+      "core/ui/rs_ext_node_operation.cpp",
       "core/ui/rs_frame_rate_linker.cpp",
       "core/ui/rs_frame_rate_policy.cpp",
       "core/ui/rs_node.cpp",
@@ -214,6 +215,14 @@ template("render_service_client_source_set") {
     } else {
       public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
       deps += [ "$rosen_root/modules/platform:eventhandler" ]
+    }
+
+    if (defined(graphic_2d_broker_configs.vendor_root) && !rosen_preview) {
+      sources +=
+          graphic_2d_broker_configs.librender_service_client_ext_broker_sources
+      sources -= graphic_2d_broker_configs.librender_service_client_ext_broker_sources_del
+      external_deps += [ "ipc:ipc_core" ]
+      external_deps += [ "samgr:samgr_proxy" ]
     }
 
     if (tp_feature_enable) {

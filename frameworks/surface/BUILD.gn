@@ -32,7 +32,6 @@ config("surface_public_config") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/utils/frame_report",
     "$graphic_2d_root/utils/sandbox",
   ]
 
@@ -94,7 +93,6 @@ ohos_shared_library("surface") {
 
   public_deps = [
     "$graphic_2d_root/utils/buffer_handle:buffer_handle",
-    "$graphic_2d_root/utils/frame_report:frame_report",
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$graphic_2d_root/utils/scoped_bytrace:scoped_bytrace",
   ]
@@ -102,6 +100,7 @@ ohos_shared_library("surface") {
   external_deps = [
     "c_utils:utils",
     "drivers_interface_display:display_buffer_idl_headers",
+    "graphic_surface:frame_report",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",

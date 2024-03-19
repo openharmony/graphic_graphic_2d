@@ -493,10 +493,20 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
         startSample = sampler_->AddPresentFenceTime(timestamp);
         RecordCompositionTime(timestamp);
+        bool presentTimeUpdated = false;
+        LayerPtr uniRenderLayer = nullptr;
         std::unique_lock<std::mutex> lock(layerMutex_);
         for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
             const LayerPtr &layer = iter->second;
-            layer->RecordPresentTime(timestamp);
+            if (layer->RecordPresentTime(timestamp)) {
+                presentTimeUpdated = true;
+            }
+            if (layer->GetLayerInfo() && layer->GetLayerInfo()->GetUniRenderFlag()) {
+                uniRenderLayer = layer;
+            }
+        }
+        if (presentTimeUpdated && uniRenderLayer) {
+            uniRenderLayer->RecordMergedPresentTime(timestamp);
         }
     }
 
@@ -706,9 +716,16 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
         }
         return;
     }
-
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
+        if (arg == "UniRender") {
+            if (layer->GetLayerInfo()->GetUniRenderFlag()) {
+                result += "\n surface [" + arg + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
+                layer->DumpMergedResult(result);
+                break;
+            }
+            continue;
+        }
         const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
         if (name == arg) {
             result += "\n surface [" + name + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";

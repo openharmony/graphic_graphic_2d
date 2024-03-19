@@ -98,13 +98,8 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
 }
 
 RenderContext::RenderContext()
-#ifndef USE_ROSEN_DRAWING
-    : grContext_(nullptr),
-      skSurface_(nullptr),
-#else
     : drGPUContext_(nullptr),
       surface_(nullptr),
-#endif
       nativeWindow_(nullptr),
       eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
@@ -131,13 +126,8 @@ RenderContext::~RenderContext()
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
     pbufferSurface_ = EGL_NO_SURFACE;
-#ifndef USE_ROSEN_DRAWING
-    grContext_ = nullptr;
-    skSurface_ = nullptr;
-#else
     drGPUContext_ = nullptr;
     surface_ = nullptr;
-#endif
     mHandler_ = nullptr;
 }
 
@@ -290,82 +280,6 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
-void RenderContext::InitGrContextOptions(GrContextOptions &options)
-{
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-    // fix svg antialiasing bug
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-    options.fPreferExternalImagesOverES3 = true;
-    options.fDisableDistanceFieldPaths = true;
-
-    // Advanced Filter
-    options.fProcessName = "render_service";
-}
-#endif
-
-bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
-{
-    if (grContext_ != nullptr) {
-        LOGD("grContext has already created!!");
-        return true;
-    }
-#ifdef RS_ENABLE_GL
-    (void)skContext;
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
-        if (glInterface.get() == nullptr) {
-            LOGE("SetUpGrContext failed to make native interface");
-            return false;
-        }
-
-        GrContextOptions options;
-        InitGrContextOptions(options);
-        mHandler_ = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        if (isUniRenderMode_) {
-            cacheDir_ = UNIRENDER_CACHE_DIR;
-        }
-        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
-
-#if defined(NEW_SKIA)
-        sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
-#else
-        sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
-#endif
-        if (grContext == nullptr) {
-            LOGE("SetUpGrContext grContext is null");
-            return false;
-        }
-        grContext_ = std::move(grContext);
-        return true;
-    }
-#endif
-
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (skContext == nullptr) {
-            skContext = RsVulkanContext::GetSingleton().CreateSkContext();
-        }
-        sk_sp<GrDirectContext> grContext(skContext);
-        if (grContext == nullptr) {
-            LOGE("SetUpGrContext grContext is null");
-            return false;
-        }
-        grContext_ = std::move(grContext);
-        return true;
-    }
-#endif
-    return false;
-}
-#else
 bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
 {
     if (drGPUContext_ != nullptr) {
@@ -393,8 +307,7 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         if (drawingContext == nullptr) {
             drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         }
@@ -405,73 +318,22 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
 #endif
     return false;
 }
-#endif
 
 #ifdef RS_ENABLE_VK
 void RenderContext::AbandonContext()
 {
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!RSSystemProperties::IsUseVulkan()) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    if (grContext_ == nullptr) {
-#else
     if (drGPUContext_ == nullptr) {
-#endif
         LOGD("grContext is nullptr.");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    grContext_->flushAndSubmit(true);
-    grContext_->purgeUnlockAndSafeCacheGpuResources();
-#else
     drGPUContext_->FlushAndSubmit(true);
     drGPUContext_->PurgeUnlockAndSafeCacheGpuResources();
-#endif
 }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
-{
-    if (!SetUpGrContext(nullptr)) {
-        LOGE("GrContext is not ready!!!");
-        return nullptr;
-    }
-
-    GrGLFramebufferInfo framebufferInfo;
-    framebufferInfo.fFBOID = 0;
-    framebufferInfo.fFormat = GL_RGBA8;
-    SkColorType colorType = kRGBA_8888_SkColorType;
-
-    if (pixelFormat_ == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-        framebufferInfo.fFormat = GL_RGB10_A2;
-        colorType = kRGBA_1010102_SkColorType;
-    }
-
-    GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
-#if defined(NEW_SKIA)
-    SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
-#else
-    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-#endif
-
-    sk_sp<SkColorSpace> skColorSpace = ConvertColorGamutToSkColorSpace(colorSpace_);
-
-    RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
-
-    skSurface_ = SkSurface::MakeFromBackendRenderTarget(
-        GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
-    if (skSurface_ == nullptr) {
-        LOGW("skSurface is nullptr");
-        return nullptr;
-    }
-
-    LOGD("CreateCanvas successfully!!!");
-    return skSurface_;
-}
-#else
 std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int height)
 {
     if (!SetUpGpuContext(nullptr)) {
@@ -526,23 +388,15 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
     LOGD("CreateCanvas successfully!!!");
     return surface_;
 }
-#endif
 
 void RenderContext::RenderFrame()
 {
     RS_TRACE_FUNC();
     // flush commands
-#ifndef USE_ROSEN_DRAWING
-    if (skSurface_->getCanvas() != nullptr) {
-        LOGD("RenderFrame: Canvas");
-        RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
-        skSurface_->getCanvas()->flush();
-#else
     if (surface_ != nullptr && surface_->GetCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
         RSTagTracker tagTracker(GetDrGPUContext(), RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
         surface_->GetCanvas()->Flush();
-#endif
     } else {
         LOGW("canvas is nullptr!!!");
     }
@@ -616,21 +470,12 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
 void RenderContext::ClearRedundantResources()
 {
     RS_TRACE_FUNC();
-#ifndef USE_ROSEN_DRAWING
-    if (grContext_ != nullptr) {
-        LOGD("grContext clear redundant resources");
-        grContext_->flush();
-        // GPU resources that haven't been used in the past 10 seconds
-        grContext_->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
-    }
-#else
     if (drGPUContext_ != nullptr) {
         LOGD("grContext clear redundant resources");
         drGPUContext_->Flush();
         // GPU resources that haven't been used in the past 10 seconds
         drGPUContext_->PerformDeferredCleanup(std::chrono::seconds(10));
     }
-#endif
 }
 
 sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut)
@@ -663,8 +508,7 @@ sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorG
 std::string RenderContext::GetShaderCacheSize() const
 {
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
             return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
         }
@@ -683,8 +527,7 @@ std::string RenderContext::GetShaderCacheSize() const
 std::string RenderContext::CleanAllShaderCache() const
 {
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
             return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
         }

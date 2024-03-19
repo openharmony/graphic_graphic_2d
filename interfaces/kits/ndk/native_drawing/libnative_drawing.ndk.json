@@ -5,6 +5,8 @@
     { "name": "OH_Drawing_BitmapCreateFromPixels" },
     { "name": "OH_Drawing_BitmapGetWidth" },
     { "name": "OH_Drawing_BitmapGetHeight" },
+    { "name": "OH_Drawing_BitmapGetColorFormat" },
+    { "name": "OH_Drawing_BitmapGetAlphaFormat" },
     { "name": "OH_Drawing_BitmapGetPixels" },
     { "name": "OH_Drawing_BitmapGetImageInfo" },
     { "name": "OH_Drawing_BrushCreate" },

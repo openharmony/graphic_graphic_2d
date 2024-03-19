@@ -35,9 +35,7 @@ RSRenderSpringAnimation::RSRenderSpringAnimation(AnimationId id, const PropertyI
     const std::shared_ptr<RSRenderPropertyBase>& originValue,
     const std::shared_ptr<RSRenderPropertyBase>& startValue,
     const std::shared_ptr<RSRenderPropertyBase>& endValue)
-    : RSRenderPropertyAnimation(id, propertyId, originValue),
-    RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>(),
-    startValue_(startValue), endValue_(endValue)
+    : RSRenderPropertyAnimation(id, propertyId, originValue), startValue_(startValue), endValue_(endValue)
 {
     // spring model is not initialized, so we can't calculate estimated duration
 }
@@ -50,7 +48,6 @@ void RSRenderSpringAnimation::DumpAnimationType(std::string& out) const
 void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration)
 {
     response_ = response;
-    finalResponse_ = response;
     dampingRatio_ = dampingRatio;
     blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
 }
@@ -129,9 +126,6 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    // copy response to final response
-    finalResponse_ = response_;
-
     if (haveInitialVelocity) {
         return RSMarshallingHelper::Unmarshalling(parcel, initialVelocity_);
     }
@@ -151,27 +145,32 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
         // calculateAnimationValue_ is embedded modify for stat animate frame drop
         calculateAnimationValue_ = false;
         return;
-    } else if (ROSEN_EQ(fraction, 1.0f, FRACTION_THRESHOLD)) {
-        prevMappedTime_ = GetDuration() * MILLISECOND_TO_SECOND;
-        SetAnimationValue(endValue_);
+    }
+    if (springValueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderSpringAnimation::OnAnimate, springValueEstimator is null");
         return;
     }
-    auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
-    auto displacement = CalculateDisplacement(mappedTime) + endValue_;
+    if (ROSEN_EQ(fraction, 1.0f, FRACTION_THRESHOLD)) {
+        prevMappedTime_ = GetDuration() * MILLISECOND_TO_SECOND;
+        springValueEstimator_->UpdateAnimationValue(prevMappedTime_, GetAdditive());
+        return;
+    }
 
-    // keep the mapped time, this will be used to calculate instantaneous velocity
-    // update the time before calling SetAnimationValue, as SetAnimationValue may trigger velocity calculation
-    // if the time is not updated before these calculations, the velocity will be inaccurate
-    prevMappedTime_ = mappedTime;
-    SetAnimationValue(displacement);
+    prevMappedTime_ = GetDuration() * fraction * MILLISECOND_TO_SECOND;
+    springValueEstimator_->UpdateAnimationValue(prevMappedTime_, GetAdditive());
 
     if (GetNeedLogicallyFinishCallback() && (animationFraction_.GetRemainingRepeatCount() == 1)) {
-        auto velocity = CalculateVelocity(mappedTime);
-        auto zeroValue = startValue_ - startValue_;
-        auto targetValue = animationFraction_.GetCurrentIsReverseCycle() ? startValue_ : endValue_;
-        if (!displacement->IsNearEqual(targetValue, zeroThreshold_)) {
+        auto currentValue = springValueEstimator_->GetAnimationProperty();
+        if (currentValue == nullptr) {
+            ROSEN_LOGE("RSRenderSpringAnimation::OnAnimate, failed to get current animation value");
             return;
         }
+        auto targetValue = animationFraction_.GetCurrentIsReverseCycle() ? startValue_ : endValue_;
+        if (!currentValue->IsNearEqual(targetValue, zeroThreshold_)) {
+            return;
+        }
+        auto zeroValue = startValue_ - startValue_;
+        auto velocity = springValueEstimator_->GetPropertyVelocity(prevMappedTime_);
         if ((velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zeroValue, zeroThreshold_)) {
             CallLogicallyFinishCallback();
             needLogicallyFinishCallback_ = false;
@@ -203,6 +202,11 @@ void RSRenderSpringAnimation::InheritSpringAnimation(const std::shared_ptr<RSRen
         return;
     }
 
+    if (springValueEstimator_ == nullptr) {
+        ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringAnimation failed, springValueEstimator is null");
+        return;
+    }
+
     // extract spring status from previous spring animation
     auto prevSpringAnimation = std::static_pointer_cast<RSRenderSpringAnimation>(prevAnimation);
 
@@ -212,14 +216,22 @@ void RSRenderSpringAnimation::InheritSpringAnimation(const std::shared_ptr<RSRen
         return;
     }
     // inherit spring response
-    response_ = prevSpringAnimation->response_;
-    if (ROSEN_EQ(response_, finalResponse_, RESPONSE_THRESHOLD)) {
+    auto& previousValueEstimator = prevSpringAnimation->springValueEstimator_;
+    if (previousValueEstimator) {
+        springValueEstimator_->SetResponse(previousValueEstimator->GetResponse());
+    } else {
+        ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringAnimation, the springValueEstimator of previous "
+                   "animation is null");
+        blendDuration_ = 0;
+    }
+
+    if (ROSEN_EQ(springValueEstimator_->GetResponse(), response_, RESPONSE_THRESHOLD)) {
         // if response is not changed, we can skip blend duration
         blendDuration_ = 0;
     } else if (blendDuration_ == 0) {
         // if blend duration is not set, we can skip blend duration
-        response_ = finalResponse_;
-    } else if (ROSEN_EQ(finalResponse_, prevSpringAnimation->finalResponse_, RESPONSE_THRESHOLD)) {
+        springValueEstimator_->SetResponse(response_);
+    } else if (ROSEN_EQ(response_, prevSpringAnimation->response_, RESPONSE_THRESHOLD)) {
         // if previous spring is blending to the same final response, we can continue previous blending process
         blendDuration_ = prevSpringAnimation->blendDuration_;
     }
@@ -242,6 +254,11 @@ void RSRenderSpringAnimation::OnDetach()
 
 void RSRenderSpringAnimation::OnInitialize(int64_t time)
 {
+    if (springValueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderSpringAnimation::OnInitialize failed, springValueEstimator is null");
+        return;
+    }
+
     if (blendDuration_) {
         auto lastFrameTime = animationFraction_.GetLastFrameTime();
 
@@ -254,28 +271,30 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
         uint64_t blendTime = (time - lastFrameTime) * animationFraction_.GetAnimationScale();
         if (blendTime < blendDuration_) {
             auto blendRatio = static_cast<float>(blendTime) / static_cast<float>(blendDuration_);
-            response_ += (finalResponse_ - response_) * blendRatio;
+            auto response = springValueEstimator_->GetResponse();
+            response += (response_ - response) * blendRatio;
+            springValueEstimator_->SetResponse(response);
             blendDuration_ -= blendTime;
         } else {
             // if blend duration is over, set response to final response
-            response_ = finalResponse_;
+            springValueEstimator_->SetResponse(response_);
             blendDuration_ = 0;
         }
     }
 
-    // set the initial status of spring model
-    initialOffset_ = startValue_ - endValue_;
     if (initialVelocity_ == nullptr) {
-        initialVelocity_ = initialOffset_ * 0.f;
+        initialVelocity_ = startValue_ * 0.f;
     }
-    CalculateSpringParameters();
+
+    springValueEstimator_->SetInitialVelocity(initialVelocity_);
+    springValueEstimator_->UpdateSpringParameters();
 
     if (blendDuration_) {
         // blend is still in progress, no need to estimate duration, use 300ms as default
         SetDuration(300);
     } else {
         // blend finished, estimate duration until the spring system reaches rest
-        SetDuration(std::lroundf(EstimateDuration() * SECOND_TO_MILLISECOND));
+        SetDuration(std::lroundf(springValueEstimator_->UpdateDuration() * SECOND_TO_MILLISECOND));
         // this will set needInitialize_ to false
         RSRenderPropertyAnimation::OnInitialize(time);
     }
@@ -291,18 +310,26 @@ RSRenderSpringAnimation::GetSpringStatus() const
         return { startValue_, endValue_, initialVelocity_ };
     }
 
-    auto displacement = lastValue_ - endValue_;
+    if (springValueEstimator_ == nullptr) {
+        ROSEN_LOGD("RSRenderSpringAnimation::GetSpringStatus failed, springValueEstimator is null");
+        return { startValue_, endValue_, initialVelocity_ };
+    }
 
-    // use average velocity over a small time interval to estimate instantaneous velocity
-    auto velocity = CalculateVelocity(prevMappedTime_);
+    auto velocity = springValueEstimator_->GetPropertyVelocity(prevMappedTime_);
 
     // return current position and velocity
-    return { lastValue_, endValue_, velocity };
+    return { springValueEstimator_->GetAnimationProperty(), endValue_, velocity };
 }
 
 bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation* from)
 {
     if (from == nullptr) {
+        ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus failed, from is null!");
+        return false;
+    }
+
+    if (springValueEstimator_ == nullptr) {
+        ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus failed, springValueEstimator is null!");
         return false;
     }
 
@@ -311,6 +338,7 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
         ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus, unexpected lastValue null pointer!");
         return false;
     }
+
     if (startValue_ && !startValue_->IsEqual(endValue) && !(from == this)) {
         // means property values may change due to direct setting or other animations
         ROSEN_LOGD(
@@ -323,15 +351,9 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
     initialVelocity_ = velocity;
     originValue_ = startValue_->Clone();
     lastValue_ = startValue_->Clone();
+    springValueEstimator_->UpdateStartValueAndLastValue(startValue_, lastValue_);
+    springValueEstimator_->SetInitialVelocity(velocity);
     return true;
-}
-
-std::shared_ptr<RSRenderPropertyBase> RSRenderSpringAnimation::CalculateVelocity(float time) const
-{
-    float TIME_INTERVAL = 1e-6f; // 1e-6f : 1 microsecond
-    auto velocity = (CalculateDisplacement(time + TIME_INTERVAL) - CalculateDisplacement(time)) * (1 / TIME_INTERVAL);
-
-    return velocity;
 }
 
 bool RSRenderSpringAnimation::GetNeedLogicallyFinishCallback() const
@@ -352,11 +374,25 @@ void RSRenderSpringAnimation::CallLogicallyFinishCallback() const
 void RSRenderSpringAnimation::SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& velocity)
 {
     if (!velocity) {
-        ROSEN_LOGE("RSRenderSpringAnimation::SetInitialVelocity: velocity is a nullptr.");
+        ROSEN_LOGD("RSRenderSpringAnimation::SetInitialVelocity: velocity is a nullptr.");
         return;
     }
     // if inheritance happens, this velocity will be replace again
     initialVelocity_ = velocity;
+}
+
+void RSRenderSpringAnimation::InitValueEstimator()
+{
+    if (property_ == nullptr) {
+        ROSEN_LOGD("RSRenderSpringAnimation::InitValueEstimator failed, the property is null");
+        return;
+    }
+    if (springValueEstimator_ == nullptr) {
+        springValueEstimator_ = property_->CreateRSSpringValueEstimator();
+    }
+    springValueEstimator_->InitRSSpringValueEstimator(property_, startValue_, endValue_, lastValue_);
+    springValueEstimator_->SetResponse(response_);
+    springValueEstimator_->SetDampingRatio(dampingRatio_);
 }
 } // namespace Rosen
 } // namespace OHOS

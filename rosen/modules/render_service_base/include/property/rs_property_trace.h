@@ -35,6 +35,7 @@ public:
         return instance_;
     };
     void PropertiesDisplayByTrace(const NodeId& id, const RSProperties& properties);
+    void TracePropertiesByNodeName(const NodeId& id, const std::string& nodeName, const RSProperties& properties);
     void RefreshNodeTraceInfo();
 private:
     RSPropertyTrace() = default;
@@ -45,16 +46,20 @@ private:
     void ClearNodeAndPropertyInfo();
 
     bool IsNeedPropertyTrace(const NodeId& id);
+    bool IsNeedPropertyTrace(const std::string& nodeName);
 
     void DealConfigInputInfo(const std::string& info);
+    bool DealNodeNameConfig(const std::string& info);
 
     bool IsNeedRefreshConfig();
 
     void AddTraceFlag(const std::string& str);
 
     bool needWriteAllNode_ {false};
+    bool needTraceAllNode_ {false};
     static RSPropertyTrace instance_;
     std::set<NodeId> nodeIdSet_;
+    std::set<std::string> nodeNameSet_;
     std::set<std::string> propertySet_;
     std::string propertyFileLastModifyTime;
 };

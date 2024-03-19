@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEGREE_TO_RADIAN = M_PI / 180;
+constexpr int RAND_PRECISION = 10000;
 
 int ParticleRenderParams::GetEmitRate() const
 {
@@ -628,14 +629,9 @@ float RSRenderParticle::GetRandomValue(float min, float max)
     if (min > max) {
         std::swap(min, max);
     }
-    std::random_device rd;
-    if (rd.entropy() > 0) {
-        std::mt19937_64 gen(rd());
-        std::uniform_real_distribution<float> dis(min, max);
-        return dis(gen);
-    } else {
-        return min + (max - min) / 2.0f;
-    }
+    int rand_int = rand() % RAND_PRECISION;
+    float rand_float = min + (static_cast<float>(rand_int) / RAND_PRECISION) * (max - min);
+    return rand_float;
 }
 
 Vector2f RSRenderParticle::CalculateParticlePosition(

@@ -79,9 +79,9 @@ public:
 void VulkanLoaderSystemTest::DLOpenLibVulkan()
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
-    const char *path = "/system/lib64/libvulkan.so";
+    const char *path = "/system/lib64/platformsdk/libvulkan.so";
 #else
-    const char *path = "/system/lib/libvulkan.so";
+    const char *path = "/system/lib/platformsdk/libvulkan.so";
 #endif
     libVulkan_ = dlopen(path, RTLD_NOW | RTLD_LOCAL);
     if (libVulkan_ == nullptr) {

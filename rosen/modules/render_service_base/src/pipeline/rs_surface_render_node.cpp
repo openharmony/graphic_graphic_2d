@@ -15,16 +15,6 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkMatrix.h"
-#include "include/core/SkRect.h"
-#include "rs_trace.h"
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
-#endif
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
@@ -84,19 +74,6 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect, bool hasRotation)
-{
-    auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(SkRect::MakeEmpty());
-    const RSProperties& properties = GetRenderProperties();
-    int left = std::clamp<int>(localClipRect.left(), 0, properties.GetBoundsWidth());
-    int top = std::clamp<int>(localClipRect.top(), 0, properties.GetBoundsHeight());
-    int width = std::clamp<int>(std::ceil(localClipRect.width()), 0, std::ceil(properties.GetBoundsWidth() - left));
-    int height = std::clamp<int>(std::ceil(localClipRect.height()), 0, std::ceil(properties.GetBoundsHeight() - top));
-    RectI srcRect = {left, top, width, height};
-    SetSrcRect(srcRect);
-}
-#else
 void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect,
     bool hasRotation)
 {
@@ -125,7 +102,6 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
 #endif
     }
 }
-#endif
 
 bool RSSurfaceRenderNode::IsHardwareDisabledBySrcRect() const
 {
@@ -161,7 +137,7 @@ bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
 
 void RSSurfaceRenderNode::StoreMustRenewedInfo()
 {
-    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || hasSecurityLayer_ || hasSkipLayer_;
+    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || GetHasSecurityLayer() || GetHasSkipLayer();
 }
 
 std::string RSSurfaceRenderNode::DirtyRegionDump() const
@@ -182,11 +158,7 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     // Save the current state of the canvas before modifying it.
-#ifndef USE_ROSEN_DRAWING
-    renderNodeSaveCount_ = canvas.Save();
-#else
     renderNodeSaveCount_ = canvas.SaveAllStatus();
-#endif
 
     // Apply alpha to canvas
     const RSProperties& properties = GetRenderProperties();
@@ -197,30 +169,12 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromSelf();
         auto matrix = currentGeoPtr->GetMatrix();
-#ifndef USE_ROSEN_DRAWING
-        matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
-        matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
-        canvas.concat(matrix);
-#else
         matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
         matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
         canvas.ConcatMatrix(matrix);
-#endif
     }
 
     // Clip by bounds
-#ifndef USE_ROSEN_DRAWING
-    canvas.clipRect(SkRect::MakeWH(std::floor(properties.GetBoundsWidth()), std::floor(properties.GetBoundsHeight())));
-
-    // Extract srcDest and dstRect from SkCanvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
-    auto deviceClipRect = canvas.getDeviceClipBounds();
-    UpdateSrcRect(canvas, deviceClipRect);
-    RectI dstRect = { deviceClipRect.left(), deviceClipRect.top(), deviceClipRect.width(), deviceClipRect.height() };
-    SetDstRect(dstRect);
-
-    // Save TotalMatrix and GlobalAlpha for compositor
-    SetTotalMatrix(canvas.getTotalMatrix());
-#else
     canvas.ClipRect(Drawing::Rect(0, 0, std::floor(properties.GetBoundsWidth()),
         std::floor(properties.GetBoundsHeight())), Drawing::ClipOp::INTERSECT, false);
 
@@ -233,7 +187,6 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
 
     // Save TotalMatrix and GlobalAlpha for compositor
     SetTotalMatrix(canvas.GetTotalMatrix());
-#endif
     SetGlobalAlpha(canvas.GetAlpha());
 }
 
@@ -357,6 +310,10 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
             }
         }
     }
+
+    // sync skip & security info
+    SyncSecurityInfoToFirstLevelNode();
+    SyncSkipInfoToFirstLevelNode();
 }
 
 void RSSurfaceRenderNode::OnResetParent()
@@ -420,13 +377,6 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
     RSPropertiesPainter::DrawShadow(property, canvas, &absClipRRect);
     RSPropertiesPainter::DrawOutline(property, canvas);
 
-#ifndef USE_ROSEN_DRAWING
-    if (!property.GetCornerRadius().IsZero()) {
-        canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
-    } else {
-        canvas.clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
-    }
-#else
     if (!property.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
             RSPropertiesPainter::RRect2DrawingRRect(absClipRRect), Drawing::ClipOp::INTERSECT, true);
@@ -434,7 +384,6 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
         canvas.ClipRect(Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()),
             Drawing::ClipOp::INTERSECT, false);
     }
-#endif
 
 #ifndef ROSEN_CROSS_PLATFORM
     RSPropertiesPainter::DrawBackground(property, canvas, true, IsSelfDrawingNode() && (GetBuffer() != nullptr));
@@ -443,11 +392,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
 #endif
     RSPropertiesPainter::DrawMask(property, canvas);
     RSPropertiesPainter::DrawFilter(property, canvas, FilterType::BACKGROUND_FILTER);
-#ifndef USE_ROSEN_DRAWING
-    SetTotalMatrix(canvas.getTotalMatrix());
-#else
     SetTotalMatrix(canvas.GetTotalMatrix());
-#endif
 }
 
 void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
@@ -464,16 +409,6 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
     }
     const auto& property = GetRenderProperties();
     RSPropertiesPainter::DrawFilter(property, canvas, FilterType::FOREGROUND_FILTER);
-#ifndef USE_ROSEN_DRAWING
-    canvas.save();
-    if (GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
-        auto geoPtr = (property.GetBoundsGeometry());
-        canvas.concat(geoPtr->GetMatrix());
-    }
-    RSPropertiesPainter::DrawOutline(property, canvas);
-    RSPropertiesPainter::DrawBorder(property, canvas);
-    canvas.restore();
-#else
     canvas.Save();
     if (GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
         auto geoPtr = (property.GetBoundsGeometry());
@@ -482,7 +417,6 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
     RSPropertiesPainter::DrawOutline(property, canvas);
     RSPropertiesPainter::DrawBorder(property, canvas);
     canvas.Restore();
-#endif
 }
 
 void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
@@ -511,11 +445,7 @@ bool RSSurfaceRenderNode::IsUIHidden() const
     return isUIHidden_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceRenderNode::SetContextMatrix(const std::optional<SkMatrix>& matrix, bool sendMsg)
-#else
 void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>& matrix, bool sendMsg)
-#endif
 {
     if (contextMatrix_ == matrix) {
         return;
@@ -549,11 +479,7 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
     SendCommandFromRT(command, GetId());
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<SkRect>& clipRegion, bool sendMsg)
-#else
 void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion, bool sendMsg)
-#endif
 {
     if (contextClipRect_ == clipRegion) {
         return;
@@ -584,11 +510,24 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 {
     isSecurityLayer_ = isSecurityLayer;
     SetDirty();
-    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
-    if (parent != nullptr && parent->IsLeashWindow()) {
-        parent->SetSecurityLayer(isSecurityLayer);
-        parent->SetDirty();
+    if (isSecurityLayer) {
+        securityLayerIds_.insert(GetId());
+    } else {
+        securityLayerIds_.erase(GetId());
     }
+    SyncSecurityInfoToFirstLevelNode();
+}
+
+void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
+{
+    isSkipLayer_ = isSkipLayer;
+    SetDirty();
+    if (isSkipLayer) {
+        skipLayerIds_.insert(GetId());
+    } else {
+        skipLayerIds_.erase(GetId());
+    }
+    SyncSkipInfoToFirstLevelNode();
 }
 
 bool RSSurfaceRenderNode::GetSecurityLayer() const
@@ -596,20 +535,61 @@ bool RSSurfaceRenderNode::GetSecurityLayer() const
     return isSecurityLayer_;
 }
 
-void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
-{
-    isSkipLayer_ = isSkipLayer;
-    SetDirty();
-    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
-    if (parent != nullptr && parent->IsLeashWindow()) {
-        parent->SetSkipLayer(isSkipLayer);
-        parent->SetDirty();
-    }
-}
 
 bool RSSurfaceRenderNode::GetSkipLayer() const
 {
     return isSkipLayer_;
+}
+
+bool RSSurfaceRenderNode::GetHasSecurityLayer() const
+{
+    return securityLayerIds_.size() != 0;
+}
+
+bool RSSurfaceRenderNode::GetHasSkipLayer() const
+{
+    return skipLayerIds_.size() != 0;
+}
+
+
+void RSSurfaceRenderNode::SyncSecurityInfoToFirstLevelNode()
+{
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    // firstLevelNode is the nearest app window / leash node
+    if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+        firstLevelNode->SetDirty();
+        // should always sync securityLayerIds_ to firstLevelNode
+        if (isSecurityLayer_ && IsOnTheTree()) {
+            firstLevelNode->securityLayerIds_.insert(GetId());
+        } else {
+            firstLevelNode->securityLayerIds_.erase(GetId());
+        }
+        // only sync isecurityLayer_ while firstLevelNode is parent
+        auto parent = GetParent().lock();
+        if (parent && GetFirstLevelNodeId() == parent->GetId()) {
+            firstLevelNode->isSecurityLayer_ = isSecurityLayer_;
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SyncSkipInfoToFirstLevelNode()
+{
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    // firstLevelNode is the nearest app window / leash node
+    if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+        firstLevelNode->SetDirty();
+        // should always sync skipLayerIds_ to firstLevelNode
+        if (isSkipLayer_ && IsOnTheTree()) {
+            firstLevelNode->skipLayerIds_.insert(GetId());
+        } else {
+            firstLevelNode->skipLayerIds_.erase(GetId());
+        }
+        // only sync isSkipLayer_ while firstLevelNode is parent
+        auto parent = GetParent().lock();
+        if (parent && GetFirstLevelNodeId() == parent->GetId()) {
+            firstLevelNode->isSkipLayer_ = isSkipLayer_;
+        }
+    }
 }
 
 void RSSurfaceRenderNode::SetFingerprint(bool hasFingerprint)
@@ -1613,17 +1593,10 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::optional<SkRect> RSSurfaceRenderNode::GetContextClipRegion() const
-{
-    return contextClipRect_;
-}
-#else
 std::optional<Drawing::Rect> RSSurfaceRenderNode::GetContextClipRegion() const
 {
     return contextClipRect_;
 }
-#endif
 
 bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode)
 {
@@ -1902,17 +1875,10 @@ Vector2f RSSurfaceRenderNode::GetGravityTranslate(float imgWidth, float imgHeigh
 
     float boundsWidth = GetRenderProperties().GetBoundsWidth();
     float boundsHeight = GetRenderProperties().GetBoundsHeight();
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix gravityMatrix;
-    RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
-        imgWidth, imgHeight, gravityMatrix);
-    return {gravityMatrix.getTranslateX(), gravityMatrix.getTranslateY()};
-#else
     Drawing::Matrix gravityMatrix;
     RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
         imgWidth, imgHeight, gravityMatrix);
     return {gravityMatrix.Get(Drawing::Matrix::TRANS_X), gravityMatrix.Get(Drawing::Matrix::TRANS_Y)};
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -62,7 +62,8 @@ public:
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
-    static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size);
+    static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size, void* ctx);
+    static std::shared_ptr<Typeface> DeserializeTypeface(const void* data, size_t size);
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
     static bool AsBlendMode(const Brush& brush);

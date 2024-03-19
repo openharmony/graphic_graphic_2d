@@ -129,7 +129,7 @@ public:
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
-    int32_t SetRefreshRateMode(RefreshRateMode refreshRateMode);
+    int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
     void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
@@ -140,6 +140,7 @@ public:
     int32_t RefreshBundleName(const std::string& name);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     int32_t GetCurrentRefreshRateMode() const;
+    int32_t GetCurrentRefreshRateModeName() const;
     sptr<HgmScreen> GetScreen(ScreenId id) const;
     sptr<HgmScreen> GetActiveScreen() const;
     std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
@@ -166,15 +167,15 @@ private:
 
     bool Init();
     int32_t InitXmlConfig();
-    int32_t SetCustomRateMode(RefreshRateMode mode);
+    int32_t SetCustomRateMode(int32_t mode);
 
     bool isEnabled_ = true;
     bool isInit_ = false;
-    static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+    static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
 
-    RefreshRateMode customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    int32_t customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     std::vector<ScreenId> screenIds_;
     std::vector<sptr<HgmScreen>> screenList_;
     mutable std::mutex listMutex_;

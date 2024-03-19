@@ -15,8 +15,8 @@
 
 #include "rsbaserendernode_fuzzer.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 const int FUZZ_DATA_LEN = 3;
 const int FUZZ_FST_DATA = 0;

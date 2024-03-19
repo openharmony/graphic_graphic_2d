@@ -34,13 +34,8 @@ class TexgineFontStyleTest : public testing::Test {
  */
 HWTEST_F(TexgineFontStyleTest, SetAndGet, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkFontStyle> sfs1 = std::make_shared<SkFontStyle>();
-    std::shared_ptr<SkFontStyle> sfs2 = nullptr;
-#else
     std::shared_ptr<RSFontStyle> sfs1 = std::make_shared<RSFontStyle>();
     std::shared_ptr<RSFontStyle> sfs2 = nullptr;
-#endif
     EXPECT_NO_THROW({
         std::shared_ptr<TexgineFontStyle> tfs1 = std::make_shared<TexgineFontStyle>(sfs1);
         EXPECT_EQ(tfs1->GetFontStyle(), sfs1);

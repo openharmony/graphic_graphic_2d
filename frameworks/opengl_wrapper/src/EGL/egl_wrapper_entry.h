@@ -18,9 +18,12 @@
 #include <string>
 #include <EGL/egl.h>
 
+#include "../thread_private_data_ctl.h"
+
 using EglWrapperFuncPointer = __eglMustCastToProperFunctionPointerType;
 
 namespace OHOS {
+    EGLint EglGetErrorImpl();
     EglWrapperFuncPointer FindEglWrapperApi(const std::string &name);
     bool CheckEglWrapperApi(const std::string &name);
 } // namespace OHOS

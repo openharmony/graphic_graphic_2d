@@ -89,6 +89,12 @@ void CoreCanvas::DrawPoint(const Point& point)
     impl_->DrawPoint(point);
 }
 
+void CoreCanvas::DrawSdf(const SDFShapeBase& shape)
+{
+    AttachPaint();
+    impl_->DrawSdf(shape);
+}
+
 void CoreCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
 {
     AttachPaint();
@@ -189,22 +195,6 @@ void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar 
     impl_->DrawBitmap(bitmap, px, py);
 }
 
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling)
-{
-    AttachPaint();
-    Image img;
-    img.BuildFromBitmap(bitmap);
-    impl_->DrawImageRect(img, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-}
-
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& dst, const SamplingOptions& sampling)
-{
-    AttachPaint();
-    Image img;
-    img.BuildFromBitmap(bitmap);
-    impl_->DrawImageRect(img, dst, sampling);
-}
-
 void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
@@ -259,12 +249,6 @@ void CoreCanvas::OpincDrawImageRect(const Image& image, Drawing::OpListHandle dr
     impl_->OpincDrawImageRect(image, drawAreas, sampling, constraint);
 }
 // opinc_end
-
-void CoreCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
-{
-    AttachPaint();
-    impl_->DrawBitmap(pixelMap, px, py);
-}
 
 void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
 {
@@ -524,6 +508,16 @@ void CoreCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
     if (impl_ && canvas) {
         impl_->BuildOverDraw(canvas);
     }
+}
+
+void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
+{
+    impl_->BuildNoDraw(width, height);
+}
+
+void CoreCanvas::Reset(int32_t width, int32_t height)
+{
+    impl_->Reset(width, height);
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -82,16 +82,16 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     }
 }
 
-void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode)
+void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateModeName)
 {
-    RSUIDirector::PostFrameRateTask([this, refreshRateMode]() {
-        currentRefreshRateMode_ = refreshRateMode;
+    RSUIDirector::PostFrameRateTask([this, refreshRateModeName]() {
+        currentRefreshRateModeName_ = refreshRateModeName;
     });
 }
 
-int32_t RSFrameRatePolicy::GetRefreshRateMode() const
+int32_t RSFrameRatePolicy::GetRefreshRateModeName() const
 {
-    return currentRefreshRateMode_;
+    return currentRefreshRateModeName_;
 }
 
 int32_t RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)

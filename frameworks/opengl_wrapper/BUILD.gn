@@ -17,7 +17,14 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 config("egl_config") {
   visibility = [ ":*" ]
 
-  #defines = [ "EGL_WRAPPER_DEBUG_ENABLE" ]
+  defines = []
+
+  # defines += [ "EGL_WRAPPER_DEBUG_ENABLE" ]
+  if (graphic_2d_feature_use_igraphics_extend_hooks) {
+    defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=1" ]
+  } else {
+    defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=0" ]
+  }
 
   cflags = [
     "-Wall",
@@ -28,6 +35,9 @@ config("egl_config") {
 
 config("egl_public_config") {
   include_dirs = [ "include" ]
+  if (graphic_2d_feature_use_igraphics_extend_hooks) {
+    include_dirs += egl_igraphics_extend_hooks_include_dirs
+  }
 }
 
 if (current_os != "ohos") {
@@ -39,6 +49,7 @@ if (current_os != "ohos") {
   }
 } else {
   ohos_shared_library("EGL") {
+    defines = [ "EGL_ERROR_ENABLE" ]
     sources = [
       "src/EGL/egl.cpp",
       "src/EGL/egl_blob_cache.cpp",
@@ -52,6 +63,9 @@ if (current_os != "ohos") {
       "src/EGL/egl_wrapper_surface.cpp",
       "src/thread_private_data_ctl.cpp",
     ]
+    if (graphic_2d_feature_use_igraphics_extend_hooks) {
+      sources += egl_igraphics_extend_hooks_sources
+    }
     configs = [ ":egl_config" ]
 
     public_configs = [ ":egl_public_config" ]
@@ -187,10 +201,7 @@ if (current_os != "ohos") {
   }
 } else {
   ohos_shared_library("GLESv3") {
-    sources = [
-      "src/GLES3/gles3.cpp",
-      "src/thread_private_data_ctl.cpp",
-    ]
+    sources = [ "src/GLES3/gles3.cpp" ]
     configs = [ ":glesv3_config" ]
 
     public_configs = [ ":glesv3_public_config" ]

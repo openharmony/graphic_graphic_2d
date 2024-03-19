@@ -72,8 +72,7 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUConte
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     return SkiaSurface::MakeFromBackendRenderTarget(gpuContext, info, origin,
@@ -83,8 +82,7 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendTexture(GPUContext* g
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     return SkiaSurface::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
@@ -125,9 +123,14 @@ std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, 
     return SkiaImage::MakeRasterData(info, pixels, rowBytes);
 }
 
-std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size)
+std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size, void* ctx)
 {
-    return SkiaTextBlob::Deserialize(data, size);
+    return SkiaTextBlob::Deserialize(data, size, ctx);
+}
+
+std::shared_ptr<Typeface> SkiaStaticFactory::DeserializeTypeface(const void* data, size_t size)
+{
+    return SkiaTypeface::Deserialize(data, size);
 }
 
 bool SkiaStaticFactory::CanComputeFastBounds(const Brush& brush)

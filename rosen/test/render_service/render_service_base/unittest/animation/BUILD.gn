@@ -24,7 +24,6 @@ ohos_unittest("RSRenderServiceBaseAnimationTest") {
   sources = [
     "rs_animation_fraction_test.cpp",
     "rs_animation_manager_test.cpp",
-    "rs_render_keyframe_animation_test.cpp",
     "rs_render_particle_test.cpp",
     "rs_render_path_animation_test.cpp",
     "rs_steps_interpolator_test.cpp",

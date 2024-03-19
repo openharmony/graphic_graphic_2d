@@ -26,11 +26,21 @@
 #include <unordered_map>
 #include <functional>
 #include "include/private/EGL/cache.h"
+#include <mutex>
+#include "egl_wrapper_display.h"
+#include "egl_defs.h"
 
 namespace OHOS {
 const int MAX_SHADER = 600;
 const int MAX_SHADER_DELETE = 150;
 const int HASH_NUM = 31;
+const int MAX_SHADER_SIZE = 4 * 1024 * 1024;
+const int DEFER_SAVE_MIN = 4;
+const int FORMAT_OFFSET = 3;
+const int CACHE_HEAD = 8;
+const int CACHE_MAGIC_HEAD = 4;
+const int BYTE_SIZE = 8;
+const int CRC_NUM = 24;
 
 class BlobCache {
 public:
@@ -43,6 +53,12 @@ public:
         size_t dataSize;
     };
 
+    struct CacheHeader {
+        size_t keySize;
+        size_t valueSize;
+        uint8_t mData[];
+    };
+    
     //BLobByteHash is the basic hash algorithm to caculate shader.
     struct BlobByteHash {
         size_t operator()(std::shared_ptr<Blob> ptr) const
@@ -90,18 +106,40 @@ public:
     EGLsizeiANDROID getBlob(const void *key, EGLsizeiANDROID keySize, void *value,
                             EGLsizeiANDROID valueSize);
     
-    void Init();
+    void Init(EglWrapperDisplay* display);
 
     //get cache dir from upper layer
     void SetCacheDir(const std::string dir);
+
+    void SetCacheShaderSize(int shadermax);
+
+    void WriteToDisk();
+
+    void ReadFromDisk();
+
+    void Terminate();
+
+    size_t GetCacheSize() const;
+
+    int GetMapSize() const;
+
+    bool ValidFile(uint8_t *buf, size_t len);
+
+    uint32_t CrcGen(const uint8_t *buf, size_t len);
 private:
     static BlobCache *blobCache_;
+    size_t maxShaderSize_;
     std::unordered_map<std::shared_ptr<Blob>, std::shared_ptr<Blob>, BlobByteHash, BlobByteEqual> mBlobMap_;
     int blobSize_;
     int blobSizeMax_;
     std::shared_ptr<Blob> head_;
     std::shared_ptr<Blob> tail_;
     std::string cacheDir_;
+    std::string ddkCacheDir_;
+    std::string fileName_;
+    bool saveStatus_ = false;
+    bool initStatus_;
+    std::mutex blobmutex_;
 };
 
 }

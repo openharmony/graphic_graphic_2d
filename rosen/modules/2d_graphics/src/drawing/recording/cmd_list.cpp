@@ -17,9 +17,6 @@
 
 #include <algorithm>
 
-#ifdef SUPPORT_OHOS_PIXMAP
-#include "pixel_map.h"
-#endif
 #include "utils/log.h"
 
 namespace OHOS {
@@ -34,9 +31,6 @@ CmdList::CmdList(const CmdListData& cmdListData)
 
 CmdList::~CmdList()
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    pixelMapVec_.clear();
-#endif
 #ifdef ROSEN_OHOS
     surfaceBufferVec_.clear();
 #endif
@@ -181,54 +175,58 @@ CmdListData CmdList::GetAllBitmapData() const
     return std::make_pair(bitmapAllocator_.GetData(), bitmapAllocator_.GetSize());
 }
 
-uint32_t CmdList::AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+OpDataHandle CmdList::AddTypeface(const std::shared_ptr<Typeface>& typeface)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    pixelMapVec_.emplace_back(pixelMap);
-    return static_cast<uint32_t>(pixelMapVec_.size()) - 1;
-#else
-    return 0;
-#endif
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    OpDataHandle ret = {0, 0};
+    uint32_t uniqueId = typeface->GetUniqueID();
+
+    for (auto iter = typefaceHandleVec_.begin(); iter != typefaceHandleVec_.end(); iter++) {
+        if (iter->first == uniqueId) {
+            return iter->second;
+        }
+    }
+
+    auto data = typeface->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGD("typeface is vaild");
+        return ret;
+    }
+    void* addr = imageAllocator_.Add(data->GetData(), data->GetSize());
+    if (addr == nullptr) {
+        LOGD("CmdList AddTypefaceData failed!");
+        return ret;
+    }
+    uint32_t offset = imageAllocator_.AddrToOffset(addr);
+    typefaceHandleVec_.push_back(std::pair<uint32_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
+
+    return {offset, data->GetSize()};
 }
 
-std::shared_ptr<Media::PixelMap> CmdList::GetPixelMap(uint32_t id)
+std::shared_ptr<Typeface> CmdList::GetTypeface(const OpDataHandle& typefaceHandle)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    if (id >= pixelMapVec_.size()) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    auto typefaceIt = typefaceMap_.find(typefaceHandle.offset);
+    if (typefaceIt != typefaceMap_.end()) {
+        return typefaceMap_[typefaceHandle.offset];
+    }
+
+    if (typefaceHandle.size == 0) {
+        LOGD("typeface is vaild");
         return nullptr;
     }
-    return pixelMapVec_[id];
-#else
-    return nullptr;
-#endif
-}
 
-uint32_t CmdList::GetAllPixelMap(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList)
-{
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    for (const auto &pixelMap : pixelMapVec_) {
-        pixelMapList.emplace_back(pixelMap);
+    const void* ptr = imageAllocator_.OffsetToAddr(typefaceHandle.offset);
+    if (ptr == nullptr) {
+        LOGD("get typeface data failed");
+        return nullptr;
     }
-    return pixelMapList.size();
-#else
-    return 0;
-#endif
-}
 
-uint32_t CmdList::SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList)
-{
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    for (const auto &pixelMap : pixelMapList) {
-        pixelMapVec_.emplace_back(pixelMap);
-    }
-    return pixelMapVec_.size();
-#else
-    return 0;
-#endif
+    auto typefaceData = std::make_shared<Data>();
+    typefaceData->BuildWithoutCopy(ptr, typefaceHandle.size);
+    auto typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
+    typefaceMap_[typefaceHandle.offset] = typeface;
+    return typeface;
 }
 
 uint32_t CmdList::AddImageObject(const std::shared_ptr<ExtendImageObject>& object)

@@ -98,6 +98,19 @@ int32_t Typeface::GetUnitsPerEm() const
     }
     return 0;
 }
+
+std::shared_ptr<Data> Typeface::Serialize() const
+{
+    if (!typefaceImpl_) {
+        return nullptr;
+    }
+    return typefaceImpl_->Serialize();
+}
+
+std::shared_ptr<Typeface> Typeface::Deserialize(const void* data, size_t size)
+{
+    return StaticFactory::DeserializeTypeface(data, size);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

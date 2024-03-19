@@ -27,11 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-class RSB_EXPORT RSBlurFilter : public RSSkiaFilter {
-#else
 class RSB_EXPORT RSBlurFilter : public RSDrawingFilter {
-#endif
 public:
     RSBlurFilter(float blurRadiusX, float blurRadiusY);
     RSBlurFilter(const RSBlurFilter&) = delete;
@@ -40,25 +36,16 @@ public:
     float GetBlurRadiusX();
     float GetBlurRadiusY();
     bool IsValid() const override;
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override;
-#else
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
-#endif
     std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
-#ifndef USE_ROSEN_DRAWING
-    void DrawImageRect(
-        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
-#else
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
-#endif
-    void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) override;
+    void SetGreyCoef(const std::optional<Vector2f>& greyCoef) override;
 
     bool CanSkipFrame() const override;
 
@@ -69,10 +56,7 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
-    bool isGreyCoefValid_ = false;
-    bool useKawase_ = false;
+    std::optional<Vector2f> greyCoef_;
 };
 } // namespace Rosen
 } // namespace OHOS

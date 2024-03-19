@@ -31,7 +31,7 @@ using namespace OHOS;
 
 constexpr float MAX_ZORDER = 100000.0f;
 
-void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
+void BootAnimation::OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo)
 {
     if (canvas == nullptr) {
         LOGE("OnDraw canvas is nullptr");
@@ -41,18 +41,20 @@ void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
         return;
     }
     std::shared_ptr<ImageStruct> imgstruct = imageVector_[curNo];
-    sk_sp<SkImage> image = imgstruct->imageData;
+    std::shared_ptr<Rosen::Drawing::Image> image = imgstruct->imageData;
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawRect");
-    SkPaint backPaint;
-    backPaint.setColor(SK_ColorBLACK);
-    canvas->drawRect(SkRect::MakeXYWH(0.0, 0.0, windowWidth_, windowHeight_), backPaint);
+    Rosen::Drawing::Brush brush;
+    brush.SetColor(Rosen::Drawing::Color::COLOR_BLACK);
+    Rosen::Drawing::Rect bgRect(0.0, 0.0, windowWidth_, windowHeight_);
+    canvas->AttachBrush(brush);
+    canvas->DrawRect(bgRect);
+    canvas->DetachBrush();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawImageRect");
-    SkPaint paint;
-    SkRect rect;
-    rect.setXYWH(pointX_, pointY_, realWidth_, realHeight_);
-    canvas->drawImageRect(image.get(), rect, SkSamplingOptions(), &paint);
+    Rosen::Drawing::Rect rect(pointX_, pointY_, pointX_ + realWidth_, pointY_ + realHeight_);
+    Rosen::Drawing::SamplingOptions samplingOptions;
+    canvas->DrawImageRect(*image, rect, samplingOptions);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
@@ -310,6 +312,13 @@ void BootAnimation::PlaySound()
         if (soundPlayer_ == nullptr) {
             soundPlayer_ = Media::PlayerFactory::CreatePlayer();
         }
+
+        while (soundPlayer_ == nullptr) {
+            LOGE("CreatePlayer fail, soundPlayer_ is nullptr");
+            soundPlayer_ = Media::PlayerFactory::CreatePlayer();
+            usleep(SLEEP_TIME_US);
+        }
+
         std::string uri = animationConfig_.GetSoundUrl();
         soundPlayer_->SetSource(uri);
         soundPlayer_->SetLooping(false);

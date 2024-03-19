@@ -38,7 +38,9 @@ public:
 
     static std::vector<NetworkStats> GetStats(const std::string& interface);
 
-    static void SendRdc(const std::string& path);
+    static void SendRdcPath(const std::string& path);
+    static void SendDclPath(const std::string& path);
+    static void SendSkp(const void* data, size_t size);
     static void SendTelemetry(double startTime);
 
     static void SendBinary(const void* data, size_t size);

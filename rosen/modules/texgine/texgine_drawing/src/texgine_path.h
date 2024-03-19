@@ -18,11 +18,7 @@
 
 #include <memory>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/SkPath.h>
-#else
 #include "drawing.h"
-#endif
 
 #include "texgine_rect.h"
 
@@ -44,20 +40,12 @@ public:
     /*
      * @brief Returns the SkPath that user sets to TexginePath or TexginePath`s own SkPath
      */
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkPath> GetPath() const;
-#else
     std::shared_ptr<RSPath> GetPath() const;
-#endif
 
     /*
      * @brief Sets SkPath to TexginePath
      */
-#ifndef USE_ROSEN_DRAWING
-    void SetPath(const std::shared_ptr<SkPath> path);
-#else
     void SetPath(const std::shared_ptr<RSPath> path);
-#endif
 
     /*
      * @brief Adds oval to path, Oval is upright ellipse bounded by SkRect oval with
@@ -89,11 +77,7 @@ public:
     TexginePath &LineTo(const TexginePoint &p);
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<SkPath> path_ = std::make_shared<SkPath>();
-#else
     std::shared_ptr<RSPath> path_ = std::make_shared<RSPath>();
-#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -29,9 +29,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "common/rs_obj_abs_geometry.h"
 
-#ifdef USE_ROSEN_DRAWING
 #include "utils/matrix.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -50,23 +48,19 @@ public:
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false);
     static bool HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas);
     static bool HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
-    static void SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node);
+    static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
+        const sptr<IConsumerSurface>& surface, RectF& localBounds);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,
         bool forceCPU, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
-#ifndef USE_ROSEN_DRAWING
-    static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
-    static int GetRotationFromMatrix(SkMatrix matrix);
-    static int GetRotationDegreeFromMatrix(SkMatrix matrix);
-    static bool Is3DRotation(SkMatrix matrix);
-#else
+    static void DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
+        float alpha, const std::string& extraInfo = "");
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
     static bool Is3DRotation(Drawing::Matrix matrix);
-#endif
 
     static void ReleaseColorPickerFilter(std::shared_ptr<RSFilter> RSFilter);
     static void ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& node);
@@ -76,14 +70,9 @@ public:
     static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren, DeviceType deviceType = DeviceType::PHONE);
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface = true);
-#ifndef USE_ROSEN_DRAWING
-    static void ClearNodeCacheSurface(sk_sp<SkSurface>&& cacheSurface, sk_sp<SkSurface>&& cacheCompletedSurface,
-        uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
-#else
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
-#endif
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     // use floor value of translateX and translateY in matrix of canvas to avoid jittering
@@ -96,11 +85,7 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
-#ifndef USE_ROSEN_DRAWING
-    static void PostReleaseSurfaceTask(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
-#else
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
-#endif
 };
 }
 }

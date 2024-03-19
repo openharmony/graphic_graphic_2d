@@ -31,7 +31,7 @@ public:
     void OnTunnelHandleChange() override;
     void OnCleanCache() override;
     void OnGoBackground() override;
-private :
+private:
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
 };
 } // namespace Rosen

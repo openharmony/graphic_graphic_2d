@@ -70,7 +70,6 @@ public:
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
-    bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
     void ChangeCacheRenderNodeMap(RSRenderNode& node, const uint32_t count = 0);
     void UpdateCacheRenderNodeMap(RSRenderNode& node);
     bool GenerateNodeContentCache(RSRenderNode& node);
@@ -131,15 +130,10 @@ public:
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
 #endif
-    void UpdateHardwareEnabledInfoBeforeCreateLayer();
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
 
-    void CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor);
-    // Some properties defined before ProcessSurfaceRenderNode() may be used in
-    // ProcessSurfaceRenderNode() method. We should copy these properties in parallel render.
-    void CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor);
     bool GetIsPartialRenderEnabled() const
     {
         return isPartialRenderEnabled_;
@@ -185,19 +179,15 @@ private:
     void CalcSurfaceFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isMirror = false);
-#ifndef USE_ROSEN_DRAWING
-    void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
-        const SkPaint::Style fillType, float alpha, int edgeWidth, std::string extra = "");
-#else
     enum class RSPaintStyle {
         FILL,
         STROKE
     };
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color,
         const RSPaintStyle fillType, float alpha, int edgeWidth, std::string extra = "");
-#endif
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
     void DrawCacheRegionForDFX(std::vector<RectI> cacheRects);
+    void DrawHwcRegionForDFX(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hwcNodes);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     void DrawAutoCacheRegionForDFX(std::vector<RectI, std::string> cacheRegionInfo);
 #endif
@@ -325,9 +315,6 @@ private:
     // offscreen render related
     void PrepareOffscreenRender(RSRenderNode& node);
     void FinishOffscreenRender(bool isMirror = false);
-    void ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node);
-    bool AdaptiveSubRenderThreadMode(bool doParallel);
-    void ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node);
     // close partialrender when perform window animation
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
     bool DrawBlurInCache(RSRenderNode& node);
@@ -336,11 +323,7 @@ private:
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
     bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node); // return if srcRect is allowed by dss restriction
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
-#else
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
-#endif
 
     void SwitchColorFilterDrawing(int currentSaveCount);
     void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
@@ -355,15 +338,10 @@ private:
     void StartOverDraw();
     void FinishOverDraw();
 
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
-#else
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
-#endif
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
     // Use in vulkan parallel rendering
-    void ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node);
     bool IsOutOfScreenRegion(RectI rect);
 
     // used to catch overdraw
@@ -382,21 +360,13 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
     std::vector<RectI> cacheRenderNodeMapRects_;
-#ifndef USE_ROSEN_DRAWING
-    SkRect boundsRect_ {};
-#else
     Drawing::Rect boundsRect_ {};
-#endif
     Gravity frameGravity_ = Gravity::DEFAULT;
 
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
     std::shared_ptr<RSProcessor> processor_;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix parentSurfaceNodeMatrix_;
-#else
     Drawing::Matrix parentSurfaceNodeMatrix_;
-#endif
 
     ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
     std::map<ScreenId, bool> displayHasSecSurface_;
@@ -468,11 +438,6 @@ private:
     bool isSurfaceDirtyNodeLimited_ = false;
 
     bool isDirtyRegionAlignedEnable_ = false;
-    std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
-#if defined(RS_ENABLE_PARALLEL_RENDER)
-    uint32_t parallelRenderVisitorIndex_ = 0;
-#endif
-    ParallelRenderingType parallelRenderType_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
 
@@ -505,33 +470,18 @@ private:
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
-#if defined(RS_ENABLE_PARALLEL_RENDER)
-    bool isCalcCostEnable_ = false;
-#endif
     // adapt to sceneboard, mark if the canvasNode within the scope of surfaceNode
     bool isSubNodeOfSurfaceInPrepare_ = false;
     bool isSubNodeOfSurfaceInProcess_ = false;
 
     uint32_t appWindowNum_ = 0;
 
-    bool isParallel_ = false;
-#if defined(RS_ENABLE_PARALLEL_RENDER)
-    bool doParallelRender_ = false;
-#endif
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkMatrix> displayNodeMatrix_;
-#else
     std::optional<Drawing::Matrix> displayNodeMatrix_;
-#endif
     mutable std::mutex copyVisitorInfosMutex_;
     bool resetRotate_ = false;
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkIRect> effectRegion_ = std::nullopt;
-#else
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
-#endif
     bool curDirty_ = false;
     bool curContentDirty_ = false;
     bool isPhone_ = false;
@@ -550,20 +500,12 @@ private:
 #ifdef ENABLE_RECORDING_DCL
     void tryCapture(float width, float height);
     void endCapture() const;
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
-#else
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
-#endif
 #endif
     bool isNodeSingleFrameComposer_ = false;
 
     // use for screen recording optimization
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
-#else
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
-#endif
 
     void SetHasSharedTransitionNode(RSSurfaceRenderNode& surfaceNode, bool hasSharedTransitionNode);
 

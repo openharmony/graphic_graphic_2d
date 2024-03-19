@@ -26,7 +26,7 @@
     MessageOption opt;                                \
     MessageParcel arg;                                \
     MessageParcel ret;                                \
-    if (!arg.WriteInterfaceToken(GetDescriptor())) {  \
+    if (!(arg).WriteInterfaceToken(GetDescriptor())) {  \
         LOGE("write interface token failed");         \
     }
 
@@ -50,7 +50,7 @@
 
 #define CHECK_RETVAL_WITH_SEQ(reply, sequence)                          \
     do {                                                                \
-        int32_t ret = reply.ReadInt32();                                \
+        int32_t ret = (reply).ReadInt32();                                \
         if (ret != GSERROR_OK) {                                  \
             BLOGN_FAILURE_ID(sequence, "Remote return %{public}d", ret); \
             return (GSError)ret;                                   \
@@ -90,6 +90,9 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
         BLOGN_FAILURE("Read surface buffer impl failed, return %{public}d", ret);
         return ret;
     }
+    if (retval.buffer != nullptr) {
+        retval.buffer->SetBufferRequestConfig(config);
+    }
 
     ret = bedata->ReadFromParcel(reply);
     if (ret != GSERROR_OK) {
@@ -117,6 +120,11 @@ GSError BufferClientProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
     GSError ret = ReadSurfaceBufferImpl(reply, sequence, buffer);
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE("Read surface buffer impl failed, return %{public}d", ret);
+        return ret;
+    }
+    ret = buffer->ReadBufferRequestConfig(reply);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("ReadBufferRequestConfig failed, return %{public}d", ret);
         return ret;
     }
 
@@ -164,6 +172,31 @@ GSError BufferClientProducer::FlushBuffer(uint32_t sequence, const sptr<BufferEx
     SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_FLUSH_BUFFER, arguments, reply, option, sequence);
     CHECK_RETVAL_WITH_SEQ(reply, sequence);
 
+    return GSERROR_OK;
+}
+
+GSError BufferClientProducer::AttachBufferToQueue(sptr<SurfaceBuffer>& buffer)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    int32_t sequence = buffer->GetSeqNum();
+    WriteSurfaceBufferImpl(arguments, sequence, buffer);
+    auto ret = buffer->WriteBufferRequestConfig(arguments);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("WriteBufferRequestConfig failed, return %{public}d", ret);
+        return ret;
+    }
+    SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_ATTACH_BUFFER_TO_QUEUE, arguments, reply, option, sequence);
+    CHECK_RETVAL_WITH_SEQ(reply, sequence);
+    return GSERROR_OK;
+}
+
+GSError BufferClientProducer::DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    int32_t sequence = buffer->GetSeqNum();
+    WriteSurfaceBufferImpl(arguments, sequence, buffer);
+    SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_DETACH_BUFFER_FROM_QUEUE, arguments, reply, option, sequence);
+    CHECK_RETVAL_WITH_SEQ(reply, sequence);
     return GSERROR_OK;
 }
 

@@ -46,20 +46,7 @@ void InitMyMockVars(Style style)
     typeface = style.typeface;
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::unique_ptr<TexgineMemoryStream> TexgineMemoryStream::MakeCopy(const void *data, size_t length)
-{
-    return std::move(memoryStream);
-}
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromStream(
-    std::unique_ptr<TexgineMemoryStream> stream, int index)
-{
-    return typeface;
-}
-#endif
 
 class DynamicFontProviderTest : public testing::Test {
 public:

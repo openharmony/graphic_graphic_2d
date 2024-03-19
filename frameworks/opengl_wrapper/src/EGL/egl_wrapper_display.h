@@ -24,12 +24,18 @@ namespace OHOS {
 class EglWrapperObject;
 class EglWrapperContext;
 class EglWrapperSurface;
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+struct GlHookTable;
+#endif
 
 class EglWrapperDisplay {
 public:
     EGLBoolean Init(EGLint *major, EGLint *minor);
     EGLBoolean Terminate();
     EGLBoolean MakeCurrent(EGLSurface draw, EGLSurface read, EGLContext ctx);
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+    EGLBoolean MakeCurrentAfterHook(EGLSurface draw, EGLSurface read, EGLContext ctx);
+#endif
     static EglWrapperDisplay *GetWrapperDisplay(EGLDisplay display);
     static EGLDisplay GetEglDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
     static EGLDisplay GetEglDisplayExt(EGLenum platform, void *disp, const EGLint *attribList);
@@ -90,7 +96,14 @@ private:
     EGLDisplay GetEglNativeDisplayExt(EGLenum platform, void *disp, const EGLint *attribList);
     bool CheckObject(EglWrapperObject *obj);
     void ClearObjects();
-    EGLBoolean InternalMakeCurrent(EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx);
+    EGLBoolean InternalMakeCurrent(EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx,
+        bool isAfterHook = false, EglWrapperContext *curCtx = nullptr);
+
+#if USE_IGRAPHICS_EXTENDS_HOOKS
+    void ChooseHookTable(bool isAfterHook, const EglWrapperContext *ctx, const EglWrapperContext *curCtx,
+        GlHookTable **ppHookTable);
+    static int ChooseGlesVersion(const EGLint *attribList);
+#endif
 
     static EglWrapperDisplay wrapperDisp_;
     EGLDisplay  disp_;

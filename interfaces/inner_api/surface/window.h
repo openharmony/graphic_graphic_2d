@@ -64,6 +64,8 @@ int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OH
 int32_t NativeWindowSetTunnelHandle(OHNativeWindow *window, const OHExtDataHandle *handle);
 int32_t GetSurfaceId(OHNativeWindow *window, uint64_t *surfaceId);
 int32_t CreateNativeWindowFromSurfaceId(uint64_t surfaceId, OHNativeWindow **window);
+int32_t NativeWindowAttachBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
+int32_t NativeWindowDetachBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
 
 #ifdef __cplusplus
 }

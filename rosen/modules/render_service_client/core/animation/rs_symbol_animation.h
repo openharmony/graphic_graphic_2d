@@ -27,13 +27,8 @@
 #include "animation/rs_animation_timing_curve.h"
 #include "symbol_animation_config.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkPath.h"
-#include "HmSymbolConfig_ohos.h"
-#else
 #include "draw/path.h"
 #include "include/text/hm_symbol_config_ohos.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -56,13 +51,6 @@ public:
 private:
     void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, TextEngine::SymbolNode& symbolNode);
 
-#ifndef USE_ROSEN_DRAWING
-    Vector4f CalculateOffset(const SkPath& path, const float& offsetX, const float& offsetY);
-    void DrawSymbolOnCanvas(SkCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
-    void DrawPathOnCanvas(SkCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
-    bool CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
-        const std::vector<PiecewiseParameter>& oneGroupParas);
-#else
     Vector4f CalculateOffset(const Drawing::Path& path, const float& offsetX, const float& offsetY);
     void DrawSymbolOnCanvas(ExtendRecordingCanvas* recordingCanvas,
         TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
@@ -70,17 +58,7 @@ private:
         TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
     bool CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
         const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas);
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-        const PiecewiseParameter& scaleUnitParas,
-        const Vector2f& scaleValueBegin = Vector2f{0.f, 0.f},
-        const Vector2f& scaleValue = Vector2f{0.f, 0.f},
-        const Vector2f& scaleValueEnd = Vector2f{0.f, 0.f});
-    bool GetScaleUnitAnimationParas(PiecewiseParameter& scaleUnitParas,
-        Vector2f& scaleValueBegin, Vector2f& scaleValue);
-#else
     std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
         const Drawing::DrawingPiecewiseParameter& scaleUnitParas,
         const Vector2f& scaleValueBegin = Vector2f{0.f, 0.f},
@@ -88,18 +66,12 @@ private:
         const Vector2f& scaleValueEnd = Vector2f{0.f, 0.f});
     bool GetScaleUnitAnimationParas(Drawing::DrawingPiecewiseParameter& scaleUnitParas,
         Vector2f& scaleValueBegin, Vector2f& scaleValue);
-#endif
     RSAnimationTimingCurve SetScaleSpringTimingCurve(const std::map<std::string, double_t>& curveArgs);
 
     std::shared_ptr<RSAnimation> VariableColorSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
         uint32_t& duration, int& delay, std::vector<float>& timePercents);
-#ifndef USE_ROSEN_DRAWING
     bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
         std::vector<float>& timePercents);
-#else
-    bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
-        std::vector<float>& timePercents);
-#endif
 
     std::shared_ptr<RSNode> rsNode_ = nullptr;
 

@@ -14,11 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkSurface.h"
-#else
 #include "draw/surface.h"
-#endif
 #include "message_parcel.h"
 #include "render/rs_image.h"
 #include "render/rs_image_cache.h"
@@ -71,16 +67,6 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     if (address == nullptr) {
         return nullptr;
     }
-#ifndef USE_ROSEN_DRAWING
-    SkImageInfo info =
-        SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    auto surface = SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
-    auto canvas = surface->getCanvas();
-    canvas->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
-    canvas->drawRect(SkRect::MakeXYWH(width / 4, height / 4, width / 2, height / 2), paint);
-#else
     Drawing::ImageInfo info =
         Drawing::ImageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
@@ -92,7 +78,6 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     canvas->AttachBrush(brush);
     canvas->DrawRect(Drawing::Rect(width / 4, height / 4, width / 2, height / 2));
     canvas->DetachBrush();
-#endif
     return pixelmap;
 }
 
@@ -107,68 +92,21 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
      * @tc.steps: step1. create RSMask by Gradient
      */
     RSImage rsImage;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     float fLeft = 1.0f;
     float ftop = 1.0f;
     float fRight = 1.0f;
     float fBottom = 1.0f;
     rsImage.SetImageFit(0);
-#ifndef USE_ROSEN_DRAWING
-    SkRect rect { fLeft, ftop, fRight, fBottom };
-    SkPaint paint;
-#else
     Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
     Drawing::Brush brush;
-#endif
     std::shared_ptr<Media::PixelMap> pixelmap;
     rsImage.SetPixelMap(pixelmap);
     int width = 200;
     int height = 300;
     pixelmap = CreatePixelMap(width, height);
     rsImage.SetPixelMap(pixelmap);
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-    rsImage.SetImageFit(1);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-    rsImage.SetImageFit(2);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-    rsImage.SetImageFit(3);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-    rsImage.SetImageFit(4);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-    rsImage.SetImageFit(5);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-    rsImage.SetImageFit(6);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-    rsImage.SetImageFit(0);
-    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
-#else
-    rsImage.CanvasDrawImage(canvas, rect, paint, false);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-    rsImage.SetImageFit(1);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-    rsImage.SetImageFit(2);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-    rsImage.SetImageFit(3);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-    rsImage.SetImageFit(4);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-    rsImage.SetImageFit(5);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-    rsImage.SetImageFit(6);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-    rsImage.SetImageFit(0);
-    rsImage.CanvasDrawImage(canvas, rect, paint, true);
-#endif
-#else
     canvas.AttachBrush(brush);
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
@@ -187,7 +125,6 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     rsImage.SetImageFit(0);
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
-#endif
 }
 
 /**
@@ -226,35 +163,16 @@ HWTEST_F(RSImageTest, TestRSImage001, TestSize.Level1)
 HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
 {
     RSImage image;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkRect rect;
-    SkPaint paint;
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect;
     Drawing::Brush brush;
-#endif
     bool isBackground = false;
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    isBackground = true;
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-#else
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    isBackground = true;
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-#endif
-#else
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     isBackground = true;
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
-#endif
 }
 
 /**
@@ -265,54 +183,12 @@ HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
 HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
 {
     RSImage image;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkRect rect;
-    SkPaint paint;
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect;
     Drawing::Brush brush;
-#endif
     bool isBackground = false;
     image.SetImageFit(0);
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    image.SetImageFit(5);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    image.SetImageFit(2);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    image.SetImageFit(3);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    image.SetImageFit(4);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    image.SetImageFit(6);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    image.SetImageFit(1);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-    image.SetImageFit(7);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
-#else
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    image.SetImageFit(5);
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    image.SetImageFit(2);
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    image.SetImageFit(3);
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    image.SetImageFit(4);
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    image.SetImageFit(6);
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    image.SetImageFit(1);
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-    image.SetImageFit(7);
-    image.CanvasDrawImage(canvas, rect, paint, isBackground);
-#endif
-#else
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     image.SetImageFit(5);
@@ -330,7 +206,6 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.SetImageFit(7);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
-#endif
 }
 
 /**
@@ -341,36 +216,13 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
 HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
 {
     RSImage image;
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkRect rect = SkRect::MakeWH(100, 100);
-    RectF dstRect(10, 10, 80, 80);
-    SkPaint paint;
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect = Drawing::Rect(0, 0, 100, 100);
     RectF dstRect(10, 10, 80, 80);
     Drawing::Brush brush;
-#endif
     image.SetDstRect(dstRect);
     image.SetImageRepeat(1);
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
-    image.SetImageRepeat(2);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
-    image.SetImageRepeat(3);
-    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
-#else
-    image.CanvasDrawImage(canvas, rect, paint);
-    image.SetImageRepeat(2);
-    image.CanvasDrawImage(canvas, rect, paint);
-    image.SetImageRepeat(3);
-    image.CanvasDrawImage(canvas, rect, paint);
-#endif
-#else
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     image.SetImageRepeat(2);
@@ -378,7 +230,6 @@ HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
     image.SetImageRepeat(3);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     canvas.DetachBrush();
-#endif
 }
 
 /**
@@ -392,24 +243,12 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
     RectF rect(0, 0, 100, 100);
     imageBase.SetSrcRect(rect);
     imageBase.SetDstRect(rect);
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkPaint paint;
-#ifdef NEW_SKIA
-    SkSamplingOptions samplingOptions = SkSamplingOptions();
-    imageBase.DrawImage(canvas, samplingOptions, paint);
-#else
-    imageBase.DrawImage(canvas, paint);
-#endif
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     imageBase.DrawImage(canvas, Drawing::SamplingOptions());
     canvas.DetachBrush();
-#endif
 }
 
 /**
@@ -431,19 +270,6 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     std::shared_ptr<RSImage> newImage;
     EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
 
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    SkPaint paint;
-    SkRect rect = SkRect::MakeWH(100, 100);
-#ifdef NEW_SKIA
-    newImage->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
-    newImage->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
-#else
-    newImage->CanvasDrawImage(canvas, rect, paint);
-    newImage->CanvasDrawImage(canvas, rect, paint);
-#endif
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Brush brush;
@@ -452,7 +278,6 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     newImage->CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     newImage->CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     canvas.DetachBrush();
-#endif
 
     MessageParcel parcel2;
     EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel2, rsImage), true);
@@ -461,12 +286,7 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
 
     RSImageCache::Instance().CachePixelMap(1, nullptr);
     RSImageCache::Instance().CachePixelMap(0, pixelMap);
-#ifndef USE_ROSEN_DRAWING
-    RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(1, nullptr);
-    RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(0, nullptr);
-#else
     RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(1, nullptr);
     RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(0, nullptr);
-#endif
 }
 } // namespace OHOS::Rosen

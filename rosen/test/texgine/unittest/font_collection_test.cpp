@@ -36,19 +36,6 @@ struct MockVars {
     std::shared_ptr<TextEngine::FontCollection> fontCollection;
 } g_fcMockVars;
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
-{
-    return g_fcMockVars.fontMgr;
-}
-
-std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const std::string &familyName,
-    const TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
-{
-    g_fcMockVars.catchedSize = bcp47Count;
-    return g_fcMockVars.SCRetvalTypeface;
-}
-#endif
 
 std::shared_ptr<TexgineTypeface> VariantFontStyleSet::MatchStyle(std::shared_ptr<TexgineFontStyle> pattern)
 {

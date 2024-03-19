@@ -105,19 +105,11 @@ bool RSSymbolAnimation::SetSymbolAnimation(
     return false;
 }
 
-#ifndef USE_ROSEN_DRAWING
-Vector4f RSSymbolAnimation::CalculateOffset(const SkPath& path, const float& offsetX, const float& offsetY)
-{
-    auto rect = path.getBounds();
-    float left = rect.fLeft;
-    float top = rect.fTop;
-#else
 Vector4f RSSymbolAnimation::CalculateOffset(const Drawing::Path& path, const float& offsetX, const float& offsetY)
 {
     auto rect = path.GetBounds();
     float left = rect.GetLeft();
     float top = rect.GetTop();
-#endif
     // the nodeTranslation is offset of new node to the father node;
     // the newOffset is offset of path on new node;
     Vector2f nodeTranslation = {offsetX + left, offsetY + top};
@@ -125,33 +117,6 @@ Vector4f RSSymbolAnimation::CalculateOffset(const Drawing::Path& path, const flo
     return Vector4f(nodeTranslation[0], nodeTranslation[1], newOffset[0], newOffset[1]);
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSymbolAnimation::DrawSymbolOnCanvas(SkCanvas* recordingCanvas,
-    TextEngine::SymbolNode& symbolNode, const Vector4f& offsets)
-{
-    if (recordingCanvas == nullptr) {
-        return;
-    }
-    SkPaint paint;
-    paint.setColor(symbolNode.color);
-    paint.setAntiAlias(true);
-    SkPoint offsetLocal = SkPoint::Make(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
-    recordingCanvas->drawSymbol(symbolNode.symbolData, offsetLocal, paint);
-}
-
-void RSSymbolAnimation::DrawPathOnCanvas(SkCanvas* recordingCanvas,
-    TextEngine::SymbolNode& symbolNode, const Vector4f& offsets)
-{
-    if (recordingCanvas == nullptr) {
-        return;
-    }
-    SkPaint paint;
-    paint.setColor(symbolNode.color);
-    paint.setAntiAlias(true);
-    symbolNode.path.offset(offsets[2], offsets[3]); // index 2 offsetX 3 offsetY
-    recordingCanvas->drawPath(symbolNode.path, paint);
-}
-#else
 void RSSymbolAnimation::DrawSymbolOnCanvas(ExtendRecordingCanvas* recordingCanvas,
     TextEngine::SymbolNode& symbolNode, const Vector4f& offsets)
 {
@@ -186,25 +151,12 @@ void RSSymbolAnimation::DrawPathOnCanvas(ExtendRecordingCanvas* recordingCanvas,
     recordingCanvas->DetachBrush();
     recordingCanvas->DetachPen();
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-bool RSSymbolAnimation::GetScaleUnitAnimationParas(PiecewiseParameter& scaleUnitParas,
-    Vector2f& scaleValueBegin, Vector2f& scaleValue)
-{
-    // AnimationType, AnimationSubType, animation_mode; animation_mode is 1 when AnimationSubTpe is Unit
-    HmSymbolConfig_OHOS* symbolConfig = HmSymbolConfig_OHOS::getInstance();
-    if (symbolConfig == nullptr) {
-        return false;
-    }
-    auto scaleParas = symbolConfig->getGroupParameters(SCALE_EFFECT, UNIT, 1);
-#else
 bool RSSymbolAnimation::GetScaleUnitAnimationParas(Drawing::DrawingPiecewiseParameter& scaleUnitParas,
     Vector2f& scaleValueBegin, Vector2f& scaleValue)
 {
     // AnimationType, AnimationSubType, animation_mode; animation_mode is 1 when AnimationSubTpe is Unit
     auto scaleParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::SCALE_EFFECT, Drawing::UNIT, 1);
-#endif
     if (scaleParas == nullptr || scaleParas->empty() || scaleParas->at(UNIT_GROUP).empty()) {
         ROSEN_LOGD("[%{public}s] can not get scaleParas \n", __func__);
         return false;
@@ -255,11 +207,7 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
         symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]))) {
         return false;
     }
-#ifndef USE_ROSEN_DRAWING
-    PiecewiseParameter scaleUnitParas;
-#else
     Drawing::DrawingPiecewiseParameter scaleUnitParas;
-#endif
     Vector2f scaleValueBegin;
     Vector2f scaleValue;
     if (!GetScaleUnitAnimationParas(scaleUnitParas, scaleValueBegin, scaleValue)) {
@@ -299,15 +247,9 @@ bool RSSymbolAnimation::SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode,
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSAnimation> RSSymbolAnimation::ScaleSymbolAnimation(
-    const std::shared_ptr<RSNode>& rsNode, const PiecewiseParameter& scaleUnitParas,
-    const Vector2f& scaleValueBegin, const Vector2f& scaleValue, const Vector2f& scaleValueEnd)
-#else
 std::shared_ptr<RSAnimation> RSSymbolAnimation::ScaleSymbolAnimation(
     const std::shared_ptr<RSNode>& rsNode, const Drawing::DrawingPiecewiseParameter& scaleUnitParas,
     const Vector2f& scaleValueBegin, const Vector2f& scaleValue, const Vector2f& scaleValueEnd)
-#endif
 {
     if (rsNode == nullptr) {
         return nullptr;
@@ -409,22 +351,11 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSSymbolAnimation::GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
-    std::vector<float>& timePercents)
-{
-    HmSymbolConfig_OHOS* symbolConfig = HmSymbolConfig_OHOS::getInstance();
-    if (symbolConfig == nullptr) {
-        return false;
-    }
-    auto multiGroupParas = symbolConfig->getGroupParameters(VARIABLE_COLOR, VARIABLE_3_GROUP, 1);
-#else
 bool RSSymbolAnimation::GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
     std::vector<float>& timePercents)
 {
     auto multiGroupParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::VARIABLE_COLOR,
                                                                            Drawing::VARIABLE_3_GROUP, 1);
-#endif
     if (multiGroupParas == nullptr || multiGroupParas->size() <= index || multiGroupParas->at(index).empty()) {
         ROSEN_LOGD("[%{public}s] can not get multiGroupParas \n", __func__);
         return false;
@@ -460,13 +391,8 @@ bool RSSymbolAnimation::GetVariableColorAnimationParas(const uint32_t index, uin
     return CalcTimePercents(timePercents, static_cast<float>(totalDuration), oneGroupParas);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
-    const std::vector<PiecewiseParameter>& oneGroupParas)
-#else
 bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
     const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas)
-#endif
 {
     if (totalDuration <= 0) {
         return false;

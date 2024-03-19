@@ -136,8 +136,7 @@ std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateRSSurface(const sp
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
 #if defined (ACE_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         return std::make_shared<RSSurfaceOhosVulkan>(surface); // GPU render
     }
 #endif
@@ -822,11 +821,7 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return renderService->GetScreenType(id, screenType);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetBitmap(NodeId id, SkBitmap& bitmap)
-#else
 bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -836,13 +831,8 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
     return renderService->GetBitmap(id, bitmap);
 }
 
-#ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
-#else
 bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {

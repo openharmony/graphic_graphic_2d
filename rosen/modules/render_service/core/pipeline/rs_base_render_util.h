@@ -17,19 +17,10 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
 #include <vector>
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkBitmap.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkColor.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkRect.h"
-#include "include/core/SkColorFilter.h"
-#else
 #include "image/bitmap.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
 #include "draw/pen.h"
-#endif
 
 #include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -48,33 +39,18 @@ struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
 
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix; // for moving canvas to layer(surface)'s leftTop point.
-    SkRect srcRect; // surface's bufferSize
-    SkRect dstRect; // surface's boundsSize
-#else
     Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     Drawing::Rect srcRect; // surface's bufferSize
     Drawing::Rect dstRect; // surface's boundsSize
-#endif
 
     Vector4f cornerRadius;
     RRect clipRRect;
 
-#ifndef USE_ROSEN_DRAWING
-    SkRect clipRect;
-#else
     Drawing::Rect clipRect;
-#endif
 
     bool isNeedClip = true;
-#ifndef USE_ROSEN_DRAWING
-    SkPaint paint;
-    SkColor backgroundColor = SK_ColorTRANSPARENT;
-#else
     Drawing::Brush paint;
     Drawing::ColorQuad backgroundColor = Drawing::Color::COLOR_TRANSPARENT;
-#endif
     GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     bool useCPU = false;
@@ -119,13 +95,8 @@ public:
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 
-#ifndef USE_ROSEN_DRAWING
-    static SkMatrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds);
-    static SkMatrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
-#else
     static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
-#endif
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
 
     static GSError DropFrameProcess(RSSurfaceHandler& node);
@@ -134,24 +105,15 @@ public:
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
 
-#ifndef USE_ROSEN_DRAWING
-    static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-        GraphicColorGamut dstGamut, SkBitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas = {});
-#else
     static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         GraphicColorGamut dstGamut, Drawing::Bitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas = {});
-#endif
     /**
      * @brief Set the Color Filter Mode To Paint object
      *
      * @param colorFilterMode SkBlendMode applied to SKPaint
      * @param paint color matrix applied to SKPaint
      */
-#ifndef USE_ROSEN_DRAWING
-    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, SkPaint& paint);
-#else
     static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint);
-#endif
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
@@ -176,21 +138,12 @@ public:
     static bool IsForceClient();
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-        SkBitmap& bitmap);
-    static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-                                          SkBitmap& bitmap, GraphicColorGamut srcGamut, GraphicColorGamut dstGamut,
-                                          const std::vector<GraphicHDRMetaData>& metaDatas = {});
-    static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
-#else
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap, GraphicColorGamut srcGamut, GraphicColorGamut dstGamut,
         const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
-#endif
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
 
     static bool enableClient;

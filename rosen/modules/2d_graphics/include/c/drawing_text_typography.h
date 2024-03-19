@@ -1309,12 +1309,12 @@ bool OH_Drawing_TypographyGetLineMetricsAt(OH_Drawing_Typography*, int, OH_Drawi
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
- * @param size_t Indicates the index to set.
+ * @param int Indicates the index to set.
  * @return float Indicates the element with the index in vector of Indents.
  * @since 12
  * @version 1.0
  */
-float OH_Drawing_TypographyGetIndentsWithIndex(OH_Drawing_Typography*, size_t);
+float OH_Drawing_TypographyGetIndentsWithIndex(OH_Drawing_Typography*, int);
 
 /**
  * @brief Set indents of the typography.

@@ -147,6 +147,33 @@ bool ImageFilter::Deserialize(std::shared_ptr<Data> data)
     return impl_->Deserialize(data);
 }
 
+std::shared_ptr<ImageFilter> ImageFilter::CreateBlendImageFilter(BlendMode mode,
+    std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground)
+{
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::BLEND, mode, background, foreground);
+}
+
+ImageFilter::ImageFilter(FilterType t, BlendMode mode, std::shared_ptr<ImageFilter> background,
+    std::shared_ptr<ImageFilter> foreground) noexcept
+    : ImageFilter()
+{
+    type_ = t;
+    impl_->InitWithBlend(mode, background, foreground);
+}
+
+std::shared_ptr<ImageFilter> ImageFilter::CreateShaderImageFilter(
+    std::shared_ptr<ShaderEffect> shader)
+{
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::SHADER, shader);
+}
+
+ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader) noexcept
+    : ImageFilter()
+{
+    type_ = t;
+    impl_->InitWithShader(shader);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

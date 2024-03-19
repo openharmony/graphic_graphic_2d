@@ -16,9 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_H
 #define RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_H
 
-#ifdef USE_ROSEN_DRAWING
 #include <bitset>
-#endif
 #include <optional>
 #include <tuple>
 #include <vector>
@@ -91,13 +89,8 @@ public:
     void SetSandBox(const std::optional<Vector2f>& parentPosition);
     std::optional<Vector2f> GetSandBox() const;
     void ResetSandBox();
-#ifndef USE_ROSEN_DRAWING
-    void UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix);
-    std::optional<SkMatrix> GetSandBoxMatrix() const;
-#else
     void UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix);
     std::optional<Drawing::Matrix> GetSandBoxMatrix() const;
-#endif
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
@@ -211,17 +204,14 @@ public:
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
-    void SetGreyCoef1(float greyCoef1);
-    void SetGreyCoef2(float greyCoef2);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     bool NeedFilter() const;
-    float GetGreyCoef1() const;
-    float GetGreyCoef2() const;
-    bool IsGreyAdjustmentValid() const;
+    void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
+    const std::optional<Vector2f>& GetGreyCoef() const;
 
     // shadow properties
     void SetShadowColor(Color color);
@@ -285,13 +275,8 @@ public:
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
-#ifndef USE_ROSEN_DRAWING
-    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<SkPoint>& offset,
-        const std::optional<SkRect>& clipRect);
-#else
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
         const std::optional<Drawing::Rect>& clipRect);
-#endif
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
@@ -324,11 +309,7 @@ public:
     void SetColorBlend(const std::optional<Color>& colorBlend);
     const std::optional<Color>& GetColorBlend() const;
 
-#ifndef USE_ROSEN_DRAWING
-    const sk_sp<SkColorFilter>& GetColorFilter() const;
-#else
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
-#endif
 
     void SetLightIntensity(float lightIntensity);
     void SetLightPosition(const Vector4f& lightPosition);
@@ -369,11 +350,7 @@ public:
     void OnApplyModifiers();
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
-#else
     void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
-#endif
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
@@ -453,30 +430,28 @@ private:
     std::optional<float> dynamicLightUpDegree_;
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
+    std::optional<Vector2f> greyCoef_;
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();
     void CalculatePixelStretch();
     void CalculateFrameOffset();
+    void CheckGreyCoef();
+    void ApplyGreyCoef();
 
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
     bool filterNeedUpdate_ = false;
+    bool greyCoefNeedUpdate_ = false;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     bool needFilter_ = false;
     RRect rrect_ = RRect{};
 
     RSRenderParticleVector particles_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkColorFilter> colorFilter_ = nullptr;
-#else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
-#endif
     bool haveEffectRegion_ = false;
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

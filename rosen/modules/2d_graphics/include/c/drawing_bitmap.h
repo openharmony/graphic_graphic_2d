@@ -129,6 +129,28 @@ uint32_t OH_Drawing_BitmapGetWidth(OH_Drawing_Bitmap*);
 uint32_t OH_Drawing_BitmapGetHeight(OH_Drawing_Bitmap*);
 
 /**
+ * @brief Obtains the color format of a bitmap.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @return Returns the bitmap color format.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_ColorFormat OH_Drawing_BitmapGetColorFormat(OH_Drawing_Bitmap*);
+
+/**
+ * @brief Obtains the alpha format of a bitmap.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @return Returns the bitmap alpha format.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_AlphaFormat OH_Drawing_BitmapGetAlphaFormat(OH_Drawing_Bitmap*);
+
+/**
  * @brief Obtains the pixel address of a bitmap. You can use this address to obtain the pixel data of the bitmap.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

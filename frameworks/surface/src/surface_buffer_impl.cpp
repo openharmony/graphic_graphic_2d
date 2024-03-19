@@ -158,6 +158,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
         transform_ = static_cast<GraphicTransformType>(config.transform);
         surfaceBufferWidth_ = config.width;
         surfaceBufferHeight_ = config.height;
+        bufferRequestConfig_ = config;
         handle_ = handle;
         BLOGD("buffer handle w: %{public}d h: %{public}d t: %{public}d",
             handle_->width, handle_->height, config.transform);
@@ -300,7 +301,9 @@ BufferHandle *SurfaceBufferImpl::GetBufferHandle() const
 void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const GraphicColorGamut& colorGamut)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    surfaceBufferColorGamut_ = colorGamut;
+    if (surfaceBufferColorGamut_ != colorGamut) {
+        surfaceBufferColorGamut_ = colorGamut;
+    }
 }
 
 const GraphicColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
@@ -312,7 +315,9 @@ const GraphicColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
 void SurfaceBufferImpl::SetSurfaceBufferTransform(const GraphicTransformType& transform)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    transform_ = transform;
+    if (transform_ != transform) {
+        transform_ = transform;
+    }
 }
 
 const GraphicTransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
@@ -456,6 +461,19 @@ void SurfaceBufferImpl::SetBufferHandle(BufferHandle *handle)
     handle_ = handle;
 }
 
+GSError SurfaceBufferImpl::WriteBufferRequestConfig(MessageParcel &parcel)
+{
+    if (!parcel.WriteInt32(bufferRequestConfig_.width) || !parcel.WriteInt32(bufferRequestConfig_.height) ||
+        !parcel.WriteInt32(bufferRequestConfig_.strideAlignment) || !parcel.WriteInt32(bufferRequestConfig_.format) ||
+        !parcel.WriteUint64(bufferRequestConfig_.usage) || !parcel.WriteInt32(bufferRequestConfig_.timeout) ||
+        !parcel.WriteUint32(static_cast<uint32_t>(bufferRequestConfig_.colorGamut)) ||
+        !parcel.WriteUint32(static_cast<uint32_t>(bufferRequestConfig_.transform))) {
+        BLOGE("%{public}s a lot failed", __func__);
+        return GSERROR_API_FAILED;
+    }
+    return GSERROR_OK;
+}
+
 GSError SurfaceBufferImpl::WriteToMessageParcel(MessageParcel &parcel)
 {
     BufferHandle *handle = nullptr;
@@ -477,6 +495,22 @@ GSError SurfaceBufferImpl::WriteToMessageParcel(MessageParcel &parcel)
     return GSERROR_OK;
 }
 
+GSError SurfaceBufferImpl::ReadBufferRequestConfig(MessageParcel &parcel)
+{
+    uint32_t colorGamut = 0;
+    uint32_t transform = 0;
+    if (!parcel.ReadInt32(bufferRequestConfig_.width) || !parcel.ReadInt32(bufferRequestConfig_.height) ||
+        !parcel.ReadInt32(bufferRequestConfig_.strideAlignment) || !parcel.ReadInt32(bufferRequestConfig_.format) ||
+        !parcel.ReadUint64(bufferRequestConfig_.usage) || !parcel.ReadInt32(bufferRequestConfig_.timeout) ||
+        !parcel.ReadUint32(colorGamut) || !parcel.ReadUint32(transform)) {
+        BLOGE("%{public}s a lot failed", __func__);
+        return GSERROR_API_FAILED;
+    }
+    bufferRequestConfig_.colorGamut = static_cast<GraphicColorGamut>(colorGamut);
+    bufferRequestConfig_.transform = static_cast<GraphicTransformType>(transform);
+    return GSERROR_OK;
+}
+
 GSError SurfaceBufferImpl::ReadFromMessageParcel(MessageParcel &parcel)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -485,7 +519,6 @@ GSError SurfaceBufferImpl::ReadFromMessageParcel(MessageParcel &parcel)
     if (handle_ == nullptr) {
         return GSERROR_API_FAILED;
     }
-
     return GSERROR_OK;
 }
 
@@ -617,5 +650,17 @@ GSError SurfaceBufferImpl::EraseMetadataKey(uint32_t key)
         return GSERROR_OK;
     }
     return GenerateError(GSERROR_API_FAILED, dret);
+}
+
+const BufferRequestConfig* SurfaceBufferImpl::GetBufferRequestConfig() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return &bufferRequestConfig_;
+}
+
+void SurfaceBufferImpl::SetBufferRequestConfig(const BufferRequestConfig &config)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    bufferRequestConfig_ = config;
 }
 } // namespace OHOS

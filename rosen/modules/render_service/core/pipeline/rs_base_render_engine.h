@@ -230,23 +230,14 @@ public:
     {
         return vkImageManager_;
     }
-#ifndef USE_ROSEN_DRAWING
-    const sk_sp<GrDirectContext> GetSkContext() const
-#else
     const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
-#endif
     {
         return skContext_;
     }
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-#ifndef USE_ROSEN_DRAWING
-    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
-#else
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
     void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
-#endif
 #endif
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
@@ -256,15 +247,9 @@ protected:
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
-#else
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
-#endif
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 #if defined(NEW_RENDER_CONTEXT)
@@ -279,11 +264,7 @@ private:
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> skContext_ = nullptr;
-#else
     std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
-#endif
     std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
 #endif
     using SurfaceId = uint64_t;

@@ -1314,6 +1314,29 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback_Test, Functi
 }
 
 /*
+ * @tc.name: RegisterHgmRefreshRateModeChangeCallback001
+ * @tc.desc: RegisterHgmRefreshRateModeChangeCallback001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t savedModeName = -2;
+    HgmRefreshRateModeChangeCallback cb = [&](int32_t refreshRateModeName){ savedModeName = refreshRateModeName; };
+    int32_t ret = rsInterfaces->RegisterHgmRefreshRateModeChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+
+    rsInterfaces->SetRefreshRateMode(-1);
+    ASSERT_EQ(savedModeName, -1);
+
+    for (int32_t mode : {1, 2, 3}) {
+        rsInterfaces->SetRefreshRateMode(mode);
+        ASSERT_NE(savedModeName, mode);
+    }
+}
+
+/*
  * @tc.name: RegisterSurfaceOcclusionChangeCallback001
  * @tc.desc: RegisterOcclusionChangeCallback interface test.
  * @tc.type: FUNC

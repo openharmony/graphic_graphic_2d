@@ -376,8 +376,7 @@ void DrawingDCL::Test(Drawing::Canvas* canvas, int width, int height)
         case IterateType::REPLAY_MSKP:
             std::cout << "replay mskp... " << std::endl;
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (RSSystemProperties::IsUseVulkan()) {
                 UpdateParameters(ReplayMSKP(skiaCanvas_) || (beginFrame_ == 1));
             }
 #endif
@@ -385,8 +384,7 @@ void DrawingDCL::Test(Drawing::Canvas* canvas, int width, int height)
         case IterateType::REPLAY_SKP:
             std::cout << "replay skp... " << std::endl;
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (RSSystemProperties::IsUseVulkan()) {
                 ReplaySKP(skiaCanvas_);
             }
 #endif

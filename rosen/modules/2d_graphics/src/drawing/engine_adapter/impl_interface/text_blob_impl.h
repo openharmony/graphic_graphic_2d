@@ -27,7 +27,7 @@ class TextBlobImpl : public BaseImpl {
 public:
     ~TextBlobImpl() override = default;
 
-    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual std::shared_ptr<Data> Serialize(void* ctx) const = 0;
     virtual std::shared_ptr<Rect> Bounds() const = 0;
 
 protected:

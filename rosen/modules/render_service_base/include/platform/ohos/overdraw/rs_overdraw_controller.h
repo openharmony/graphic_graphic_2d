@@ -30,11 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr auto OverdrawColorArrayLength = 6;
-#ifndef USE_ROSEN_DRAWING
-using OverdrawColorArray = std::array<SkColor, OverdrawColorArrayLength>;
-#else
 using OverdrawColorArray = std::array<Drawing::ColorQuad, OverdrawColorArrayLength>;
-#endif
 class RSB_EXPORT RSOverdrawController {
 public:
     static RSB_EXPORT RSOverdrawController &GetInstance();
@@ -45,11 +41,7 @@ public:
     bool IsEnabled() const;
     void SetEnable(bool enable);
     OverdrawColorArray GetColorArray() const;
-#ifndef USE_ROSEN_DRAWING
-    std::map<int, SkColor> GetColorMap() const;
-#else
     std::map<int, Drawing::ColorQuad> GetColorMap() const;
-#endif
 
     template<class RSCanvasListenerImpl>
     std::shared_ptr<RSCanvasListenerImpl> CreateListener(RSPaintFilterCanvas *canvas)
@@ -89,21 +81,12 @@ private:
         0x22ff0000,
         0x44ff0000,
     };
-#ifndef USE_ROSEN_DRAWING
-    std::map<int, SkColor> colorMap_ = {
-        {0, 0x22ff0000},
-        {1, 0x00000000},
-        {2, 0x220000ff},
-        {3, 0x2200ff00},
-        {4, 0x22ff0000},
-#else
     std::map<int, Drawing::ColorQuad> colorMap_ = {
         {0, 0x22ff0000},
         {1, 0x00000000},
         {2, 0x220000ff},
         {3, 0x2200ff00},
         {4, 0x22ff0000},
-#endif
     };
 };
 } // namespace Rosen

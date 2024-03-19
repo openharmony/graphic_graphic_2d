@@ -65,6 +65,8 @@ template("graphics2d_source_set") {
     cflags_cc += invoker.cflags_cc
     if (use_texgine) {
       defines += [ "USE_TEXGINE" ]
+    } else if (use_skia_txt) {
+      defines += [ "USE_SKIA_TXT" ]
     }
 
     public_deps = []
@@ -126,6 +128,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_font.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_font_mgr.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_font_style_set.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_gradient_blur.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_graphics.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_helper.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_hm_symbol.cpp",
@@ -133,6 +136,8 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_image.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_image_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_mask_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix44.cpp",
@@ -161,7 +166,6 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/image/picture.cpp",
       "$drawing_src_dir/image/pixmap.cpp",
       "$drawing_src_dir/image/trace_memory_dump.cpp",
-      "$drawing_src_dir/recording/adaptive_image_helper.cpp",
       "$drawing_src_dir/recording/cmd_list.cpp",
       "$drawing_src_dir/recording/cmd_list_helper.cpp",
       "$drawing_src_dir/recording/draw_cmd.cpp",
@@ -180,6 +184,8 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/text/typeface.cpp",
       "$drawing_src_dir/utils/camera3d.cpp",
       "$drawing_src_dir/utils/data.cpp",
+      "$drawing_src_dir/utils/gradient_blur_utils.cpp",
+      "$drawing_src_dir/utils/kawase_blur_utils.cpp",
       "$drawing_src_dir/utils/matrix.cpp",
       "$drawing_src_dir/utils/matrix44.cpp",
       "$drawing_src_dir/utils/memory_stream.cpp",
@@ -193,6 +199,12 @@ template("graphics2d_source_set") {
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [ "init:libbegetutil" ]
       sources += [ "$drawing_src_dir/utils/system_properties.cpp" ]
+      if (defined(
+          graphic_2d_platform_configs.system_graphic_properties_sources)) {
+        sources += graphic_2d_platform_configs.system_graphic_properties_sources
+      } else {
+        sources += [ "$drawing_src_dir/utils/system_graphic_properties.cpp" ]
+      }
     }
 
     if (is_arkui_x) {
@@ -248,6 +260,16 @@ template("graphics2d_source_set") {
 
     defines += [ "USE_ACE_SKIA" ]
 
+    if (defined(graphic_2d_feature_enable_ddgr) &&
+        graphic_2d_feature_enable_ddgr) {
+      defines += [ "ENABLE_DDGR_OPTIMIZE" ]
+      sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
+
+      include_dirs += ddgr_adapter_opt_set.drawing_ddgr_adapter_include_set
+
+      public_deps += [ "$graphic_2d_ext_root/ddgr:libddgr" ]
+    }
+
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_texgine) {
@@ -288,10 +310,7 @@ template("graphics2d_source_set") {
       public_deps += [ "//third_party/vulkan-headers:vulkan_headers" ]
     }
     if (platform == "ohos" || platform == "ohos_ng") {
-      external_deps += [
-        "hilog:libhilog",
-        "image_framework:image_native",
-      ]
+      external_deps += [ "hilog:libhilog" ]
       deps = [
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/skia:skia_$platform",
@@ -468,11 +487,14 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_canvas.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_color_filter.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_color_space.cpp",
+    "$drawing_src_dir/engine_adapter/skia_adapter/skia_gradient_blur.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_graphics.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_helper.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_image.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_image_filter.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
+    "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur.cpp",
+    "$drawing_src_dir/engine_adapter/skia_adapter/skia_kawase_blur_filter.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_mask_filter.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix.cpp",
     "$drawing_src_dir/engine_adapter/skia_adapter/skia_paint.cpp",
@@ -489,6 +511,8 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "$drawing_src_dir/image/pixmap.cpp",
     "$drawing_src_dir/text/text.cpp",
     "$drawing_src_dir/utils/camera3d.cpp",
+    "$drawing_src_dir/utils/gradient_blur_utils.cpp",
+    "$drawing_src_dir/utils/kawase_blur_utils.cpp",
     "$drawing_src_dir/utils/matrix.cpp",
   ]
 
@@ -512,13 +536,9 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     ]
   }
 
-  external_deps = [
-    "hilog:libhilog",
-    "image_framework:image_native",
-  ]
+  external_deps = [ "hilog:libhilog" ]
 
   if (enable_text_gine) {
-    external_deps -= [ "image_framework:image_native" ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   }
 
@@ -531,6 +551,8 @@ if (enable_text_gine) {
   defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   if (use_texgine) {
     defines += [ "USE_TEXGINE" ]
+  } else if (use_skia_txt) {
+    defines += [ "USE_SKIA_TXT" ]
   }
   ohos_shared_library("2d_graphics_drawing") {
     include_dirs = [

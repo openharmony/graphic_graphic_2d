@@ -42,23 +42,13 @@ void KawaseBlurFilterTest::TearDown() {}
  */
 HWTEST_F(KawaseBlurFilterTest, testInterface, TestSize.Level1)
 {
-    KawaseBlurFilter *kawaseBlurFilter = KawaseBlurFilter::GetKawaseBlurFilter();
-
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas canvas;
-    SkRect src;
-    SkRect dst;
-    KawaseParameter param = KawaseParameter(src, dst, 1);
-    sk_sp<SkImage> image;
-#else
     Drawing::Canvas canvas;
+    Drawing::Brush brush;
     Drawing::Rect src;
     Drawing::Rect dst;
-    KawaseParameter param = KawaseParameter(src, dst, 1);
+    auto param = Drawing::KawaseParameters{src, dst, 1.f, nullptr, 1.f};
     std::shared_ptr<Drawing::Image> image;
-#endif
-
-    kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param);
+    KawaseBlurFilter::ApplyDrawingKawaseBlur(canvas, brush, image, param);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -284,7 +284,9 @@ Matrix3x3 Invert(const Matrix3x3& src)
     double b0 = a00 * a11 - a01 * a10;
     double b1 = a00 * a12 - a02 * a10;
     double b2 = a01 * a12 - a02 * a11;
-    double b3 = a20, b4 = a21, b5 = a22;
+    double b3 = a20;
+    double b4 = a21;
+    double b5 = a22;
 
     double determinant = b0 * b5 - b1 * b4 + b2 * b3;
 

@@ -18,35 +18,16 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkTextBlob> TexgineTextBlob::GetTextBlob() const
-#else
 std::shared_ptr<RSTextBlob> TexgineTextBlob::GetTextBlob() const
-#endif
 {
     return textBlob_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineTextBlob::SetTextBlob(const sk_sp<SkTextBlob> textBlob)
-#else
 void TexgineTextBlob::SetTextBlob(const std::shared_ptr<RSTextBlob> textBlob)
-#endif
 {
     textBlob_ = textBlob;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineTextBlob::GetGlyphIDs(std::vector<SkGlyphID>& glyphIds)
-{
-    GetGlyphIDforTextBlob(textBlob_.get(), glyphIds);
-}
-
-SkPath TexgineTextBlob::GetPathbyGlyphID(const SkGlyphID& glyphId)
-{
-    return GetPathforTextBlob(glyphId, textBlob_.get());
-}
-#else
 void TexgineTextBlob::GetGlyphIDs(std::vector<uint16_t>& glyphIds)
 {
     RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphIds);
@@ -56,7 +37,6 @@ RSPath TexgineTextBlob::GetPathbyGlyphID(const uint16_t& glyphId)
 {
     return RSTextBlob::GetDrawingPathforTextBlob(glyphId, textBlob_.get());
 }
-#endif
 
 } // namespace TextEngine
 } // namespace Rosen

@@ -99,8 +99,7 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* 
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -116,8 +115,7 @@ std::shared_ptr<Surface> StaticFactory::MakeFromBackendTexture(GPUContext* gpuCo
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -135,7 +133,7 @@ std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
+        return DDGRStaticFactory::MakeRenderTarget(gpuContext, imageInfo, budgeted);
     }
 #endif
     return EngineStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
@@ -194,14 +192,25 @@ std::shared_ptr<Image> StaticFactory::MakeRasterData(const ImageInfo& info, std:
     return EngineStaticFactory::MakeRasterData(info, pixels, rowBytes);
 }
 
-std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, size_t size)
+std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, size_t size, void* ctx)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return DDGRStaticFactory::DeserializeTextBlob(data, size);
     }
 #endif
-    return EngineStaticFactory::DeserializeTextBlob(data, size);
+    return EngineStaticFactory::DeserializeTextBlob(data, size, ctx);
+}
+
+std::shared_ptr<Typeface> StaticFactory::DeserializeTypeface(const void* data, size_t size)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        // DDGR need to be adapted
+        return nullptr;
+    }
+#endif
+    return EngineStaticFactory::DeserializeTypeface(data, size);
 }
 
 bool StaticFactory::CanComputeFastBounds(const Brush& brush)

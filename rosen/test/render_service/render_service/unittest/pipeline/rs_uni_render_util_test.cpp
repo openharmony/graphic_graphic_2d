@@ -30,26 +30,9 @@ public:
     void TearDown() override;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    static sk_sp<SkImage> CreateSkImage();
-#else
     static std::shared_ptr<Drawing::Image> CreateSkImage();
-#endif
 };
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkImage> RSUniRenderUtilTest::CreateSkImage()
-{
-    const SkImageInfo info = SkImageInfo::MakeN32(200, 200, kOpaque_SkAlphaType);
-    auto surface(SkSurface::MakeRaster(info));
-    auto canvas = surface->getCanvas();
-    canvas->clear(SK_ColorYELLOW);
-    SkPaint paint;
-    paint.setColor(SK_ColorRED);
-    canvas->drawRect(SkRect::MakeXYWH(50, 50, 100, 100), paint);
-    return surface->makeImageSnapshot();
-}
-#else
 std::shared_ptr<Drawing::Image> CreateSkImage()
 {
     const Drawing::ImageInfo info =
@@ -64,7 +47,6 @@ std::shared_ptr<Drawing::Image> CreateSkImage()
     canvas->DetachBrush();
     return surface->GetImageSnapshot();
 }
-#endif
 
 void RSUniRenderUtilTest::SetUpTestCase() {}
 void RSUniRenderUtilTest::TearDownTestCase() {}
@@ -113,7 +95,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
-    RSUniRenderUtil::SrcRectScaleDown(params, node);
+    RectF localBounds;
+    RSUniRenderUtil::SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
 }
 
 /*
@@ -128,7 +111,8 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_002, Function | SmallTest | Level
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
-    RSUniRenderUtil::SrcRectScaleDown(params, node);
+    RectF localBounds;
+    RSUniRenderUtil::SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
 }
 
 /*
@@ -234,12 +218,8 @@ HWTEST_F(RSUniRenderUtilTest, AlignedDirtyRegion_002, Function | SmallTest | Lev
 HWTEST_F(RSUniRenderUtilTest, GetRotationFromMatrix, Function | SmallTest | Level2)
 {
     int angle;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#endif
     angle = RSUniRenderUtil::GetRotationFromMatrix(matrix);
     ASSERT_EQ(angle, 0);
 }
@@ -253,12 +233,8 @@ HWTEST_F(RSUniRenderUtilTest, GetRotationFromMatrix, Function | SmallTest | Leve
 HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest | Level2)
 {
     int angle;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#endif
     angle = RSUniRenderUtil::GetRotationDegreeFromMatrix(matrix);
     ASSERT_EQ(angle, 0);
 }
@@ -272,12 +248,8 @@ HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest 
 HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
 {
     bool is3DRotation;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-#endif
     is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
     ASSERT_FALSE(is3DRotation);
 }
@@ -291,12 +263,8 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
 HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
 {
     bool is3DRotation;
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(-1, 0, 0, 0, -1, 0, 0, 0, 1);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
-#endif
     is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
     ASSERT_TRUE(is3DRotation);
 }
@@ -380,13 +348,8 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
  */
 HWTEST_F(RSUniRenderUtilTest, HandleCaptureNode, Function | SmallTest | Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-#else
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-#endif
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     RSUniRenderUtil::HandleCaptureNode(*surfaceNode, canvas);
@@ -432,17 +395,6 @@ HWTEST_F(RSUniRenderUtilTest, AssignSubThreadNode, Function | SmallTest | Level2
  */
 HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest | Level2)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = SkMatrix::MakeAll(1.0, 0.0, 0.1, 0.0, 1.0, 0.1, 0.0, 0.0, 1.0);
-    auto skCanvas = std::make_unique<SkCanvas>(10, 10);
-    auto canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-    auto cachedEffectDataptr = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    RSPaintFilterCanvas::CanvasStatus status{0.0, matrix, cachedEffectDataptr};
-    canvas->SetCanvasStatus(status);
-    RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
-    ASSERT_TRUE(canvas->GetTotalMatrix().getTanslateX() < 0.001);
-    ASSERT_TRUE(canvas->GetTotalMatrix().getTanslateY() < 0.001);
-#else
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1.0, 0.0, 0.1, 0.0, 1.0, 0.1, 0.0, 0.0, 1.0);
     auto drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
@@ -453,7 +405,6 @@ HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest |
     RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
     ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) < 0.001);
     ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) < 0.001);
-#endif
 }
 
 /*
@@ -468,6 +419,8 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread001, Function | SmallTest | L
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
 
     auto mainThread = RSMainThread::Instance();
@@ -489,6 +442,8 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread002, Function | SmallTest | L
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
     surfaceNode->SetHasSharedTransitionNode(true);
     
@@ -512,6 +467,8 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread003, Function | SmallTest | L
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
     surfaceNode->SetHasSharedTransitionNode(false);
     
@@ -522,5 +479,50 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread003, Function | SmallTest | L
         ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()),
             surfaceNode->QuerySubAssignable(displayNode->IsRotationChanged()));
     }
+}
+
+/*
+ * @tc.name: IsNodeAssignSubThread004
+ * @tc.desc: test IsNodeAssignSubThread for self drawing node & self drawing window node
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread004, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
+    auto selfDrawingWindowNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(selfDrawingNode, nullptr);
+    ASSERT_NE(selfDrawingWindowNode, nullptr);
+    displayNode->AddChild(selfDrawingNode);
+    displayNode->AddChild(selfDrawingWindowNode);
+    selfDrawingNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    selfDrawingWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE);
+    
+    ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(selfDrawingNode, displayNode->IsRotationChanged()), false);
+    ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(selfDrawingWindowNode, displayNode->IsRotationChanged()), false);
+}
+
+/*
+ * @tc.name: IsNodeAssignSubThread005
+ * @tc.desc: test IsNodeAssignSubThread while cache is waiting for process
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread005, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->AddChild(surfaceNode);
+    surfaceNode->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+    
+    ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()), false);
 }
 } // namespace OHOS::Rosen

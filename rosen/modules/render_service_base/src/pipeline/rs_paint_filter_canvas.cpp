@@ -17,16 +17,11 @@
 
 #include <algorithm>
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkColorFilter.h"
-#else
 #include "draw/canvas.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 
-#ifdef USE_ROSEN_DRAWING
 using namespace Drawing;
 
 RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
@@ -75,6 +70,21 @@ void RSPaintFilterCanvasBase::DrawPoint(const Point& point)
 #else
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawPoint(point);
+    }
+#endif
+}
+
+void RSPaintFilterCanvasBase::DrawSdf(const SDFShapeBase& shape)
+{
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr && OnFilter()) {
+            (*iter)->DrawSdf(shape);
+        }
+    }
+#else
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawSdf(shape);
     }
 #endif
 }
@@ -429,21 +439,6 @@ void RSPaintFilterCanvasBase::DrawImageLattice(const Drawing::Image* image, cons
 #else
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawImageLattice(image, lattice, dst, filter, brush);
-    }
-#endif
-}
-
-void RSPaintFilterCanvasBase::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
-{
-#ifdef ENABLE_RECORDING_DCL
-    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr && OnFilter()) {
-            (*iter)->DrawBitmap(pixelMap, px, py);
-        }
-    }
-#else
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawBitmap(pixelMap, px, py);
     }
 #endif
 }
@@ -920,66 +915,7 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
 #endif
     return *this;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
-    : SkPaintFilterCanvas(canvas),
-      alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
-      // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
-      blendModeStack_({std::nullopt})
-{}
-
-RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
-    : SkPaintFilterCanvas(skSurface ? skSurface->getCanvas() : nullptr), skSurface_(skSurface),
-      alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
-      // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
-      blendModeStack_({std::nullopt})
-{}
-
-SkSurface* RSPaintFilterCanvas::GetSurface() const
-{
-    return skSurface_;
-}
-
-bool RSPaintFilterCanvas::onFilter(SkPaint& paint) const
-{
-    if (paint.getColor() == 0x00000001) { // foreground color and foreground color strategy identification
-        paint.setColor(envStack_.top().envForegroundColor_.AsArgbInt());
-    }
-
-    if (alphaStack_.top() >= 1.f) {
-        return true;
-    } else if (alphaStack_.top() <= 0.f) {
-        return false;
-    }
-
-    // use blendModeStack_.top() to set blend mode
-    if (auto& blendMode = blendModeStack_.top()) {
-        paint.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
-    }
-
-    // use alphaStack_.top() to multiply alpha
-    paint.setAlphaf(paint.getAlphaf() * alphaStack_.top());
-    return true;
-}
-
-void RSPaintFilterCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint)
-{
-    SkPaint filteredPaint(paint ? *paint : SkPaint());
-    if (this->onFilter(filteredPaint)) {
-        this->SkCanvas::onDrawPicture(picture, matrix, &filteredPaint);
-    }
-}
-
-SkCanvas* RSPaintFilterCanvas::GetRecordingCanvas() const
-{
-    return recordingState_? fList[0] : nullptr;
-}
-
-#else
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
@@ -1108,7 +1044,6 @@ Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
     return recordingState_ ? canvas_ : nullptr;
 }
 
-#endif // USE_ROSEN_DRAWING
 
 bool RSPaintFilterCanvas::GetRecordingState() const
 {
@@ -1256,11 +1191,7 @@ int RSPaintFilterCanvas::GetEnvSaveCount() const
     return envStack_.size();
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSPaintFilterCanvas::SetEnvForegroundColor(Color color)
-#else
 void RSPaintFilterCanvas::SetEnvForegroundColor(Rosen::RSColor color)
-#endif
 {
     // sanity check, stack should not be empty
     if (envStack_.empty()) {
@@ -1269,16 +1200,6 @@ void RSPaintFilterCanvas::SetEnvForegroundColor(Rosen::RSColor color)
     envStack_.top().envForegroundColor_ = color;
 }
 
-#ifndef USE_ROSEN_DRAWING
-Color RSPaintFilterCanvas::GetEnvForegroundColor() const
-{
-    // sanity check, stack should not be empty
-    if (envStack_.empty()) {
-        return Color { 0xFF000000 }; // 0xFF000000 is default value -- black
-    }
-    return envStack_.top().envForegroundColor_;
-}
-#else
 Drawing::ColorQuad RSPaintFilterCanvas::GetEnvForegroundColor() const
 {
     // sanity check, stack should not be empty
@@ -1287,17 +1208,7 @@ Drawing::ColorQuad RSPaintFilterCanvas::GetEnvForegroundColor() const
     }
     return envStack_.top().envForegroundColor_.AsArgbInt();
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save(SaveType type)
-{
-    // save and return status on demand
-    return { (RSPaintFilterCanvas::kCanvas & type) ? save() : getSaveCount(),
-        (RSPaintFilterCanvas::kAlpha & type) ? SaveAlpha() : GetAlphaSaveCount(),
-        (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
-}
-#else
 RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus(SaveType type)
 {
     // save and return status on demand
@@ -1305,25 +1216,16 @@ RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus(SaveType type
         (RSPaintFilterCanvas::kAlpha & type) ? SaveAlpha() : GetAlphaSaveCount(),
         (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
 }
-#endif
 
 RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::GetSaveStatus() const
 {
-#ifndef USE_ROSEN_DRAWING
-    return { getSaveCount(), GetAlphaSaveCount(), GetEnvSaveCount() };
-#else
     return { GetSaveCount(), GetAlphaSaveCount(), GetEnvSaveCount() };
-#endif
 }
 
 void RSPaintFilterCanvas::RestoreStatus(const SaveStatus& status)
 {
     // simultaneously restore canvas and alpha
-#ifndef USE_ROSEN_DRAWING
-    restoreToCount(status.canvasSaveCount);
-#else
     RestoreToCount(status.canvasSaveCount);
-#endif
     RestoreAlphaToCount(status.alphaSaveCount);
     RestoreEnvToCount(status.envSaveCount);
 }
@@ -1361,26 +1263,11 @@ void RSPaintFilterCanvas::SetCacheType(CacheType type)
 {
     cacheType_ = type;
 }
-#ifndef USE_ROSEN_DRAWING
-RSPaintFilterCanvas::CacheType RSPaintFilterCanvas::GetCacheType() const
-#else
 Drawing::CacheType RSPaintFilterCanvas::GetCacheType() const
-#endif
 {
     return cacheType_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSPaintFilterCanvas::SetVisibleRect(SkRect visibleRect)
-{
-    visibleRect_ = visibleRect;
-}
-
-SkRect RSPaintFilterCanvas::GetVisibleRect() const
-{
-    return visibleRect_;
-}
-#else
 void RSPaintFilterCanvas::SetVisibleRect(Drawing::Rect visibleRect)
 {
     visibleRect_ = visibleRect;
@@ -1390,25 +1277,7 @@ Drawing::Rect RSPaintFilterCanvas::GetVisibleRect() const
 {
     return visibleRect_;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-std::optional<SkRect> RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& canvas, const SkIRect* clipRect)
-{
-    // if clipRect is explicitly specified, use it as the device clip bounds
-    SkRect bounds = SkRect::Make((clipRect != nullptr) ? *clipRect : canvas.getDeviceClipBounds());
-    if (bounds.isEmpty()) {
-        return std::nullopt;
-    }
-    SkMatrix inverse;
-    // if we can't invert the CTM, we can't return local clip bounds
-    if (!(canvas.getTotalMatrix().invert(&inverse))) {
-        return std::nullopt;
-    }
-    // return the inverse of the CTM applied to the device clip bounds as local clip bounds
-    return inverse.mapRect(bounds);
-}
-#else
 std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawing::Canvas& canvas,
     const Drawing::RectI* clipRect)
 {
@@ -1429,19 +1298,7 @@ std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawi
     inverse.MapRect(dst, bounds);
     return dst;
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const SaveLayerRec& rec)
-{
-    SkPaint p = rec.fPaint ? *rec.fPaint : SkPaint();
-    SaveLayerRec tmpRec = rec;
-    if (onFilter(p)) {
-        tmpRec.fPaint = &p;
-    }
-    return SkPaintFilterCanvas::getSaveLayerStrategy(tmpRec);
-}
-#endif
 
 void RSPaintFilterCanvas::SetEffectData(const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& effectData)
 {
@@ -1453,23 +1310,6 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanva
     return envStack_.top().effectData_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSPaintFilterCanvas::SetCanvasStatus(const CanvasStatus& status)
-{
-    SetAlpha(status.alpha_);
-    setMatrix(status.matrix_);
-    SetEffectData(status.effectData_);
-}
-
-RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
-{
-    return { GetAlpha(), getTotalMatrix(), GetEffectData() };
-}
-
-RSPaintFilterCanvas::CachedEffectData::CachedEffectData(sk_sp<SkImage>&& image, const SkIRect& rect)
-    : cachedImage_(image), cachedRect_(rect)
-{}
-#else
 void RSPaintFilterCanvas::SetCanvasStatus(const CanvasStatus& status)
 {
     SetAlpha(status.alpha_);
@@ -1486,7 +1326,6 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing:
     const Drawing::RectI& rect)
     : cachedImage_(image), cachedRect_(rect)
 {}
-#endif
 
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 {

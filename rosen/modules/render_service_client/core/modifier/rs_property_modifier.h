@@ -562,19 +562,10 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-class RSC_EXPORT RSGreyCoef1Modifier : public RSBackgroundModifier {
+class RSC_EXPORT RSGreyCoefModifier : public RSBackgroundModifier {
 public:
-    explicit RSGreyCoef1Modifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSGreyCoef1Modifier() = default;
-protected:
-    RSModifierType GetModifierType() const override;
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
-class RSC_EXPORT RSGreyCoef2Modifier : public RSBackgroundModifier {
-public:
-    explicit RSGreyCoef2Modifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSGreyCoef2Modifier() = default;
+    explicit RSGreyCoefModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSGreyCoefModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

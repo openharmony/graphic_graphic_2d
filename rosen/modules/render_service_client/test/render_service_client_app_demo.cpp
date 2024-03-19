@@ -18,10 +18,6 @@
 
 #include "wm/window.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
-#endif
 
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"
@@ -44,11 +40,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorRED);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-#endif
 
     rsUiDirector->SetRoot(rootNode->GetId());
 }
@@ -90,49 +82,29 @@ int main()
     int resizeH = 1600;
     window->Resize(2560, resizeH);
     rootNode->SetBounds(0, 0, 2560, resizeH);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorYELLOW);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
-#endif
     rsUiDirector->SendMessages();
     sleep(4);
 
     std::cout << "rs app demo stage 3 " << std::endl;
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorBLUE);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
-#endif
     rsUiDirector->SendMessages();
     sleep(1);
 
     std::cout << "rs app demo stage 3 " << std::endl;
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorYELLOW);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
-#endif
     rsUiDirector->SendMessages();
     sleep(1);
 
     std::cout << "rs app demo stage 3 " << std::endl;
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(SK_ColorBLUE);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
-#endif
     rsUiDirector->SendMessages();
     sleep(1);
 
     std::cout << "rs app demo start dump test --> " << std::endl;
     rootNode->SetRotation(20.f);
     rootNode->SetAlpha(0.5f);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetForegroundColor(SK_ColorRED);
-#else
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-#endif
     rsUiDirector->SendMessages();
     sleep(1);
 

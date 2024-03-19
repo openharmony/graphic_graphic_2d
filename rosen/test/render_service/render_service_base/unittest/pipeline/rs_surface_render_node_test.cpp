@@ -31,20 +31,12 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
-#ifndef USE_ROSEN_DRAWING
-    static inline SkCanvas skCanvas_;
-#else
     static inline Drawing::Canvas drawingCanvas_;
-#endif
 };
 
 void RSSurfaceRenderNodeTest::SetUpTestCase()
 {
-#ifndef USE_ROSEN_DRAWING
-    canvas_ = new RSPaintFilterCanvas(&skCanvas_);
-#else
     canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
-#endif
 }
 void RSSurfaceRenderNodeTest::TearDownTestCase()
 {
@@ -62,11 +54,7 @@ void RSSurfaceRenderNodeTest::TearDown() {}
 HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrix001, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix;
-#else
     Drawing::Matrix matrix;
-#endif
     bool sendMsg = false;
     surfaceRenderNode.SetContextMatrix(matrix, sendMsg);
 }
@@ -80,11 +68,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrix001, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, SetContextClipRegion001, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-#ifndef USE_ROSEN_DRAWING
-    SkRect clipRegion { 0, 0, 0, 0 };
-#else
     Drawing::Rect clipRegion { 0, 0, 0, 0 };
-#endif
     bool sendMsg = false;
     surfaceRenderNode.SetContextClipRegion(clipRegion, sendMsg);
 }
@@ -463,11 +447,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest, TestS
  */
 HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixTest, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkMatrix> matrix;
-#else
     std::optional<Drawing::Matrix> matrix;
-#endif
     bool sendMsg = false;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->SetContextMatrix(matrix, sendMsg);
@@ -556,6 +536,92 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds = {{subnode->GetId(), subnode}};
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     ASSERT_EQ(node->IsContentDirtyNodeLimited(), false);
+}
+
+/**
+ * @tc.name: SetHasSharedTransitionNode
+ * @tc.desc: Test SetHasSharedTransitionNode
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetHasSharedTransitionNode, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->SetHasSharedTransitionNode(true);
+    
+    ASSERT_EQ(node->GetHasSharedTransitionNode(), true);
+}
+
+/**
+ * @tc.name: QuerySubAssignable001
+ * @tc.desc: Test QuerySubAssignable
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    
+    ASSERT_EQ(node->QuerySubAssignable(false), true);
+}
+
+/**
+ * @tc.name: QuerySubAssignable002
+ * @tc.desc: Test QuerySubAssignable while has filter
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable002, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->SetHasFilter(true);
+    
+    ASSERT_EQ(node->QuerySubAssignable(false), false);
+}
+
+/**
+ * @tc.name: QuerySubAssignable003
+ * @tc.desc: Test QuerySubAssignable while child has filter but isn't transparent
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable003, TestSize.Level2)
+{
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    childNode->SetHasFilter(true);
+    childNode->SetParent(parentNode);
+    const uint8_t opacity = 255;
+    parentNode->SetAbilityBGAlpha(opacity);
+    parentNode->SetChildHasFilter(true);
+    
+    ASSERT_EQ(parentNode->QuerySubAssignable(false), true);
+}
+
+/**
+ * @tc.name: QuerySubAssignable004
+ * @tc.desc: Test QuerySubAssignable while child has filter and it's transparent
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable004, TestSize.Level2)
+{
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    childNode->SetHasFilter(true);
+    childNode->SetParent(parentNode);
+    parentNode->SetChildHasFilter(true);
+    
+    ASSERT_EQ(parentNode->QuerySubAssignable(false), false);
 }
 } // namespace Rosen
 } // namespace OHOS

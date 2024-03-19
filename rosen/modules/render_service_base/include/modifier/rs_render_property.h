@@ -100,6 +100,11 @@ protected:
         return nullptr;
     }
 
+    virtual std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator()
+    {
+        return nullptr;
+    }
+
     virtual bool IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
     {
         return true;
@@ -282,6 +287,11 @@ protected:
                 return nullptr;
             }
         }
+    }
+
+    std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override
+    {
+        return std::make_shared<RSSpringValueEstimator<T>>();
     }
 
 private:

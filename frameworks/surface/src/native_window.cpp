@@ -200,6 +200,26 @@ int32_t GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer **buff
     return OHOS::GSERROR_OK;
 }
 
+int32_t NativeWindowAttachBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
+{
+    if (window == nullptr || buffer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    BLOGE_CHECK_AND_RETURN_RET(window->surface != nullptr, SURFACE_ERROR_ERROR, "window surface is null");
+    return window->surface->AttachBufferToQueue(buffer->sfbuffer);
+}
+
+int32_t NativeWindowDetachBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
+{
+    if (window == nullptr || buffer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    BLOGE_CHECK_AND_RETURN_RET(window->surface != nullptr, SURFACE_ERROR_ERROR, "window surface is null");
+    return window->surface->DetachBufferFromQueue(buffer->sfbuffer);
+}
+
 int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
 {
     if (window == nullptr || buffer == nullptr) {
@@ -307,6 +327,12 @@ static void HandleNativeWindowGetTransform(OHNativeWindow *window, va_list args)
     *transform = static_cast<int32_t>(window->surface->GetTransform());
 }
 
+static void HandleNativeWindowGetBufferQueueSize(OHNativeWindow *window, va_list args)
+{
+    int32_t *bufferQueueSize = va_arg(args, int32_t*);
+    *bufferQueueSize = static_cast<int32_t>(window->surface->GetQueueSize());
+}
+
 static std::map<int, std::function<void(OHNativeWindow*, va_list)>> operationMap = {
     {SET_USAGE, HandleNativeWindowSetUsage},
     {SET_BUFFER_GEOMETRY, HandleNativeWindowSetBufferGeometry},
@@ -323,6 +349,7 @@ static std::map<int, std::function<void(OHNativeWindow*, va_list)>> operationMap
     {GET_TIMEOUT, HandleNativeWindowGetTimeout},
     {GET_COLOR_GAMUT, HandleNativeWindowGetColorGamut},
     {GET_TRANSFORM, HandleNativeWindowGetTransform},
+    {GET_BUFFERQUEUE_SIZE, HandleNativeWindowGetBufferQueueSize},
 };
 
 static int32_t InternalHandleNativeWindowOpt(OHNativeWindow *window, int code, va_list args)
@@ -502,9 +529,12 @@ NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), su
 
 NativeWindow::~NativeWindow()
 {
-    auto utils = SurfaceUtils::GetInstance();
-    utils->Remove(surface->GetUniqueId());
-    utils->RemoveNativeWindow(surface->GetUniqueId());
+    if (surface != nullptr) {
+        auto utils = SurfaceUtils::GetInstance();
+        utils->Remove(surface->GetUniqueId());
+        utils->RemoveNativeWindow(surface->GetUniqueId());
+    }
+
     for (auto &[seqNum, buffer] : bufferCache_) {
         NativeObjectUnreference(buffer);
     }
@@ -529,6 +559,8 @@ WEAK_ALIAS(DestroyNativeWindowBuffer, OH_NativeWindow_DestroyNativeWindowBuffer)
 WEAK_ALIAS(NativeWindowRequestBuffer, OH_NativeWindow_NativeWindowRequestBuffer);
 WEAK_ALIAS(NativeWindowFlushBuffer, OH_NativeWindow_NativeWindowFlushBuffer);
 WEAK_ALIAS(GetLastFlushedBuffer, OH_NativeWindow_GetLastFlushedBuffer);
+WEAK_ALIAS(NativeWindowAttachBuffer, OH_NativeWindow_NativeWindowAttachBuffer);
+WEAK_ALIAS(NativeWindowDetachBuffer, OH_NativeWindow_NativeWindowDetachBuffer);
 WEAK_ALIAS(NativeWindowCancelBuffer, OH_NativeWindow_NativeWindowAbortBuffer);
 WEAK_ALIAS(NativeWindowHandleOpt, OH_NativeWindow_NativeWindowHandleOpt);
 WEAK_ALIAS(GetBufferHandleFromNative, OH_NativeWindow_GetBufferHandleFromNative);

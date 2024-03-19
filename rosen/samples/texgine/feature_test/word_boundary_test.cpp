@@ -62,7 +62,7 @@ public:
                 const auto &[left, right] = ty->GetWordBoundaryByIndex(index);
                 auto wordRects = ty->GetTextRectsByBoundary(Boundary{left, right}, hs, ws);
                 for (auto &[rect, _] : wordRects) {
-                    rect.GetRect()->offset(x, y);
+                    rect.GetRect()->Offset(x, y);
                     canvas.DrawRect(rect, paint);
                 }
 
@@ -70,7 +70,7 @@ public:
                 paint.SetStyle(TexginePaint::STROKE);
                 auto indexRect = ty->GetTextRectsByBoundary(Boundary{index, index + 1}, hs, ws);
                 for (auto &[rect, _] : indexRect) {
-                    rect.GetRect()->offset(x, y);
+                    rect.GetRect()->Offset(x, y);
                     canvas.DrawRect(rect, paint);
                 }
             };

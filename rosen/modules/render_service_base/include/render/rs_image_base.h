@@ -20,12 +20,8 @@
 #include <mutex>
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#else
 #include <memory>
 #include "draw/canvas.h"
-#endif
 #include "memory/rs_dfx_string.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -40,18 +36,10 @@ public:
     RSImageBase() = default;
     virtual ~RSImageBase();
 
-#ifndef USE_ROSEN_DRAWING
-    virtual void DrawImage(RSPaintFilterCanvas& canvas, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
-    void SetImage(const sk_sp<SkImage> image);
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    void SetDmaImage(const sk_sp<SkImage> image);
-#endif
-#else
     virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
-#endif
 #endif
     void SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
     void SetSrcRect(const RectF& dstRect);
@@ -66,44 +54,25 @@ public:
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-    void ConvertPixelMapToSkImage(bool parallelUpload = false);
-#else
     void ConvertPixelMapToDrawingImage(bool parallelUpload = false);
-#endif
 
 protected:
     void GenUniqueId(uint32_t id);
-#ifndef USE_ROSEN_DRAWING
-    static bool UnmarshallingSkImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useSkImage,
-        sk_sp<SkImage>& img, std::shared_ptr<Media::PixelMap>& pixelMap, void*& imagepixelAddr);
-#else
     static bool UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useDrawingImage,
         std::shared_ptr<Drawing::Image>& img, std::shared_ptr<Media::PixelMap>& pixelMap, void*& imagepixelAddr);
-#endif
     static void IncreaseCacheRefCount(uint64_t uniqueId,
             bool useSkImage = true, std::shared_ptr<Media::PixelMap> pixelMap = nullptr);
 
     mutable std::mutex mutex_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> image_;
-#else
     std::shared_ptr<Drawing::Image> image_;
-#endif
     void* imagePixelAddr_ = nullptr;
     std::shared_ptr<Media::PixelMap> pixelMap_;
 
     RectF srcRect_;
     RectF dstRect_;
-#ifndef USE_ROSEN_DRAWING
-    SkRect src_;
-    SkRect dst_;
-    SkRect lastRect_;
-#else
     Drawing::Rect src_;
     Drawing::Rect dst_;
     Drawing::Rect lastRect_;
-#endif
     bool isDrawn_ = false;
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;

@@ -33,21 +33,13 @@ void RSAliasDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& 
 RSSaveDrawable::RSSaveDrawable(std::shared_ptr<int> content) : content_(std::move(content)) {}
 void RSSaveDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-#ifndef USE_ROSEN_DRAWING
-    *content_ = canvas.save();
-#else
     *content_ = canvas.Save();
-#endif
 }
 
 RSRestoreDrawable::RSRestoreDrawable(std::shared_ptr<int> content) : content_(std::move(content)) {}
 void RSRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-#ifndef USE_ROSEN_DRAWING
-    canvas.restoreToCount(*content_);
-#else
     canvas.RestoreToCount(*content_);
-#endif
 }
 
 RSCustomSaveDrawable::RSCustomSaveDrawable(
@@ -56,11 +48,7 @@ RSCustomSaveDrawable::RSCustomSaveDrawable(
 {}
 void RSCustomSaveDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-#ifndef USE_ROSEN_DRAWING
-    *content_ = canvas.Save(type_);
-#else
     *content_ = canvas.SaveAllStatus(type_);
-#endif
 }
 
 RSCustomRestoreDrawable::RSCustomRestoreDrawable(std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content)
@@ -103,7 +91,9 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
         }
     } else {
         for (const auto& modifier : itr->second) {
-            modifier->Apply(context);
+            if (modifier) {
+                modifier->Apply(context);
+            }
         }
     }
 }
@@ -128,15 +118,10 @@ RSPropertyDrawable::DrawablePtr RSAlphaDrawable::Generate(const RSRenderContent&
 RSAlphaOffscreenDrawable::RSAlphaOffscreenDrawable(float alpha) : RSAlphaDrawable(alpha) {}
 void RSAlphaOffscreenDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-#ifndef USE_ROSEN_DRAWING
-    auto rect = RSPropertiesPainter::Rect2SkRect(content.GetRenderProperties().GetBoundsRect());
-    canvas.saveLayerAlpha(&rect, std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
-#else
     auto rect = RSPropertiesPainter::Rect2DrawingRect(content.GetRenderProperties().GetBoundsRect());
     Drawing::Brush brush;
     brush.SetAlpha(std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
     Drawing::SaveLayerOps slr(&rect, &brush);
     canvas.SaveLayer(slr);
-#endif
 }
 } // namespace OHOS::Rosen

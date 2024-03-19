@@ -84,28 +84,20 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
     return allSurfaceVisibleDirtyRegion;
 }
 
-void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node)
+void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
+    const sptr<IConsumerSurface>& surface, RectF& localBounds)
 {
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    const auto& buffer = node.GetBuffer();
-    const auto& surface = node.GetConsumer();
     if (buffer == nullptr || surface == nullptr) {
         return;
     }
-
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
         scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        const RSProperties& property = node.GetRenderProperties();
-#ifndef USE_ROSEN_DRAWING
-        uint32_t newWidth = static_cast<uint32_t>(params.srcRect.width());
-        uint32_t newHeight = static_cast<uint32_t>(params.srcRect.height());
-#else
         uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
         uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-#endif
         // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
-        uint32_t boundsWidth = static_cast<uint32_t>(property.GetBoundsWidth());
-        uint32_t boundsHeight = static_cast<uint32_t>(property.GetBoundsHeight());
+        uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
+        uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
 
         // If transformType is not a multiple of 180, need to change the correspondence between width & height.
         GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
@@ -113,7 +105,6 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
             transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
             std::swap(boundsWidth, boundsHeight);
         }
-
         if (newWidth * boundsHeight > newHeight * boundsWidth) {
             // too wide
             if (boundsHeight == 0) {
@@ -130,55 +121,29 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
             return;
         }
 
-#ifndef USE_ROSEN_DRAWING
-        uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.width());
-        uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.height());
-#else
         uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
         uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-#endif
         if (newWidth < currentWidth) {
             // the crop is too wide
             uint32_t dw = currentWidth - newWidth;
             auto halfdw = dw / 2;
-#ifndef USE_ROSEN_DRAWING
-            params.srcRect = SkRect::MakeXYWH(params.srcRect.left() + static_cast<int32_t>(halfdw),
-                                              params.srcRect.top(),
-                                              static_cast<int32_t>(newWidth),
-                                              params.srcRect.height());
-#else
             params.srcRect =
                 Drawing::Rect(params.srcRect.GetLeft() + static_cast<int32_t>(halfdw), params.srcRect.GetTop(),
                     params.srcRect.GetLeft() + static_cast<int32_t>(halfdw) + static_cast<int32_t>(newWidth),
                     params.srcRect.GetTop() + params.srcRect.GetHeight());
-#endif
         } else {
             // thr crop is too tall
             uint32_t dh = currentHeight - newHeight;
             auto halfdh = dh / 2;
-#ifndef USE_ROSEN_DRAWING
-            params.srcRect = SkRect::MakeXYWH(params.srcRect.left(),
-                                              params.srcRect.top() + static_cast<int32_t>(halfdh),
-                                              params.srcRect.width(),
-                                              static_cast<int32_t>(newHeight));
-#else
             params.srcRect =
                 Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + static_cast<int32_t>(halfdh),
                     params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                     params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
-#endif
         }
-#ifndef USE_ROSEN_DRAWING
-        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%{public}" PRIu64 ","
+        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name:%{public}s,"
             " srcRect [%{public}f %{public}f %{public}f %{public}f]",
-            node.GetId(), params.srcRect.left(), params.srcRect.top(),
-            params.srcRect.width(), params.srcRect.height());
-#else
-        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%{public}" PRIu64 ","
-            " srcRect [%{public}f %{public}f %{public}f %{public}f]",
-            node.GetId(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
+            surface->GetName().c_str(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
             params.srcRect.GetWidth(), params.srcRect.GetHeight());
-#endif
     }
 }
 
@@ -188,20 +153,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     BufferDrawParam params;
     params.threadIndex = threadIndex;
     params.useBilinearInterpolation = node.NeedBilinearInterpolation();
-#ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
-#else // RS_ENABLE_EGLIMAGE
-    params.useCPU = true;
-#endif // RS_ENABLE_EGLIMAGE
-#ifndef USE_ROSEN_DRAWING
-    params.paint.setAntiAlias(true);
-#ifndef NEW_SKIA
-    params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
-#endif
-
-    const RSProperties& property = node.GetRenderProperties();
-    params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
-#else
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
@@ -209,7 +161,6 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 
     const RSProperties& property = node.GetRenderProperties();
     params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-#endif
 
     const sptr<SurfaceBuffer> buffer = node.GetBuffer();
     if (buffer == nullptr) {
@@ -217,11 +168,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     }
     params.buffer = buffer;
     params.acquireFence = node.GetAcquireFence();
-#ifndef USE_ROSEN_DRAWING
-    params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-#else
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-#endif
 
     auto& consumer = node.GetConsumer();
     if (consumer == nullptr) {
@@ -231,30 +178,14 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    SrcRectScaleDown(params, node);
+    SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
     return params;
 }
 
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU)
 {
     BufferDrawParam params;
-#ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
-#else // RS_ENABLE_EGLIMAGE
-    params.useCPU = true;
-#endif // RS_ENABLE_EGLIMAGE
-#ifndef USE_ROSEN_DRAWING
-    params.paint.setAntiAlias(true);
-#ifndef NEW_SKIA
-    params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
-#endif
-
-    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
-    params.buffer = buffer;
-    params.acquireFence = node.GetAcquireFence();
-    params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    params.dstRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-#else
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
@@ -265,48 +196,24 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     params.acquireFence = node.GetAcquireFence();
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     params.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-#endif
     return params;
 }
 
 BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
 {
     BufferDrawParam params;
-#ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
-#else // RS_ENABLE_EGLIMAGE
-    params.useCPU = true;
-#endif // RS_ENABLE_EGLIMAGE
-#ifndef USE_ROSEN_DRAWING
-    params.paint.setAntiAlias(true);
-#ifndef NEW_SKIA
-    params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
-#endif
-    params.paint.setAlphaf(layer->GetAlpha().gAlpha);
-#else
     params.paint.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
     params.paint.SetAlphaF(layer->GetAlpha().gAlpha);
-#endif
-
     sptr<SurfaceBuffer> buffer = layer->GetBuffer();
     if (buffer == nullptr) {
         return params;
     }
     params.acquireFence = layer->GetAcquireFence();
     params.buffer = buffer;
-#ifndef USE_ROSEN_DRAWING
-    params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    auto boundRect = layer->GetBoundSize();
-    params.dstRect = SkRect::MakeWH(boundRect.w, boundRect.h);
-
-    auto layerMatrix = layer->GetMatrix();
-    params.matrix = SkMatrix::MakeAll(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX,
-                                      layerMatrix.skewY, layerMatrix.scaleY, layerMatrix.transY,
-                                      layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-#else
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     auto boundRect = layer->GetBoundSize();
     params.dstRect = Drawing::Rect(0, 0, boundRect.w, boundRect.h);
@@ -315,7 +222,6 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     params.matrix = Drawing::Matrix();
     params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
         layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-#endif
     int nodeRotation = RSUniRenderUtil::GetRotationFromMatrix(params.matrix); // rotation degree anti-clockwise
     auto layerTransform = layer->GetTransformType();
     // calculate clockwise rotation degree excluded rotation in total matrix
@@ -329,6 +235,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
         localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    SrcRectScaleDown(params, layer->GetBuffer(), layer->GetSurface(), localBounds);
     return params;
 }
 
@@ -345,6 +252,39 @@ bool RSUniRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo&
         return true;
     }
     return false;
+}
+
+void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
+    float alpha, const std::string& extraInfo)
+{
+    if (rect.width_ <= 0 || rect.height_ <= 0) {
+        RS_LOGD("DrawRectForDfx rect is invalid.");
+        return;
+    }
+    RS_LOGD("DrawRectForDfx current rect = %{public}s", rect.ToString().c_str());
+    auto dstRect = Drawing::Rect(rect.left_, rect.top_,
+        rect.left_ + rect.width_, rect.top_ + rect.height_);
+
+    std::string position = rect.ToString() + extraInfo;
+
+    const int defaultTextOffsetX = 6; // text position is 6 pixelSize right side of the Rect
+    const int defaultTextOffsetY = 30; // text position has 30 pixelSize under the Rect
+    Drawing::Brush rectBrush;
+    std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
+
+    // font size: 24
+    std::shared_ptr<Drawing::TextBlob> textBlob =
+        Drawing::TextBlob::MakeFromString(position.c_str(), Drawing::Font(typeFace, 24.0f, 1.0f, 0.0f));
+
+    rectBrush.SetColor(color);
+    rectBrush.SetAntiAlias(true);
+    rectBrush.SetAlphaF(alpha);
+    canvas.AttachBrush(rectBrush);
+    canvas.DrawRect(dstRect);
+    canvas.DetachBrush();
+    canvas.AttachBrush(Drawing::Brush());
+    canvas.DrawTextBlob(textBlob.get(), rect.left_ + defaultTextOffsetX, rect.top_ + defaultTextOffsetY);
+    canvas.DetachBrush();
 }
 
 Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits)
@@ -414,35 +354,6 @@ bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas&
     return false;
 }
 
-#ifndef USE_ROSEN_DRAWING
-int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
-{
-    float value[9];
-    matrix.get9(value);
-
-    int rAngle = static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
-    // transfer the result to anti-clockwise degrees
-    // only rotation with 90°, 180°, 270° are composed through hardware,
-    // in which situation the transformation of the layer needs to be set.
-    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}, {-180, 180}};
-    auto iter = supportedDegrees.find(rAngle);
-    return iter != supportedDegrees.end() ? iter->second : 0;
-}
-
-int RSUniRenderUtil::GetRotationDegreeFromMatrix(SkMatrix matrix)
-{
-    float value[9];
-    matrix.get9(value);
-    return static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
-}
-
-bool RSUniRenderUtil::Is3DRotation(SkMatrix matrix)
-{
-    return !ROSEN_EQ(matrix.getSkewX(), 0.f) || matrix.getScaleX() < 0 ||
-        !ROSEN_EQ(matrix.getSkewY(), 0.f) || matrix.getScaleY() < 0;
-}
-
-#else
 int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
 {
     Drawing::Matrix::Buffer value;
@@ -474,7 +385,6 @@ bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
         matrix.Get(Drawing::Matrix::Index::SCALE_Y) < 0;
 }
 
-#endif
 
 void RSUniRenderUtil::ReleaseColorPickerFilter(std::shared_ptr<RSFilter> RSFilter)
 {
@@ -775,36 +685,22 @@ void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex
         node.ClearCacheSurface(isClearCompletedCacheSurface);
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> completedCacheSurface = isClearCompletedCacheSurface ?
-        node.GetCompletedCacheSurface(threadIndex, false, true) : nullptr;
-#else
     std::shared_ptr<Drawing::Surface> completedCacheSurface = isClearCompletedCacheSurface ?
         node.GetCompletedCacheSurface(threadIndex, false, true) : nullptr;
-#endif
     ClearNodeCacheSurface(node.GetCacheSurface(threadIndex, false, true),
         std::move(completedCacheSurface), cacheSurfaceThreadIndex, completedSurfaceThreadIndex);
     node.ClearCacheSurface(isClearCompletedCacheSurface);
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSUniRenderUtil::ClearNodeCacheSurface(sk_sp<SkSurface>&& cacheSurface, sk_sp<SkSurface>&& cacheCompletedSurface,
-    uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex)
-#else
 void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
     std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
     uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex)
-#endif
 {
     PostReleaseSurfaceTask(std::move(cacheSurface), cacheSurfaceThreadIndex);
     PostReleaseSurfaceTask(std::move(cacheCompletedSurface), completedSurfaceThreadIndex);
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSUniRenderUtil::PostReleaseSurfaceTask(sk_sp<SkSurface>&& surface, uint32_t threadIndex)
-#else
 void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex)
-#endif
 {
     if (surface == nullptr) {
         return;
@@ -827,17 +723,10 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
 
 void RSUniRenderUtil::FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto matrix = canvas.getTotalMatrix();
-    matrix.setTranslateX(std::floor(matrix.getTranslateX()));
-    matrix.setTranslateY(std::floor(matrix.getTranslateY()));
-    canvas.setMatrix(matrix);
-#else
     auto matrix = canvas.GetTotalMatrix();
     matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

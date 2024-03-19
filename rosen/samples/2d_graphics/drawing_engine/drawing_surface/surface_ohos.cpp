@@ -39,8 +39,7 @@ std::shared_ptr<SurfaceBase> SurfaceOhos::CreateSurface(sptr<Surface> surface)
     switch (type) {
         case RenderBackendType::VULKAN:
 #ifdef ACE_ENABLE_VK
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (RSSystemProperties::IsUseVulkan()) {
                 LOGI("SurfaceOhos::CreateSurface with vulkan backend");
                 producer = std::make_shared<SurfaceOhosVulkan>(surface);
             }

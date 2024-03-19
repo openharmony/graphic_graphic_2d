@@ -19,47 +19,29 @@
 #include "recording/recording_handle.h"
 #include "draw/pen.h"
 
-#ifdef USE_ROSEN_DRAWING
 #include "recording/mask_cmd_list.h"
 #include "recording/cmd_list_helper.h"
 #include "effect/shader_effect.h"
-#endif
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSMask> RSMask::CreateGradientMask(const SkPaint& maskPaint)
-#else
 std::shared_ptr<RSMask> RSMask::CreateGradientMask(const Drawing::Brush& maskBrush)
-#endif
 {
     auto mask = std::make_shared<RSMask>();
     if (mask) {
-#ifndef USE_ROSEN_DRAWING
-        mask->SetMaskPaint(maskPaint);
-#else
         mask->SetMaskBrush(maskBrush);
-#endif
         mask->SetMaskType(MaskType::GRADIENT);
     }
     return mask;
 }
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSMask> RSMask::CreatePathMask(const SkPath& maskPath, const SkPaint& maskPaint)
-#else
 std::shared_ptr<RSMask> RSMask::CreatePathMask(const Drawing::Path& maskPath, const Drawing::Brush& maskBrush)
-#endif
 {
     auto mask = std::make_shared<RSMask>();
     if (mask) {
         mask->SetMaskPath(maskPath);
-#ifndef USE_ROSEN_DRAWING
-        mask->SetMaskPaint(maskPaint);
-#else
         mask->SetMaskBrush(maskBrush);
-#endif
         mask->SetMaskType(MaskType::PATH);
     }
     return mask;
@@ -95,9 +77,7 @@ std::shared_ptr<RSMask> RSMask::CreateSVGMask(double x, double y, double scaleX,
 
 RSMask::RSMask()
 {
-#ifdef USE_ROSEN_DRAWING
     maskPath_ = std::make_shared<Drawing::Path>();
-#endif
 }
 
 RSMask::~RSMask()
@@ -144,38 +124,16 @@ double RSMask::GetScaleY() const
     return scaleY_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSMask::SetMaskPath(const SkPath& path)
-{
-    maskPath_ = path;
-}
-#else
 void RSMask::SetMaskPath(const Drawing::Path& path)
 {
     maskPath_ = std::make_shared<Drawing::Path>(path);
 }
-#endif
 
-#ifndef USE_ROSEN_DRAWING
-SkPath RSMask::GetMaskPath() const
-#else
 std::shared_ptr<Drawing::Path> RSMask::GetMaskPath() const
-#endif
 {
     return maskPath_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSMask::SetMaskPaint(const SkPaint& paint)
-{
-    maskPaint_ = paint;
-}
-
-SkPaint RSMask::GetMaskPaint() const
-{
-    return maskPaint_;
-}
-#else
 void RSMask::SetMaskPen(const Drawing::Pen& pen)
 {
     maskPen_ = pen;
@@ -195,7 +153,6 @@ Drawing::Brush RSMask::GetMaskBrush() const
 {
     return maskBrush_;
 }
-#endif
 
 void RSMask::SetSvgDom(const sk_sp<SkSVGDOM>& svgDom)
 {
@@ -207,11 +164,7 @@ sk_sp<SkSVGDOM> RSMask::GetSvgDom() const
     return svgDom_;
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkPicture> RSMask::GetSvgPicture() const
-#else
 std::shared_ptr<Drawing::Picture> RSMask::GetSvgPicture() const
-#endif
 {
     return svgPicture_;
 }
@@ -243,23 +196,15 @@ bool RSMask::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, svgX_) &&
             RSMarshallingHelper::Marshalling(parcel, svgY_) &&
             RSMarshallingHelper::Marshalling(parcel, scaleX_) &&
-#ifndef USE_ROSEN_DRAWING
-            RSMarshallingHelper::Marshalling(parcel, scaleY_) &&
-            RSMarshallingHelper::Marshalling(parcel, maskPaint_) &&
-            RSMarshallingHelper::Marshalling(parcel, maskPath_))) {
-#else
             RSMarshallingHelper::Marshalling(parcel, scaleY_))) {
-#endif
         ROSEN_LOGE("RSMask::Marshalling failed!");
         return false;
     }
 
-#ifdef USE_ROSEN_DRAWING
     if (!MarshallingPathAndBrush(parcel)) {
         ROSEN_LOGE("RSMask::Marshalling failed!");
         return false;
     }
-#endif
 
     if (IsSvgMask()) {
         ROSEN_LOGD("SVG RSMask::Marshalling");
@@ -275,7 +220,6 @@ bool RSMask::Marshalling(Parcel& parcel) const
     return true;
 }
 
-#ifdef USE_ROSEN_DRAWING
 bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
 {
     Drawing::CmdListData listData;
@@ -319,7 +263,6 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
     }
     return true;
 }
-#endif
 
 RSMask* RSMask::Unmarshalling(Parcel& parcel)
 {
@@ -328,18 +271,11 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgX_) &&
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgY_) &&
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->scaleX_) &&
-#ifndef USE_ROSEN_DRAWING
-            RSMarshallingHelper::Unmarshalling(parcel, rsMask->scaleY_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, rsMask->maskPaint_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, rsMask->maskPath_))) {
-#else
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->scaleY_))) {
-#endif
         ROSEN_LOGE("RSMask::Unmarshalling failed!");
         return nullptr;
     }
 
-#ifdef USE_ROSEN_DRAWING
     std::shared_ptr<Drawing::MaskCmdList> maskCmdList = nullptr;
     if (!RSMarshallingHelper::Unmarshalling(parcel, maskCmdList)) {
         ROSEN_LOGE("RSMask::Unmarshalling failed!");
@@ -348,7 +284,6 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
     if (maskCmdList) {
         maskCmdList->Playback(rsMask->maskPath_, rsMask->maskPen_, rsMask->maskBrush_);
     }
-#endif
 
     if (rsMask->IsSvgMask()) {
         ROSEN_LOGD("SVG RSMask::Unmarshalling");

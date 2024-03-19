@@ -70,6 +70,7 @@
           "hicollie",
           "image_framework",
           "ipc",
+          "graphic_surface",
           "player_framework",
           "resource_schedule_service",
           "soc_perf",
@@ -79,8 +80,7 @@
           "memmgr_plugin",
           "sensor",
           "qos_manager",
-          "video_processing_engine",
-          "vulkan-headers"
+          "video_processing_engine"
         ],
         "third_party": [
           "flutter",

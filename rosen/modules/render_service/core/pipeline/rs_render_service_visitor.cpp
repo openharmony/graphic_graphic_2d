@@ -15,11 +15,6 @@
 
 #include "pipeline/rs_render_service_visitor.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkPoint.h"
-#include "include/core/SkRect.h"
-#endif
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 
@@ -92,11 +87,9 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     ScreenRotation rotation = node.GetRotation();
     int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
-
     if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
         logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
         logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
-
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(logicalScreenWidth, logicalScreenHeight);
         }
@@ -110,31 +103,19 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
         if (mParallelEnable) {
-#ifndef USE_ROSEN_DRAWING
-            skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
-            canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
-            canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
-#else
             drawingCanvas_ = std::make_unique<Drawing::Canvas>(logicalScreenWidth, logicalScreenHeight);
             canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
             Drawing::Rect tmpRect(0, 0, logicalScreenWidth, logicalScreenHeight);
             canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
-#endif
         }
         PrepareChildren(*existingSource);
     } else {
         auto boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
         RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
-#ifndef USE_ROSEN_DRAWING
-        skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
-        canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
-#else
         drawingCanvas_ = std::make_unique<Drawing::Canvas>(logicalScreenWidth, logicalScreenHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
         Drawing::Rect tmpRect(0, 0, logicalScreenWidth, logicalScreenHeight);
         canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
-#endif
         PrepareChildren(node);
     }
 

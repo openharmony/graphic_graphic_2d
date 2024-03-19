@@ -29,6 +29,7 @@ namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
 static constexpr uint32_t WAIT_NODE_TASK_TIMEOUT = 5 * 1000; // 5s
 constexpr const char* RELEASE_RESOURCE = "releaseResource";
+constexpr const char* RELEASE_TEXTURE = "releaseTexture";
 
 RSSubThreadManager* RSSubThreadManager::Instance()
 {
@@ -198,6 +199,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
     if (subThreadNodes.empty()) {
         return;
     }
+    CancelReleaseTextureTask();
     CancelReleaseResourceTask();
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
     auto cacheSkippedNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
@@ -303,6 +305,7 @@ void RSSubThreadManager::ResetSubThreadGrContext()
         return;
     }
     if (!needResetContext_) {
+        ReleaseTexture();
         return;
     }
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
@@ -330,6 +333,37 @@ void RSSubThreadManager::CancelReleaseResourceTask()
     needCancelTask_ = false;
 }
 
+void RSSubThreadManager::ReleaseTexture()
+{
+    if (threadList_.empty()) {
+        return;
+    }
+    for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
+        auto subThread = threadList_[i];
+        subThread->PostTask(
+            [subThread]() {
+                subThread->ThreadSafetyReleaseTexture();
+            },
+            RELEASE_TEXTURE);
+    }
+    needCancelReleaseTextureTask_ = true;
+}
+
+void RSSubThreadManager::CancelReleaseTextureTask()
+{
+    if (!needCancelReleaseTextureTask_) {
+        return;
+    }
+    if (threadList_.empty()) {
+        return;
+    }
+    for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
+        auto subThread = threadList_[i];
+        subThread->RemoveTask(RELEASE_TEXTURE);
+    }
+    needCancelReleaseTextureTask_ = false;
+}
+
 void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex) const
 {
     if (threadList_.size() <= threadIndex) {
@@ -341,11 +375,7 @@ void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex) const
     });
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSubThreadManager::AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex)
-#else
 void RSSubThreadManager::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex)
-#endif
 {
     if (threadList_.size() <= threadIndex) {
         return;

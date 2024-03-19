@@ -27,6 +27,7 @@ namespace Rosen {
 class RSRenderNode;
 class RSSurfaceRenderNode;
 class RSDisplayRenderNode;
+class RSCanvasDrawingRenderNode;
 class RSB_EXPORT RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
@@ -56,6 +57,7 @@ public:
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
     void TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const;
     void TraverseDisplayNodes(std::function<void (const std::shared_ptr<RSDisplayRenderNode>&)> func) const;
+    void TraverseCanvasDrawingNodes(std::function<void (const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetResidentSurfaceNodeMap() const;
     bool IsResidentProcessNode(NodeId id) const;
 
@@ -78,6 +80,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drivenRenderNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> residentSurfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSDisplayRenderNode>> displayNodeMap_;
+    std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;
 
     NodeId entryViewNodeId_ = 0;
     NodeId wallpaperViewNodeId_ = 0;

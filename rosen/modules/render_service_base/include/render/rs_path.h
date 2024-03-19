@@ -24,11 +24,7 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 
-#ifndef USE_ROSEN_DRAWING
-class SkPath;
-#else
 #include "draw/path.h"
-#endif
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSPath {
@@ -36,11 +32,7 @@ public:
     RSPath();
     virtual ~RSPath();
     static RSB_EXPORT std::shared_ptr<RSPath> CreateRSPath();
-#ifndef USE_ROSEN_DRAWING
-    static RSB_EXPORT std::shared_ptr<RSPath> CreateRSPath(const SkPath& skPath);
-#else
     static RSB_EXPORT std::shared_ptr<RSPath> CreateRSPath(const Drawing::Path& path);
-#endif
     static RSB_EXPORT std::shared_ptr<RSPath> CreateRSPath(const std::string& path);
     float GetDistance() const;
     template<typename T>
@@ -51,13 +43,8 @@ public:
 
     std::shared_ptr<RSPath> Reverse();
 
-#ifndef USE_ROSEN_DRAWING
-    void SetSkiaPath(const SkPath& skPath);
-    const SkPath& GetSkiaPath() const;
-#else
     void SetDrawingPath(const Drawing::Path& path);
     const Drawing::Path& GetDrawingPath() const;
-#endif
 
 private:
     RSPath(const RSPath&) = delete;
@@ -65,11 +52,7 @@ private:
     RSPath& operator=(const RSPath&) = delete;
     RSPath& operator=(const RSPath&&) = delete;
 
-#ifndef USE_ROSEN_DRAWING
-    SkPath* skPath_ = nullptr;
-#else
     Drawing::Path* drPath_ = nullptr;
-#endif
 };
 
 template<>

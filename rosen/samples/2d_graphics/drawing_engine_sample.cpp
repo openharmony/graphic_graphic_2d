@@ -188,18 +188,6 @@ void DrawingEngineSample::OnBufferAvailable()
 {
 }
 
-#ifndef USE_ROSEN_DRAWING
-void DrawingEngineSample::ExcuteBenchMark(SkCanvas* canvas)
-{
-    std::cout << "ExcuteBenchMark benchmark is " << benchMark_ << std::endl;
-    if (benchMark_ == nullptr) {
-        return;
-    }
-    benchMark_->Start();
-    benchMark_->Test(canvas, drawingWidth, drawingHeight);
-    benchMark_->Stop();
-}
-#else
 void DrawingEngineSample::ExcuteBenchMark(Drawing::Canvas* canvas)
 {
     std::cout << "ExcuteBenchMark benchmark is " << benchMark_ << std::endl;
@@ -210,7 +198,6 @@ void DrawingEngineSample::ExcuteBenchMark(Drawing::Canvas* canvas)
     benchMark_->Test(canvas, drawingWidth, drawingHeight);
     benchMark_->Stop();
 }
-#endif
 
 SurfaceError DrawingEngineSample::DoDraw()
 {
@@ -227,8 +214,7 @@ SurfaceError DrawingEngineSample::DoDraw()
     std::unique_ptr<SurfaceFrame> surfaceFrame;
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         // For skia and DDGR by Nativewindow
         surfaceFrame = surface_->NativeRequestFrame(drawingWidth, drawingHeight);
         if (surfaceFrame == nullptr) {
@@ -243,16 +229,10 @@ SurfaceError DrawingEngineSample::DoDraw()
     // For DDGR by flutter vulkan swapchian and skia-gl by swapbuffer
     surfaceFrame = surface_->RequestFrame(drawingWidth, drawingHeight);
 #endif
-#ifndef USE_ROSEN_DRAWING
-    SkCanvas* canvas = surface_->GetSkCanvas(surfaceFrame);
-    ExcuteBenchMark(canvas);
-#else
     Drawing::Canvas* drcanvas = surface_->GetCanvas(surfaceFrame);
     ExcuteBenchMark(drcanvas);
-#endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         // For skia and DDGR by Nativewindow
         surface_->NativeFlushFrame(surfaceFrame);
     } else {

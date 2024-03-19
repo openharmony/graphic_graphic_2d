@@ -21,9 +21,6 @@
 #include <vector>
 #include <utility>
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/core/HMSymbol.h>
-#endif
 
 #include "hm_symbol_txt.h"
 #include "texgine/text_style.h"
@@ -40,27 +37,9 @@ public:
     HMSymbolRun() {}
     ~HMSymbolRun() {}
 
-#ifndef USE_ROSEN_DRAWING
-    SymbolLayers GetSymbolLayers(const SkGlyphID& glyphId, const HMSymbolTxt& symbolText);
-
-    void SetSymbolRenderColor(const SymbolRenderingStrategy& renderMode, const std::vector<SColor>& colors,
-        SymbolLayers& symbolInfo);
-
-    bool GetAnimationGroups(const uint32_t glyohId, const EffectStrategy effectStrategy,
-        AnimationSetting& animationOut);
-
-    bool SetGroupsByEffect(const uint32_t glyphId, const EffectStrategy effectStrategy,
-        std::vector<RenderGroup>& renderGroups);
-
-    bool SymbolAnimation(const HMSymbolData symbol, const uint32_t glyohId,
-        const std::pair<double, double> offset, const EffectStrategy effectMode);
-
-    void ClearSymbolAnimation(const HMSymbolData symbol, const uint32_t glyohId,
-        const std::pair<double, double> offset);
-#else
     RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
 
-    void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode, const std::vector<RSSColor>& colors,
+    static void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode, const std::vector<RSSColor>& colors,
         RSSymbolLayers& symbolInfo);
 
     bool GetAnimationGroups(const uint32_t glyohId, const RSEffectStrategy effectStrategy,
@@ -74,7 +53,6 @@ public:
 
     void ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyohId,
         const std::pair<double, double> offset);
-#endif
 
     void DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<TexgineTextBlob> &blob,
         const std::pair<double, double>& offset, const TexginePaint &paint, const TextStyle &style);

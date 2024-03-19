@@ -97,11 +97,30 @@ public:
 
     static sptr<SurfaceBuffer> Create();
 
+    virtual GSError WriteBufferRequestConfig(MessageParcel &parcel)
+    {
+        (void)parcel;
+        return GSERROR_OK;
+    };
+    virtual GSError ReadBufferRequestConfig(MessageParcel &parcel)
+    {
+        (void)parcel;
+        return GSERROR_OK;
+    };
+    virtual const BufferRequestConfig* GetBufferRequestConfig() const
+    {
+        return nullptr;
+    };
+    virtual void SetBufferRequestConfig(const BufferRequestConfig &config)
+    {
+        (void)config;
+    };
+
 protected:
-    SurfaceBuffer(){}
+    SurfaceBuffer() {}
     SurfaceBuffer(const SurfaceBuffer&) = delete;
     SurfaceBuffer& operator=(const SurfaceBuffer&) = delete;
-    virtual ~SurfaceBuffer(){}
+    virtual ~SurfaceBuffer() {}
 };
 
 using OnReleaseFunc = std::function<GSError(sptr<SurfaceBuffer> &)>;

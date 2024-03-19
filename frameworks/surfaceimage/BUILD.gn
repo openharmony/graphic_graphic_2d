@@ -30,6 +30,7 @@ config("libnative_image_public_config") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/utils/sandbox",
+    "$graphic_2d_root/interfaces/inner_api/surface",
     "include",
   ]
 }

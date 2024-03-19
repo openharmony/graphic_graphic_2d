@@ -18,5 +18,7 @@
     { "name": "OH_NativeWindow_NativeWindowSetMetaDataSet" },
     { "name": "OH_NativeWindow_NativeWindowSetTunnelHandle" },
     { "name": "OH_NativeWindow_GetSurfaceId"},
-    { "name": "OH_NativeWindow_CreateNativeWindowFromSurfaceId"}
+    { "name": "OH_NativeWindow_CreateNativeWindowFromSurfaceId"},
+    { "name": "OH_NativeWindow_NativeWindowAttachBuffer" },
+    { "name": "OH_NativeWindow_NativeWindowDetachBuffer" }
 ]

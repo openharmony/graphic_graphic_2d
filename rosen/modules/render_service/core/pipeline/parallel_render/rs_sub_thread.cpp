@@ -210,16 +210,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         node->Process(visitor);
         nodeProcessTracker.SetTagEnd();
-#ifndef USE_ROSEN_DRAWING
-        auto cacheSurface = surfaceNodePtr->GetCacheSurface(threadIndex_, true);
-        if (cacheSurface) {
-            RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
-            RSTagTracker nodeFlushTracker(grContext_.get(), surfaceNodePtr->GetId(),
-                RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
-            cacheSurface->flushAndSubmit(true);
-            nodeFlushTracker.SetTagEnd();
-        }
-#else
         auto cacheSurface = surfaceNodePtr->GetCacheSurface(threadIndex_, true);
         if (cacheSurface) {
             RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
@@ -228,7 +218,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
             cacheSurface->FlushAndSubmit(true);
             nodeFlushTracker.SetTagEnd();
         }
-#endif
         surfaceNodePtr->UpdateBackendTexture();
         RSMainThread::Instance()->PostTask([]() {
             RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
@@ -247,55 +236,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-sk_sp<GrDirectContext> RSSubThread::CreateShareGrContext()
-{
-    RS_TRACE_NAME("CreateShareGrContext");
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        CreateShareEglContext();
-        const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
-        sk_sp<const GrGLInterface> glInterface(grGlInterface);
-        if (glInterface.get() == nullptr) {
-            RS_LOGE("CreateShareGrContext failed");
-            return nullptr;
-        }
-
-        GrContextOptions options = {};
-        options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-        // fix svg antialiasing bug
-        options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-        options.fPreferExternalImagesOverES3 = true;
-        options.fDisableDistanceFieldPaths = true;
-
-        auto handler = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size);
-
-        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
-        if (grContext == nullptr) {
-            RS_LOGE("nullptr grContext is null");
-            return nullptr;
-        }
-        return grContext;
-    }
-#endif
-
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(RsVulkanContext::GetSingleton().GetGrVkBackendContext());
-        if (grContext == nullptr) {
-            RS_LOGE("nullptr grContext is null");
-            return nullptr;
-        }
-        return grContext;
-    }
-#endif
-    return nullptr;
-}
-#else
 std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
@@ -318,8 +258,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         auto gpuContext = std::make_shared<Drawing::GPUContext>();
         Drawing::GPUContextOptions options;
         auto handler = std::make_shared<MemoryHandler>();
@@ -335,7 +274,6 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 #endif
     return nullptr;
 }
-#endif
 
 void RSSubThread::ResetGrContext()
 {
@@ -343,13 +281,13 @@ void RSSubThread::ResetGrContext()
     if (grContext_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    grContext_->flushAndSubmit(true);
-    grContext_->freeGpuResources();
-#else
     grContext_->FlushAndSubmit(true);
     grContext_->FreeGpuResources();
-#endif
+}
+
+void RSSubThread::ThreadSafetyReleaseTexture()
+{
+    grContext_->FreeGpuResources();
 }
 
 void RSSubThread::ReleaseSurface()
@@ -362,11 +300,7 @@ void RSSubThread::ReleaseSurface()
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-void RSSubThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
-#else
 void RSSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface)
-#endif
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));

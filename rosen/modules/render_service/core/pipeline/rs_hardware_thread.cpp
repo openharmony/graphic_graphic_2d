@@ -51,11 +51,17 @@
 #include "metadata_helper.h"
 #endif
 
+#ifdef RES_SCHED_ENABLE
+#include "system_ability_definition.h"
+#include "if_system_ability_manager.h"
+#include <iservice_registry.h>
+#endif
+
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 
-#if defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
+#if defined(RS_ENABLE_VK)
 Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt)
 {
     switch (pixelFmt) {
@@ -84,7 +90,7 @@ void RSHardwareThread::Start()
     hdiBackend_ = HdiBackend::GetInstance();
     runner_ = AppExecFwk::EventRunner::Create("RSHardwareThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    redrawCb_ = std::bind(&RSHardwareThread::Redraw, this,std::placeholders::_1, std::placeholders::_2,
+    redrawCb_ = std::bind(&RSHardwareThread::Redraw, this, std::placeholders::_1, std::placeholders::_2,
         std::placeholders::_3);
     if (handler_) {
         ScheduleTask(
@@ -94,6 +100,9 @@ void RSHardwareThread::Start()
                     RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
                     return;
                 }
+#ifdef RES_SCHED_ENABLE
+                SubScribeSystemAbility();
+#endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
                 uniRenderEngine_->Init(true);
                 hardwareTid_ = gettid();
@@ -168,8 +177,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         currentRate = currentRate, timestamp = currTimestamp]() {
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
-
-        if (FrameReport::GetInstance().IsGameScene()) {
+        bool hasGameScene = FrameReport::GetInstance().HasGameScene();
+        if (hasGameScene) {
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
@@ -185,7 +194,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         output->ReleaseLayers();
         RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
 
-        if (FrameReport::GetInstance().IsGameScene()) {
+        if (hasGameScene) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             FrameReport::GetInstance().SetLastSwapBufferTime(endTimeNs - startTimeNs);
@@ -324,20 +333,12 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto screenManager = CreateOrGetScreenManager();
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkColorSpace> skColorSpace = nullptr;
-#else
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
-#endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, colorGamut, pixelFormat);
-#ifndef USE_ROSEN_DRAWING
-    skColorSpace = RSBaseRenderEngine::ConvertColorGamutToSkColorSpace(colorGamut);
-#else
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
-#endif
 #else
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
 #endif
@@ -356,13 +357,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-#ifndef USE_ROSEN_DRAWING
-        canvas->clear(SK_ColorTRANSPARENT);
-#else
+    if (RSSystemProperties::IsUseVulkan()) {
         canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
     }
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqsVK;
 #endif
@@ -391,17 +387,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             continue;
         }
 
-#ifndef USE_ROSEN_DRAWING
-        RSAutoCanvasRestore acr(canvas_);
-        auto dstRect = layer->GetLayerSize();
-        SkRect clipRect = SkRect::MakeXYWH(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
-            static_cast<float>(dstRect.w), static_cast<float>(dstRect.h));
-        canvas->clipRect(clipRect);
-
-        // prepare BufferDrawParam
-        auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
-        canvas->concat(params.matrix);
-#else
         Drawing::AutoCanvasRestore acr(*canvas, true);
         auto dstRect = layer->GetLayerSize();
         Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
@@ -411,8 +396,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+        params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
         canvas->ConcatMatrix(params.matrix);
-#endif
 #ifndef RS_ENABLE_EGLIMAGE
         uniRenderEngine_->DrawBuffer(*canvas, params);
 #else
@@ -421,15 +406,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer invalid param!");
                 continue;
             }
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-            if (canvas->recordingContext() == nullptr) {
-#else
-            if (canvas->getGrContext() == nullptr) {
-#endif
-#else
             if (canvas->GetGPUContext() == nullptr) {
-#endif
                 RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer GrContext is null!");
                 continue;
             }
@@ -453,97 +430,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 imageCacheSeqs[bufferId] = std::move(eglImageCache);
             }
 #endif
-#ifndef USE_ROSEN_DRAWING
-            SkColorType colorType = kRGBA_8888_SkColorType;
-            std::shared_ptr<GrBackendTexture> backendTexturePtr = nullptr;
-            auto pixelFmt = params.buffer->GetFormat();
-            if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-                colorType = kBGRA_8888_SkColorType;
-            } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-                colorType = kRGBA_1010102_SkColorType;
-            }
-            (void)backendTexturePtr;
-#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-                auto glType = GL_RGBA8;
-                if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-                    glType = GL_RGB10_A2;
-                }
-
-                GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
-                    static_cast<GrGLenum>(glType) };
-                backendTexturePtr = std::make_shared<GrBackendTexture>(params.buffer->GetSurfaceBufferWidth(),
-                    params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
-            }
-#endif
-            sk_sp<SkImage> image = nullptr;
-            (void)image;
-#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && backendTexturePtr != nullptr) {
-                image = SkImage::MakeFromTexture(canvas->recordingContext(), *backendTexturePtr,
-                    kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
-            }
-#endif
-#if defined(RS_ENABLE_VK)
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
-                    params.buffer, params.acquireFence);
-                if (!imageCache) {
-                    continue;
-                }
-                auto bufferId = params.buffer->GetSeqNum();
-                imageCacheSeqsVK[bufferId] = imageCache;
-                auto& backendTexture = imageCache->GetBackendTexture();
-                if (!backendTexture.isValid()) {
-                    ROSEN_LOGE("RSHardwareThread: backendTexture is not valid!!!");
-                    return;
-                }
-
-                image = SkImage::MakeFromTexture(
-                    canvas->recordingContext(),
-                    backendTexture,
-                    kTopLeft_GrSurfaceOrigin,
-                    colorType,
-                    kPremul_SkAlphaType,
-                    skColorSpace,
-                    NativeBufferUtils::DeleteVkImage,
-                    imageCache->RefCleanupHelper());
-            } else {
-                image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
-                    kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
-            }
-#endif
-            if (image == nullptr) {
-                RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
-                return;
-            }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-            SkMatrix matrix;
-            auto sx = params.dstRect.width() / params.srcRect.width();
-            auto sy = params.dstRect.height() / params.srcRect.height();
-            matrix.setScaleTranslate(sx, sy, params.dstRect.x(), params.dstRect.y());
-            sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(), matrix);
-            if (imageShader == nullptr) {
-                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
-            } else {
-                params.paint.setShader(imageShader);
-                params.targetColorGamut = colorGamut;
-                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
-
-                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
-            }
-#endif
-
-            RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-            canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
-                &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
-#else
-            canvas->drawRect(params.dstRect, (params.paint));
-#endif // USE_VIDEO_PROCESSING_ENGINE
-#else // USE_ROSEN_DRAWING
             std::shared_ptr<Drawing::Image> image = nullptr;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -580,8 +466,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
 #endif
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (RSSystemProperties::IsUseVulkan()) {
                 Drawing::ColorType colorType = GetColorTypeFromBufferFormat(params.buffer->GetFormat());
                 auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
                     params.buffer, params.acquireFence);
@@ -612,7 +497,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             Drawing::Matrix matrix;
             auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
             auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
-            matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
+            auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
+            auto ty = params.dstRect.GetTop() - params.srcRect.GetTop() * sy;
+            matrix.SetScaleTranslate(sx, sy, tx, ty);
             auto imageShader = Drawing::ShaderEffect::CreateImageShader(
                 *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
             if (imageShader == nullptr) {
@@ -635,11 +522,16 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             canvas->DrawRect(params.dstRect);
 #endif
             canvas->DetachBrush();
-#endif // USE_ROSEN_DRAWING
         } else {
             uniRenderEngine_->DrawBuffer(*canvas, params);
         }
 #endif
+        // Dfx for redraw region
+        if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
+            RectI dst(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
+            RSUniRenderUtil::DrawRectForDfx(*canvas, dst, Drawing::Color::COLOR_YELLOW, 0.4f,
+                layer->GetSurface()->GetName());
+        }
     }
 
     if (isTopGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
@@ -652,8 +544,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     renderFrame->Flush();
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         imageCacheSeqsVK.clear();
     }
 #endif
@@ -677,6 +568,28 @@ void RSHardwareThread::AddRefreshRateCount()
         iter->second++;
     }
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
+}
+
+void RSHardwareThread::SubScribeSystemAbility()
+{
+    RS_LOGD("%{public}s", __func__);
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        RS_LOGE("%{public}s failed to get system ability manager client", __func__);
+        return;
+    }
+    std::string threadName = "RSHardwareThread";
+    std::string strUid = std::to_string(getuid());
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+
+    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
+    if (ret != ERR_OK) {
+        RS_LOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
+        saStatusChangeListener_ = nullptr;
+    }
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

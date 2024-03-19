@@ -15,22 +15,14 @@
 
 #include "texgine_dash_path_effect.h"
 
-#ifndef USE_ROSEN_DRAWING
-#include <include/effects/SkDashPathEffect.h>
-#else
 #include "drawing.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 std::shared_ptr<TexginePathEffect> TexgineDashPathEffect::Make(const float intervals[], int count, float phase)
 {
-#ifndef USE_ROSEN_DRAWING
-    auto effect = SkDashPathEffect::Make(intervals, count, phase);
-#else
     std::shared_ptr<RSPathEffect> effect = RSPathEffect::CreateDashPathEffect(intervals, count, phase);
-#endif
     auto pathEffect = std::make_shared<TexginePathEffect>();
     pathEffect->SetPathEffect(effect);
     return pathEffect;

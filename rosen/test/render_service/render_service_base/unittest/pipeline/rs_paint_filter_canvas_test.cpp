@@ -28,20 +28,12 @@ public:
     void SetUp() override;
     void TearDown() override;
     static inline RSPaintFilterCanvas* canvas_;
-#ifndef USE_ROSEN_DRAWING
-    static inline SkCanvas skCanvas_;
-#else
     static inline Drawing::Canvas drawingCanvas_;
-#endif
 };
 
 void RSPaintFilterCanvasTest::SetUpTestCase()
 {
-#ifndef USE_ROSEN_DRAWING
-    canvas_ = new RSPaintFilterCanvas(&skCanvas_);
-#else
     canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
-#endif
 }
 void RSPaintFilterCanvasTest::TearDownTestCase()
 {
@@ -148,16 +140,9 @@ HWTEST_F(RSPaintFilterCanvasTest, GetEnvForegroundColorTest, TestSize.Level1)
  */
 HWTEST_F(RSPaintFilterCanvasTest, onFilterTest, TestSize.Level1)
 {
-#ifndef USE_ROSEN_DRAWING
-    SkColor color {0x00000001};
-    SkPaint paint;
-    paint.setColor(color);
-    canvas_->onFilter(paint);
-#else
     Drawing::Color color {0x00000001};
     Drawing::Brush brush;
     brush.SetColor(color);
     canvas_->OnFilterWithBrush(brush);
-#endif
 }
 } // namespace OHOS::Rosen

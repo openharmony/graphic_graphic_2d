@@ -78,11 +78,7 @@ class Surface;
 /**
  * @brief Contains the option used to create the layer.
  */
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT SaveLayerOps {
-#else
 class DRAWING_API SaveLayerOps {
-#endif
 public:
     // How to allocate layer
     enum Flags {
@@ -130,11 +126,7 @@ private:
     uint32_t saveLayerFlags_;
 };
 
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT CoreCanvas {
-#else
 class DRAWING_API CoreCanvas {
-#endif
 public:
     CoreCanvas();
     explicit CoreCanvas(void* rawCanvas);
@@ -198,6 +190,12 @@ public:
      * @param point top-left edge of circle or square
      */
     virtual void DrawPoint(const Point& point);
+
+    /**
+     * @brief Describing a graph by combining directed vector fields.
+     * @param shape describes the combination of a group of sdf entities.
+     */
+    virtual void DrawSdf(const SDFShapeBase& shape);
 
     /**
      * @brief If mode is LINES_POINTMODE, each pair of points draws a line segment. One line
@@ -390,9 +388,6 @@ public:
 
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
-    void DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling);
-    void DrawBitmap(const Bitmap& bitmap, const Rect& dst, const SamplingOptions& sampling);
-    virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py);
     virtual void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling);
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
@@ -665,6 +660,8 @@ public:
 
 protected:
     CoreCanvas(int32_t width, int32_t height);
+    void BuildNoDraw(int32_t width, int32_t height);
+    void Reset(int32_t width, int32_t height);
     Paint paintBrush_;
     Paint paintPen_;
 

@@ -63,8 +63,7 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
 
     auto rsSurfaceFrameOhosRaster = RSSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
 #if ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!RSSystemProperties::IsUseVulkan()) {
         RenderContext renderContext;
         rsSurfaceFrameOhosRaster.SetRenderContext(&renderContext);
     }

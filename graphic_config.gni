@@ -42,7 +42,7 @@ declare_args() {
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
-  graphic_2d_feature_enable_dvsync = false
+  graphic_2d_feature_use_igraphics_extend_hooks = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -53,9 +53,14 @@ declare_args() {
   }
 }
 
+declare_args() {
+  graphic_2d_feature_enable_stack_culling = false
+}
+
 if (graphic_2d_feature_product == "phone") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_stack_culling = true
 }
 
 gpu_defines = []
@@ -86,6 +91,9 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_GL",
       "RS_ENABLE_GL",
     ]
+  }
+  if (graphic_2d_feature_enable_stack_culling) {
+    gpu_defines += [ "RS_ENABLE_STACK_CULLING" ]
   }
   if (graphic_2d_feature_enable_recording_dcl) {
     rs_enable_recording_dcl = true
@@ -140,12 +148,14 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
+  graphic_2d_feature_enable_dvsync = true
   gpu_defines += [
     "RS_ENABLE_DRIVEN_RENDER",
     "RS_ENABLE_UNI_RENDER",
   ]
 } else {
   rs_enable_driven_render = false
+  graphic_2d_feature_enable_dvsync = false
 }
 
 if (graphic_2d_feature_enable_afbc) {
@@ -184,10 +194,21 @@ check_ddgr_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),
 ]
+check_igraphics_core_file_args = [
+  "--filename",
+  rebase_path(
+      "//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni"),
+]
 check_delegator_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
 ]
+check_broker_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
+]
+
 if (exec_script(check_graphic_ext_file_script,
                 check_graphic_ext_file_args,
                 "string") == "True" && "${product_name}" == "ohcore") {
@@ -203,6 +224,12 @@ if (exec_script(check_graphic_ext_file_script,
     import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
   }
 }
+if (exec_script(check_graphic_ext_file_script,
+                check_igraphics_core_file_args,
+                "string") == "True") {
+  graphic_2d_feature_use_igraphics_extend_hooks = true
+  import("//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni")
+}
 
 graphic_2d_delegator_configs = {
 }
@@ -211,6 +238,30 @@ if (exec_script(check_graphic_ext_file_script,
                 "string") == "True") {
   graphic_2d_delegator_configs = {
     import("//foundation/graphic/graphic_2d_ext/delegator/config.gni")
+  }
+}
+
+graphic_2d_broker_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_broker_ext_file_args,
+                "string") == "True") {
+  graphic_2d_broker_configs = {
+    import("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni")
+  }
+}
+
+check_platform_ext_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/platform/config.gni"),
+]
+graphic_2d_platform_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_platform_ext_file_args,
+                "string") == "True") {
+  graphic_2d_platform_configs = {
+    import("//foundation/graphic/graphic_2d_ext/platform/config.gni")
   }
 }
 

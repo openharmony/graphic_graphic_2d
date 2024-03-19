@@ -23,6 +23,6 @@ ohos_ndk_library("libnative_vsync_ndk") {
   output_name = "native_vsync"
   output_extension = "so"
   ndk_description_file = "./libnative_vsync.ndk.json"
-  system_capability = "SystemCapability.Graphic.Graphic2D.NativeVSync"
+  system_capability = "SystemCapability.Graphic.Graphic2D.NativeVsync"
   system_capability_headers = [ "native_vsync/native_vsync.h" ]
 }

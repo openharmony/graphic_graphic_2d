@@ -239,4 +239,59 @@ HWTEST_F(ProducerSurfaceDelegatorTest, OnRemoteRequest001, Function | MediumTest
     int ret2 = qwe->OnRemoteRequest(code, dataQueue, reply, option);
     ASSERT_EQ(ret2, ERR_NONE);
 }
+
+/*
+* Function: ClearAllBuffers
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call ClearAllBuffers
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceDelegatorTest, ClearAllBuffers001, Function | MediumTest | Level2)
+{
+    GSError ret = qwe->ClearAllBuffers();
+    ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: AddBufferLocked
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddBufferLocked
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceDelegatorTest, AddBufferLocked001, Function | MediumTest | Level2)
+{
+    ASSERT_NO_FATAL_FAILURE({
+        qwe->AddBufferLocked(nullptr, 0);
+    });
+}
+
+/*
+* Function: GetBufferLocked
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetBufferLocked
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceDelegatorTest, GetBufferLocked001, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(qwe->GetBufferLocked(0), nullptr);
+}
+
+/*
+* Function: GetSlotLocked
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetSlotLocked
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceDelegatorTest, GetSlotLocked001, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(qwe->GetSlotLocked(nullptr), 0);
+}
 } // namespace OHOS::Rosen

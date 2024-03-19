@@ -161,6 +161,7 @@ ohos_source_set("libtexgine_source") {
       }
     }
   }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

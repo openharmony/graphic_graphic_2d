@@ -220,6 +220,26 @@ ScreenId RSScreenManager::GetActiveScreenId()
 }
 #endif
 
+bool RSScreenManager::IsAllScreensPowerOff() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenPowerStatus_.empty()) {
+        return false;
+    }
+    for (const auto &[id, powerStatus] : screenPowerStatus_) {
+        auto iter = screens_.find(id);
+        if (iter != screens_.end() && iter->second->IsVirtual()) {
+            continue;
+        }
+        // we also need to consider the AOD mode(POWER_STATUS_SUSPEND)
+        if (powerStatus != ScreenPowerStatus::POWER_STATUS_OFF &&
+            powerStatus != ScreenPowerStatus::POWER_STATUS_SUSPEND) {
+            return false;
+        }
+    }
+    return true;
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 float RSScreenManager::GetScreenBrightnessNits(ScreenId id)
 {
@@ -880,7 +900,8 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     /*
      * If app adds the first frame when power on the screen, delete the code
      */
-    if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+    if (status == ScreenPowerStatus::POWER_STATUS_ON ||
+        status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {
         auto mainThread = RSMainThread::Instance();
         if (mainThread == nullptr) {
             return;
@@ -890,13 +911,14 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         });
         if (screenPowerStatus_.count(id) == 0 ||
             screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF ||
-            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_FAKE) {
+            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_FAKE ||
+            screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED) {
             mainThread->ForceRefreshForUni();
         } else {
             mainThread->RequestNextVSync();
         }
 
-        RS_LOGD("[UL_POWER]RSScreenManager %{public}s: Set system power on, request a frame", __func__);
+        RS_LOGD("[UL_POWER]RSScreenManager %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
     }
     screenPowerStatus_[id] = status;
 }

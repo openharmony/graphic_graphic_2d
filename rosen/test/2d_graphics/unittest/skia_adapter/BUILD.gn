@@ -38,6 +38,8 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "skia_image_filter_test.cpp",
     "skia_image_info_test.cpp",
     "skia_image_test.cpp",
+    "skia_kawase_blur_filter_test.cpp",
+    "skia_kawase_blur_test.cpp",
     "skia_mask_filter_test.cpp",
     "skia_matrix44_test.cpp",
     "skia_matrix_test.cpp",
@@ -71,6 +73,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//third_party/jsoncpp:jsoncpp_static",
   ]
 
   external_deps = [

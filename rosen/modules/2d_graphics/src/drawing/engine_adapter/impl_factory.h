@@ -31,6 +31,7 @@
 #include "impl_interface/font_mgr_impl.h"
 #include "impl_interface/image_filter_impl.h"
 #include "impl_interface/image_impl.h"
+#include "impl_interface/kawase_blur_impl.h"
 #include "impl_interface/vertices_impl.h"
 // opinc_begin
 #include "impl_interface/OpListHandleImpl.h"
@@ -50,6 +51,7 @@
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
 #include "impl_interface/memory_stream_impl.h"
+#include "impl_interface/gradient_blur_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -105,6 +107,8 @@ public:
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl(const void* data, size_t length, bool copyData);
     static std::shared_ptr<ResourceHolderImpl> CreateResourceHolderImpl();
+    static std::unique_ptr<KawaseBlurImpl> CreateKawaseBlurImpl();
+    static std::unique_ptr<GradientBlurImpl> CreateGradientBlurImpl();
 };
 } // namespace Drawing
 } // namespace Rosen

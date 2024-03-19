@@ -89,12 +89,13 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
     refreshRateModeCallbacks_[pid] = callback;
     HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : add a remote callback succeed.", __func__);
 
-    int32_t currentRefreshRateMode = HgmCore::Instance().GetCurrentRefreshRateMode();
-    callback->OnHgmRefreshRateModeChanged(currentRefreshRateMode);
+    int32_t currentRefreshRateModeName = HgmCore::Instance().GetCurrentRefreshRateModeName();
+    callback->OnHgmRefreshRateModeChanged(currentRefreshRateModeName);
 }
 
 void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (animDynamicCfgCallbacks_.empty()) {
         return;
     }

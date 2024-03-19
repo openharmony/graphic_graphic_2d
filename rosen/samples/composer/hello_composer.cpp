@@ -90,7 +90,7 @@ void HelloComposer::ParseArgs(const std::vector<std::string> &runArgs)
         } else if (arg == "--testLayerRotate") {
             testLayerRotate_ = true;
         } else if (arg == "--YUV") {
-            YUVFormat_ = true;
+            yuvFormat_ = true;
         } else if (arg == "--testLayerColor") {
             testLayerColor_ = true;
         }
@@ -237,7 +237,7 @@ void HelloComposer::SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer) c
         drawLayer->SetTestRotateStatus(true);
     }
 
-    if (YUVFormat_) {
+    if (yuvFormat_) {
         drawLayer->SetTestYUVStatus(true);
     }
 }

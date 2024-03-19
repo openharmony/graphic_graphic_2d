@@ -24,6 +24,7 @@
 #include "draw/path.h"
 #include "draw/paint.h"
 #include "draw/shadow.h"
+#include "draw/sdf_shaper_base.h"
 // opinc_begin
 #include "draw/OpListHandle.h"
 // opinc_end
@@ -51,9 +52,6 @@
 class SkSVGDOM;
 
 namespace OHOS {
-namespace Media {
-class PixelMap;
-}
 namespace Rosen {
 namespace Drawing {
 enum class SrcRectConstraint;
@@ -84,6 +82,7 @@ public:
     virtual bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY) = 0;
     // shapes
     virtual void DrawPoint(const Point& point) = 0;
+    virtual void DrawSdf(const SDFShapeBase& shape) = 0;
     virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]) = 0;
     virtual void DrawLine(const Point& startPt, const Point& endPt) = 0;
     virtual void DrawRect(const Rect& rect) = 0;
@@ -124,7 +123,6 @@ public:
 
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
-    virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) = 0;
     virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling) = 0;
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint) = 0;
@@ -173,6 +171,10 @@ public:
     virtual void AttachPaint(const Paint& paint) = 0;
 
     virtual void BuildOverDraw(std::shared_ptr<Canvas> canvas) = 0;
+
+    virtual void BuildNoDraw(int32_t width, int32_t height) = 0;
+
+    virtual void Reset(int32_t width, int32_t height) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -17,13 +17,8 @@
 #define RS_COLOR_PICKER_H
 
 #include <iostream>
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkPixmap.h"
-#include "include/core/SkColor.h"
-#else
 #include "image/pixmap.h"
 #include "draw/color.h"
-#endif
 #include "rs_color_extract.h"
 
 namespace OHOS {
@@ -38,16 +33,6 @@ struct HSV {
 class RSColorPicker : public RSColorExtract {
 public:
     ~RSColorPicker() {}
-#ifndef USE_ROSEN_DRAWING
-    NATIVEEXPORT static std::shared_ptr<RSColorPicker> CreateColorPicker(const std::shared_ptr<SkPixmap>& pixmap,
-                                                                        uint32_t &errorCode);
-    NATIVEEXPORT static std::shared_ptr<RSColorPicker> CreateColorPicker(const std::shared_ptr<SkPixmap>& pixmap,
-                                                                        double* coordinates, uint32_t &errorCode);
-
-    NATIVEEXPORT uint32_t GetLargestProportionColor(SkColor &color) const;
-    NATIVEEXPORT uint32_t GetHighestSaturationColor(SkColor &color) const;
-    NATIVEEXPORT uint32_t GetAverageColor(SkColor &color) const;
-#else
     NATIVEEXPORT static std::shared_ptr<RSColorPicker> CreateColorPicker(
         const std::shared_ptr<Drawing::Pixmap>& pixmap, uint32_t &errorCode);
     NATIVEEXPORT static std::shared_ptr<RSColorPicker> CreateColorPicker(
@@ -56,17 +41,11 @@ public:
     NATIVEEXPORT uint32_t GetLargestProportionColor(Drawing::ColorQuad &color) const;
     NATIVEEXPORT uint32_t GetHighestSaturationColor(Drawing::ColorQuad &color) const;
     NATIVEEXPORT uint32_t GetAverageColor(Drawing::ColorQuad &color) const;
-#endif
     NATIVEEXPORT bool IsBlackOrWhiteOrGrayColor(uint32_t color) const;
 
 private:
-#ifndef USE_ROSEN_DRAWING
-    RSColorPicker(std::shared_ptr<SkPixmap> pixmap);
-    RSColorPicker(std::shared_ptr<SkPixmap> pixmap, double* coordinates);
-#else
     RSColorPicker(std::shared_ptr<Drawing::Pixmap> pixmap);
     RSColorPicker(std::shared_ptr<Drawing::Pixmap> pixmap, double* coordinates);
-#endif
     bool IsEquals(double val1, double val2) const;
     HSV RGB2HSV(uint32_t rgb) const;
     void AdjustHSVToDefinedIterval(HSV& hsv) const;

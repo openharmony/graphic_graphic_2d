@@ -46,8 +46,7 @@ std::shared_ptr<Surface> Surface::MakeFromBackendRenderTarget(GPUContext* gpuCon
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteFunc)(void*), void* cleanupHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     return StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin,
@@ -58,8 +57,7 @@ std::shared_ptr<Surface> Surface::MakeFromBackendTexture(GPUContext* gpuContext,
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     return StaticFactory::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
@@ -143,8 +141,7 @@ void Surface::Flush(FlushInfo *drawingflushInfo)
 #ifdef RS_ENABLE_VK
 void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return;
     }
     if (!impl_) {
@@ -155,8 +152,7 @@ void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
 
 void Surface::SetDrawingArea(const std::vector<RectI>& rects)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return;
     }
     if (!impl_) {
@@ -168,8 +164,7 @@ void Surface::SetDrawingArea(const std::vector<RectI>& rects)
 
 void Surface::ClearDrawingArea()
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return;
     }
     if (!impl_) {

@@ -114,8 +114,6 @@ void RSFilterSubThread::StartColorPicker()
         }
         PostTask([this, task]() { ColorPickerRenderCache(task); });
     };
-#ifndef USE_ROSEN_DRAWING
-#else
 #ifdef IS_OHOS
     RSColorPickerCacheTask::saveImgAndSurToRelease =
         [this](std::shared_ptr<Drawing::Image>&& cacheImage, std::shared_ptr<Drawing::Surface>&& cacheSurface,
@@ -126,7 +124,6 @@ void RSFilterSubThread::StartColorPicker()
             initHandler, waitRelease, grBackendTextureMutex);
     };
 #endif
-#endif
 }
 
 void RSFilterSubThread::PostTask(const std::function<void()>& task)
@@ -136,8 +133,6 @@ void RSFilterSubThread::PostTask(const std::function<void()>& task)
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-#else
 #ifdef IS_OHOS
 void RSFilterSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Image>&& cacheImage,
     std::shared_ptr<Drawing::Surface>&& cacheSurface,
@@ -253,7 +248,6 @@ void RSFilterSubThread::SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Ima
     ReleaseImageAndSurfaces(waitRelease, grBackendTextureMutex);
 }
 #endif
-#endif
 
 void RSFilterSubThread::PostSyncTask(const std::function<void()>& task)
 {
@@ -345,11 +339,7 @@ void RSFilterSubThread::RenderCache(std::vector<std::weak_ptr<RSFilter::RSFilter
             continue;
         }
     }
-#ifndef USE_ROSEN_DRAWING
-    grContext_->flushAndSubmit(true);
-#else
     grContext_->FlushAndSubmit(true);
-#endif
     for (auto& task : filterTaskList) {
         auto workTask = task.lock();
         if (!workTask) {
@@ -426,64 +416,6 @@ void RSFilterSubThread::ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheT
     RSMainThread::Instance()->SetColorPickerForceRequestVsync(true);
 }
 
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-sk_sp<GrDirectContext> RSFilterSubThread::CreateShareGrContext()
-#else
-sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
-#endif
-{
-    RS_TRACE_NAME("CreateShareGrContext");
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        CreateShareEglContext();
-        const GrGLInterface* grGlInterface = GrGLCreateNativeInterface();
-        sk_sp<const GrGLInterface> glInterface(grGlInterface);
-        if (glInterface.get() == nullptr) {
-            RS_LOGE("CreateShareGrContext failed");
-            return nullptr;
-        }
-
-        GrContextOptions options = {};
-        options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-        // fix svg antialiasing bug
-        options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-        options.fPreferExternalImagesOverES3 = true;
-        options.fDisableDistanceFieldPaths = true;
-
-        auto handler = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size);
-
-#ifdef NEW_SKIA
-        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
-#else
-        sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
-#endif
-        if (grContext == nullptr) {
-            RS_LOGE("nullptr grContext is null");
-            return nullptr;
-        }
-        return grContext;
-    }
-#endif
-
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
-            RsVulkanContext::GetSingleton().GetGrVkBackendContext());
-        if (grContext == nullptr) {
-            RS_LOGE("nullptr grContext is null");
-            return nullptr;
-        }
-        return grContext;
-    }
-#endif
-    return nullptr;
-}
-#else
 std::shared_ptr<Drawing::GPUContext> RSFilterSubThread::CreateShareGrContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
@@ -504,8 +436,7 @@ std::shared_ptr<Drawing::GPUContext> RSFilterSubThread::CreateShareGrContext()
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         Drawing::GPUContextOptions options;
         auto handler = std::make_shared<MemoryHandler>();
         std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
@@ -520,7 +451,6 @@ std::shared_ptr<Drawing::GPUContext> RSFilterSubThread::CreateShareGrContext()
 #endif
     return nullptr;
 }
-#endif
 
 void RSFilterSubThread::ResetGrContext()
 {
@@ -528,12 +458,7 @@ void RSFilterSubThread::ResetGrContext()
     if (grContext_ == nullptr) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    grContext_->flushAndSubmit(true);
-    grContext_->freeGpuResources();
-#else
     grContext_->FlushAndSubmit(true);
     grContext_->FreeGpuResources();
-#endif
 }
 } // namespace OHOS::Rosen
