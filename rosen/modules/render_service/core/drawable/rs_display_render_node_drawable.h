@@ -35,6 +35,8 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) const override;
     void OnCapture(Drawing::Canvas& canvas) const override;
+    void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
+    void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
 private:
     std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
