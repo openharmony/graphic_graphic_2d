@@ -179,9 +179,12 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 
 void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
 {
-    auto task = [this]() {
+    auto nodeId = GetId();
+    auto ctx = GetContext().lock();
+    auto task = [nodeId, ctx, this]() {
         std::lock_guard<std::mutex> lockTask(taskMutex_);
-        if (!canvas_) {
+        auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
+        if (!node || !surface_ || !canvas_) {
             return;
         }
         RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
@@ -441,6 +444,7 @@ void RSCanvasDrawingRenderNode::ClearOp()
 
 void RSCanvasDrawingRenderNode::ResetSurface()
 {
+    std::lock_guard<std::mutex> lockTask(taskMutex_);
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
