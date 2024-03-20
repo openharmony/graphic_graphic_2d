@@ -38,6 +38,59 @@
 
 namespace OHOS {
 namespace Rosen {
+
+namespace {
+bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
+{
+    if (child->IsInstanceOf<RSRootRenderNode>()) {
+        auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
+        const auto& property = rootNode->GetRenderProperties();
+        if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CheckScbReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
+{
+    if (child->IsInstanceOf<RSCanvasRenderNode>()) {
+        auto canvasRenderNode = child->ReinterpretCastTo<RSCanvasRenderNode>();
+        const auto& property = canvasRenderNode->GetRenderProperties();
+        if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
+{
+    auto sortedChildren = node.GetSortedChildren();
+    if (node.IsScbScreen()) {
+        for (const auto& child : *sortedChildren) {
+            if (CheckScbReadyToDraw(child)) {
+                return true;
+            }
+        }
+    }
+    for (auto& child : *sortedChildren) {
+        if (CheckRootNodeReadyToDraw(child)) {
+            return true;
+        }
+        // when appWindow has abilityComponent node
+        if (child->IsInstanceOf<RSSurfaceRenderNode>()) {
+            for (const auto& surfaceNodeChild : *child->GetSortedChildren()) {
+                if (CheckRootNodeReadyToDraw(surfaceNodeChild)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+}
+
 const int SCB_NODE_NAME_PREFIX_LENGTH = 3;
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
@@ -344,6 +397,10 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     }
     RSRenderNode::ApplyModifiers();
     visitor->QuickPrepareSurfaceRenderNode(*this);
+
+    if ((IsAppWindow() || IsScbScreen()) && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this)) {
+        NotifyUIBufferAvailable();
+    }
 }
 
 bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool isOccluded)
