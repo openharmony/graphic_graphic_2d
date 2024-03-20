@@ -23,6 +23,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "screen_manager/rs_screen_info.h"
+#include "pipeline/rs_surface_render_node.h"
 namespace OHOS::Rosen {
 class RSB_EXPORT RSDisplayRenderParams : public RSRenderParams {
 public:
@@ -69,7 +70,22 @@ public:
     {
         return nodeRotation_;
     }
-
+    bool GetDisplayHasSecSurface() const
+    {
+        return displayHasSecSurface_;
+    }
+    bool GetDisplayHasSkipSurface() const
+    {
+        return displayHasSkipSurface_;
+    }
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledNodes_() const
+    {
+        return hardwareEnabledNodes_;
+    }
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledTopNodes_() const
+    {
+        return hardwareEnabledTopNodes_;
+    }
     // dfx
     std::string ToString() const override;
 
@@ -86,6 +102,12 @@ private:
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
+    bool displayHasSecSurface_ = false; // TODO
+    bool displayHasSkipSurface_ = false; // TODO
+    
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_; // TODO
+    // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_; // TODO
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
