@@ -1871,6 +1871,9 @@ OH_Drawing_FontFeature* OH_Drawing_TextStyleGetFontFeatures(OH_Drawing_TextStyle
     }
     auto& originMap = convertStyle->fontFeatures.GetFontFeatures();
     size_t fontFeatureSize = OH_Drawing_TextStyleGetFontFeatureSize(style);
+    if (fontFeatureSize <= 0) {
+        return nullptr;
+    }
     OH_Drawing_FontFeature *fontFeatureArray = new OH_Drawing_FontFeature[fontFeatureSize];
     size_t index = 0;
     for (auto& kv : originMap) {
