@@ -29,7 +29,6 @@
 #endif
 #include "impl_interface/font_impl.h"
 #include "impl_interface/font_mgr_impl.h"
-#include "impl_interface/gradient_blur_impl.h"
 #include "impl_interface/image_filter_impl.h"
 #include "impl_interface/image_impl.h"
 #include "impl_interface/kawase_blur_impl.h"
@@ -106,7 +105,6 @@ public:
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream(const void* data, size_t length, bool copyData);
     static std::shared_ptr<ResourceHolderImpl> CreateResourceHolder();
     static std::unique_ptr<KawaseBlurImpl> CreateKawaseBlur();
-    static std::unique_ptr<GradientBlurImpl> CreateGradientBlur();
 };
 } // namespace Drawing
 } // namespace Rosen
