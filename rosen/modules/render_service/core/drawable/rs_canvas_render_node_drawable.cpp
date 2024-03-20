@@ -18,6 +18,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "utils/rect.h"
 
 namespace OHOS::Rosen {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -46,9 +47,12 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
-    bool quickRejected = canvas.QuickReject(params->GetBounds());
+    auto localDrawRect = params->GetLocalDrawRect();
+    bool quickRejected = canvas.QuickReject(
+        {localDrawRect.GetLeft(), localDrawRect.GetTop(),localDrawRect.GetRight(), localDrawRect.GetBottom()});
     if (quickRejected) {
-        return;
+        RS_LOGD("This Node have no intersect with canvas's clipRegion");
+        //return;
     }
     RSRenderNodeDrawable::OnDraw(canvas);
 }
