@@ -16,6 +16,7 @@
 #include "drawable/rs_render_node_drawable.h"
 
 #include "common/rs_common_def.h"
+#include "drawable/rs_misc_drawable.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
@@ -125,6 +126,43 @@ void RSRenderNodeDrawable::DrawRangeImpl(
     for (auto i = start; i < end; i++) {
         drawCmdList_[i](&canvas, &rect);
     }
+}
+
+void RSRenderNodeDrawable::DumpDrawableTree(int32_t depth, std::string &out) const
+{
+    for (int32_t i = 0; i < depth; ++i) {
+        out += "  ";
+    }
+    renderNode_->DumpNodeType(out);
+    out += "[" + std::to_string(renderNode_->GetId()) + "]";
+    renderNode_->DumpSubClassNode(out);
+    out += ", DrawableVec:[" + DumpDrawableVec() + "]";
+    out += "\n";
+
+    auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
+        renderNode_->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
+    if (childrenDrawable) {
+        for (const auto& renderNodeDrawable : childrenDrawable->childrenDrawableVec_) {
+            renderNodeDrawable->DumpDrawableTree(depth + 1, out);
+        }
+    }
+}
+
+std::string RSRenderNodeDrawable::DumpDrawableVec() const
+{
+    const auto & drawableVec = renderNode_->drawableVec_;
+    std::string str;
+    for (uint i = 0; i < drawableVec.size(); ++i) {
+        if (drawableVec[i]) {
+            str += std::to_string(i) + ", ";
+        }
+    }
+    if (str.length() > 2) {
+        str.pop_back();
+        str.pop_back();
+    }
+
+    return str;
 }
 
 } // namespace OHOS::Rosen

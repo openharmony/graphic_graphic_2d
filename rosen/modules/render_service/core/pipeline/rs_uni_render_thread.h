@@ -74,6 +74,8 @@ public:
     static void SetIsInCapture(bool flag);
     static bool GetIsInCapture();
 
+    void RenderServiceTreeDump(std::string& dumpString) const;
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

@@ -2254,7 +2254,7 @@ void RSMainThread::QosStateDump(std::string& dumpString)
     }
 }
 
-void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
+void RSMainThread::RenderServiceTreeDump(std::string& dumpString) const
 {
     RS_TRACE_NAME("GetDumpTree");
     dumpString.append("Animating Node: [");
@@ -2268,6 +2268,8 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
         return;
     }
     rootNode->DumpTree(0, dumpString);
+    dumpString += "\n====================================\n";
+    RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
 }
 
 bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
