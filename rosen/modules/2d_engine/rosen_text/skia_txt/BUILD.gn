@@ -134,6 +134,12 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules",
     "//third_party/skia/modules/skparagraph",
   ]
+  if (is_arkui_x) {
+    include_dirs += [
+      "//plugins/hilog/include",
+      "//plugins/interfaces",
+    ]
+  }
   defines = []
 
   sources = [
