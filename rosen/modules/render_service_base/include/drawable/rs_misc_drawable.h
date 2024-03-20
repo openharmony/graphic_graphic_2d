@@ -44,6 +44,11 @@ private:
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
     friend class RSChildrenDrawable;
+
+    // Render properties
+    bool useShadowBatch_ = false;
+    // Staging properties
+    bool stagingUseShadowBatch_ = false;
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

@@ -53,6 +53,48 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 
+void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas) const
+{
+    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+        RSCanvasRenderNodeDrawable::OnCapture(canvas);
+        return;
+    }
+
+    auto& params = renderNode_->GetRenderParams();
+    if (!params) {
+        RS_LOGE("params is nullptr");
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
+    bool quickRejected = canvas.QuickReject(params->GetBounds());
+    if (quickRejected) {
+        RS_LOGD("this drawable has quickRejected");
+    }
+    RSRenderNodeDrawable::DrawShadow(canvas);
+}
+
+void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas) const
+{
+    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+        RSCanvasRenderNodeDrawable::OnCapture(canvas);
+        return;
+    }
+
+    auto& params = renderNode_->GetRenderParams();
+    if (!params) {
+        RS_LOGE("params is nullptr");
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params->GetMatrix());
+    bool quickRejected = canvas.QuickReject(params->GetBounds());
+    if (quickRejected) {
+        RS_LOGD("this drawable has quickRejected");
+    }
+    RSRenderNodeDrawable::DrawWithoutShadow(canvas);
+}
+
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */

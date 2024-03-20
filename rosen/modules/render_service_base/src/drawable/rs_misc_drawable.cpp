@@ -33,7 +33,9 @@ RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto children = node.GetSortedChildren();
-
+    if (children) {
+        return false;
+    }
     // Regenerate children drawables
     needSync_ = true;
     stagingChildrenDrawableVec_.clear();
@@ -42,6 +44,7 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     }
+    stagingUseShadowBatch_ = node.GetRenderProperties().GetUseShadowBatching();
     return true;
 }
 
@@ -52,6 +55,7 @@ void RSChildrenDrawable::OnSync()
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
     stagingChildrenDrawableVec_.clear();
+    useShadowBatch_ = stagingUseShadowBatch_;
     needSync_ = false;
 }
 
@@ -59,8 +63,17 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (const auto& drawable : ptr->childrenDrawableVec_) {
-            drawable->Draw(*canvas);
+        if (RSSystemProperties::GetUseShadowBatchingEnabled() && ptr->useShadowBatch_) {
+            for (const auto& drawable : ptr->childrenDrawableVec_) {
+                drawable->DrawShadow(*canvas);
+            }
+            for (const auto& drawable : ptr->childrenDrawableVec_) {
+                drawable->DrawWithoutShadow(*canvas);
+            }
+        } else {
+            for (const auto& drawable : ptr->childrenDrawableVec_) {
+                drawable->Draw(*canvas);
+            }
         }
     };
 }

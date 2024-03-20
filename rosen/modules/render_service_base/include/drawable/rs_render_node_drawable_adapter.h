@@ -40,6 +40,8 @@ public:
     RSRenderNodeDrawableAdapter& operator=(const RSRenderNodeDrawableAdapter&&) = delete;
 
     virtual void Draw(Drawing::Canvas& canvas) const = 0;
+    virtual void DrawWithoutShadow(Drawing::Canvas& canvas) const = 0;
+    virtual void DrawShadow(Drawing::Canvas& canvas) const = 0;
 
     using Ptr = RSRenderNodeDrawableAdapter*;
     using SharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>;

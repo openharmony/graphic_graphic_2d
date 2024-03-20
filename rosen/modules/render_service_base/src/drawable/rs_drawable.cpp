@@ -103,7 +103,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::OUTLINE,           // OUTLINE_WIDTH
     RSDrawableSlot::OUTLINE,           // OUTLINE_STYLE
     RSDrawableSlot::OUTLINE,           // OUTLINE_RADIUS
-    RSDrawableSlot::INVALID,           // USE_SHADOW_BATCHING
+    RSDrawableSlot::CHILDREN,          // USE_SHADOW_BATCHING
     RSDrawableSlot::INVALID,           // GREY_COEF
     RSDrawableSlot::POINT_LIGHT,       // LIGHT_INTENSITY
     RSDrawableSlot::POINT_LIGHT,       // LIGHT_POSITION

@@ -48,6 +48,9 @@ public:
     virtual void OnDraw(Drawing::Canvas& canvas) const;
     virtual void OnCapture(Drawing::Canvas& canvas) const;
 
+    void DrawWithoutShadow(Drawing::Canvas& canvas) const override;
+    void DrawShadow(Drawing::Canvas& canvas) const override;
+
 protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
