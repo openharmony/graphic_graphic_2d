@@ -488,11 +488,10 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         return true;
     }
     // subroot's dirty and cached filter should be count for parent root
-    if (!isDrawingCacheChanged_.empty() &&
-        (curDirty_ && !node.IsVisibleChanged() && node.ShouldPaint() && !ROSEN_EQ(node.GetGlobalAlpha(), 0.f))) {
+    if (!isDrawingCacheChanged_.empty()) {
         // Any child node dirty causes cache change
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus child:%" PRIu64 "", node.GetId());
-        isDrawingCacheChanged_.top() = true;
+        isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || curDirty_;
     }
     if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
         (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect() ||
@@ -508,8 +507,7 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
             return false;
         }
         // For rootnode, init drawing changes only if there is any content dirty
-        isDrawingCacheChanged_.push(curContentDirty_ &&
-            !node.IsVisibleChanged() && node.ShouldPaint() && !ROSEN_EQ(node.GetGlobalAlpha(), 0.f));
+        isDrawingCacheChanged_.push(curContentDirty_);
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateCacheChangeStatus: cachable node %" PRIu64 ""
             "contentDirty(cacheChanged): %d", node.GetId(), static_cast<int>(isDrawingCacheChanged_.top()));
         curCacheFilterRects_.push({});

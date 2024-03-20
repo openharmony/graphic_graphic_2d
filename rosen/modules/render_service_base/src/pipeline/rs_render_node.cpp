@@ -955,7 +955,6 @@ bool RSRenderNode::Update(
     if (!ShouldPaint() && !isLastVisible_) {
         SetClean();
         GetMutableRenderProperties().ResetDirty();
-        isVisibleChanged_ = false;
         return false;
     }
     // [planning] surfaceNode use frame instead
@@ -977,7 +976,6 @@ bool RSRenderNode::Update(
         }
     }
     isDirtyRegionUpdated_ = false;
-    isVisibleChanged_ = (isLastVisible_ != ShouldPaint());
     isLastVisible_ = ShouldPaint();
     GetMutableRenderProperties().ResetDirty();
 
