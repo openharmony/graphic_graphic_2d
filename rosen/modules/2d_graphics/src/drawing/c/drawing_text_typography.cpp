@@ -33,7 +33,6 @@
 #include <locale>
 #include <vector>
 #include <string>
-#include <sstream>
 #include <unicode/brkiter.h>
 
 #ifndef USE_GRAPHIC_TEXT_GINE
