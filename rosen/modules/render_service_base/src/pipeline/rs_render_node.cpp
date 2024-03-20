@@ -635,12 +635,18 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     DumpDrawCmdModifiers(out);
     animationManager_.DumpAnimations(out);
+
+    if (!isFullChildrenListValid_) {
+        out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size()) +
+               " expected count: " + std::to_string(GetSortedChildren()->size());
+        if (!disappearingChildren_.empty()) {
+            out += "+" + std::to_string(disappearingChildren_.size());
+        }
+    }
+
     out += "\n";
 
     for (auto& child : *GetSortedChildren()) {
-        child->DumpTree(depth + 1, out);
-    }
-    for (auto& [child, pos] : disappearingChildren_) {
         child->DumpTree(depth + 1, out);
     }
 }
@@ -692,9 +698,12 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", Name [" + surfaceNode->GetName() + "]";
         const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
         out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
-        std::string contextAlpha = std::to_string(surfaceNode->contextAlpha_);
         std::string propertyAlpha = std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
-        out += ", Alpha: " + propertyAlpha + " (include ContextAlpha: " + contextAlpha + ")";
+        out += ", Alpha: " + propertyAlpha;
+        if (surfaceNode->contextAlpha_ < 1.0f) {
+            std::string contextAlpha = std::to_string(surfaceNode->contextAlpha_);
+            out += " (ContextAlpha: " + contextAlpha + ")";
+        }
         out += ", Visible: " + std::to_string(surfaceNode->GetRenderProperties().GetVisible());
         out += ", " + surfaceNode->GetVisibleRegion().GetRegionInfo();
         out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
@@ -1633,8 +1642,10 @@ void RSRenderNode::UpdateDrawableVec()
     // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
 
-    if (drawableChanged || drawableVecStatus_ == 0 || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
-        // Step 3: if any drawables changed, update save/clip/restore
+    // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
+    // save/clip/restore.
+    if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
+        // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
 
         // Step 4: Generate drawCmdList from drawables

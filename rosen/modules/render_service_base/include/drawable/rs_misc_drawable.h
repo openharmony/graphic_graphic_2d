@@ -40,15 +40,15 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    bool needSync_ = false;
-    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
-    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
-    friend class RSChildrenDrawable;
-
     // Render properties
     bool useShadowBatch_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
     // Staging properties
     bool stagingUseShadowBatch_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
+
+    bool needSync_ = false;
+    friend class RSRenderNodeDrawable;
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

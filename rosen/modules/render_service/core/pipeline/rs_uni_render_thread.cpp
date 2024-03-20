@@ -289,5 +289,14 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
                 / GetRefreshRate());
 }
 
+void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
+{
+    if (!rootNodeDrawable_) {
+        dumpString.append("rootNode is null\n");
+        return;
+    }
+    rootNodeDrawable_->DumpDrawableTree(0, dumpString);
+}
+
 } // namespace Rosen
 } // namespace OHOS

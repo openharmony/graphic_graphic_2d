@@ -50,6 +50,7 @@ public:
 
     void DrawWithoutShadow(Drawing::Canvas& canvas) const override;
     void DrawShadow(Drawing::Canvas& canvas) const override;
+    void DumpDrawableTree(int32_t depth, std::string& out) const override;
 
 protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
@@ -61,6 +62,7 @@ protected:
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
 private:
+    std::string DumpDrawableVec() const;
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
 };
 } // namespace OHOS::Rosen

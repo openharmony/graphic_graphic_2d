@@ -2272,8 +2272,30 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    errno_t ret;
+    if (clipToBounds_) {
+        // clipToBounds
+        ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+        if (ret != EOK) {
+            return "Failed to memset_s for clipToBounds, ret=" + std::to_string(ret);
+        }
+        if (sprintf_s(buffer, UINT8_MAX, ", ClipToBounds[True]") != -1) {
+            dumpInfo.append(buffer);
+        }
+    }
+    if (clipToFrame_) {
+        // clipToFrame
+        ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+        if (ret != EOK) {
+            return "Failed to memset_s for clipToFrame, ret=" + std::to_string(ret);
+        }
+        if (sprintf_s(buffer, UINT8_MAX, ", ClipToFrame[True]") != -1) {
+            dumpInfo.append(buffer);
+        }
+    }
+
     // PositionZ
-    auto ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
         return "Failed to memset_s for PositionZ, ret=" + std::to_string(ret);
     }
@@ -2282,16 +2304,6 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
-    // blendmode
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
-    }
-    if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
-        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]",
-        GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
-        dumpInfo.append(buffer);
-    }
     // Pivot
     std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
@@ -2421,6 +2433,17 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetSpherize(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Spherize[%.1f]", GetSpherize()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // blendmode
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
+    }
+    if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
+        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]",
+        GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
         dumpInfo.append(buffer);
     }
 

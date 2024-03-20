@@ -58,5 +58,4 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     RenderNodeDrawableCache.emplace(id, sharedPtr);
     return sharedPtr;
 }
-
 } // namespace OHOS::Rosen
