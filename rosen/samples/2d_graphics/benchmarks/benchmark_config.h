@@ -33,7 +33,7 @@ class BenchmarkConfig {
 public:
     BenchmarkConfig() {}
     ~BenchmarkConfig() {}
-    static void SetBenchMarkType(std::string type);
+    static void SetBenchMarkType(const std::string &type);
     static enum BenchMarkName benchMarkType_;
 };
 }
