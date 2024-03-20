@@ -145,11 +145,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         rscanvas->Restore();
     }
 
-    if (!surfaceNode->IsNotifyUIBufferAvailable()) {
-        // Notify UI buffer available, temporarily fix
-        auto mutableSurfaceNode = std::const_pointer_cast<RSSurfaceRenderNode>(surfaceNode);
-        mutableSurfaceNode->NotifyUIBufferAvailable();
-    }
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 
