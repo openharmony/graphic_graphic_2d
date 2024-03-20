@@ -139,6 +139,8 @@ public:
 
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
+    virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode ScaleMode) = 0;
+
     virtual int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) = 0;
 
     virtual void GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const = 0;
@@ -161,6 +163,8 @@ public:
     virtual sptr<Surface> GetProducerSurface(ScreenId id) const = 0;
 
     virtual bool GetCanvasRotation(ScreenId id) const = 0;
+
+    virtual ScreenScaleMode GetScaleMode(ScreenId id) const = 0;
 
     // Can only be called after QueryScreenState and the state is ScreenState::HDI_OUTPUT_ENABLE;
     virtual std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const = 0;
@@ -292,6 +296,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode ScaleMode) override;
+
     void GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const override;
 
     void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const override;
@@ -311,6 +317,8 @@ public:
     sptr<Surface> GetProducerSurface(ScreenId id) const override;
 
     bool GetCanvasRotation(ScreenId id) const override;
+
+    ScreenScaleMode GetScaleMode(ScreenId id) const override;
 
     std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const override;
 
