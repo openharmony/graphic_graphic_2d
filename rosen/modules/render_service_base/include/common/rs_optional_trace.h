@@ -44,7 +44,7 @@
 #define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
     do {                                                                    \
     } while (0)
-#else 
+#else
 #define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
     do {                                                                    \
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= Level) {     \
