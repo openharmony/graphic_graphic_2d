@@ -1797,6 +1797,133 @@ void OH_Drawing_SetTypographyTextEllipsis(OH_Drawing_TypographyStyle* style, con
 #endif
 }
 
+void OH_Drawing_TextStyleSetBackgroundRect(OH_Drawing_TextStyle* style, const OH_Drawing_RectStyle_Info* rectStyleInfo,
+    int styleId)
+{
+    if (style == nullptr || rectStyleInfo == nullptr) {
+        return;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle == nullptr) {
+        return;
+    }
+    RectStyle& rectStyle = convertStyle->backgroundRect;
+    rectStyle.color = rectStyleInfo->color;
+    rectStyle.leftTopRadius = rectStyleInfo->leftTopRadius;
+    rectStyle.rightTopRadius = rectStyleInfo->rightTopRadius;
+    rectStyle.rightBottomRadius = rectStyleInfo->rightBottomRadius;
+    rectStyle.leftBottomRadius = rectStyleInfo->leftBottomRadius;
+    convertStyle->styleId = styleId;
+}
+
+void OH_Drawing_TypographyHandlerAddSymbol(OH_Drawing_TypographyCreate* handler, uint32_t symbol)
+{
+    if (!handler) {
+        return;
+    }
+    TypographyCreate* convertHandler = ConvertToOriginalText<TypographyCreate>(handler);
+    if (convertHandler) {
+        convertHandler->AppendSymbol(symbol);
+    }
+}
+
+void OH_Drawing_TextStyleAddFontFeature(OH_Drawing_TextStyle* style, const char* tag, int value)
+{
+    if (style == nullptr || tag == nullptr) {
+        return;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle) {
+        convertStyle->fontFeatures.SetFeature(tag, value);
+    }
+}
+
+size_t OH_Drawing_TextStyleGetFontFeatureSize(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return 0;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle) {
+        return (convertStyle->fontFeatures.GetFontFeatures()).size();
+    }
+    return 0;
+}
+
+void OH_Drawing_TextStyleClearFontFeature(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle == nullptr) {
+        return;
+    }
+    convertStyle->fontFeatures.Clear();
+}
+
+OH_Drawing_FontFeature* OH_Drawing_TextStyleGetFontFeatures(OH_Drawing_TextStyle* style)
+{
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (style == nullptr || convertStyle == nullptr) {
+        return nullptr;
+    }
+    auto& originMap = convertStyle->fontFeatures.GetFontFeatures();
+    size_t fontFeatureSize = originMap.size();
+    if (fontFeatureSize <= 0) {
+        return nullptr;
+    }
+    OH_Drawing_FontFeature *fontFeatureArray = new OH_Drawing_FontFeature[fontFeatureSize];
+    size_t index = 0;
+    for (auto& kv : originMap) {
+        (fontFeatureArray + index)->tag = new char[(kv.first).size() + 1];
+        auto result = strcpy_s((fontFeatureArray + index)->tag, ((kv.first).size() + 1), (kv.first).c_str());
+        if (result != 0) {
+            OH_Drawing_TextStyleDestroyFontFeatures(fontFeatureArray, index);
+            return nullptr;
+        }
+        (fontFeatureArray + index)->value = kv.second;
+        index++;
+    }
+    return fontFeatureArray;
+}
+
+void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature, size_t fontFeatureSize)
+{
+    if (fontFeature == nullptr) {
+        return;
+    }
+    for (int i = 0; i < fontFeatureSize; i++) {
+        if ((fontFeature + i)->tag == nullptr) {
+            continue;
+        }
+        delete[] (fontFeature + i)->tag;
+        (fontFeature + i)->tag = nullptr;
+    }
+    delete[] fontFeature;
+    fontFeature = nullptr;
+}
+
+void OH_Drawing_TextStyleSetBaseLineShift(OH_Drawing_TextStyle* style, double lineShift)
+{
+    if (style == nullptr) {
+        return;
+    }
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle) {
+        convertStyle->baseLineShift = lineShift;
+    }
+}
+
+double OH_Drawing_TextStyleGetBaseLineShift(OH_Drawing_TextStyle* style)
+{
+    TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
+    if (convertStyle == nullptr) {
+        return 0.0;
+    }
+    return convertStyle->baseLineShift;
+}
+
 uint32_t OH_Drawing_TextStyleGetColor(OH_Drawing_TextStyle* style)
 {
     if (style == nullptr) {

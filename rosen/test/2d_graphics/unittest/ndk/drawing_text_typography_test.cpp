@@ -484,7 +484,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
         OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
-    
+
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
     OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
@@ -1654,5 +1654,41 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest050, TestSize.Level
     EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(txtStyle), true);
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
     EXPECT_EQ(std::strcmp(OH_Drawing_TextStyleGetLocale(txtStyle), "en"), 0);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest051
+ * @tc.desc: test for getting line info for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    OH_Drawing_RectStyle_Info rectStyleInfo = {1, 1.5, 1.5, 1.5, 1.5};
+    int styleId = 1;
+    OH_Drawing_TextStyleSetBackgroundRect(txtStyle, &rectStyleInfo, styleId);
+    uint32_t symbol = 2;
+    OH_Drawing_TypographyHandlerAddSymbol(handler, symbol);
+    const char* key1 = "宋体";
+    int value1 = 1;
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, key1, value1);
+    const char* key2 = "斜体";
+    int value2 = 2;
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, key2, value2);
+    const char* key3 = "方体";
+    int value3 = 3;
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, key3, value3);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 3);
+    OH_Drawing_FontFeature* fontFeaturesArray = OH_Drawing_TextStyleGetFontFeatures(txtStyle);
+    EXPECT_EQ(fontFeaturesArray != nullptr, true);
+    OH_Drawing_TextStyleDestroyFontFeatures(fontFeaturesArray, OH_Drawing_TextStyleGetFontFeatureSize(txtStyle));
+    OH_Drawing_TextStyleClearFontFeature(txtStyle);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 0);
+    double lineShift = 1.5;
+    OH_Drawing_TextStyleSetBaseLineShift(txtStyle, lineShift);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaseLineShift(txtStyle), 1.5);
 }
 }
