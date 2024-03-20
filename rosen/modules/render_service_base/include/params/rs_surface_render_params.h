@@ -16,8 +16,10 @@
 #ifndef RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
 #define RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
 
-#include "params/rs_render_params.h"
+#include <string>
+
 #include "common/rs_occlusion_region.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 
 namespace OHOS::Rosen {
@@ -25,26 +27,87 @@ class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams();
     virtual ~RSSurfaceRenderParams() = default;
-    void SetOcclusionVisible(bool visible);
-    bool GetOcclusionVisible() const;
-    Occlusion::Region GetVisibleRegion() const;
-    void SetVisibleRegion(const Occlusion::Region& visibleRegion);
-
-    virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
-    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    bool IsMainWindowType() const
+    {
+        return isMainWindowType_;
+    }
+    RSSurfaceNodeType GetSurfaceNodeType() const
+    {
+        return rsSurfaceNodeType_;
+    }
+    SelfDrawingNodeType GetSelfDrawingNodeType() const
+    {
+        return selfDrawingType_;
+    }
+    void SetAncestorDisplayNode(const RSRenderNode::WeakPtr& ancestorDisplayNode)
     {
         ancestorDisplayNode_ = ancestorDisplayNode;
     }
-
-    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    RSRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
     }
+
+    float GetAlpha() const
+    {
+        return alpha_;
+    }
+    bool IsSpherizeValid() const
+    {
+        return isSpherizeValid_;
+    }
+    bool NeedBilinearInterpolation() const
+    {
+        return needBilinearInterpolation_;
+    }
+    Gravity GetFrameGravity() const
+    {
+        return frameGravity_;
+    }
+    const Color& GetBackgroundColor() const
+    {
+        return backgroundColor_;
+    }
+    const RectI& GetDstRect() const
+    {
+        return dstRect_;
+    }
+    const RRect& GetRRect() const
+    {
+        return rrect_;
+    }
+
+    void SetOcclusionVisible(bool visible);
+    bool GetOcclusionVisible() const;
+
+    void SetVisibleRegion(const Occlusion::Region& visibleRegion);
+    Occlusion::Region GetVisibleRegion() const;
+
+    virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
+
+    // DFX
+    std::string ToString() const override;
+
 protected:
 private:
-    bool occlusionVisible_ = true;
+    bool isMainWindowType_ = false;
+    RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
+    SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
+    RSRenderNode::WeakPtr ancestorDisplayNode_;
+
+    float alpha_ = 0;
+    bool isSpherizeValid_ = false;
+    bool needBilinearInterpolation_ = false;
+    Gravity frameGravity_ = Gravity::CENTER;
+    Color backgroundColor_ = RgbPalette::Transparent();
+
+    RectI dstRect_;
+    RRect rrect_;
+
+    bool occlusionVisible_ = false;
     Occlusion::Region visibleRegion_;
-    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
+
+    friend class RSSurfaceRenderNode;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

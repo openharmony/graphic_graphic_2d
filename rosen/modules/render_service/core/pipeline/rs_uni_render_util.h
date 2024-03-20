@@ -55,7 +55,7 @@ public:
     static bool HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
     static void SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,
-        bool forceCPU, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+        bool forceCPU, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isRenderThread = false);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);

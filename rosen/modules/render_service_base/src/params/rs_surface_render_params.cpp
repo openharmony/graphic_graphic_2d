@@ -49,9 +49,37 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         RS_LOGE("RSSurfaceRenderParams::OnSync targetSurfaceParams is nullptr");
         return;
     }
+
+    targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
+    targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
+    targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
+    targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
+    targetSurfaceParams->alpha_ = alpha_;
+    targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
+    targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
+    targetSurfaceParams->frameGravity_ = frameGravity_;
+    targetSurfaceParams->backgroundColor_ = backgroundColor_;
+    targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
-    targetSurfaceParams->SetVisibleRegion(visibleRegion_);
+    targetSurfaceParams->visibleRegion_ = visibleRegion_;
     RSRenderParams::OnSync(target);
+}
+
+std::string RSSurfaceRenderParams::ToString() const
+{
+    std::string ret = RSRenderParams::ToString() + "\nRSSurfaceRenderParams: {\n";
+    ret += RENDER_BASIC_PARAM_TO_STRING(int(rsSurfaceNodeType_));
+    ret += RENDER_BASIC_PARAM_TO_STRING(int(selfDrawingType_));
+    ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(isSpherizeValid_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(needBilinearInterpolation_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
+    ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
+    ret += RENDER_RECT_PARAM_TO_STRING(dstRect_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(occlusionVisible_);
+    ret += "}";
+    return ret;
 }
 
 } // namespace OHOS::Rosen
