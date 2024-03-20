@@ -1190,17 +1190,46 @@ void RSRenderNode::RenderTraceDebug() const
 
 void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, canvas);
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, canvas);
+        return;
+    }
+    renderNodeSaveCount_ = canvas.SaveAllStatus();
+    auto boundsGeo = (GetRenderProperties().GetBoundsGeometry());
+    if (boundsGeo && !boundsGeo->IsEmpty()) {
+        canvas.ConcatMatrix(boundsGeo->GetMatrix());
+    }
 }
 
 void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawable(RSPropertyDrawableSlot::ALPHA, canvas);
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        DrawPropertyDrawable(RSPropertyDrawableSlot::ALPHA, canvas);
+        return;
+    }
+    auto alpha = GetRenderProperties().GetAlpha();
+    if (alpha < 1.f) {
+        if (!(GetRenderProperties().GetAlphaOffscreen() || IsForcedDrawInGroup())) {
+            canvas.MultiplyAlpha(alpha);
+        } else {
+            auto rect = RSPropertiesPainter::Rect2DrawingRect(GetRenderProperties().GetBoundsRect());
+            Drawing::Brush brush;
+            brush.SetAlpha(std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
+            Drawing::SaveLayerOps slr(&rect, &brush);
+            canvas.SaveLayer(slr);
+        }
+    }
 }
 
 void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
+        return;
+    }
+    ApplyBoundsGeometry(canvas);
+    ApplyAlpha(canvas);
+    RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
 }
 
 void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
@@ -1210,12 +1239,20 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 
 void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+        return;
+    }
+    canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+        return;
+    }
+    canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
@@ -1327,8 +1364,10 @@ bool RSRenderNode::ApplyModifiers()
         manager->InvalidateCache();
     }
 
-    // Generate drawable
-    UpdateDrawableVec();
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // Generate drawable
+        UpdateDrawableVec();
+    }
 #endif
 
     // update state
