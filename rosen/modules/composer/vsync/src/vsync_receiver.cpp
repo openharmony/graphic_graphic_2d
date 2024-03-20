@@ -31,7 +31,7 @@ constexpr int32_t INVALID_FD = -1;
 }
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 {
-    HitracePerScoped perfTrace(ScopedDebugTrace::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
+    HitracePerScoped perfTrace(ScopedDebugTrace::isEnabled(), HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
     if (fileDescriptor < 0) {
         return;
     }
