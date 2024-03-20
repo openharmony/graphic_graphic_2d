@@ -808,6 +808,20 @@ bool RSScreen::GetCanvasRotation() const
     return canvasRotation_;
 }
 
+bool RSScreen::SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode)
+{
+    if (IsVirtual()) {
+        scaleMode_ = scaleMode;
+        return true;
+    }
+    return false;
+}
+
+ScreenScaleMode RSScreen::GetScaleMode() const
+{
+    return scaleMode_;
+}
+
 int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const
 {
     hdrFormats.clear();

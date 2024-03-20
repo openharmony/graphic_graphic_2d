@@ -95,6 +95,9 @@ public:
 #endif // !ROSEN_ARKUI_X
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
+
+    // set scale mode for virtual screen
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 #ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
