@@ -126,9 +126,6 @@ public:
     float GetTranslateX() const;
     float GetTranslateY() const;
     float GetTranslateZ() const;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    bool GetOpincPropDirty() const;
-#endif
 
     void SetScale(Vector2f scale);
     void SetScaleX(float sx);
@@ -372,9 +369,6 @@ private:
     bool isDrawn_ = false;
     bool alphaNeedApply_ = false;
     bool systemBarEffect_ = false;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    bool isOpincPropDirty_ = false;
-#endif
 
     bool hasBounds_ = false;
     bool useEffect_ = false;

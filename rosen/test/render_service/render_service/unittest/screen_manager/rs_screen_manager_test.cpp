@@ -30,6 +30,9 @@ public:
     void SetUp() override;
     void TearDown() override;
 
+    static constexpr int SLEEP_TIME_US = 500;
+    static constexpr uint32_t VIRTUAL_SCREEN_WIDTH = 480;
+    static constexpr uint32_t VIRTUAL_SCREEN_HEIGHT = 320;
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 };
@@ -102,7 +105,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_001, TestSize.Level1)
 
 /*
  * @tc.name: CreateVirtualScreen_002
- * @tc.desc: Test CreateVirtualScreen
+ * @tc.desc: Test CreateVirtualScreen while filteredAppVector is empty
  * @tc.type: FUNC
  * @tc.require: issueI8FSLX
  */
@@ -126,7 +129,36 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_002, TestSize.Level2)
         name, width, height, psurface, INVALID_SCREEN_ID, -1, filteredAppVector);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager->RemoveVirtualScreen(id);
-    usleep(500);
+    usleep(SLEEP_TIME_US);
+}
+
+/*
+ * @tc.name: CreateVirtualScreen_003
+ * @tc.desc: Test CreateVirtualScreen while filteredAppVector is not empty
+ * @tc.type: FUNC
+ * @tc.require: issueI981R9
+ */
+HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_003, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    std::vector<NodeId> filteredAppVector = {1};
+
+    auto id = screenManager->CreateVirtualScreen(
+        name, width, height, psurface, INVALID_SCREEN_ID, -1, filteredAppVector);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+    screenManager->RemoveVirtualScreen(id);
+    usleep(SLEEP_TIME_US);
 }
 
 /*
@@ -646,6 +678,36 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_003, TestSize.Level1)
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(screenManager->SetVirtualScreenSurface(newId, psurface), SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSurface_004
+ * @tc.desc: Test SetVirtualScreenSurface while suface not unique
+ * @tc.type: FUNC
+ * @tc.require: issueI981R9
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_004, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id1 = screenManager->
+        CreateVirtualScreen("virtualScreen01", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, nullptr);
+    ASSERT_NE(id1, INVALID_SCREEN_ID);
+    auto id2 = screenManager->
+        CreateVirtualScreen("virtualScreen02", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, psurface);
+    ASSERT_NE(id2, INVALID_SCREEN_ID);
+
+    ASSERT_EQ(static_cast<StatusCode>(screenManager->SetVirtualScreenSurface(id1, psurface)), SURFACE_NOT_UNIQUE);
+    screenManager->RemoveVirtualScreen(id1);
+    screenManager->RemoveVirtualScreen(id2);
+    usleep(SLEEP_TIME_US);
 }
 
 /*
@@ -1176,5 +1238,99 @@ HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_001, TestSize.Level1)
 
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
+}
+
+/*
+ * @tc.name: SetRogScreenResolution_002
+ * @tc.desc: Test SetRogScreenResolution while screen's id doesn't match
+ * @tc.type: FUNC
+ * @tc.require: issueI981R9
+ */
+HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->
+        CreateVirtualScreen("virtualScreen01", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(static_cast<StatusCode>(screenManager->
+        SetRogScreenResolution(INVALID_SCREEN_ID, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT)), SCREEN_NOT_FOUND);
+    screenManager->RemoveVirtualScreen(id);
+    usleep(SLEEP_TIME_US);
+}
+
+/*
+ * @tc.name: SetRogScreenResolution_003
+ * @tc.desc: Test SetRogScreenResolution while the screen's id match
+ * @tc.type: FUNC
+ * @tc.require: issueI981R9
+ */
+HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_003, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->
+        CreateVirtualScreen("virtualScreen01", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(static_cast<StatusCode>(screenManager->
+        SetRogScreenResolution(id, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT)), SUCCESS);
+    screenManager->RemoveVirtualScreen(id);
+    usleep(SLEEP_TIME_US);
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenCanvasRotation_001
+ * @tc.desc: Test SetVirtualMirrorScreenCanvasRotation while don't have any screen
+ * @tc.type: FUNC
+ * @tc.require: issueI981R9
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenCanvasRotationn_001, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ASSERT_EQ(static_cast<StatusCode>(
+        screenManager->SetVirtualMirrorScreenCanvasRotation(INVALID_SCREEN_ID, true)), false);
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenCanvasRotation_002
+ * @tc.desc: Test SetVirtualMirrorScreenCanvasRotation
+ * @tc.type: FUNC
+ * @tc.require: issueI981R9
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenCanvasRotationn_002, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->
+        CreateVirtualScreen("virtualScreen01", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(static_cast<StatusCode>(
+        screenManager->SetVirtualMirrorScreenCanvasRotation(id, true)), true);
 }
 } // namespace OHOS::Rosen

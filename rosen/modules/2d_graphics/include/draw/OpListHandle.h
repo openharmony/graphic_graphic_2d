@@ -16,6 +16,8 @@
 #ifndef OP_LIST_HANDLE_H
 #define OP_LIST_HANDLE_H
 
+#include <vector>
+#include <utils/rect.h>
 #include "drawing/engine_adapter/impl_interface/OpListHandleImpl.h"
 
 namespace OHOS {
@@ -36,8 +38,22 @@ enum CanDrawOpErrType : int {
 
 class DRAWING_API OpListHandle {
 public:
+struct OpInfo {
+    bool canReUseCache = false;
+    int num = 0;
+    int percent = 0;
+    Rect unionRect;
+    std::vector<Rect> drawAreaRects;
+};
+
     OpListHandle();
+    OpListHandle(OpInfo opinfo);
     ~OpListHandle() {}
+
+    const OpInfo &GetOpInfo() const
+    {
+        return opInfo_;
+    }
 
 template<typename T>
     T* GetImpl() const
@@ -46,7 +62,8 @@ template<typename T>
     }
 
 private:
-    std::shared_ptr<OpListHandleImpl> opImpl_;
+    std::shared_ptr<OpListHandleImpl> opImpl_; // for opinc diff
+    OpInfo opInfo_;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -75,7 +75,7 @@ HWTEST_F(RSRenderParticleTest, InitPropertyTest, Level1)
 {
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
-    rsRenderParticle.InitProperty(nullptr);
+    rsRenderParticle.InitProperty();
     bool la = rsRenderParticle.IsAlive();
     ASSERT_EQ(la, true);
 }

@@ -531,7 +531,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
     success = success && Marshalling(parcel, val.emitSize_.x_);
     success = success && Marshalling(parcel, val.emitSize_.y_);
     success = success && Marshalling(parcel, val.particleCount_);
-    success = success && Marshalling(parcel, val.lifeTime_);
+    success = success && Marshalling(parcel, val.lifeTime_.start_);
+    success = success && Marshalling(parcel, val.lifeTime_.end_);
     success = success && Marshalling(parcel, val.type_);
     success = success && Marshalling(parcel, val.radius_);
     success = success && Marshalling(parcel, val.image_);
@@ -550,7 +551,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     float emitSizeWidth = 0.f;
     float emitSizeHeight = 0.f;
     int particleCount = 0;
-    int64_t lifeTime = 0;
+    int64_t lifeTimeStart = 0;
+    int64_t lifeTimeEnd = 0;
     ParticleType particleType = ParticleType::POINTS;
     float radius = 0.f;
     std::shared_ptr<RSImage> image = nullptr;
@@ -566,7 +568,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success = success && Unmarshalling(parcel, emitSizeHeight);
     Vector2f emitSize(emitSizeWidth, emitSizeHeight);
     success = success && Unmarshalling(parcel, particleCount);
-    success = success && Unmarshalling(parcel, lifeTime);
+    success = success && Unmarshalling(parcel, lifeTimeStart);
+    success = success && Unmarshalling(parcel, lifeTimeEnd);
     success = success && Unmarshalling(parcel, particleType);
     success = success && Unmarshalling(parcel, radius);
     Unmarshalling(parcel, image);
@@ -574,6 +577,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success = success && Unmarshalling(parcel, imageHeight);
     Vector2f imageSize(imageWidth, imageHeight);
     if (success) {
+        Range<int64_t> lifeTime(lifeTimeStart, lifeTimeEnd);
         val = EmitterConfig(
             emitRate, emitShape, position, emitSize, particleCount, lifeTime, particleType, radius, image, imageSize);
     }

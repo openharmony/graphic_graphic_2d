@@ -23,12 +23,15 @@
 #include <message_parcel.h>
 #include <unistd.h>
 
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001400, "graphicutils" };
-#define UTILS_LOGF(...) (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, __VA_ARGS__)
-#define UTILS_LOGE(...) (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, __VA_ARGS__)
-#define UTILS_LOGW(...) (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, __VA_ARGS__)
-#define UTILS_LOGI(...) (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, __VA_ARGS__)
-#define UTILS_LOGD(...) (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, __VA_ARGS__)
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+#undef LOG_TAG
+#define LOG_TAG "graphicutils"
+#define UTILS_LOGF(...) (void)HILOG_FATAL(LOG_CORE, __VA_ARGS__)
+#define UTILS_LOGE(...) (void)HILOG_ERROR(LOG_CORE, __VA_ARGS__)
+#define UTILS_LOGW(...) (void)HILOG_WARN(LOG_CORE, __VA_ARGS__)
+#define UTILS_LOGI(...) (void)HILOG_INFO(LOG_CORE, __VA_ARGS__)
+#define UTILS_LOGD(...) (void)HILOG_DEBUG(LOG_CORE, __VA_ARGS__)
 #define BUFFER_HANDLE_RESERVE_MAX_SIZE 1024
 
 BufferHandle *AllocateBufferHandle(uint32_t reserveFds, uint32_t reserveInts)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,30 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef BENCHMARK_CONFIG_H
-#define BENCHMARK_CONFIG_H
 
-#include <iostream>
+#ifndef SKIA_OPLIST_HANDLE_H
+#define SKIA_OPLIST_HANDLE_H
 
-#include "benchmark.h"
+#include "SkRect.h"
+// opinc_begin
+#include "draw/OpListHandle.h"
+// opinc_end
 
 namespace OHOS {
 namespace Rosen {
-enum class BenchMarkName {
-    SINGLETHREAD = 0,
-    MULTITHREAD,
-    API,
-    DCL,
-    LASTNAME,
-};
-
-class BenchmarkConfig {
+namespace Drawing {
+class SkiaOpListHandle : public OpListHandleImpl {
 public:
-    BenchmarkConfig() {}
-    ~BenchmarkConfig() {}
-    static void SetBenchMarkType(const std::string &type);
-    static enum BenchMarkName benchMarkType_;
+    static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
+    SkiaOpListHandle() = default;
+    ~SkiaOpListHandle() override {}
+
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 };
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

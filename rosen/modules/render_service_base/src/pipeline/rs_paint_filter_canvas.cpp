@@ -364,35 +364,20 @@ int RSPaintFilterCanvasBase::CanDrawOpList(Drawing::OpListHandle handle)
     return -1;
 }
 
-void RSPaintFilterCanvasBase::PreOpListDrawArea(const Matrix& matrix)
+bool RSPaintFilterCanvasBase::OpCalculateBefore(const Matrix& matrix)
 {
     if (canvas_ != nullptr && OnFilter()) {
-        canvas_->PreOpListDrawArea(matrix);
-    }
-}
-
-bool RSPaintFilterCanvasBase::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->CanUseOpListDrawArea(handle, bound);
+        return canvas_->OpCalculateBefore(matrix);
     }
     return false;
 }
 
-Drawing::OpListHandle RSPaintFilterCanvasBase::GetOpListDrawArea()
+std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Rect& bound)
 {
     if (canvas_ != nullptr && OnFilter()) {
-        return canvas_->GetOpListDrawArea();
+        return canvas_->OpCalculateAfter(bound);
     }
-    return {};
-}
-
-void RSPaintFilterCanvasBase::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-    const SamplingOptions& sampling, SrcRectConstraint constraint)
-{
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->OpincDrawImageRect(image, drawAreas, sampling, constraint);
-    }
+    return nullptr;
 }
 // opinc_end
 

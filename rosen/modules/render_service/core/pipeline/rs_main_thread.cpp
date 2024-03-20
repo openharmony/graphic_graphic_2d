@@ -1261,9 +1261,25 @@ uint32_t RSMainThread::GetRefreshRate() const
     auto screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSMainThread::GetRefreshRate screenManager is nullptr");
-        return 60; // The default refreshrate is 60
+        return STANDARD_REFRESH_RATE;
     }
-    return OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
+    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(
+        screenManager->GetDefaultScreenId());
+    if (refreshRate == 0) {
+        RS_LOGE("RSMainThread::GetRefreshRate refreshRate is invalid");
+        return STANDARD_REFRESH_RATE;
+    }
+    return refreshRate;
+}
+
+uint32_t RSMainThread::GetDynamicRefreshRate() const
+{
+    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
+    if (refreshRate == 0) {
+        RS_LOGE("RSMainThread::GetDynamicRefreshRate refreshRate is invalid");
+        return STANDARD_REFRESH_RATE;
+    }
+    return refreshRate;
 }
 
 void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
@@ -1487,6 +1503,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     UpdateUIFirstSwitch();
     UpdateRogSizeIfNeeded();
+    UpdateDisplayNodeScreenId();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
@@ -2111,7 +2128,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
             PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
         }
     }
-    RSJankStats::GetInstance().SetEndTime(GetDiscardJankFrames());
+    RSJankStats::GetInstance().SetEndTime(GetDiscardJankFrames(), GetDynamicRefreshRate());
 }
 
 void RSMainThread::Animate(uint64_t timestamp)
@@ -2970,6 +2987,21 @@ void RSMainThread::UpdateRogSizeIfNeeded()
             auto screenManager_ = CreateOrGetScreenManager();
             screenManager_->SetRogScreenResolution(
                 displayNode->GetScreenId(), displayNode->GetRogWidth(), displayNode->GetRogHeight());
+        }
+    }
+}
+
+void RSMainThread::UpdateDisplayNodeScreenId()
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (!rootNode) {
+        return;
+    }
+    auto child = rootNode->GetFirstChild();
+    if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
+        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (displayNode) {
+            displayNodeScreenId_ = displayNode->GetScreenId();
         }
     }
 }

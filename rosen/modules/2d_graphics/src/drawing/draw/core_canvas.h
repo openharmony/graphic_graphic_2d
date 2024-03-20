@@ -379,11 +379,8 @@ public:
     virtual Drawing::OpListHandle EndOpRecording();
     virtual void DrawOpList(Drawing::OpListHandle handle);
     virtual int CanDrawOpList(Drawing::OpListHandle handle);
-    virtual void PreOpListDrawArea(const Matrix& matrix);
-    virtual bool CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound = nullptr);
-    virtual Drawing::OpListHandle GetOpListDrawArea();
-    virtual void OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-        const SamplingOptions& sampling, SrcRectConstraint constraint);
+    virtual bool OpCalculateBefore(const Matrix& matrix);
+    virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound);
     // opinc_end
 
     // image

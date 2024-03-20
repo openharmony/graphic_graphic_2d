@@ -25,6 +25,10 @@ config("vsync_config") {
     "-g3",
   ]
 
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
+
   if (graphic_2d_feature_enable_dvsync) {
     gpu_defines += [ "RS_ENABLE_DVSYNC" ]
   }

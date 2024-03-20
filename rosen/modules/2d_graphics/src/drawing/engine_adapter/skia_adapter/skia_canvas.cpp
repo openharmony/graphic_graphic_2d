@@ -31,6 +31,10 @@
 #include "skia_text_blob.h"
 #include "skia_surface.h"
 #include "include/effects/SkRuntimeEffect.h"
+// opinc_begin
+#include "skia_canvas_autocache.h"
+#include "skia_oplist_handle.h"
+// opinc_end
 
 #include "draw/core_canvas.h"
 #include "draw/canvas.h"
@@ -623,29 +627,67 @@ int SkiaCanvas::CanDrawOpList(Drawing::OpListHandle handle)
     return -1;
 }
 
-void SkiaCanvas::PreOpListDrawArea(const Matrix& matrix)
+bool SkiaCanvas::OpCalculateBefore(const Matrix& matrix)
 {
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return;
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line, %{public}d", __LINE__);
+        return false;
+    }
+    if (skiaCanvasOp_ || skCanvasBackup_) {
+        LOGD("PreOpListDrawArea is nested %{public}d", __LINE__);
+        return false;
+    }
+    auto m = matrix.GetImpl<SkiaMatrix>();
+    if (!m) {
+        LOGD("get matrix null, return on line, %{public}d", __LINE__);
+        return false;
+    }
+    auto tmp = std::make_shared<SkiaCanvasAutoCache>(skCanvas_);
+    if (!tmp) {
+        LOGD("create opinccanvas null, return on line, %{public}d", __LINE__);
+        return false;
+    }
+    tmp->Init(m->ExportSkiaMatrix());
+    skiaCanvasOp_ = tmp;
+    skCanvasBackup_ = skiaCanvasOp_.get();
+    std::swap(skCanvas_, skCanvasBackup_);
+    return true;
 }
 
-bool SkiaCanvas::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
+std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& bound)
 {
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return false;
-}
+    std::shared_ptr<Drawing::OpListHandle> handle = nullptr;
+    if (!skCanvas_ || !skiaCanvasOp_) {
+        LOGD("skCanvas_ is null, return on line, %{public}d", __LINE__);
+        return handle;
+    }
 
-Drawing::OpListHandle SkiaCanvas::GetOpListDrawArea()
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return {};
-}
+    do {
+        auto nodeBound = SkRect::MakeLTRB(bound.GetLeft(), bound.GetTop(), bound.GetRight(), bound.GetBottom());
+        if (!skiaCanvasOp_->OpCanCache(nodeBound)) {
+            break;
+        }
 
-void SkiaCanvas::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-    const SamplingOptions& sampling, SrcRectConstraint constraint)
-{
-    LOGD("SkiaCanvas! %{public}s, %{public}d", __FUNCTION__, __LINE__);
-    return;
+        int opNum = skiaCanvasOp_->GetOpsNum();
+        int percent = skiaCanvasOp_->GetOpsPercent();
+        auto& skUnionRect = skiaCanvasOp_->GetOpUnionRect();
+        auto& skOpListDrawArea = skiaCanvasOp_->GetOpListDrawArea();
+        if (skUnionRect.isEmpty() || opNum == 0 || percent == 0 || skOpListDrawArea.size() == 0) {
+            break;
+        }
+        Drawing::Rect unionRect(skUnionRect.left(), skUnionRect.top(), skUnionRect.right(), skUnionRect.bottom());
+        std::vector<Drawing::Rect> rects;
+        for (auto &item : skOpListDrawArea) {
+            rects.emplace_back(Drawing::Rect(item.left(), item.top(), item.right(), item.bottom()));
+        }
+        Drawing::OpListHandle::OpInfo opinfo{ true, opNum, percent, std::move(unionRect), std::move(rects) };
+        handle = std::make_shared<Drawing::OpListHandle>(std::move(opinfo));
+    } while (false);
+
+    std::swap(skCanvas_, skCanvasBackup_); // restore canvas
+    skiaCanvasOp_ = nullptr;
+    skCanvasBackup_ = nullptr;
+    return handle;
 }
 // opinc_end
 

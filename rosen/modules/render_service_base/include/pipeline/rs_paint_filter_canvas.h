@@ -78,11 +78,8 @@ public:
     Drawing::OpListHandle EndOpRecording() override;
     void DrawOpList(Drawing::OpListHandle handle) override;
     int CanDrawOpList(Drawing::OpListHandle handle) override;
-    void PreOpListDrawArea(const Drawing::Matrix& matrix) override;
-    bool CanUseOpListDrawArea(Drawing::OpListHandle handle, const Drawing::Rect* bound = nullptr) override;
-    Drawing::OpListHandle GetOpListDrawArea() override;
-    void OpincDrawImageRect(const Drawing::Image& image, Drawing::OpListHandle drawAreas,
-        const Drawing::SamplingOptions& sampling, Drawing::SrcRectConstraint constraint) override;
+    bool OpCalculateBefore(const Drawing::Matrix& matrix) override;
+    std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Drawing::Rect& bound) override;
     // opinc_end
 
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;

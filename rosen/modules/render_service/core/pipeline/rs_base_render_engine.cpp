@@ -614,7 +614,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
             params.acquireFence, params.threadIndex);
-        auto& backendTexture = imageCache->GetBackendTexture();
         std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
@@ -639,6 +638,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             RS_LOGE("contextDrawingVk or image or imageCache is nullptr.");
             return;
         }
+        auto& backendTexture = imageCache->GetBackendTexture();
         if (!image->BuildFromTexture(*contextDrawingVk, backendTexture.GetTextureInfo(),
             surfaceOrigin, bitmapFormat, nullptr,
             NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {

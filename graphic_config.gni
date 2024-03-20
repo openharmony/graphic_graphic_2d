@@ -29,7 +29,7 @@ declare_args() {
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_ddgr = false
-  graphic_2d_feature_enable_ddgr_opinc = false
+  graphic_2d_feature_enable_opinc = false
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
@@ -61,6 +61,7 @@ if (graphic_2d_feature_product == "phone") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
   graphic_2d_feature_enable_stack_culling = true
+  graphic_2d_feature_enable_opinc = false
 }
 
 gpu_defines = []
@@ -78,12 +79,8 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "RS_ENABLE_VK",
     ]
     if (graphic_2d_feature_enable_ddgr) {
-      graphic_2d_feature_enable_ddgr_opinc = true
       gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
       import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
-      if (graphic_2d_feature_enable_ddgr_opinc) {
-        gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
-      }
     }
   }
   if (graphic_2d_feature_enable_opengl) {
@@ -95,6 +92,12 @@ if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_stack_culling) {
     gpu_defines += [ "RS_ENABLE_STACK_CULLING" ]
   }
+
+  if (graphic_2d_feature_enable_opinc) {
+    import("//foundation/graphic/graphic_2d_ext/opinc/config.gni")
+    gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
+  }
+
   if (graphic_2d_feature_enable_recording_dcl) {
     rs_enable_recording_dcl = true
     gpu_defines += [ "ENABLE_RECORDING_DCL" ]

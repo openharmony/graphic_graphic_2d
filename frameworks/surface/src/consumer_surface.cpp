@@ -184,6 +184,7 @@ GSError ConsumerSurface::AttachBufferToQueue(sptr<SurfaceBuffer>& buffer)
     if (buffer == nullptr || consumer_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
+    buffer->SetConsumerAttachBufferFlag(true);
     return consumer_->AttachBufferToQueue(buffer);
 }
 
@@ -192,6 +193,7 @@ GSError ConsumerSurface::DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer)
     if (buffer == nullptr || consumer_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
+    buffer->SetConsumerAttachBufferFlag(false);
     return consumer_->DetachBufferFromQueue(buffer);
 }
 

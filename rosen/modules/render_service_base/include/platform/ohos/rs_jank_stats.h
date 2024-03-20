@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t STANDARD_REFRESH_RATE = 60;
 constexpr int64_t TIMESTAMP_INITIAL = -1;
 constexpr int32_t TRACE_ID_INITIAL = -1;
 
@@ -46,6 +47,7 @@ struct JankFrames {
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
@@ -61,6 +63,10 @@ struct JankFrames {
     int64_t totalFrameTimeSteady_ = 0;
     int64_t lastTotalFrameTimeSteady_ = 0;
     int32_t traceId_ = TRACE_ID_INITIAL;
+    int64_t totalFrameTimeSteadyForHTR_ = 0;
+    int64_t lastTotalFrameTimeSteadyForHTR_ = 0;
+    float totalHitchTimeSteady_ = 0;
+    float lastTotalHitchTimeSteady_ = 0;
     Rosen::DataBaseRs info_;
 };
 
@@ -89,7 +95,7 @@ class RSJankStats {
 public:
     static RSJankStats& GetInstance();
     void SetStartTime();
-    void SetEndTime(bool discardJankFrames);
+    void SetEndTime(bool discardJankFrames = false, uint32_t dynamicRefreshRate = STANDARD_REFRESH_RATE);
     void ReportJankStats();
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
@@ -104,10 +110,11 @@ private:
 
     void UpdateEndTime();
     void SetRSJankStats();
-    void UpdateJankFrame(JankFrames& jankFrames);
+    void UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefreshRate);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
+    void ReportEventHitchTimeRatio(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
     void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bool isReportTaskDelayed);
