@@ -384,6 +384,14 @@ bool RSSystemProperties::GetAnimationCacheEnabled()
     return animationCacheEnabled;
 }
 
+bool RSSystemProperties::GetPropertyDrawableEnable()
+{
+    static bool propertyDrawableEnable =
+        std::atoi((system::GetParameter("persist.propertyDrawableGenerate.enabled", "1")).c_str()) != 0 &&
+        RSUniRenderJudgement::IsUniRender();
+    return propertyDrawableEnable;
+}
+
 float RSSystemProperties::GetAnimationScale()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.animationscale", "1.0");
