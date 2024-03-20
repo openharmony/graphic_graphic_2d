@@ -937,6 +937,7 @@ private:
     bool IsHardwareDisabledBySrcRect() const;
     bool IsYUVBufferFormat() const;
     void InitRenderParams() override;
+    void UpdateRenderParams() override;
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;

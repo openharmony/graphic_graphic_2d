@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "params/rs_display_render_params.h"
+#include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
@@ -181,7 +182,35 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
    curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
-void RSDisplayRenderNode::UpdatePartialRenderParams(ScreenInfo& screenInfo)
+void RSDisplayRenderNode::UpdateRenderParams()
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdateRenderParams displayParams is null");
+        return;
+    }
+    displayParams->offsetX_ = GetDisplayOffsetX();
+    displayParams->offsetY_ = GetDisplayOffsetY();
+    displayParams->nodeRotation_ = GetRotation();
+    displayParams->mirrorSource_ = GetMirrorSource();
+
+    RSRenderNode::UpdateRenderParams();
+}
+
+void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdateScreenRenderParams displayParams is null");
+        return;
+    }
+    displayParams->screenId_ = GetScreenId();
+    displayParams->screenRotation_ = GetScreenRotation();
+    displayParams->compositeType_ = GetCompositeType();
+    displayParams->screenInfo_ = std::move(screenInfo);
+}
+
+void RSDisplayRenderNode::UpdatePartialRenderParams()
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
@@ -190,15 +219,6 @@ void RSDisplayRenderNode::UpdatePartialRenderParams(ScreenInfo& screenInfo)
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
     curMainAndLeashSurfaceNodes_.clear();
-
-    displayParams->screenId_ = GetScreenId();
-    displayParams->offsetX_ = GetDisplayOffsetX();
-    displayParams->offsetY_ = GetDisplayOffsetY();
-    displayParams->mirrorSource_ = GetMirrorSource();
-    displayParams->nodeRotation_ = GetRotation();
-    displayParams->screenRotation_ = GetScreenRotation();
-    displayParams->compositeType_ = GetCompositeType();
-    displayParams->screenInfo_ = std::move(screenInfo);
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

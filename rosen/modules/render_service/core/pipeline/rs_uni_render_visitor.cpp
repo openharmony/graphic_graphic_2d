@@ -1164,7 +1164,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
 
     UpdateSurfaceDirtyAndGlobalDirty();
-    curDisplayNode_->UpdatePartialRenderParams(screenInfo_);
+    curDisplayNode_->UpdatePartialRenderParams();
+    curDisplayNode_->UpdateScreenRenderParams(screenInfo_);
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
 }
@@ -1208,9 +1209,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
-
-    // 3. Staging Surface Node Params
-    node.UpdatePartialRenderParams();
 }
 
 void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
@@ -1494,6 +1492,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
             dirtyManager->SetCurrentFrameDirtyRect(
                 geoPtr->MapAbsRect(dirtyRect.ConvertTo<float>()));
+            surfaceNode->UpdatePartialRenderParams();
         }
         // 2. check surface node dirtyrect need merge into displayDirtyManager
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
@@ -1626,14 +1625,14 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
     if (filterVecIter != transparentCleanFilter_.end()) {
         RS_LOGD("RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay surface:%{public}s "
             "has transparentCleanFilter", surfaceNode->GetName().c_str());
-        // check accumulatedDirtyRegion influence filter nodes which in the current surface 
+        // check accumulatedDirtyRegion influence filter nodes which in the current surface
         for (auto it = filterVecIter->second.begin(); it != filterVecIter->second.end(); ++it) {
             auto filterRegion = Occlusion::Region{ Occlusion::Rect{ *it } };
             auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
-            if (!filterDirtyRegion.IsEmpty()) {     
-                const auto& rect = filterDirtyRegion.GetBoundRef();  
+            if (!filterDirtyRegion.IsEmpty()) {
+                const auto& rect = filterDirtyRegion.GetBoundRef();
                 curDisplayNode_->GetDirtyManager()->MergeDirtyRect(
-                RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });       
+                RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             } else {
                 globalFilter_.insert(*it);
             }
@@ -1712,7 +1711,7 @@ void RSUniRenderVisitor::UpdateDirtysAndRedordInfoByFilter(RSRenderNode& node)
         }
         bool isIntersect = curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
         if (isIntersect) {
-            curDirtyManager->MergeDirtyRect(globalFilterRect);  
+            curDirtyManager->MergeDirtyRect(globalFilterRect);
         }
         if (curSurfaceNode_->IsTransparent()) {
             globalFilterRects_.emplace_back(globalFilterRect);
@@ -1729,7 +1728,7 @@ void RSUniRenderVisitor::UpdateDirtysAndRedordInfoByFilter(RSRenderNode& node)
     } else {
         globalFilterRects_.emplace_back(globalFilterRect);
         // record container nodes which need filter
-        containerFilter_.insert(globalFilterRect);  
+        containerFilter_.insert(globalFilterRect);
     }
 }
 

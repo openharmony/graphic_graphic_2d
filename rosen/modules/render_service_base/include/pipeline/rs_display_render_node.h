@@ -240,7 +240,9 @@ public:
         return curAllSurfaces_;
     }
 
-    void UpdatePartialRenderParams(ScreenInfo& screenInfo);
+    void UpdateRenderParams() override;
+    void UpdatePartialRenderParams();
+    void UpdateScreenRenderParams(ScreenInfo& screenInfo);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 

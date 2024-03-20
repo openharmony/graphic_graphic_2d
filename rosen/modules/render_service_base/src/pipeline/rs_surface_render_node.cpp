@@ -1997,8 +1997,21 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         return;
     }
 
-    if (IsMainWindowType()) {
-        surfaceParams->SetVisibleRegion(visibleRegion_);
+    surfaceParams->SetVisibleRegion(visibleRegion_);
+}
+
+void RSSurfaceRenderNode::InitRenderParams()
+{
+    stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>();
+    renderParams_ = std::make_unique<RSSurfaceRenderParams>();
+}
+
+void RSSurfaceRenderNode::UpdateRenderParams()
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::UpdateRenderParams surfaceParams is null");
+        return;
     }
     auto& properties = GetRenderProperties();
     surfaceParams->alpha_ = properties.GetAlpha();
@@ -2012,13 +2025,10 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     surfaceParams->dstRect_ = GetDstRect();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->frameGravity_ = properties.GetFrameGravity();
+
+    RSRenderNode::UpdateRenderParams();
 }
 
-void RSSurfaceRenderNode::InitRenderParams()
-{
-    stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>();
-    renderParams_ = std::make_unique<RSSurfaceRenderParams>();
-}
 void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
