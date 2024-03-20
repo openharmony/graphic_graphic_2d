@@ -222,8 +222,6 @@ ohos_executable("drawing_sample_replayer") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_deps += [ "//third_party/skia:skia_ohos" ]
-
   public_deps = libgl
   defines = gpu_defines
 
