@@ -1796,3 +1796,178 @@ void OH_Drawing_SetTypographyTextEllipsis(OH_Drawing_TypographyStyle* style, con
     ConvertToOriginalText<TypographyStyle>(style)->ellipsis = u16Ellipsis;
 #endif
 }
+
+uint32_t OH_Drawing_TextStyleGetColor(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return 0xFFFFFFFF;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return 0xFFFFFFFF;
+    }
+    return textStyle->color.CastToColorQuad();
+}
+
+OH_Drawing_TextDecorationStyle OH_Drawing_TextStyleGetDecorationStyle(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return TEXT_DECORATION_STYLE_SOLID;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return TEXT_DECORATION_STYLE_SOLID;
+    }
+    return static_cast<OH_Drawing_TextDecorationStyle>(textStyle->decorationStyle);
+}
+
+OH_Drawing_FontWeight OH_Drawing_TextStyleGetFontWeight(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return FONT_WEIGHT_400;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return FONT_WEIGHT_400;
+    }
+    return static_cast<OH_Drawing_FontWeight>(textStyle->fontWeight);
+}
+
+OH_Drawing_FontStyle OH_Drawing_TextStyleGetFontStyle(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return FONT_STYLE_NORMAL;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return FONT_STYLE_NORMAL;
+    }
+    return static_cast<OH_Drawing_FontStyle>(textStyle->fontStyle);
+}
+
+OH_Drawing_TextBaseline OH_Drawing_TextStyleGetBaseLine(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return TEXT_BASELINE_ALPHABETIC;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return TEXT_BASELINE_ALPHABETIC;
+    }
+    return static_cast<OH_Drawing_TextBaseline>(textStyle->baseline);
+}
+
+char** OH_Drawing_TextStyleGetFontFamilies(OH_Drawing_TextStyle* style, size_t* num)
+{
+    if (style == nullptr || num == nullptr || ConvertToOriginalText<TextStyle>(style) == nullptr) {
+        return nullptr;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    char** fontFamilies = nullptr;
+    std::vector<std::string>& textStyleFontFamilies = textStyle->fontFamilies;
+    fontFamilies = new char* [textStyleFontFamilies.size()];
+    if (fontFamilies == nullptr) {
+        return nullptr;
+    }
+    for (size_t i = 0; i < textStyleFontFamilies.size(); ++i) {
+        bool res = CopyStrData(&fontFamilies[i], textStyleFontFamilies[i]);
+        if (!res) {
+            for (size_t j = 0; j < i; j++) {
+                delete[] fontFamilies[j];
+                fontFamilies[j] = nullptr;
+            }
+            delete[] fontFamilies;
+            fontFamilies = nullptr;
+            return nullptr;
+        }
+    }
+    *num = textStyleFontFamilies.size();
+    return fontFamilies;
+}
+
+void OH_Drawing_TextStyleDestroyFontFamilies(char** fontFamilies, size_t num)
+{
+    if (fontFamilies == nullptr) {
+        return;
+    }
+    for (size_t i = 0; i < num; ++i) {
+        if (fontFamilies[i] != nullptr) {
+            delete[] fontFamilies[i];
+            fontFamilies[i] = nullptr;
+        }
+    }
+    delete[] fontFamilies;
+    fontFamilies = nullptr;
+}
+
+double OH_Drawing_TextStyleGetFontSize(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return 0.0;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return 0.0;
+    }
+    return textStyle->fontSize;
+}
+
+double OH_Drawing_TextStyleGetLetterSpacing(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return 0.0;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return 0.0;
+    }
+    return textStyle->letterSpacing;
+}
+
+double OH_Drawing_TextStyleGetWordSpacing(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return 0.0;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return 0.0;
+    }
+    return textStyle->wordSpacing;
+}
+
+double OH_Drawing_TextStyleGetFontHeight(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return 0.0;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return 0.0;
+    }
+    return textStyle->heightScale;
+}
+
+bool OH_Drawing_TextStyleGetHalfLeading(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return false;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return false;
+    }
+    return textStyle->halfLeading;
+}
+
+const char* OH_Drawing_TextStyleGetLocale(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return nullptr;
+    }
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return nullptr;
+    }
+    return textStyle->locale.c_str();
+}
