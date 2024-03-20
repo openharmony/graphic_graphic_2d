@@ -106,14 +106,14 @@ void RSRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas) const
 
 void RSRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas) const
 {
+    auto& renderParams = renderNode_->GetRenderParams();
+    Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+
     auto index = renderNode_->drawCmdIndex_.shadowIndex_;
     if (index == -1) { // no shadowindex, do the same as OnDraw
         DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.endIndex_);
         return;
     }
-
-    auto& renderParams = renderNode_->GetRenderParams();
-    Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.shadowIndex_);
     DrawRangeImpl(canvas, bounds, renderNode_->drawCmdIndex_.shadowIndex_ + 1, renderNode_->drawCmdIndex_.endIndex_);
 }

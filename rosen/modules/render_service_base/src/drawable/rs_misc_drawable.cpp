@@ -33,7 +33,7 @@ RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto children = node.GetSortedChildren();
-    if (children) {
+    if (!children) {
         return false;
     }
     // Regenerate children drawables
