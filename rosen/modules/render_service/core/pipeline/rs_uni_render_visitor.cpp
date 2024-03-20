@@ -4956,6 +4956,9 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
         RS_LOGE("RSUniRenderVisitor::SetUniRenderThreadParam renderThreadParams is nullptr");
         return;
     }
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    renderThreadParams->timestamp_ = hgmCore.GetCurrentTimestamp();
+
     renderThreadParams->isPartialRenderEnabled_ = isPartialRenderEnabled_;
     renderThreadParams->isRegionDebugEnabled_ = isRegionDebugEnabled_;
     renderThreadParams->isDirtyRegionDfxEnabled_ = isDirtyRegionDfxEnabled_;

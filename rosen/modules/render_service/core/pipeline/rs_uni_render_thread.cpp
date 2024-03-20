@@ -140,6 +140,11 @@ void RSUniRenderThread::Render()
     rootNodeDrawable_->OnDraw(canvas);
 }
 
+uint64_t RSUniRenderThread::GetTimestamp()
+{
+    return renderThreadParams_->GetTimestamp();
+}
+
 bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);

@@ -35,7 +35,13 @@ public:
         return isRegionDebugEnabled_;
     }
 
+    uint64_t GetTimestamp()
+    {
+        return timestamp_;
+    }
 private:
+    // Used by hardware thred
+    uint64_t timestamp_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool isRegionDebugEnabled_ = false;
