@@ -1869,20 +1869,20 @@ OH_Drawing_FontFeature* OH_Drawing_TextStyleGetFontFeatures(OH_Drawing_TextStyle
         return nullptr;
     }
     auto& originMap = convertStyle->fontFeatures.GetFontFeatures();
-    size_t fontFeatureSize = OH_Drawing_TextStyleGetFontFeatureSize(style);
+    size_t fontFeatureSize = originMap.size();
     if (fontFeatureSize == 0) {
         return nullptr;
     }
     OH_Drawing_FontFeature *fontFeatureArray = new OH_Drawing_FontFeature[fontFeatureSize];
     size_t index = 0;
     for (auto& kv : originMap) {
-        (fontFeatureArray + index)->fontFeatureKey = new char[(kv.first).size() + 1];
-        auto result = strcpy_s((fontFeatureArray + index)->fontFeatureKey, ((kv.first).size() + 1), (kv.first).c_str());
+        (fontFeatureArray + index)->tag = new char[(kv.first).size() + 1];
+        auto result = strcpy_s((fontFeatureArray + index)->tag, ((kv.first).size() + 1), (kv.first).c_str());
         if (result != 0) {
             OH_Drawing_TextStyleDestroyFontFeatures(fontFeatureArray, index);
             return nullptr;
         }
-        (fontFeatureArray + index)->fontFeatureValue = kv.second;
+        (fontFeatureArray + index)->value = kv.second;
         index++;
     }
     return fontFeatureArray;
@@ -1894,10 +1894,13 @@ void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature
         return;
     }
     for (int i = 0; i < fontFeatureSize; i++) {
-        delete[] (fontFeature + i)->fontFeatureKey;
-        (fontFeature + i)->fontFeatureKey = nullptr;
+        if ((fontFeature + i)->tag == nullptr) {
+            continue;
+        }
+        delete[] (fontFeature + i)->tag;
+        (fontFeature + i)->tag = nullptr;
     }
-    delete fontFeature;
+    delete[] fontFeature;
     fontFeature = nullptr;
 }
 
