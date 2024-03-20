@@ -277,13 +277,19 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
             continue;
         }
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (autoCacheEnable_) {
-            child->GetAutoCache()->OpincStartMarkStableStaticNode(unchangeMark_, autoCacheChildDisable_);
+        bool isPrepareAutoCache = autoCacheEnable_ && !isDiscardSurface_ && unchangeMarkEnable_;
+        if (isPrepareAutoCache) {
+            child->GetAutoCache()->OpincStartMarkStableNode(unchangeMark_, true);
         }
 #endif
         if (child->IsDirty()) {
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+            if (isPrepareAutoCache) {
+                child->GetAutoCache()->OpincEndMarkStableNode(unchangeMark_);
+            }
+#endif
             continue;
         }
         // set flag for surface node whose children contain shared transition node
@@ -295,12 +301,21 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
             // fully prepare hwcLayer Layer and its subnodes
             if (surfaceNode->IsHardwareEnabledType()) {
                 PrepareSurfaceRenderNode(*surfaceNode);
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+                if (isPrepareAutoCache) {
+                    child->GetAutoCache()->OpincEndMarkStableNode(unchangeMark_);
+                }
+#endif
                 return;
             }
-            UpdateSecurityAndSkipLayerRecord(*surfaceNode);
         } else if (auto effectNode = child->ReinterpretCastTo<RSEffectRenderNode>()) {
             // effectNode need to update effectRegion so effectNode and use-effect child should be updated
             PrepareEffectNodeIfCacheReuse(cacheRootNode, effectNode);
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+            if (isPrepareAutoCache) {
+                child->GetAutoCache()->OpincEndMarkStableNode(unchangeMark_);
+            }
+#endif
             return;
         }
         if (child->GetRenderProperties().NeedFilter() || child->GetRenderProperties().GetUseEffect()) {
@@ -315,8 +330,8 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
         }
         UpdateSubTreeInCache(child, *child->GetSortedChildren());
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (autoCacheEnable_) {
-            child->GetAutoCache()->OpincEndMarkStableStaticNode(unchangeMark_, autoCacheChildDisable_);
+        if (isPrepareAutoCache) {
+            child->GetAutoCache()->OpincEndMarkStableNode(unchangeMark_);
         }
 #endif
     }
@@ -1022,10 +1037,6 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
         curSurfaceNode_->AddChildHardwareEnabledNode(node.ReinterpretCastTo<RSSurfaceRenderNode>());
         node.SetLocalZOrder(localZOrder_++);
     }
-
-    // record whether child node is security or skip layer
-    // it should be call after reset to false for each loop
-    UpdateSecurityAndSkipLayerRecord(node);
 }
 
 void RSUniRenderVisitor::ClassifyUIFirstSurfaceDirtyStatus(RSSurfaceRenderNode& node)
@@ -1135,16 +1146,10 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
 
 void RSUniRenderVisitor::UpdateSecurityAndSkipLayerRecord(RSSurfaceRenderNode& node)
 {
-    if (curSurfaceNode_ == nullptr) {
-        return;
-    }
-    if (node.GetSecurityLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId()) {
-        curSurfaceNode_->SetHasSecurityLayer(true);
+    if (node.GetHasSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
     }
-    if (node.GetSkipLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId() &&
-        node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-        curSurfaceNode_->SetHasSkipLayer(true);
+    if (node.GetHasSkipLayer() && node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
         displayHasSkipSurface_[currentVisitDisplay_] = true;
     }
 }
@@ -1161,11 +1166,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     RS_OPTIONAL_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] nodeid: " +
         std::to_string(node.GetId()) +  " pid: " + std::to_string(ExtractPid(node.GetId())) +
         ", nodeType " + std::to_string(static_cast<uint>(node.GetSurfaceNodeType())));
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (autoCacheEnable_) {
-        node->GetAutoCache()->DisableAutoCacheWithForce(unchangeMark_);
-    }
-#endif
     if (curDisplayNode_ == nullptr) {
         ROSEN_LOGE("RSUniRenderVisitor::PrepareSurfaceRenderNode, curDisplayNode_ is nullptr.");
         return;
@@ -1187,26 +1187,19 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetAncestorDisplayNode(curDisplayNode_);
     CheckColorSpace(node);
     CheckPixelFormat(node);
-
+    // only need collect first level node's security & skip layer info
+    if (node.GetId() == node.GetFirstLevelNodeId()) {
+        UpdateSecurityAndSkipLayerRecord(node);
+    }
     // stop traversal if node keeps static
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
         // node type is mainwindow.
-        if (node.GetHasSecurityLayer() && node.GetId() == node.GetInstanceRootNodeId()) {
-            displayHasSecSurface_[currentVisitDisplay_] = true;
-        }
-        if (node.GetHasSkipLayer() && node.GetId() == node.GetInstanceRootNodeId() &&
-            node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-            displayHasSkipSurface_[currentVisitDisplay_] = true;
-        }
         PrepareSubSurfaceNodes(node);
         return;
     }
     // Attension: Updateinfo before info reset
     node.StoreMustRenewedInfo();
     SetHasSharedTransitionNode(node, false);
-    // reset HasSecurityLayer
-    node.SetHasSecurityLayer(false);
-    node.SetHasSkipLayer(false);
     node.CleanDstRectChanged();
     if (node.IsHardwareEnabledTopSurface()) {
         node.ResetSubNodeShouldPaint();
@@ -1245,7 +1238,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (autoCacheEnable_ && node.IsappWindow()) {
-        node->GetAutoCache()->OpincSetInAppStateStart(unchangeMark_, opNodeDepth_, opIncSubtreePropDirty_);
+        node->GetAutoCache()->OpincSetInAppStateStart(unchangeMarkEnable_, unchangeMark_, isDiscardSurface_);
     }
 #endif
     // Update node properties, including position (dstrect), OldDirty()
@@ -1376,7 +1369,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetOpaqueRegionBaseInfo(screenRect, geoPtr->GetAbsRect(), screenRotation, isFocused, dstCornerRadius);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (autoCacheEnable_ && node.IsappWindow()) {
-        node->GetAutoCache()->OpincSetInAppStateEnd(unchangeMark_);
+        node->GetAutoCache()->OpincSetInAppStateEnd(unchangeMarkEnable_, unchangeMark_, isDiscardSurface_);
     }
 #endif
     if (node.IsMainWindowType()) {
@@ -1406,7 +1399,7 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
         Drawing::scalar scaleFactors[2];
         getMinMaxScales = absMatrix.GetMinMaxScales(scaleFactors);
         if (getMinMaxScales) {
-            isScale = !ROSEN_EQ(scaleFactors[0], 1.f) || !ROSEN_EQ(scaleFactors[1], 1.f);
+            isScale = !ROSEN_EQ(scaleFactors[0], 1.f, EPSILON_SCALE) || !ROSEN_EQ(scaleFactors[1], 1.f, EPSILON_SCALE);
         }
         if (!getMinMaxScales) {
             RS_LOGD("getMinMaxScales fail, node:%{public}s %{public}" PRIu64 "", node.GetName().c_str(), node.GetId());
@@ -1415,8 +1408,9 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
             float dstRectHeight = dstRect.GetHeight();
             float boundsWidth = property.GetBoundsWidth();
             float boundsHeight = property.GetBoundsHeight();
-            isScale = !ROSEN_EQ(std::min(dstRectWidth, dstRectHeight), std::min(boundsWidth, boundsHeight))
-                || !ROSEN_EQ(std::max(dstRectWidth, dstRectHeight), std::max(boundsWidth, boundsHeight));
+            isScale =
+                !ROSEN_EQ(std::min(dstRectWidth, dstRectHeight), std::min(boundsWidth, boundsHeight), EPSILON_SCALE)
+                || !ROSEN_EQ(std::max(dstRectWidth, dstRectHeight), std::max(boundsWidth, boundsHeight), EPSILON_SCALE);
         }
     }
     node.SetIsScale(isScale);
@@ -1558,9 +1552,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         curSurfaceNode_->SetSubNodeShouldPaint();
     }
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (autoCacheEnable_) {
-        node->GetAutoCache()->OpincStartMarkStableNode(unchangeMark_, autoCacheChildDisable_,
-            opIncSubtreePropDirty_, opNodeDepth_);
+    bool isPrepareAutoCache = autoCacheEnable_ && !isDiscardSurface_ && unchangeMarkEnable_;
+    if (isPrepareAutoCache) {
+        node->GetAutoCache()->OpincStartMarkStableNode(unchangeMark_, false);
     }
 #endif
     // if canvasNode is not sub node of surfaceNode, merge the dirtyRegion to curDisplayDirtyManager_
@@ -1668,8 +1662,8 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (autoCacheEnable_) {
-        node->GetAutoCache()->OpincEndMarkStableNode(unchangeMark_, autoCacheChildDisable_, opNodeDepth_);
+    if (isPrepareAutoCache) {
+        node->GetAutoCache()->OpincEndMarkStableNode(unchangeMark_);
     }
 #endif
 #if defined(RS_ENABLE_DRIVEN_RENDER)
@@ -1677,6 +1671,12 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     if (drivenInfo_ && isContentCanvasNode) {
         drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty = isBeforeContentNodeDirty;
         drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER;
+    }
+#endif
+
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        node.SetFullSurfaceOpaqueMarks(curSurfaceNode_);
     }
 #endif
 }
@@ -1757,7 +1757,7 @@ void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawi
     }
 #else
     std::string position = std::to_string(dirtyRect.left_) + ',' + std::to_string(dirtyRect.top_) + ',' +
-        std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_);
+        std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_) + extra;
 #endif
     const int defaultTextOffsetX = edgeWidth;
     const int defaultTextOffsetY = 30; // text position has 30 pixelSize under the Rect
@@ -2084,6 +2084,12 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
         return;
     }
 
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        node.SetSubNodesCovered();
+    }
+#endif
+
     CheckSkipRepeatShadow(node, false);
     const auto children = node.GetSortedChildren();
 
@@ -2104,6 +2110,11 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     }
 
     CheckSkipRepeatShadow(node, true);
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        node.ResetSubNodesCovered();
+    }
+#endif
 }
 
 void RSUniRenderVisitor::ProcessChildrenForScreenRecordingOptimization(
@@ -2301,8 +2312,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mirrorAutoRotate_ = true;
         }
         canvas_->Save();
-        ScaleMirrorIfNeed(node);
-        RotateMirrorCanvasIfNeed(node);
+        bool canvasRotation = screenManager->GetCanvasRotation(node.GetScreenId());
+        ScaleMirrorIfNeed(node, canvasRotation);
+        RotateMirrorCanvasIfNeed(node, canvasRotation);
         bool forceCPU = false;
         auto params = RSUniRenderUtil::CreateBufferDrawParam(*mirrorNode, forceCPU);
         params.isMirror = true;
@@ -2342,9 +2354,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
                 RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode screen recording optimization is enable");
                 ScaleMirrorIfNeed(node, canvasRotation);
-                if (canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
-                    RotateMirrorCanvasIfNeed(node);
-                }
+                RotateMirrorCanvasIfNeed(node, canvasRotation);
                 canvas_->Save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
                 if (resetRotate_) {
@@ -2374,9 +2384,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 mirrorNode->SetCacheImgForCapture(nullptr);
                 auto saveCount = canvas_->Save();
                 ScaleMirrorIfNeed(node, canvasRotation);
-                if (canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
-                    RotateMirrorCanvasIfNeed(node);
-                }
+                RotateMirrorCanvasIfNeed(node, canvasRotation);
                 PrepareOffscreenRender(*mirrorNode);
                 canvas_->SetDisableFilterCache(true);
                 ProcessChildren(*mirrorNode);
@@ -2432,13 +2440,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
-            RSMainThread::Instance()->rsVSyncDistributor_->MarkRSNotRendering();
             GpuDirtyRegion::GetInstance().AddSkipProcessFramesNumberForXpower(node.GetScreenId());
 #ifdef OHOS_PLATFORM
             RSJankStats::GetInstance().SetSkipDisplayNode();
 #endif
             resetRotate_ = CheckIfNeedResetRotate();
             if (!IsHardwareComposerEnabled()) {
+                RSMainThread::Instance()->rsVSyncDistributor_->MarkRSNotRendering();
                 return;
             }
             if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
@@ -2451,8 +2459,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                     }
                 }
                 RS_TRACE_NAME("DisplayNodeSkip skip commit");
+                RSMainThread::Instance()->rsVSyncDistributor_->MarkRSNotRendering();
                 return;
             }
+            RSMainThread::Instance()->rsVSyncDistributor_->UnmarkRSNotRendering();
             bool needCreateDisplayNodeLayer = false;
             for (auto& surfaceNode: hardwareEnabledNodes_) {
                 if (!surfaceNode->IsHardwareForcedDisabled()) {
@@ -2466,6 +2476,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 processor_->PostProcess(&node);
             }
             return;
+        } else {
+            RSMainThread::Instance()->rsVSyncDistributor_->UnmarkRSNotRendering();
         }
 
         auto rsSurface = node.GetRSSurface();
@@ -2517,8 +2529,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         bool clipPath = false;
 #ifdef RS_ENABLE_VK
         int saveCountBeforeClip = 0;
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             saveCountBeforeClip = canvas_->Save();
         }
 #endif
@@ -2557,8 +2568,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 for (auto& r : rects) {
                     int32_t topAfterFlip = 0;
 #ifdef RS_ENABLE_VK
-                    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    if (RSSystemProperties::IsUseVulkan()) {
                         topAfterFlip = r.top_;
                     } else {
                         topAfterFlip = static_cast<int32_t>(screenInfo_.GetRotatedHeight()) - r.GetBottom();
@@ -2588,8 +2598,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 clipPath = true;
 #ifdef RS_ENABLE_VK
-                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                if (RSSystemProperties::IsUseVulkan()) {
                     canvas_->ClipRegion(region);
                 } else {
                     Drawing::Path dirtyPath;
@@ -2686,8 +2695,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (autoCacheDrawingEnable_) {
-            DrawCacheRegionForDFX(autoCacheRenderNodeInfos_);
+        if (autoCacheDrawingEnable_ && !RSSystemParameters::GetDrawingCacheEnableDfx()) {
+            DrawAutoCacheRegionForDFX(autoCacheRenderNodeInfos_);
         }
 #endif
 
@@ -2720,8 +2729,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mainThread->RemoveTask(CLEAR_GPU_CACHE);
         }
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             canvas_->RestoreToCount(saveCountBeforeClip);
         }
 #endif
@@ -3460,8 +3468,7 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
     for (const Occlusion::Rect& rect : rects) {
         // origin transformation
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             retRects.emplace_back(RectI(rect.left_, rect.top_,
                 rect.right_ - rect.left_, rect.bottom_ - rect.top_));
         } else {
@@ -3561,11 +3568,26 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         node.SetDrawingCacheRootId(node.GetId());
     }
+
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (RSSystemParameters::IsOpincRealDrawCacheEnable() && node.GetAutoCache()->isComputeDrawAreaSucc()) {
+        auto& unionRect = node.GetAutoCache()->GetOpListUnionArea();
+        canvas_->Translate(-unionRect.GetLeft(), -unionRect.GetTop());
+    }
+#endif
+
     node.ProcessRenderContents(*canvas_);
     // Set a count to label the ProcessChildren in updateCacheProcess
     updateCacheProcessCnt_++;
     ProcessChildren(node);
     updateCacheProcessCnt_--;
+
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (RSSystemParameters::IsOpincRealDrawCacheEnable() && node.GetAutoCache()->isComputeDrawAreaSucc()) {
+        auto& unionRect = node.GetAutoCache()->GetOpListUnionArea();
+        canvas_->Translate(unionRect.GetLeft(), unionRect.GetTop());
+    }
+#endif
 
     if (cacheType == CacheType::ANIMATE_PROPERTY) {
         if (node.GetRenderProperties().IsShadowValid()
@@ -3804,7 +3826,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (autoCacheEnable_) {
-        node.GetAutoCache->OpIncStateInitWithSurface(nodeCacheType_, opincRootRect_, isDiscardSurface_, isSubThread_);
+        node.GetAutoCache->OpIncStateInitWithSurface(nodeCacheType_, isDiscardSurface_, isSubThread_);
     }
 #endif
     if (isUIFirst_ && isSubThread_) {
@@ -3851,8 +3873,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         node.SetDrawingGPUContext(renderEngine_->GetSkContext().get());
     }
 #endif
@@ -3895,8 +3916,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isOpDropped_ && node.IsAppWindow()) {
         const auto& visibleRegions = node.GetVisibleRegion().GetRegionRects();
         if (visibleRegions.size() == 1) {
-            canvas_->SetVisibleRect(Drawing::Rect(
-                visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
+            auto visibleRect = Drawing::Rect(
+                visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_);
+            Drawing::Matrix inverse;
+            if (displayNodeMatrix_.has_value() && displayNodeMatrix_.value().Invert(inverse)) {
+                inverse.MapRect(visibleRect, visibleRect);
+            }
+            canvas_->SetVisibleRect(visibleRect);
         }
     }
 
@@ -4001,8 +4027,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 params.targetColorGamut = newColorSpace_;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
                 auto screenManager = CreateOrGetScreenManager();
-                auto ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
-                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
+                std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+                if (node.GetAncestorDisplayNode().lock() != nullptr) {
+                    ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+                }
+                if (ancestor != nullptr) {
+                    params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
+                }
 #endif
                 auto bgColor = property.GetBackgroundColor();
                 if ((node.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
@@ -4272,17 +4303,60 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
+#ifdef DDGR_ENABLE_FEATURE_OP_INC_DFX
+    RS_TRACE_NAME_FMT("process_canvas %.2f, %s", canvas_ ? canvas_->GetAlpha() : -1.0f,
+        node.GetAutoCache()->GetNodeDebugInfo().c_str());
+#endif
     processedCanvasNodeInCurrentSurface_++;
     if (!node.ShouldPaint() ||
         (canvas_ && canvas_->GetDeviceClipBounds().IsEmpty() && hardwareEnabledNodes_.empty())) {
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        if (isOpincDropNodeExt_) {
+            return;
+        }
+#else
         return;
+#endif
     }
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ && !node.HasSubSurface() &&
         geoPtr && IsOutOfScreenRegion(geoPtr->GetAbsRect()) && !isSubThread_) {
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        if (isOpincDropNodeExt_) {
+            return;
+        }
+#else
         return;
+#endif
     }
     node.MarkNodeSingleFrameComposer(isNodeSingleFrameComposer_);
+
+#ifdef RS_ENABLE_STACK_CULLING
+    if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
+        if (node.isCoveredByOtherNode_ && isSubNodeOfSurfaceInProcess_) {
+            RS_LOGD("%lu [%d %d %d] is coverd by other node SKIP, curSurface %lu %s. %s",
+                node.GetId(), node.isFullSurfaceOpaquCanvasNode_, node.hasChildFullSurfaceOpaquCanvasNode_,
+                node.isCoveredByOtherNode_, (curSurfaceNode_ ? curSurfaceNode_->GetId() : 0),
+                (curSurfaceNode_ ? curSurfaceNode_->GetName() : "N/A"),
+                (node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect()).ToString().c_str());
+            RS_OPTIONAL_TRACE_NAME_FMT("%lu [%d %d %d] is coverd by other node SKIP, curSurface %lu %s. %s",
+                node.GetId(), node.isFullSurfaceOpaquCanvasNode_, node.hasChildFullSurfaceOpaquCanvasNode_,
+                node.isCoveredByOtherNode_, (curSurfaceNode_ ? curSurfaceNode_->GetId() : 0),
+                (curSurfaceNode_ ? curSurfaceNode_->GetName() : "N/A"),
+                (node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect()).ToString().c_str());
+
+            node.isCoveredByOtherNode_ = false;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+            if (isOpincDropNodeExt_) {
+                return;
+            }
+#else
+            return;
+#endif
+        }
+    }
+#endif
+
     if ((isOpDropped_ && (curSurfaceNode_ != nullptr)) || isCanvasNodeSkipDfxEnabled_) {
         // If all the child nodes have drawing areas that do not exceed the current node, then current node
         // can be directly skipped if not intersect with any dirtyregion.
@@ -4322,12 +4396,19 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         drivenInfo_->currDrivenRenderMode != DrivenUniRenderMode::RENDER_WITH_NORMAL) {
         // skip render driven node sub tree
         if (RSDrivenRenderManager::GetInstance().ClipHoleForDrivenNode(*canvas_, node)) {
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+            if (isOpincDropNodeExt_) {
+                return;
+            }
+#else
             return;
+#endif
         }
     }
 #endif
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (autoCacheEnable_) {
+    bool isProcessAutoCache = autoCacheEnable_ && !isDiscardSurface_ && node->GetAutoCache()->IsOpincUnchangeNode();
+    if (isProcessAutoCache) {
         if (node->GetAutoCache()->BeforeDrawCache(nodeCacheType_, autoCacheRenderNodeInfos_,
             autoCacheDrawingEnable_, isDiscardSurface_, canvas_, screenInfo_.width, screenInfo_.height)) {
             return;
@@ -4360,7 +4441,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (autoCacheEnable_) {
+        if (isProcessAutoCache) {
             node->GetAutoCache()->AfterDrawCache(nodeCacheType_);
         }
 #endif
@@ -4372,25 +4453,26 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
             // The second param is null, 0 is an invalid value.
             RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
         };
-        drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
+        auto threadId = RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIndex_];
+        drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc }, threadId);
     }
     CheckAndSetNodeCacheType(node);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (autoCacheEnable_) {
-            node->GetAutoCache()->BeforeDrawCache(canvas_, opincRootRect_, isOpincDropNodeExt_);
+        if (isProcessAutoCache) {
+            node->GetAutoCache()->OpincCalculateBefore(canvas_, isOpincDropNodeExt_);
         }
 #endif
     DrawChildCanvasRenderNode(node);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (autoCacheEnable_) {
-            node->GetAutoCache()->AfterDrawCache(canvas_, isOpincDropNodeExt_);
+        if (isProcessAutoCache) {
+            node->GetAutoCache()->OpincCalculateAfter(canvas_, isOpincDropNodeExt_);
         }
 #endif
     notRunCheckAndSetNodeCacheType_ = false;
     canvas_->Restore();
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (autoCacheEnable_) {
-        node->GetAutoCache()->AfterDrawCache(canvas_, isDiscardSurface_, nodeCacheType_, true);
+    if (isProcessAutoCache) {
+        node->GetAutoCache()->AfterDrawCache(canvas_, isDiscardSurface_, nodeCacheType_);
     }
 #endif
 }
@@ -4787,29 +4869,35 @@ void RSUniRenderVisitor::endCapture() const
 }
 #endif
 
-void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node)
+void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation)
 {
     auto mirrorNode = node.GetMirrorSource().lock();
+    if ((canvasRotation && (RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) ||
+        (!canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0))) {
+        return;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
+    auto mainWidth = static_cast<float>(mainScreenInfo.width);
+    auto mainHeight = static_cast<float>(mainScreenInfo.height);
     auto rotation = mirrorNode->GetScreenRotation();
     if (RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) {
-        if (rotation == ScreenRotation::ROTATION_270) {
-            rotation = ScreenRotation::ROTATION_0;
-        } else {
-            rotation = static_cast<ScreenRotation>(static_cast<int>(rotation) + 1);
+        if (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) {
+            std::swap(mainWidth, mainHeight);
         }
+        auto oriRotation = node.GetOriginScreenRotation();
+        rotation = static_cast<ScreenRotation>((static_cast<int>(oriRotation) -
+            static_cast<int>(rotation) + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     }
     if (rotation != ScreenRotation::ROTATION_0) {
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
         if (rotation == ScreenRotation::ROTATION_90) {
             canvas_->Rotate(90, 0, 0);
-            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.height)));
+            canvas_->Translate(0, -mainHeight);
         } else if (rotation == ScreenRotation::ROTATION_180) {
-            canvas_->Rotate(180, static_cast<float>(mainScreenInfo.width) / 2,
-                static_cast<float>(mainScreenInfo.height) / 2);
+            canvas_->Rotate(180, mainWidth / 2, mainHeight / 2);
         } else if (rotation == ScreenRotation::ROTATION_270) {
             canvas_->Rotate(270, 0, 0);
-            canvas_->Translate(-(static_cast<float>(mainScreenInfo.width)), 0);
+            canvas_->Translate(-mainWidth, 0);
         }
     }
 }
@@ -4819,8 +4907,11 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
     auto screenManager = CreateOrGetScreenManager();
     auto mirrorNode = node.GetMirrorSource().lock();
     auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
-    float mainWidth = static_cast<float>(mainScreenInfo.width);
-    float mainHeight = static_cast<float>(mainScreenInfo.height);
+    auto mainWidth = static_cast<float>(mainScreenInfo.width);
+    auto mainHeight = static_cast<float>(mainScreenInfo.height);
+    auto mirrorWidth = node.GetRenderProperties().GetBoundsWidth();
+    auto mirrorHeight = node.GetRenderProperties().GetBoundsHeight();
+    auto scaleMode = screenManager->GetScaleMode(node.GetScreenId());
     if (canvasRotation) {
         if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) ||
             mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_90 ||
@@ -4828,34 +4919,31 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
             std::swap(mainWidth, mainHeight);
         }
     } else {
-        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) ||
-            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
-            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270) {
-            std::swap(mainWidth, mainHeight);
-        }
-        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0 &&
-            (mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_90 ||
-            mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_270)) || mirrorAutoRotate_) {
-            std::swap(mainWidth, mainHeight);
+        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
+            auto oriRotation = node.GetOriginScreenRotation();
+            auto curRotation = node.GetScreenRotation();
+            auto rotation = static_cast<ScreenRotation>((static_cast<int>(oriRotation) -
+                static_cast<int>(curRotation) + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
+            if (rotation == ScreenRotation::ROTATION_0 ||
+                rotation == ScreenRotation::ROTATION_180) {
+                std::swap(mainWidth, mainHeight);
+            }
+        } else {
+            if ((node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
+                node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270)) {
+                std::swap(mirrorWidth, mirrorHeight);
+            }
         }
     }
-    float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
-    float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
     // If the width and height not match the main screen, calculate the dstRect.
-    if (mainWidth != boundsWidth || mainHeight != boundsHeight) {
+    if (mainWidth != mirrorWidth || mainHeight != mirrorHeight) {
         canvas_->Clear(SK_ColorBLACK);
-        float mirrorScale = 1.0f; // 1 for init scale
-        float startX = 0.0f;
-        float startY = 0.0f;
-        if ((boundsHeight / boundsWidth) < (mainHeight / mainWidth)) {
-            mirrorScale = boundsHeight / mainHeight;
-            startX = (boundsWidth - (mirrorScale * mainWidth)) / 2; // 2 for calc X
-        } else if ((boundsHeight / boundsWidth) > (mainHeight / mainWidth)) {
-            mirrorScale = boundsWidth / mainWidth;
-            startY = (boundsHeight - (mirrorScale * mainHeight)) / 2; // 2 for calc Y
+        auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
+        if (scaleMode == ScreenScaleMode::FILL_MODE) {
+            processor->Fill(*canvas_, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
+        } else if (scaleMode == ScreenScaleMode::UNISCALE_MODE) {
+            processor->UniScale(*canvas_, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
         }
-        canvas_->Translate(startX, startY);
-        canvas_->Scale(mirrorScale, mirrorScale);
     }
 }
 

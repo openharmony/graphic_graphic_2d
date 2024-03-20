@@ -91,7 +91,9 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
         }
     } else {
         for (const auto& modifier : itr->second) {
-            modifier->Apply(context);
+            if (modifier) {
+                modifier->Apply(context);
+            }
         }
     }
 }

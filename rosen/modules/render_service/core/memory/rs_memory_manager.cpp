@@ -292,6 +292,10 @@ void MemoryManager::DumpGpuCache(
         gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, *tag);
     } else {
         gpuContext->DumpMemoryStatistics(&gpuTracer);
+#ifdef RS_ENABLE_VK
+        RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
+        memStat.DumpMemoryStatistics(&gpuTracer);
+#endif
     }
     gpuTracer.LogOutput(log);
     log.AppendFormat("Total GPU memory usage:\n");

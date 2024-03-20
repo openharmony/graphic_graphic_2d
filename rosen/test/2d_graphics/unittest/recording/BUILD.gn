@@ -19,7 +19,6 @@ ohos_unittest("2d_graphics_recording_test") {
   module_out_path = module_output_path
 
   sources = [
-    "adaptive_image_helper_test.cpp",
     "cmd_list_helper_test.cpp",
     "draw_cmd_test.cpp",
     "recording_canvas_test.cpp",

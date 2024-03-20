@@ -18,7 +18,6 @@
 #endif
 #include <fstream>
 #include "c/drawing_register_font.h"
-
 #ifndef USE_GRAPHIC_TEXT_GINE
 #include "rosen_text/ui/font_collection.h"
 #else
@@ -66,7 +65,6 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
     if (fontCollection == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;
     }
-
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
 #ifndef USE_GRAPHIC_TEXT_GINE
     fc->LoadFontFromList(data, dataLength, familyName);

@@ -263,13 +263,19 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 } // namespace OHOS::Rosen
 
 #ifdef ROSEN_OHOS
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL_ROSEN = {LOG_CORE, 0xD001400, "JsDrawing"};
-#define ROSEN_LOGI(format, ...) \
-    OHOS::HiviewDFX::HiLog::Info(LABEL_ROSEN, format, ##__VA_ARGS__)
-#define ROSEN_LOGD(format, ...) \
-    OHOS::HiviewDFX::HiLog::Debug(LABEL_ROSEN, format, ##__VA_ARGS__)
-#define ROSEN_LOGE(format, ...) \
-    OHOS::HiviewDFX::HiLog::Error(LABEL_ROSEN, format, ##__VA_ARGS__)
+
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
+#undef LOG_TAG
+#define LOG_TAG "JsDrawing"
+
+#define ROSEN_LOGI(format, ...)              \
+    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGD(format, ...)               \
+    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGE(format, ...)               \
+    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
 #else
 #define ROSEN_LOGI(format, ...)
 #define ROSEN_LOGD(format, ...)

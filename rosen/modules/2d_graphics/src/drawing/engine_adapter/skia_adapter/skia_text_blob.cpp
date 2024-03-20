@@ -102,7 +102,7 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromRSXform(const void* text, size_t
     return std::make_shared<TextBlob>(textBlobImpl);
 }
 
-std::shared_ptr<Data> SkiaTextBlob::Serialize() const
+std::shared_ptr<Data> SkiaTextBlob::Serialize(void* ctx) const
 {
     if (!skTextBlob_) {
         LOGD("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -110,6 +110,7 @@ std::shared_ptr<Data> SkiaTextBlob::Serialize() const
     }
     SkSerialProcs procs;
     procs.fTypefaceProc = &SkiaTypeface::SerializeTypeface;
+    procs.fTypefaceCtx = ctx;
     auto skData = skTextBlob_->serialize(procs);
     auto data = std::make_shared<Data>();
     auto skiaData = data->GetImpl<SkiaData>();
@@ -121,10 +122,11 @@ std::shared_ptr<Data> SkiaTextBlob::Serialize() const
     return data;
 }
 
-std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t size)
+std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t size, void* ctx)
 {
     SkDeserialProcs procs;
     procs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
+    procs.fTypefaceCtx = ctx;
     sk_sp<SkTextBlob> skTextBlob = SkTextBlob::Deserialize(data, size, procs);
     if (!skTextBlob) {
         LOGD("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);

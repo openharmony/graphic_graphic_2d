@@ -182,8 +182,8 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
   }
 
-  if (graphic_2d_feature_enable_ddgr_opinc) {
-    include_dirs += ddgr_adapter_opt_set.ddgr_opinc_include_set
+  if (graphic_2d_feature_enable_opinc) {
+    include_dirs += opinc_adapter_opt_set.opinc_include_set
   }
 
   deps = [

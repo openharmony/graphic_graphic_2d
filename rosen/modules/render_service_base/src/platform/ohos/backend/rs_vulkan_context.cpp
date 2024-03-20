@@ -53,7 +53,7 @@ static std::vector<const char*> gDeviceExtensions = {
 
 static const int GR_CACHE_MAX_COUNT = 8192;
 static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
-static const int32_t CACHE_LIMITS_TIMES = 3;
+static const int32_t CACHE_LIMITS_TIMES = 6;
 
 RsVulkanContext::RsVulkanContext()
     : handle_(nullptr), acquiredMandatoryProcAddresses_(false), memHandler_(nullptr)
@@ -340,7 +340,7 @@ bool RsVulkanContext::OpenLibraryHandle()
 {
     ROSEN_LOGI("VulkanProcTable OpenLibararyHandle: dlopen libvulkan.so.");
     dlerror();
-    handle_ = dlopen("/system/lib64/libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+    handle_ = dlopen("/system/lib64/platformsdk/libvulkan.so", RTLD_NOW | RTLD_LOCAL);
     if (handle_ == nullptr) {
         ROSEN_LOGE("Could not open the vulkan library: %{public}s", dlerror());
         return false;

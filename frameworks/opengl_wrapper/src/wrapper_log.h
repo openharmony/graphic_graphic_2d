@@ -27,23 +27,20 @@ namespace OHOS {
 #define WPUBU64  "%{public}llu"
 #endif
 
-#define GLW_DFUNC OHOS::HiviewDFX::HiLog::Debug
-#define GLW_IFUNC OHOS::HiviewDFX::HiLog::Info
-#define GLW_WFUNC OHOS::HiviewDFX::HiLog::Warn
-#define GLW_EFUNC OHOS::HiviewDFX::HiLog::Error
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 1400
 
-#define GLW_CPRINTF(func, fmt, ...) \
-    func( {LOG_CORE, 0xD001400, "OpenGLWrapper"}, "<%{public}d>%{public}s: " fmt, \
-        __LINE__, __func__, ##__VA_ARGS__)
+#undef LOG_TAG
+#define LOG_TAG "OpenGLWrapper"
 
 #ifdef EGL_WRAPPER_DEBUG_ENABLE
-#define WLOGD(fmt, ...) GLW_CPRINTF(GLW_DFUNC, fmt, ##__VA_ARGS__)
+#define WLOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
 #else
 #define WLOGD(fmt, ...)
 #endif
 
-#define WLOGI(fmt, ...) GLW_CPRINTF(GLW_IFUNC, fmt, ##__VA_ARGS__)
-#define WLOGW(fmt, ...) GLW_CPRINTF(GLW_WFUNC, fmt, ##__VA_ARGS__)
-#define WLOGE(fmt, ...) GLW_CPRINTF(GLW_EFUNC, fmt, ##__VA_ARGS__)
+#define WLOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
+#define WLOGW(fmt, ...) HILOG_WARN(LOG_CORE, fmt, ##__VA_ARGS__)
+#define WLOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_WRAPPER_LOG_H

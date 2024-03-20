@@ -20,10 +20,9 @@
 #include <optional>
 #include <vector>
 
-#include "draw/color.h"
+#include "draw/canvas.h"
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
-#include "recording/adaptive_image_helper.h"
 #include "recording/recording_handle.h"
 #include "utils/drawing_macros.h"
 #ifdef ROSEN_OHOS
@@ -31,9 +30,6 @@
 #endif
 
 namespace OHOS {
-namespace Media {
-class PixelMap;
-}
 namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
@@ -65,15 +61,7 @@ class DRAWING_API CmdList {
 public:
     enum Type : uint32_t {
         CMD_LIST = 0,
-        COLOR_FILTER_CMD_LIST,
-        COLOR_SPACE_CMD_LIST,
         DRAW_CMD_LIST,
-        IMAGE_FILTER_CMD_LIST,
-        MASK_FILTER_CMD_LIST,
-        PATH_CMD_LIST,
-        PATH_EFFECT_CMD_LIST,
-        REGION_CMD_LIST,
-        SHADER_EFFECT_CMD_LIST,
         MASK_CMD_LIST,
     };
 
@@ -134,30 +122,13 @@ public:
     OpDataHandle AddImage(const Image& image);
     std::shared_ptr<Image> GetImage(const OpDataHandle& imageHandle);
 
+    OpDataHandle AddTypeface(const std::shared_ptr<Typeface>& typeface);
+    std::shared_ptr<Typeface> GetTypeface(const OpDataHandle& typefaceHandle);
+
     uint32_t AddBitmapData(const void* data, size_t size);
     const void* GetBitmapData(uint32_t offset) const;
     bool SetUpBitmapData(const void* data, size_t size);
     CmdListData GetAllBitmapData() const;
-
-    /*
-     * @brief  return pixelmap index, negative is error.
-     */
-    uint32_t AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
-
-    /*
-     * @brief  get pixelmap by index.
-     */
-    std::shared_ptr<Media::PixelMap> GetPixelMap(uint32_t id);
-
-    /*
-     * @brief  return pixelmaplist size, 0 is no pixelmap.
-     */
-    uint32_t GetAllPixelMap(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList);
-
-    /*
-     * @brief  return real setup pixelmap size.
-     */
-    uint32_t SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList);
 
     /*
      * @brief  return imageObject index, negative is error.
@@ -253,13 +224,11 @@ protected:
     std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
     std::recursive_mutex mutex_;
     std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
+    std::map<uint32_t, std::shared_ptr<Typeface>> typefaceMap_;
     std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
+    std::vector<std::pair<uint32_t, OpDataHandle>> typefaceHandleVec_;
     uint32_t opCnt_ = 0;
 
-#ifdef SUPPORT_OHOS_PIXMAP
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;
-    std::mutex pixelMapMutex_;
-#endif
     std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
     std::mutex imageObjectMutex_;
     std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;

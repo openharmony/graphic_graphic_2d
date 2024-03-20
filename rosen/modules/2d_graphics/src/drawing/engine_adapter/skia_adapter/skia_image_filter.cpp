@@ -25,6 +25,7 @@
 #endif
 
 #include "skia_color_filter.h"
+#include "skia_shader_effect.h"
 
 #include "effect/color_filter.h"
 #include "effect/image_filter.h"
@@ -174,6 +175,29 @@ bool SkiaImageFilter::Deserialize(std::shared_ptr<Data> data)
     SkReadBuffer reader(data->GetData(), data->GetSize());
     filter_ = SkiaHelper::FlattenableDeserialize<SkImageFilter_Base>(data);
     return true;
+}
+
+void SkiaImageFilter::InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter> background,
+    std::shared_ptr<ImageFilter> foreground)
+{
+    sk_sp<SkImageFilter> outer = nullptr;
+    sk_sp<SkImageFilter> inner = nullptr;
+    if (background != nullptr && background->GetImpl<SkiaImageFilter>() != nullptr) {
+        outer = background->GetImpl<SkiaImageFilter>()->GetImageFilter();
+    }
+    if (foreground != nullptr && foreground->GetImpl<SkiaImageFilter>() != nullptr) {
+        inner = foreground->GetImpl<SkiaImageFilter>()->GetImageFilter();
+    }
+    filter_ = SkImageFilters::Blend(static_cast<SkBlendMode>(mode), outer, inner);
+}
+
+void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader)
+{
+    sk_sp<SkShader> skShader = nullptr;
+    if (shader != nullptr && shader->GetImpl<SkiaShaderEffect>() != nullptr) {
+        skShader = shader->GetImpl<SkiaShaderEffect>()->GetShader();
+    }
+    filter_ = SkImageFilters::Shader(skShader);
 }
 
 } // namespace Drawing

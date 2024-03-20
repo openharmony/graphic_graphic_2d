@@ -14,19 +14,18 @@
  */
 
 #include "rs_profiler_capturedata.h"
+
 #include "rs_profiler_archive.h"
 
 namespace OHOS::Rosen {
 
-RSCaptureData::RSCaptureData()
-= default;
+RSCaptureData::RSCaptureData() = default;
 
-RSCaptureData::~RSCaptureData()
-= default;
+RSCaptureData::~RSCaptureData() = default;
 
 void RSCaptureData::Reset()
 {
-    time_ = 0.0F;
+    time_ = 0.0f;
     properties_.clear();
 }
 
@@ -47,9 +46,9 @@ void RSCaptureData::SetProperty(const std::string& name, const std::string& valu
 
 const std::string& RSCaptureData::GetProperty(const std::string& name) const
 {
-    static const std::string defaultStr = "0";
+    static const std::string DEFAULT_STR = "0";
     const auto found = properties_.find(name);
-    return (found != properties_.end()) ? found->second : defaultStr;
+    return (found != properties_.end()) ? found->second : DEFAULT_STR;
 }
 
 float RSCaptureData::GetPropertyFloat(const std::string& name) const
@@ -111,6 +110,7 @@ void RSCaptureData::Serialize(std::vector<char>& out)
 void RSCaptureData::Deserialize(const std::vector<char>& in)
 {
     Reset();
+
     DataReader archive(in);
     Serialize(archive);
 }

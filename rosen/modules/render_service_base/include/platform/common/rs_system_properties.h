@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "common/rs_macros.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -90,12 +91,6 @@ enum class HgmRefreshRateModes {
     SET_RATE_MODE_HIGH = 3
 };
 
-enum class GpuApiType {
-    OPENGL = 0,
-    VULKAN,
-    DDGR,
-};
-
 #ifdef DDGR_ENABLE_FEATURE_OPINC
 enum class DdgrOpincType {
     DDGR_OPINC_NONE = 0,
@@ -124,8 +119,6 @@ public:
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
-    static int GetDumpRSTreeCount();
-    static void SetDumpRSTreeCount(int count);
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
@@ -210,12 +203,21 @@ public:
     static bool IsOpincRealDrawCacheEnable();
 #endif
 
+#ifdef RS_ENABLE_STACK_CULLING
+    static bool GetViewOcclusionCullingEnabled();
+#endif
+
     static bool GetDumpUICaptureEnabled();
     static bool GetDumpUIPixelmapEnabled();
 
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;
+    }
+
+    static inline bool IsUseVulkan()
+    {
+        return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
 private:

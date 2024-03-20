@@ -20,8 +20,11 @@
 
 namespace OHOS {
 namespace {
-// The "0xD001400" is the domain ID for graphic module that alloted by the OS.
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqueue" };
+// The "0xD001401" is the domain ID for graphic module that alloted by the OS.
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001401
+#undef LOG_TAG
+#define LOG_TAG "Bufferqueue"
 }
 
 #if (defined(__aarch64__) || defined(__x86_64__))
@@ -34,17 +37,17 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqu
 #define BPUBU64  "%{public}llu"
 #endif
 
-#define B_DFUNC HiviewDFX::HiLog::Debug
-#define B_IFUNC HiviewDFX::HiLog::Info
-#define B_WFUNC HiviewDFX::HiLog::Warn
-#define B_EFUNC HiviewDFX::HiLog::Error
+#define B_DFUNC HILOG_DEBUG
+#define B_IFUNC HILOG_INFO
+#define B_WFUNC HILOG_WARN
+#define B_EFUNC HILOG_ERROR
 
 #define B_CNPRINTF(func, fmt, ...) \
-    func(LABEL, "(%{public}s) %{public}s: " fmt, \
+    func(LOG_CORE, "(%{public}s) %{public}s: " fmt, \
         name_.c_str(), __func__, ##__VA_ARGS__)
 
 #define B_CPRINTF(func, fmt, ...) \
-    func(LABEL, "<%{public}d>%{public}s: " fmt, \
+    func(LOG_CORE, "<%{public}d>%{public}s: " fmt, \
         __LINE__, __func__, ##__VA_ARGS__)
 
 #define BLOGFD(fmt, ...) B_CPRINTF(B_DFUNC, "plz use self logfunc," fmt, ##__VA_ARGS__)

@@ -13,17 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_PROFILER_ARCHIVE_H
-#define RENDER_SERVICE_PROFILER_ARCHIVE_H
+#ifndef RS_PROFILER_ARCHIVE_H
+#define RS_PROFILER_ARCHIVE_H
 
 #include <cstring>
 #include <filesystem>
 #include <iostream>
-#include <securec.h>
 #include <string>
 #include <vector>
 
+#include "rs_profiler_utils.h"
+
+#ifndef REPLAY_TOOL_CLIENT
+#include <securec.h>
 #include "platform/common/rs_log.h"
+#else
+#include "rs_adapt.h"
+#endif
 
 namespace OHOS::Rosen {
 
@@ -137,22 +143,17 @@ protected:
 
 // File archives
 
-template<bool reader = true>
+template<bool Reader = true>
 class FileArchive final : public Archive {
 public:
-    explicit FileArchive(FILE* file) : Archive(reader), file_(file), external_(true) {}
+    explicit FileArchive(FILE* file) : Archive(Reader), file_(file), external_(true) {}
 
-    explicit FileArchive(const std::string& path) : Archive(reader)
+    explicit FileArchive(const std::string& path) : Archive(Reader)
     {
-        // NOTE: weakly_canonical does not throw an exception if path does not exsist
-        const std::filesystem::path canonicalPath = std::filesystem::weakly_canonical(std::filesystem::path(path));
-        if (std::filesystem::exists(canonicalPath)) {
-            file_ = fopen(canonicalPath.c_str(), reader ? "rb" : "wb");
-        }
-
+        file_ = Utils::FileOpen(path, Reader ? "rb" : "wb");
         if (!file_) {
-            RS_LOGE("FileArchive: File %{public}s cannot be opened for %{public}s", canonicalPath.c_str(),
-                (reader ? "reading" : "writing"));
+            RS_LOGE("FileArchive: File %s cannot be opened for %s", path.data(), // NOLINT
+                (Reader ? "reading" : "writing"));
         }
     }
 
@@ -167,9 +168,9 @@ public:
     {
         if (file_ && data && (size > 0)) {
             if (IsReading()) {
-                fread(data, size, 1, file_);
+                Utils::FileRead(file_, data, size);
             } else {
-                fwrite(data, size, 1, file_);
+                Utils::FileWrite(file_, data, size);
             }
         }
     }
@@ -184,4 +185,4 @@ using FileWriter = FileArchive<false>;
 
 } // namespace OHOS::Rosen
 
-#endif // RENDER_SERVICE_PROFILER_ARCHIVE_H
+#endif // RS_PROFILER_ARCHIVE_H

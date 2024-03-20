@@ -55,7 +55,6 @@ public:
 
     // image
     virtual void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) {};
-    virtual void DrawBitmap(OHOS::Media::PixelMap& pixelMap, const Drawing::scalar px, const Drawing::scalar py) {};
     virtual void DrawImage(const Drawing::Image& image,
         const Drawing::scalar px, const Drawing::scalar py, const Drawing::SamplingOptions& sampling) {};
     virtual void DrawImageRect(const Drawing::Image& image,

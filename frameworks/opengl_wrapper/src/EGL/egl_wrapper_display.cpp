@@ -69,13 +69,7 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
                 *minor = table->minor;
             }
             refCnt_++;
-
-            if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
-                BlobCache::Get()->Init();
-                table->egl.eglSetBlobCacheFuncsANDROID(disp_, BlobCache::setBlobFunc, BlobCache::getBlobFunc);
-            } else {
-                WLOGE("eglSetBlobCacheFuncsANDROID not found.");
-            }
+            BlobCache::Get()->Init(this);
         } else {
             WLOGE("eglInitialize Error.");
         }
@@ -102,6 +96,7 @@ EGLBoolean EglWrapperDisplay::Terminate()
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad) {
         if (table->egl.eglTerminate) {
+            BlobCache::Get()->Terminate();
             ClearObjects();
             return table->egl.eglTerminate(disp_);
         }
@@ -644,6 +639,10 @@ EGLBoolean EglWrapperDisplay::SwapBuffers(EGLSurface surf)
 
     EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surf);
     if (!CheckObject(surfPtr)) {
+        if (surfPtr->GetEglSurface() == nullptr) {
+            WLOGE("INparament is invalid.");
+            return EGL_FALSE;
+        }
         WLOGE("EGLSurface is invalid.");
         ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
         return EGL_FALSE;

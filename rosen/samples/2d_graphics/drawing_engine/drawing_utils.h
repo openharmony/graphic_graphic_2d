@@ -45,8 +45,7 @@ public:
     static RenderBackendType GetRenderBackendType()
     {
 #if defined(ACE_ENABLE_VK)
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             return RenderBackendType::VULKAN;
         }
 #endif

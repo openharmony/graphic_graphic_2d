@@ -21,12 +21,15 @@
 namespace OHOS {
 namespace Rosen {
 // The "0xD001400" is the domain ID for graphic module that alloted by the OS.
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0xD001400, "EffectNapi"};
-#define EFFECT_LOG_I(fmt, ...) OHOS::HiviewDFX::HiLog::Info(LABEL, \
-        "%{public}s:%{public}d " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 1405
 
-#define EFFECT_LOG_E(fmt, ...) OHOS::HiviewDFX::HiLog::Error(LABEL, \
-        "%{public}s:%{public}d " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#undef LOG_TAG
+#define LOG_TAG "EffectNapi"
+
+#define EFFECT_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
+
+#define EFFECT_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 } // namespace Rosen
 } // namespace OHOS
 #endif // EFFECT_UTILS_H

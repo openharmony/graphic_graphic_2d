@@ -14,6 +14,7 @@
  */
 
 #include "vsync_generator.h"
+#include "vsync_distributor.h"
 #include <cstdint>
 #include <mutex>
 #include <scoped_bytrace.h>
@@ -21,6 +22,12 @@
 #include <sys/resource.h>
 #include <string>
 #include "vsync_log.h"
+
+#ifdef COMPOSER_SCHED_ENABLE
+#include "if_system_ability_manager.h"
+#include <iservice_registry.h>
+#include "system_ability_definition.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -114,6 +121,9 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
 
 void VSyncGenerator::ThreadLoop()
 {
+#ifdef COMPOSER_SCHED_ENABLE
+    SubScribeSystemAbility();
+#endif
     // set thread priorty
     SetThreadHighPriority();
 
@@ -398,6 +408,28 @@ VsyncError VSyncGenerator::UpdateReferenceTimeLocked(int64_t referenceTime)
     return VSYNC_ERROR_OK;
 }
 
+void VSyncGenerator::SubScribeSystemAbility()
+{
+    VLOGD("%{public}s", __func__);
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        VLOGE("%{public}s failed to get system ability manager client", __func__);
+        return;
+    }
+    std::string threadName = "VSyncGenerator";
+    std::string strUid = std::to_string(getuid());
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+
+    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
+    if (ret != ERR_OK) {
+        VLOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
+        saStatusChangeListener_ = nullptr;
+    }
+}
+
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {
     ScopedBytrace func("UpdateMode, period:" + std::to_string(period) +
@@ -552,6 +584,11 @@ VsyncError VSyncGenerator::StartRefresh()
     return VSYNC_ERROR_OK;
 }
 
+void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor)
+{
+    rsVSyncDistributor_ = rsVSyncDistributor;
+}
+
 VsyncError VSyncGenerator::CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
 {
     if (hardwareVsyncInterval < 0 || referenceTime < 0) {
@@ -563,8 +600,9 @@ VsyncError VSyncGenerator::CheckAndUpdateRefereceTime(int64_t hardwareVsyncInter
     if (pendingPeriod_ <= 0) {
         return VSYNC_ERROR_API_FAILED;
     }
-    if ((abs(pendingReferenceTime_ - referenceTime_) < MAX_TIMESTAMP_THRESHOLD) &&
-        (abs(hardwareVsyncInterval - pendingPeriod_) < MAX_TIMESTAMP_THRESHOLD)) {
+    if (rsVSyncDistributor_->IsDVsyncOn() ||
+        ((abs(pendingReferenceTime_ - referenceTime_) < MAX_TIMESTAMP_THRESHOLD) &&
+        (abs(hardwareVsyncInterval - pendingPeriod_) < MAX_TIMESTAMP_THRESHOLD))) {
         // framerate has changed
         frameRateChanging_ = false;
         pendingPeriod_ = 0;

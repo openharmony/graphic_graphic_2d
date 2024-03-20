@@ -179,5 +179,20 @@ void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pi
         dst.SetBottom(dst.GetBottom() + transformData.translateY / HALF_F / abs(transformData.scaleY));
     }
 }
+
+void RSPixelMapUtil::DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,
+                                  const Drawing::scalar px, const Drawing::scalar py)
+{
+    ImageInfo imageInfo;
+    pixelMap.GetImageInfo(imageInfo);
+    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
+        PixelFormatToDrawingColorType(imageInfo.pixelFormat),
+        AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+        ColorSpaceToDrawingColorSpace(pixelMap.InnerGetGrColorSpace().GetColorSpaceName()) };
+    Drawing::Bitmap pixelBitmap;
+    pixelBitmap.InstallPixels(
+        drawingImageInfo, (void*)pixelMap.GetWritablePixels(), static_cast<uint32_t>(pixelMap.GetRowBytes()));
+    canvas.DrawBitmap(pixelBitmap, px, py);
+}
 } // namespace Rosen
 } // namespace OHOS

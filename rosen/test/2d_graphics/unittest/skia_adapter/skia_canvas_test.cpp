@@ -17,7 +17,6 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_canvas.h"
 #include "draw/core_canvas.h"
-#include "pixel_map.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -307,48 +306,6 @@ HWTEST_F(SkiaCanvasTest, DrawBitmap001, TestSize.Level1)
 
     skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawBitmap(bitmap, px, py);
-}
-
-/**
- * @tc.name: DrawBitmap002
- * @tc.desc: Test DrawBitmap
- * @tc.type: FUNC
- * @tc.require: I91EH1
- */
-HWTEST_F(SkiaCanvasTest, DrawBitmap002, TestSize.Level1)
-{
-    SkiaCanvas skiaCanvas;
-    Media::InitializationOptions opts;
-    opts.size.width = 200;
-    opts.size.height = 150;
-    scalar px = 100;
-    scalar py = 100;
-    opts.pixelFormat = Media::PixelFormat::RGB_565;
-    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN;
-    auto pixelMap = Media::PixelMap::Create(opts);
-    skiaCanvas.DrawBitmap(*pixelMap, px, py);
-    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
-    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
-    pixelMap = Media::PixelMap::Create(opts);
-    skiaCanvas.DrawBitmap(*pixelMap, px, py);
-    opts.pixelFormat = Media::PixelFormat::BGRA_8888;
-    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
-    pixelMap = Media::PixelMap::Create(opts);
-    skiaCanvas.DrawBitmap(*pixelMap, px, py);
-    opts.pixelFormat = Media::PixelFormat::ALPHA_8;
-    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
-    pixelMap = Media::PixelMap::Create(opts);
-    skiaCanvas.DrawBitmap(*pixelMap, px, py);
-    opts.pixelFormat = Media::PixelFormat::RGBA_F16;
-    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
-    pixelMap = Media::PixelMap::Create(opts);
-    skiaCanvas.DrawBitmap(*pixelMap, px, py);
-    opts.pixelFormat = Media::PixelFormat::CMYK;
-    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
-    pixelMap = Media::PixelMap::Create(opts);
-    skiaCanvas.DrawBitmap(*pixelMap, px, py);
-    skiaCanvas.ImportSkCanvas(nullptr);
-    skiaCanvas.DrawBitmap(*pixelMap, px, py);
 }
 
 /**

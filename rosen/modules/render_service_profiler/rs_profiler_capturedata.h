@@ -75,7 +75,7 @@ protected:
     void Serialize(class Archive& archive);
 
 private:
-    float time_ = 0.0F;
+    float time_ = 0.0f;
     std::map<std::string, std::string> properties_;
 };
 

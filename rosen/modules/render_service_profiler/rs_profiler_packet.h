@@ -67,11 +67,19 @@ class Packet {
 public:
     enum PacketType : uint8_t {
         BINARY,
-        COMMAND_ACKNOWLEDGED,
         COMMAND,
         LOG,
         UNKNOWN,
     };
+
+    enum class Severity {
+        LOG_CRITICAL,
+        LOG_ERROR,
+        LOG_INFO,
+        LOG_DEBUG,
+        LOG_TRACE,
+    };
+
     enum class Header { TYPE = 0, LENGTH = 1 };
 
     static constexpr size_t HEADER_SIZE = sizeof(uint32_t) + sizeof(uint8_t);

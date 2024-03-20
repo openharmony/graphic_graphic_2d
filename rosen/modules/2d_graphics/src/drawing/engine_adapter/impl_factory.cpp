@@ -254,7 +254,7 @@ std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()
 std::unique_ptr<OpListHandleImpl> ImplFactory::CreateOplistHandleImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
-    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return DDGRImplFactory::CreateOplistHandle();
     }
 #endif
@@ -396,6 +396,11 @@ std::shared_ptr<FontMgrImpl> ImplFactory::CreateDefaultFontMgrImpl()
 #ifndef USE_TEXGINE
 std::shared_ptr<FontMgrImpl> ImplFactory::CreateDynamicFontMgrImpl()
 {
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateDynamicFontMgr();
+    }
+#endif
     return EngineImplFactory::CreateDynamicFontMgr();
 }
 #endif
@@ -428,6 +433,26 @@ std::shared_ptr<ResourceHolderImpl> ImplFactory::CreateResourceHolderImpl()
     }
 #endif
     return EngineImplFactory::CreateResourceHolder();
+}
+
+std::unique_ptr<KawaseBlurImpl> ImplFactory::CreateKawaseBlurImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateKawaseBlur();
+    }
+#endif
+    return EngineImplFactory::CreateKawaseBlur();
+}
+
+std::unique_ptr<GradientBlurImpl> ImplFactory::CreateGradientBlurImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateGradientBlur();
+    }
+#endif
+    return EngineImplFactory::CreateGradientBlur();
 }
 } // namespace Drawing
 } // namespace Rosen

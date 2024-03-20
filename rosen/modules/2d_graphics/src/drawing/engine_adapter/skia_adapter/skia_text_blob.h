@@ -48,9 +48,9 @@ public:
 
     sk_sp<SkTextBlob> GetTextBlob() const;
 
-    std::shared_ptr<Data> Serialize() const override;
+    std::shared_ptr<Data> Serialize(void* ctx) const override;
 
-    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
+    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size, void* ctx);
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
     static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);

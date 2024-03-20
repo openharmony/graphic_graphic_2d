@@ -89,6 +89,12 @@ void CoreCanvas::DrawPoint(const Point& point)
     impl_->DrawPoint(point);
 }
 
+void CoreCanvas::DrawSdf(const SDFShapeBase& shape)
+{
+    AttachPaint();
+    impl_->DrawSdf(shape);
+}
+
 void CoreCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
 {
     AttachPaint();
@@ -183,40 +189,6 @@ void CoreCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
     impl_->DrawVertices(vertices, mode);
 }
 
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
-{
-    AttachPaint();
-    impl_->DrawBitmap(bitmap, px, py);
-}
-
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& src, const Rect& dst, const SamplingOptions& sampling)
-{
-    AttachPaint();
-    Image img;
-    img.BuildFromBitmap(bitmap);
-    impl_->DrawImageRect(img, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-}
-
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const Rect& dst, const SamplingOptions& sampling)
-{
-    AttachPaint();
-    Image img;
-    img.BuildFromBitmap(bitmap);
-    impl_->DrawImageRect(img, dst, sampling);
-}
-
-void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
-    FilterMode filter, const Brush* brush)
-{
-    impl_->DrawImageNine(image, center, dst, filter, brush);
-}
-
-void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-    FilterMode filter, const Brush* brush)
-{
-    impl_->DrawImageLattice(image, lattice, dst, filter, brush);
-}
-
 // opinc_begin
 bool CoreCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
 {
@@ -238,32 +210,33 @@ int CoreCanvas::CanDrawOpList(Drawing::OpListHandle handle)
     return impl_->CanDrawOpList(handle);
 }
 
-void CoreCanvas::PreOpListDrawArea(const Matrix& matrix)
+bool CoreCanvas::OpCalculateBefore(const Matrix& matrix)
 {
-    impl_->PreOpListDrawArea(matrix);
+    return impl_->OpCalculateBefore(matrix);
 }
 
-bool CoreCanvas::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
+std::shared_ptr<Drawing::OpListHandle> CoreCanvas::OpCalculateAfter(const Rect& bound)
 {
-    return impl_->CanUseOpListDrawArea(handle, bound);
-}
-
-Drawing::OpListHandle CoreCanvas::GetOpListDrawArea()
-{
-    return impl_->GetOpListDrawArea();
-}
-
-void CoreCanvas::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-    const SamplingOptions& sampling, SrcRectConstraint constraint)
-{
-    impl_->OpincDrawImageRect(image, drawAreas, sampling, constraint);
+    return impl_->OpCalculateAfter(bound);
 }
 // opinc_end
 
-void CoreCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
+void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     AttachPaint();
-    impl_->DrawBitmap(pixelMap, px, py);
+    impl_->DrawBitmap(bitmap, px, py);
+}
+
+void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+    FilterMode filter, const Brush* brush)
+{
+    impl_->DrawImageNine(image, center, dst, filter, brush);
+}
+
+void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+    FilterMode filter, const Brush* brush)
+{
+    impl_->DrawImageLattice(image, lattice, dst, filter, brush);
 }
 
 void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
@@ -524,6 +497,16 @@ void CoreCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
     if (impl_ && canvas) {
         impl_->BuildOverDraw(canvas);
     }
+}
+
+void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
+{
+    impl_->BuildNoDraw(width, height);
+}
+
+void CoreCanvas::Reset(int32_t width, int32_t height)
+{
+    impl_->Reset(width, height);
 }
 } // namespace Drawing
 } // namespace Rosen

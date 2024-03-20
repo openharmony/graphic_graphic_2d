@@ -337,10 +337,18 @@ public:
     bool GetBootAnimation() const override;
 
     void SetSecurityLayer(bool isSecurityLayer);
-    bool GetSecurityLayer() const;
-
     void SetSkipLayer(bool isSkipLayer);
+
+    // get whether it is a security/skip layer itself
+    bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+
+    // get whether it and it's subtree contain security layer
+    bool GetHasSecurityLayer() const;
+    bool GetHasSkipLayer() const;
+
+    void SyncSecurityInfoToFirstLevelNode();
+    void SyncSkipInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -805,25 +813,6 @@ public:
     // whether the subtree has only one root node
     bool HasOnlyOneRootNode() const;
 
-    bool GetHasSecurityLayer()
-    {
-        return hasSecurityLayer_;
-    }
-
-    void SetHasSecurityLayer(bool hasSecurityLayer)
-    {
-        hasSecurityLayer_ = hasSecurityLayer;
-    }
-    bool GetHasSkipLayer()
-    {
-        return hasSkipLayer_;
-    }
-
-    void SetHasSkipLayer(bool hasSkipLayer)
-    {
-        hasSkipLayer_ = hasSkipLayer;
-    }
-
     bool GetHwcDelayDirtyFlag() const noexcept
     {
         return hwcDelayDirtyFlag_;
@@ -935,6 +924,9 @@ private:
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> securityLayerIds_= {};
+
     bool hasFingerprint_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
@@ -1090,8 +1082,6 @@ private:
 
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
-    bool hasSecurityLayer_ = false;
-    bool hasSkipLayer_ = false;
 
     uint32_t processZOrder_ = -1;
 

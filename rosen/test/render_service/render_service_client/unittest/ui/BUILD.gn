@@ -25,6 +25,7 @@ ohos_unittest("RSRenderServiceClientUITest") {
     "rs_canvas_node_test.cpp",
     "rs_display_node_test.cpp",
     "rs_effect_node_test.cpp",
+    "rs_ext_node_operation_test.cpp",
     "rs_frame_rate_linker_test.cpp",
     "rs_frame_rate_policy_test.cpp",
     "rs_node_test.cpp",

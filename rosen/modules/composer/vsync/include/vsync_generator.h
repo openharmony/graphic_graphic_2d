@@ -26,9 +26,13 @@
 #include <thread>
 #include <condition_variable>
 #include "vsync_type.h"
+#include "vsync_system_ability_listener.h"
 
 namespace OHOS {
 namespace Rosen {
+
+class VSyncDistributor;
+
 class VSyncGenerator : public RefBase {
 public:
     class Callback : public RefBase {
@@ -67,6 +71,8 @@ public:
     virtual VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) = 0;
     virtual void SetPendingMode(int64_t period, int64_t timestamp) = 0;
     virtual VsyncError StartRefresh() = 0;
+
+    virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -100,6 +106,8 @@ public:
     void SetPendingMode(int64_t period, int64_t timestamp) override;
     VsyncError StartRefresh() override;
 
+    void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
+
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 
@@ -111,7 +119,7 @@ private:
     };
 
     VSyncGenerator();
-    ~VSyncGenerator() noexcept override;
+    ~VSyncGenerator() override;
 
     int64_t ComputeNextVSyncTimeStamp(int64_t now, int64_t referenceTime);
     std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t occurTimestamp, int64_t referenceTime);
@@ -129,7 +137,11 @@ private:
         int64_t occurReferenceTime, bool isWakeup);
     VsyncError UpdatePeriodLocked(int64_t period);
     VsyncError UpdateReferenceTimeLocked(int64_t referenceTime);
+#ifdef COMPOSER_SCHED_ENABLE
+    void SubScribeSystemAbility();
+#endif
 
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_;
     int64_t phase_;
     int64_t referenceTime_;
@@ -165,6 +177,7 @@ private:
     bool startRefresh_ = false;
     int64_t phaseRecord_ = 0;
     int64_t periodRecord_ = 0;
+    sptr<VSyncDistributor> rsVSyncDistributor_;
 };
 } // impl
 } // namespace Rosen

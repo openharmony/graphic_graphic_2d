@@ -45,17 +45,19 @@ public:
 
     /**
      * @brief   Serialize TextBlob.
+     * @param ctx  Serialize context.
      * @return  A shared point to serialized data.
      */
-    std::shared_ptr<Data> Serialize() const;
+    std::shared_ptr<Data> Serialize(void* ctx) const;
 
     /**
      * @brief       Deserialize TextBlob.
      * @param data  Serialized data.
      * @param size  Data size.
+     * @param ctx   Deserialize context.
      * @return      A shared point to deserialized data.
      */
-    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
+    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size, void* ctx);
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
     static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
@@ -70,6 +72,35 @@ public:
     }
 
     std::shared_ptr<Rect> Bounds() const;
+
+    class Context {
+    public:
+        explicit Context(std::shared_ptr<Typeface> typeface, bool isCustomTypeface) noexcept
+            : typeface_(typeface), isCustomTypeface_(isCustomTypeface) {}
+
+        std::shared_ptr<Typeface>& GetTypeface()
+        {
+            return typeface_;
+        }
+
+        void SetTypeface(std::shared_ptr<Typeface> typeface)
+        {
+            typeface_ = typeface;
+        }
+
+        bool IsCustomTypeface()
+        {
+            return isCustomTypeface_;
+        }
+
+        void SetIsCustomTypeface(bool isCustomTypeface)
+        {
+            isCustomTypeface_ = isCustomTypeface;
+        }
+    private:
+        std::shared_ptr<Typeface> typeface_ = nullptr;
+        bool isCustomTypeface_ = false;
+    };
 
 private:
     std::shared_ptr<TextBlobImpl> textBlobImpl_;

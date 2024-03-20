@@ -61,7 +61,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
 {
     voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
     auto& hgmCore = HgmCore::Instance();
-    curRefreshRateMode_ = static_cast<RefreshRateMode>(hgmCore.GetCurrentRefreshRateMode());
+    curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
 
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
     auto screenList = hgmCore.GetScreenIds();
@@ -90,15 +90,14 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
-
-        HgmConfigCallbackManager::GetInstance()->SyncRefreshRateModeChangeCallback(mode);
     });
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 }
 
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
-                                                const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired)
+                                                const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired,
+                                                bool isDvsyncOn)
 {
     RS_TRACE_FUNC();
     Reset();
@@ -133,7 +132,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp);
+        HandleFrameRateChangeForLTPO(timestamp, isDvsyncOn);
     } else {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
@@ -218,7 +217,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
     return frameRateChanged;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool isDvsyncOn)
 {
     RSTaskMessage::RSTask task = [this]() {
         controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
@@ -229,6 +228,10 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
         }
     };
 
+    if (isDvsyncOn) {
+        HgmTaskHandleThread::Instance().PostTask(task);
+        return;
+    }
     uint64_t expectTime = timestamp + static_cast<uint64_t>(controller_->GetCurrentOffset());
     uint64_t currTime = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -506,9 +509,9 @@ void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
     }
 }
 
-void HgmFrameRateManager::HandleRefreshRateMode(RefreshRateMode refreshRateMode)
+void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
 {
-    HGM_LOGI("HandleRefreshRateMode curMode:%{public}d", static_cast<int>(refreshRateMode));
+    HGM_LOGI("HandleRefreshRateMode curMode:%{public}d", refreshRateMode);
     if (curRefreshRateMode_ == refreshRateMode) {
         return;
     }
@@ -820,7 +823,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
     }
 }
 
-void HgmFrameRateManager::HandleTempEvent(std::string tempEventName, bool eventStatus, uint32_t min, uint32_t max)
+void HgmFrameRateManager::HandleTempEvent(
+    const std::string& tempEventName, bool eventStatus, uint32_t min, uint32_t max)
 {
     RS_TRACE_NAME_FMT("HandleTempEvent TempEvent:%s, status:%u, value:[%d-%d]",
         tempEventName.c_str(), eventStatus, min, max);

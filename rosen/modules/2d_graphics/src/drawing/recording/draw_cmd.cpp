@@ -51,6 +51,7 @@ bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
         return false;
     }
     offScreenCanvas = offScreenSurface->GetCanvas();
+    offScreenCanvas->SetMatrix(canvas.GetTotalMatrix());
     return true;
 }
 }
@@ -958,7 +959,12 @@ void SimplifyPaint(ColorQuad colorQuad, Paint& paint)
 DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
-    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob);
+    auto typeface = CmdListHelper::GetTypefaceFromCmdList(cmdList, handle->typeface);
+    TextBlob::Context ctx {typeface, false};
+    if (typeface != nullptr) {
+        ctx.SetIsCustomTypeface(true);
+    }
+    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, &ctx);
 }
 
 std::shared_ptr<DrawOpItem> DrawTextBlobOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -970,8 +976,10 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    TextBlob::Context ctx {nullptr, false};
     auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(cmdList, textBlob_.get());
-    cmdList.AddOp<ConstructorHandle>(textBlobHandle, x_, y_, paintHandle);
+    auto typefaceHandle = CmdListHelper::AddTypefaceToCmdList(cmdList, ctx.GetTypeface());
+    cmdList.AddOp<ConstructorHandle>(textBlobHandle, typefaceHandle, x_, y_, paintHandle);
 }
 
 void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -1011,8 +1019,11 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
                 canvas->AttachBrush(paint);
                 Drawing::SamplingOptions sampling =
                     Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+                canvas->Save();
+                canvas->ResetMatrix();
                 canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(), 0, 0, sampling);
                 canvas->DetachBrush();
+                canvas->Restore();
                 return;
             }
         }
@@ -1876,93 +1887,6 @@ void ClipAdaptiveRoundRectOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipAdaptiveRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->ClipRoundRect(*rect, radiusData_, true);
-}
-
-/* DrawAdaptiveImageOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawAdaptiveImage, DrawOpItem::ADAPTIVE_IMAGE_OPITEM, DrawAdaptiveImageOpItem::Unmarshalling);
-
-DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem(
-    const DrawCmdList& cmdList, DrawAdaptiveImageOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ADAPTIVE_IMAGE_OPITEM),
-      rsImageInfo_(handle->rsImageInfo), sampling_(handle->sampling), isImage_(handle->isImage)
-{
-    if (isImage_) {
-        image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
-        if (DrawOpItem::holdDrawingImagefunc_) {
-            DrawOpItem::holdDrawingImagefunc_(image_);
-        }
-    } else {
-        data_ = CmdListHelper::GetCompressDataFromCmdList(cmdList, handle->image);
-    }
-}
-
-std::shared_ptr<DrawOpItem> DrawAdaptiveImageOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
-{
-    return std::make_shared<DrawAdaptiveImageOpItem>(
-        cmdList, static_cast<DrawAdaptiveImageOpItem::ConstructorHandle*>(handle));
-}
-
-void DrawAdaptiveImageOpItem::Marshalling(DrawCmdList& cmdList)
-{
-    PaintHandle paintHandle;
-    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    OpDataHandle imageHandle;
-    if (!isImage_) {
-        imageHandle = CmdListHelper::AddCompressDataToCmdList(cmdList, data_);
-    } else {
-        imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image_);
-    }
-    cmdList.AddOp<ConstructorHandle>(imageHandle, rsImageInfo_, sampling_, isImage_, paintHandle);
-}
-
-void DrawAdaptiveImageOpItem::Playback(Canvas* canvas, const Rect* rect)
-{
-    if (isImage_ && image_ != nullptr) {
-        canvas->AttachPaint(paint_);
-        AdaptiveImageHelper::DrawImage(*canvas, *rect, image_, rsImageInfo_, sampling_);
-        return;
-    }
-    if (!isImage_ && data_ != nullptr) {
-        canvas->AttachPaint(paint_);
-        AdaptiveImageHelper::DrawImage(*canvas, *rect, data_, rsImageInfo_, sampling_);
-    }
-}
-
-/* DrawAdaptivePixelMapOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawAdaptivePixelMap, DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Unmarshalling);
-
-DrawAdaptivePixelMapOpItem::DrawAdaptivePixelMapOpItem(
-    const DrawCmdList& cmdList, DrawAdaptivePixelMapOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ADAPTIVE_PIXELMAP_OPITEM),
-      imageInfo_(handle->imageInfo), sampling_(handle->sampling)
-{
-    pixelMap_ = CmdListHelper::GetPixelMapFromCmdList(cmdList, handle->pixelMap);
-}
-
-std::shared_ptr<DrawOpItem> DrawAdaptivePixelMapOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
-{
-    return std::make_shared<DrawAdaptivePixelMapOpItem>(
-        cmdList, static_cast<DrawAdaptivePixelMapOpItem::ConstructorHandle*>(handle));
-}
-
-void DrawAdaptivePixelMapOpItem::Marshalling(DrawCmdList& cmdList)
-{
-    PaintHandle paintHandle;
-    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto pixelmapHandle = CmdListHelper::AddPixelMapToCmdList(cmdList, pixelMap_);
-    cmdList.AddOp<ConstructorHandle>(pixelmapHandle, imageInfo_, sampling_, paintHandle);
-}
-
-void DrawAdaptivePixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
-{
-    if (pixelMap_ == nullptr) {
-        LOGD("DrawAdaptivePixelMapOpItem pixelMap is null!");
-        return;
-    }
-    canvas->AttachPaint(paint_);
-    AdaptiveImageHelper::DrawPixelMap(*canvas, *rect, pixelMap_, imageInfo_, sampling_);
 }
 } // namespace Drawing
 } // namespace Rosen

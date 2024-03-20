@@ -90,6 +90,19 @@ public:
     }
 };
 
+class DRAWING_API NoDrawCanvas : public Canvas {
+public:
+    NoDrawCanvas(int32_t width, int32_t height)
+    {
+        BuildNoDraw(width, height);
+    }
+    ~NoDrawCanvas() override = default;
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::NO_DRAW;
+    }
+};
+
 class AutoCanvasRestore {
 public:
     AutoCanvasRestore(Canvas& canvas, bool doSave) : canvas_(canvas)

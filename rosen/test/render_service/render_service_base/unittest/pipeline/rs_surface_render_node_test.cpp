@@ -518,6 +518,184 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Leve
 }
 
 /**
+ * @tc.name: SubNodeNeedDraw001
+ * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP，global dirty
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP;
+    RectI rect = RectI(0, 0, 100, 100);
+    subnode->oldDirtyInSurface_ = rect;
+    node->visibleRegion_ = Occlusion::Region(rect);
+    node->SetGlobalDirtyRegion(rect);
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    ASSERT_EQ(needDraw, true);
+}
+
+/**
+ * @tc.name: SubNodeNeedDraw002
+ * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP，visible dirty
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP;
+    RectI rect = RectI(0, 0, 100, 100);
+    subnode->oldDirtyInSurface_ = rect;
+    node->SetVisibleDirtyRegion(Occlusion::Region(rect));
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    ASSERT_EQ(needDraw, true);
+}
+
+/**
+ * @tc.name: SubNodeNeedDraw003
+ * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP，transparent
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP;
+    RectI rect = RectI(0, 0, 100, 100);
+    subnode->oldDirtyInSurface_ = rect;
+    node->oldDirtyInSurface_ = rect;
+    node->SetGlobalAlpha(0.0f);
+    Occlusion::Region region = Occlusion::Region(rect);
+    node->SetDirtyRegionBelowCurrentLayer(region);
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    ASSERT_EQ(needDraw, true);
+}
+
+/**
+ * @tc.name: SubNodeNeedDraw004
+ * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP_OCCLUSION
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw004, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION;
+    RectI rect = RectI(0, 0, 100, 100);
+    subnode->oldDirtyInSurface_ = rect;
+    node->visibleRegion_ = Occlusion::Region(rect);
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    ASSERT_EQ(needDraw, true);
+}
+
+/**
+ * @tc.name: SubNodeNeedDraw005
+ * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw005, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY;
+    RectI rect = RectI(0, 0, 100, 100);
+    subnode->oldDirtyInSurface_ = rect;
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    // Do not have any visible region
+    ASSERT_EQ(needDraw, false);
+}
+
+/**
+ * @tc.name: SubNodeNeedDraw006
+ * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw006, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY;
+    RectI rect = RectI(0, 0, 100, 100);
+    subnode->oldDirtyInSurface_ = rect;
+    node->oldDirtyInSurface_ = rect;
+    Occlusion::Region region = Occlusion::Region(rect);
+    node->visibleRegion_ = region;
+    node->transparentRegion_ = region;
+    node->SetDirtyRegionBelowCurrentLayer(region);
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    ASSERT_EQ(needDraw, true);
+}
+
+/**
+ * @tc.name: SubNodeNeedDraw007
+ * @tc.desc: check if subnode need draw when PartialRenderType is DISABLED
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw007, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::DISABLED;
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    ASSERT_EQ(needDraw, true);
+}
+
+/**
+ * @tc.name: SubNodeNeedDraw008
+ * @tc.desc: check if subnode need draw when PartialRenderType is SET_DAMAGE
+ * @tc.type: FUNC
+ * @tc.require: I999FR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw008, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
+    if (node == nullptr || subnode == nullptr) {
+        return;
+    }
+    node->AddChild(subnode, 0);
+    PartialRenderType partialRenderType = PartialRenderType::SET_DAMAGE;
+    bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
+    ASSERT_EQ(needDraw, true);
+}
+
+/**
  * @tc.name: IsContentDirtyNodeLimited
  * @tc.desc: Set content dirty subnode new on the tree and check if it is in count
  * @tc.type:FUNC
@@ -536,6 +714,92 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds = {{subnode->GetId(), subnode}};
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     ASSERT_EQ(node->IsContentDirtyNodeLimited(), false);
+}
+
+/**
+ * @tc.name: SetHasSharedTransitionNode
+ * @tc.desc: Test SetHasSharedTransitionNode
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetHasSharedTransitionNode, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->SetHasSharedTransitionNode(true);
+    
+    ASSERT_EQ(node->GetHasSharedTransitionNode(), true);
+}
+
+/**
+ * @tc.name: QuerySubAssignable001
+ * @tc.desc: Test QuerySubAssignable
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    
+    ASSERT_EQ(node->QuerySubAssignable(false), true);
+}
+
+/**
+ * @tc.name: QuerySubAssignable002
+ * @tc.desc: Test QuerySubAssignable while has filter
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable002, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->SetHasFilter(true);
+    
+    ASSERT_EQ(node->QuerySubAssignable(false), false);
+}
+
+/**
+ * @tc.name: QuerySubAssignable003
+ * @tc.desc: Test QuerySubAssignable while child has filter but isn't transparent
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable003, TestSize.Level2)
+{
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    childNode->SetHasFilter(true);
+    childNode->SetParent(parentNode);
+    const uint8_t opacity = 255;
+    parentNode->SetAbilityBGAlpha(opacity);
+    parentNode->SetChildHasFilter(true);
+    
+    ASSERT_EQ(parentNode->QuerySubAssignable(false), true);
+}
+
+/**
+ * @tc.name: QuerySubAssignable004
+ * @tc.desc: Test QuerySubAssignable while child has filter and it's transparent
+ * @tc.type: FUNC
+ * @tc.require: issueI98VTC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable004, TestSize.Level2)
+{
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    childNode->SetHasFilter(true);
+    childNode->SetParent(parentNode);
+    parentNode->SetChildHasFilter(true);
+    
+    ASSERT_EQ(parentNode->QuerySubAssignable(false), false);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -54,11 +54,6 @@ public:
     }
 
 private:
-    static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
-    static void ComputeScale(float width, float height, bool useMaskAlgorithm);
-    static void MakeHorizontalMeanBlurEffect();
-    static void MakeVerticalMeanBlurEffect();
-
     friend class RSMarshallingHelper;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     inline static float imageScale_ = 1.f;
@@ -69,22 +64,7 @@ private:
 
     static Drawing::Rect ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst);
     static uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
-    static bool GetGradientDirectionPoints(
-        Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GradientDirection direction);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeAlphaGradientShader(const Drawing::Rect& clipBounds,
-        const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias);
-    static void DrawMaskLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image, Drawing::Canvas& canvas,
-        std::shared_ptr<RSDrawingFilter>& blurFilter, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
-        const Drawing::Rect& dst);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeMaskLinearGradientBlurShader(
-        std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
-        std::shared_ptr<Drawing::ShaderEffect> gradientShader);
-    static void DrawMeanLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image, Drawing::Canvas& canvas,
-        float radius, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::Rect& dst);
 
-    static std::shared_ptr<Drawing::RuntimeEffect> horizontalMeanBlurShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> verticalMeanBlurShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> maskBlurShaderEffect_;
     inline static Drawing::Matrix mat_;
 };
 } // namespace Rosen

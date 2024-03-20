@@ -28,18 +28,21 @@ namespace Rosen {
 
 #ifndef LOGD
 #ifdef OHOS_PLATFORM
+
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001402
+
+#undef LOG_TAG
+#define LOG_TAG "2DGraphics"
+
 #define LOGD(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Debug(::OHOS::HiviewDFX::HiLogLabel \
-        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    HILOG_DEBUG(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGI(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Info(::OHOS::HiviewDFX::HiLogLabel \
-        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    HILOG_INFO(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGW(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Warn(::OHOS::HiviewDFX::HiLogLabel \
-        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    HILOG_WARN(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGE(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Error(::OHOS::HiviewDFX::HiLogLabel \
-        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    HILOG_ERROR(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #else
 #define LOGD(fmt, ...)
 #define LOGI(fmt, ...)

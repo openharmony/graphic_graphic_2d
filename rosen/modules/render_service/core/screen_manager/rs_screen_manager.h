@@ -139,6 +139,8 @@ public:
 
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
+    virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode ScaleMode) = 0;
+
     virtual int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) = 0;
 
     virtual void GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const = 0;
@@ -161,6 +163,8 @@ public:
     virtual sptr<Surface> GetProducerSurface(ScreenId id) const = 0;
 
     virtual bool GetCanvasRotation(ScreenId id) const = 0;
+
+    virtual ScreenScaleMode GetScaleMode(ScreenId id) const = 0;
 
     // Can only be called after QueryScreenState and the state is ScreenState::HDI_OUTPUT_ENABLE;
     virtual std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const = 0;
@@ -229,6 +233,8 @@ public:
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 
+    virtual bool IsAllScreensPowerOff() const = 0;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) = 0;
 #endif
@@ -292,6 +298,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode ScaleMode) override;
+
     void GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const override;
 
     void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const override;
@@ -311,6 +319,8 @@ public:
     sptr<Surface> GetProducerSurface(ScreenId id) const override;
 
     bool GetCanvasRotation(ScreenId id) const override;
+
+    ScreenScaleMode GetScaleMode(ScreenId id) const override;
 
     std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const override;
 
@@ -387,6 +397,8 @@ public:
         screens_[rsScreen->Id()] = std::move(rsScreen);
     }
 
+    bool IsAllScreensPowerOff() const override;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     float GetScreenBrightnessNits(ScreenId id) override;
 #endif
@@ -405,6 +417,7 @@ private:
     void ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput> &output);
     void RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output);
     void HandleDefaultScreenDisConnectedLocked();
+    void ForceRefreshOneFrame() const;
     std::vector<ScreenHotPlugEvent> pendingHotPlugEvents_;
 
     void GetVirtualScreenResolutionLocked(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const;

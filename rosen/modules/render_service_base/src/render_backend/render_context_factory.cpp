@@ -35,8 +35,7 @@ std::shared_ptr<RenderContextBase> RenderContextBaseFactory::CreateRenderContext
         renderContext = std::make_shared<RenderContextOhosRaster>();
     } else {
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RSSystemProperties::IsUseVulkan()) {
             renderContext = std::make_shared<RenderContextOhosVk>();
         }
 #endif

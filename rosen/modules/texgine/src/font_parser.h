@@ -88,7 +88,9 @@ public:
     };
 
     FontParser();
-    std::vector<FontDescriptor> GetVisibilityFonts(const std::string locale = SIMPLIFIED_CHINESE);
+    std::vector<FontDescriptor> GetVisibilityFonts(const std::string &locale = SIMPLIFIED_CHINESE);
+    std::unique_ptr<FontDescriptor> GetVisibilityFontByName(const std::string& fontName,
+        const std::string locale = SIMPLIFIED_CHINESE);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
@@ -101,6 +103,8 @@ private:
     int ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
     int ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
     int SetFontDescriptor(const unsigned int languageId);
+    std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(const std::string& fontName,
+        const unsigned int languageId);
     static void SetNameString(FontParser::FontDescriptor& fontDescriptor, std::string& field, unsigned int& fieldLid,
         unsigned int languageId, const std::string& nameString);
     int GetLanguageId(const std::string& locale)

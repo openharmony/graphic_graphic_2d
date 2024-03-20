@@ -20,8 +20,9 @@
 #include <cstdint>
 
 #include "impl_interface/typeface_impl.h"
-#include "utils/memory_stream.h"
 #include "text/font_style.h"
+#include "utils/data.h"
+#include "utils/memory_stream.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -78,6 +79,9 @@ public:
     uint32_t GetUniqueID() const;
 
     int32_t GetUnitsPerEm() const;
+
+    std::shared_ptr<Data> Serialize() const;
+    static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
 
     template<typename T>
     T* GetImpl() const

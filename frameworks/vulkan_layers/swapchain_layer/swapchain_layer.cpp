@@ -64,8 +64,8 @@ struct LayerData {
 };
 
 namespace {
-constexpr uint32_t MIN_BUFFER_SIZE = 3;
-constexpr uint32_t MAX_BUFFER_SIZE = 32;
+constexpr uint32_t MIN_BUFFER_SIZE = SURFACE_DEFAULT_QUEUE_SIZE;
+constexpr uint32_t MAX_BUFFER_SIZE = SURFACE_MAX_QUEUE_SIZE;
 struct LoaderVkLayerDispatchTable;
 typedef uintptr_t DispatchKey;
 
@@ -616,6 +616,7 @@ static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHa
 
     if (active) {
         swapchain->surface.swapchainHandle = VK_NULL_HANDLE;
+        window->surface->CleanCache();
     }
     if (allocator == nullptr) {
         allocator = &GetDefaultAllocator();
@@ -999,11 +1000,13 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSurfaceOHOS(VkInstance instance,
 
     Surface* surface = new (mem) Surface;
     surface->window = pCreateInfo->window;
+    NativeObjectReference(surface->window);
     surface->swapchainHandle = VK_NULL_HANDLE;
     NativeWindowHandleOpt(pCreateInfo->window, GET_USAGE, &(surface->consumerUsage));
 
     if (surface->consumerUsage == 0) {
         SWLOGE("native window get usage failed, error num : %{public}d", VK_ERROR_SURFACE_LOST_KHR);
+        NativeObjectUnreference(surface->window);
         surface->~Surface();
         allocator->pfnFree(allocator->pUserData, surface);
         return VK_ERROR_SURFACE_LOST_KHR;
@@ -1023,6 +1026,7 @@ VKAPI_ATTR void VKAPI_CALL DestroySurfaceKHR(
     if (pAllocator == nullptr) {
         pAllocator = &GetDefaultAllocator();
     }
+    NativeObjectUnreference(surface->window);
     surface->~Surface();
     pAllocator->pfnFree(pAllocator->pUserData, surface);
 }

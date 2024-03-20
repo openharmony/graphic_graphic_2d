@@ -15,6 +15,8 @@
 
 #include "typography.h"
 
+#include <mutex>
+
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "impl/paragraph_impl.h"
@@ -23,6 +25,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+std::mutex g_layoutMutex;
+}
+
 TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
 {
     rect = rec;
@@ -108,6 +114,7 @@ float Typography::DetectIndents(size_t index)
 
 void Typography::Layout(double width)
 {
+    std::unique_lock lock(g_layoutMutex);
     return paragraph_->Layout(width);
 }
 
@@ -238,7 +245,7 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
     }
 
     if (!sklineMetrics.fLineMetrics.empty()) {
-        auto &skFontMetrics = sklineMetrics.fLineMetrics.at(sklineMetrics.fStartIndex).font_metrics;
+        const auto &skFontMetrics = sklineMetrics.fLineMetrics.at(sklineMetrics.fStartIndex).font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         if (oneLine) {
             lineMetrics->ascender = sklineMetrics.fAscent;
@@ -317,7 +324,7 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
     }
 
     if (!skLineMetrics.fLineMetrics.empty()) {
-        auto &skFontMetrics = skLineMetrics.fLineMetrics.at(skLineMetrics.fStartIndex).font_metrics;
+        const auto &skFontMetrics = skLineMetrics.fLineMetrics.at(skLineMetrics.fStartIndex).font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         lineMetrics->capHeight = skFontMetrics.fCapHeight;
         lineMetrics->xHeight = skFontMetrics.fXHeight;

@@ -102,6 +102,15 @@ uint32_t RSAnimationManager::GetAnimationsSize()
     return animations_.size();
 }
 
+pid_t RSAnimationManager::GetAnimationPid() const
+{
+    if (animations_.size() > 0) {
+        // shift right 32-bit numbers to get pid
+        return animations_.begin()->first >> 32;
+    }
+    return 0;
+}
+
 std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree)
 {
     // process animation

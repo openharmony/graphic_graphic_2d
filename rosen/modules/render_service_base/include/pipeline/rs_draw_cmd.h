@@ -24,7 +24,6 @@
 #include "GLES2/gl2ext.h"
 #endif
 
-#include "recording/adaptive_image_helper.h"
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
 #include "render/rs_image.h"
@@ -39,6 +38,18 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace Drawing {
+struct AdaptiveImageInfo {
+    int32_t fitNum = 0;
+    int32_t repeatNum = 0;
+    Point radius[4];
+    double scale = 0.0;
+    uint32_t uniqueId = 0;
+    int32_t width = 0;
+    int32_t height = 0;
+};
+}
+
 #ifdef ROSEN_OHOS
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
@@ -199,10 +210,10 @@ private:
 class DrawFuncOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& objectHandle)
-            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), objectHandle(objectHandle) {}
+        ConstructorHandle(uint32_t funcObjectId)
+            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), funcObjectId(funcObjectId) {}
         ~ConstructorHandle() override = default;
-        OpDataHandle objectHandle;
+        uint32_t funcObjectId;
     };
     DrawFuncOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     explicit DrawFuncOpItem(RecordingCanvas::DrawFunc&& drawFunc);

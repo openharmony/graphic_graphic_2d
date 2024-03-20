@@ -71,6 +71,8 @@ Note: If the text contains special characters, please escape them according to t
                 <filteritem type="filename" name="Index.jpg" desc="sample renderings"/>
                 <filteritem type="filename" name="DrawText.jpg" desc="sample renderings"/>
                 <filteritem type="filename" name="app_icon.png" desc="app icon"/>
+                <filteritem type="filename" name="bootsound.wav" desc="bootanimation sound file"/>
+                <filteritem type="filename" name="bootvideo.mp4" desc="bootanimation video file"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>

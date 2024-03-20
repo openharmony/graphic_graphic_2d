@@ -56,8 +56,7 @@ void RSRenderEngineTest::SetUp()
     }
     visitor_->renderEngine_ = std::make_shared<RSUniRenderEngine>();
     visitor_->renderEngine_->Init();
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!RSSystemProperties::IsUseVulkan()) {
         visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas_.get());
     } else {
         const int canvasWidth = 10;
@@ -142,8 +141,7 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams001, TestSize.Level1)
     std::shared_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!RSSystemProperties::IsUseVulkan()) {
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     } else {
         renderEngine->Init();
@@ -162,7 +160,7 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams001, TestSize.Level1)
  * @tc.name: DrawWithParams002
  * @tc.desc: test DrawWithParams when param.setColorDilter are false
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSRenderEngineTest, DrawWithParams002, TestSize.Level1)
 {
@@ -179,7 +177,7 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams002, TestSize.Level1)
  * @tc.name: DrawWithParams003
  * @tc.desc: test DrawWithParams when param.setColorDilter are true
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSRenderEngineTest, DrawWithParams003, TestSize.Level1)
 {
@@ -196,7 +194,7 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams003, TestSize.Level1)
  * @tc.name: DrawWithParams004
  * @tc.desc: test DrawWithParams when param.useCPU are true
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSRenderEngineTest, DrawWithParams004, TestSize.Level1)
 {
@@ -213,7 +211,7 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams004, TestSize.Level1)
  * @tc.name: DrawWithParams005
  * @tc.desc: test DrawWithParams when param.useCPU are true
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSRenderEngineTest, DrawWithParams005, TestSize.Level1)
 {

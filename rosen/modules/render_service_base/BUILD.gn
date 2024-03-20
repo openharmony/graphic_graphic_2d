@@ -379,6 +379,7 @@ ohos_source_set("render_service_base_src") {
   }
 
   include_dirs = [
+    "$graphic_2d_root/rosen/modules/utils",
     "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
@@ -394,9 +395,9 @@ ohos_source_set("render_service_base_src") {
   ]
   external_deps = [ "hilog:libhilog" ]
 
-  if (graphic_2d_feature_enable_ddgr_opinc) {
-    include_dirs += ddgr_adapter_opt_set.ddgr_opinc_include_set
-    sources += ddgr_adapter_opt_set.ddgr_opinc_src_set
+  if (graphic_2d_feature_enable_opinc) {
+    include_dirs += opinc_adapter_opt_set.opinc_include_set
+    sources += opinc_adapter_opt_set.opinc_src_set
   }
 
   if (!is_mingw && !is_mac && !is_cross_platform) {

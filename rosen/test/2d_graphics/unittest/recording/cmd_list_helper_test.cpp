@@ -495,7 +495,7 @@ HWTEST_F(CmdListHelperTest, AllSurfaceBuffer, TestSize.Level1)
 HWTEST_F(CmdListHelperTest, DrawFuncObj, TestSize.Level1)
 {
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    OpDataHandle handle = CmdListHelper::AddDrawFuncObjToCmdList(*cmdList, nullptr);
+    uint32_t handle = CmdListHelper::AddDrawFuncObjToCmdList(*cmdList, nullptr);
     EXPECT_EQ(cmdList->GetDrawFuncObj(TEST_INVALIED_ID), nullptr);
     auto sptr = CmdListHelper::GetDrawFuncObjFromCmdList(*cmdList, handle);
     EXPECT_EQ(sptr, nullptr);
@@ -521,20 +521,6 @@ HWTEST_F(CmdListHelperTest, AddBitmapToCmdList002, TestSize.Level1)
     bitmap1.Build(100, 100, format1);
     handel = CmdListHelper::AddBitmapToCmdList(*cmdList, bitmap1);
     EXPECT_NE(handel.offset, 0);
-}
-
-/**
- * @tc.name: PixelMap
- * @tc.desc: Test the PixelMap function.
- * @tc.type: FUNC
- * @tc.require: I7SO7X
- */
-HWTEST_F(CmdListHelperTest, PixelMap, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    OpDataHandle handle = CmdListHelper::AddPixelMapToCmdList(*cmdList, nullptr);
-    auto sptr = CmdListHelper::GetPixelMapFromCmdList(*cmdList, handle);
-    EXPECT_EQ(sptr, nullptr);
 }
 
 /**
@@ -621,33 +607,6 @@ HWTEST_F(CmdListHelperTest, SetUpBitmapData, TestSize.Level1)
     char str[TEST_MEM_SIZE];
     bool set = cmdList->SetUpBitmapData(static_cast<void *>(str), TEST_MEM_SIZE);
     EXPECT_EQ(set, true);
-}
-
-/**
- * @tc.name: AllPixelMap
- * @tc.desc: Test the AllPixelMap function.
- * @tc.type: FUNC
- * @tc.require: I7SO7X
- */
-HWTEST_F(CmdListHelperTest, AllPixelMap, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    Media::InitializationOptions opts;
-    opts.size.width = 200;
-    opts.size.height = 150;
-    opts.editable = true;
-    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
-    
-    uint32_t handle = cmdList->AddPixelMap(pixelMap);
-    auto sptr = cmdList->GetPixelMap(handle);
-    sptr = cmdList->GetPixelMap(TEST_INVALIED_ID);
-    EXPECT_EQ(sptr, nullptr);
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapList;
-    uint32_t id = cmdList->GetAllPixelMap(pixelMapList);
-    
-    auto cmdList1 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    id = cmdList1->SetupPixelMap(pixelMapList);
-    EXPECT_NE(id, 0);
 }
 
 /**

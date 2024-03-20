@@ -130,8 +130,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetOutlineStyle(BORDER_TYPE_NONE); }, // OUTLINE_STYLE
     [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS
     [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
-    [](RSProperties* prop) { prop->SetGreyCoef1(0.f); },                 // GREY_COEF1
-    [](RSProperties* prop) { prop->SetGreyCoef2(0.f); },                 // GREY_COEF2
+    [](RSProperties* prop) { prop->SetGreyCoef(std::nullopt); },         // GREY_COEF
     [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },           // LIGHT_INTENSITY
     [](RSProperties* prop) { prop->SetLightPosition({}); },              // LIGHT_POSITION
     [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH
@@ -181,9 +180,6 @@ void RSProperties::SetBounds(Vector4f bounds)
     boundsGeo_->SetRect(bounds.x_, bounds.y_, bounds.z_, bounds.w_);
     hasBounds_ = true;
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -193,9 +189,6 @@ void RSProperties::SetBoundsSize(Vector2f size)
     hasBounds_ = true;
     geoDirty_ = true;
     contentDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -221,9 +214,6 @@ void RSProperties::SetBoundsPosition(Vector2f position)
 {
     boundsGeo_->SetPosition(position.x_, position.y_);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -231,9 +221,6 @@ void RSProperties::SetBoundsPositionX(float positionX)
 {
     boundsGeo_->SetX(positionX);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -241,9 +228,6 @@ void RSProperties::SetBoundsPositionY(float positionY)
 {
     boundsGeo_->SetY(positionY);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -289,9 +273,6 @@ void RSProperties::SetFrame(Vector4f frame)
     }
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -300,9 +281,6 @@ void RSProperties::SetFrameSize(Vector2f size)
     frameGeo_->SetSize(size.x_, size.y_);
     geoDirty_ = true;
     contentDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -326,9 +304,6 @@ void RSProperties::SetFramePosition(Vector2f position)
 {
     frameGeo_->SetPosition(position.x_, position.y_);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -336,9 +311,6 @@ void RSProperties::SetFramePositionX(float positionX)
 {
     frameGeo_->SetX(positionX);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -346,9 +318,6 @@ void RSProperties::SetFramePositionY(float positionY)
 {
     frameGeo_->SetY(positionY);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -646,21 +615,11 @@ void RSProperties::SetSkewY(float skewY)
     SetDirty();
 }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-bool RSProperties::GetOpincPropDirty() const
-{
-    return isOpincPropDirty_ && !alphaNeedApply_;
-}
-#endif
-
 void RSProperties::SetTranslate(Vector2f translate)
 {
     boundsGeo_->SetTranslateX(translate[0]);
     boundsGeo_->SetTranslateY(translate[1]);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -668,9 +627,6 @@ void RSProperties::SetTranslateX(float translate)
 {
     boundsGeo_->SetTranslateX(translate);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -678,9 +634,6 @@ void RSProperties::SetTranslateY(float translate)
 {
     boundsGeo_->SetTranslateY(translate);
     geoDirty_ = true;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = true;
-#endif
     SetDirty();
 }
 
@@ -1121,18 +1074,10 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& lightUpDe
     contentDirty_ = true;
 }
 
-void RSProperties::SetGreyCoef1(float greyCoef1)
+void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
 {
-    greyCoef1_ = greyCoef1;
-    filterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-}
-
-void RSProperties::SetGreyCoef2(float greyCoef2)
-{
-    greyCoef2_ = greyCoef2;
-    filterNeedUpdate_ = true;
+    greyCoef_ = greyCoef;
+    greyCoefNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1178,21 +1123,11 @@ const std::optional<float>& RSProperties::GetDynamicLightUpDegree() const
     return dynamicLightUpDegree_;
 }
 
-float RSProperties::GetGreyCoef1() const
+const std::optional<Vector2f>& RSProperties::GetGreyCoef() const
 {
-    return greyCoef1_;
+    return greyCoef_;
 }
 
-float RSProperties::GetGreyCoef2() const
-{
-    return greyCoef2_;
-}
-
-bool RSProperties::IsGreyAdjustmentValid() const
-{
-    return ROSEN_GNE(greyCoef1_, 0.0) && ROSEN_LE(greyCoef1_, 127.0) &&   // 127.0 number
-        ROSEN_GNE(greyCoef2_, 0.0) && ROSEN_LE(greyCoef2_, 127.0);        // 127.0 number
-}
 
 const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
 {
@@ -1584,9 +1519,6 @@ void RSProperties::ResetDirty()
     isDirty_ = false;
     geoDirty_ = false;
     contentDirty_ = false;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    isOpincPropDirty_ = false;
-#endif
 }
 
 bool RSProperties::IsDirty() const
@@ -2800,6 +2732,13 @@ void RSProperties::OnApplyModifiers()
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();
     }
+    if (greyCoefNeedUpdate_) {
+        CheckGreyCoef();
+        greyCoefNeedUpdate_ = false;
+        if (!filterNeedUpdate_) {
+            ApplyGreyCoef();
+        }
+    }
     if (filterNeedUpdate_) {
         filterNeedUpdate_ = false;
         if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
@@ -2822,11 +2761,12 @@ void RSProperties::OnApplyModifiers()
             filter_ = linearBlurFilter;
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                        IsDynamicLightUpValid() || IsGreyAdjustmentValid() || linearGradientBlurPara_ != nullptr ||
-                        GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+                      IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
+                      GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
 #endif
+        ApplyGreyCoef();
     }
     GenerateRRect();
 }
@@ -2876,6 +2816,27 @@ void RSProperties::CalculateFrameOffset()
     }
     if (frameOffsetX_ != 0. || frameOffsetY_ != 0.) {
         isDrawn_ = true;
+    }
+}
+
+void RSProperties::CheckGreyCoef()
+{
+    if (!greyCoef_.has_value()) {
+        return;
+    }
+    // 127.0 half of 255.0
+    if (greyCoef_->x_ < 0.0f || greyCoef_->x_ > 127.0f || greyCoef_->y_ < 0.0f || greyCoef_->y_ > 127.0f) {
+        greyCoef_ = std::nullopt;
+    }
+}
+
+void RSProperties::ApplyGreyCoef()
+{
+    if (auto bgFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_)) {
+        bgFilter->SetGreyCoef(greyCoef_);
+    }
+    if (auto fgFilter = std::static_pointer_cast<RSDrawingFilter>(filter_)) {
+        fgFilter->SetGreyCoef(greyCoef_);
     }
 }
 

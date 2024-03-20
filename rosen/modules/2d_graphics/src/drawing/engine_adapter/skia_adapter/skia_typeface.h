@@ -47,6 +47,7 @@ public:
     bool GetItalic() const override;
     uint32_t GetUniqueID() const override;
     int32_t GetUnitsPerEm() const override;
+    sk_sp<SkTypeface> GetSkTypeface();
 
     static std::shared_ptr<Typeface> MakeDefault();
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index);
@@ -55,6 +56,8 @@ public:
 
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
+    std::shared_ptr<Data> Serialize() const override;
+    static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
 
 private:
     SkiaTypeface() = default;

@@ -201,12 +201,6 @@ void RSGPUOverdrawCanvasListener::DrawBitmap(
     overdrawCanvas_->DrawRect(Drawing::Rect(px, py, bitmap.GetWidth() + px, bitmap.GetHeight() + py));
 }
 
-void RSGPUOverdrawCanvasListener::DrawBitmap(
-    OHOS::Media::PixelMap& pixelMap, const Drawing::scalar px, const Drawing::scalar py)
-{
-    // need know pixelMap region
-}
-
 void RSGPUOverdrawCanvasListener::DrawImage(const Drawing::Image& image, const Drawing::scalar px,
     const Drawing::scalar py, const Drawing::SamplingOptions& sampling)
 {

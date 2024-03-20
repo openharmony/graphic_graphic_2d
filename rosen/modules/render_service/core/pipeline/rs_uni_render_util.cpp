@@ -84,23 +84,20 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
     return allSurfaceVisibleDirtyRegion;
 }
 
-void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node)
+void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
+    const sptr<IConsumerSurface>& surface, RectF& localBounds)
 {
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    const auto& buffer = node.GetBuffer();
-    const auto& surface = node.GetConsumer();
     if (buffer == nullptr || surface == nullptr) {
         return;
     }
-
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
         scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        const RSProperties& property = node.GetRenderProperties();
         uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
         uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
         // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
-        uint32_t boundsWidth = static_cast<uint32_t>(property.GetBoundsWidth());
-        uint32_t boundsHeight = static_cast<uint32_t>(property.GetBoundsHeight());
+        uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
+        uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
 
         // If transformType is not a multiple of 180, need to change the correspondence between width & height.
         GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
@@ -108,7 +105,6 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
             transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
             std::swap(boundsWidth, boundsHeight);
         }
-
         if (newWidth * boundsHeight > newHeight * boundsWidth) {
             // too wide
             if (boundsHeight == 0) {
@@ -144,9 +140,9 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
                     params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                     params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
         }
-        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%{public}" PRIu64 ","
+        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name:%{public}s,"
             " srcRect [%{public}f %{public}f %{public}f %{public}f]",
-            node.GetId(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
+            surface->GetName().c_str(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
             params.srcRect.GetWidth(), params.srcRect.GetHeight());
     }
 }
@@ -182,7 +178,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    SrcRectScaleDown(params, node);
+    SrcRectScaleDown(params, node.GetBuffer(), node.GetConsumer(), localBounds);
     return params;
 }
 
@@ -239,6 +235,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
         localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    SrcRectScaleDown(params, layer->GetBuffer(), layer->GetSurface(), localBounds);
     return params;
 }
 

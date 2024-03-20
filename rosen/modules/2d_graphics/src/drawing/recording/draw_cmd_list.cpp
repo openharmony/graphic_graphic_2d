@@ -43,7 +43,6 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::SHADOW_OPITEM,            "SHADOW_OPITEM" },
     { DrawOpItem::COLOR_OPITEM,             "COLOR_OPITEM" },
     { DrawOpItem::IMAGE_NINE_OPITEM,        "IMAGE_NINE_OPITEM" },
-    { DrawOpItem::IMAGE_ANNOTATION_OPITEM,  "IMAGE_ANNOTATION_OPITEM" },
     { DrawOpItem::IMAGE_LATTICE_OPITEM,     "IMAGE_LATTICE_OPITEM" },
     { DrawOpItem::BITMAP_OPITEM,            "BITMAP_OPITEM" },
     { DrawOpItem::IMAGE_OPITEM,             "IMAGE_OPITEM" },
@@ -70,8 +69,6 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::RESTORE_OPITEM,           "RESTORE_OPITEM" },
     { DrawOpItem::DISCARD_OPITEM,           "DISCARD_OPITEM" },
     { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM,  "CLIP_ADAPTIVE_ROUND_RECT_OPITEM" },
-    { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    "ADAPTIVE_IMAGE_OPITEM" },
-    { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, "ADAPTIVE_PIXELMAP_OPITEM" },
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
     { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, "PIXELMAP_WITH_PARM_OPITEM" },
     { DrawOpItem::PIXELMAP_RECT_OPITEM,     "PIXELMAP_RECT_OPITEM" },
@@ -138,7 +135,9 @@ void DrawCmdList::ClearOp()
     imageAllocator_.ClearData();
     bitmapAllocator_.ClearData();
     imageMap_.clear();
+    typefaceMap_.clear();
     imageHandleVec_.clear();
+    typefaceHandleVec_.clear();
     drawOpItems_.clear();
     lastOpGenSize_ = 0;
     lastOpItemOffset_ = std::nullopt;
@@ -287,11 +286,11 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     if (width_ <= 0 || height_ <= 0) {
         return;
     }
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (canvas.GetDrawingType() == DrawingType::RECORDING) {
         PlaybackToDrawCmdList(static_cast<RecordingCanvas&>(canvas).GetDrawCmdList());
         return;
     }
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
 #ifdef ROSEN_OHOS
     // invalidate cache if high contrast flag changed
     if (isCached_ && canvas.isHighContrastEnabled() != cachedHighContrast_) {
@@ -374,11 +373,7 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
         if (!opItem) {
             continue;
         }
-        if (opItem->GetType() == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM ||
-            opItem->GetType() == DrawOpItem::IMAGE_WITH_PARM_OPITEM ||
-            opItem->GetType() == DrawOpItem::PIXELMAP_RECT_OPITEM) {
-            opItem->SetNodeId(nodeId);
-        }
+        opItem->SetNodeId(nodeId);
     }
 }
 
@@ -449,7 +444,9 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
 
 void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
+        std::lock_guard<std::recursive_mutex> lock(drawCmdList->mutex_);
         drawCmdList->drawOpItems_.insert(drawCmdList->drawOpItems_.end(), drawOpItems_.begin(), drawOpItems_.end());
         return;
     }
@@ -460,19 +457,25 @@ void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList
     }
 
 #ifdef SUPPORT_OHOS_PIXMAP
-    drawCmdList->imageObjectVec_.swap(imageObjectVec_);
+    {
+        std::lock_guard<std::mutex> lock(drawCmdList->imageObjectMutex_);
+        drawCmdList->imageObjectVec_.swap(imageObjectVec_);
+    }
 #endif
-    drawCmdList->imageBaseObjVec_.swap(imageBaseObjVec_);
+    {
+        std::lock_guard<std::mutex> lock(drawCmdList->imageBaseObjMutex_);
+        drawCmdList->imageBaseObjVec_.swap(imageBaseObjVec_);
+    }
     size_t size = opAllocator_.GetSize() - offset_;
     auto imageData = GetAllImageData();
     auto bitmapData = GetAllBitmapData();
     drawCmdList->opAllocator_.Add(addr, size);
     if (imageData.first != nullptr && imageData.second != 0) {
-        drawCmdList->imageAllocator_.Add(imageData.first, imageData.second);
+        drawCmdList->AddImageData(imageData.first, imageData.second);
     }
 
     if (bitmapData.first != nullptr && bitmapData.second != 0) {
-        drawCmdList->bitmapAllocator_.Add(bitmapData.first, bitmapData.second);
+        drawCmdList->AddBitmapData(bitmapData.first, bitmapData.second);
     }
 }
 

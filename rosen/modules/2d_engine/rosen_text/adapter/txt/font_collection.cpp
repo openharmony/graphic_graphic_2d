@@ -14,7 +14,6 @@
  */
 
 #include "font_collection.h"
-
 #include "include/core/SkTypeface.h"
 
 #include "convert.h"

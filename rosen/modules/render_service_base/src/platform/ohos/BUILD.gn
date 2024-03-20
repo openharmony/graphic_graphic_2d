@@ -147,8 +147,8 @@ ohos_source_set("rosen_ohos_sources") {
     ]
   }
 
-  if (graphic_2d_feature_enable_ddgr_opinc) {
-    include_dirs += ddgr_adapter_opt_set.ddgr_opinc_include_set
+  if (graphic_2d_feature_enable_opinc) {
+    include_dirs += opinc_adapter_opt_set.opinc_include_set
   }
 
   external_deps = [

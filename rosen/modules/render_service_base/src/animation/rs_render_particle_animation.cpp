@@ -42,15 +42,21 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
     if (particleSystem_ != nullptr) {
-        auto renderParticle = particleSystem_->Simulation(deltaTime);
-        renderParticleVector_ = RSRenderParticleVector(std::move(renderParticle));
+        particleSystem_->Emit(deltaTime, renderParticleVector_.renderParticleVector_);
+        particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
     }
     auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
     if (property) {
         property->Set(renderParticleVector_);
     }
     auto target = GetTarget();
-    if (particleSystem_ == nullptr || particleSystem_->IsFinish()) {
+    if (!target) {
+        return true;
+    } else if (!target->IsOnTheTree() || !target->GetRenderProperties().GetVisible()) {
+        target->RemoveModifier(property_->GetId());
+        return true;
+    }
+    if (particleSystem_ == nullptr || particleSystem_->IsFinish(renderParticleVector_.renderParticleVector_)) {
         if (target) {
             target->RemoveModifier(property_->GetId());
         }

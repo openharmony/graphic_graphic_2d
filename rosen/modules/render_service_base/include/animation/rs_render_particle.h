@@ -95,7 +95,7 @@ public:
     Vector2f position_;
     Vector2f emitSize_;
     int32_t particleCount_;
-    int64_t lifeTime_;
+    Range<int64_t> lifeTime_;
     ParticleType type_;
     float radius_;
     std::shared_ptr<RSImage> image_;
@@ -106,7 +106,7 @@ public:
           type_(ParticleType::POINTS), radius_(), image_(), imageSize_()
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
-        const int32_t& particleCount, const int64_t& lifeTime, const ParticleType& type, const float& radius,
+        const int32_t& particleCount, const Range<int64_t>& lifeTime, const ParticleType& type, const float& radius,
         std::shared_ptr<RSImage> image, Vector2f imageSize)
         : emitRate_(emitRate), emitShape_(emitShape), position_(position), emitSize_(emitSize),
           particleCount_(particleCount), lifeTime_(lifeTime), type_(type), radius_(radius), image_(std::move(image)),
@@ -203,7 +203,8 @@ public:
     const Vector2f& GetEmitPosition() const;
     const Vector2f& GetEmitSize() const;
     int32_t GetParticleCount() const;
-    int64_t GetParticleLifeTime() const;
+    int64_t GetLifeTimeStartValue() const;
+    int64_t GetLifeTimeEndValue() const;
     const ParticleType& GetParticleType() const;
     float GetParticleRadius() const;
     const std::shared_ptr<RSImage>& GetParticleImage();
@@ -333,13 +334,13 @@ public:
     const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& GetColorChangeOverLife();
 
     // Other methods
-    void InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams);
+    void InitProperty();
     bool IsAlive() const;
     void SetIsDead();
     static float GetRandomValue(float min, float max);
     Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize);
     Color Lerp(const Color& start, const Color& end, float t);
-    std::shared_ptr<ParticleRenderParams> particleRenderParams_;
+    std::shared_ptr<ParticleRenderParams> particleParams_;
 
     bool operator==(const RSRenderParticle& rhs)
     {
@@ -389,6 +390,16 @@ public:
     {}
     RSRenderParticleVector() = default;
     ~RSRenderParticleVector() = default;
+    RSRenderParticleVector(const RSRenderParticleVector& other) : renderParticleVector_(other.renderParticleVector_) {}
+
+    RSRenderParticleVector& operator=(const RSRenderParticleVector& other)
+    {
+        if (this != &other) {
+            renderParticleVector_ = other.renderParticleVector_;
+        }
+        return *this;
+    }
+
     int GetParticleSize() const
     {
         return renderParticleVector_.size();
@@ -415,6 +426,7 @@ public:
         return equal;
     }
 
+    friend class RSRenderParticleAnimation;
 private:
     std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector_;
 };

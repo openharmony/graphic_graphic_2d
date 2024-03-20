@@ -32,6 +32,7 @@ FontCollection::FontCollection() : enableFontFallback_(true) {}
 
 FontCollection::~FontCollection()
 {
+    std::unique_lock lock(collectionMutex_);
     if (sktFontCollection_) {
         sktFontCollection_->clearCaches();
     }
@@ -44,36 +45,42 @@ size_t FontCollection::GetFontManagersCount() const
 
 void FontCollection::SetupDefaultFontManager()
 {
+    std::unique_lock lock(collectionMutex_);
     defaultFontManager_ = OHOS::Rosen::SPText::GetDefaultFontManager();
     sktFontCollection_.reset();
 }
 
 void FontCollection::SetDefaultFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
+    std::unique_lock lock(collectionMutex_);
     defaultFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
 void FontCollection::SetAssetFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
+    std::unique_lock lock(collectionMutex_);
     assetFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
 void FontCollection::SetDynamicFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
+    std::unique_lock lock(collectionMutex_);
     dynamicFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
 void FontCollection::SetTestFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
+    std::unique_lock lock(collectionMutex_);
     testFontManager_ = fontManager;
     sktFontCollection_.reset();
 }
 
 std::vector<std::shared_ptr<RSFontMgr>> FontCollection::GetFontManagerOrder() const
 {
+    std::unique_lock lock(collectionMutex_);
     std::vector<std::shared_ptr<RSFontMgr>> order;
     if (dynamicFontManager_)
         order.push_back(dynamicFontManager_);
@@ -88,6 +95,7 @@ std::vector<std::shared_ptr<RSFontMgr>> FontCollection::GetFontManagerOrder() co
 
 void FontCollection::DisableFontFallback()
 {
+    std::unique_lock lock(collectionMutex_);
     enableFontFallback_ = false;
     if (sktFontCollection_) {
         sktFontCollection_->disableFontFallback();
@@ -96,6 +104,7 @@ void FontCollection::DisableFontFallback()
 
 void FontCollection::ClearFontFamilyCache()
 {
+    std::unique_lock lock(collectionMutex_);
     if (sktFontCollection_) {
         sktFontCollection_->clearCaches();
     }
@@ -103,6 +112,7 @@ void FontCollection::ClearFontFamilyCache()
 
 sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection()
 {
+    std::unique_lock lock(collectionMutex_);
     if (!sktFontCollection_) {
         sktFontCollection_ = sk_make_sp<skia::textlayout::FontCollection>();
 

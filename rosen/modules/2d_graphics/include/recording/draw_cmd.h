@@ -53,7 +53,6 @@ public:
         CIRCLE_OPITEM,
         COLOR_OPITEM,
         IMAGE_NINE_OPITEM,
-        IMAGE_ANNOTATION_OPITEM,
         IMAGE_LATTICE_OPITEM,
         PATH_OPITEM,
         BACKGROUND_OPITEM,
@@ -83,8 +82,6 @@ public:
         RESTORE_OPITEM,
         DISCARD_OPITEM,
         CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
-        ADAPTIVE_IMAGE_OPITEM,
-        ADAPTIVE_PIXELMAP_OPITEM,
         IMAGE_WITH_PARM_OPITEM,
         PIXELMAP_WITH_PARM_OPITEM,
         PIXELMAP_RECT_OPITEM,
@@ -721,12 +718,15 @@ private:
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& textBlob, scalar x, scalar y, const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), x(x), y(y), paintHandle(paintHandle) {}
+        ConstructorHandle(const OpDataHandle& textBlob, const OpDataHandle& typeface,
+            scalar x, scalar y, const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), typeface(typeface),
+            x(x), y(y), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
+        OpDataHandle typeface;
         scalar x;
         scalar y;
         PaintHandle paintHandle;
@@ -1183,75 +1183,6 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
     std::vector<Point> radiusData_;
-};
-
-class DrawAdaptiveImageOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& image, const AdaptiveImageInfo& rsImageInfo,
-            const SamplingOptions& sampling, const bool isImage, const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::ADAPTIVE_IMAGE_OPITEM), image(image), rsImageInfo(rsImageInfo), sampling(sampling),
-              isImage(isImage), paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle image;
-        AdaptiveImageInfo rsImageInfo;
-        SamplingOptions sampling;
-        bool isImage;
-        PaintHandle paintHandle;
-    };
-    DrawAdaptiveImageOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
-    DrawAdaptiveImageOpItem(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
-        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
-        : DrawWithPaintOpItem(paint, DrawOpItem::ADAPTIVE_IMAGE_OPITEM), rsImageInfo_(rsImageInfo), sampling_(sampling)
-    {
-        if (data != nullptr) {
-            data_ = data;
-            isImage_ = false;
-        } else if (image != nullptr) {
-            image_ = image;
-            isImage_ = true;
-        } else {
-            isImage_ = false;
-        }
-    }
-    ~DrawAdaptiveImageOpItem() override = default;
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
-    void Marshalling(DrawCmdList& cmdList) override;
-    void Playback(Canvas* canvas, const Rect* rect) override;
-private:
-    AdaptiveImageInfo rsImageInfo_;
-    SamplingOptions sampling_;
-    bool isImage_;
-    std::shared_ptr<Image> image_;
-    std::shared_ptr<Data> data_;
-};
-
-class DrawAdaptivePixelMapOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
-            const SamplingOptions& sampling, const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM), pixelMap(pixelMap),
-              imageInfo(imageInfo), sampling(sampling), paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle pixelMap;
-        AdaptiveImageInfo imageInfo;
-        SamplingOptions sampling;
-        PaintHandle paintHandle;
-    };
-    DrawAdaptivePixelMapOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
-    DrawAdaptivePixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const AdaptiveImageInfo& rsImageInfo,
-        const SamplingOptions& sampling, const Paint& paint)
-        : DrawWithPaintOpItem(paint, DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM), imageInfo_(rsImageInfo),
-          sampling_(sampling), pixelMap_(pixelMap) {}
-    ~DrawAdaptivePixelMapOpItem() override = default;
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
-    void Marshalling(DrawCmdList& cmdList) override;
-    void Playback(Canvas* canvas, const Rect* rect) override;
-private:
-    AdaptiveImageInfo imageInfo_;
-    SamplingOptions sampling_;
-    std::shared_ptr<Media::PixelMap> pixelMap_;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -569,14 +569,14 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::MakeGreyAdjustmentE
 }
 
 std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing::Canvas& canvas,
-    const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2)
+    const std::shared_ptr<Drawing::Image>& image, const Vector2f& greyCoeff)
 {
     if (image == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment image is null");
         return nullptr;
     }
     RS_TRACE_NAME_FMT("RSPropertiesPainter::DrawGreyAdjustment, greyCoef1 is: %f, greyCoef2 is: %f",
-        greyCoef1, greyCoef2);
+        greyCoeff.x_, greyCoeff.y_);
     auto greyAdjustEffect = MakeGreyAdjustmentEffect();
     if (!greyAdjustEffect) {
         ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment greyAdjustEffect is null");
@@ -588,8 +588,8 @@ std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing:
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
     builder->SetChild("imageShader", imageShader);
-    builder->SetUniform("coefficient1", greyCoef1);
-    builder->SetUniform("coefficient2", greyCoef2);
+    builder->SetUniform("coefficient1", greyCoeff.x_);
+    builder->SetUniform("coefficient2", greyCoeff.y_);
     return builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
 }
 
@@ -614,9 +614,9 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     g_blurCnt++;
+    Drawing::AutoCanvasRestore acr(canvas, true);
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
-    filter->SetGreyCoef(properties.GetGreyCoef1(), properties.GetGreyCoef2(), properties.IsGreyAdjustmentValid());
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter surface null");
@@ -1097,7 +1097,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPropertiesPainter::GetPh
             float diffuseStrength = 0.0;
             vec4 specularColor = vec4(1.0, 1.0, 1.0, 1.0);
             float shininess = 8.0;
-            mediump vec4 fragColor;
+            mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
             vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
             // ambient
             vec4 ambient = lightColor * ambientStrength;

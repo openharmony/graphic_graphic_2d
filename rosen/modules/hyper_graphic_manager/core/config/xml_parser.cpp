@@ -137,7 +137,19 @@ int32_t XMLParser::ParseParams(xmlNode &node)
 
     int32_t setResult = EXEC_SUCCESS;
     if (paraName == "refresh_rate_4settings") {
-        setResult = ParseSimplex(node, mParsedData_->refreshRateForSettings_);
+        std::unordered_map<std::string, std::string> refreshRateForSettings;
+        setResult = ParseSimplex(node, refreshRateForSettings);
+        if (setResult != EXEC_SUCCESS) {
+            mParsedData_->xmlCompatibleMode_ = true;
+            setResult = ParseSimplex(node, refreshRateForSettings, "id");
+        }
+        mParsedData_->refreshRateForSettings_.clear();
+        for (auto &[name, id]: refreshRateForSettings) {
+            mParsedData_->refreshRateForSettings_.emplace_back(
+                std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
+        }
+        std::sort(mParsedData_->refreshRateForSettings_.begin(), mParsedData_->refreshRateForSettings_.end(),
+            [=] (auto rateId0, auto rateId1) { return rateId0.first < rateId1.first; });
     } else if (paraName == "refreshRate_strategy_config") {
         setResult = ParseStrategyConfig(node);
     } else if (paraName == "refreshRate_virtual_display_config") {
@@ -255,7 +267,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
 }
 
 int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                                const std::string valueName, const std::string keyName)
+                                const std::string &valueName, const std::string &keyName)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;

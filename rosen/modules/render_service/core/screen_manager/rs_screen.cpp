@@ -550,7 +550,7 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "backlight=" + std::to_string(GetScreenBacklight());
         dumpString += ", ";
         ScreenTypeDump(dumpString);
-        AppendFormat(dumpString, ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=true\n",
+        AppendFormat(dumpString, ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=false\n",
             width_, height_, phyWidth_, phyHeight_);
         dumpString += "\n";
         ModeInfoDump(dumpString);
@@ -806,6 +806,20 @@ bool RSScreen::SetVirtualMirrorScreenCanvasRotation(bool canvasRotation)
 bool RSScreen::GetCanvasRotation() const
 {
     return canvasRotation_;
+}
+
+bool RSScreen::SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode)
+{
+    if (IsVirtual()) {
+        scaleMode_ = scaleMode;
+        return true;
+    }
+    return false;
+}
+
+ScreenScaleMode RSScreen::GetScaleMode() const
+{
+    return scaleMode_;
 }
 
 int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const

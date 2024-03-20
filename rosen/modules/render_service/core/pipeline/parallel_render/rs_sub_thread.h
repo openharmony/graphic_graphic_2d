@@ -42,6 +42,7 @@ public:
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ResetGrContext();
+    void ThreadSafetyReleaseTexture();
     void DumpMem(DfxString& log);
     MemoryGraphic CountSubMem(int pid);
     float GetAppGpuMemoryInMB();

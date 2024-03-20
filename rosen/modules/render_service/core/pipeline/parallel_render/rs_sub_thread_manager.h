@@ -48,6 +48,8 @@ public:
         const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void ResetSubThreadGrContext();
     void CancelReleaseResourceTask();
+    void ReleaseTexture();
+    void CancelReleaseTextureTask();
     void DumpMem(DfxString& log);
     float GetAppGpuMemoryInMB();
     std::vector<MemoryGraphic> CountSubMem(int pid);
@@ -74,6 +76,7 @@ private:
     std::shared_ptr<RSFilterSubThread> colorPickerThread_ = nullptr;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
+    bool needCancelReleaseTextureTask_ = false;
 
     bool isRcdServiceRegister_ = false;
 };

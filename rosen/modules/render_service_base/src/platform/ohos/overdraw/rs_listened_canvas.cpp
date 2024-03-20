@@ -158,14 +158,6 @@ void RSListenedCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const s
     }
 }
 
-void RSListenedCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
-{
-    RSPaintFilterCanvas::DrawBitmap(pixelMap, px, py);
-    if (listener_ != nullptr) {
-        listener_->DrawBitmap(pixelMap, px, py);
-    }
-}
-
 void RSListenedCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
 {
     RSPaintFilterCanvas::DrawImage(image, px, py, sampling);

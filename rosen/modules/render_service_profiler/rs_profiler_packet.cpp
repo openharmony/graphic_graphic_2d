@@ -29,7 +29,7 @@ bool Packet::IsBinary() const
 
 bool Packet::IsCommand() const
 {
-    return (GetType() == COMMAND_ACKNOWLEDGED) || (GetType() == COMMAND);
+    return GetType() == COMMAND;
 }
 
 char* Packet::Begin()

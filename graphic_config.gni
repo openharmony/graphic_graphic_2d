@@ -29,7 +29,7 @@ declare_args() {
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_ddgr = false
-  graphic_2d_feature_enable_ddgr_opinc = false
+  graphic_2d_feature_enable_opinc = false
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
@@ -42,7 +42,6 @@ declare_args() {
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
-  graphic_2d_feature_enable_dvsync = false
   graphic_2d_feature_use_igraphics_extend_hooks = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
@@ -54,9 +53,15 @@ declare_args() {
   }
 }
 
+declare_args() {
+  graphic_2d_feature_enable_stack_culling = false
+}
+
 if (graphic_2d_feature_product == "phone") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_stack_culling = true
+  graphic_2d_feature_enable_opinc = false
 }
 
 gpu_defines = []
@@ -74,12 +79,8 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "RS_ENABLE_VK",
     ]
     if (graphic_2d_feature_enable_ddgr) {
-      graphic_2d_feature_enable_ddgr_opinc = true
       gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
       import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
-      if (graphic_2d_feature_enable_ddgr_opinc) {
-        gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
-      }
     }
   }
   if (graphic_2d_feature_enable_opengl) {
@@ -88,6 +89,15 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "RS_ENABLE_GL",
     ]
   }
+  if (graphic_2d_feature_enable_stack_culling) {
+    gpu_defines += [ "RS_ENABLE_STACK_CULLING" ]
+  }
+
+  if (graphic_2d_feature_enable_opinc) {
+    import("//foundation/graphic/graphic_2d_ext/opinc/config.gni")
+    gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
+  }
+
   if (graphic_2d_feature_enable_recording_dcl) {
     rs_enable_recording_dcl = true
     gpu_defines += [ "ENABLE_RECORDING_DCL" ]
@@ -141,12 +151,14 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
+  graphic_2d_feature_enable_dvsync = true
   gpu_defines += [
     "RS_ENABLE_DRIVEN_RENDER",
     "RS_ENABLE_UNI_RENDER",
   ]
 } else {
   rs_enable_driven_render = false
+  graphic_2d_feature_enable_dvsync = false
 }
 
 if (graphic_2d_feature_enable_afbc) {
@@ -194,6 +206,12 @@ check_delegator_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
 ]
+check_broker_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
+]
+
 if (exec_script(check_graphic_ext_file_script,
                 check_graphic_ext_file_args,
                 "string") == "True" && "${product_name}" == "ohcore") {
@@ -223,6 +241,30 @@ if (exec_script(check_graphic_ext_file_script,
                 "string") == "True") {
   graphic_2d_delegator_configs = {
     import("//foundation/graphic/graphic_2d_ext/delegator/config.gni")
+  }
+}
+
+graphic_2d_broker_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_broker_ext_file_args,
+                "string") == "True") {
+  graphic_2d_broker_configs = {
+    import("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni")
+  }
+}
+
+check_platform_ext_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/platform/config.gni"),
+]
+graphic_2d_platform_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_platform_ext_file_args,
+                "string") == "True") {
+  graphic_2d_platform_configs = {
+    import("//foundation/graphic/graphic_2d_ext/platform/config.gni")
   }
 }
 

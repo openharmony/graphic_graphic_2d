@@ -206,8 +206,7 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     }
     Drawing::TextureOrigin surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
     } else {
         surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;

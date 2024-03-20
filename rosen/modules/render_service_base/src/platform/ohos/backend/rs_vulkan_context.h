@@ -27,6 +27,7 @@
 #include "vulkan/vulkan.h"
 #include "include/gpu/vk/GrVkBackendContext.h"
 #include "include/gpu/GrDirectContext.h"
+#include "rs_vulkan_mem_statistic.h"
 
 #include "image/gpu_context.h"
 
@@ -68,6 +69,10 @@ public:
     bool SelectPhysicalDevice();
     bool CreateDevice();
     bool CreateSkiaBackendContext(GrVkBackendContext* context, bool createNew = false);
+    RsVulkanMemStat& GetRsVkMemStat()
+    {
+        return mVkMemStat;
+    }
 
     bool IsValid() const;
     GrVkGetProc CreateSkiaGetProc() const;
@@ -194,6 +199,7 @@ private:
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
     GrVkExtensions skVkExtensions_;
+    RsVulkanMemStat mVkMemStat;
     static thread_local std::shared_ptr<Drawing::GPUContext> drawingContext_;
     std::shared_ptr<Drawing::GPUContext> hcontext_ = nullptr;
     // static thread_local GrVkBackendContext backendContext_;

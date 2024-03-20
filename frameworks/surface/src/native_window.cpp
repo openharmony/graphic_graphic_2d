@@ -529,9 +529,12 @@ NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), su
 
 NativeWindow::~NativeWindow()
 {
-    auto utils = SurfaceUtils::GetInstance();
-    utils->Remove(surface->GetUniqueId());
-    utils->RemoveNativeWindow(surface->GetUniqueId());
+    if (surface != nullptr) {
+        auto utils = SurfaceUtils::GetInstance();
+        utils->Remove(surface->GetUniqueId());
+        utils->RemoveNativeWindow(surface->GetUniqueId());
+    }
+
     for (auto &[seqNum, buffer] : bufferCache_) {
         NativeObjectUnreference(buffer);
     }

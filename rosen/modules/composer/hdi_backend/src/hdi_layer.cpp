@@ -603,12 +603,20 @@ sptr<SyncFence> HdiLayer::GetReleaseFence() const
     return currSbuffer_->releaseFence_;
 }
 
-void HdiLayer::RecordPresentTime(int64_t timestamp)
+bool HdiLayer::RecordPresentTime(int64_t timestamp)
 {
     if (currSbuffer_->sbuffer_ != prevSbuffer_->sbuffer_) {
         presentTimeRecords[count] = timestamp;
         count = (count + 1) % FRAME_RECORDS_NUM;
+        return true;
     }
+    return false;
+}
+
+void HdiLayer::RecordMergedPresentTime(int64_t timestamp)
+{
+    mergedPresentTimeRecords[mergedCount] = timestamp;
+    mergedCount = (mergedCount + 1) % FRAME_RECORDS_NUM;
 }
 
 void HdiLayer::MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence)
@@ -664,9 +672,19 @@ void HdiLayer::Dump(std::string &result)
     }
 }
 
+void HdiLayer::DumpMergedResult(std::string &result)
+{
+    const uint32_t offset = mergedCount;
+    for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
+        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        result += std::to_string(mergedPresentTimeRecords[order]) + "\n";
+    }
+}
+
 void HdiLayer::ClearDump()
 {
     presentTimeRecords.fill(0);
+    mergedPresentTimeRecords.fill(0);
 }
 
 } // namespace Rosen

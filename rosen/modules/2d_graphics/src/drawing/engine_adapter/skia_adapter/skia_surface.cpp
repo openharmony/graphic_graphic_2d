@@ -151,8 +151,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     sk_sp<GrDirectContext> grContext = nullptr;
@@ -191,8 +190,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     sk_sp<GrDirectContext> grContext = nullptr;
@@ -350,8 +348,7 @@ BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
     GrBackendTexture grBackendTexture = skSurface_->getBackendTexture(ConvertToSkiaBackendAccess(access));
     auto backendTexture = BackendTexture(true);
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (SystemProperties::IsUseVulkan()) {
         TextureInfo info;
         SkiaTextureInfo::ConvertToVKTexture(grBackendTexture, info);
         backendTexture.SetTextureInfo(info);
@@ -425,8 +422,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 #ifdef RS_ENABLE_VK
 void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return;
     }
 
@@ -441,8 +437,7 @@ void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 
 void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!SystemProperties::IsUseVulkan()) {
         return;
     }
     if (skSurface_ == nullptr) {

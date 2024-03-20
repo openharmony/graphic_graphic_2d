@@ -55,6 +55,34 @@ static ColorType CColorFormatCastToColorType(OH_Drawing_ColorFormat cColorFormat
     return colorType;
 }
 
+static OH_Drawing_ColorFormat ColorFormatCastToCColorType(ColorType colorType)
+{
+    OH_Drawing_ColorFormat cColorFormat = COLOR_FORMAT_UNKNOWN;
+    switch (colorType) {
+        case COLORTYPE_UNKNOWN:
+            cColorFormat = COLOR_FORMAT_UNKNOWN;
+            break;
+        case COLORTYPE_ALPHA_8:
+            cColorFormat = COLOR_FORMAT_ALPHA_8;
+            break;
+        case COLORTYPE_RGB_565:
+            cColorFormat = COLOR_FORMAT_RGB_565;
+            break;
+        case COLORTYPE_ARGB_4444:
+            cColorFormat = COLOR_FORMAT_ARGB_4444;
+            break;
+        case COLORTYPE_RGBA_8888:
+            cColorFormat = COLOR_FORMAT_RGBA_8888;
+            break;
+        case COLORTYPE_BGRA_8888:
+            cColorFormat = COLOR_FORMAT_BGRA_8888;
+            break;
+        default:
+            break;
+    }
+    return cColorFormat;
+}
+
 static AlphaType CAlphaFormatCastToAlphaType(OH_Drawing_AlphaFormat cAlphaFormat)
 {
     AlphaType alphaType = ALPHATYPE_UNKNOWN;
@@ -76,6 +104,28 @@ static AlphaType CAlphaFormatCastToAlphaType(OH_Drawing_AlphaFormat cAlphaFormat
             break;
     }
     return alphaType;
+}
+
+static OH_Drawing_AlphaFormat AlphaFormatCastToCAlphaType(AlphaType alphaType)
+{
+    OH_Drawing_AlphaFormat alphaFormat = ALPHA_FORMAT_UNKNOWN;
+    switch (alphaType) {
+        case ALPHATYPE_UNKNOWN:
+            alphaFormat = ALPHA_FORMAT_UNKNOWN;
+            break;
+        case ALPHATYPE_OPAQUE:
+            alphaFormat = ALPHA_FORMAT_OPAQUE;
+            break;
+        case ALPHATYPE_PREMUL:
+            alphaFormat = ALPHA_FORMAT_PREMUL;
+            break;
+        case ALPHATYPE_UNPREMUL:
+            alphaFormat = ALPHA_FORMAT_UNPREMUL;
+            break;
+        default:
+            break;
+    }
+    return alphaFormat;
 }
 
 OH_Drawing_Bitmap* OH_Drawing_BitmapCreate()
@@ -138,6 +188,23 @@ uint32_t OH_Drawing_BitmapGetHeight(OH_Drawing_Bitmap* cBitmap)
     return bitmap->GetHeight();
 }
 
+OH_Drawing_ColorFormat OH_Drawing_BitmapGetColorFormat(OH_Drawing_Bitmap* cBitmap)
+{
+    Bitmap* bitmap = CastToBitmap(cBitmap);
+    if (bitmap == nullptr) {
+        return COLOR_FORMAT_UNKNOWN;
+    }
+    return ColorFormatCastToCColorType(bitmap->GetColorType());
+}
+
+OH_Drawing_AlphaFormat OH_Drawing_BitmapGetAlphaFormat(OH_Drawing_Bitmap* cBitmap)
+{
+    Bitmap* bitmap = CastToBitmap(cBitmap);
+    if (bitmap == nullptr) {
+        return ALPHA_FORMAT_UNKNOWN;
+    }
+    return AlphaFormatCastToCAlphaType(bitmap->GetAlphaType());
+}
 void* OH_Drawing_BitmapGetPixels(OH_Drawing_Bitmap* cBitmap)
 {
     Bitmap* bitmap = CastToBitmap(cBitmap);
