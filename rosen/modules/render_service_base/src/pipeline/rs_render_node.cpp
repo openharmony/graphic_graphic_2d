@@ -1327,7 +1327,6 @@ bool RSRenderNode::ApplyModifiers()
 
 void RSRenderNode::UpdateDrawableVec()
 {
-#ifndef ROSEN_ARKUI_X
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
     if (!GetIsUsedBySubThread()) {
@@ -1342,12 +1341,10 @@ void RSRenderNode::UpdateDrawableVec()
         ROSEN_LOGI("%{public}s GetIsUsedBySubThread[%{public}d].", __func__, GetIsUsedBySubThread());
         UpdateDrawableVecInternal(dirtySlots);
     }
-#endif
 }
 
 void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
 {
-#ifndef ROSEN_ARKUI_X
      // initialize necessary save/clip/restore
     if (drawableVecStatus_ == 0) {
         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
@@ -1360,7 +1357,6 @@ void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawab
         RSPropertyDrawable::UpdateSaveRestore(
             *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
     }
-#endif
 }
 
 void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
