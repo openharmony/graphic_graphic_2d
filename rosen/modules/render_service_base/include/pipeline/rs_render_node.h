@@ -98,7 +98,7 @@ public:
     virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool needMap, bool filterInGlobal, bool isOccluded = false);
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;
@@ -199,9 +199,10 @@ public:
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
     NodeId GetFirstLevelNodeId() const;
 
+    // reset accumulated vals before traverses children
+    void ResetChildRelevantFlags();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
-    void MapChildrenRect();
     void SetDirty(bool forceAddToActiveList = false);
 
     virtual void AddDirtyType(RSModifierType type)
@@ -264,6 +265,7 @@ public:
     }
 
     // update parent's children rect including childRect and itself
+    void MapAndUpdateChildrenRect();
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
     virtual void UpdateFilterCacheManagerWithCacheRegion(
         RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect = std::nullopt);
@@ -636,9 +638,9 @@ private:
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     bool isDrawingCacheChanged_ = false;
     bool drawingCacheNeedUpdate_ = false;
-    // since cache preparation optimization would skip child's dirtyFlag(geoDirty) update
+    // since preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
-    bool cacheGeoPreparationDelay_ = false;
+    bool geoUpdateDelay_ = false;
 
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};

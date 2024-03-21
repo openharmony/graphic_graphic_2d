@@ -280,14 +280,15 @@ void RSObjAbsGeometry::SetAbsRect()
 }
 
 /**
- * Map the absolute rectangle
+ * Map the rectangle with specific matrix
+ * [planning] replaced by Drawing::MapRect
  * @param rect the rectangle to map
+ * @param matrix the specific to map
  * @return the mapped absolute rectangle
  */
-RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
+RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix) const
 {
     RectI absRect;
-    auto& matrix = GetAbsMatrix();
     // Check if the matrix has skew or negative scaling
     if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {
@@ -323,6 +324,16 @@ RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
         absRect.height_ = static_cast<int>(std::ceil(bottom - absRect.top_));
     }
     return absRect;
+}
+
+/**
+ * Map the absolute rectangle
+ * @param rect the rectangle to map
+ * @return the mapped absolute rectangle
+ */
+RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
+{
+    return MapRect(rect, GetAbsMatrix());
 }
 
 Vector2f RSObjAbsGeometry::GetDataRange(float d0, float d1, float d2, float d3) const

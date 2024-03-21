@@ -422,7 +422,18 @@ bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& p
     auto prevAbsMatrix = prevAbsMatrix_;
     boundsGeo_->UpdateMatrix(parentGeo, offset, clipRect);
     prevAbsMatrix_ = boundsGeo_->GetAbsMatrix();
-    return !(prevAbsMatrix == prevAbsMatrix_);
+    if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
+        auto rect = boundsGeo_->GetAbsRect();
+        if (!lastRect_.has_value()) {
+            lastRect_ = rect;
+            return true;
+        }
+        auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
+        lastRect_ = rect;
+        return dirtyFlag;
+    } else {
+        return true;
+    }
 }
 
 bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
