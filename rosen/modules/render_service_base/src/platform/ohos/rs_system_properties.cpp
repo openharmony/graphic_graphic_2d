@@ -520,6 +520,13 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return openDebugTrace;
 }
 
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    static int openDebugTraceLevel =
+        std::atoi((system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str());
+    return openDebugTraceLevel;
+}
+
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");

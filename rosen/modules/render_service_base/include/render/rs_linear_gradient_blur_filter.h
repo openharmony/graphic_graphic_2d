@@ -33,6 +33,7 @@ public:
 
     void PostProcess(RSPaintFilterCanvas& canvas) override {};
     std::string GetDescription() override;
+    std::string GetDetailedDescription() override;
     void SetBoundsGeometry(float geoWidth, float geoHeight) override
     {
         geoWidth_ = geoWidth;

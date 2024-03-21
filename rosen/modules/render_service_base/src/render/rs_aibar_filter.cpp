@@ -84,6 +84,11 @@ std::string RSAIBarFilter::GetDescription()
     return "RSAIBarFilter";
 }
 
+std::string RSAIBarFilter::GetDetailedDescription()
+{
+    return "RSAIBarFilter";
+}
+
 std::vector<float> RSAIBarFilter::GetAiInvertCoef()
 {
     const auto& aiInvertCoef = RSSystemProperties::GetAiInvertCoef();
