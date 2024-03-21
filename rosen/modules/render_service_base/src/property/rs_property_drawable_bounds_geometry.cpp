@@ -39,9 +39,7 @@
 
 namespace {
 constexpr int PARAM_DOUBLE = 2;
-#ifndef ROSEN_TRACE_DISABLE
 constexpr int TRACE_LEVEL_TWO = 2;
-#endif
 constexpr int16_t BORDER_TRANSPARENT = 255;
 } // namespace
 namespace OHOS::Rosen {

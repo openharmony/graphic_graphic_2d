@@ -46,9 +46,7 @@ namespace Rosen {
 namespace {
 bool g_forceBgAntiAlias = true;
 constexpr int PARAM_DOUBLE = 2;
-#ifndef ROSEN_TRACE_DISABLE
 constexpr int TRACE_LEVEL_TWO = 2;
-#endif
 constexpr float MIN_TRANS_RATIO = 0.0f;
 constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
