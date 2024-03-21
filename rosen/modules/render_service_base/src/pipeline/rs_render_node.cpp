@@ -33,6 +33,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -1798,6 +1799,7 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
         RS_LOGE("get backendTexture failed");
         return nullptr;
     }
+    SKResourceManager::Instance().HoldResource(completeImage);
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
