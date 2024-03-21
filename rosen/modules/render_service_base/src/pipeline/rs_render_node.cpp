@@ -164,6 +164,7 @@ void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
     renderContent_->type_ = GetType();
     renderContent_->renderProperties_.backref_ = weak_from_this();
     SetDirty(true);
+    InitRenderParams();
 }
 
 bool RSRenderNode::IsPureContainer() const
@@ -609,7 +610,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
     if (IsSuggestedDrawInGroup()) {
-        out += ", [node group]";
+        out += ", [node group" + std::to_string(nodeGroupType_) + "]";
     }
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
@@ -867,8 +868,11 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->QuickPrepareChildren(*this);
 }
 
-bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
+bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded, bool drawingCacheEnabled)
 {
+    if (drawingCacheEnabled) {
+        UpdateDrawingCacheInfoBeforeChildren(isOccluded);
+    }
     // stop visit invisible or clean without filter subtree
     if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
@@ -888,6 +892,45 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     }
     // if clean without filter skip subtree
     return ChildHasVisibleFilter() ? filterInGlobal : false;
+}
+
+void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isOccluded)
+{
+    if (!ShouldPaint() || isOccluded) {
+        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+        return;
+    }
+    CheckDrawingCacheType();
+    if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfo id:%llu contentDirty:%d subTreeDirty:%d nodeGroupType:%d",
+        GetId(), IsContentDirty(), IsSubTreeDirty(), nodeGroupType_);
+    SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty()));
+}
+
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
+{
+    if (hasChildrenOutOfRect_ && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
+        // [PLANNING] disable cache in this case
+        // SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
+    stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
+    if (GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter id:%llu cacheType:%d childHasVisibleFilter:%d " \
+            "childHasVisibleEffect:%d",
+            GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
+    }
+
+    if (stagingRenderParams_->NeedSync()) {
+        if (auto context = GetContext().lock()) {
+            context->AddPendingSyncNode(shared_from_this());
+        } else {
+            RS_LOGE("RSRenderNode::UpdateDrawingCacheInfoAfterChildren context is null");
+            OnSync();
+        }
+    }
 }
 
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -1723,6 +1766,9 @@ void RSRenderNode::UpdateDrawableVec()
         // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
 
+        // if shadow changed, update shadow rect
+        UpdateShadowRect();
+
         // Step 4: Generate drawCmdList from drawables
         UpdateDisplayList();
     }
@@ -1734,6 +1780,25 @@ void RSRenderNode::UpdateDrawableVec()
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
 #endif
+}
+
+void RSRenderNode::UpdateShadowRect()
+{
+    if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::SHADOW)] != nullptr &&
+        GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        RectI shadowRect;
+        auto rRect = GetRenderProperties().GetRRect();
+        RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, false);
+        stagingRenderParams_->SetShadowRect(Drawing::Rect(
+            static_cast<float>(shadowRect.GetLeft()),
+            static_cast<float>(shadowRect.GetTop()),
+            static_cast<float>(shadowRect.GetRight()),
+            static_cast<float>(shadowRect.GetBottom())));
+        RS_OPTIONAL_TRACE_NAME_FMT("UpdateShadowRect id:%llu shadowRect:%s",
+            GetId(), shadowRect.ToString().c_str());
+    } else {
+        stagingRenderParams_->SetShadowRect(Drawing::Rect());
+    }
 }
 
 void RSRenderNode::UpdateDisplayList()
@@ -1758,15 +1823,23 @@ void RSRenderNode::UpdateDisplayList()
     stagingDrawCmdIndex_.shadowIndex_ =
         drawableVec_[static_cast<int8_t>(RSDrawableSlot::SHADOW)] != nullptr ? stagingDrawCmdList_.size() : -1;
 
-    UpdateDrawableRange(RSDrawableSlot::SHADOW, RSDrawableSlot::CONTENT_STYLE);
+    UpdateDrawableRange(RSDrawableSlot::SHADOW, RSDrawableSlot::USE_EFFECT);
+    stagingDrawCmdIndex_.useEffectIndex_ =
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::USE_EFFECT)] != nullptr ? stagingDrawCmdList_.size() : -1;
+    stagingDrawCmdIndex_.backgroundFilterIndex_ =
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER)] != nullptr ?
+        stagingDrawCmdList_.size() - 1 : -1;
+
+    UpdateDrawableRange(RSDrawableSlot::USE_EFFECT, RSDrawableSlot::CONTENT_STYLE);
     stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.contentIndex_ =
         drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] != nullptr ? stagingDrawCmdList_.size() : -1;
 
+
     UpdateDrawableRange(RSDrawableSlot::CONTENT_STYLE, RSDrawableSlot::FOREGROUND_STYLE);
     stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.childrenIndex_ =
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] != nullptr ? stagingDrawCmdList_.size() : -1;
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] != nullptr ? stagingDrawCmdList_.size() - 1 : -1;
 
     UpdateDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::MAX);
     stagingDrawCmdIndex_.endIndex_ = stagingDrawCmdList_.size();
@@ -2281,6 +2354,7 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
     if (type >= nodeGroupType_) {
         if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
             auto context = GetContext().lock();
@@ -2654,6 +2728,7 @@ bool RSRenderNode::ChildHasVisibleFilter() const
 void RSRenderNode::SetChildHasVisibleFilter(bool val)
 {
     childHasVisibleFilter_ = val;
+    stagingRenderParams_->SetChildHasVisibleFilter(val);
 }
 bool RSRenderNode::ChildHasVisibleEffect() const
 {
@@ -2662,6 +2737,7 @@ bool RSRenderNode::ChildHasVisibleEffect() const
 void RSRenderNode::SetChildHasVisibleEffect(bool val)
 {
     childHasVisibleEffect_ = val;
+    stagingRenderParams_->SetChildHasVisibleEffect(val);
 }
 NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
@@ -2792,12 +2868,11 @@ RSDrawingCacheType RSRenderNode::GetDrawingCacheType() const
 }
 void RSRenderNode::SetDrawingCacheChanged(bool cacheChanged)
 {
-    isDrawingCacheChanged_ = drawingCacheNeedUpdate_ || cacheChanged;
-    drawingCacheNeedUpdate_ = isDrawingCacheChanged_;
+    stagingRenderParams_->SetDrawingCacheChanged(cacheChanged);
 }
 bool RSRenderNode::GetDrawingCacheChanged() const
 {
-    return isDrawingCacheChanged_;
+    return stagingRenderParams_->GetDrawingCacheChanged();
 }
 void RSRenderNode::ResetDrawingCacheNeedUpdate()
 {
@@ -3024,6 +3099,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
     stagingRenderParams_->SetShouldPaint(shouldPaint_);
+    stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
 }
 
 void RSRenderNode::UpdateLocalDrawRect()

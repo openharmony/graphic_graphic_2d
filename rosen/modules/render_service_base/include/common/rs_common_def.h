@@ -80,6 +80,11 @@ enum class CacheType : uint8_t {
     ANIMATE_PROPERTY,
 };
 
+enum class DrawableCacheType : uint8_t {
+    NONE = 0,
+    CONTENT,
+};
+
 enum RSDrawingCacheType : uint8_t {
     DISABLED_CACHE = 0,
     FORCED_CACHE,    // must-to-do case

@@ -20,10 +20,15 @@
 
 #include "draw/canvas.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "common/rs_rect.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
-
+class RSRenderParams;
+class RSPaintFilterCanvas;
+namespace NativeBufferUtils {
+class VulkanCleanupHelper;
+}
 enum class ReplayType : uint8_t {
     // Default
     REPLAY_ALL,
@@ -40,16 +45,16 @@ enum class ReplayType : uint8_t {
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
 public:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
-    ~RSRenderNodeDrawable() override = default;
+    ~RSRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
-    void Draw(Drawing::Canvas& canvas) const override;
+    void Draw(Drawing::Canvas& canvas) override;
 
-    virtual void OnDraw(Drawing::Canvas& canvas) const;
-    virtual void OnCapture(Drawing::Canvas& canvas) const;
+    virtual void OnDraw(Drawing::Canvas& canvas);
+    virtual void OnCapture(Drawing::Canvas& canvas);
 
-    void DrawWithoutShadow(Drawing::Canvas& canvas) const override;
-    void DrawShadow(Drawing::Canvas& canvas) const override;
+    void DrawWithoutShadow(Drawing::Canvas& canvas) override;
+    void DrawShadow(Drawing::Canvas& canvas) override;
     void DumpDrawableTree(int32_t depth, std::string& out) const override;
 
 protected:
@@ -61,9 +66,50 @@ protected:
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
+    void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
+    void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
+    bool HasFilterOrEffect() const;
+
+    static inline bool isDrawingCacheEnabled_ = false;
+    static inline bool isDrawingCacheDfxEnabled_ = false;
+    static inline std::vector<RectI> drawingCacheRects_;
 private:
     std::string DumpDrawableVec() const;
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
+
+    // used foe render group cache
+    void SetCacheType(DrawableCacheType cacheType);
+    DrawableCacheType GetCacheType() const;
+    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params) const;
+    void DrawDfxForCache(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+
+    std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
+    void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
+    bool NeedInitCachedSurface(const Vector2f& newSize);
+    std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas, pid_t threadId);
+    void DrawCachedSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize, pid_t threadId);
+    void ClearCachedSurface();
+
+    bool CheckIfNeedUpdateCache(RSRenderParams& params);
+    void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
+
+    DrawableCacheType cacheType_ = DrawableCacheType::NONE;
+    mutable std::recursive_mutex cacheMutex_;
+    std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    Drawing::BackendTexture cachedBackendTexture_;
+#ifdef RS_ENABLE_VK
+    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
+#endif
+#endif
+    std::atomic<pid_t> cacheThreadId_;
+
+    static inline std::mutex drawingCacheMapMutex_;
+    static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
+
+    static inline bool isOpDropped_ = true;
+    static inline bool drawBlurForCache_ = false;
+    // used foe render group cache
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H

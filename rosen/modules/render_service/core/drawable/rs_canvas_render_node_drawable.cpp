@@ -15,9 +15,11 @@
 
 #include "drawable/rs_canvas_render_node_drawable.h"
 
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
@@ -35,7 +37,7 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */
-void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
+void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
@@ -54,10 +56,24 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         RS_LOGD("This Node have no intersect with canvas's clipRegion");
         //return;
     }
-    RSRenderNodeDrawable::OnDraw(canvas);
+
+    if (params->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw id:%llu cacheType:%d cacheChanged:%d" \
+            " size:[%.2f, %.2f] ChildHasVisibleFilter:%d ChildHasVisibleEffect:%d" \
+            " shadowRect:[%.2f, %.2f, %.2f, %.2f] HasFilterOrEffect:%d",
+            renderNode_->GetId(), params->GetDrawingCacheType(), params->GetDrawingCacheChanged(),
+            params->GetCacheSize().x_, params->GetCacheSize().y_,
+            params->ChildHasVisibleFilter(), params->ChildHasVisibleEffect(),
+            params->GetShadowRect().GetLeft(), params->GetShadowRect().GetTop(),
+            params->GetShadowRect().GetWidth(), params->GetShadowRect().GetHeight(),
+            HasFilterOrEffect());
+    }
+
+    GenerateCacheIfNeed(canvas, *params);
+    CheckCacheTypeAndDraw(canvas, *params);
 }
 
-void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas) const
+void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
 {
     if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
         RSCanvasRenderNodeDrawable::OnCapture(canvas);
@@ -78,7 +94,7 @@ void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas) const
     RSRenderNodeDrawable::DrawShadow(canvas);
 }
 
-void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas) const
+void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas)
 {
     if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
         RSCanvasRenderNodeDrawable::OnCapture(canvas);
@@ -102,7 +118,7 @@ void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas) cons
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */
-void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     auto& params = renderNode_->GetRenderParams();
     if (!params) {

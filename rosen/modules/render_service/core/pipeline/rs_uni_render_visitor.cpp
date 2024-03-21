@@ -1198,7 +1198,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
 
     // 2. Recursively traverse child nodes
-    if (node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node))) {
+    if (node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node), isDrawingCacheEnabled_)) {
         QuickPrepareChildren(node);
     } else if (!node.IsMainWindowType()) {
         node.SetGeoUpdateDelay(dirtyFlag_);
@@ -1288,7 +1288,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
         nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
 
     // 1. Recursively traverse child nodes
-    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_);
+    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, false, isDrawingCacheEnabled_);
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) : node.SetGeoUpdateDelay(dirtyFlag_);
 
     PrepareChildrenAfter(node);
@@ -1310,7 +1310,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdatePrepareclip(node);
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
-    bool IsSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_);
+    bool IsSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_, false,
+        isDrawingCacheEnabled_);
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) : node.SetGeoUpdateDelay(dirtyFlag_);
 
     PrepareChildrenAfter(node);
@@ -1696,6 +1697,9 @@ void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
     node.MapAndUpdateChildrenRect();
     // since axes switch in rootRenderNode, nodes within LeashWindow should not match again
     node.UpdateLocalDrawRect();
+    if (isDrawingCacheEnabled_) {
+        node.UpdateDrawingCacheInfoAfterChildren();
+    }
 }
 
 void RSUniRenderVisitor::UpdateDirtysAndRedordInfoByFilter(RSRenderNode& node)
@@ -2054,7 +2058,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
 
     if (RSSystemProperties::GetQuickPrepareEnabled()) {
-        bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_);
+        bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, false, isDrawingCacheEnabled_);
         IsSubTreeNeedPrepare ? QuickPrepareChildren(node) : node.SetGeoUpdateDelay(dirtyFlag_);
         PrepareChildrenAfter(node);
     } else {

@@ -34,7 +34,7 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
     return new RSCanvasDrawingRenderNodeDrawable(std::move(node));
 }
 
-void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
+void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
@@ -82,7 +82,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     // DrawForeground(canvas, bounds);
 }
 
-void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     // TODO
     OnDraw(canvas);

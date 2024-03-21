@@ -75,6 +75,93 @@ bool RSRenderParams::GetShouldPaint() const
     return shouldPaint_;
 }
 
+void RSRenderParams::SetChildHasVisibleFilter(bool val)
+{
+    if (childHasVisibleFilter_ == val) {
+        return;
+    }
+    childHasVisibleFilter_ = val;
+    needSync_ = true;
+}
+
+bool RSRenderParams::ChildHasVisibleFilter() const
+{
+    return childHasVisibleFilter_;
+}
+
+void RSRenderParams::SetChildHasVisibleEffect(bool val)
+{
+    if (childHasVisibleEffect_ == val) {
+        return;
+    }
+    childHasVisibleEffect_ = val;
+    needSync_ = true;
+}
+
+bool RSRenderParams::ChildHasVisibleEffect() const
+{
+    return childHasVisibleEffect_;
+}
+
+void RSRenderParams::SetCacheSize(Vector2f size)
+{
+    if (cacheSize_ == size) {
+        return;
+    }
+    cacheSize_ = size;
+    needSync_ = true;
+}
+
+Vector2f RSRenderParams::GetCacheSize() const
+{
+    return cacheSize_;
+}
+
+void RSRenderParams::SetDrawingCacheChanged(bool isChanged)
+{
+    if (isDrawingCacheChanged_) { // force sync if cache changed
+        needSync_ = true;
+    }
+    if (isDrawingCacheChanged_ == isChanged) {
+        return;
+    }
+    isDrawingCacheChanged_ = isChanged;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetDrawingCacheChanged() const
+{
+    return isDrawingCacheChanged_;
+}
+
+void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
+{
+    if (drawingCacheType_ == cacheType) {
+        return;
+    }
+    drawingCacheType_ = cacheType;
+    needSync_ = true;
+}
+
+RSDrawingCacheType RSRenderParams::GetDrawingCacheType() const
+{
+    return drawingCacheType_;
+}
+
+void RSRenderParams::SetShadowRect(Drawing::Rect rect)
+{
+    if (shadowRect_ == rect) {
+        return;
+    }
+    shadowRect_ = rect;
+    needSync_ = true;
+}
+
+Drawing::Rect RSRenderParams::GetShadowRect() const
+{
+    return shadowRect_;
+}
+
 void RSRenderParams::SetNeedSync(bool needSync)
 {
     needSync_ = needSync;
@@ -90,6 +177,13 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->SetBoundsRect(boundsRect_);
     target->shouldPaint_ = shouldPaint_;
     target->id_ = id_;
+    target->cacheSize_ = cacheSize_;
+    target->childHasVisibleFilter_ = childHasVisibleFilter_;
+    target->childHasVisibleEffect_ = childHasVisibleEffect_;
+    target->isDrawingCacheChanged_ = isDrawingCacheChanged_;
+    target->shadowRect_ = shadowRect_;
+    target->drawingCacheType_ = drawingCacheType_;
+
     needSync_ = false;
 }
 
