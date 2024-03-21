@@ -2737,6 +2737,7 @@ std::string RSProperties::Dump() const
     return dumpInfo;
 }
 
+// TODO need to delete, cachemanager moved to filter drawable
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
@@ -2845,7 +2846,7 @@ void RSProperties::OnApplyModifiers()
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                       GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-        CreateFilterCacheManagerIfNeed();
+        // CreateFilterCacheManagerIfNeed();
 #endif
         ApplyGreyCoef();
     }

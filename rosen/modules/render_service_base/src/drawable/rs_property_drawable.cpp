@@ -21,6 +21,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "property/rs_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 void RSPropertyDrawable::OnSync()
@@ -139,4 +140,83 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+RSFilterDrawable::RSFilterDrawable()
+{
+    cacheEnabled_ = RSProperties::FilterCacheEnabled;
+    if (cacheEnabled_) {
+        cacheManager_ = std::make_unique<RSFilterCacheManager>();
+    }
+}
+
+void RSFilterDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+ 
+    filter_ = std::move(stagingFilter_);
+    if (filter_ == nullptr) {
+        ROSEN_LOGE("OnSync failed, filter is null!");
+        return;
+    }
+ 
+    ClearFilterCache();
+ 
+    filterRegionChanged_ = false;
+    filterInteractWithDirty_ = false;
+    cacheEnabled_ = false;
+    needSync_ = false;
+}
+ 
+Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas && ptr->filter_ && ptr->cacheManager_) {
+            RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_, ptr->cacheManager_, ptr->IsForeground());
+        }
+    };
+}
+ 
+void RSFilterDrawable::FilterNeedUpdate(std::shared_ptr<RSFilter>& rsFilter)
+{
+    stagingFilter_ = rsFilter;
+    if (needSync_) {
+        return;
+    }
+    needSync_ = true;
+}
+ 
+void RSFilterDrawable::FilterRegionChangedFlagNeedUpdate(bool regionChanged)
+{
+    filterRegionChanged_ = regionChanged;
+    if (needSync_) {
+        return;
+    }
+    needSync_ = true;
+}
+ 
+void RSFilterDrawable::FilterInteractWithDirtyFlagNeedUpdate(bool interactWithDirty)
+{
+    filterInteractWithDirty_ = interactWithDirty;
+    if (needSync_) {
+        return;
+    }
+    needSync_ = true;
+}
+ 
+void RSFilterDrawable::ClearFilterCache()
+{
+    if (!cacheEnabled_ || !cacheManager_) {
+        return;
+    }
+    cacheManager_->UpdateCacheStateWithFilterHash(filter_);
+    if (cacheManager_->IsCacheValid() && filterRegionChanged_) {
+        cacheManager_->UpdateCacheStateWithFilterRegion();
+    }
+ 
+    if (cacheManager_->IsCacheValid() && filterInteractWithDirty_) {
+        cacheManager_->UpdateCacheStateWithDirtyRegion();
+    }
+}
 } // namespace OHOS::Rosen

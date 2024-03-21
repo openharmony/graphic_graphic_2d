@@ -48,6 +48,7 @@ class RSB_EXPORT RSProperties final {
 friend class RSBackgroundImageDrawable;
 friend class RSBackgroundFilterDrawable;
 friend class RSShadowDrawable;
+friend class RSFilterDrawable;
 public:
     RSProperties();
     RSProperties(const RSProperties&) = delete;

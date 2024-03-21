@@ -24,6 +24,8 @@
 
 namespace OHOS::Rosen {
 class RSRenderNode;
+class RSFilter;
+class RSFilterCacheManager;
 
 class RSPropertyDrawable : public RSDrawable {
 public:
@@ -103,5 +105,38 @@ public:
 private:
 };
 
+class RSFilterDrawable : public RSDrawable
+{
+public:
+    RSFilterDrawable();
+    ~RSFilterDrawable() override = default;
+ 
+    virtual bool IsForeground() const
+    {
+        return false;
+    }
+ 
+    // set flags for clearing filter cache
+    void FilterNeedUpdate(std::shared_ptr<RSFilter>& rsFilter);
+    void FilterRegionChangedFlagNeedUpdate(bool regionChanged);
+    void FilterInteractWithDirtyFlagNeedUpdate(bool interactWithDirty);
+ 
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+ 
+private:
+    void ClearFilterCache();
+ 
+protected:
+    bool needSync_ = false;
+    std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
+ 
+    // flags for clearing filter cache
+    bool filterRegionChanged_ = false;
+    bool filterInteractWithDirty_ = false;
+    bool cacheEnabled_ = false;
+    std::unique_ptr<RSFilterCacheManager> cacheManager_;
+};
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_H
