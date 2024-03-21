@@ -49,6 +49,7 @@ DrawingDemo::DrawingDemo(int argc, char* argv[])
         argv_.emplace_back(str);
     }
 };
+
 DrawingDemo::~DrawingDemo()
 {
     if (window_) {
@@ -56,6 +57,7 @@ DrawingDemo::~DrawingDemo()
         window_->Destroy();
     }
 };
+
 int DrawingDemo::Test()
 {
     std::cout << "eg: drawing_demo function [cpu | gpu] {caseName?} {displayTime?}" << std::endl;
@@ -81,6 +83,7 @@ int DrawingDemo::Test()
     }
     return RET_PARAM_ERR;
 }
+
 int DrawingDemo::InitWindow()
 {
     rsUiDirector_ = RSUIDirector::Create();
@@ -115,6 +118,7 @@ int DrawingDemo::InitWindow()
     sleep(1);
     return RET_OK;
 }
+
 int DrawingDemo::CreateWindow()
 {
     std::cout << "create window start" << std::endl;
@@ -163,6 +167,7 @@ int DrawingDemo::CreateWindow()
     std::cout << "create window success: " << rect_.width_ << " * " << rect_.height_ << std::endl;
     return RET_OK;
 }
+
 int DrawingDemo::GetFunctionalParam(std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map)
 {
     // drawing_demo functional {cpu | gpu} {caseName?} {displayTime?}
@@ -186,6 +191,7 @@ int DrawingDemo::GetFunctionalParam(std::unordered_map<std::string, std::functio
     }
     return RET_OK;
 }
+
 int DrawingDemo::TestFunction(
     std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map, int type)
 {
@@ -233,6 +239,7 @@ int DrawingDemo::TestFunction(
     std::cout << "TestFunction end!" << std::endl;
     return RET_OK;
 }
+
 int DrawingDemo::GetPerformanceParam()
 {
     // drawing_demo performance {cpu | gpu} caseName count {displaytime?}
@@ -251,6 +258,7 @@ int DrawingDemo::GetPerformanceParam()
     }
     return RET_OK;
 }
+
 int DrawingDemo::TestPerformance(
     std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map, int type)
 {

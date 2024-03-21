@@ -43,18 +43,17 @@ class DrawingDemo {
 public:
     DrawingDemo(int argc, char* argv[]);
     ~DrawingDemo();
+    int Test();
     enum {
         FUNCTION_CPU = 0,
         FUNCTION_GPU_UPSCREEN,
         PERFORMANCE_CPU,
         PERFORMANCE_GPU_UPSCREEN,
     };
-    int Test();
 
 protected:
     int InitWindow();
     int CreateWindow();
-    
     int GetFunctionalParam(std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map);
     int TestFunction(std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map, int type);
     int GetPerformanceParam();
@@ -67,7 +66,6 @@ protected:
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     std::shared_ptr<RSUIDirector> rsUiDirector_ = nullptr;
     Rect rect_;
-
     std::string testType_;
     std::string drawingType_;
     std::string caseName_ = ALL_TAST_CASE;

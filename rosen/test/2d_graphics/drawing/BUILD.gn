@@ -34,10 +34,6 @@ ohos_systemtest("drawing_demo") {
     "../../../../rosen/modules/render_service_client:librender_service_client",
   ]
 
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
