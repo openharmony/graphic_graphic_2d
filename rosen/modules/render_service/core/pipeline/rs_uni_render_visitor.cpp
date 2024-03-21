@@ -1454,6 +1454,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     }
     node.SetDstRect(geoPtr->GetAbsRect());
     node.UpdatePositionZ();
+    UpdateSurfaceRenderNodeScale(node);
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty());
     // 2 Update Occlusion info before children preparation
     if (node.IsMainWindowType()) {

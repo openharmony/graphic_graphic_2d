@@ -1501,6 +1501,10 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
 bool RSSurfaceRenderNode::CheckParticipateInOcclusion() const
 {
     // TODO: Need consider others situation
+    auto nodeParent = GetParent().lock();
+    if (nodeParent && nodeParent->IsScale()) {
+        return false;
+    }
     if (IsTransparent() || GetAnimateState()) {
         return false;
     }
