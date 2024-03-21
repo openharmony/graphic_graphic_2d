@@ -51,6 +51,7 @@ public:
     RSFilter& operator=(const RSFilter&) = delete;
     RSFilter& operator=(const RSFilter&&) = delete;
     virtual std::string GetDescription();
+    virtual std::string GetDetailedDescription();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
         int style, float dipScale, BLUR_COLOR_MODE mode = DEFAULT, float ratio = 1.0);

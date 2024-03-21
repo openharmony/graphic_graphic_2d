@@ -239,7 +239,10 @@ VSyncDistributor::~VSyncDistributor()
     }
     if (threadLoop_.joinable()) {
 #if defined(RS_ENABLE_DVSYNC)
-        dvsync_->DVsyncNotify();
+        {
+            std::unique_lock<std::mutex> locker(mutex_);
+            dvsync_->RNVNotify();
+        }
 #endif
         con_.notify_all();
         threadLoop_.join();
@@ -314,7 +317,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
     // before con_ wait, notify the rnv_con.
 #if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
-        dvsync_->DVsyncNotify();
+        dvsync_->RNVNotify();
     }
 #endif
     con_.wait(locker);
@@ -380,7 +383,7 @@ void VSyncDistributor::ThreadMain()
                     EnableVSync();
 #if defined(RS_ENABLE_DVSYNC)
                     if (IsDVsyncOn()) {
-                        dvsync_->DVsyncNotify();
+                        dvsync_->RNVNotify();
                     }
 #endif
                     if (con_.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD)) ==
@@ -412,7 +415,7 @@ void VSyncDistributor::ThreadMain()
             {
                 std::unique_lock<std::mutex> locker(mutex_);
                 dvsync_->MarkDistributorSleep(true);
-                dvsync_->DVsyncNotify();
+                dvsync_->RNVNotify();
                 dvsync_->DelayBeforePostEvent(timestamp, locker);
                 dvsync_->MarkDistributorSleep(false);
             }
@@ -455,6 +458,9 @@ void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refres
     std::lock_guard<std::mutex> locker(mutex_);
     vsyncMode_ = vsyncMode;
     event_.period = period;
+#if defined(RS_ENABLE_DVSYNC)
+    dvsync_->RuntimeSwitch();
+#endif
     if (IsDVsyncOn()) {
         ScopedBytrace func("VSyncD onVSyncEvent, now" + std::to_string(now));
     } else {
@@ -468,7 +474,7 @@ void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refres
 
     dvsync_->NotifyPreexecuteWait();
 
-    int64_t lastDVsyncTS = lastDVsyncTS_.load()
+    int64_t lastDVsyncTS = lastDVsyncTS_.load();
     // when dvsync switch to vsync, skip all vsync events within one period from the pre-rendered timestamp
     if (!IsDVsyncOn() && now < (lastDVsyncTS + DVSYNC_ON_PERIOD - MAX_PERIOD_BIAS)) {
         ScopedBytrace func("skip DVSync prerendered frame, now: " + std::to_string(now) +
@@ -636,13 +642,18 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
 
 #if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
-        dvsync_->DVsyncWait(locker);
+        dvsync_->RNVWait(locker);
     }
 #endif
 
     auto it = find(connections_.begin(), connections_.end(), connection);
     if (it == connections_.end()) {
         VLOGE("connection is invalid arguments");
+#if defined(RS_ENABLE_DVSYNC)
+        if (IsDVsyncOn()) {
+            dvsync_->RNVNotify();
+        }
+#endif
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     // record RNV and lastVSyncTS for D-VSYNC

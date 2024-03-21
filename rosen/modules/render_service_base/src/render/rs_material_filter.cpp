@@ -118,6 +118,22 @@ std::string RSMaterialFilter::GetDescription()
     return "RSMaterialFilter blur radius is " + std::to_string(radius_) + " sigma";
 }
 
+std::string RSMaterialFilter::GetDetailedDescription()
+{
+    char maskColorStr[UINT8_MAX] = { 0 };
+    auto ret = memset_s(maskColorStr, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for maskColorStr, ret=" + std::to_string(ret);
+    }
+    if (sprintf_s(maskColorStr, UINT8_MAX, "%08X", maskColor_.AsArgbInt()) != -1) {
+        return "RSMaterialFilterBlur, radius: " + std::to_string(radius_) + " sigma" +
+            ", saturation: " + std::to_string(saturation_) + ", brightness: " + std::to_string(brightness_) +
+            ", greyCoef1: " + std::to_string(greyCoef_->x_) + ", greyCoef2: " + std::to_string(greyCoef_->y_) +
+            ", color: " + maskColorStr + ", colorMode: " + std::to_string(colorMode_);
+    };
+    return "RSMaterialFilterBlur, maskColorStr failed";
+}
+
 std::shared_ptr<RSDrawingFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
 {
     if (other == nullptr) {
@@ -153,8 +169,7 @@ std::shared_ptr<Drawing::ColorFilter> RSMaterialFilter::GetColorFilter(float sat
 std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float sat, float brightness)
 {
     colorFilter_ = GetColorFilter(sat, brightness);
-    auto blurType = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
-    return Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter_, radius, radius, blurType);
+    return Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter_, radius, radius);
 }
 
 std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(
@@ -283,11 +298,10 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
     if (greyImage == nullptr) {
         greyImage = image;
     }
-    auto param = Drawing::KawaseParameters{src, dst, radius_, colorFilter_, brush.GetColor().GetAlphaF()};
-    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::ApplyDrawingKawaseBlur(canvas, brush, greyImage, param)) {
+    KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, brush.GetColor().GetAlphaF());
+    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, greyImage, param)) {
         return;
     }
-    // if kawase blur failed, use gauss blur
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*greyImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();

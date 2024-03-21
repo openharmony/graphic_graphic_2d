@@ -663,4 +663,16 @@ void SurfaceBufferImpl::SetBufferRequestConfig(const BufferRequestConfig &config
     std::lock_guard<std::mutex> lock(mutex_);
     bufferRequestConfig_ = config;
 }
+
+void SurfaceBufferImpl::SetConsumerAttachBufferFlag(bool value)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    isConsumerAttachBufferFlag_ = value;
+}
+
+bool SurfaceBufferImpl::GetConsumerAttachBufferFlag()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return isConsumerAttachBufferFlag_;
+}
 } // namespace OHOS

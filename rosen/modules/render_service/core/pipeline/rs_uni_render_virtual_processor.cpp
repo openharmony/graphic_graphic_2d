@@ -45,6 +45,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     auto screenManager = CreateOrGetScreenManager();
     auto mirrorScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
     canvasRotation_ = screenManager->GetCanvasRotation(node.GetScreenId());
+    scaleMode_ = screenManager->GetScaleMode(node.GetScreenId());
     mirrorWidth_ = static_cast<float>(mirrorScreenInfo.width);
     mirrorHeight_ = static_cast<float>(mirrorScreenInfo.height);
 
@@ -68,8 +69,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     if (mirrorNode) {
         mainScreenRotation_ = mirrorNode->GetScreenRotation();
-        RS_LOGD("RSUniRenderVirtualProcessor::Init, Screen(id %{public}" PRIu64 "), Rotation: %d", node.GetScreenId(),
-            static_cast<uint32_t>(mainScreenRotation_));
+        RS_LOGD("RSUniRenderVirtualProcessor::Init, virtual screen(id %{public}" PRIu64 "), rotation: %{public}d, " \
+            "canvasRotation: %{public}d, scaleMode: %{public}d",
+            node.GetScreenId(), static_cast<uint32_t>(mainScreenRotation_), canvasRotation_, scaleMode_);
     }
     if (mirrorNode && node.IsFirstTimeToProcessor() && !canvasRotation_) {
         if (isPhone_) {
@@ -114,7 +116,7 @@ void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, 
 
 void RSUniRenderVirtualProcessor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation)
 {
-    if (!canvasRotation && !RSSystemProperties::IsFoldScreenFlag()) {
+    if (!canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
         return;
     }
     auto rotation = canvasRotation ? node.GetScreenRotation() : node.GetOriginScreenRotation();
@@ -140,20 +142,40 @@ void RSUniRenderVirtualProcessor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& 
 
 void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
 {
-    if (mainWidth_ != mirrorWidth_ || mainHeight_ != mirrorHeight_) {
-        canvas_->Clear(SK_ColorBLACK);
-        float mirrorScale = 1.0f; // 1 for init scale
-        float startX = 0.0f;
-        float startY = 0.0f;
-        if ((mirrorHeight_ / mirrorWidth_) < (mainHeight_ / mainWidth_)) {
-            mirrorScale = mirrorHeight_ / mainHeight_;
-            startX = (mirrorWidth_ - (mirrorScale * mainWidth_)) / 2; // 2 for calc X
-        } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight_ / mainWidth_)) {
-            mirrorScale = mirrorWidth_ / mainWidth_;
-            startY = (mirrorHeight_ - (mirrorScale * mainHeight_)) / 2; // 2 for calc Y
+    if (mainWidth_ == mirrorWidth_ && mainHeight_ == mirrorHeight_) {
+        return;
+    }
+
+    canvas_->Clear(SK_ColorBLACK);
+
+    if (scaleMode_ == ScreenScaleMode::FILL_MODE) {
+        Fill(*canvas_, mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_);
+    } else if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
+        UniScale(*canvas_, mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_);
+    }
+}
+
+void RSUniRenderVirtualProcessor::JudgeResolution(RSDisplayRenderNode& node)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    mainWidth_ = static_cast<float>(mainScreenInfo.width);
+    mainHeight_ = static_cast<float>(mainScreenInfo.height);
+    auto rotation = canvasRotation_ ? node.GetScreenRotation() : node.GetOriginScreenRotation();
+    auto flag = (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270);
+
+    if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
+        if (!flag) {
+            std::swap(mainWidth_, mainHeight_);
         }
-        canvas_->Translate(startX, startY);
-        canvas_->Scale(mirrorScale, mirrorScale);
+    } else {
+        if (flag) {
+            if (canvasRotation_) {
+                std::swap(mainWidth_, mainHeight_);
+            } else {
+                std::swap(mirrorWidth_, mirrorHeight_);
+            }
+        }
     }
 }
 
@@ -212,25 +234,44 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             canvas_->ConcatMatrix(invertMatrix);
         }
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-        mainWidth_ = static_cast<float>(mainScreenInfo.width);
-        mainHeight_ = static_cast<float>(mainScreenInfo.height);
-        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
-            std::swap(mainWidth_, mainHeight_);
-        }
         
-        auto rotation = canvasRotation_ ? node.GetScreenRotation() : node.GetOriginScreenRotation();
-        if (rotation == ScreenRotation::ROTATION_90 ||
-            rotation == ScreenRotation::ROTATION_270) {
-            std::swap(mainWidth_, mainHeight_);
-        }
-        
+        JudgeResolution(node);
         ScaleMirrorIfNeed(node);
         RotateMirrorCanvasIfNeed(node, canvasRotation_);
 
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
         canvas_->Restore();
+    }
+}
+
+void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,
+    float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight)
+{
+    if (mainWidth > 0 && mainHeight > 0) {
+        float mirrorScaleX = mirrorWidth / mainWidth;
+        float mirrorScaleY = mirrorHeight / mainHeight;
+        canvas.Scale(mirrorScaleX, mirrorScaleY);
+    }
+}
+
+void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
+    float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight)
+{
+    if (mainWidth > 0 && mainHeight > 0) {
+        float mirrorScale = 1.0f; // 1 for init scale
+        float startX = 0.0f;
+        float startY = 0.0f;
+        float mirrorScaleX = mirrorWidth / mainWidth;
+        float mirrorScaleY = mirrorHeight / mainHeight;
+        if (mirrorScaleY < mirrorScaleX) {
+            mirrorScale = mirrorScaleY;
+            startX = (mirrorWidth - (mirrorScale * mainWidth)) / 2; // 2 for calc X
+        } else {
+            mirrorScale = mirrorScaleX;
+            startY = (mirrorHeight - (mirrorScale * mainHeight)) / 2; // 2 for calc Y
+        }
+        canvas.Translate(startX, startY);
+        canvas.Scale(mirrorScale, mirrorScale);
     }
 }
 

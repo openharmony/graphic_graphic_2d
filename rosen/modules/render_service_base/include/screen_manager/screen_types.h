@@ -61,6 +61,12 @@ enum class ScreenRotation : uint32_t {
     INVALID_SCREEN_ROTATION,
 };
 
+enum class ScreenScaleMode : uint32_t {
+    FILL_MODE = 0,
+    UNISCALE_MODE,
+    INVALID_MODE,
+};
+
 typedef enum : uint32_t {
     BUILT_IN_TYPE_SCREEN = 0,
     EXTERNAL_TYPE_SCREEN,

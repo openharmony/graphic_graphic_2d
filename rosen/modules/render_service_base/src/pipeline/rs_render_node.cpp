@@ -33,6 +33,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -955,7 +956,6 @@ bool RSRenderNode::Update(
     if (!ShouldPaint() && !isLastVisible_) {
         SetClean();
         GetMutableRenderProperties().ResetDirty();
-        isVisibleChanged_ = false;
         return false;
     }
     // [planning] surfaceNode use frame instead
@@ -977,7 +977,6 @@ bool RSRenderNode::Update(
         }
     }
     isDirtyRegionUpdated_ = false;
-    isVisibleChanged_ = (isLastVisible_ != ShouldPaint());
     isLastVisible_ = ShouldPaint();
     GetMutableRenderProperties().ResetDirty();
 
@@ -1304,7 +1303,8 @@ bool RSRenderNode::ApplyModifiers()
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
         manager != nullptr &&
         (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
-        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_SHADER)))) {
         manager->InvalidateCache();
     }
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
@@ -1329,7 +1329,6 @@ bool RSRenderNode::ApplyModifiers()
 
 void RSRenderNode::UpdateDrawableVec()
 {
-#ifndef ROSEN_ARKUI_X
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
     if (!GetIsUsedBySubThread()) {
@@ -1344,12 +1343,10 @@ void RSRenderNode::UpdateDrawableVec()
         ROSEN_LOGI("%{public}s GetIsUsedBySubThread[%{public}d].", __func__, GetIsUsedBySubThread());
         UpdateDrawableVecInternal(dirtySlots);
     }
-#endif
 }
 
 void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
 {
-#ifndef ROSEN_ARKUI_X
      // initialize necessary save/clip/restore
     if (drawableVecStatus_ == 0) {
         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
@@ -1362,7 +1359,6 @@ void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawab
         RSPropertyDrawable::UpdateSaveRestore(
             *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
     }
-#endif
 }
 
 void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
@@ -1804,6 +1800,7 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
         RS_LOGE("get backendTexture failed");
         return nullptr;
     }
+    SKResourceManager::Instance().HoldResource(completeImage);
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };

@@ -50,6 +50,11 @@ bool FontFeatures::operator ==(const FontFeatures& rhs) const
     return featureMap_ == rhs.featureMap_;
 }
 
+void FontFeatures::Clear()
+{
+    featureMap_.clear();
+}
+
 TextShadow::TextShadow()
 {
 }

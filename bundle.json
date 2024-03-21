@@ -81,6 +81,10 @@
           "sensor",
           "qos_manager",
           "video_processing_engine",
+          "bounds_checking_function",
+          "egl",
+          "opengles",
+          "node",
           "vulkan-headers",
           "hiview",
           "battery_manager"

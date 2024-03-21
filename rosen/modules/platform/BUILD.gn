@@ -163,7 +163,7 @@ ohos_source_set("mock_utils") {
       "utils/parcel.cpp",
       "utils/refbase.cpp",
     ]
-    public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+    public_external_deps = [ "bounds_checking_function:libsec_shared" ]
   }
   part_name = "graphic_2d"
   subsystem_name = "graphic"

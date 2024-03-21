@@ -14,7 +14,7 @@
  */
 #include "egl_wrapper_surface.h"
 
-#include "../wrapper_log.h"
+#include "wrapper_log.h"
 
 namespace OHOS {
 EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf)

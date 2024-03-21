@@ -759,6 +759,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteBool(result);
             break;
         }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            ScreenScaleMode scaleMode = static_cast<ScreenScaleMode>(data.ReadUint32());
+            bool result = SetVirtualMirrorScreenScaleMode(id, scaleMode);
+            reply.WriteBool(result);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

@@ -210,6 +210,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setHeight(SkDoubleToScalar(txt.height));
     skStyle.setHeightOverride(txt.heightOverride);
     skStyle.setHalfLeading(txt.halfLeading);
+    skStyle.setBaselineShift(txt.baseLineShift);
 
     skStyle.setLocale(SkString(txt.locale.c_str()));
     skStyle.setStyleId(txt.styleId);

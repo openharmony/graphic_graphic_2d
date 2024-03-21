@@ -58,10 +58,10 @@ void SkiaMemoryTracer::ProcessElement()
         }
 
         // find the type if one exists
-        const char* type;
+        std::string type;
         auto typeResult = currentValues_.find("type");
         if (typeResult != currentValues_.end()) {
-            type = typeResult->second.units;
+            type = typeResult->second.units.c_str();
         } else if (itemizeType_) {
             type = "Other";
         } else {
@@ -77,7 +77,7 @@ void SkiaMemoryTracer::ProcessElement()
             // find the category if one exists
             auto categoryResult = currentValues_.find(categoryKey_);
             if (categoryResult != currentValues_.end()) {
-                resourceName = categoryResult->second.units;
+                resourceName = categoryResult->second.units.c_str();
             }
         }
 
@@ -89,10 +89,11 @@ void SkiaMemoryTracer::ProcessElement()
 
         auto result = results_.find(resourceName);
         if (result == results_.end()) {
+            std::string strResourceName = resourceName;
             TraceValue sizeValue = sizeResult->second;
             currentValues_.clear();
             currentValues_.insert({ key, sizeValue });
-            results_.insert({ resourceName, currentValues_ });
+            results_.insert({ strResourceName, currentValues_ });
         } else {
             auto& resourceValues = result->second;
             typeResult = resourceValues.find(key);
@@ -130,15 +131,15 @@ void SkiaMemoryTracer::LogOutput(DfxString& log)
                 TraceValue traceValue = ConvertUnits(typedValue.second);
                 const char* entry = (traceValue.count > 1) ? "entries" : "entry";
                 log.AppendFormat("    %s: %.2f %s (%d %s)\n", typedValue.first.c_str(), traceValue.value,
-                    traceValue.units, traceValue.count, entry);
+                    traceValue.units.c_str(), traceValue.count, entry);
             }
         } else {
             auto result = namedItem.second.find("size");
             if (result != namedItem.second.end()) {
                 TraceValue traceValue = ConvertUnits(result->second);
                 const char* entry = (traceValue.count > 1) ? "entries" : "entry";
-                log.AppendFormat("  %s: %.2f %s (%d %s)\n", namedItem.first.c_str(), traceValue.value, traceValue.units,
-                    traceValue.count, entry);
+                log.AppendFormat("  %s: %.2f %s (%d %s)\n", namedItem.first.c_str(), traceValue.value,
+                    traceValue.units.c_str(), traceValue.count, entry);
             }
         }
     }
@@ -170,18 +171,18 @@ void SkiaMemoryTracer::LogTotals(DfxString& log)
 {
     TraceValue total = ConvertUnits(totalSize_);
     TraceValue purgeable = ConvertUnits(purgeableSize_);
-    log.AppendFormat("    %.0f bytes, %.2f %s (%.2f %s is purgeable)\n", totalSize_.value, total.value, total.units,
-        purgeable.value, purgeable.units);
+    log.AppendFormat("    %.0f bytes, %.2f %s (%.2f %s is purgeable)\n", totalSize_.value, total.value,
+        total.units.c_str(), purgeable.value, purgeable.units.c_str());
 }
 
 SkiaMemoryTracer::TraceValue SkiaMemoryTracer::ConvertUnits(const TraceValue& value)
 {
     TraceValue output(value);
-    if (SkString(output.units) == SkString("bytes") && output.value >= MEMUNIT_RATE) {
+    if (output.units == SkString("bytes") && output.value >= MEMUNIT_RATE) {
         output.value = output.value / MEMUNIT_RATE;
         output.units = "KB";
     }
-    if (SkString(output.units) == SkString("KB") && output.value >= MEMUNIT_RATE) {
+    if (output.units == SkString("KB") && output.value >= MEMUNIT_RATE) {
         output.value = output.value / MEMUNIT_RATE;
         output.units = "MB";
     }
@@ -190,10 +191,10 @@ SkiaMemoryTracer::TraceValue SkiaMemoryTracer::ConvertUnits(const TraceValue& va
 
 float SkiaMemoryTracer::ConvertToMB(const TraceValue& value)
 {
-    if (SkString(value.units) == SkString("bytes")) {
+    if (value.units == SkString("bytes")) {
         return value.value / MEMUNIT_RATE / MEMUNIT_RATE;
     }
-    if (SkString(value.units) == SkString("KB")) {
+    if (value.units == SkString("KB")) {
         return value.value / MEMUNIT_RATE;
     }
     return value.value;

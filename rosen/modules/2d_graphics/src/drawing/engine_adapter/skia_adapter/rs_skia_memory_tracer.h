@@ -66,7 +66,7 @@ private:
             count = v.count;
             return *this;
         }
-        const char* units;
+        SkString units;
         float value;
         int count;
     };

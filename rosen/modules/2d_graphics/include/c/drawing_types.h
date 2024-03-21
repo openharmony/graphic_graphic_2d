@@ -393,6 +393,25 @@ typedef struct {
 } OH_Drawing_Image_Info;
 
 /**
+ * @brief Defines rectstyle info struct.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct {
+    /** color of rectstyle */
+    uint32_t color;
+    /** radius in left top of rectstyle */
+    double leftTopRadius;
+    /** radius in right top of rectstyle */
+    double rightTopRadius;
+    /** radius in right bottom of rectstyle */
+    double rightBottomRadius;
+    /** radius in left bottom of rectstyle */
+    double leftBottomRadius;
+} OH_Drawing_RectStyle_Info;
+
+/**
  * @brief Enumerates text encoding types.
  * @since 12
  * @version 1.0

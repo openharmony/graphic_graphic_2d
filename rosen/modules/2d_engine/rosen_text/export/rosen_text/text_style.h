@@ -38,6 +38,7 @@ public:
     std::string GetFeatureSettings() const;
     const std::map<std::string, int> &GetFontFeatures() const;
     bool operator ==(const FontFeatures& rhs) const;
+    void Clear();
 
 private:
     std::map<std::string, int> featureMap_;
@@ -99,6 +100,7 @@ struct TextStyle {
     // symbol glyph
     bool isSymbolGlyph = false;
     HMSymbolTxt symbol;
+    double baseLineShift = 0.0;
 };
 } // namespace Rosen
 } // namespace OHOS

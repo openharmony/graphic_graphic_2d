@@ -946,6 +946,20 @@ bool RSScreenManager::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool can
     return screens_.at(id)->SetVirtualMirrorScreenCanvasRotation(canvasRotation);
 }
 
+bool RSScreenManager::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+
+    RS_LOGD("RSScreenManager %{public}s: scaleMode: %{public}d", __func__, scaleMode);
+    
+    return screens_.at(id)->SetVirtualMirrorScreenScaleMode(scaleMode);
+}
+
 void RSScreenManager::GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1097,6 +1111,17 @@ bool RSScreenManager::GetCanvasRotation(ScreenId id) const
         return false;
     }
     return screens_.at(id)->GetCanvasRotation();
+}
+
+ScreenScaleMode RSScreenManager::GetScaleMode(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0 || !screens_.at(id)) {
+        RS_LOGW("RSScreenManager::GetScaleMode: There is no screen for id %{public}" PRIu64 ".", id);
+        return ScreenScaleMode::INVALID_MODE;
+    }
+    return screens_.at(id)->GetScaleMode();
 }
 
 sptr<Surface> RSScreenManager::GetProducerSurface(ScreenId id) const
