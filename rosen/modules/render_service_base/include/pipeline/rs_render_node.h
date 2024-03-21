@@ -111,6 +111,7 @@ public:
     void SetContentDirty();
     void ResetIsOnlyBasicGeoTransform();
     bool IsOnlyBasicGeoTransform() const;
+    void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool accumGeoDirty);
 
     WeakPtr GetParent() const;
 

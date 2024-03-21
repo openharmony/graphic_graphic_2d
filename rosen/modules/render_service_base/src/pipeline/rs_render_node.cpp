@@ -782,6 +782,18 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
     return isOnlyBasicGeoTransform_;
 }
 
+void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool accumGeoDirty)
+{
+    if (accumGeoDirty) {
+        auto absChildRect = childrenRect_;
+        if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
+            absChildRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
+            dirtymanager.MergeDirtyRect(absChildRect);
+        }
+    }
+    SetGeoUpdateDelay(accumGeoDirty);
+}
+
 // attention: current all base node's dirty ops causing content dirty
 void RSRenderNode::SetContentDirty()
 {
