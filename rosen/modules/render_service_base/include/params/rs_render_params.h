@@ -50,6 +50,23 @@ public:
         return id_;
     }
 
+    void SetChildHasVisibleFilter(bool val);
+    bool ChildHasVisibleFilter() const;
+    void SetChildHasVisibleEffect(bool val);
+    bool ChildHasVisibleEffect() const;
+
+    void SetCacheSize(Vector2f size);
+    Vector2f GetCacheSize() const;
+
+    void SetDrawingCacheChanged(bool isChanged);
+    bool GetDrawingCacheChanged() const;
+
+    void SetDrawingCacheType(RSDrawingCacheType cacheType);
+    RSDrawingCacheType GetDrawingCacheType() const;
+
+    void SetShadowRect(Drawing::Rect rect);
+    Drawing::Rect GetShadowRect() const;
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -71,6 +88,13 @@ private:
     // this rect should map display coordination
     RectI localDrawRect_;
     bool shouldPaint_;
+
+    Vector2f cacheSize_;
+    bool childHasVisibleFilter_ = false;
+    bool childHasVisibleEffect_ = false;
+    bool isDrawingCacheChanged_ = false;
+    Drawing::Rect shadowRect_;
+    RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

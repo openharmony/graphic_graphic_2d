@@ -98,7 +98,7 @@ public:
     virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false, bool drawingCacheEnabled = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;
@@ -224,7 +224,7 @@ public:
     void UpdateLocalDrawRect();
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-        std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode);
+        std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();
@@ -458,6 +458,8 @@ public:
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
+    void UpdateDrawingCacheInfoBeforeChildren(bool isOccluded);
+    void UpdateDrawingCacheInfoAfterChildren();
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
@@ -697,6 +699,7 @@ private:
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
     void UpdateDisplayList();
+    void UpdateShadowRect();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;
 
@@ -706,12 +709,14 @@ private:
 
     // Test pipeline
     struct DrawCmdIndex {
-        int8_t shadowIndex_          = -1;
-        int8_t backgroundEndIndex_   = -1;
-        int8_t childrenIndex_        = -1;
-        int8_t contentIndex_         = -1;
-        int8_t foregroundBeginIndex_ = -1;
-        int8_t endIndex_             = -1;
+        int8_t shadowIndex_           = -1;
+        int8_t backgroundFilterIndex_ = -1;
+        int8_t useEffectIndex_        = -1;
+        int8_t backgroundEndIndex_    = -1;
+        int8_t childrenIndex_         = -1;
+        int8_t contentIndex_          = -1;
+        int8_t foregroundBeginIndex_  = -1;
+        int8_t endIndex_              = -1;
     };
     bool drawCmdListNeedSync_ = false;
     DrawCmdIndex drawCmdIndex_;

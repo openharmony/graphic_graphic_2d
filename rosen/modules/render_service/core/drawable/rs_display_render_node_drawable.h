@@ -33,8 +33,8 @@ public:
     ~RSDisplayRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
-    void OnDraw(Drawing::Canvas& canvas) const override;
-    void OnCapture(Drawing::Canvas& canvas) const override;
+    void OnDraw(Drawing::Canvas& canvas) override;
+    void OnCapture(Drawing::Canvas& canvas) override;
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 

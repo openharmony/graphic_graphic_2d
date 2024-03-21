@@ -24,6 +24,7 @@
 #include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_handler.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
@@ -79,10 +80,21 @@ void RSUniRenderThread::Start()
         RS_LOGE("RSUniRenderThread Start runner null");
     }
     runner_->Run();
-    PostSyncTask([this] {
+    pid_t tid;
+    PostSyncTask([this, &tid] {
         RS_LOGE("RSUniRenderThread Started ...");
         InitGrContext();
+        tid = gettid();
     });
+
+    auto taskDispatchFunc = [this](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
+        if (isSyncTask) {
+            PostSyncTask(task);
+        } else {
+            PostTask(task);
+        }
+    };
+    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid, taskDispatchFunc);
 
     if (!rootNodeDrawable_) {
         const std::shared_ptr<RSBaseRenderNode> rootNode =
@@ -95,7 +107,7 @@ void RSUniRenderThread::Start()
     }
 }
 
-const std::shared_ptr<RSBaseRenderEngine> RSUniRenderThread::GetRenderEngine() const
+std::shared_ptr<RSBaseRenderEngine> RSUniRenderThread::GetRenderEngine() const
 {
     return uniRenderEngine_;
 }

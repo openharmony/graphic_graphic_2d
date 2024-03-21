@@ -33,6 +33,7 @@
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "system/rs_system_parameters.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
@@ -178,7 +179,7 @@ static inline void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region)
     }
 }
 
-void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
+void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     // canvas will generate in every request frame
     (void)canvas;
@@ -194,6 +195,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         return;
     }
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw params %s", params->ToString().c_str());
+
+    isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
+    isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
+    drawingCacheRects_.clear();
 
     // check rotation for point light
     constexpr int ROTATION_NUM = 4;
@@ -279,6 +284,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     // switch color filtering
     SwitchColorFilter(*curCanvas_);
 
+    if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        for (const auto& rect : drawingCacheRects_) {
+            RSUniRenderUtil::DrawRectForDfx(*curCanvas_, rect, Drawing::Color::COLOR_GREEN, 0.2f);
+        }
+    }
+
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
     renderFrame->Flush();
     RS_TRACE_END();
@@ -289,7 +300,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     RS_TRACE_END();
 }
 
-void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     if (!renderNode_) {
         RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture render node is null!");

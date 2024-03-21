@@ -31,7 +31,7 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
     return new RSEffectRenderNodeDrawable(std::move(node));
 }
 
-void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
+void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
     auto& params = renderNode_->GetRenderParams();
@@ -44,7 +44,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 
-void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
+void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RS_LOGD("RSEffectRenderNodeDrawable::OnCapture node: %{public}" PRIu64, renderNode_->GetId());
     auto& params = renderNode_->GetRenderParams();

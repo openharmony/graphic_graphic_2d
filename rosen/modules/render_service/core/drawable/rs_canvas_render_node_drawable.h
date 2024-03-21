@@ -25,11 +25,11 @@ public:
     ~RSCanvasRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
-    void OnDraw(Drawing::Canvas& canvas) const override;
-    void OnCapture(Drawing::Canvas& canvas) const override;
+    void OnDraw(Drawing::Canvas& canvas) override;
+    void OnCapture(Drawing::Canvas& canvas) override;
 
-    void DrawWithoutShadow(Drawing::Canvas& canvas) const override;
-    void DrawShadow(Drawing::Canvas& canvas) const override;
+    void DrawWithoutShadow(Drawing::Canvas& canvas) override;
+    void DrawShadow(Drawing::Canvas& canvas) override;
 
 private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;

@@ -80,6 +80,15 @@ public:
     // use floor value of translateX and translateY in matrix of canvas to avoid jittering
     static void FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas);
     static bool IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation);
+    static void DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
+        float alpha, const std::string& extraInfo = "");
+#ifdef RS_ENABLE_VK
+    static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
+        const VkImageCreateInfo& imageInfo);
+    static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height,
+        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+#endif
 private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
