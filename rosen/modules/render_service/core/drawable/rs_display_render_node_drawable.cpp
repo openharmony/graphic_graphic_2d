@@ -217,6 +217,26 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
         return;
     }
 
+    // do virtual screen
+    auto mirrorNode = params->GetMirrorSource().lock();
+    if (mirrorNode) {
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (renderEngine == nullptr) {
+            RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RenderEngine is null!");
+            return;
+        }
+
+        if (!processor->Init(
+            *displayNodeSp, params->GetDisplayOffsetX(), params->GetDisplayOffsetY(),
+                mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, renderEngine)) {
+                RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw processor init failed!");
+                return;
+            }
+        processor->ProcessDisplaySurface(*mirrorNode);
+        processor->PostProcess(displayNodeSp.get());
+        return;
+    }
+
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(displayNodeSp, *params, processor);
     if (!renderFrame) {
