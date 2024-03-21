@@ -25,6 +25,9 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_render_thread_params.h"
+#ifdef RES_SCHED_ENABLE
+#include "vsync_system_ability_listener.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -90,7 +93,10 @@ private:
     std::unique_ptr<RSRenderNodeDrawable> rootNodeDrawable_;
     std::vector<NodeId> curDrawStatusVec_;
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync from main thread
-
+#ifdef RES_SCHED_ENABLE
+    void SubScribeSystemAbility();
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
     // used for blocking renderThread before displayNode has no freed buffer to request
     mutable std::mutex displayNodeBufferReleasedMutex_;
     bool displayNodeBufferReleased_ = false;

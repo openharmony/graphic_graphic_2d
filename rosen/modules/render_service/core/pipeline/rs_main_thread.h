@@ -46,6 +46,9 @@
 #include "platform/common/rs_event_manager.h"
 #include "transaction/rs_transaction_data.h"
 #include "params/rs_render_thread_params.h"
+#ifdef RES_SCHED_ENABLE
+#include "vsync_system_ability_listener.h"
+#endif
 
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
@@ -357,6 +360,10 @@ private:
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void WaitUntilUploadTextureTaskFinishedForGL();
+#ifdef RES_SCHED_ENABLE
+    void SubScribeSystemAbility();
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
