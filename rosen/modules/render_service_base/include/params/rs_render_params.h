@@ -36,7 +36,8 @@ public:
     virtual void SetBoundsRect(Drawing::RectF boundsRect);
     const Drawing::Rect GetBounds() const;
 
-    virtual void SetLocalDrawRect(RectI localDrawRect);
+    // return to add some dirtynode does not mark pending
+    virtual bool SetLocalDrawRect(RectI localDrawRect);
     const RectI GetLocalDrawRect() const;
 
     bool GetShouldPaint() const;

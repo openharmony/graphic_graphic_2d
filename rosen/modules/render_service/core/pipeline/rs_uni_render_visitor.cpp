@@ -1695,8 +1695,9 @@ void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
         }
     }
     node.MapAndUpdateChildrenRect();
-    // since axes switch in rootRenderNode, nodes within LeashWindow should not match again
-    node.UpdateLocalDrawRect();
+    if (node.UpdateLocalDrawRect()) {
+        RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
+    }
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoAfterChildren();
     }

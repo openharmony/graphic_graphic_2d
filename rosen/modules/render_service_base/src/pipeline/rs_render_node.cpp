@@ -1124,6 +1124,19 @@ const RectI& RSRenderNode::GetAbsDrawRect() const
     return absDrawRect_;
 }
 
+bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr)
+{
+    if (!renderContent_->drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
+        return false;
+    }
+    RSModifierContext context = { GetMutableRenderProperties() };
+    for (auto& modifier : renderContent_->drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
+        // todo Concat matrix directly
+        modifier->Apply(context);
+    }
+    return true;
+}
+
 void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect)
 {
     if (!oldDirty_.IsEmpty()) {
@@ -1164,9 +1177,11 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         accumGeoDirty = GetMutableRenderProperties().UpdateGeometryByParent(parent,
             !IsInstanceOf<RSSurfaceRenderNode>(), GetContextClipRegion()) || accumGeoDirty;
         // TODO double check if it would be covered by updateself without geo update
-        auto geoPtr = GetRenderProperties().boundsGeo_;
-        if (accumGeoDirty && geoPtr) {
-            absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_.ConvertTo<float>());
+        // currently CheckAndUpdateGeoTrans without dirty check
+        if (auto geoPtr = GetRenderProperties().boundsGeo_) {
+            if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty) {
+                absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_.ConvertTo<float>());
+            }
         }
     }
     // 3. update dirtyRegion if needed
@@ -1674,6 +1689,9 @@ void RSRenderNode::ApplyModifiers()
         UpdateFullChildrenListIfNeeded();
         AddDirtyType(RSModifierType::CHILDREN);
     }
+    if (stagingRenderParams_ == nullptr) {
+        InitRenderParams();
+    }
     // quick reject test
     if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
         return;
@@ -1712,9 +1730,6 @@ void RSRenderNode::ApplyModifiers()
 // #endif
 
     UpdateShouldPaint();
-    if (stagingRenderParams_ == nullptr) {
-        InitRenderParams();
-    }
     // Temporary code, copy matrix into render params
     // TODO: only run UpdateRenderParams on matrix change
     UpdateRenderParams();
@@ -3102,15 +3117,10 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
 }
 
-void RSRenderNode::UpdateLocalDrawRect()
+bool RSRenderNode::UpdateLocalDrawRect()
 {
-    // may null during bootanimation
-    if (!stagingRenderParams_) {
-        RS_LOGW("UpdateLocalDrawRect stagingRenderParams_ is nullptr");
-        return;
-    }
     auto drawRect = selfDrawRect_.JoinRect(childrenRect_);
-    stagingRenderParams_->SetLocalDrawRect(drawRect);
+    return stagingRenderParams_->SetLocalDrawRect(drawRect);
 }
 
 void RSRenderNode::OnSync()

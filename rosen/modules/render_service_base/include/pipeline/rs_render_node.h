@@ -221,7 +221,7 @@ public:
         const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty,
         std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
     // update node's local draw region (based on node itself, including childrenRect)
-    void UpdateLocalDrawRect();
+    bool UpdateLocalDrawRect();
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
@@ -596,6 +596,7 @@ private:
     void CollectAndUpdateLocalPixelStretchRect();
     // update drawrect based on self's info
     void UpdateSelfDrawRect();
+    bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect = std::nullopt);
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
