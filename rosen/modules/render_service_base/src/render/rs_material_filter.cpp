@@ -127,9 +127,9 @@ std::string RSMaterialFilter::GetDetailedDescription()
     }
     if (sprintf_s(maskColorStr, UINT8_MAX, "%08X", maskColor_.AsArgbInt()) != -1) {
         return "RSMaterialFilterBlur, radius: " + std::to_string(radius_) + " sigma" +
-               ", saturation: " + std::to_string(saturation_) + ", brightness: " + std::to_string(brightness_) +
-               ", greyCoef1: " + std::to_string(greyCoef_->x_) + ", greyCoef2: " + std::to_string(greyCoef_->y_) +
-               ", color: " + maskColorStr + ", colorMode: " + std::to_string(colorMode_);
+                ", saturation: " + std::to_string(saturation_) + ", brightness: " + std::to_string(brightness_) +
+                ", greyCoef1: " + std::to_string(greyCoef_->x_) + ", greyCoef2: " + std::to_string(greyCoef_->y_) +
+                ", color: " + maskColorStr + ", colorMode: " + std::to_string(colorMode_);
     };
     return "RSMaterialFilterBlur, maskColorStr failed";
 }
