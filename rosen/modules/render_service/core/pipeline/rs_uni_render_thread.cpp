@@ -201,6 +201,16 @@ uint32_t RSUniRenderThread::GetRefreshRate() const
     return HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
 }
 
+std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
+{
+    return nullptr; // TODO
+}
+
+bool RSUniRenderThread::GetWatermarkFlag()
+{
+    return false; // TODO
+}
+
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {

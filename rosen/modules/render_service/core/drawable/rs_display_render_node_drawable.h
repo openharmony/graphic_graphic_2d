@@ -41,6 +41,9 @@ public:
 private:
     std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
         RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor) const;
+    void AdjustZOrderAndDrawSurfaceNode(
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes, Drawing::Canvas& canvas) const;
+    void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

@@ -36,6 +36,7 @@
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 namespace OHOS::Rosen {
 RSDisplayRenderNodeDrawable::Registrar RSDisplayRenderNodeDrawable::instance_;
 
@@ -267,8 +268,92 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas) const
 
 void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas) const
 {
+    if (!renderNode_) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture render node is null!");
+        return;
+    }
+
+    auto params = static_cast<RSDisplayRenderParams*>(renderNode_->GetRenderParams().get());
+    if (!params) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture params is null!");
+        return;
+    }
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture params %s", params->ToString().c_str());
+
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(nodeSp);
+
+    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (!rscanvas) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture, rscanvas us nullptr");
+        return;
+    }
+
+    RS_TRACE_NAME("RSDisplayRenderNodeDrawable::OnCapture:" +
+        std::to_string(displayNodeSp->GetId()));
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture child size:[%{public}d] total",
+        displayNodeSp->GetChildrenCount());
     Drawing::AutoCanvasRestore acr(canvas, true);
-    RSRenderNodeDrawable::OnCapture(canvas);
+
+    if (params->GetDisplayHasSecSurface() || params->GetDisplayHasSkipSurface()) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
+            process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.", displayNodeSp->GetId());
+
+        // Adding matrix affine transformation logic
+        auto geoPtr = (displayNodeSp->GetRenderProperties().GetBoundsGeometry());
+        if (geoPtr != nullptr) {
+            rscanvas->ConcatMatrix(geoPtr->GetMatrix());
+        }
+
+        RSRenderNodeDrawable::OnCapture(canvas);
+        DrawWatermarkIfNeed(*displayNodeSp, *rscanvas);
+    } else {
+        auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+        if (!processor) {
+            RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture RSProcessor is null!");
+            return;
+        }
+
+        // displayNodeSp to get rsSurface witch only used in renderThread
+        auto renderFrame = RequestFrame(displayNodeSp, *params, processor);
+        if (!renderFrame) {
+            RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture failed to request frame");
+            return;
+        }
+
+        if (displayNodeSp->GetBuffer() == nullptr) {
+            RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture: buffer is null!");
+            return;
+        }
+
+        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
+            process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) using UniRender buffer.", displayNodeSp->GetId());
+
+        if (params->GetHardwareEnabledNodes().size() != 0) {
+            AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledNodes(), canvas);
+        }
+
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*displayNodeSp, false);
+
+        // Screen capture considering color inversion
+        ColorFilterMode colorFilterMode = renderEngine->GetColorFilterMode();
+        if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
+            colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
+            RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
+                SetColorFilterModeToPaint mode:%{public}d.", static_cast<int32_t>(colorFilterMode));
+            RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, drawParams.paint);
+        }
+
+        // To get dump image
+        // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
+        RSBaseRenderUtil::WriteSurfaceBufferToPng(drawParams.buffer);
+        renderEngine->DrawDisplayNodeWithParams(*rscanvas, *displayNodeSp, drawParams);
+
+        if (params->GetHardwareEnabledTopNodes().size() != 0) {
+            AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledTopNodes(), canvas);
+        }
+    }
 }
 
 void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
@@ -304,5 +389,52 @@ void RSDisplayRenderNodeDrawable::SetHighContrastIfEnabled(RSPaintFilterCanvas& 
 {
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
+}
+
+void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes, Drawing::Canvas& canvas) const
+{
+    if (!RSSystemProperties::GetHardwareComposerEnabled()) {
+        RS_LOGW("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode: \
+            HardwareComposer is not enabled.");
+        return;
+    }
+
+    // sort the surfaceNodes by ZOrder
+    std::stable_sort(
+        nodes.begin(), nodes.end(), [](const auto& first, const auto& second) -> bool {
+            return first->GetGlobalZOrder() < second->GetGlobalZOrder();
+        });
+
+    // draw hardware-composition nodes
+    for (auto& surfaceNode : nodes) {
+        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
+            Drawing::AutoCanvasRestore acr(canvas, true);
+            std::unique_ptr<RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
+                std::make_unique<RSSurfaceRenderNodeDrawable>(surfaceNode);
+            surfaceNodeDrawable->OnCapture(canvas);
+        }
+    }
+}
+
+void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(
+    RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const
+{
+    if (RSUniRenderThread::Instance().GetWatermarkFlag()) {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        auto screenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+        auto image = RSUniRenderThread::Instance().GetWatermarkImg();
+        if (image == nullptr) {
+            return;
+        }
+
+        auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
+        auto dstRect = Drawing::Rect(0, 0, screenInfo.width, screenInfo.height);
+        Drawing::Brush rectBrush;
+        canvas.AttachBrush(rectBrush);
+        canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
+            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+        canvas.DetachBrush();
+    }
 }
 } // namespace OHOS::Rosen
