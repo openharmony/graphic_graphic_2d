@@ -117,9 +117,8 @@ public:
     }
  
     // set flags for clearing filter cache
-    void FilterNeedUpdate(std::shared_ptr<RSFilter>& rsFilter);
-    void FilterRegionChangedFlagNeedUpdate(bool regionChanged);
-    void FilterInteractWithDirtyFlagNeedUpdate(bool interactWithDirty);
+    void MarkFilterRegionChanged();
+    void MarkFilterRegionInteractWithDirty();
  
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
@@ -135,7 +134,6 @@ protected:
     // flags for clearing filter cache
     bool filterRegionChanged_ = false;
     bool filterInteractWithDirty_ = false;
-    bool cacheEnabled_ = false;
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
 };
 } // namespace OHOS::Rosen

@@ -142,29 +142,22 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 
 RSFilterDrawable::RSFilterDrawable()
 {
-    cacheEnabled_ = RSProperties::FilterCacheEnabled;
-    if (cacheEnabled_) {
+    if (RSProperties::FilterCacheEnabled) {
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
 }
-
+ 
 void RSFilterDrawable::OnSync()
 {
-    if (!needSync_) {
-        return;
-    }
- 
-    filter_ = std::move(stagingFilter_);
-    if (filter_ == nullptr) {
-        ROSEN_LOGE("OnSync failed, filter is null!");
-        return;
+    if (needSync_) {
+        filter_ = std::move(stagingFilter_);
+        needSync_ = false;
     }
  
     ClearFilterCache();
  
     filterRegionChanged_ = false;
     filterInteractWithDirty_ = false;
-    cacheEnabled_ = false;
     needSync_ = false;
 }
  
@@ -172,44 +165,28 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas && ptr->filter_ && ptr->cacheManager_) {
+        if (canvas && ptr->filter_) {
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_, ptr->cacheManager_, ptr->IsForeground());
         }
     };
 }
  
-void RSFilterDrawable::FilterNeedUpdate(std::shared_ptr<RSFilter>& rsFilter)
+void RSFilterDrawable::MarkFilterRegionChanged()
 {
-    stagingFilter_ = rsFilter;
-    if (needSync_) {
-        return;
-    }
-    needSync_ = true;
+    filterRegionChanged_ = true;
 }
  
-void RSFilterDrawable::FilterRegionChangedFlagNeedUpdate(bool regionChanged)
+void RSFilterDrawable::MarkFilterRegionInteractWithDirty()
 {
-    filterRegionChanged_ = regionChanged;
-    if (needSync_) {
-        return;
-    }
-    needSync_ = true;
-}
- 
-void RSFilterDrawable::FilterInteractWithDirtyFlagNeedUpdate(bool interactWithDirty)
-{
-    filterInteractWithDirty_ = interactWithDirty;
-    if (needSync_) {
-        return;
-    }
-    needSync_ = true;
+    filterInteractWithDirty_ = true;
 }
  
 void RSFilterDrawable::ClearFilterCache()
 {
-    if (!cacheEnabled_ || !cacheManager_) {
+    if (cacheManager_ == nullptr || filter_ == nullptr) {
         return;
     }
+ 
     cacheManager_->UpdateCacheStateWithFilterHash(filter_);
     if (cacheManager_->IsCacheValid() && filterRegionChanged_) {
         cacheManager_->UpdateCacheStateWithFilterRegion();

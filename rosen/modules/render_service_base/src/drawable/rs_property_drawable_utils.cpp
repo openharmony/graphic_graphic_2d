@@ -229,7 +229,7 @@ void RSPropertyDrawableUtils::DrawFilter(
     #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
             Optional use cacheManager to draw filter
             if (auto painterFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-                cacheManager != nullptr && !painterFilterCanvas->GetDisableFilterCache()) {
+                !painterFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr) {
                 if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
                     filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
                     filter->SetCanvasChange(*painterFilterCanvas);

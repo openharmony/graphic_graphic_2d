@@ -268,8 +268,6 @@ public:
     virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
         const std::optional<RectI>& clipRect = std::nullopt, bool isForground = false);
 
-    void UpdateFilterWithFilterCacheClear();
-
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
     // store prev surface subtree's must-renewed info that need prepare
@@ -722,12 +720,14 @@ private:
     RSDrawable::Vec drawableVec_;
 
     // for blur cache
+    void ResetFilterCacheClearFlags();
+    void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
+
     RectI lastFilterRegion_;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;
     bool foregroundFilterRegionChanged_ = false;
     bool foregroundFilterInteractWithDirty_ = false;
-    void ClearFilterCacheFlags();
 
     friend class DrawFuncOpItem;
     friend class RSContext;

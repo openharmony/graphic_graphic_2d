@@ -306,7 +306,8 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
             return;
         }
         if (child->GetRenderProperties().NeedFilter() || child->GetRenderProperties().GetUseEffect()) {
-            child->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
+            child->Update(*curSurfaceDirtyManager_, cacheRootNode,
+                dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
         }
         if (child->GetRenderProperties().NeedFilter()) {
             UpdateForegroundFilterCacheWithDirty(*child, *curSurfaceDirtyManager_);
@@ -332,7 +333,8 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     }
     effectNode->SetRotationChanged(curDisplayNode_->IsRotationChanged());
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
-    effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
+    effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode,
+        dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
     if (effectNode->GetRenderProperties().NeedFilter()) {
         UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
