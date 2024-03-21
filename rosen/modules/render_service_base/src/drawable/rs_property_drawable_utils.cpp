@@ -226,18 +226,18 @@ void RSPropertyDrawableUtils::DrawFilter(
     //     canvas->SetAlpha(1.0);
     // }
 
-    #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-            Optional use cacheManager to draw filter
-            if (auto painterFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-                !painterFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr) {
-                if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-                    filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
-                    filter->SetCanvasChange(*painterFilterCanvas);
-                }
-                cacheManager->DrawFilter(*painterFilterCanvas, filter, needSnapshotOutset);
-                return;
-            }
-    #endif
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    // Optional use cacheManager to draw filter
+    if (auto painterFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        !painterFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr) {
+        // if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+        //     filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
+        //     filter->SetCanvasChange(*painterFilterCanvas);
+        // }
+        cacheManager->DrawFilter(*painterFilterCanvas, filter, needSnapshotOutset);
+        return;
+    }
+#endif
 
     auto clipIBounds = canvas->GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;

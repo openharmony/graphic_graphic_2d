@@ -224,7 +224,7 @@ public:
     void UpdateLocalDrawRect();
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-        std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode);
+        std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();

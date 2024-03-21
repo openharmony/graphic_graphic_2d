@@ -60,7 +60,7 @@ public:
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
-        const std::optional<RectI>& clipRect bool isForeground = false) override;
+        const std::optional<RectI>& clipRect, bool isForeground = false) override;
     void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false) override;
 
 private:

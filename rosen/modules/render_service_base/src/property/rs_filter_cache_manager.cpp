@@ -81,6 +81,22 @@ void RSFilterCacheManager::UpdateCacheStateWithFilterRegion()
     InvalidateCache();
 }
 
+void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion()
+{
+    if (!IsCacheValid()) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_FUNC();
+    if (cacheUpdateInterval_ > 0) {
+        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
+                    "invalidation for %{public}d frames.",
+            cacheUpdateInterval_);
+        pendingPurge_ = true;
+    } else {
+        InvalidateCache();
+    }
+}
+
 bool RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RSDirtyRegionManager& dirtyManager)
 {
     if (!IsCacheValid()) {

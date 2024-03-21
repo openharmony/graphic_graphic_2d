@@ -146,21 +146,21 @@ RSFilterDrawable::RSFilterDrawable()
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
 }
- 
+
 void RSFilterDrawable::OnSync()
 {
     if (needSync_) {
         filter_ = std::move(stagingFilter_);
         needSync_ = false;
     }
- 
+
     ClearFilterCache();
- 
+
     filterRegionChanged_ = false;
     filterInteractWithDirty_ = false;
     needSync_ = false;
 }
- 
+
 Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
@@ -170,28 +170,28 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         }
     };
 }
- 
+
 void RSFilterDrawable::MarkFilterRegionChanged()
 {
     filterRegionChanged_ = true;
 }
- 
+
 void RSFilterDrawable::MarkFilterRegionInteractWithDirty()
 {
     filterInteractWithDirty_ = true;
 }
- 
+
 void RSFilterDrawable::ClearFilterCache()
 {
     if (cacheManager_ == nullptr || filter_ == nullptr) {
         return;
     }
- 
+
     cacheManager_->UpdateCacheStateWithFilterHash(filter_);
     if (cacheManager_->IsCacheValid() && filterRegionChanged_) {
         cacheManager_->UpdateCacheStateWithFilterRegion();
     }
- 
+
     if (cacheManager_->IsCacheValid() && filterInteractWithDirty_) {
         cacheManager_->UpdateCacheStateWithDirtyRegion();
     }

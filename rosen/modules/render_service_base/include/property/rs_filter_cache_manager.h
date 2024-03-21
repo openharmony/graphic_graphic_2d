@@ -53,6 +53,7 @@ public:
     void UpdateCacheStateWithFilterRegion(); // call when filter region out of cached region.
     bool UpdateCacheStateWithDirtyRegion(
         const RSDirtyRegionManager& dirtyManager); // call when dirty region intersects with cached region.
+    void UpdateCacheStateWithDirtyRegion();
     const RectI& GetCachedImageRegion() const;
 
     // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
