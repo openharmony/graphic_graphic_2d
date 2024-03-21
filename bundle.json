@@ -80,7 +80,11 @@
           "memmgr_plugin",
           "sensor",
           "qos_manager",
-          "video_processing_engine"
+          "video_processing_engine",
+          "bounds_checking_function",
+          "egl",
+          "opengles",
+          "node"
         ],
         "third_party": [
           "flutter",
