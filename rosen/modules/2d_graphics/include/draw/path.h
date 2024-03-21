@@ -74,11 +74,13 @@ public:
      * @brief Parses the SVG format string that describes the drawing path, and sets the Path.
      *
      * @param str A string in SVG format that describes the drawing path.
+     * @return true if build succeeded, otherwise false.
      */
     virtual bool BuildFromSVGString(const std::string& str);
 
     /**
      * @brief Parses into a string in SVG format that describes the Path.
+     * @return Returns a string in SVG format.
      */
     std::string ConvertToSVGString() const;
 
@@ -164,9 +166,9 @@ public:
     /**
      * @brief Adds cubic from last point towards Point ctrlPt1, then towards Point ctrlPt2, ending at Point endPt.
      *
-     * @param ctrlPt1 first control SkPoint of cubic
-     * @param ctrlPt2 second control SkPoint of cubic
-     * @param endPt end SkPoint of cubic
+     * @param ctrlPt1 first control Point of cubic
+     * @param ctrlPt2 second control Point of cubic
+     * @param endPt end Point of cubic
      */
     virtual void CubicTo(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt);
 
@@ -356,6 +358,7 @@ public:
      * @param src    The number of point sets of the src Path.
      * @param ending The number of point sets of the ending Path.
      * @param weight The weight value is between 0 and 1.
+     * @return true if build succeeded, otherwise false.
      */
     virtual bool BuildFromInterpolate(const Path& src, const Path& ending, scalar weight);
 
@@ -394,6 +397,7 @@ public:
     /**
      * @brief Gets the length of the current path object.
      * @param forceClosed   Whether to close the Path.
+     * @return Returns the length of the current path object.
      */
     scalar GetLength(bool forceClosed) const;
 
@@ -403,6 +407,7 @@ public:
      * @param position     Sets to the position of distance from the starting position of the Path.
      * @param tangent      Sets to the tangent of distance from the starting position of the Path.
      * @param forceClosed  Whether to close the Path.
+     * @return Returns true if succeeded, otherwise false.
      */
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const;
 

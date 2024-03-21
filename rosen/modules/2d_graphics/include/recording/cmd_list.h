@@ -101,7 +101,7 @@ public:
 
     /**
      * @brief       Add a contiguous buffers to the CmdList.
-     * @param src   A contiguous buffers.
+     * @param data  A contiguous buffers.
      * @return      Returns the offset of the contiguous buffers and CmdList head point.
      */
     uint32_t AddCmdListData(const CmdListData& data);
