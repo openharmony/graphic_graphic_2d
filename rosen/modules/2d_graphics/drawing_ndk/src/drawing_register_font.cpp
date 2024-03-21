@@ -17,7 +17,7 @@
 #include <filesystem>
 #endif
 #include <fstream>
-#include "c/drawing_register_font.h"
+#include "drawing_register_font.h"
 #ifndef USE_GRAPHIC_TEXT_GINE
 #include "rosen_text/ui/font_collection.h"
 #else

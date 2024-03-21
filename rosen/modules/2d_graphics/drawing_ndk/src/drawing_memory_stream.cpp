@@ -13,25 +13,32 @@
  * limitations under the License.
  */
 
-#include "c/drawing_rect.h"
-
-#include "utils/rect.h"
+#include "drawing_memory_stream.h"
+#include <cstddef>
+#include <unordered_map>
+#include "utils/memory_stream.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static Rect* CastToRect(OH_Drawing_Rect* cRect)
+static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cCanvas)
 {
-    return reinterpret_cast<Rect*>(cRect);
+    return reinterpret_cast<MemoryStream*>(cCanvas);
 }
 
-OH_Drawing_Rect* OH_Drawing_RectCreate(float left, float top, float right, float bottom)
+OH_Drawing_MemoryStream* OH_Drawing_MemoryStreamCreate(const void* data, size_t length, bool copyData)
 {
-    return (OH_Drawing_Rect*)new Rect(left, top, right, bottom);
+    if (data == nullptr || length == 0) {
+        return nullptr;
+    }
+    return (OH_Drawing_MemoryStream*)new MemoryStream(data, length, copyData);
 }
 
-void OH_Drawing_RectDestroy(OH_Drawing_Rect* cRect)
+void OH_Drawing_MemoryStreamDestroy(OH_Drawing_MemoryStream* cMemoryStream)
 {
-    delete CastToRect(cRect);
+    if (cMemoryStream == nullptr) {
+        return;
+    }
+    delete CastToMemoryStream(cMemoryStream);
 }

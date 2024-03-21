@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#include "c/drawing_canvas.h"
-
-#include "draw/canvas.h"
+#include "drawing_canvas.h"
+#include "drawing_canvas_utils.h"
+#include "image_pixel_map_mdk.h"
+#include "native_pixel_map.h"
 #include "recording/recording_canvas.h"
 
 using namespace OHOS;
@@ -248,6 +249,16 @@ void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bi
         return;
     }
     canvas->DrawBitmap(CastToBitmap(*cBitmap), left, top);
+}
+
+void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_PixelMap* pixelMap,
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions)
+{
+#ifdef OHOS_PLATFORM
+    DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas),
+        Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap)),
+        CastToRect(*src), CastToRect(*dst), CastToSamplingOptions(*cSampingOptions));
+#endif
 }
 
 void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap,

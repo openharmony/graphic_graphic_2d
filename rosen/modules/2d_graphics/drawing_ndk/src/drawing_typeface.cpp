@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_typeface.h"
+#include "drawing_typeface.h"
 #include <mutex>
 #include <unordered_map>
 

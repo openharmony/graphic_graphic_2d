@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_font.h"
+#include "drawing_font.h"
 
 #include "text/font.h"
 

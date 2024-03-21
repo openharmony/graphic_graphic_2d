@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_color_filter.h"
+#include "drawing_color_filter.h"
 
 #include "utils/log.h"
 #include "effect/color_filter.h"

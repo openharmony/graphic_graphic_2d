@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_path_effect.h"
+#include "drawing_path_effect.h"
 #include <mutex>
 #include <unordered_map>
 #include "effect/path_effect.h"

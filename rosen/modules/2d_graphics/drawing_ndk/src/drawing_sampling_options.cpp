@@ -13,33 +13,24 @@
  * limitations under the License.
  */
 
-#include "c/drawing_round_rect.h"
-
-#include "utils/round_rect.h"
+#include "drawing_sampling_options.h"
+#include "utils/sampling_options.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static const Rect& CastToRect(const OH_Drawing_Rect& cRect)
+static SamplingOptions* CastToSamplingOptions(OH_Drawing_SamplingOptions* cSamplingOptions)
 {
-    return reinterpret_cast<const Rect&>(cRect);
+    return reinterpret_cast<SamplingOptions*>(cSamplingOptions);
 }
 
-static RoundRect* CastToRoundRect(OH_Drawing_RoundRect* cRoundRect)
+OH_Drawing_SamplingOptions* OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMode fm, OH_Drawing_MipmapMode mm)
 {
-    return reinterpret_cast<RoundRect*>(cRoundRect);
+    return (OH_Drawing_SamplingOptions*)new SamplingOptions(static_cast<FilterMode>(fm), static_cast<MipmapMode>(mm));
 }
 
-OH_Drawing_RoundRect* OH_Drawing_RoundRectCreate(const OH_Drawing_Rect* cRect, float xRad, float yRad)
+void OH_Drawing_SamplingOptionsDestroy(OH_Drawing_SamplingOptions* cSamplingOptions)
 {
-    if (cRect == nullptr) {
-        return nullptr;
-    }
-    return (OH_Drawing_RoundRect*)new RoundRect(CastToRect(*cRect), xRad, yRad);
-}
-
-void OH_Drawing_RoundRectDestroy(OH_Drawing_RoundRect* cRoundRect)
-{
-    delete CastToRoundRect(cRoundRect);
+    delete CastToSamplingOptions(cSamplingOptions);
 }

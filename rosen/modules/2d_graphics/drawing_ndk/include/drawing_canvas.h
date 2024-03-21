@@ -200,6 +200,21 @@ void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas*, float x1, float y1, float x2,
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
 
 /**
+ * @brief Draw the specified area of the Media::PixelMap to the specified area of the canvas.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_PixelMap Indicates the pointer to an <b>OH_Drawing_PixelMap</b> object.
+ * @param src the area of source pixelmap.
+ * @param dst the area of destination canvas.
+ * @param OH_Drawing_SamplingOptions the sampling mode.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas*, OH_Drawing_PixelMap*, const OH_Drawing_Rect* src,
+    const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions*);
+
+/**
  * @brief Draws a bitmap.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

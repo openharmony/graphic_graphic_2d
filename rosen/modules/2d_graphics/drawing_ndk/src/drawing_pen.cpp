@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_pen.h"
+#include "drawing_pen.h"
 
 #include "draw/pen.h"
 

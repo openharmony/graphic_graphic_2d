@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_text_typography.h"
+#include "drawing_text_typography.h"
 #include "utils/log.h"
 #include "utils/object_mgr.h"
 

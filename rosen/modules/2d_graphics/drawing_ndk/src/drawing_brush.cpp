@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_brush.h"
+#include "drawing_brush.h"
 
 #include "draw/brush.h"
 

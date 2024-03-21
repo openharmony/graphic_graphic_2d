@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "c/drawing_point.h"
-#include "c/drawing_path.h"
+#include "drawing_point.h"
+#include "drawing_path.h"
 
 #include "draw/path.h"
 

@@ -16,10 +16,10 @@
 #include <cstdio>
 #include "gtest/gtest.h"
 
-#include "c/drawing_path.h"
-#include "c/drawing_matrix.h"
-#include "c/drawing_rect.h"
-#include "c/drawing_round_rect.h"
+#include "drawing_path.h"
+#include "drawing_matrix.h"
+#include "drawing_rect.h"
+#include "drawing_round_rect.h"
 #include "draw/path.h"
 #include "utils/scalar.h"
 

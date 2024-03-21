@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_text_blob.h"
+#include "drawing_text_blob.h"
 #include "utils/log.h"
 #include <mutex>
 #include <unordered_map>

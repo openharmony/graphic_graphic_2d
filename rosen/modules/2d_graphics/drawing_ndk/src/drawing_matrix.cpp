@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_matrix.h"
+#include "drawing_matrix.h"
 
 #include "utils/matrix.h"
 

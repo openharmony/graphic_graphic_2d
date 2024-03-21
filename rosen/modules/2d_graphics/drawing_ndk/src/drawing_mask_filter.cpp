@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_mask_filter.h"
+#include "drawing_mask_filter.h"
 
 #include "effect/mask_filter.h"
 

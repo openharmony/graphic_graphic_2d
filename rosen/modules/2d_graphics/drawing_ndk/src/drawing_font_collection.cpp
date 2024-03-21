@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_font_collection.h"
+#include "drawing_font_collection.h"
 #ifndef USE_GRAPHIC_TEXT_GINE
 #include "rosen_text/ui/font_collection.h"
 #else

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_bitmap.h"
+#include "drawing_bitmap.h"
 
 #include "draw/color.h"
 #include "image/bitmap.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,9 @@
  * limitations under the License.
  */
 
-#include "c/drawing_point.h"
+#include "drawing_pixel_map.h"
 
-#include "utils/point.h"
-#include "utils/point3.h"
-
-using namespace OHOS;
-using namespace Rosen;
-using namespace Drawing;
-
-static Point* CastToPoint(OH_Drawing_Point* cPoint)
+OH_Drawing_PixelMap* OH_Drawing_PixelMapGetFromNativePixelMap(NativePixelMap_* nativePixelMap)
 {
-    return reinterpret_cast<Point*>(cPoint);
-}
-
-OH_Drawing_Point* OH_Drawing_PointCreate(float x, float y)
-{
-    return (OH_Drawing_Point*)new Point(x, y);
-}
-
-void OH_Drawing_PointDestroy(OH_Drawing_Point* cPoint)
-{
-    delete CastToPoint(cPoint);
+    return reinterpret_cast<OH_Drawing_PixelMap*>(nativePixelMap);
 }

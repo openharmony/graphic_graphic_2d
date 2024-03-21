@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_image.h"
+#include "drawing_image.h"
 #include "image/image.h"
 
 using namespace OHOS;

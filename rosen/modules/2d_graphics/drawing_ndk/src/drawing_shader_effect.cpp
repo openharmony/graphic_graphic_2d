@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_shader_effect.h"
+#include "drawing_shader_effect.h"
 
 #include "effect/shader_effect.h"
 

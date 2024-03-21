@@ -13,32 +13,26 @@
  * limitations under the License.
  */
 
-#include "c/drawing_memory_stream.h"
-#include <cstddef>
-#include <unordered_map>
-#include "utils/memory_stream.h"
+#include "drawing_point.h"
+
+#include "utils/point.h"
+#include "utils/point3.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cCanvas)
+static Point* CastToPoint(OH_Drawing_Point* cPoint)
 {
-    return reinterpret_cast<MemoryStream*>(cCanvas);
+    return reinterpret_cast<Point*>(cPoint);
 }
 
-OH_Drawing_MemoryStream* OH_Drawing_MemoryStreamCreate(const void* data, size_t length, bool copyData)
+OH_Drawing_Point* OH_Drawing_PointCreate(float x, float y)
 {
-    if (data == nullptr || length == 0) {
-        return nullptr;
-    }
-    return (OH_Drawing_MemoryStream*)new MemoryStream(data, length, copyData);
+    return (OH_Drawing_Point*)new Point(x, y);
 }
 
-void OH_Drawing_MemoryStreamDestroy(OH_Drawing_MemoryStream* cMemoryStream)
+void OH_Drawing_PointDestroy(OH_Drawing_Point* cPoint)
 {
-    if (cMemoryStream == nullptr) {
-        return;
-    }
-    delete CastToMemoryStream(cMemoryStream);
+    delete CastToPoint(cPoint);
 }

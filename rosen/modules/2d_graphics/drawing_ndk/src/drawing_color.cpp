@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "c/drawing_color.h"
+#include "drawing_color.h"
 
 uint32_t OH_Drawing_ColorSetArgb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue)
 {

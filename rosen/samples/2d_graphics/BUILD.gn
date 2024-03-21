@@ -142,6 +142,7 @@ ohos_executable("drawing_sample_rs") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/zlib:libz",

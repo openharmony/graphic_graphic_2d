@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,31 +13,25 @@
  * limitations under the License.
  */
 
-#include "c/drawing_sdf_shaper.h"
-#include "draw/sdf_shaper_base.h"
-#include <unordered_map>
+#include "drawing_rect.h"
+
+#include "utils/rect.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static SDFShapeBase* CastToSdfShape(OH_Drawing_Sdf* cShape)
+static Rect* CastToRect(OH_Drawing_Rect* cRect)
 {
-    return reinterpret_cast<SDFShapeBase*>(cShape);
+    return reinterpret_cast<Rect*>(cRect);
 }
 
-OH_Drawing_Sdf* OH_Drawing_SdfCreate()
+OH_Drawing_Rect* OH_Drawing_RectCreate(float left, float top, float right, float bottom)
 {
-    return (OH_Drawing_Sdf*)new SDFShapeBase;
+    return (OH_Drawing_Rect*)new Rect(left, top, right, bottom);
 }
 
-void OH_Drawing_SdfDestroy(OH_Drawing_Sdf* cShape)
+void OH_Drawing_RectDestroy(OH_Drawing_Rect* cRect)
 {
-    delete CastToSdfShape(cShape);
-}
-
-void OH_Drawing_SdfBuildShader(OH_Drawing_Sdf* cShape)
-{
-    SDFShapeBase* shape = CastToSdfShape(cShaper);
-    shape->BuildShader();
+    delete CastToRect(cRect);
 }

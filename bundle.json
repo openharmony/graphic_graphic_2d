@@ -112,8 +112,7 @@
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
-            "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-            "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_new",
+            "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
@@ -317,6 +316,15 @@
                 "image/bitmap.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/drawing_ndk/include"
             }
           },
           {
