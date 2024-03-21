@@ -21,6 +21,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "property/rs_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 void RSPropertyDrawable::OnSync()
@@ -139,4 +140,60 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+RSFilterDrawable::RSFilterDrawable()
+{
+    if (RSProperties::FilterCacheEnabled) {
+        cacheManager_ = std::make_unique<RSFilterCacheManager>();
+    }
+}
+ 
+void RSFilterDrawable::OnSync()
+{
+    if (needSync_) {
+        filter_ = std::move(stagingFilter_);
+        needSync_ = false;
+    }
+ 
+    ClearFilterCache();
+ 
+    filterRegionChanged_ = false;
+    filterInteractWithDirty_ = false;
+    needSync_ = false;
+}
+ 
+Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas && ptr->filter_) {
+            RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_, ptr->cacheManager_, ptr->IsForeground());
+        }
+    };
+}
+ 
+void RSFilterDrawable::MarkFilterRegionChanged()
+{
+    filterRegionChanged_ = true;
+}
+ 
+void RSFilterDrawable::MarkFilterRegionInteractWithDirty()
+{
+    filterInteractWithDirty_ = true;
+}
+ 
+void RSFilterDrawable::ClearFilterCache()
+{
+    if (cacheManager_ == nullptr || filter_ == nullptr) {
+        return;
+    }
+ 
+    cacheManager_->UpdateCacheStateWithFilterHash(filter_);
+    if (cacheManager_->IsCacheValid() && filterRegionChanged_) {
+        cacheManager_->UpdateCacheStateWithFilterRegion();
+    }
+ 
+    if (cacheManager_->IsCacheValid() && filterInteractWithDirty_) {
+        cacheManager_->UpdateCacheStateWithDirtyRegion();
+    }
+}
 } // namespace OHOS::Rosen

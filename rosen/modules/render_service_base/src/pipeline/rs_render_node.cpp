@@ -1094,6 +1094,7 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std:
     if (clipRect.has_value()) {
         dirtyRect = dirtyRect.IntersectRect(*clipRect);
     }
+    lastFilterRegion_ = oldDirty_;
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
     if (!dirtyRect.IsEmpty()) {
@@ -1103,7 +1104,8 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std:
 }
 
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
-    const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty, std::optional<RectI> clipRect)
+    const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty,
+    std::optional<RectI> clipRect, bool isInTransparentSurfaceNode)
 {
     // 1. update self drawrect if dirty
     if (IsDirty()) {
@@ -1125,11 +1127,16 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         }
     }
     // 3. update dirtyRegion if needed
-    UpdateFilterCacheWithDirty(dirtyManager, false);
+    if (GetRenderProperties().GetBackgroundFilter() && !isInTransparentSurfaceNode) {
+        UpdateFilterCacheWithDirty(dirtyManager);
+    }
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     if ((IsDirty() || accumGeoDirty) && (shouldPaint_ || isLastVisible_)) {
         // update FrontgroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
+    }
+    if (GetRenderProperties().GetBackgroundFilter()) {
+        UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
     }
     // 4. reset dirty status
     SetClean();
@@ -1140,7 +1147,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
 
 bool RSRenderNode::Update(
     RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-    std::optional<RectI> clipRect)
+    std::optional<RectI> clipRect, bool isInTransparentSurfaceNode)
 {
     // no need to update invisible nodes
     if (!ShouldPaint() && !isLastVisible_) {
@@ -1175,8 +1182,13 @@ bool RSRenderNode::Update(
     // 'dirty region of all the nodes drawn before this node', and foreground filter cache manager should use 'dirty
     // region of all the nodes drawn before this node, this node, and the children of this node'
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
-    UpdateFilterCacheWithDirty(dirtyManager, false);
+    if (GetRenderProperties().GetBackgroundFilter() && !isInTransparentSurfaceNode) {
+        UpdateFilterCacheWithDirty(dirtyManager);
+    }
     UpdateDirtyRegion(dirtyManager, dirty, clipRect);
+    if (GetRenderProperties().GetBackgroundFilter()) {
+        UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
+    }
     return dirty;
 }
 
@@ -1245,6 +1257,9 @@ void RSRenderNode::UpdateDirtyRegion(
 
         if (clipRect.has_value()) {
             dirtyRect = dirtyRect.IntersectRect(*clipRect);
+        }
+        if (GetRenderProperties().NeedFilter()) {
+            lastFilterRegion_ = oldDirty_;
         }
         oldDirty_ = dirtyRect;
         oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -1376,19 +1391,66 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     if (!RSProperties::FilterCacheEnabled) {
         return;
     }
-    auto& properties = GetRenderProperties();
-    auto& manager = properties.GetFilterCacheManager(isForeground);
-    if (manager == nullptr) {
+ 
+    if (!isForeground) {
+        if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]) {
+            if (dirtyManager.GetCurrentFrameDirtyRegion().Intersect(lastFilterRegion_)){
+                backgroundFilterInteractWithDirty_ = true;
+                auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
+                filterDrawable->MarkFilterRegionInteractWithDirty();
+                UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
+            }
+        }
         return;
     }
-    if (!manager->IsCacheValid()) {
-        return;
-    }
-    auto& cachedImageRect = manager->GetCachedImageRegion();
-    if (manager->UpdateCacheStateWithDirtyRegion(dirtyManager)) {
-        dirtyManager.MergeDirtyRect(cachedImageRect);
+    if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)]) {
+        if (dirtyManager.GetCurrentFrameDirtyRegion().Intersect(lastFilterRegion_)){
+            foregroundFilterInteractWithDirty_ = true;
+            auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
+            filterDrawable->MarkFilterRegionInteractWithDirty();
+            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::FOREGROUND_FILTER);
+        }
     }
 #endif
+}
+ 
+void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect, bool isForeground)
+{
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!RSProperties::FilterCacheEnabled || !GetRenderProperties().NeedFilter()) {
+        return;
+    }
+ 
+    if (!oldDirty_.IsInsideOf(lastFilterRegion_)) {
+        if (!isForeground) {
+            if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]) {
+                backgroundFilterRegionChanged_ = true;
+                auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
+                filterDrawable->MarkFilterRegionChanged();
+                UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
+            }
+            return;
+        }
+ 
+        if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)]) {
+            foregroundFilterRegionChanged_ = true;
+            auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
+            filterDrawable->MarkFilterRegionChanged();
+            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::FOREGROUND_FILTER);
+        }
+    }
+#endif
+}
+ 
+void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)
+{
+    if (dirtySlots_.find(slot) == dirtySlots_.end()) {
+        dirtySlots_.emplace(slot);
+    }
+    if (auto context = GetContext().lock(); !context->HasPendingSyncNode(GetId())) {
+        context->AddPendingSyncNode(shared_from_this());
+    }
 }
 
 void RSRenderNode::RenderTraceDebug() const
@@ -1594,17 +1656,17 @@ void RSRenderNode::ApplyModifiers()
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
-        manager != nullptr &&
-        (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
-        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
-        manager->InvalidateCache();
-    }
-    if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
-        manager->InvalidateCache();
-    }
-#endif
+// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+//     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
+//         manager != nullptr &&
+//         (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
+//         dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
+//         manager->InvalidateCache();
+//     }
+//     if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
+//         manager->InvalidateCache();
+//     }
+// #endif
 
     UpdateShouldPaint();
     if (stagingRenderParams_ == nullptr) {
@@ -1765,13 +1827,13 @@ void RSRenderNode::UpdateShouldPaint()
     // alpha is not zero
     shouldPaint_ = (GetRenderProperties().GetAlpha() > 0.0f) &&
         (GetRenderProperties().GetVisible() || HasDisappearingTransition(false));
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!shouldPaint_) {
-        // clear filter cache when node is not visible
-        GetMutableRenderProperties().ClearFilterCache();
-        GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
-    }
-#endif
+// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+//     if (!shouldPaint_) {
+//         // clear filter cache when node is not visible
+//         GetMutableRenderProperties().ClearFilterCache();
+//         GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
+//     }
+// #endif
 }
 
 void RSRenderNode::SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam)
@@ -2321,63 +2383,63 @@ RectI RSRenderNode::GetFilterRect() const
 void RSRenderNode::UpdateFullScreenFilterCacheRect(
     RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    auto& renderProperties = GetRenderProperties();
-    auto& manager = renderProperties.GetFilterCacheManager(isForeground);
-    // Record node's cache area if it has valid filter cache
-    // If there are any invalid caches under full screen cache filter, the occlusion should be invalidated
-    if (!manager->IsCacheValid() && dirtyManager.IsCacheableFilterRectEmpty()) {
-        dirtyManager.InvalidateFilterCacheRect();
-    } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(renderProperties.GetCornerRadius().x_, 0.0f) &&
-        manager->GetCachedImageRegion() == dirtyManager.GetSurfaceRect() && !IsInstanceOf<RSEffectRenderNode>()) {
-        // Only record full screen filter cache for occlusion calculation
-        dirtyManager.UpdateCacheableFilterRect(manager->GetCachedImageRegion());
-    }
-#endif
+// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+//     auto& renderProperties = GetRenderProperties();
+//     auto& manager = renderProperties.GetFilterCacheManager(isForeground);
+//     // Record node's cache area if it has valid filter cache
+//     // If there are any invalid caches under full screen cache filter, the occlusion should be invalidated
+//     if (!manager->IsCacheValid() && dirtyManager.IsCacheableFilterRectEmpty()) {
+//         dirtyManager.InvalidateFilterCacheRect();
+//     } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(renderProperties.GetCornerRadius().x_, 0.0f) &&
+//         manager->GetCachedImageRegion() == dirtyManager.GetSurfaceRect() && !IsInstanceOf<RSEffectRenderNode>()) {
+//         // Only record full screen filter cache for occlusion calculation
+//         dirtyManager.UpdateCacheableFilterRect(manager->GetCachedImageRegion());
+//     }
+// #endif
 }
 
-void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
-{
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSProperties::FilterCacheEnabled) {
-        return;
-    }
-    auto& renderProperties = GetRenderProperties();
-    if (!renderProperties.NeedFilter()) {
-        return;
-    }
-    auto filterRect = GetFilterRect();
-    if (clipRect.has_value()) {
-        filterRect.IntersectRect(*clipRect);
-    }
+// void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
+//     RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
+// {
+// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+//     if (!RSProperties::FilterCacheEnabled) {
+//         return;
+//     }
+//     auto& renderProperties = GetRenderProperties();
+//     if (!renderProperties.NeedFilter()) {
+//         return;
+//     }
+//     auto filterRect = GetFilterRect();
+//     if (clipRect.has_value()) {
+//         filterRect.IntersectRect(*clipRect);
+//     }
 
-    // background filter
-    if (auto& manager = renderProperties.GetFilterCacheManager(false)) {
-        // invalidate cache if filter region is not inside of cached image region
-        if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
-            manager->UpdateCacheStateWithFilterRegion();
-            if (auto context = GetContext().lock()) {
-                RS_TRACE_NAME_FMT("background filter of node Id:%" PRIu64 " is invalid", GetId());
-                context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
-            }
-        }
-        UpdateFullScreenFilterCacheRect(dirtyManager, false);
-    }
-    // foreground filter
-    if (auto& manager = renderProperties.GetFilterCacheManager(true)) {
-        // invalidate cache if filter region is not inside of cached image region
-        if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
-            manager->UpdateCacheStateWithFilterRegion();
-            if (auto context = GetContext().lock()) {
-                RS_TRACE_NAME_FMT("foreground filter of node Id:%" PRIu64 " is invalid", GetId());
-                context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
-            }
-        }
-        UpdateFullScreenFilterCacheRect(dirtyManager, true);
-    }
-#endif
-}
+//     // background filter
+//     if (auto& manager = renderProperties.GetFilterCacheManager(false)) {
+//         // invalidate cache if filter region is not inside of cached image region
+//         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
+//             manager->UpdateCacheStateWithFilterRegion();
+//             if (auto context = GetContext().lock()) {
+//                 RS_TRACE_NAME_FMT("background filter of node Id:%" PRIu64 " is invalid", GetId());
+//                 context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
+//             }
+//         }
+//         UpdateFullScreenFilterCacheRect(dirtyManager, false);
+//     }
+//     // foreground filter
+//     if (auto& manager = renderProperties.GetFilterCacheManager(true)) {
+//         // invalidate cache if filter region is not inside of cached image region
+//         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
+//             manager->UpdateCacheStateWithFilterRegion();
+//             if (auto context = GetContext().lock()) {
+//                 RS_TRACE_NAME_FMT("foreground filter of node Id:%" PRIu64 " is invalid", GetId());
+//                 context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
+//             }
+//         }
+//         UpdateFullScreenFilterCacheRect(dirtyManager, true);
+//     }
+// #endif
+// }
 
 void RSRenderNode::OnTreeStateChanged()
 {
@@ -2390,13 +2452,13 @@ void RSRenderNode::OnTreeStateChanged()
 #endif
         SetParentSubTreeDirty();
     }
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!isOnTheTree_) {
-        // clear filter cache when node is removed from tree
-        GetMutableRenderProperties().ClearFilterCache();
-        GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
-    }
-#endif
+// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+//     if (!isOnTheTree_) {
+//         // clear filter cache when node is removed from tree
+//         GetMutableRenderProperties().ClearFilterCache();
+//         GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
+//     }
+// #endif
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -2996,6 +3058,15 @@ void RSRenderNode::OnSync()
         }
         dirtySlots_.clear();
     }
+    ResetFilterCacheClearFlags();
+}
+
+void RSRenderNode::ResetFilterCacheClearFlags()
+{
+    backgroundFilterRegionChanged_ = false;
+    backgroundFilterInteractWithDirty_ = false;
+    foregroundFilterRegionChanged_ = false;
+    foregroundFilterInteractWithDirty_ = false;
 }
 } // namespace Rosen
 } // namespace OHOS

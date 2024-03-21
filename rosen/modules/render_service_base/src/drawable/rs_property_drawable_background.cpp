@@ -376,10 +376,16 @@ RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
         return nullptr;
     }
 
+    RSDrawable::Ptr filterDrawable = nullptr;
     if (node.IsInstanceOf<RSEffectRenderNode>()) {
-        return std::make_shared<RSBackgroundEffectDrawable>(rsFilter);
+        filterDrawable = std::make_shared<RSBackgroundEffectDrawable>();
+    } else {
+        filterDrawable = std::make_shared<RSBackgroundFilterDrawable>();
     }
-    return std::make_shared<RSBackgroundFilterDrawable>(rsFilter);
+    if (filterDrawable->OnUpdate(node)) {
+        return filterDrawable;
+    }
+    return nullptr; 
 }
 
 bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
@@ -391,23 +397,6 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
     stagingFilter_ = rsFilter;
     return true;
-}
-
-void RSBackgroundFilterDrawable::OnSync()
-{
-    if (!needSync_) {
-        return;
-    }
-    filter_ = std::move(stagingFilter_);
-    needSync_ = false;
-}
-
-Drawing::RecordingCanvas::DrawFunc RSBackgroundFilterDrawable::CreateDrawFunc() const
-{
-    auto ptr = std::static_pointer_cast<const RSBackgroundFilterDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_, false);
-    };
 }
 
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)

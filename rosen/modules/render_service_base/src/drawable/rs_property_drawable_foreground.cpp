@@ -184,23 +184,6 @@ bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSForegroundFilterDrawable::OnSync()
-{
-    if (!needSync_) {
-        return;
-    }
-    filter_ = std::move(stagingFilter_);
-    needSync_ = false;
-}
-
-Drawing::RecordingCanvas::DrawFunc RSForegroundFilterDrawable::CreateDrawFunc() const
-{
-    auto ptr = std::static_pointer_cast<const RSForegroundFilterDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_, true);
-    };
-}
-
 RSDrawable::Ptr RSPixelStretchDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSPixelStretchDrawable>(); ret->OnUpdate(node)) {

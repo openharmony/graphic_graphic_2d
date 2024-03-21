@@ -120,35 +120,23 @@ public:
 private:
 };
 
-class RSBackgroundFilterDrawable : public RSDrawable {
+class RSBackgroundFilterDrawable : public RSFilterDrawable {
 public:
-    RSBackgroundFilterDrawable(std::shared_ptr<RSFilter> rsFilter) : filter_(std::move(rsFilter)) {}
+    RSBackgroundFilterDrawable() = default;
     ~RSBackgroundFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-
-private:
-    bool needSync_ = false;
-    std::shared_ptr<RSFilter> filter_;
-    std::shared_ptr<RSFilter> stagingFilter_;
 };
 
-class RSBackgroundEffectDrawable : public RSDrawable {
+class RSBackgroundEffectDrawable : public RSFilterDrawable {
 public:
-    RSBackgroundEffectDrawable(std::shared_ptr<RSFilter> rsFilter) : filter_(std::move(rsFilter)) {}
+    RSBackgroundEffectDrawable() = default;
     ~RSBackgroundEffectDrawable() override = default;
 
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-
-private:
-    bool needSync_ = false;
-    std::shared_ptr<RSFilter> filter_;
-    std::shared_ptr<RSFilter> stagingFilter_;
 };
 
 class RSUseEffectDrawable : public RSDrawable {

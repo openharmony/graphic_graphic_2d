@@ -188,7 +188,8 @@ void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
 }
 
 void RSPropertyDrawableUtils::DrawFilter(
-    Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter, const bool isForegroundFilter)
+    Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
+    const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isForegroundFilter)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -225,18 +226,18 @@ void RSPropertyDrawableUtils::DrawFilter(
     //     canvas->SetAlpha(1.0);
     // }
 
-    // #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    //         Optional use cacheManager to draw filter
-    //         if (auto& cacheManager = properties.GetFilterCacheManager(isForegroundFilter);
-    //             cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
-    //             if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-    //                 filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
-    //                 filter->SetCanvasChange(*canvas);
-    //             }
-    //             cacheManager->DrawFilter(*canvas, filter, needSnapshotOutset);
-    //             return;
-    //         }
-    // #endif
+    #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+            Optional use cacheManager to draw filter
+            if (auto painterFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+                !painterFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr) {
+                if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+                    filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
+                    filter->SetCanvasChange(*painterFilterCanvas);
+                }
+                cacheManager->DrawFilter(*painterFilterCanvas, filter, needSnapshotOutset);
+                return;
+            }
+    #endif
 
     auto clipIBounds = canvas->GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
