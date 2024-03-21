@@ -652,7 +652,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
         node.GetId(), static_cast<int>(node.GetDrawingCacheType()), node.IsStaticCached(),
         static_cast<int>(isDrawingCacheChanged), node.ChildHasFilter(), node.HasUseEffectNodes(),
         static_cast<int>(node.HasChildrenOutOfRect()), visitedCacheNodeIds_.size());
-    ndoe.SetDrawingCacheChanged(!node.IsStaticCached() && isDrawingCacheChanged);
+    node.SetDrawingCacheChanged(!node.IsStaticCached() && isDrawingCacheChanged);
     // reset counter after executing the very first marked node
     if (firstVisitedCache_ == node.GetId()) {
         std::stack<bool>().swap(isDrawingCacheChanged_);
@@ -4365,7 +4365,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         // If all the child nodes have drawing areas that do not exceed the current node, then current node
         // can be directly skipped if not intersect with any dirtyregion.
         // Otherwise, its childrenRect_ should be considered.
-        RectI dirtyRect = node.GetOldDirtyInSurface;
+        RectI dirtyRect = node.GetOldDirtyInSurface();
         if (node.HasChildrenOutOfRect()) {
             dirtyRect = dirtyRect.JoinRect(node.GetChildrenRect());
         }
