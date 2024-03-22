@@ -1688,7 +1688,44 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level
     OH_Drawing_TextStyleClearFontFeature(txtStyle);
     EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 0);
     double lineShift = 1.5;
-    OH_Drawing_TextStyleSetBaseLineShift(txtStyle, lineShift);
-    EXPECT_EQ(OH_Drawing_TextStyleGetBaseLineShift(txtStyle), 1.5);
+    OH_Drawing_TextStyleSetBaselineShift(txtStyle, lineShift);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaselineShift(txtStyle), 1.5);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest052
+ * @tc.desc: test for setting the mode of leading over and under text
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest052, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_ALL);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::ALL);
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_FIRST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_LAST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_ALL);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest053
+ * @tc.desc: test for getting the mode of leading over and under text
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest053, TestSize.Level1)
+{
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(nullptr) == TEXT_HEIGHT_ALL, true);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_ALL, true);
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_FIRST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_LAST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_ALL, true);
 }
 }

@@ -69,6 +69,7 @@ struct TypographyStyle {
     }
     TextStyle insideTextStyle;
     bool customTextStyle = false;
+    TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
 };
 } // namespace Rosen
 } // namespace OHOS
