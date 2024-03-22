@@ -2019,11 +2019,11 @@ OH_Drawing_FontStyle OH_Drawing_TypographyTextlineStyleGetFontStyle(OH_Drawing_T
 char** OH_Drawing_TypographyTextlineStyleGetFontFamilies(OH_Drawing_TypographyStyle*, size_t* num);
 
 /**
- * @brief Releases the memory occupied by a list of system font families names.
+ * @brief Releases the memory occupied by a list of font families names.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param fontFamilies Indicates the pointer to a list of system font families names.
- * @param fontFamiliesNum Indicates the number of obtained system font names.
+ * @param fontFamilies Indicates the pointer to a list of font families names.
+ * @param fontFamiliesNum Indicates the number of obtained font names.
  * @since 12
  * @version 1.0
  */
@@ -2140,10 +2140,10 @@ size_t OH_Drawing_TypographyGetTextMaxLines(OH_Drawing_TypographyStyle*);
 char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle*);
 
 /**
- * @brief Releases the memory occupied by a list of system Ellipsis names.
+ * @brief Releases the memory occupied by a list of Ellipsis names.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param ellipsis Indicates the pointer to a list of system Ellipsis names.
+ * @param ellipsis Indicates the pointer to a list of Ellipsis names.
  * @since 12
  * @version 1.0
  */
