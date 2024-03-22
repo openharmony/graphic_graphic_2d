@@ -28,6 +28,7 @@ namespace Rosen {
 class RSSurfaceNode;
 class RSTransactionData;
 using TaskRunner = std::function<void(const std::function<void()>&)>;
+using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 
 class RSC_EXPORT RSUIDirector final {
 public:
@@ -48,6 +49,7 @@ public:
      */
     void SetRTRenderForced(bool isRenderForced);
     void SetContainerWindow(bool hasContainerWindow, float density);
+    void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback);
 
     void SetRoot(NodeId root);
     void SetUITaskRunner(const TaskRunner& uiTaskRunner);
