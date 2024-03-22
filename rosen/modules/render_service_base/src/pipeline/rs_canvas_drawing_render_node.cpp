@@ -55,8 +55,6 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
         preThreadInfo_.second(std::move(surface_));
     }
 #endif
-<<<<<<< HEAD
-=======
 }
 
 void RSCanvasDrawingRenderNode::InitRenderContent()
@@ -69,7 +67,6 @@ void RSCanvasDrawingRenderNode::InitRenderContent()
 std::shared_ptr<RSCanvasDrawingRenderNodeContent> RSCanvasDrawingRenderNode::GetRenderContent()
 {
     return canvasDrawingNodeRenderContent_;
->>>>>>> zhangpeng/master
 }
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

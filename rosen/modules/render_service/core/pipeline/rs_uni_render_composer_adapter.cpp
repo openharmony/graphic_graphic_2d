@@ -123,7 +123,6 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     return info;
 }
 
-<<<<<<< HEAD
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const
 {
 #if defined(RS_ENABLE_DRIVEN_RENDER)
@@ -151,8 +150,6 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNo
 #endif
 }
 
-=======
->>>>>>> zhangpeng/master
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.

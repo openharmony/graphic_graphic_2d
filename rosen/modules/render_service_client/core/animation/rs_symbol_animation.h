@@ -75,8 +75,6 @@ private:
 
     std::shared_ptr<RSNode> rsNode_ = nullptr;
 
-
-    std::shared_ptr<RSNode> rsNode_ = nullptr;
     // scale symbol animation
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleStartProperty_ = nullptr;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_ = nullptr;

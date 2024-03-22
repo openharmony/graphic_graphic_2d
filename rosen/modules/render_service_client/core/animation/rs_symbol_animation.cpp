@@ -346,7 +346,19 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
         auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]);
         DrawPathOnCanvas(recordingCanvas, symbolNode, offsets);
         canvasNode->FinishRecording();
+        rsNode_->AddChild(canvasNode, -1);
     }
+    return true;
+}
+
+bool RSSymbolAnimation::GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
+    std::vector<float>& timePercents)
+{
+    auto multiGroupParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::VARIABLE_COLOR,
+                                                                           Drawing::VARIABLE_3_GROUP, 1);
+    if (multiGroupParas == nullptr || multiGroupParas->size() <= index || multiGroupParas->at(index).empty()) {
+        ROSEN_LOGD("[%{public}s] can not get multiGroupParas \n", __func__);
+        return false;
     }
     auto oneGroupParas = (*multiGroupParas)[index]; // index means the sequence number of node or animation layer
     if (oneGroupParas.empty()) {
