@@ -56,7 +56,7 @@ ohos_shared_library("color_picker") {
 
   external_deps = [
     "c_utils:utils",
-    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "image_framework:image_native",
   ]

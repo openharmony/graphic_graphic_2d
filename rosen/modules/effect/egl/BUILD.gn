@@ -43,7 +43,7 @@ ohos_shared_library("libegl_effect") {
   deps = []
 
   external_deps = [
-    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
 

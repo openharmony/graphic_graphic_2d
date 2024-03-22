@@ -272,6 +272,10 @@ ohos_shared_library("librender_service_client") {
 
   external_deps = [ "hilog:libhilog" ]
 
+  public_external_deps = [
+    "graphic_surface:surface_headers"
+  ]
+
   innerapi_tags = [ "platformsdk" ]
 
   if (enhanced_opt) {

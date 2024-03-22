@@ -35,7 +35,7 @@ ohos_source_set("webgl_src") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
-    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "image_framework:image_native",
     "napi:ace_napi",
