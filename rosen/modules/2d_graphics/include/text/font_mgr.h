@@ -102,7 +102,7 @@ public:
 
     void GetFamilyName(int index, std::string& str) const;
 
-    std::shared_ptr<FontStyleSet> CreateStyleSet(int index) const;
+    FontStyleSet* CreateStyleSet(int index) const;
 
 private:
     std::shared_ptr<FontMgrImpl> fontMgrImpl_;
