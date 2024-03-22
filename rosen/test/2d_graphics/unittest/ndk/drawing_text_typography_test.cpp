@@ -1759,9 +1759,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest054, TestSize.Level
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    size_t from = 10; //10 For test.
-    size_t to = 11; //11 For test.
-    float fontSize = 1.0; //1.0 For test.
+    // 10 For test
+    size_t from = 10;
+    // 11 For test
+    size_t to = 11;
+    float fontSize = 1.0;
     OH_Drawing_TypographyUpdateFontSize(typography, from, to, fontSize);
     OH_Drawing_TypographyUpdateFontSize(nullptr, from, to, fontSize);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -1805,7 +1807,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest056, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    int weight = FONT_WEIGHT_100; //enum OH_Drawing_FontWeight
+    int weight = FONT_WEIGHT_100;
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, weight);
     OH_Drawing_FontWeight result = OH_Drawing_TypographyTextlineStyleGetFontWeight(typoStyle);
     EXPECT_TRUE(result == FONT_WEIGHT_100);
@@ -1824,7 +1826,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest056, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest057, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    int fontStyle = FONT_STYLE_ITALIC; //enum OH_Drawing_FontStyle
+    int fontStyle = FONT_STYLE_ITALIC;
     OH_Drawing_SetTypographyTextLineStyleFontStyle(typoStyle, fontStyle);
     OH_Drawing_FontStyle result = OH_Drawing_TypographyTextlineStyleGetFontStyle(typoStyle);
     EXPECT_TRUE(result == FONT_STYLE_ITALIC);
@@ -1843,9 +1845,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest057, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest058, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    size_t fontNum = 1; //1 For test.
+    size_t fontNum = 1;
     const char* fontFamilies[] = {"Roboto"};
-    int fontFamiliesNumber = 1; //1 For test.
+    int fontFamiliesNumber = 1;
     OH_Drawing_SetTypographyTextLineStyleFontFamilies(typoStyle, fontFamiliesNumber, fontFamilies);
     char** result = OH_Drawing_TypographyTextlineStyleGetFontFamilies(typoStyle, &fontNum);
     EXPECT_TRUE(result != nullptr);
@@ -1866,7 +1868,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest059, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     double result = OH_Drawing_TypographyTextlineStyleGetFontSize(typoStyle);
-    EXPECT_TRUE(result == 14.0); //Fontsize default value
+    // 14.0 Fontsize default value
+    EXPECT_TRUE(result == 14.0);
     result = OH_Drawing_TypographyTextlineStyleGetFontSize(nullptr);
     EXPECT_TRUE(result == 0);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -1883,7 +1886,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     double result = OH_Drawing_TypographyTextlineStyleGetHeightScale(typoStyle);
-    EXPECT_TRUE(result == 1.0); //HeightScale default value
+    EXPECT_TRUE(result == 1.0);
     result = OH_Drawing_TypographyTextlineStyleGetHeightScale(nullptr);
     EXPECT_TRUE(result == 0);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -1899,7 +1902,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest061, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    double lineStyleFontHeight = 2.0; //2.0 For test
+    // 2.0 For test
+    double lineStyleFontHeight = 2.0;
     OH_Drawing_SetTypographyTextLineStyleFontHeight(typoStyle, lineStyleFontHeight);
     bool result = OH_Drawing_TypographyTextlineStyleGetHeightOnly(typoStyle);
     EXPECT_TRUE(result == true);
@@ -1938,7 +1942,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest063, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     double result = OH_Drawing_TypographyTextlineStyleGetSpacingScale(typoStyle);
-    EXPECT_TRUE(result == -1.0); //SpacingScale default value
+    // SpacingScale default value
+    EXPECT_TRUE(result == -1.0);
     result = OH_Drawing_TypographyTextlineStyleGetSpacingScale(nullptr);
     EXPECT_TRUE(result == 0);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -1972,7 +1977,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest064, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest065, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    int align = TEXT_ALIGN_RIGHT; //enum OH_Drawing_TextAlign
+    int align = TEXT_ALIGN_RIGHT;
     OH_Drawing_SetTypographyTextAlign(typoStyle, align);
     OH_Drawing_TextAlign result = OH_Drawing_TypographyGetTextAlign(typoStyle);
     EXPECT_TRUE(result == TEXT_ALIGN_RIGHT);
@@ -1991,7 +1996,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest065, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest066, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    int direction = TEXT_DIRECTION_RTL; //enum OH_Drawing_TextDirection
+    int direction = TEXT_DIRECTION_RTL;
     OH_Drawing_SetTypographyTextDirection(typoStyle, direction);
     OH_Drawing_TextDirection result = OH_Drawing_TypographyGetTextDirection(typoStyle);
     EXPECT_TRUE(result == TEXT_DIRECTION_RTL);
