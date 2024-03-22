@@ -67,6 +67,8 @@ struct JankFrames {
     int64_t lastTotalFrameTimeSteadyForHTR_ = 0;
     float totalHitchTimeSteady_ = 0;
     float lastTotalHitchTimeSteady_ = 0;
+    float maxHitchTime_ = 0;
+    float lastMaxHitchTime_ = 0;
     Rosen::DataBaseRs info_;
 };
 
