@@ -153,7 +153,7 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr* drawi
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr* drawingFontMgr, const char* familyName,
     OH_Drawing_FontStyleStruct* fontStyle)
 {
-    if (drawingFontMgr == nullptr|| fontForm == nullptr) {
+    if (drawingFontMgr == nullptr|| fontStyle == nullptr) {
         return nullptr;
     }
     FontMgr* fontMgr = CastToFontMgr(drawingFontMgr);
@@ -174,7 +174,7 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr* draw
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr* drawingFontMgr,
     const char* familyName, OH_Drawing_FontStyleStruct* fontStyle, const char* bcp47[], int bcp47Count, int32_t character)
 {
-    if (drawingFontMgr == nullptr || fontForm == nullptr) {
+    if (drawingFontMgr == nullptr || fontStyle == nullptr) {
         return nullptr;
     }
     FontMgr* fontMgr = CastToFontMgr(drawingFontMgr);
