@@ -1339,7 +1339,6 @@ void RSMainThread::NotifyDisplayNodeBufferReleased()
     displayNodeBufferReleasedCond_.notify_one();
 }
 
-<<<<<<< HEAD
 void RSMainThread::NotifySurfaceCapProcFinish()
 {
     RS_TRACE_NAME("RSMainThread::NotifySurfaceCapProcFinish");
@@ -1383,8 +1382,6 @@ void RSMainThread::NotifyDrivenRenderFinish()
 #endif
 }
 
-=======
->>>>>>> zhangpeng/master
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
@@ -1506,13 +1503,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-<<<<<<< HEAD
-        CalcOcclusion();
-=======
         if (!RSSystemProperties::GetQuickPrepareEnabled()) {
             CalcOcclusion();
         }
->>>>>>> zhangpeng/master
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
@@ -2406,8 +2399,6 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
     }
 }
 
-<<<<<<< HEAD
-=======
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString) const
 {
     RS_TRACE_NAME("GetDumpTree");
@@ -2426,7 +2417,6 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString) const
     RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
 }
 
->>>>>>> zhangpeng/master
 bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     using CreateParallelSyncSignalFunc = void* (*)(uint32_t);
@@ -2513,55 +2503,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
     if (!argSets.empty()) {
         type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
     }
-<<<<<<< HEAD
-#ifdef NEW_RENDER_CONTEXT
-    auto gpuContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
-#else
-    auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-#endif
-    if (type.empty()) {
-        gpuContext->Flush();
-        SkGraphics::PurgeAllCaches();
-        gpuContext->FreeGpuResources();
-        gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-        MemoryHandler::ClearShader();
-#else
-        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-        rendercontext->CleanAllShaderCache();
-#endif
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "cpu") {
-        gpuContext->Flush();
-        SkGraphics::PurgeAllCaches();
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "gpu") {
-        gpuContext->Flush();
-        gpuContext->FreeGpuResources();
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "uihidden") {
-        gpuContext->Flush();
-        gpuContext->PurgeUnlockAndSafeCacheGpuResources();
-        gpuContext->FlushAndSubmit(true);
-    } else if (type == "shader") {
-#ifdef NEW_RENDER_CONTEXT
-        MemoryHandler::ClearShader();
-#else
-        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-        rendercontext->CleanAllShaderCache();
-#endif
-    } else if (type == "flushcache") {
-        int ret = mallopt(M_FLUSH_THREAD_CACHE, 0);
-        dumpString.append("flushcache " + std::to_string(ret) + "\n");
-    } else {
-        uint32_t pid = static_cast<uint32_t>(std::stoll(type));
-        Drawing::GPUResourceTag tag(pid, 0, 0, 0);
-        MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
-    }
-    dumpString.append("trimMem: " + type + "\n");
-=======
     RSUniRenderThread::Instance().TrimMem(dumpString, type);
->>>>>>> zhangpeng/master
 #endif
 }
 
@@ -2591,12 +2533,9 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
             MemoryManager::DumpMemoryUsage(log, gpuContext, type);
         }
     }
-<<<<<<< HEAD
-=======
     if (type.empty() || type == MEM_GPU_TYPE) {
         RSUniRenderThread::Instance().DumpMem(log);
     }
->>>>>>> zhangpeng/master
     if (type.empty() || type == MEM_GPU_TYPE) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
@@ -2880,43 +2819,6 @@ void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSS
     }
 }
 
-<<<<<<< HEAD
-void RSMainThread::ApplyModifiers()
-{
-    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
-    if (context_->activeNodesInRoot_.empty()) {
-        return;
-    }
-    RS_TRACE_NAME("RSMainThread::ApplyModifiers (PropertyDrawableEnable TRUE)");
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> nodesThatNeedsRegenerateChildren;
-    for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
-        for (const auto& [id, nodePtr] : nodeSet) {
-            auto node = nodePtr.lock();
-            if (node == nullptr) {
-                continue;
-            }
-            if (!node->isFullChildrenListValid_ || !node->isChildrenSorted_) {
-                nodesThatNeedsRegenerateChildren.emplace(node->id_, node);
-            }
-            // apply modifiers, if z-order not changed, skip
-            if (!node->ApplyModifiers()) {
-                continue;
-            }
-            if (auto parent = node->GetParent().lock()) {
-                parent->isChildrenSorted_ = false;
-                nodesThatNeedsRegenerateChildren.emplace(parent->id_, parent);
-            }
-        }
-    }
-    // Update the full children list of the nodes that need it
-    nodesThatNeedsRegenerateChildren.emplace(0, context_->globalRootRenderNode_);
-    for (auto& [id, node] : nodesThatNeedsRegenerateChildren) {
-        node->UpdateFullChildrenListIfNeeded();
-    }
-}
-
-=======
->>>>>>> zhangpeng/master
 void RSMainThread::ResetHardwareEnabledState()
 {
     isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();

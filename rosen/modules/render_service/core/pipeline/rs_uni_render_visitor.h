@@ -133,7 +133,6 @@ public:
         isHardwareForcedDisabled_ = true;
     }
 
-<<<<<<< HEAD
     void SetDrivenRenderFlag(bool hasDrivenNodeOnUniTree, bool hasDrivenNodeMarkRender)
     {
         if (!drivenInfo_) {
@@ -143,12 +142,7 @@ public:
         drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
     }
 
-=======
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
-#endif
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
->>>>>>> zhangpeng/master
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
@@ -358,10 +352,7 @@ private:
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
     bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node); // return if srcRect is allowed by dss restriction
-<<<<<<< HEAD
-=======
     void RecordDrawCmdList(RSRenderNode& node);
->>>>>>> zhangpeng/master
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 
     void SwitchColorFilterDrawing(int currentSaveCount);
@@ -373,32 +364,26 @@ private:
     void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
     void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 
-<<<<<<< HEAD
     // used to catch overdraw
     void StartOverDraw();
     void FinishOverDraw();
 
-=======
->>>>>>> zhangpeng/master
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
     // Use in vulkan parallel rendering
     bool IsOutOfScreenRegion(RectI rect);
 
-<<<<<<< HEAD
     // used to catch overdraw
     std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
     std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
 
-=======
     bool IsInTransparentSurfaceNode() const
     {
         return curSurfaceNode_ && curSurfaceNode_->IsTransparent();
     }
 
     sptr<RSScreenManager> screenManager_;
->>>>>>> zhangpeng/master
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
@@ -530,13 +515,10 @@ private:
     mutable std::mutex copyVisitorInfosMutex_;
     bool resetRotate_ = false;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
-<<<<<<< HEAD
-=======
     // variable for occlusion
     bool needRecalculateOcclusion_ = false;
     Occlusion::Region accumulatedOcclusionRegion_;
 
->>>>>>> zhangpeng/master
     bool curDirty_ = false;
     bool curContentDirty_ = false;
     bool isPhone_ = false;
@@ -551,7 +533,7 @@ private:
     std::unordered_set<NodeId> visitedCacheNodeIds_ = {};
     std::unordered_map<NodeId, std::unordered_set<NodeId>> allCacheFilterRects_ = {};
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
-   
+
     // record nodes in surface which has filter may influence golbalDirty
     OcclusionRectISet globalFilter_;
     // record container nodes which need filter

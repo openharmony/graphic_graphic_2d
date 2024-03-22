@@ -2029,8 +2029,6 @@ Vector2f RSSurfaceRenderNode::GetGravityTranslate(float imgWidth, float imgHeigh
     RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
         imgWidth, imgHeight, gravityMatrix);
     return {gravityMatrix.Get(Drawing::Matrix::TRANS_X), gravityMatrix.Get(Drawing::Matrix::TRANS_Y)};
-<<<<<<< HEAD
-=======
 }
 
 void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
@@ -2101,7 +2099,6 @@ void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
         return;
     }
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
->>>>>>> zhangpeng/master
 }
 } // namespace Rosen
 } // namespace OHOS
