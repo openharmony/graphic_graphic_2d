@@ -277,7 +277,7 @@ typedef struct OH_Drawing_FontFallbackInfo {
 typedef struct OH_Drawing_FontFallbackGroup {
     /**
      * The name of the font set corresponding to the fallback font set. If the value is null,
-     * all fonts can be set using the fallback font set list
+     * all fonts can be set using the fallback font set list.
      */
     char* groupName;
     /** Fallback font Info Size */
@@ -311,7 +311,7 @@ typedef struct OH_Drawing_FontAliasInfo {
     /**
      * Font weight value. When the weight value is greater than 0,
      * the font set contains only fonts with the specified weight.
-     * When the weight value is equal to 0, the font set contains all fonts
+     * When the weight value is equal to 0, the font set contains all fonts.
      */
     int weight;
 } OH_Drawing_FontAliasInfo;
@@ -341,7 +341,7 @@ typedef struct OH_Drawing_FontGenericInfo {
  * @since 12
  * @version 1.0
  */
-typedef struct OH_Drawing_FontConfigJsonInfo {
+typedef struct OH_Drawing_FontConfigInfo {
     /** Count of system font file paths */
     size_t fontDirSize;
     /** List size of generic font sets */
@@ -354,7 +354,7 @@ typedef struct OH_Drawing_FontConfigJsonInfo {
     OH_Drawing_FontGenericInfo* fontGenericInfoSet;
     /** List of fallback font sets */
     OH_Drawing_FontFallbackGroup* fallbackGroupSet;
-} OH_Drawing_FontConfigJsonInfo;
+} OH_Drawing_FontConfigInfo;
 
 /**
  * @brief Enumerates text decoration style.
@@ -460,15 +460,17 @@ typedef enum {
  * @since 12
  * @version 1.0
  */
-enum OH_Drawing_FontConfigJsonInfoCode {
-    /** Failed to get a list of system font file paths */
-    FONT_DIR_SET_ERROR = 0,
-    /** The system font file path list was successfully obtained */
-    FONT_DIR_SET_SUC = 1,
-    /** The list of system font file paths and the list of generic font sets were successfully obtained */
-    FONT_DIR_GENERIC_SET_SUC = 2,
+enum OH_Drawing_FontConfigInfoErrorCode {
     /** The list of system font configuration information was successfully obtained */
-    FONT_CONFIG_JSON_INFO_SUC = 3,
+    OK = 0,
+    /** Unknown error */
+    UNKNOWN_ERROR = 1,
+    /** Parse system config file error */
+    PARSE_FILE_ERROR = 2,
+    /** Alloc memory error */
+    ALLOC_MEMORY_ERROR = 3,
+    /** Copy string data error */
+    COPY_STRING_DATA_ERROR = 4,
 };
 
 /**
@@ -1947,27 +1949,25 @@ const char* OH_Drawing_TextStyleGetLocale(OH_Drawing_TextStyle*);
  * @brief Gets system font configuration information.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_FontConfigJsonInfoCode Error code, based on the error code to
- * release the memory of system font configuration information,
- * For details, see the enum <b>OH_Drawing_FontConfigJsonInfoCode</b>.
+ * @param OH_Drawing_FontConfigInfoErrorCode Indicates error code returned, based on the error code to
+ * release the memory of system font configuration information.
+ * For details, see the enum <b>OH_Drawing_FontConfigInfoErrorCode</b>.
  * @return Returns a pointer to system font configuration information.
  * Indicates the pointer to an <b>OH_Drawing_CreateFontConfigJsonInfo</b> object.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_FontConfigJsonInfo* OH_Drawing_CreateFontConfigJsonInfo(OH_Drawing_FontConfigJsonInfoCode*);
+OH_Drawing_FontConfigInfo* OH_Drawing_GetSystemFontConfigInfo(OH_Drawing_FontConfigInfoErrorCode*)
 
 /**
  * @brief Releases the memory occupied by system font configuration information.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontConfigJsonInfo Indicates the pointer to an <b>OH_Drawing_CreateFontConfigJsonInfo</b> object.
- * @param OH_Drawing_FontConfigJsonInfoCode Error code, based on the error code to release the memory of
- * system font configuration information, For details, see the enum <b>OH_Drawing_FontConfigJsonInfoCode</b>.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_DestroyFontConfigJsonInfo(OH_Drawing_FontConfigJsonInfo*, OH_Drawing_FontConfigJsonInfoCode*);
+void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo*)
 #ifdef __cplusplus
 }
 #endif

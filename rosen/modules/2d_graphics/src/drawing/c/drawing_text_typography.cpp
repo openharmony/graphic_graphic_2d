@@ -1243,22 +1243,36 @@ void OH_Drawing_DestroyFontParser(OH_Drawing_FontParser* parser)
     }
 }
 
-static bool CopyStrData(char** destination, const std::string& source)
+static void SetFontConfigInfoErrorCode(const OH_Drawing_FontConfigInfoErrorCode srcCode,
+    OH_Drawing_FontConfigInfoErrorCode* dstCode)
+{
+    if (!dstCode) {
+        return;
+    }
+    *dstCode = srcCode;
+}
+
+static bool CopyStrData(char** destination, const std::string& source,
+    OH_Drawing_FontConfigInfoErrorCode* code = nullptr)
 {
     if (destination == nullptr || source.empty()) {
+        SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::COPY_STRING_DATA_ERROR, code);
         return false;
     }
     size_t destinationSize = source.size() + 1;
     *destination = new char[destinationSize];
-    if (*destination == nullptr) {
+    if (!(*destination)) {
+        SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::ALLOC_MEMORY_ERROR, code);
         return false;
     }
     auto retCopy = strcpy_s(*destination, destinationSize, source.c_str());
     if (retCopy != 0) {
         delete[] *destination;
         *destination = nullptr;
+        SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::COPY_STRING_DATA_ERROR, code);
         return false;
     }
+    SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::OK, code);
     return true;
 }
 
@@ -1969,13 +1983,20 @@ const char* OH_Drawing_TextStyleGetLocale(OH_Drawing_TextStyle* style)
     return textStyle->locale.c_str();
 }
 
-OH_Drawing_FontAliasInfo* InitDrawingAliasInfoSet(const size_t aliasInfoSize)
+static OH_Drawing_FontAliasInfo* InitDrawingAliasInfoSet(const size_t aliasInfoSize,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!aliasInfoSize || aliasInfoSize >= std::numeric_limits<int16_t>::max()) {
+    if (!aliasInfoSize) {
+        code = OK;
+        return nullptr;
+    }
+    if (aliasInfoSize >= std::numeric_limits<int16_t>::max()) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
     OH_Drawing_FontAliasInfo* aliasInfoArray = new OH_Drawing_FontAliasInfo[aliasInfoSize];
     if (aliasInfoArray == nullptr) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
 
@@ -1984,7 +2005,7 @@ OH_Drawing_FontAliasInfo* InitDrawingAliasInfoSet(const size_t aliasInfoSize)
         aliasInfoArray[i].weight = 0;
         i++;
     }
-
+    code = OK;
     return aliasInfoArray;
 }
 
@@ -1997,26 +2018,35 @@ static void ResetString(char** ptr)
     (*ptr) = nullptr;
 }
 
-void ResetDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** aliasInfoArray, const size_t aliasInfoSize)
+static void ResetDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** aliasInfoArray, size_t& aliasInfoSize)
 {
     if (aliasInfoArray == nullptr || *aliasInfoArray == nullptr) {
         return;
     }
 
     for (size_t i = 0; i < aliasInfoSize; i++) {
-        ResetString(&(*aliasInfoArray)[i].familyName);
+        ResetString(&((*aliasInfoArray)[i].familyName));
     }
+
     delete[] (*aliasInfoArray);
     (*aliasInfoArray) = nullptr;
+    aliasInfoSize = 0;
 }
 
-OH_Drawing_FontAdjustInfo* InitDrawingAdjustInfoSet(const size_t adjustInfoSize)
+static OH_Drawing_FontAdjustInfo* InitDrawingAdjustInfoSet(const size_t adjustInfoSize,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!adjustInfoSize || adjustInfoSize >= std::numeric_limits<int16_t>::max()) {
+    if (!adjustInfoSize) {
+        code = OK;
+        return nullptr;
+    }
+    if (adjustInfoSize >= std::numeric_limits<int16_t>::max()) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
     OH_Drawing_FontAdjustInfo* adjustInfoArray = new OH_Drawing_FontAdjustInfo[adjustInfoSize];
     if (adjustInfoArray == nullptr) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
 
@@ -2025,28 +2055,35 @@ OH_Drawing_FontAdjustInfo* InitDrawingAdjustInfoSet(const size_t adjustInfoSize)
         adjustInfoArray[i].to = 0;
         i++;
     }
-
+    code = OK;
     return adjustInfoArray;
 }
 
-void ResetDrawingAdjustInfo(OH_Drawing_FontAdjustInfo** adjustInfoArray)
+static void ResetDrawingAdjustInfo(OH_Drawing_FontAdjustInfo** adjustInfoArray, size_t& adjustInfoSize)
 {
     if (adjustInfoArray == nullptr || *adjustInfoArray == nullptr) {
         return;
     }
-
     delete[] (*adjustInfoArray);
     (*adjustInfoArray) = nullptr;
+    adjustInfoSize = 0;
 }
 
-OH_Drawing_FontGenericInfo* InitDrawingFontGenericInfoSet(const size_t fontGenericInfoSize)
+static OH_Drawing_FontGenericInfo* InitDrawingFontGenericInfoSet(const size_t fontGenericInfoSize,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!fontGenericInfoSize || fontGenericInfoSize >= std::numeric_limits<int16_t>::max()) {
+    if (!fontGenericInfoSize) {
+        code = PARSE_FILE_ERROR;
+        return nullptr;
+    }
+    if (fontGenericInfoSize >= std::numeric_limits<int16_t>::max()) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
 
     OH_Drawing_FontGenericInfo* fontGenericInfoArray = new OH_Drawing_FontGenericInfo[fontGenericInfoSize];
     if (fontGenericInfoArray == nullptr) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
 
@@ -2058,21 +2095,19 @@ OH_Drawing_FontGenericInfo* InitDrawingFontGenericInfoSet(const size_t fontGener
         fontGenericInfoArray[index].adjustInfoSet = nullptr;
         index++;
     }
-
+    code = OK;
     return fontGenericInfoArray;
 }
 
-void ResetDrawingFontGenericInfo(OH_Drawing_FontGenericInfo& fontGenericInfo)
+static void ResetDrawingFontGenericInfo(OH_Drawing_FontGenericInfo& fontGenericInfo)
 {
     ResetString(&fontGenericInfo.familyName);
     ResetDrawingAliasInfoSet(&fontGenericInfo.aliasInfoSet, fontGenericInfo.aliasInfoSize);
-    fontGenericInfo.aliasInfoSize = 0;
-    ResetDrawingAdjustInfo(&fontGenericInfo.adjustInfoSet);
-    fontGenericInfo.adjustInfoSize = 0;
+    ResetDrawingAdjustInfo(&fontGenericInfo.adjustInfoSet, fontGenericInfo.adjustInfoSize);
 }
 
-void ResetDrawingFontGenericInfoSet(OH_Drawing_FontGenericInfo** fontGenericInfoArray,
-    const size_t fontGenericInfoSize)
+static void ResetDrawingFontGenericInfoSet(OH_Drawing_FontGenericInfo** fontGenericInfoArray,
+    size_t& fontGenericInfoSize)
 {
     if (fontGenericInfoArray == nullptr || *fontGenericInfoArray == nullptr) {
         return;
@@ -2081,17 +2116,26 @@ void ResetDrawingFontGenericInfoSet(OH_Drawing_FontGenericInfo** fontGenericInfo
     for (size_t i = 0; i < fontGenericInfoSize; i++) {
         ResetDrawingFontGenericInfo((*fontGenericInfoArray)[i]);
     }
+
     delete[] (*fontGenericInfoArray);
     (*fontGenericInfoArray) = nullptr;
+    fontGenericInfoSize = 0;
 }
 
-OH_Drawing_FontFallbackInfo* InitDrawingDrawingFallbackInfoSet(const size_t fallbackInfoSize)
+static OH_Drawing_FontFallbackInfo* InitDrawingDrawingFallbackInfoSet(const size_t fallbackInfoSize,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!fallbackInfoSize || fallbackInfoSize >= std::numeric_limits<int16_t>::max()) {
+    if (!fallbackInfoSize) {
+        code = OK;
+        return nullptr;
+    }
+    if (fallbackInfoSize >= std::numeric_limits<int16_t>::max()) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
     OH_Drawing_FontFallbackInfo* fallbackInfoArray = new OH_Drawing_FontFallbackInfo[fallbackInfoSize];
     if (fallbackInfoArray == nullptr) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
 
@@ -2100,17 +2144,17 @@ OH_Drawing_FontFallbackInfo* InitDrawingDrawingFallbackInfoSet(const size_t fall
         fallbackInfoArray[i].familyName = nullptr;
         i++;
     }
-
+    code = OK;
     return fallbackInfoArray;
 }
 
-void ResetDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& fallbackInfo)
+static void ResetDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& fallbackInfo)
 {
     ResetString(&fallbackInfo.language);
     ResetString(&fallbackInfo.familyName);
 }
 
-void ResetDrawingFallbackInfoSet(OH_Drawing_FontFallbackInfo** fallbackInfoArray, const size_t fallbackInfoSize)
+static void ResetDrawingFallbackInfoSet(OH_Drawing_FontFallbackInfo** fallbackInfoArray, size_t& fallbackInfoSize)
 {
     if (fallbackInfoArray == nullptr || *fallbackInfoArray == nullptr) {
         return;
@@ -2121,15 +2165,23 @@ void ResetDrawingFallbackInfoSet(OH_Drawing_FontFallbackInfo** fallbackInfoArray
     }
     delete[] (*fallbackInfoArray);
     (*fallbackInfoArray) = nullptr;
+    fallbackInfoSize = 0;
 }
 
-OH_Drawing_FontFallbackGroup* InitDrawingFallbackGroupSet(const size_t fallbackGroupSize)
+static OH_Drawing_FontFallbackGroup* InitDrawingFallbackGroupSet(const size_t fallbackGroupSize,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!fallbackGroupSize || fallbackGroupSize >= std::numeric_limits<int16_t>::max()) {
+    if (!fallbackGroupSize) {
+        code = OK;
+        return nullptr;
+    }
+    if (fallbackGroupSize >= std::numeric_limits<int16_t>::max()) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
     OH_Drawing_FontFallbackGroup* fallbackGroupArray = new OH_Drawing_FontFallbackGroup[fallbackGroupSize];
     if (fallbackGroupArray == nullptr) {
+        code = ALLOC_MEMORY_ERROR;
         return nullptr;
     }
 
@@ -2139,18 +2191,18 @@ OH_Drawing_FontFallbackGroup* InitDrawingFallbackGroupSet(const size_t fallbackG
         fallbackGroupArray[i].fallbackInfoSet = nullptr;
         i++;
     }
-
+    code = OK;
     return fallbackGroupArray;
 }
 
-void ResetDrawingFallbackGroup(OH_Drawing_FontFallbackGroup& fallbackGroup)
+static void ResetDrawingFallbackGroup(OH_Drawing_FontFallbackGroup& fallbackGroup)
 {
     ResetString(&fallbackGroup.groupName);
     ResetDrawingFallbackInfoSet(&fallbackGroup.fallbackInfoSet, fallbackGroup.fallbackInfoSize);
-    fallbackGroup.fallbackInfoSize = 0;
 }
 
-void ResetDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** fallbackGroupArray, const size_t fallbackGroupSize)
+static void ResetDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** fallbackGroupArray,
+    size_t& fallbackGroupSize)
 {
     if (fallbackGroupArray == nullptr || *fallbackGroupArray == nullptr) {
         return;
@@ -2161,22 +2213,24 @@ void ResetDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** fallbackGroupAr
     }
     delete[] (*fallbackGroupArray);
     (*fallbackGroupArray) = nullptr;
+    fallbackGroupSize = 0;
 }
 
-OH_Drawing_FontConfigJsonInfo* InitDrawingFontConfigJsonInfo()
+static OH_Drawing_FontConfigInfo* InitDrawingFontConfigJsonInfo()
 {
-    OH_Drawing_FontConfigJsonInfo* drawFontCfgJsonInfo = new OH_Drawing_FontConfigJsonInfo;
-    if (drawFontCfgJsonInfo == nullptr) {
+    OH_Drawing_FontConfigInfo* drawFontCfgInfo = new OH_Drawing_FontConfigInfo;
+    if (drawFontCfgInfo == nullptr) {
         return nullptr;
     }
 
-    drawFontCfgJsonInfo->fontDirSize = 0;
-    drawFontCfgJsonInfo->fontGenericInfoSize = 0;
-    drawFontCfgJsonInfo->fallbackGroupSize = 0;
-    drawFontCfgJsonInfo->fontDirSet = nullptr;
-    drawFontCfgJsonInfo->fontGenericInfoSet = nullptr;
-    drawFontCfgJsonInfo->fallbackGroupSet = nullptr;
-    return drawFontCfgJsonInfo;
+    drawFontCfgInfo->fontDirSize = 0;
+    drawFontCfgInfo->fontGenericInfoSize = 0;
+    drawFontCfgInfo->fallbackGroupSize = 0;
+    drawFontCfgInfo->fontDirSet = nullptr;
+    drawFontCfgInfo->fontGenericInfoSet = nullptr;
+    drawFontCfgInfo->fallbackGroupSet = nullptr;
+
+    return drawFontCfgInfo;
 }
 
 static char** InitStringArray(const size_t charArraySize)
@@ -2196,46 +2250,53 @@ static char** InitStringArray(const size_t charArraySize)
     return ptr;
 }
 
-static void ResetStringArray(char*** ptr, const size_t charArraySize)
+static void ResetStringArray(char*** ptr, size_t& charArraySize)
 {
     if (ptr == nullptr || *ptr == nullptr) {
         return;
     }
     for (size_t i = 0; i < charArraySize; i++) {
-        if (!(*ptr)[i]) {
+        if (!((*ptr)[i])) {
             continue;
         }
-        delete[] (*ptr)[i];
-        (*ptr)[i] = nullptr;
+        delete[] ((*ptr)[i]);
+        ((*ptr)[i]) = nullptr;
     }
     delete[] (*ptr);
     (*ptr) = nullptr;
+    charArraySize = 0;
 }
 
-void ResetDrawingFontConfigJsonInfo(OH_Drawing_FontConfigJsonInfo** drawFontCfgJsonInfo)
+static void ResetDrawingFontConfigJsonInfo(OH_Drawing_FontConfigInfo** drawFontCfgInfo)
 {
-    if (drawFontCfgJsonInfo == nullptr || *drawFontCfgJsonInfo == nullptr) {
+    if (drawFontCfgInfo == nullptr || *drawFontCfgInfo == nullptr) {
         return;
     }
-    delete (*drawFontCfgJsonInfo);
-    (*drawFontCfgJsonInfo) = nullptr;
+    delete (*drawFontCfgInfo);
+    (*drawFontCfgInfo) = nullptr;
 }
 
-bool CopyDrawingFontDirSet(char*** drawFontDirSet, size_t& fontDirSize,
-    const std::vector<std::string>& fontDirSet)
+static bool CopyDrawingFontDirSet(char*** drawFontDirSet, size_t& fontDirSize,
+    const std::vector<std::string>& fontDirSet, OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!drawFontDirSet || fontDirSet.empty()) {
+    if (!drawFontDirSet) {
+        code = ALLOC_MEMORY_ERROR;
+        return false;
+    }
+    if (fontDirSet.empty()) {
+        code = PARSE_FILE_ERROR;
         return false;
     }
 
     size_t size = fontDirSet.size();
     (*drawFontDirSet) = InitStringArray(size);
     if (!(*drawFontDirSet)) {
+        code = ALLOC_MEMORY_ERROR;
         return false;
     }
 
     for (size_t i = 0; i < size; ++i) {
-        bool result = CopyStrData(&(*drawFontDirSet)[i], fontDirSet.at(i));
+        bool result = CopyStrData(&((*drawFontDirSet)[i]), fontDirSet.at(i), &code);
         if (result) {
             fontDirSize++;
         } else {
@@ -2244,37 +2305,39 @@ bool CopyDrawingFontDirSet(char*** drawFontDirSet, size_t& fontDirSize,
     }
     if (fontDirSize != size) {
         ResetStringArray(drawFontDirSet, fontDirSize);
-        fontDirSize = 0;
         return false;
     }
     return true;
 }
 
-bool CopyDrawingAliasInfo(OH_Drawing_FontAliasInfo& drawAliasInfo, const TextEngine::AliasInfo& aliasInfo)
+static bool CopyDrawingAliasInfo(OH_Drawing_FontAliasInfo& drawAliasInfo, const TextEngine::AliasInfo& aliasInfo,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    bool result = CopyStrData(&drawAliasInfo.familyName, aliasInfo.familyName);
+    bool result = CopyStrData(&drawAliasInfo.familyName, aliasInfo.familyName, &code);
     if (!result) {
         return false;
     }
     drawAliasInfo.weight = aliasInfo.weight;
+    code = OK;
     return true;
 }
 
-bool CopyDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** drawAliasInfoSet, size_t& aliasInfoSize,
-    const std::vector<TextEngine::AliasInfo>& aliasSet)
+static bool CopyDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** drawAliasInfoSet, size_t& aliasInfoSize,
+    const std::vector<TextEngine::AliasInfo>& aliasSet, OH_Drawing_FontConfigInfoErrorCode& code)
 {
     if (!drawAliasInfoSet) {
+        code = ALLOC_MEMORY_ERROR;
         return false;
     }
 
     if (!aliasSet.empty()) {
-        (*drawAliasInfoSet) = InitDrawingAliasInfoSet(aliasSet.size());
+        (*drawAliasInfoSet) = InitDrawingAliasInfoSet(aliasSet.size(), code);
         if (!(*drawAliasInfoSet)) {
             return false;
         }
         size_t aliasInfoCount = 0;
         for (; aliasInfoCount < aliasSet.size();) {
-            bool result = CopyDrawingAliasInfo((*drawAliasInfoSet)[aliasInfoCount], aliasSet.at(aliasInfoCount));
+            bool result = CopyDrawingAliasInfo((*drawAliasInfoSet)[aliasInfoCount], aliasSet.at(aliasInfoCount), code);
             if (result) {
                 ++aliasInfoCount;
             } else {
@@ -2289,21 +2352,22 @@ bool CopyDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** drawAliasInfoSet, size_t
     return true;
 }
 
-void CopyDrawingAdjustInfo(OH_Drawing_FontAdjustInfo& drawAdjustInfo, const TextEngine::AdjustInfo& adjustInfo)
+static void CopyDrawingAdjustInfo(OH_Drawing_FontAdjustInfo& drawAdjustInfo, const TextEngine::AdjustInfo& adjustInfo)
 {
     drawAdjustInfo.weight = adjustInfo.origValue;
     drawAdjustInfo.to = adjustInfo.newValue;
 }
 
-bool CopyDrawingAdjustSet(OH_Drawing_FontAdjustInfo** drawAdjustInfoSet, size_t& adjustInfoSize,
-    const std::vector<TextEngine::AdjustInfo>& adjustSet)
+static bool CopyDrawingAdjustSet(OH_Drawing_FontAdjustInfo** drawAdjustInfoSet, size_t& adjustInfoSize,
+    const std::vector<TextEngine::AdjustInfo>& adjustSet, OH_Drawing_FontConfigInfoErrorCode& code)
 {
     if (!drawAdjustInfoSet) {
+        code = ALLOC_MEMORY_ERROR;
         return false;
     }
 
     if (!adjustSet.empty()) {
-        (*drawAdjustInfoSet) = InitDrawingAdjustInfoSet(adjustSet.size());
+        (*drawAdjustInfoSet) = InitDrawingAdjustInfoSet(adjustSet.size(), code);
         if (!(*drawAdjustInfoSet)) {
             return false;
         }
@@ -2317,41 +2381,44 @@ bool CopyDrawingAdjustSet(OH_Drawing_FontAdjustInfo** drawAdjustInfoSet, size_t&
             return false;
         }
     }
+    code = OK;
     return true;
 }
 
-bool CopyDrawingFontGenericInfo(OH_Drawing_FontGenericInfo& drawFontGenericInfo,
-    const TextEngine::FontGenericInfo& genericInfo)
+static bool CopyDrawingFontGenericInfo(OH_Drawing_FontGenericInfo& drawFontGenericInfo,
+    const TextEngine::FontGenericInfo& genericInfo, OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    bool result = CopyStrData(&drawFontGenericInfo.familyName, genericInfo.familyName);
+    bool result = CopyStrData(&drawFontGenericInfo.familyName, genericInfo.familyName, &code);
     if (!result) {
         return false;
     }
 
     result = CopyDrawingAliasInfoSet(&drawFontGenericInfo.aliasInfoSet,
-        drawFontGenericInfo.aliasInfoSize, genericInfo.aliasSet);
+        drawFontGenericInfo.aliasInfoSize, genericInfo.aliasSet, code);
     if (!result) {
         return false;
     }
 
     result = CopyDrawingAdjustSet(&drawFontGenericInfo.adjustInfoSet,
-        drawFontGenericInfo.adjustInfoSize, genericInfo.adjustSet);
+        drawFontGenericInfo.adjustInfoSize, genericInfo.adjustSet, code);
     if (!result) {
         return false;
     }
     return true;
 }
 
-bool CopyDrawingFontGenericInfoSet(OH_Drawing_FontGenericInfo** fontGenericInfoSet, size_t& fontGenericInfoSize,
-    const std::vector<TextEngine::FontGenericInfo>& genericSet)
+static bool CopyDrawingFontGenericInfoSetInner(OH_Drawing_FontGenericInfo** fontGenericInfoSet,
+    size_t& fontGenericInfoSize, const std::vector<TextEngine::FontGenericInfo>& genericSet,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!fontGenericInfoSet) {
+    if (!fontGenericInfoSet || !(*fontGenericInfoSet)) {
+        code = ALLOC_MEMORY_ERROR;
         return false;
     }
     size_t genericInfoNum = 0;
     for (; genericInfoNum < genericSet.size();) {
         auto& fontGenericInfo = (*fontGenericInfoSet)[genericInfoNum];
-        bool result = CopyDrawingFontGenericInfo(fontGenericInfo, genericSet.at(genericInfoNum));
+        bool result = CopyDrawingFontGenericInfo(fontGenericInfo, genericSet.at(genericInfoNum), code);
         if (!result) {
             ResetDrawingFontGenericInfo(fontGenericInfo);
             break;
@@ -2362,44 +2429,45 @@ bool CopyDrawingFontGenericInfoSet(OH_Drawing_FontGenericInfo** fontGenericInfoS
     fontGenericInfoSize = genericInfoNum;
     if (fontGenericInfoSize != genericSet.size()) {
         ResetDrawingFontGenericInfoSet(fontGenericInfoSet, fontGenericInfoSize);
-        fontGenericInfoSize = 0;
         return false;
     }
+    code = OK;
     return true;
 }
 
-bool CopyDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& drawFallbackInfo,
-    const TextEngine::FallbackInfo& fallbackInfo)
+static bool CopyDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& drawFallbackInfo,
+    const TextEngine::FallbackInfo& fallbackInfo, OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (!CopyStrData(&drawFallbackInfo.language, fallbackInfo.font)) {
+    if (!CopyStrData(&drawFallbackInfo.language, fallbackInfo.font, &code)) {
         return false;
     }
-    if (!CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName)) {
+    if (!CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)) {
         return false;
     }
     return true;
 }
 
-bool CopyDrawingFallbackGroup(OH_Drawing_FontFallbackGroup& drawFallbackGroup,
-    const TextEngine::FallbackGroup& fallbackGroup)
+static bool CopyDrawingFallbackGroup(OH_Drawing_FontFallbackGroup& drawFallbackGroup,
+    const TextEngine::FallbackGroup& fallbackGroup, OH_Drawing_FontConfigInfoErrorCode& code)
 {
     if (!fallbackGroup.groupName.empty()) {
-        if (!CopyStrData(&drawFallbackGroup.groupName, fallbackGroup.groupName)) {
+        if (!CopyStrData(&drawFallbackGroup.groupName, fallbackGroup.groupName, &code)) {
             return false;
         }
     }
     auto& fallbackInfoSet = fallbackGroup.fallbackInfoSet;
     if (fallbackInfoSet.empty()) {
+        code = OK;
         return true;
     }
-    drawFallbackGroup.fallbackInfoSet = InitDrawingDrawingFallbackInfoSet(fallbackInfoSet.size());
+    drawFallbackGroup.fallbackInfoSet = InitDrawingDrawingFallbackInfoSet(fallbackInfoSet.size(), code);
     if (!drawFallbackGroup.fallbackInfoSet) {
         return false;
     }
     size_t fallbackInfoCount = 0;
     for (; fallbackInfoCount < fallbackInfoSet.size();) {
         auto& fallbackInfo = drawFallbackGroup.fallbackInfoSet[fallbackInfoCount];
-        bool res = CopyDrawingFallbackInfo(fallbackInfo, fallbackInfoSet[fallbackInfoCount]);
+        bool res = CopyDrawingFallbackInfo(fallbackInfo, fallbackInfoSet[fallbackInfoCount], code);
         if (res) {
             ++fallbackInfoCount;
         } else {
@@ -2414,20 +2482,22 @@ bool CopyDrawingFallbackGroup(OH_Drawing_FontFallbackGroup& drawFallbackGroup,
     return true;
 }
 
-bool CopyDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** drawFallbackGroupSet, size_t& fallbackGroupSize,
-    const std::vector<TextEngine::FallbackGroup>& fallbackGroupSet)
+static bool CopyDrawingFallbackGroupSetInner(OH_Drawing_FontFallbackGroup** drawFallbackGroupSet,
+    size_t& fallbackGroupSize, const std::vector<TextEngine::FallbackGroup>& fallbackGroupSet,
+    OH_Drawing_FontConfigInfoErrorCode& code)
 {
     if (!drawFallbackGroupSet) {
+        code = ALLOC_MEMORY_ERROR;
         return false;
     }
-    (*drawFallbackGroupSet) = InitDrawingFallbackGroupSet(fallbackGroupSet.size());
+    (*drawFallbackGroupSet) = InitDrawingFallbackGroupSet(fallbackGroupSet.size(), code);
     if (!(*drawFallbackGroupSet)) {
         return false;
     }
     size_t fallbackGroupNum = 0;
     for (; fallbackGroupNum < fallbackGroupSet.size();) {
         auto& fallbackGroup = (*drawFallbackGroupSet)[fallbackGroupNum];
-        bool res = CopyDrawingFallbackGroup(fallbackGroup, fallbackGroupSet.at(fallbackGroupNum));
+        bool res = CopyDrawingFallbackGroup(fallbackGroup, fallbackGroupSet.at(fallbackGroupNum), code);
         if (res) {
             fallbackGroupNum++;
         } else {
@@ -2438,93 +2508,112 @@ bool CopyDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** drawFallbackGrou
     fallbackGroupSize = fallbackGroupNum;
     if (fallbackGroupSize != fallbackGroupSet.size()) {
         ResetDrawingFallbackGroupSet(drawFallbackGroupSet, fallbackGroupSize);
-        fallbackGroupSize = 0;
         return false;
     }
     return true;
 }
 
-OH_Drawing_FontConfigJsonInfo* OH_Drawing_CreateFontConfigJsonInfo(OH_Drawing_FontConfigJsonInfoCode* code)
+static bool CopyDrawingFontGenericInfoSet(OH_Drawing_FontConfigInfo** drawFontCfgInfo,
+    const std::vector<TextEngine::FontGenericInfo>& genericSet, OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (code == nullptr) {
-        return nullptr;
+    if (!drawFontCfgInfo || !(*drawFontCfgInfo)) {
+        code = ALLOC_MEMORY_ERROR;
+        return false;
     }
 
-    TextEngine::FontConfigJson fontConfigJson;
-    fontConfigJson.ParseFile();
-    auto fontCfgJsonInfo = fontConfigJson.GetFontConfigJsonInfo();
-    if (!fontCfgJsonInfo) {
-        return nullptr;
+    size_t size = genericSet.size();
+    (*drawFontCfgInfo)->fontGenericInfoSet = InitDrawingFontGenericInfoSet(size, code);
+    if (!(*drawFontCfgInfo)->fontGenericInfoSet) {
+        ResetStringArray(&((*drawFontCfgInfo)->fontDirSet), (*drawFontCfgInfo)->fontDirSize);
+        ResetDrawingFontConfigJsonInfo(drawFontCfgInfo);
+        return false;
     }
 
-    OH_Drawing_FontConfigJsonInfo* drawFontCfgJsonInfo = InitDrawingFontConfigJsonInfo();
-    *code = FONT_DIR_SET_ERROR;
-
-    bool result = CopyDrawingFontDirSet(&drawFontCfgJsonInfo->fontDirSet,
-        drawFontCfgJsonInfo->fontDirSize, fontCfgJsonInfo->fontDirSet);
+    bool result = CopyDrawingFontGenericInfoSetInner(&((*drawFontCfgInfo)->fontGenericInfoSet),
+        (*drawFontCfgInfo)->fontGenericInfoSize, genericSet, code);
     if (!result) {
-        ResetDrawingFontConfigJsonInfo(&drawFontCfgJsonInfo);
-        return drawFontCfgJsonInfo;
+        ResetStringArray(&((*drawFontCfgInfo)->fontDirSet), (*drawFontCfgInfo)->fontDirSize);
+        ResetDrawingFontConfigJsonInfo(drawFontCfgInfo);
+        return false;
     }
-    *code = FONT_DIR_SET_SUC;
-
-    size_t size = fontCfgJsonInfo->genericSet.size();
-    drawFontCfgJsonInfo->fontGenericInfoSet = InitDrawingFontGenericInfoSet(size);
-    if (!drawFontCfgJsonInfo->fontGenericInfoSet) {
-        return drawFontCfgJsonInfo;
-    }
-
-    result = CopyDrawingFontGenericInfoSet(&drawFontCfgJsonInfo->fontGenericInfoSet,
-        drawFontCfgJsonInfo->fontGenericInfoSize, fontCfgJsonInfo->genericSet);
-    if (!result) {
-        return drawFontCfgJsonInfo;
-    }
-
-    *code = FONT_DIR_GENERIC_SET_SUC;
-    if (fontCfgJsonInfo->fallbackGroupSet.empty()) {
-        return drawFontCfgJsonInfo;
-    }
-    result = CopyDrawingFallbackGroupSet(&drawFontCfgJsonInfo->fallbackGroupSet,
-        drawFontCfgJsonInfo->fallbackGroupSize, fontCfgJsonInfo->fallbackGroupSet);
-    if (!result) {
-        return drawFontCfgJsonInfo;
-    }
-
-    *code = FONT_CONFIG_JSON_INFO_SUC;
-    return drawFontCfgJsonInfo;
+    return true;
 }
 
-void OH_Drawing_DestroyFontConfigJsonInfo(OH_Drawing_FontConfigJsonInfo* drawFontCfgJsonInfo,
-    OH_Drawing_FontConfigJsonInfoCode* code)
+static bool CopyDrawingFallbackGroupSet(OH_Drawing_FontConfigInfo** drawFontCfgInfo,
+    const std::vector<TextEngine::FallbackGroup>& fallbackGroupSet, OH_Drawing_FontConfigInfoErrorCode& code)
 {
-    if (drawFontCfgJsonInfo == nullptr || code == nullptr) {
+    if (!drawFontCfgInfo || !(*drawFontCfgInfo)) {
+        code = ALLOC_MEMORY_ERROR;
+        return false;
+    }
+
+    if (fallbackGroupSet.empty()) {
+        code = OK;
+        return true;
+    }
+    bool result = CopyDrawingFallbackGroupSetInner(&((*drawFontCfgInfo)->fallbackGroupSet),
+        (*drawFontCfgInfo)->fallbackGroupSize, fallbackGroupSet, code);
+    if (!result) {
+        ResetDrawingFontGenericInfoSet(&((*drawFontCfgInfo)->fontGenericInfoSet),
+            (*drawFontCfgInfo)->fontGenericInfoSize);
+        ResetStringArray(&((*drawFontCfgInfo)->fontDirSet), (*drawFontCfgInfo)->fontDirSize);
+        ResetDrawingFontConfigJsonInfo(drawFontCfgInfo);
+        return false;
+    }
+    return true;
+}
+
+OH_Drawing_FontConfigInfo* OH_Drawing_GetSystemFontConfigInfo(OH_Drawing_FontConfigInfoErrorCode* errorCode)
+{
+    OH_Drawing_FontConfigInfoErrorCode code = UNKNOWN_ERROR;
+    TextEngine::FontConfigJson fontConfigJson;
+    int res = fontConfigJson.ParseFile();
+    if (res) {
+       code = PARSE_FILE_ERROR;
+       SetFontConfigInfoErrorCode(code, errorCode);
+        return nullptr;
+    }
+    auto fontCfgJsonInfo = fontConfigJson.GetFontConfigJsonInfo();
+    if (!fontCfgJsonInfo) {
+        SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::PARSE_FILE_ERROR, errorCode);
+        return nullptr;
+    }
+
+    OH_Drawing_FontConfigInfo* drawFontCfgInfo = InitDrawingFontConfigJsonInfo();
+    if (!drawFontCfgInfo) {
+        SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::ALLOC_MEMORY_ERROR, errorCode);
+        return nullptr;
+    }
+
+    bool result = CopyDrawingFontDirSet(&drawFontCfgInfo->fontDirSet,
+        drawFontCfgInfo->fontDirSize, fontCfgJsonInfo->fontDirSet, code);
+    if (!result) {
+        ResetDrawingFontConfigJsonInfo(&drawFontCfgInfo);
+        SetFontConfigInfoErrorCode(code, errorCode);
+        return drawFontCfgInfo;
+    }
+
+    result = CopyDrawingFontGenericInfoSet(&drawFontCfgInfo, fontCfgJsonInfo->genericSet, code);
+    if (!result) {
+        SetFontConfigInfoErrorCode(code, errorCode);
+        return drawFontCfgInfo;
+    }
+
+    CopyDrawingFallbackGroupSet(&drawFontCfgInfo, fontCfgJsonInfo->fallbackGroupSet, code);
+    SetFontConfigInfoErrorCode(code, errorCode);
+    return drawFontCfgInfo;
+}
+
+void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo* drawFontCfgInfo)
+{
+    if (drawFontCfgInfo == nullptr) {
         return;
     }
-    switch (*code) {
-        case FONT_DIR_SET_ERROR: {
-            break;
-        }
-        case FONT_DIR_SET_SUC: {
-            ResetStringArray(&drawFontCfgJsonInfo->fontDirSet, drawFontCfgJsonInfo->fontDirSize);
-            break;
-        }
-        case FONT_DIR_GENERIC_SET_SUC: {
-            ResetDrawingFontGenericInfoSet(&drawFontCfgJsonInfo->fontGenericInfoSet,
-                drawFontCfgJsonInfo->fontGenericInfoSize);
-            ResetStringArray(&drawFontCfgJsonInfo->fontDirSet, drawFontCfgJsonInfo->fontDirSize);
-            break;
-        }
-        case FONT_CONFIG_JSON_INFO_SUC: {
-            ResetDrawingFallbackGroupSet(&drawFontCfgJsonInfo->fallbackGroupSet,
-                drawFontCfgJsonInfo->fallbackGroupSize);
-            ResetDrawingFontGenericInfoSet(&drawFontCfgJsonInfo->fontGenericInfoSet,
-                drawFontCfgJsonInfo->fontGenericInfoSize);
-            ResetStringArray(&drawFontCfgJsonInfo->fontDirSet, drawFontCfgJsonInfo->fontDirSize);
-            break;
-        }
-        default:
-            break;
-    }
-    delete drawFontCfgJsonInfo;
-    *code = FONT_DIR_SET_ERROR;
+
+    ResetDrawingFallbackGroupSet(&drawFontCfgInfo->fallbackGroupSet,
+        drawFontCfgInfo->fallbackGroupSize);
+    ResetDrawingFontGenericInfoSet(&drawFontCfgInfo->fontGenericInfoSet,
+        drawFontCfgInfo->fontGenericInfoSize);
+    ResetStringArray(&drawFontCfgInfo->fontDirSet, drawFontCfgInfo->fontDirSize);
+    delete drawFontCfgInfo;
 }
