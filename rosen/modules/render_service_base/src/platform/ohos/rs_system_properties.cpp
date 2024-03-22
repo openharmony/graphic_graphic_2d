@@ -382,7 +382,7 @@ bool RSSystemProperties::GetFilterCacheEnabled()
     // Determine whether the filter cache should be enabled. The default value is 1, which means that it is enabled.
     // If dirty-region is not properly implemented, the filter cache will act as a skip-frame strategy for filters.
     static bool filterCacheEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnabled", "1")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnabled", "0")).c_str()) != 0;
     return filterCacheEnabled;
 }
 
@@ -404,6 +404,7 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return filterCacheSizeThreshold;
 }
 
+<<<<<<< HEAD
 bool RSSystemProperties::GetFilterPartialRenderEnabled()
 {
     // Determine whether the filter partial render should be enabled. The default value is 0,
@@ -413,6 +414,8 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     return enabled;
 }
 
+=======
+>>>>>>> zhangpeng/master
 bool RSSystemProperties::GetColorPickerPartialEnabled()
 {
     // Determine whether the color picker partial render should be enabled. The default value is 0,
@@ -457,6 +460,14 @@ bool RSSystemProperties::GetKawaseOriginalEnabled()
     static bool kawaseOriginalEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.kawaseOriginalEnable", "0")).c_str()) != 0;
     return kawaseOriginalEnabled;
+}
+
+// this will migrate to rs_system_parameters.cpp
+bool RSSystemProperties::GetQuickPrepareEnabled()
+{
+    static bool quickPrepareEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.quickPrepareEnabled", "1")).c_str()) != 0;
+    return quickPrepareEnabled;
 }
 
 bool RSSystemProperties::GetBlurEnabled()
@@ -506,7 +517,7 @@ bool RSSystemProperties::GetUIFirstEnabled()
 #ifdef ROSEN_EMULATOR
     return false;
 #else
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;

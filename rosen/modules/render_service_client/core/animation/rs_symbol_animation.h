@@ -28,7 +28,10 @@
 #include "symbol_animation_config.h"
 
 #include "draw/path.h"
+<<<<<<< HEAD
 #include "include/text/hm_symbol_config_ohos.h"
+=======
+>>>>>>> zhangpeng/master
 
 namespace OHOS {
 namespace Rosen {
@@ -73,7 +76,18 @@ private:
     bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
         std::vector<float>& timePercents);
 
+<<<<<<< HEAD
     std::shared_ptr<RSNode> rsNode_ = nullptr;
+=======
+    Vector4f CalculateOffset(const Drawing::Path &path, const float &offsetX, const float &offsetY);
+
+    template<typename T>
+    bool CreateOrSetModifierValue(std::shared_ptr<RSAnimatableProperty<T>>& property, const T& value);
+
+    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeFirst(const std::shared_ptr<RSNode>& rsNode);
+    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeSecond(const std::shared_ptr<RSNode>& rsNode);
+    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeThird(const std::shared_ptr<RSNode>& rsNode);
+>>>>>>> zhangpeng/master
 
     // scale symbol animation
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleStartProperty_ = nullptr;

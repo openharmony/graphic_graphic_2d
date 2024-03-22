@@ -88,6 +88,9 @@ public:
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
+    void AddPendingSyncNode(const std::shared_ptr<RSRenderNode>& node);
+    bool HasPendingSyncNode(NodeId nodeId);
+
     void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
 
     void SetVsyncRequestFunc(const std::function<void()>& taskRunner)
@@ -111,6 +114,9 @@ public:
         }
     }
 
+    void SetClearMoment(ClearMemoryMoment moment);
+    ClearMemoryMoment GetClearMoment() const;
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -131,8 +137,11 @@ private:
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::mutex activeNodesInRootMutex_;
 
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
+
     friend class RSRenderThread;
     friend class RSMainThread;
+    friend class RSDrawFrame;
 };
 
 } // namespace Rosen

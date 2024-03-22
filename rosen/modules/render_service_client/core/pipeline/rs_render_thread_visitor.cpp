@@ -516,12 +516,16 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     UpdateDirtyAndSetEGLDamageRegion(surfaceFrame);
 #endif
 
+<<<<<<< HEAD
     if (isOpDropped_) {
         canvas_->ClipRect(Drawing::Rect(curDirtyRegion_.GetLeft(), curDirtyRegion_.GetTop(),
             curDirtyRegion_.GetRight(), curDirtyRegion_.GetBottom()), Drawing::ClipOp::INTERSECT, false);
     } else {
         canvas_->ClipRect(Drawing::Rect(0, 0, bufferWidth, bufferHeight), Drawing::ClipOp::INTERSECT, false);
     }
+=======
+    canvas_->ClipRect(Drawing::Rect(0, 0, bufferWidth, bufferHeight), Drawing::ClipOp::INTERSECT, false);
+>>>>>>> zhangpeng/master
     canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     isIdle_ = false;
 
@@ -760,10 +764,17 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         property.GetBoundsWidth(), property.GetBoundsHeight()};
     Drawing::Matrix transfromMatrix = CacRotationFromTransformType(transform, bounds);
     canvas_->ConcatMatrix(transfromMatrix);
+<<<<<<< HEAD
     auto recordingCanvas =
         std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
     DrawingSurfaceBufferInfo rsSurfaceBufferInfo(
         surfaceBuffer, bounds.left_, bounds.top_, bounds.width_, bounds.height_);
+=======
+    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(),
+        property.GetBoundsHeight());
+    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(),
+        property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
+>>>>>>> zhangpeng/master
     recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     drawCmdList->Playback(*canvas_);

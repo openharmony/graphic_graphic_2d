@@ -302,6 +302,13 @@ bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<
 {
     auto src = param.src;
     auto dst = param.dst;
+<<<<<<< HEAD
+=======
+    if (abs(blurScale_) <= 1e-6) {
+        return false;
+    }
+    float invBlurScale = 1.0f / blurScale_;
+>>>>>>> zhangpeng/master
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     const auto blurMatrix = GetShaderTransform(&canvas, dst, dst.GetWidth() / blurImage->GetWidth(),
         dst.GetHeight() / blurImage->GetHeight());

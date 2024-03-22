@@ -15,6 +15,11 @@
 
 #include "pipeline/rs_dirty_region_manager.h"
 
+#include <string>
+
+#include "rs_trace.h"
+
+#include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
 RSDirtyRegionManager::RSDirtyRegionManager()
@@ -43,6 +48,18 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
     if (isDisplayDirtyManager_) {
         mergedDirtyRegions_.emplace_back(rect);
     }
+}
+
+bool RSDirtyRegionManager::MergeDirtyRectIfIntersect(const RectI& rect)
+{
+    if (!currentFrameDirtyRegion_.Intersect(rect)) {
+        return false;
+    }
+    currentFrameDirtyRegion_ = currentFrameDirtyRegion_.JoinRect(rect);
+    if (isDisplayDirtyManager_) {
+        mergedDirtyRegions_.emplace_back(rect);
+    }
+    return true;
 }
 
 void RSDirtyRegionManager::MergeDirtyRectAfterMergeHistory(const RectI& rect)
@@ -111,6 +128,11 @@ void RSDirtyRegionManager::ClipDirtyRectWithinSurface()
     currentFrameDirtyRegion_ = ((width <= 0) || (height <= 0)) ? RectI() : RectI(left, top, width, height);
 }
 
+const RectI& RSDirtyRegionManager::GetSyncCurrentFrameDirtyRegion()
+{
+    return syncCurrentFrameDirtyRegion_;
+}
+
 const RectI& RSDirtyRegionManager::GetCurrentFrameDirtyRegion()
 {
     return currentFrameDirtyRegion_;
@@ -119,6 +141,17 @@ const RectI& RSDirtyRegionManager::GetCurrentFrameDirtyRegion()
 const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 {
     return dirtyRegion_;
+}
+
+void RSDirtyRegionManager::SetCurrentFrameDirtyRect(const RectI& dirtyRect)
+{
+    currentFrameDirtyRegion_ = dirtyRect;
+}
+
+void RSDirtyRegionManager::OnSync()
+{
+    isSync_ = true;
+    syncCurrentFrameDirtyRegion_ = currentFrameDirtyRegion_;
 }
 
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
@@ -196,6 +229,7 @@ bool RSDirtyRegionManager::IsDirty() const
 
 void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
 {
+    auto currentFrameDirtyRegion = isSync_ ? syncCurrentFrameDirtyRegion_ : currentFrameDirtyRegion_;
     if (enableAligned) {
         UpdateDirtyByAligned();
     }
@@ -204,13 +238,14 @@ void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
         AlignHistory();
     }
     isDirtyRegionAlignedEnable_ = enableAligned;
-    PushHistory(currentFrameDirtyRegion_);
-    dirtyRegion_ = MergeHistory(bufferAge_, currentFrameDirtyRegion_);
+    PushHistory(currentFrameDirtyRegion);
+    dirtyRegion_ = MergeHistory(bufferAge_, currentFrameDirtyRegion);
 }
 
 void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
 {
-    currentFrameDirtyRegion_ = GetPixelAlignedRect(currentFrameDirtyRegion_, alignedBits);
+    auto& currentFrameDirtyRegion = isSync_ ? syncCurrentFrameDirtyRegion_ : currentFrameDirtyRegion_;
+    currentFrameDirtyRegion = GetPixelAlignedRect(currentFrameDirtyRegion, alignedBits);
 }
 
 void RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType,

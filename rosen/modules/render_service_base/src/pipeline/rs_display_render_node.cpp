@@ -16,11 +16,12 @@
 #include "pipeline/rs_display_render_node.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "params/rs_display_render_params.h"
+#include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
 #include "transaction/rs_render_service_client.h"
-
 namespace OHOS {
 namespace Rosen {
 RSDisplayRenderNode::RSDisplayRenderNode(
@@ -48,11 +49,21 @@ void RSDisplayRenderNode::CollectSurface(
     }
 }
 
+void RSDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+{
+    if (!visitor) {
+        return;
+    }
+    RSRenderNode::ApplyModifiers();
+    visitor->QuickPrepareDisplayRenderNode(*this);
+}
+
 void RSDisplayRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
         return;
     }
+    RSRenderNode::ApplyModifiers();
     visitor->PrepareDisplayRenderNode(*this);
 }
 
@@ -146,6 +157,68 @@ void RSDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
 bool RSDisplayRenderNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+void RSDisplayRenderNode::InitRenderParams()
+{
+    stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>();
+    renderParams_ = std::make_unique<RSDisplayRenderParams>();
+}
+
+void RSDisplayRenderNode::OnSync()
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::OnSync displayParams is null");
+        return;
+    }
+    dirtyManager_->OnSync();
+    displayParams->SetNeedSync(true);
+    RSRenderNode::OnSync();
+}
+
+void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
+{
+   curMainAndLeashSurfaceNodes_.push_back(surface);
+}
+
+void RSDisplayRenderNode::UpdateRenderParams()
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdateRenderParams displayParams is null");
+        return;
+    }
+    displayParams->offsetX_ = GetDisplayOffsetX();
+    displayParams->offsetY_ = GetDisplayOffsetY();
+    displayParams->nodeRotation_ = GetRotation();
+    displayParams->mirrorSource_ = GetMirrorSource();
+
+    RSRenderNode::UpdateRenderParams();
+}
+
+void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdateScreenRenderParams displayParams is null");
+        return;
+    }
+    displayParams->screenId_ = GetScreenId();
+    displayParams->screenRotation_ = GetScreenRotation();
+    displayParams->compositeType_ = GetCompositeType();
+    displayParams->screenInfo_ = std::move(screenInfo);
+}
+
+void RSDisplayRenderNode::UpdatePartialRenderParams()
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::UpdatePartialRenderParams displayParams is null");
+        return;
+    }
+    displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
+    curMainAndLeashSurfaceNodes_.clear();
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

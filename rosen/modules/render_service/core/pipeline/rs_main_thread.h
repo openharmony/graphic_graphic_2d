@@ -25,6 +25,7 @@
 
 #include "refbase.h"
 #include "rs_base_render_engine.h"
+#include "rs_draw_frame.h"
 #include "vsync_distributor.h"
 #include <event_handler.h>
 #include "vsync_receiver.h"
@@ -39,10 +40,15 @@
 #include "memory/rs_app_state_listener.h"
 #include "memory/rs_memory_graphic.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_draw_frame.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "platform/common/rs_event_manager.h"
 #include "transaction/rs_transaction_data.h"
+<<<<<<< HEAD
+=======
+#include "params/rs_render_thread_params.h"
+>>>>>>> zhangpeng/master
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
@@ -92,7 +98,12 @@ public:
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
+<<<<<<< HEAD
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
+=======
+    void QosStateDump(std::string& dumpString);
+    void RenderServiceTreeDump(std::string& dumpString) const;
+>>>>>>> zhangpeng/master
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
@@ -108,7 +119,9 @@ public:
 
     const std::shared_ptr<RSBaseRenderEngine>& GetRenderEngine() const
     {
-        return isUniRender_ ? uniRenderEngine_ : renderEngine_;
+        RS_LOGD("You'd better to call GetRenderEngine from RSUniRenderThread directly");
+        return std::move(RSUniRenderThread::Instance().GetRenderEngine());
+        // return isUniRender_ ? uniRenderEngine_ : renderEngine_;
     }
 
     bool GetClearMemoryFinished() const
@@ -161,10 +174,6 @@ public:
 
     bool WaitHardwareThreadTaskExcute();
     void NotifyHardwareThreadCanExcuteTask();
-
-    // driven render
-    void NotifyDrivenRenderFinish();
-    void WaitUtilDrivenRenderFinished();
 
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
@@ -291,10 +300,8 @@ private:
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
-    void ApplyModifiers();
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
-    void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
     void SetDeviceType();
@@ -434,11 +441,6 @@ private:
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
 
-    // driven render
-    mutable std::mutex drivenRenderMutex_;
-    bool drivenRenderFinished_ = false;
-    std::condition_variable drivenRenderCond_;
-
     // Used to refresh the whole display when AccessibilityConfig is changed
     bool isAccessibilityConfigChanged_ = false;
 
@@ -454,16 +456,16 @@ private:
     bool isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
-    int32_t focusAppPid_ = -1;
-    int32_t focusAppUid_ = -1;
+    std::atomic<int32_t> focusAppPid_ = -1;
+    std::atomic<int32_t> focusAppUid_ = -1;
     const uint8_t opacity_ = 255;
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
-    uint64_t focusNodeId_ = 0;
+    std::atomic<uint64_t> focusNodeId_ = 0;
     uint64_t focusLeashWindowId_ = 0;
     uint64_t lastFocusNodeId_ = 0;
     uint32_t appWindowNum_ = 0;
-    uint32_t requestNextVsyncNum_ = 0;
+    std::atomic<uint32_t> requestNextVsyncNum_ = 0;
     bool lastFrameHasFilter_ = false;
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
@@ -493,10 +495,6 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     bool isShow_ = false;
     bool doParallelComposition_ = false;
-
-    // driven render
-    bool hasDrivenNodeOnUniTree_ = false;
-    bool hasDrivenNodeMarkRender_ = false;
 
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
@@ -549,7 +547,13 @@ private:
     ScreenId displayNodeScreenId_ = 0;
 
     bool forceUIFirstChanged_ = false;
+<<<<<<< HEAD
     bool hasRosenWebNode_ = false;
+=======
+    RSDrawFrame drawFrame_;
+    std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
+    RsParallelType rsParallelType_;
+>>>>>>> zhangpeng/master
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

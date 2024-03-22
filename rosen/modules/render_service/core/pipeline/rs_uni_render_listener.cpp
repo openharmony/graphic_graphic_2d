@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_uni_render_listener.h"
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
@@ -22,18 +23,23 @@ namespace OHOS {
 namespace Rosen {
 RSUniRenderListener::~RSUniRenderListener() {}
 
-RSUniRenderListener::RSUniRenderListener(std::weak_ptr<RSDisplayRenderNode> displayRenderNode)
-    : displayRenderNode_(displayRenderNode) {}
+RSUniRenderListener::RSUniRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler)
+    : surfaceHandler_(surfaceHandler) {}
 
 void RSUniRenderListener::OnBufferAvailable()
 {
-    auto node = displayRenderNode_.lock();
-    if (node == nullptr) {
-        RS_LOGE("RSUniRenderListener::OnBufferAvailable node is nullptr");
+    auto surfaceHandler = surfaceHandler_.lock();
+    if (surfaceHandler == nullptr) {
+        RS_LOGE("RSUniRenderListener::OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
+<<<<<<< HEAD
     RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
+=======
+    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
+    surfaceHandler->IncreaseAvailableBuffer();
+>>>>>>> zhangpeng/master
     RSMainThread::Instance()->NotifyUniRenderFinish();
 }
 }

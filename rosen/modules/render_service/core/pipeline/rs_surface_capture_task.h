@@ -19,6 +19,10 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "common/rs_common_def.h"
+<<<<<<< HEAD
+=======
+#include "system/rs_system_parameters.h"
+>>>>>>> zhangpeng/master
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "utils/matrix.h"
@@ -115,7 +119,8 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
 class RSSurfaceCaptureTask {
 public:
     explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread) {}
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread)
+        , rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTask() = default;
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
@@ -146,6 +151,7 @@ private:
 
     // if true, do surfaceCapture on background thread
     bool isProcOnBgThread_ = false;
+    RsParallelType rsParallelType_;
 };
 } // namespace Rosen
 } // namespace OHOS

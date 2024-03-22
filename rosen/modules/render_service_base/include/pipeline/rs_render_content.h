@@ -19,7 +19,6 @@
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
 #include "property/rs_properties.h"
-#include "property/rs_property_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,18 +38,13 @@ public:
     using DrawCmdContainer = std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>>;
     RSRenderNodeType GetType() const;
 
-    void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas) const;
-    void DrawPropertyDrawableRange(
-        RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas) const;
-
 private:
     RSProperties renderProperties_;
-    RSPropertyDrawable::DrawableVec propertyDrawablesVec_;
     DrawCmdContainer drawCmdModifiers_;
     RSRenderNodeType type_ = RSRenderNodeType::UNKNOW;
 
     friend class RSRenderNode;
-    friend class RSModifierDrawable;
+    friend class RSCustomModifierDrawCmdList;
 };
 } // namespace Rosen
 } // namespace OHOS

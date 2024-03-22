@@ -114,11 +114,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareRootRenderNodeTest, TestSize.Level2)
     ASSERT_NE(rsRootRenderNode, nullptr);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->drivenInfo_ = std::make_unique<DrivenInfo>();
-    ASSERT_NE(rsUniRenderVisitor->drivenInfo_, nullptr);
-    
-    rsUniRenderVisitor->PrepareRootRenderNode(*rsRootRenderNode);
-    rsUniRenderVisitor->drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER;
+
     rsUniRenderVisitor->PrepareRootRenderNode(*rsRootRenderNode);
     rsUniRenderVisitor->curSurfaceDirtyManager_ = nullptr;
     rsUniRenderVisitor->PrepareRootRenderNode(*rsRootRenderNode);
@@ -161,19 +157,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareCanvasRenderNodeTest, TestSize.Level2)
     rsUniRenderVisitor->curDisplayDirtyManager_ = rsDisplayRenderNode->GetDirtyManager();
     auto pairedNode = RSTestUtil::CreateSurfaceNode();
     rsCanvasRenderNode->sharedTransitionParam_ = {rsCanvasRenderNode->GetId(), pairedNode};
-    rsUniRenderVisitor->drivenInfo_ = std::make_unique<DrivenInfo>();
-    ASSERT_NE(rsUniRenderVisitor->drivenInfo_, nullptr);
     rsUniRenderVisitor->currentVisitDisplay_ = 0;
-    rsUniRenderVisitor->drivenInfo_->isPrepareLeashWinSubTree = true;
-    rsCanvasRenderNode->isMarkDriven_ = true;
-    rsCanvasRenderNode->isMarkDrivenRender_ = true;
-    rsCanvasRenderNode->isContentChanged_ = true;
-    rsUniRenderVisitor->PrepareCanvasRenderNode(*rsCanvasRenderNode);
-
-    rsUniRenderVisitor->drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER;
-    rsUniRenderVisitor->PrepareCanvasRenderNode(*rsCanvasRenderNode);
-
-    rsUniRenderVisitor->drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_BEFORE;
     rsUniRenderVisitor->PrepareCanvasRenderNode(*rsCanvasRenderNode);
 }
 
@@ -3323,7 +3307,7 @@ HWTEST_F(RSUniRenderVisitorTest, SetNodeCacheChangeStatus, TestSize.Level2)
     auto parent = std::make_shared<RSSurfaceRenderNode>(id);
     auto child = std::make_shared<RSSurfaceRenderNode>(++id);
     parent->AddChild(child);
-    child->SetChildHasFilter(true);
+    child->SetChildHasVisibleFilter(true);
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
     child->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     rsUniRenderVisitor->curCacheFilterRects_.push({});

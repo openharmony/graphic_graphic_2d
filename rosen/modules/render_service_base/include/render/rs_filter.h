@@ -34,6 +34,7 @@ enum BLUR_COLOR_MODE : int {
 
 class RSB_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
+<<<<<<< HEAD
     class RSFilterTask {
     public:
         virtual bool InitSurface(Drawing::GPUContext* grContext);
@@ -45,6 +46,8 @@ public:
     static std::function<void(std::weak_ptr<RSFilter::RSFilterTask>)> postTask;
     static std::function<void()> clearGpuContext;
 
+=======
+>>>>>>> zhangpeng/master
     virtual ~RSFilter();
     RSFilter(const RSFilter&) = delete;
     RSFilter(const RSFilter&&) = delete;

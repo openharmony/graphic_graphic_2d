@@ -158,13 +158,17 @@ RSProperties::RSProperties()
 
 RSProperties::~RSProperties() = default;
 
+<<<<<<< HEAD
 void RSProperties::ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes)
+=======
+void RSProperties::ResetProperty(const ModifierDirtyTypes& dirtyTypes)
+>>>>>>> zhangpeng/master
 {
     if (dirtyTypes.none()) {
         return;
     }
     for (uint8_t type = 0; type < static_cast<size_t>(RSModifierType::CUSTOM); type++) {
-        if (dirtyTypes[type]) {
+        if (dirtyTypes.test(type)) {
             if (auto& resetFunc = g_propertyResetterLUT[type]) {
                 resetFunc(this);
             }
@@ -376,6 +380,39 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
+<<<<<<< HEAD
+=======
+bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& parent,
+    bool needParentOffset, const std::optional<Drawing::Rect>& clipRect)
+{
+    if (boundsGeo_ == nullptr) {
+        return false;
+    }
+    auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
+    auto parentGeo = parent ? parentProperties->GetBoundsGeometry() : nullptr;
+    // [planning] surfaceNode use frame instead
+    std::optional<Drawing::Point> offset;
+    if (parentProperties && needParentOffset) {
+        offset = Drawing::Point { parentProperties->GetFrameOffsetX(), parentProperties->GetFrameOffsetY() };
+    }
+    auto prevAbsMatrix = prevAbsMatrix_;
+    boundsGeo_->UpdateMatrix(parentGeo, offset, clipRect);
+    prevAbsMatrix_ = boundsGeo_->GetAbsMatrix();
+    if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
+        auto rect = boundsGeo_->GetAbsRect();
+        if (!lastRect_.has_value()) {
+            lastRect_ = rect;
+            return true;
+        }
+        auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
+        lastRect_ = rect;
+        return dirtyFlag;
+    } else {
+        return true;
+    }
+}
+
+>>>>>>> zhangpeng/master
 bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
 {
@@ -1270,12 +1307,13 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
-    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE && colorPickerTaskShadow_ == nullptr) {
-        CreateColorPickerTaskForShadow();
-        colorPickerTaskShadow_->SetShadowColorStrategy(shadowColorStrategy);
+    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE &&
+        shadow_->GetColorPickerCacheTask() == nullptr) {
+        auto colorPickerTaskShadow = std::make_shared<RSColorPickerCacheTask>();
+        colorPickerTaskShadow->SetShadowColorStrategy(shadowColorStrategy);
+        shadow_->SetColorPickerCacheTask(colorPickerTaskShadow);
     }
 }
-
 
 const Color& RSProperties::GetShadowColor() const
 {
@@ -2203,8 +2241,30 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    errno_t ret;
+    if (clipToBounds_) {
+        // clipToBounds
+        ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+        if (ret != EOK) {
+            return "Failed to memset_s for clipToBounds, ret=" + std::to_string(ret);
+        }
+        if (sprintf_s(buffer, UINT8_MAX, ", ClipToBounds[True]") != -1) {
+            dumpInfo.append(buffer);
+        }
+    }
+    if (clipToFrame_) {
+        // clipToFrame
+        ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+        if (ret != EOK) {
+            return "Failed to memset_s for clipToFrame, ret=" + std::to_string(ret);
+        }
+        if (sprintf_s(buffer, UINT8_MAX, ", ClipToFrame[True]") != -1) {
+            dumpInfo.append(buffer);
+        }
+    }
+
     // PositionZ
-    auto ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
         return "Failed to memset_s for PositionZ, ret=" + std::to_string(ret);
     }
@@ -2213,16 +2273,6 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
-    // blendmode
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
-    }
-    if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
-        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]",
-        GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
-        dumpInfo.append(buffer);
-    }
     // Pivot
     std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
@@ -2352,6 +2402,17 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetSpherize(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Spherize[%.1f]", GetSpherize()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // blendmode
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
+    }
+    if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
+        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]",
+        GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
         dumpInfo.append(buffer);
     }
 
@@ -2645,6 +2706,7 @@ std::string RSProperties::Dump() const
     return dumpInfo;
 }
 
+// TODO need to delete, cachemanager moved to filter drawable
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
@@ -2658,9 +2720,6 @@ void RSProperties::CreateFilterCacheManagerIfNeed()
         }
         cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
-        if (backgroundFilterCacheManager_ != nullptr) {
-            backgroundFilterCacheManager_->ReleaseCacheOffTree();
-        }
         backgroundFilterCacheManager_.reset();
     }
     if (auto& filter = GetFilter()) {
@@ -2670,9 +2729,6 @@ void RSProperties::CreateFilterCacheManagerIfNeed()
         }
         cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
-        if (foregroundFilterCacheManager_ != nullptr) {
-            foregroundFilterCacheManager_->ReleaseCacheOffTree();
-        }
         foregroundFilterCacheManager_.reset();
     }
 }
@@ -2699,14 +2755,6 @@ void RSProperties::ClearFilterCache()
         filter->ReleaseColorPickerFilter();
     }
 }
-
-void RSProperties::CreateColorPickerTaskForShadow()
-{
-    if (colorPickerTaskShadow_ == nullptr) {
-        colorPickerTaskShadow_ = std::make_shared<RSColorPickerCacheTask>();
-    }
-}
-
 #endif
 
 void RSProperties::OnApplyModifiers()
@@ -2721,6 +2769,9 @@ void RSProperties::OnApplyModifiers()
         if (clipToFrame_ && clipToBounds_ && frameOffsetX_ == 0 && frameOffsetY_ == 0) {
             clipToFrame_ = false;
         }
+        // TODO: temporary fix to calculate relative matrix in OnApplyModifiers, later RSRenderNode::Update will
+        // overwrite it.
+        boundsGeo_->UpdateByMatrixFromSelf();
         if (RSSystemProperties::IsPcType()) {
             frameGeo_->Round();
             boundsGeo_->Round();
@@ -2764,7 +2815,7 @@ void RSProperties::OnApplyModifiers()
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                       GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-        CreateFilterCacheManagerIfNeed();
+        // CreateFilterCacheManagerIfNeed();
 #endif
         ApplyGreyCoef();
     }
@@ -2871,17 +2922,16 @@ int RSProperties::GetColorBlendApplyType() const
 
 const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const
 {
-    return colorPickerTaskShadow_;
+    return shadow_ ? shadow_->GetColorPickerCacheTask() : nullptr;
 }
 
 void RSProperties::ReleaseColorPickerTaskShadow() const
 {
-    if (colorPickerTaskShadow_ == nullptr) {
+    if (!shadow_ || shadow_->GetColorPickerCacheTask() == nullptr) {
         return;
     }
-    colorPickerTaskShadow_->ReleaseColorPicker();
+    shadow_->GetColorPickerCacheTask()->ReleaseColorPicker();
 }
-
 
 bool RSProperties::GetHaveEffectRegion() const
 {

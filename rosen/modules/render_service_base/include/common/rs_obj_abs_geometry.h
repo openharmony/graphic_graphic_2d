@@ -46,6 +46,7 @@ public:
         return absRect_;
     }
     RectI MapAbsRect(const RectF& rect) const;
+    RectI MapRect(const RectF& rect, const Drawing::Matrix& matrix) const;
 
     // return transform matrix (context + self)
     const Drawing::Matrix& GetMatrix() const;
@@ -64,6 +65,11 @@ public:
     }
 
 private:
+<<<<<<< HEAD
+=======
+    void ApplySkewToMatrix(Drawing::Matrix& m, bool preConcat = true);
+    void ApplySkewToMatrix44(Drawing::Matrix44& m44, bool preConcat = true);
+>>>>>>> zhangpeng/master
     void UpdateAbsMatrix2D();
     void UpdateAbsMatrix3D();
     void SetAbsRect();

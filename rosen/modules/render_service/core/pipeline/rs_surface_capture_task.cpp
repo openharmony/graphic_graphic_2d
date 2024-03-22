@@ -89,7 +89,13 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
     }
 #else
-        auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+        std::shared_ptr<RenderContext> renderContext = nullptr;
+        if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+            renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+        } else {
+            RSMainThread::Instance()->GetRenderEngine()->InitCapture();
+            renderContext = RSMainThread::Instance()->GetRenderEngine()->GetCaptureRenderContext();
+        }
         grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
     }
 #endif
@@ -408,7 +414,13 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
             drawingContext->SetUpDrawingContext();
             return Drawing::Surface::MakeRenderTarget(drawingContext->GetDrawingContext, fasle, info);
 #else
-            auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+            std::shared_ptr<RenderContext> renderContext = nullptr;
+            if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+                renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+            } else {
+                RSMainThread::Instance()->GetRenderEngine()->InitCapture();
+                renderContext = RSMainThread::Instance()->GetRenderEngine()->GetCaptureRenderContext();
+            }
             if (renderContext == nullptr) {
                 RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
                 return nullptr;
@@ -419,9 +431,22 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
         }
 #endif
 #ifdef RS_ENABLE_VK
+<<<<<<< HEAD
         if (RSSystemProperties::IsUseVulkan()) {
             return Drawing::Surface::MakeRenderTarget(
                 RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), false, info);
+=======
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+                return Drawing::Surface::MakeRenderTarget(
+                    RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), false, info);
+            } else {
+                RSMainThread::Instance()->GetRenderEngine()->InitCapture();
+                return Drawing::Surface::MakeRenderTarget(
+                    RSMainThread::Instance()->GetRenderEngine()->GetCaptureSkContext().get(), false, info);
+            }
+>>>>>>> zhangpeng/master
         }
 #endif
     }
@@ -962,9 +987,16 @@ void RSSurfaceCaptureVisitor::DrawChildRenderNode(RSRenderNode& node)
         case CacheType::NONE: {
             node.ProcessRenderBeforeChildren(*canvas_);
             if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+<<<<<<< HEAD
                 auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
                 Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
                 canvas_->DrawBitmap(bitmap, 0, 0);
+=======
+                // TODO canvasDrawingNode->GetBitmap() crash
+                // auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+                // Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
+                // canvas_->DrawBitmap(bitmap, 0, 0);
+>>>>>>> zhangpeng/master
             } else {
                 node.ProcessRenderContents(*canvas_);
             }
@@ -1014,11 +1046,11 @@ bool RSSurfaceCaptureVisitor::DrawBlurInCache(RSRenderNode& node)
     if (curCacheFilterRects_.count(node.GetId())) {
         // draw filter before drawing cachedSurface
         curCacheFilterRects_.erase(node.GetId());
-        if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
+        if (curCacheFilterRects_.empty() || !node.ChildHasVisibleFilter()) {
             // no filter to draw, return
             return true;
         }
-    } else if (!node.ChildHasFilter()) {
+    } else if (!node.ChildHasVisibleFilter()) {
         // no filter to draw, return
         return true;
     }

@@ -37,6 +37,7 @@ public:
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
 
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
@@ -58,9 +59,9 @@ public:
 
 protected:
     RectI GetFilterRect() const override;
-    void UpdateFilterCacheManagerWithCacheRegion(
-        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) override;
-    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) override;
+    void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
+        const std::optional<RectI>& clipRect, bool isForeground = false) override;
+    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false) override;
 
 private:
     bool NeedForceCache();

@@ -29,8 +29,13 @@ void VSyncSystemAbilityListener::OnAddSystemAbility(int32_t systemAbilityId, con
 {
 #ifdef COMPOSER_SCHED_ENABLE
     if (systemAbilityId == RES_SCHED_SYS_ABILITY_ID) {
+<<<<<<< HEAD
         VLOGD("%{public}s: threadName=%{public}s, pid=%{public}s, tid=%{public}s, uid=%{public}s.",
             __func__, threadName.c_str(), pid_.c_str(), tid_.c_str(), uid_.c_str());
+=======
+        VLOGE("%{public}s: threadName=%{public}s, pid=%{public}s, tid=%{public}s, uid=%{public}s.",
+            __func__, threadName_.c_str(), pid_.c_str(), tid_.c_str(), uid_.c_str());
+>>>>>>> zhangpeng/master
         std::unordered_map<std::string, std::string> mapPayload;
         int32_t userInteraction = 0;
         mapPayload["uid"] = uid_;

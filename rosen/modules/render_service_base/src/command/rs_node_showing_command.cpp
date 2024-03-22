@@ -21,6 +21,8 @@
 
 namespace OHOS {
 namespace Rosen {
+RSNodeGetShowingPropertyAndCancelAnimation::Registrar RSNodeGetShowingPropertyAndCancelAnimation::instance_;
+RSNodeGetShowingPropertiesAndCancelAnimation::Registrar RSNodeGetShowingPropertiesAndCancelAnimation::instance_;
 
 bool RSNodeGetShowingPropertyAndCancelAnimation::Marshalling(Parcel& parcel) const
 {

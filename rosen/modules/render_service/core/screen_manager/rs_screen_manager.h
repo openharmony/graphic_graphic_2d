@@ -34,6 +34,7 @@
 #include <screen_manager/rs_screen_hdr_capability.h>
 #include <screen_manager/screen_types.h>
 #include <screen_manager/rs_virtual_screen_resolution.h>
+#include <screen_manager/rs_screen_info.h>
 #include <surface.h>
 #include <surface_type.h>
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
@@ -44,62 +45,6 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class ScreenState : uint8_t {
-    HDI_OUTPUT_ENABLE,
-    PRODUCER_SURFACE_ENABLE,
-    DISABLED,
-    NOT_EXISTED,
-    UNKNOWN,
-};
-
-struct ScreenInfo {
-    ScreenId id = INVALID_SCREEN_ID;
-    uint32_t width = 0; // render resolution
-    uint32_t height = 0;
-    uint32_t phyWidth = 0; // physical screen resolution
-    uint32_t phyHeight = 0;
-    ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
-    ScreenState state = ScreenState::UNKNOWN;
-    ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    std::unordered_set<uint64_t> filteredAppSet = {};
-
-    uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL;  // skip frame interval for change screen refresh rate
-
-    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
-    ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;
-    
-    uint32_t GetRotatedWidth() const
-    {
-        return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? width : height;
-    }
-
-    uint32_t GetRotatedHeight() const
-    {
-        return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? height : width;
-    }
-    uint32_t GetRotatedPhyWidth() const
-    {
-        return (rotation == ScreenRotation::ROTATION_0 ||
-            rotation == ScreenRotation::ROTATION_180) ? phyWidth : phyHeight;
-    }
-
-    uint32_t GetRotatedPhyHeight() const
-    {
-        return (rotation == ScreenRotation::ROTATION_0 ||
-            rotation == ScreenRotation::ROTATION_180) ? phyHeight : phyWidth;
-    }
-
-    float GetRogWidthRatio() const
-    {
-        return (width == 0) ? 1.f : static_cast<float>(phyWidth) / width;
-    }
-
-    float GetRogHeightRatio() const
-    {
-        return (height == 0) ? 1.f : static_cast<float>(phyHeight) / height;
-    }
-};
-
 class RSScreenManager : public RefBase {
 public:
     RSScreenManager() = default;

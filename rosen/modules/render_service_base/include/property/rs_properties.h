@@ -45,6 +45,10 @@ namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
 class RSB_EXPORT RSProperties final {
+friend class RSBackgroundImageDrawable;
+friend class RSBackgroundFilterDrawable;
+friend class RSShadowDrawable;
+friend class RSFilterDrawable;
 public:
     RSProperties();
     RSProperties(const RSProperties&) = delete;
@@ -274,6 +278,11 @@ public:
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
         const std::optional<Drawing::Rect>& clipRect);
+<<<<<<< HEAD
+=======
+    bool UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& parent,
+        bool needParentOffset, const std::optional<Drawing::Rect>& clipRect);
+>>>>>>> zhangpeng/master
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
@@ -347,7 +356,11 @@ public:
     void OnApplyModifiers();
 
 private:
+<<<<<<< HEAD
     void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+=======
+    void ResetProperty(const ModifierDirtyTypes& dirtyTypes);
+>>>>>>> zhangpeng/master
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
@@ -443,6 +456,7 @@ private:
     float frameOffsetY_ = 0.f;
     bool needFilter_ = false;
     RRect rrect_ = RRect{};
+    Drawing::Matrix prevAbsMatrix_;
 
     RSRenderParticleVector particles_;
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
@@ -450,14 +464,12 @@ private:
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
-    void CreateColorPickerTaskForShadow();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
     static const bool FilterCacheEnabled;
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTaskShadow_ = nullptr;
 
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;

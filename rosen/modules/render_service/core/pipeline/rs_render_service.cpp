@@ -65,6 +65,7 @@ bool RSRenderService::Init()
             return false;
         }
     } else {
+        RSUniRenderThread::Instance().Start();
         RSHardwareThread::Instance().Start();
     }
 

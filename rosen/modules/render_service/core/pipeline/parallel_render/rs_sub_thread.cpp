@@ -283,11 +283,14 @@ void RSSubThread::ResetGrContext()
     }
     grContext_->FlushAndSubmit(true);
     grContext_->FreeGpuResources();
+<<<<<<< HEAD
 }
 
 void RSSubThread::ThreadSafetyReleaseTexture()
 {
     grContext_->FreeGpuResources();
+=======
+>>>>>>> zhangpeng/master
 }
 
 void RSSubThread::ReleaseSurface()

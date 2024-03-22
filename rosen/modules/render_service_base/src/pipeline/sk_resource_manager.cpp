@@ -42,6 +42,7 @@ void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
     }
 #endif
 }
+<<<<<<< HEAD
 
 void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
 {
@@ -58,6 +59,8 @@ void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
     skSurfaces_[tid].push_back(surface);
 #endif
 }
+=======
+>>>>>>> zhangpeng/master
 
 void SKResourceManager::ReleaseResource()
 {
@@ -72,6 +75,7 @@ void SKResourceManager::ReleaseResource()
             });
         }
     }
+<<<<<<< HEAD
 
     for (auto& skSurface : skSurfaces_) {
         if (skSurface.second.size() > 0) {
@@ -94,6 +98,8 @@ void SKResourceManager::ReleaseResource()
             });
         }
     }
+=======
+>>>>>>> zhangpeng/master
 #endif
 }
 } // OHOS::Rosen

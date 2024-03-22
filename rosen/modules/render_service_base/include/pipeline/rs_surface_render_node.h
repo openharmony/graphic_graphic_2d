@@ -297,6 +297,10 @@ public:
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    // keep specified nodetype preparation
+    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false,
+        bool drawingCacheEnabled = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -310,6 +314,7 @@ public:
     bool IsNeedSetVSync();
 
     void SetContextBounds(const Vector4f bounds);
+    bool CheckParticipateInOcclusion() const;
 
     void OnApplyModifiers() override;
 
@@ -409,10 +414,7 @@ public:
         alphaChanged_ = true;
     }
 
-    void SetOcclusionVisible(bool visible)
-    {
-        isOcclusionVisible_ = visible;
-    }
+    void SetOcclusionVisible(bool visible);
 
     bool GetOcclusionVisible() const
     {
@@ -603,6 +605,14 @@ public:
         return visibleRegion_.IsIntersectWith(nodeRect);
     }
 
+    bool CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const;
+    bool CheckIfOcclusionChanged() const;
+
+    void SetVisibleRegion(Occlusion::Region region)
+    {
+        visibleRegion_ = region;
+    }
+
     inline bool IsEmptyAppWindow() const
     {
         return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
@@ -695,6 +705,9 @@ public:
     {
         return GetNodeId() == focusedNodeId;
     }
+
+
+    void CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation);
 
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
@@ -891,6 +904,8 @@ public:
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     bool GetHasTransparentSurface() const;
+    void UpdatePartialRenderParams();
+    void UpdateAncestorDisplayNodeInRenderParams();
 
     bool HasWindowCorner()
     {
@@ -898,7 +913,8 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
-
+protected:
+    void OnSync() override;
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -910,7 +926,8 @@ private:
     void UpdateHistoryUnsubmittedDirtyInfo();
     bool IsHardwareDisabledBySrcRect() const;
     bool IsYUVBufferFormat() const;
-
+    void InitRenderParams() override;
+    void UpdateRenderParams() override;
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;

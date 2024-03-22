@@ -20,8 +20,14 @@
 #include <mutex>
 #include <set>
 #include <unistd.h>
+<<<<<<< HEAD
 #include "utils/resource_holder.h"
 #include "draw/surface.h"
+=======
+
+#include "utils/resource_holder.h"
+
+>>>>>>> zhangpeng/master
 #include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
@@ -29,7 +35,10 @@ class RSB_EXPORT SKResourceManager final {
 public:
     static SKResourceManager& Instance();
     void HoldResource(const std::shared_ptr<Drawing::Image> &img);
+<<<<<<< HEAD
     void HoldResource(std::shared_ptr<Drawing::Surface> surface);
+=======
+>>>>>>> zhangpeng/master
     void ReleaseResource();
 private:
     SKResourceManager() = default;
@@ -37,7 +46,10 @@ private:
 
     std::recursive_mutex mutex_;
     std::map<pid_t, std::shared_ptr<Drawing::ResourceHolder>> images_;
+<<<<<<< HEAD
     std::map<pid_t, std::list<std::shared_ptr<Drawing::Surface>>> skSurfaces_;
+=======
+>>>>>>> zhangpeng/master
 };
 } // OHOS::Rosen
 #endif // SK_RESOURCE_MANAGER_H

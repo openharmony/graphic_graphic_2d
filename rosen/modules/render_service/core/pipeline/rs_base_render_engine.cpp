@@ -80,7 +80,12 @@ void RSBaseRenderEngine::Init(bool independentContext)
         renderContext_->SetUniRenderMode(true);
     }
 #if defined(RS_ENABLE_VK)
+<<<<<<< HEAD
     if (RSSystemProperties::IsUseVulkan()) {
+=======
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+>>>>>>> zhangpeng/master
         skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
         vkImageManager_ = std::make_shared<RSVkImageManager>();
         renderContext_->SetUpGpuContext(skContext_);
@@ -101,7 +106,12 @@ void RSBaseRenderEngine::Init(bool independentContext)
 #endif
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
+<<<<<<< HEAD
     if (RSSystemProperties::IsUseVulkan()) {
+=======
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+>>>>>>> zhangpeng/master
         skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         vkImageManager_ = std::make_shared<RSVkImageManager>();
     }
@@ -109,6 +119,37 @@ void RSBaseRenderEngine::Init(bool independentContext)
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
 #endif
+}
+
+void RSBaseRenderEngine::InitCapture(bool independentContext)
+{
+    (void)independentContext;
+    if (captureRenderContext_) {
+        return;
+    }
+
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+    captureRenderContext_ = std::make_shared<RenderContext>();
+#ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        captureRenderContext_->InitializeEglContext();
+    }
+#endif
+    if (RSUniRenderJudgement::IsUniRender()) {
+        captureRenderContext_->SetUniRenderMode(true);
+    }
+#if defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
+        captureRenderContext_->SetUpGpuContext(captureSkContext_);
+    } else {
+        captureRenderContext_->SetUpGpuContext();
+    }
+#else
+    captureRenderContext_->SetUpGpuContext();
+#endif
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
 }
 
 void RSBaseRenderEngine::ResetCurrentContext()
@@ -120,12 +161,18 @@ void RSBaseRenderEngine::ResetCurrentContext()
 #if (defined RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         renderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
+        if (captureRenderContext_) {
+            captureRenderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
+        }
     }
 #endif
 
 #if defined(RS_ENABLE_VK) // end RS_ENABLE_GL and enter RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->AbandonContext();
+        if (captureRenderContext_) {
+            captureRenderContext_->AbandonContext();
+        }
     }
 #endif // end RS_ENABLE_GL and RS_ENABLE_VK
 }
@@ -165,7 +212,12 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         return nullptr;
     }
 #if defined(RS_ENABLE_GL)
+<<<<<<< HEAD
     if (!RSSystemProperties::IsUseVulkan() && canvas.GetGPUContext() == nullptr) {
+=======
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && canvas.GetGPUContext() == nullptr) {
+>>>>>>> zhangpeng/master
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
@@ -614,6 +666,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
             params.acquireFence, params.threadIndex);
+<<<<<<< HEAD
+=======
+        auto& backendTexture = imageCache->GetBackendTexture();
+>>>>>>> zhangpeng/master
         std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);

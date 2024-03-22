@@ -48,7 +48,17 @@ void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    RSRenderNode::ApplyModifiers();
     visitor->PrepareEffectRenderNode(*this);
+}
+
+void RSEffectRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+{
+    if (!visitor) {
+        return;
+    }
+    RSRenderNode::ApplyModifiers();
+    visitor->QuickPrepareEffectRenderNode(*this);
 }
 
 void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -114,7 +124,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
 }
 
 void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect, bool isForeground)
 {
     if (NeedForceCache()) {
         return;

@@ -18,9 +18,11 @@
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
-#include <mutex>
 
+<<<<<<< HEAD
 #include "event_handler.h"
+=======
+>>>>>>> zhangpeng/master
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "utils/rect.h"
@@ -29,7 +31,6 @@
 #include "common/rs_rect.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
 
@@ -56,6 +57,7 @@ public:
     void UpdateCacheStateWithFilterRegion(); // call when filter region out of cached region.
     bool UpdateCacheStateWithDirtyRegion(
         const RSDirtyRegionManager& dirtyManager); // call when dirty region intersects with cached region.
+    void UpdateCacheStateWithDirtyRegion();
     const RectI& GetCachedImageRegion() const;
 
     // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
@@ -71,12 +73,15 @@ public:
         const std::shared_ptr<RSDrawingFilter>& filter, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt,
         const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
+<<<<<<< HEAD
 
     static bool IsNearlyFullScreen(Drawing::RectI imageSize, int32_t canvasWidth, int32_t canvasHeight);
     void PostPartialFilterRenderTask(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void PostPartialFilterRenderInit(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& dstRect, bool& shouldClearFilteredCache);
     uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
+=======
+>>>>>>> zhangpeng/master
     enum CacheType : uint8_t {
         CACHE_TYPE_NONE              = 0,
         CACHE_TYPE_SNAPSHOT          = 1,
@@ -96,6 +101,7 @@ public:
     }
 
 private:
+<<<<<<< HEAD
     class RSFilterCacheTask : public RSFilter::RSFilterTask {
     public:
         static const bool FilterPartialRenderEnabled;
@@ -211,18 +217,21 @@ private:
         bool isCompleted_ = false;
     };
 
+=======
+>>>>>>> zhangpeng/master
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
-        RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
-    void FilterPartialRender(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;
     // Validate the input srcRect and dstRect, and return the validated rects.
     std::tuple<Drawing::RectI, Drawing::RectI> ValidateParams(RSPaintFilterCanvas& canvas,
         const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect,
         const std::tuple<bool, bool>& forceCacheFlags = std::make_tuple(false, false));
+<<<<<<< HEAD
     inline bool IsClearFilteredCache(const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dst);
+=======
+>>>>>>> zhangpeng/master
     inline static void ClipVisibleRect(RSPaintFilterCanvas& canvas);
     // Check if the cache is valid in current GrContext, since FilterCache will never be used in multi-thread
     // environment, we don't need to attempt to reattach SkImages.
@@ -236,7 +245,6 @@ private:
     // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot_ = nullptr;
-    bool newCache_ = true;
 
     // Hash of previous filter, used to determine if we need to invalidate cachedFilteredSnapshot_.
     uint32_t cachedFilterHash_ = 0;
@@ -246,8 +254,6 @@ private:
     bool pendingPurge_ = false;
     // Region of the cached image, used to determine if we need to invalidate the cache.
     RectI snapshotRegion_; // Note: in device coordinate.
-
-    std::shared_ptr<RSFilterCacheTask> task_ = std::make_shared<RSFilterCacheTask>();
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -904,16 +904,14 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ RSColor(0xFF000000) }) }), // construct stack with default foreground color
-      blendModeStack_({std::nullopt})
+      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
 {}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
     : RSPaintFilterCanvasBase(surface ? surface->GetCanvas().get() : nullptr), surface_(surface),
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ RSColor(0xFF000000) }) }), // construct stack with default foreground color
-      blendModeStack_({std::nullopt})
+      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
 {}
 
 Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
@@ -938,7 +936,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
     }
 
     // use blendModeStack_.top() to set blend mode
-    if (auto& blendMode = blendModeStack_.top()) {
+    if (auto& blendMode = envStack_.top().blendMode_) {
         p.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
     }
 
@@ -971,7 +969,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     }
 
     // use blendModeStack_.top() to set blend mode
-    if (auto& blendMode = blendModeStack_.top()) {
+    if (auto& blendMode = envStack_.top().blendMode_) {
         b.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
     }
 #ifdef ENABLE_RECORDING_DCL
@@ -1003,7 +1001,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
     }
 
     // use blendModeStack_.top() to set blend mode
-    if (auto& blendMode = blendModeStack_.top()) {
+    if (auto& blendMode = envStack_.top().blendMode_) {
         p.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
     }
 
@@ -1094,6 +1092,7 @@ void RSPaintFilterCanvas::RestoreAlphaToCount(int count)
 
 void RSPaintFilterCanvas::SetBlendMode(std::optional<int> blendMode)
 {
+<<<<<<< HEAD
     blendModeStack_.top() = blendMode;
 }
 
@@ -1111,6 +1110,9 @@ void RSPaintFilterCanvas::RestoreBlendMode()
         return;
     }
     blendModeStack_.pop();
+=======
+    envStack_.top().blendMode_ = blendMode;
+>>>>>>> zhangpeng/master
 }
 
 std::optional<int> RSPaintFilterCanvas::GetBlendMode()

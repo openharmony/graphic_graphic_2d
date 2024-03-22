@@ -26,9 +26,6 @@
 #include "metadata_helper.h"
 
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-#include "pipeline/driven_render/rs_driven_surface_render_node.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -126,6 +123,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     return info;
 }
 
+<<<<<<< HEAD
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const
 {
 #if defined(RS_ENABLE_DRIVEN_RENDER)
@@ -153,6 +151,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNo
 #endif
 }
 
+=======
+>>>>>>> zhangpeng/master
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
@@ -727,44 +727,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     RS_OPTIONAL_TRACE_END();
     // do not crop or scale down for displayNode's layer.
     return layer;
-}
-
-LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& node)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    if (output_ == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
-        return nullptr;
-    }
-
-    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer RSDrivenSurfaceRenderNode id:%{public}" PRIu64 " available"
-        " buffer:%{public}d", node.GetId(), node.GetAvailableBufferCount());
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
-        return nullptr;
-    }
-
-    if (node.GetBuffer() == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer buffer is nullptr!");
-        return nullptr;
-    }
-
-    ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGD("RSUniRenderComposerAdapter::ProcessDrivenSurface drivenSurfaceNode id:%{public}" PRIu64 " DstRect"
-        " [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d %{public}d %{public}d]"
-        " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z-Order:%{public}d,"
-        " blendType = %{public}d",
-        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
-        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
-    LayerRotate(layer, node);
-    return layer;
-#else
-    return nullptr;
-#endif
 }
 
 LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)

@@ -239,9 +239,12 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));
+<<<<<<< HEAD
     if (nativeSurface.drawingSurface) {
         SKResourceManager::Instance().HoldResource(nativeSurface.drawingSurface);
     }
+=======
+>>>>>>> zhangpeng/master
 
     nativeSurface.image = image;
     if (nativeSurface.nativeWindowBuffer != nullptr) {

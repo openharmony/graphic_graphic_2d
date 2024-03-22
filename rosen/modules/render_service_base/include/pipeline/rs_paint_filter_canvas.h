@@ -158,14 +158,18 @@ public:
     void RestoreEnvToCount(int count);
 
     // blendmode related
-    int SaveBlendMode();
+    // int SaveBlendMode();
     void SetBlendMode(std::optional<int> blendMode);
+<<<<<<< HEAD
     void RestoreBlendMode();
     std::optional<int> GetBlendMode();
     void AddBlendOffscreenLayer(bool isExtra);
     void MinusBlendOffscreenLayer();
     bool IsBlendOffscreenExtraLayer() const;
     int GetBlendOffscreenLayerCnt() const;
+=======
+    // void RestoreBlendMode();
+>>>>>>> zhangpeng/master
 
     // save/restore utils
     struct SaveStatus {
@@ -242,6 +246,7 @@ protected:
     using Env = struct {
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
+        std::optional<int> blendMode_;
     };
     const std::stack<float>& GetAlphaStack();
     const std::stack<Env>& GetEnvStack();
@@ -266,11 +271,14 @@ private:
     Drawing::Surface* surface_ = nullptr;
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
+<<<<<<< HEAD
     
     // blendmode related
     std::stack<std::optional<int>> blendModeStack_;
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     std::stack<bool> blendOffscreenStack_;
+=======
+>>>>>>> zhangpeng/master
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };

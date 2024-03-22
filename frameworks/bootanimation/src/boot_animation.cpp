@@ -312,7 +312,11 @@ void BootAnimation::PlaySound()
         if (soundPlayer_ == nullptr) {
             soundPlayer_ = Media::PlayerFactory::CreatePlayer();
         }
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> zhangpeng/master
         while (soundPlayer_ == nullptr) {
             LOGE("CreatePlayer fail, soundPlayer_ is nullptr");
             soundPlayer_ = Media::PlayerFactory::CreatePlayer();

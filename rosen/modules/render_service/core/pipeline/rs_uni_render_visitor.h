@@ -25,10 +25,11 @@
 
 #include "rs_base_render_engine.h"
 
-#include "pipeline/driven_render/rs_driven_render_manager.h"
+#include "params/rs_render_thread_params.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
+#include "pipeline/rs_recording_canvas.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
@@ -52,10 +53,24 @@ public:
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
     ~RSUniRenderVisitor() override;
 
+    // To prepare nodes between displayRenderNode and app nodes.
+    void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) override;
+    void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
+    void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) override;
+    void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void QuickPrepareChildren(RSRenderNode& node) override;
+    /* Prepare relevant calculation */
+    // considering occlusion info for app surface as well as widget
+    bool IsSubTreeOccluded(RSRenderNode& node) const;
+    // restore node's flag and filter dirty collection
+    void PrepareChildrenAfter(RSRenderNode& node);
+    void CalculateOcclusion(RSSurfaceRenderNode& node);
+
     void PrepareChildren(RSRenderNode& node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
     void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override;
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override;
+    // prepareroot also used for quickprepare
     void PrepareRootRenderNode(RSRootRenderNode& node) override;
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
@@ -118,6 +133,7 @@ public:
         isHardwareForcedDisabled_ = true;
     }
 
+<<<<<<< HEAD
     void SetDrivenRenderFlag(bool hasDrivenNodeOnUniTree, bool hasDrivenNodeMarkRender)
     {
         if (!drivenInfo_) {
@@ -127,6 +143,12 @@ public:
         drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
     }
 
+=======
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
+#endif
+    void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
+>>>>>>> zhangpeng/master
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
@@ -205,8 +227,23 @@ private:
     void DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
         DirtyRegionType dirtyType, bool isDrawn = true);
 
+    bool InitDisplayInfo(RSDisplayRenderNode& node);
+
+    bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
+    bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
+    void UpdateSurfaceDirtyAndGlobalDirty();
+    void UpdateDirtysAndRedordInfoByFilter(RSRenderNode& node);
+
+    void UpdatePrepareclip(RSRenderNode& node);
+
+    void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+    void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+
+    void CheckMergeTransparentFilterForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        Occlusion::Region& accumulatedDirtyRegion);
+    void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
+
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
-    std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
      * when process canvas culling, canvas intersect with surface's visibledirty region or
@@ -294,7 +331,8 @@ private:
     void SetNodeCacheChangeStatus(RSRenderNode& node);
     void DisableNodeCacheInSetting(RSRenderNode& node);
     // update rendernode's cache status and collect valid cache rect
-    void UpdateForegroundFilterCacheWithDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
+    void UpdateForegroundFilterCacheWithDirty(RSRenderNode& node,
+        RSDirtyRegionManager& dirtyManager, bool isForeground = true);
 
     bool IsHardwareComposerEnabled();
 
@@ -320,6 +358,10 @@ private:
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
     bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node); // return if srcRect is allowed by dss restriction
+<<<<<<< HEAD
+=======
+    void RecordDrawCmdList(RSRenderNode& node);
+>>>>>>> zhangpeng/master
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 
     void SwitchColorFilterDrawing(int currentSaveCount);
@@ -331,20 +373,32 @@ private:
     void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
     void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 
+<<<<<<< HEAD
     // used to catch overdraw
     void StartOverDraw();
     void FinishOverDraw();
 
+=======
+>>>>>>> zhangpeng/master
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
     // Use in vulkan parallel rendering
     bool IsOutOfScreenRegion(RectI rect);
 
+<<<<<<< HEAD
     // used to catch overdraw
     std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
     std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
 
+=======
+    bool IsInTransparentSurfaceNode() const
+    {
+        return curSurfaceNode_ && curSurfaceNode_->IsTransparent();
+    }
+
+    sptr<RSScreenManager> screenManager_;
+>>>>>>> zhangpeng/master
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
@@ -449,10 +503,10 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodesInZOrder_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
+    // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
+    std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
-    // driven render
-    std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
     std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;
 
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
@@ -476,20 +530,39 @@ private:
     mutable std::mutex copyVisitorInfosMutex_;
     bool resetRotate_ = false;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
+<<<<<<< HEAD
+=======
+    // variable for occlusion
+    bool needRecalculateOcclusion_ = false;
+    Occlusion::Region accumulatedOcclusionRegion_;
+
+>>>>>>> zhangpeng/master
     bool curDirty_ = false;
     bool curContentDirty_ = false;
     bool isPhone_ = false;
     bool isPc_ = false;
     bool isCacheBlurPartialRenderEnabled_ = false;
     bool drawCacheWithBlur_ = false;
-    bool noNeedTodrawShadowAgain_ = false;
     bool notRunCheckAndSetNodeCacheType_ = false;
+    bool noNeedTodrawShadowAgain_ = false;
     int updateCacheProcessCnt_ = 0;
 
     NodeId firstVisitedCache_ = INVALID_NODEID;
     std::unordered_set<NodeId> visitedCacheNodeIds_ = {};
     std::unordered_map<NodeId, std::unordered_set<NodeId>> allCacheFilterRects_ = {};
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
+   
+    // record nodes in surface which has filter may influence golbalDirty
+    OcclusionRectISet globalFilter_;
+    // record container nodes which need filter
+    OcclusionRectISet containerFilter_;
+    // record nodes which has transparent clean filter
+    std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
+
+    std::vector<RectI> globalFilterRects_;
+    // visible filter in transparent surface or display must prepare
+    bool filterInGlobal_ = true;
+
     bool forceUpdateFlag_ = false;
 #ifdef ENABLE_RECORDING_DCL
     void tryCapture(float width, float height);
@@ -513,7 +586,7 @@ private:
     void UpdateVirtualScreenFilterAppRootId(const RSRenderNode::SharedPtr& node);
 
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
-    
+
     // dfx for effect render node
     void DrawEffectRenderNodeForDFX();
     std::vector<RectI> nodesUseEffectFallbackForDfx_;

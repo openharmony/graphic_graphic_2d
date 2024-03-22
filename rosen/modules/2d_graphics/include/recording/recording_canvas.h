@@ -21,6 +21,10 @@
 
 #include "draw/canvas.h"
 #include "image/gpu_context.h"
+<<<<<<< HEAD
+=======
+#include "recording/adaptive_image_helper.h"
+>>>>>>> zhangpeng/master
 #include "recording/draw_cmd_list.h"
 #include "recording/recording_handle.h"
 #ifdef ROSEN_OHOS
@@ -60,6 +64,7 @@ public:
 #endif
 
     void Clear() const;
+    void Reset(int32_t width, int32_t height, bool addDrawOpImmediate = true);
 
     void ResetCanvas(int32_t width, int32_t height);
 

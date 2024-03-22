@@ -107,7 +107,6 @@ RSRenderThread::RSRenderThread()
         ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s",
             prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
-        ApplyModifiers();
         Render();
         SendCommands();
         context_->activeNodesInRoot_.clear();
@@ -439,6 +438,7 @@ void RSRenderThread::Animate(uint64_t timestamp)
     }
 }
 
+<<<<<<< HEAD
 void RSRenderThread::ApplyModifiers()
 {
     std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
@@ -474,6 +474,8 @@ void RSRenderThread::ApplyModifiers()
     }
 }
 
+=======
+>>>>>>> zhangpeng/master
 void RSRenderThread::Render()
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {

@@ -28,8 +28,11 @@
 
 namespace OHOS {
 namespace Rosen {
+<<<<<<< HEAD
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr float PARALLEL_FILTER_RATIO_THRESHOLD = 0.8f;
+=======
+>>>>>>> zhangpeng/master
 constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
 const char* RSFilterCacheManager::GetCacheState() const
 {
@@ -42,19 +45,6 @@ const char* RSFilterCacheManager::GetCacheState() const
     }
 }
 
-#define CHECK_CACHE_PROCESS_STATUS                      \
-    do {                                                \
-        if (GetStatus() != CacheProcessStatus::DOING) { \
-            return false;                               \
-        }                                               \
-    } while (false)
-#ifndef ROSEN_ARKUI_X
-const bool RSFilterCacheManager::RSFilterCacheTask::FilterPartialRenderEnabled =
-    RSSystemProperties::GetFilterPartialRenderEnabled() && RSUniRenderJudgement::IsUniRender();
-#else
-const bool RSFilterCacheManager::RSFilterCacheTask::FilterPartialRenderEnabled = false;
-#endif
-bool RSFilterCacheManager::SoloTaskPrepare = true;
 inline static bool IsLargeArea(int width, int height)
 {
     // Use configurable threshold to determine if the area is large, and apply different cache policy.
@@ -83,6 +73,7 @@ void RSFilterCacheManager::UpdateCacheStateWithFilterHash(const std::shared_ptr<
         cachedFilterHash_, filterHash);
     cachedFilteredSnapshot_.reset();
 }
+<<<<<<< HEAD
 void RSFilterCacheManager::PostPartialFilterRenderInit(RSPaintFilterCanvas& canvas,
     const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect, bool& shouldClearFilteredCache)
 {
@@ -128,6 +119,8 @@ void RSFilterCacheManager::PostPartialFilterRenderInit(RSPaintFilterCanvas& canv
         PostPartialFilterRenderTask(filter, dstRect);
     }
 }
+=======
+>>>>>>> zhangpeng/master
 
 void RSFilterCacheManager::UpdateCacheStateWithFilterRegion()
 {
@@ -139,6 +132,22 @@ void RSFilterCacheManager::UpdateCacheStateWithFilterRegion()
     ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithFilterRegion Cache expired. Reason: Filter region is not "
                "within the cached region.");
     InvalidateCache();
+}
+
+void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion()
+{
+    if (!IsCacheValid()) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_FUNC();
+    if (cacheUpdateInterval_ > 0) {
+        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
+                    "invalidation for %{public}d frames.",
+            cacheUpdateInterval_);
+        pendingPurge_ = true;
+    } else {
+        InvalidateCache();
+    }
 }
 
 bool RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RSDirtyRegionManager& dirtyManager)
@@ -173,6 +182,7 @@ bool RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RSDirtyRegionMa
     }
 }
 
+<<<<<<< HEAD
 bool RSFilterCacheManager::RSFilterCacheTask::InitSurface(Drawing::GPUContext* grContext)
 {
     RS_OPTIONAL_TRACE_FUNC();
@@ -299,6 +309,8 @@ void RSFilterCacheManager::PostPartialFilterRenderTask(
     }
 }
 
+=======
+>>>>>>> zhangpeng/master
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
     const bool needSnapshotOutset, const std::optional<Drawing::RectI>& srcRect,
     const std::optional<Drawing::RectI>& dstRect)
@@ -321,6 +333,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     bool shouldClearFilteredCache = false;
     PostPartialFilterRenderInit(canvas, filter, dst, shouldClearFilteredCache);
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
+<<<<<<< HEAD
         if (RSFilterCacheTask::FilterPartialRenderEnabled && task_->IsCompleted()) {
             FilterPartialRender(canvas, filter, dst);
         } else {
@@ -344,16 +357,23 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     if (task_->GetStatus() == CacheProcessStatus::DOING && task_->isFirstInit_ &&
         task_->cachedFirstFilter_ == nullptr) {
         task_->cachedFirstFilter_ = cachedFilteredSnapshot_;
+=======
+        auto previousFilterHash = cachedFilterHash_;
+        GenerateFilteredSnapshot(canvas, filter, dst);
+        // If 1. the filter hash matches, 2. the filter region is whole snapshot region, we can safely clear original
+        // snapshot, else we need to clear the filtered snapshot.
+        shouldClearFilteredCache = previousFilterHash != cachedFilterHash_ || !isEqualRect(dst, snapshotRegion_);
+>>>>>>> zhangpeng/master
     }
     DrawCachedFilteredSnapshot(canvas, dst);
     if (filter->GetFilterType() == RSFilter::AIBAR) {
         shouldClearFilteredCache = false;
     }
-    task_->SetCompleted(false);
     // To reduce the memory consumption, we only keep either the cached snapshot or the filtered image.
     CompactCache(shouldClearFilteredCache);
 }
 
+<<<<<<< HEAD
 uint8_t RSFilterCacheManager::CalcDirectionBias(const Drawing::Matrix& mat)
 {
     uint8_t directionBias = 0;
@@ -370,6 +390,8 @@ uint8_t RSFilterCacheManager::CalcDirectionBias(const Drawing::Matrix& mat)
     return directionBias;
 }
 
+=======
+>>>>>>> zhangpeng/master
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManager::GeneratedCachedEffectData(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
     const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect,
@@ -458,6 +480,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     pendingPurge_ = false;
 }
 
+<<<<<<< HEAD
 void RSFilterCacheManager::FilterPartialRender(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect)
 {
@@ -482,6 +505,8 @@ void RSFilterCacheManager::FilterPartialRender(
     }
 }
 
+=======
+>>>>>>> zhangpeng/master
 void RSFilterCacheManager::GenerateFilteredSnapshot(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect)
 {
@@ -539,17 +564,9 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
     ClipVisibleRect(canvas);
 
     // The cache type and parameters has been validated, dstRect must be subset of cachedFilteredSnapshot_->cachedRect_.
-    Drawing::Rect dst(dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom());
-    Drawing::Rect src;
-    if (newCache_) {
-        src = { 0, 0, cachedFilteredSnapshot_->cachedImage_->GetWidth(),
-            cachedFilteredSnapshot_->cachedImage_->GetHeight() };
-    } else {
-        src = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom() };
-        src.Offset(-cachedFilteredSnapshot_->cachedRect_.GetLeft(), -cachedFilteredSnapshot_->cachedRect_.GetTop());
-        src.Intersect(Drawing::Rect(0, 0, cachedFilteredSnapshot_->cachedImage_->GetWidth(),
-            cachedFilteredSnapshot_->cachedImage_->GetHeight()));
-    }
+    Drawing::Rect dst = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom()};
+    Drawing::Rect src = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom()};
+    src.Offset(-cachedFilteredSnapshot_->cachedRect_.GetLeft(), -cachedFilteredSnapshot_->cachedRect_.GetTop());
 
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
@@ -575,6 +592,7 @@ void RSFilterCacheManager::ReleaseCacheOffTree()
     RS_OPTIONAL_TRACE_FUNC();
     cachedSnapshot_.reset();
     cachedFilteredSnapshot_.reset();
+<<<<<<< HEAD
     StopFilterPartialRender();
 }
 
@@ -598,6 +616,8 @@ void RSFilterCacheManager::StopFilterPartialRender()
         task_->GetHandler()->PostTask(
             [task_tmp]() { task_tmp->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+=======
+>>>>>>> zhangpeng/master
 }
 
 inline void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas)
@@ -659,12 +679,13 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
         // dst region is out of snapshot region, cache is invalid.
         // It should already be checked by UpdateCacheStateWithFilterRegion in prepare phase, we should never be here.
         ROSEN_LOGD("RSFilterCacheManager::ValidateParams Cache expired. Reason: dst region is out of snapshot region.");
-        if (!std::get<0>(forceCacheFlags) && !std::get<1>(forceCacheFlags)) {
+        if (!std::get<0>(forceCacheFlags) && !std::get<1>(forceCacheFlags) && IsCacheValid()) {
             InvalidateCache();
         }
     }
     return { src, dst };
 }
+<<<<<<< HEAD
 
 inline bool RSFilterCacheManager::IsClearFilteredCache(
     const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dst)
@@ -674,6 +695,8 @@ inline bool RSFilterCacheManager::IsClearFilteredCache(
     cachedFilterHash_ = filter->Hash();
     return previousFilterHash != cachedFilterHash_ || !isEqualRect(dst, snapshotRegion_);
 }
+=======
+>>>>>>> zhangpeng/master
 
 inline void RSFilterCacheManager::CompactCache(bool shouldClearFilteredCache)
 {

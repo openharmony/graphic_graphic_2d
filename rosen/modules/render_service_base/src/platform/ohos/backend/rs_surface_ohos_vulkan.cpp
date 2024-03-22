@@ -28,6 +28,10 @@
 #include "platform/common/rs_system_properties.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
+<<<<<<< HEAD
+=======
+
+>>>>>>> zhangpeng/master
 namespace OHOS {
 namespace Rosen {
 [[maybe_unused]] static void DestroySemaphore(void *context)

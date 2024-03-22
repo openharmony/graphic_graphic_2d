@@ -56,7 +56,12 @@ void RSRenderEngineTest::SetUp()
     }
     visitor_->renderEngine_ = std::make_shared<RSUniRenderEngine>();
     visitor_->renderEngine_->Init();
+<<<<<<< HEAD
     if (!RSSystemProperties::IsUseVulkan()) {
+=======
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+>>>>>>> zhangpeng/master
         visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas_.get());
     } else {
         const int canvasWidth = 10;

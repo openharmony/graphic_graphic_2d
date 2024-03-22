@@ -31,20 +31,21 @@ const RSProperties& RSRenderContent::GetRenderProperties() const
     return renderProperties_;
 }
 
-void RSRenderContent::DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas) const
-{
-    auto& drawablePtr = propertyDrawablesVec_[static_cast<size_t>(slot)];
-    if (!drawablePtr) {
-        return;
-    }
+// void RSRenderContent::DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas) const
+// {
+//     auto& drawablePtr = propertyDrawablesVec_[static_cast<size_t>(slot)];
+//     if (!drawablePtr) {
+//         return;
+//     }
 
-    auto recordingCanvas = canvas.GetRecordingCanvas();
-    if (recordingCanvas == nullptr || !canvas.GetRecordDrawable()) {
-        // non-recording canvas, draw directly
-        drawablePtr->Draw(*this, canvas);
-        return;
-    }
+//     auto recordingCanvas = canvas.GetRecordingCanvas();
+//     if (recordingCanvas == nullptr || !canvas.GetRecordDrawable()) {
+//         // non-recording canvas, draw directly
+//         drawablePtr->Draw(*this, canvas);
+//         return;
+//     }
 
+<<<<<<< HEAD
     auto castRecordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas());
     auto drawFunc = [sharedPtr = shared_from_this(), slot](Drawing::Canvas* canvas, const Drawing::Rect* rect) -> void {
         if (auto canvasPtr = static_cast<RSPaintFilterCanvas*>(canvas)) {
@@ -54,23 +55,35 @@ void RSRenderContent::DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintF
     // recording canvas, record lambda that draws the drawable
     castRecordingCanvas->DrawDrawFunc(std::move(drawFunc));
 }
+=======
+//     auto castRecordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas());
+//     auto drawFunc = [sharedPtr = shared_from_this(), slot](Drawing::Canvas* canvas, const Drawing::Rect* rect) -> void {
+//         if (auto canvasPtr = static_cast<RSPaintFilterCanvas*>(canvas)) {
+//             sharedPtr->DrawPropertyDrawable(slot, *canvasPtr);
+//         }
+//     };
+//     // recording canvas, record lambda that draws the drawable
+//     castRecordingCanvas->DrawDrawFunc(std::move(drawFunc));
+// }
+>>>>>>> zhangpeng/master
 
-void RSRenderContent::DrawPropertyDrawableRange(
-    RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas) const
-{
-    auto recordingCanvas = canvas.GetRecordingCanvas();
-    if (recordingCanvas == nullptr || !canvas.GetRecordDrawable()) {
-        // non-recording canvas, draw directly
-        std::for_each(propertyDrawablesVec_.begin() + static_cast<size_t>(begin),
-            propertyDrawablesVec_.begin() + static_cast<size_t>(end) + 1, // +1 since we need to include end
-            [&](auto& drawablePtr) {
-                if (drawablePtr) {
-                    drawablePtr->Draw(*this, canvas);
-                }
-            });
-        return;
-    }
+// void RSRenderContent::DrawPropertyDrawableRange(
+//     RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas) const
+// {
+//     auto recordingCanvas = canvas.GetRecordingCanvas();
+//     if (recordingCanvas == nullptr || !canvas.GetRecordDrawable()) {
+//         // non-recording canvas, draw directly
+//         std::for_each(propertyDrawablesVec_.begin() + static_cast<size_t>(begin),
+//             propertyDrawablesVec_.begin() + static_cast<size_t>(end) + 1, // +1 since we need to include end
+//             [&](auto& drawablePtr) {
+//                 if (drawablePtr) {
+//                     drawablePtr->Draw(*this, canvas);
+//                 }
+//             });
+//         return;
+//     }
 
+<<<<<<< HEAD
     auto castRecordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas());
     auto drawFunc =
         [sharedPtr = shared_from_this(), begin, end](Drawing::Canvas* canvas, const Drawing::Rect* rect) -> void {
@@ -81,6 +94,18 @@ void RSRenderContent::DrawPropertyDrawableRange(
     // recording canvas, record lambda that draws the drawable
     castRecordingCanvas->DrawDrawFunc(std::move(drawFunc));
 }
+=======
+//     auto castRecordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas());
+//     auto drawFunc =
+//         [sharedPtr = shared_from_this(), begin, end](Drawing::Canvas* canvas, const Drawing::Rect* rect) -> void {
+//         if (auto canvasPtr = static_cast<RSPaintFilterCanvas*>(canvas)) {
+//             sharedPtr->DrawPropertyDrawableRange(begin, end, *canvasPtr);
+//         }
+//     };
+//     // recording canvas, record lambda that draws the drawable
+//     castRecordingCanvas->DrawDrawFunc(std::move(drawFunc));
+// }
+>>>>>>> zhangpeng/master
 
 RSRenderNodeType RSRenderContent::GetType() const
 {

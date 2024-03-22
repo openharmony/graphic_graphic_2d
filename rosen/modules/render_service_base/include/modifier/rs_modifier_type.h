@@ -16,13 +16,16 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
 
+#include <bitset>
 #include <cstdint>
 
 namespace OHOS {
 namespace Rosen {
 // NOTE:
-// 1. MUST update g_propertyResetterLUT in rs_properties.cpp when new properties are added
-// 2. property modifier MUST be added before CUSTOM, else wise it will be treated as draw modifier
+// 1. Following LUTs must be updated according when this enum is updated :
+//    a. g_propertyResetterLUT in rs_properties.cpp
+//    b. g_propertyToDrawableLut in rs_drawable_content.cpp
+// 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, else wise it will not work
 enum class RSModifierType : int16_t {
     INVALID = 0,                   // 0
     BOUNDS,                        // 1
@@ -118,8 +121,13 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR,          // 91
     ENV_FOREGROUND_COLOR_STRATEGY, // 92
     GEOMETRYTRANS,                 // 93
+<<<<<<< HEAD
+=======
+    CHILDREN,                      // 94, PLACEHOLDER, no such modifier, but we need a dirty flag
+>>>>>>> zhangpeng/master
     MAX_RS_MODIFIER_TYPE,
 };
+using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
 
 enum class RSRenderPropertyType : int16_t {
     INVALID = 0,

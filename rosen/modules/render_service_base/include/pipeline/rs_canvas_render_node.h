@@ -52,15 +52,9 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override;
 
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
-
-    // functions that are dedicated to driven render [start]
-    RSB_EXPORT void ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas);
-    RSB_EXPORT void ProcessDrivenContentRender(RSPaintFilterCanvas& canvas);
-    RSB_EXPORT void ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas);
-    RSB_EXPORT RectF GetDrivenContentClipFrameRect() const;
-    // functions that are dedicated to driven render [end]
 
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
@@ -73,9 +67,6 @@ public:
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
-    // functions that are dedicated to driven render [start]
-    void DrawDrivenContent(RSPaintFilterCanvas& canvas);
-    // functions that are dedicated to driven render [end]
 
     void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);
     void DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas);

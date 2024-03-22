@@ -43,7 +43,11 @@ void FramePainter::Draw(Drawing::Canvas &canvas)
 
     auto width = canvas.GetWidth();
     auto height = canvas.GetHeight();
+<<<<<<< HEAD
     LOGD("FramePainter::Draw %{public}dx%{public}d", width, height);
+=======
+    ::OHOS::HiviewDFX::HiLog::Debug(LABEL, "FramePainter::Draw %{public}dx%{public}d", width, height);
+>>>>>>> zhangpeng/master
 
     constexpr auto normalFPS = 60;
     constexpr auto slowFPS = normalFPS / 2;

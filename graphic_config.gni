@@ -150,15 +150,20 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 # use_texgine = graphic_2d_feature_use_texgine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
+<<<<<<< HEAD
   rs_enable_driven_render = true
   graphic_2d_feature_enable_dvsync = true
+=======
+>>>>>>> zhangpeng/master
   gpu_defines += [
-    "RS_ENABLE_DRIVEN_RENDER",
     "RS_ENABLE_UNI_RENDER",
   ]
+<<<<<<< HEAD
 } else {
   rs_enable_driven_render = false
   graphic_2d_feature_enable_dvsync = false
+=======
+>>>>>>> zhangpeng/master
 }
 
 if (graphic_2d_feature_enable_afbc) {
