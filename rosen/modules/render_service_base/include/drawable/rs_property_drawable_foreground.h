@@ -29,6 +29,7 @@ class RuntimeEffect;
 class RuntimeShaderBuilder;
 } // namespace Drawing
 
+namespace DrawableV2 {
 class RSBinarizationDrawable : public RSDrawable {
 public:
     RSBinarizationDrawable() = default;
@@ -179,5 +180,6 @@ private:
     RectF boundsRect_;
     RectF stagingBoundsRect_;
 };
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_FOREGROUND_H

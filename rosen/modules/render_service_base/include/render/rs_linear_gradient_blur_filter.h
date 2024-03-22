@@ -47,15 +47,11 @@ public:
     {
         return nullptr;
     }
-    void SetCanvasChange(Drawing::Canvas& canvas) override
+    void SetCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) override
     {
-        auto surface = canvas.GetSurface();
-        auto width = surface->Width();
-        auto height = surface->Height();
-        Drawing::Matrix mat = canvas.GetTotalMatrix();
         mat_ = mat;
-        surfaceWidth_ = width;
-        surfaceHeight_ = height;
+        surfaceWidth_ = surfaceWidth;
+        surfaceHeight_ = surfaceHeight;
     }
 
 private:

@@ -27,8 +27,14 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen {
-// RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
+enum class RSModifierType : int16_t;
+namespace Drawing {
+class DrawCmdList;
+}
+
+namespace DrawableV2 {
 class RSRenderNodeDrawableAdapter;
+// RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
 class RSChildrenDrawable : public RSDrawable {
 public:
     RSChildrenDrawable() = default;
@@ -52,10 +58,6 @@ private:
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers
-enum class RSModifierType : int16_t;
-namespace Drawing {
-class DrawCmdList;
-}
 class RSCustomModifierDrawable : public RSDrawable {
 public:
     RSCustomModifierDrawable(RSModifierType type) : type_(type) {}
@@ -203,5 +205,6 @@ public:
     void OnSync() override {};
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 };
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_MISC_DRAWABLE_H

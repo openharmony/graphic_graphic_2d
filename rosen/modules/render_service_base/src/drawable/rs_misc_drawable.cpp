@@ -20,7 +20,7 @@
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
-
+namespace DrawableV2 {
 // ==================== RSChildrenDrawable =====================
 RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 {
@@ -63,7 +63,7 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (RSSystemProperties::GetUseShadowBatchingEnabled() && ptr->useShadowBatch_) {
+        if (ptr->useShadowBatch_) {
             for (const auto& drawable : ptr->childrenDrawableVec_) {
                 drawable->DrawShadow(*canvas);
             }
@@ -331,5 +331,5 @@ Drawing::RecordingCanvas::DrawFunc RSEnvFGColorDrawable::CreateDrawFunc() const
         paintFilterCanvas->SetEnvForegroundColor(ptr->envFGColor_);
     };
 }
-
+} // namespace DrawableV2
 } // namespace OHOS::Rosen

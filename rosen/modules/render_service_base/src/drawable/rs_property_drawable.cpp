@@ -24,6 +24,7 @@
 #include "property/rs_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
+namespace DrawableV2 {
 void RSPropertyDrawable::OnSync()
 {
     if (!needSync_) {
@@ -196,4 +197,5 @@ void RSFilterDrawable::ClearFilterCache()
         cacheManager_->UpdateCacheStateWithDirtyRegion();
     }
 }
+} // namespace DrawableV2
 } // namespace OHOS::Rosen

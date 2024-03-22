@@ -21,6 +21,7 @@
 namespace OHOS::Rosen {
 class RSEffectRenderNode;
 
+namespace DrawableV2 {
 class RSEffectRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     explicit RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -34,5 +35,6 @@ private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::EFFECT_NODE, OnGenerate>;
     static Registrar instance_;
 };
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H

@@ -53,6 +53,9 @@ namespace Rosen {
 namespace Drawing {
 class DrawCmdList;
 }
+namespace DrawableV2 {
+class RSRenderNodeDrawable;
+}
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
@@ -561,7 +564,7 @@ protected:
     NodeId drawingCacheRootId_ = INVALID_NODEID;
     bool mustRenewedInfo_ = false;
 
-    std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)> dirtyTypes_;
+    ModifierDirtyTypes dirtyTypes_;
     bool isBootAnimation_ = false;
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
@@ -728,6 +731,7 @@ private:
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
     void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
+    void UpdateDrawableVecV2();
     void UpdateDisplayList();
     void UpdateShadowRect();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
@@ -776,7 +780,7 @@ private:
     friend class RSRenderNodeMap;
     friend class RSRenderThread;
     friend class RSRenderTransition;
-    friend class RSRenderNodeDrawable;
+    friend class DrawableV2::RSRenderNodeDrawable;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

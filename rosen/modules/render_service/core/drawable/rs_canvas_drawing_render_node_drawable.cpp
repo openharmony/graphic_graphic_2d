@@ -18,7 +18,7 @@
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::instance_;
 
 RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
@@ -114,4 +114,4 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(
     canvas.DetachPaint();
 }
 
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2

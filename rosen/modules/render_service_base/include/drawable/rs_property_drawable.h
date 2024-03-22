@@ -26,7 +26,9 @@ namespace OHOS::Rosen {
 class RSRenderNode;
 class RSFilter;
 class RSFilterCacheManager;
+class ExtendRecordingCanvas;
 
+namespace DrawableV2 {
 class RSPropertyDrawable : public RSDrawable {
 public:
     RSPropertyDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : drawCmdList_(std::move(drawCmdList)) {}
@@ -47,7 +49,6 @@ protected:
     friend class RSShadowDrawable;
 };
 
-class ExtendRecordingCanvas;
 class RSPropertyDrawCmdListUpdater {
 public:
     // not copyable and moveable
@@ -136,5 +137,6 @@ protected:
     bool filterInteractWithDirty_ = false;
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
 };
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_H

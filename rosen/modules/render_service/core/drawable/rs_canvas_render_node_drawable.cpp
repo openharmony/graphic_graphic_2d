@@ -22,7 +22,7 @@
 #include "rs_trace.h"
 #include "utils/rect.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
 
 RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
@@ -132,4 +132,4 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     RSRenderNodeDrawable::OnCapture(canvas);
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2

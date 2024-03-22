@@ -50,7 +50,7 @@ private:
     RSRenderNodeType type_ = RSRenderNodeType::UNKNOW;
 
     friend class RSRenderNode;
-    friend class RSCustomModifierDrawCmdList;
+    friend class RSModifierDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

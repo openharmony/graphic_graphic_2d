@@ -164,7 +164,10 @@ public:
     // void AddBlendOffscreenLayer(bool isExtra);
     // void MinusBlendOffscreenLayer();
     // bool IsBlendOffscreenExtraLayer() const;
-    // int GetBlendOffscreenLayerCnt() const;
+    int GetBlendOffscreenLayerCnt() const
+    {
+        return 0;
+    };
 
     // save/restore utils
     struct SaveStatus {

@@ -44,11 +44,13 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
+namespace DrawableV2 {
+class RSBackgroundImageDrawable;
+class RSBackgroundFilterDrawable;
+class RSShadowDrawable;
+class RSFilterDrawable;
+}
 class RSB_EXPORT RSProperties final {
-friend class RSBackgroundImageDrawable;
-friend class RSBackgroundFilterDrawable;
-friend class RSShadowDrawable;
-friend class RSFilterDrawable;
 public:
     RSProperties();
     RSProperties(const RSProperties&) = delete;
@@ -471,6 +473,11 @@ private:
     friend class RSModifierDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
+
+    friend class DrawableV2::RSBackgroundImageDrawable;
+    friend class DrawableV2::RSBackgroundFilterDrawable;
+    friend class DrawableV2::RSShadowDrawable;
+    friend class DrawableV2::RSFilterDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

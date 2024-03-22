@@ -312,6 +312,7 @@ void BootAnimation::PlaySound()
         if (soundPlayer_ == nullptr) {
             soundPlayer_ = Media::PlayerFactory::CreatePlayer();
         }
+
         while (soundPlayer_ == nullptr) {
             LOGE("CreatePlayer fail, soundPlayer_ is nullptr");
             soundPlayer_ = Media::PlayerFactory::CreatePlayer();

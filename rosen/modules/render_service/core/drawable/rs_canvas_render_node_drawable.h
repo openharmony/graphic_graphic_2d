@@ -18,7 +18,7 @@
 
 #include "drawable/rs_render_node_drawable.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 class RSCanvasRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -35,6 +35,5 @@ private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
     static Registrar instance_;
 };
-
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2
 #endif // RENDER_SERVICE_DRAWABLE_RS_CANVAS_RENDER_NODE_DRAWABLE_H

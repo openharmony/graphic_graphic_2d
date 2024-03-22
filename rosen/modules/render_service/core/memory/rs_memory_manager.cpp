@@ -48,6 +48,7 @@ namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
 constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
+constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 }
 
@@ -58,6 +59,9 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const Drawing::GPUContext* g
     }
     if (type.empty() || type == MEM_CPU_TYPE) {
         DumpDrawingCpuMemory(log);
+    }
+    if (type.empty() || type == MEM_GPU_TYPE) {
+        DumpDrawingGpuMemory(log, gpuContext);
     }
     if (type.empty() || type == MEM_JEMALLOC_TYPE) {
         std::string out;

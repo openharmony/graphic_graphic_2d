@@ -3949,29 +3949,6 @@ void RSUniRenderVisitor::AlignGlobalAndSurfaceDirtyRegions(std::shared_ptr<RSDis
     }
 }
 
-std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &region)
-{
-    const std::vector<Occlusion::Rect>& rects = region.GetRegionRects();
-    std::vector<RectI> retRects;
-    for (const Occlusion::Rect& rect : rects) {
-        // origin transformation
-#ifdef RS_ENABLE_VK
-        if (RSSystemProperties::IsUseVulkan()) {
-            retRects.emplace_back(RectI(rect.left_, rect.top_,
-                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-        } else {
-            retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
-                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-        }
-#else
-        retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
-            rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-#endif
-    }
-    RS_LOGD("GetDirtyRects size %{public}d %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
-    return retRects;
-}
-
 void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
 {
     if (node.IsStaticCached()) {

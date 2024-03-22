@@ -112,7 +112,7 @@ void RSUniRenderThread::Start()
             RS_LOGE("rootNode is nullptr");
             return;
         }
-        rootNodeDrawable_ = std::make_unique<RSRenderNodeDrawable>(rootNode);
+        rootNodeDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
     }
 }
 

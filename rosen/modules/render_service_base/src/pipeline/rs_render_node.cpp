@@ -1464,24 +1464,18 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         return;
     }
 
-    if (!isForeground) {
-        if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]) {
-            if (dirtyManager.GetCurrentFrameDirtyRegion().Intersect(lastFilterRegion_)){
-                backgroundFilterInteractWithDirty_ = true;
-                auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
-                filterDrawable->MarkFilterRegionInteractWithDirty();
-                UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
-            }
-        }
+    if (!dirtyManager.GetCurrentFrameDirtyRegion().Intersect(lastFilterRegion_)) {
         return;
     }
-    if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)]) {
-        if (dirtyManager.GetCurrentFrameDirtyRegion().Intersect(lastFilterRegion_)){
-            foregroundFilterInteractWithDirty_ = true;
-            auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
-            filterDrawable->MarkFilterRegionInteractWithDirty();
-            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::FOREGROUND_FILTER);
-        }
+
+    auto slot = isForeground ? RSDrawableSlot::FOREGROUND_FILTER : RSDrawableSlot::BACKGROUND_FILTER;
+    auto& flag = isForeground ? foregroundFilterInteractWithDirty_ : backgroundFilterInteractWithDirty_;
+
+    if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
+        flag = true;
+        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+        filterDrawable->MarkFilterRegionInteractWithDirty();
+        UpdateDirtySlotsAndPendingNodes(slot);
     }
 #endif
 }
@@ -1493,24 +1487,17 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
     if (!RSProperties::FilterCacheEnabled || !GetRenderProperties().NeedFilter()) {
         return;
     }
+    if (oldDirty_.IsInsideOf(lastFilterRegion_)) {
+        return;
+    }
+    auto slot = isForeground ? RSDrawableSlot::FOREGROUND_FILTER : RSDrawableSlot::BACKGROUND_FILTER;
+    auto& flag = isForeground ? foregroundFilterRegionChanged_ : backgroundFilterRegionChanged_;
 
-    if (!oldDirty_.IsInsideOf(lastFilterRegion_)) {
-        if (!isForeground) {
-            if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]) {
-                backgroundFilterRegionChanged_ = true;
-                auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
-                filterDrawable->MarkFilterRegionChanged();
-                UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
-            }
-            return;
-        }
-
-        if (auto& drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)]) {
-            foregroundFilterRegionChanged_ = true;
-            auto filterDrawable = std::static_pointer_cast<RSFilterDrawable>(drawable);
-            filterDrawable->MarkFilterRegionChanged();
-            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::FOREGROUND_FILTER);
-        }
+    if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
+        flag = true;
+        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+        filterDrawable->MarkFilterRegionChanged();
+        UpdateDirtySlotsAndPendingNodes(slot);
     }
 #endif
 }
@@ -1711,7 +1698,8 @@ void RSRenderNode::ApplyModifiers()
     // Temporary code, copy matrix into render params
     // TODO: only run UpdateRenderParams on matrix change
     UpdateRenderParams();
-    UpdateDrawableVec();
+    // UpdateDrawableVec();
+    UpdateDrawableVecV2();
 
     if (stagingRenderParams_->NeedSync() || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
         if (auto context = GetContext().lock()) {
@@ -1752,6 +1740,11 @@ void RSRenderNode::UpdateDrawableVec()
                 node->UpdateDrawableVecInternal(dirtySlots);
             }
         });
+    }
+}
+
+void RSRenderNode::UpdateDrawableVecV2()
+{
     // Step 1: Collect dirty slots
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
 
@@ -2085,6 +2078,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #else
         width = boundsWidth_;
         height = boundsHeight_;
+#endif
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {

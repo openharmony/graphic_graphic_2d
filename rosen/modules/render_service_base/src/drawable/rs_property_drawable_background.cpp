@@ -25,6 +25,7 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
+namespace DrawableV2 {
 namespace {
 bool g_forceBgAntiAlias = true;
 }
@@ -532,5 +533,5 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBl
     builder->SetUniform("dynamicLightUpDeg", degree * alpha);
     return builder->MakeBlender();
 }
-
+} // namespace DrawableV2
 } // namespace OHOS::Rosen

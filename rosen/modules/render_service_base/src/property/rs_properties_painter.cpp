@@ -641,7 +641,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
         if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
             filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
-            filter->SetCanvasChange(canvas);
         }
         cacheManager->DrawFilter(canvas, filter, needSnapshotOutset);
         return;

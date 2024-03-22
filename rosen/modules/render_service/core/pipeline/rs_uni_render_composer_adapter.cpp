@@ -123,33 +123,6 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     return info;
 }
 
-ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
-    const RectI dstRect = node.GetDstRect();
-    const auto& srcRect = node.GetSrcRect();
-    ComposeInfo info {};
-    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
-    info.dstRect = GraphicIRect {dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_};
-    info.boundRect = info.dstRect;
-    info.visibleRect = info.dstRect;
-    info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
-    info.alpha.enGlobalAlpha = true;
-    info.alpha.gAlpha = GLOBAL_ALPHA_MAX;
-    SetPreBufferInfo(node, info);
-    info.buffer = buffer;
-    info.fence = node.GetAcquireFence();
-    info.blendType = GRAPHIC_BLEND_SRCOVER;
-    info.needClient = false;
-    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
-    info.gravity = static_cast<int32_t>(Gravity::RESIZE);
-    return info;
-#else
-    return {};
-#endif
-}
-
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.

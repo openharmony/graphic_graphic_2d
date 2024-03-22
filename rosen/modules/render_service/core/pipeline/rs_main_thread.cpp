@@ -1369,19 +1369,6 @@ void RSMainThread::SetSurfaceCapProcFinished(bool flag)
     surfaceCapProcFinished_ = flag;
 }
 
-void RSMainThread::NotifyDrivenRenderFinish()
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    if (std::this_thread::get_id() != Id()) {
-        std::lock_guard<std::mutex> lock(drivenRenderMutex_);
-        drivenRenderFinished_ = true;
-        drivenRenderCond_.notify_one();
-    } else {
-        drivenRenderFinished_ = true;
-    }
-#endif
-}
-
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
@@ -2393,28 +2380,13 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             return;
         }
         rootNode->DumpTree(0, dumpString);
+
+        dumpString += "\n====================================\n";
+        RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
     } else {
         dumpString += g_dumpStr;
         g_dumpStr = "";
     }
-}
-
-void RSMainThread::RenderServiceTreeDump(std::string& dumpString) const
-{
-    RS_TRACE_NAME("GetDumpTree");
-    dumpString.append("Animating Node: [");
-    for (auto& [nodeId, _]: context_->animatingNodeList_) {
-        dumpString.append(std::to_string(nodeId) + ", ");
-    }
-    dumpString.append("];\n");
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode == nullptr) {
-        dumpString.append("rootNode is null\n");
-        return;
-    }
-    rootNode->DumpTree(0, dumpString);
-    dumpString += "\n====================================\n";
-    RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
 }
 
 bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode)

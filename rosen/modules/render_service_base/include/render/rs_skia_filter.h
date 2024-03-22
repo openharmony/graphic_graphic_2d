@@ -38,7 +38,7 @@ public:
     virtual void PostProcess(Drawing::Canvas& canvas) {};
     virtual void SetGreyCoef(const std::optional<Vector2f>& greyCoef) {};
     virtual bool CanSkipFrame() const { return false; };
-    virtual void SetCanvasChange(Drawing::Canvas& canvas) {};
+    virtual void SetCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) {};
     virtual void SetBoundsGeometry(float geoWidth, float geoHeight) {};
 
 protected:

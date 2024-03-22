@@ -19,7 +19,7 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
 
 RSEffectRenderNodeDrawable::RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
@@ -56,4 +56,4 @@ void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     canvas.ConcatMatrix(params->GetMatrix());
     RSRenderNodeDrawable::OnCapture(canvas);
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2

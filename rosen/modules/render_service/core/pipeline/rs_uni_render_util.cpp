@@ -343,39 +343,6 @@ bool RSUniRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo&
     return false;
 }
 
-void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
-    float alpha, const std::string& extraInfo)
-{
-    if (rect.width_ <= 0 || rect.height_ <= 0) {
-        RS_LOGD("DrawRectForDfx rect is invalid.");
-        return;
-    }
-    RS_LOGD("DrawRectForDfx current rect = %{public}s", rect.ToString().c_str());
-    auto dstRect = Drawing::Rect(rect.left_, rect.top_,
-        rect.left_ + rect.width_, rect.top_ + rect.height_);
-
-    std::string position = rect.ToString() + extraInfo;
-
-    const int defaultTextOffsetX = 6; // text position is 6 pixelSize right side of the Rect
-    const int defaultTextOffsetY = 30; // text position has 30 pixelSize under the Rect
-    Drawing::Brush rectBrush;
-    std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
-
-    // font size: 24
-    std::shared_ptr<Drawing::TextBlob> textBlob =
-        Drawing::TextBlob::MakeFromString(position.c_str(), Drawing::Font(typeFace, 24.0f, 1.0f, 0.0f));
-
-    rectBrush.SetColor(color);
-    rectBrush.SetAntiAlias(true);
-    rectBrush.SetAlphaF(alpha);
-    canvas.AttachBrush(rectBrush);
-    canvas.DrawRect(dstRect);
-    canvas.DetachBrush();
-    canvas.AttachBrush(Drawing::Brush());
-    canvas.DrawTextBlob(textBlob.get(), rect.left_ + defaultTextOffsetX, rect.top_ + defaultTextOffsetY);
-    canvas.DetachBrush();
-}
-
 Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits)
 {
     Occlusion::Region alignedRegion;

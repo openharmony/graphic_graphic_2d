@@ -28,7 +28,7 @@
 #include "skia_adapter/skia_canvas.h"
 #include "src/core/SkCanvasPriv.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 
 namespace {
@@ -587,4 +587,4 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
 }
 
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2

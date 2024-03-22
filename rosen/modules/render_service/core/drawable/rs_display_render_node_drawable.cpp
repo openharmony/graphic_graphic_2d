@@ -38,7 +38,8 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-namespace OHOS::Rosen {
+
+namespace OHOS::Rosen::DrawableV2 {
 RSDisplayRenderNodeDrawable::Registrar RSDisplayRenderNodeDrawable::instance_;
 
 RSDisplayRenderNodeDrawable::RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
@@ -471,4 +472,4 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(
         canvas.DetachBrush();
     }
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2
