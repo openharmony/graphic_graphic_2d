@@ -1790,9 +1790,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     bool useLineStyle = true;
     OH_Drawing_SetTypographyTextUseLineStyle(typoStyle, useLineStyle);
-    bool result = OH_Drawing_TypographyTextGetUseLineStyle(typoStyle);
+    bool result = OH_Drawing_TypographyTextGetLineStyle(typoStyle);
     EXPECT_TRUE(result == true);
-    result = OH_Drawing_TypographyTextGetUseLineStyle(nullptr);
+    result = OH_Drawing_TypographyTextGetLineStyle(nullptr);
     EXPECT_TRUE(result == false);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     typoStyle = nullptr;

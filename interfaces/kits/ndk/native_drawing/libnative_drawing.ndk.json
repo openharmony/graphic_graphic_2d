@@ -318,7 +318,7 @@
     { "name": "OH_Drawing_TypographyMarkDirty" },
     { "name": "OH_Drawing_TypographyGetUnresolvedGlyphsCount" },
     { "name": "OH_Drawing_TypographyUpdateFontSize" },
-    { "name": "OH_Drawing_TypographyTextGetUseLineStyle" },
+    { "name": "OH_Drawing_TypographyTextGetLineStyle" },
     { "name": "OH_Drawing_TypographyTextlineStyleGetFontStyle" },
     { "name": "OH_Drawing_TypographyTextlineStyleGetFontWeight" },
     { "name": "OH_Drawing_TypographyTextlineStyleGetFontFamilies" },

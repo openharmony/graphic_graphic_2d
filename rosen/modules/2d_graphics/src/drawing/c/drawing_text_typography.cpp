@@ -2123,7 +2123,7 @@ void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography* typography, size
     ConvertToOriginalText<Typography>(typography)->UpdateFontSize(from, to, fontSize);
 }
 
-bool OH_Drawing_TypographyTextGetUseLineStyle(OH_Drawing_TypographyStyle* style)
+bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)
 {
     if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
         return false;

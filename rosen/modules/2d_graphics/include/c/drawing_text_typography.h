@@ -1982,7 +1982,7 @@ void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography*, size_t from, si
  * @since 12
  * @version 1.0
  */
-bool OH_Drawing_TypographyTextGetUseLineStyle(OH_Drawing_TypographyStyle*);
+bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle*);
 
 /**
  * @brief Get the font weight of line style for text typography.
