@@ -95,7 +95,11 @@ public:
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
-    sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
+
+    std::vector<sptr<SyncFence>> historicalPresentfences_;
+    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::INVALID_FENCE;
+    int32_t presentFenceIndex_ = 0;
+
     sptr<SurfaceBuffer> currFrameBuffer_ = nullptr;
     sptr<SurfaceBuffer> lastFrameBuffer_ = nullptr;
 
