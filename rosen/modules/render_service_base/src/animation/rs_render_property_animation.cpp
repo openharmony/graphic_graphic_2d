@@ -19,6 +19,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -93,6 +94,7 @@ bool RSRenderPropertyAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
     if (!RSRenderPropertyBase::Unmarshalling(parcel, originValue_)) {
         return false;
     }

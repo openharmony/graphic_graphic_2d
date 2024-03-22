@@ -21,8 +21,8 @@
 #endif
 #include "egl_wrapper_context.h"
 #include "egl_wrapper_surface.h"
-#include "../thread_private_data_ctl.h"
-#include "../wrapper_log.h"
+#include "thread_private_data_ctl.h"
+#include "wrapper_log.h"
 #include "egl_blob_cache.h"
 namespace OHOS {
 EglWrapperDisplay EglWrapperDisplay::wrapperDisp_;

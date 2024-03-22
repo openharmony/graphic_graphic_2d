@@ -16,7 +16,7 @@
 #include "egl_wrapper_object.h"
 
 #include "egl_wrapper_display.h"
-#include "../wrapper_log.h"
+#include "wrapper_log.h"
 namespace OHOS {
 EglWrapperObject::EglWrapperObject(EglWrapperDisplay *disp) : display_(disp)
 {

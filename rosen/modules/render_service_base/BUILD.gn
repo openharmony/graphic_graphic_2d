@@ -296,12 +296,6 @@ ohos_source_set("render_service_base_src") {
       "src/pipeline/rs_uni_render_judgement.cpp",
       "src/pipeline/sk_resource_manager.cpp",
 
-      #property
-      "src/property/rs_property_drawable.cpp",
-      "src/property/rs_property_drawable_bounds_geometry.cpp",
-      "src/property/rs_property_drawable_frame_geometry.cpp",
-      "src/property/rs_property_drawable_utilities.cpp",
-
       #transaction
       "src/transaction/rs_hgm_config_data.cpp",
       "src/transaction/rs_occlusion_data.cpp",
@@ -456,6 +450,17 @@ ohos_source_set("render_service_base_src") {
     sources += ddgr_ext_configs.libddgr_ext_adaptor_base_sources
     include_dirs += ddgr_ext_configs.libddgr_ext_adaptor_include_dirs
   }
+
+  #profiler
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+    sources += [
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
+    ]
+  }
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
   if (defined(graphic_2d_ext_configs.vendor_root)) {
     sources -= graphic_2d_ext_configs.librender_service_base_ext_sources_del

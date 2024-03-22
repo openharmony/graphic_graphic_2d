@@ -989,7 +989,7 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
     Drawing::RectI globalClipBounds = canvas->GetDeviceClipBounds();
-    if (globalClipBounds.GetWidth() == 1 && !callFromCacheFunc_) {
+    if ((globalClipBounds.GetWidth() == 1 || globalClipBounds.GetHeight() == 1) && !callFromCacheFunc_) {
         // if the ClipBound's width == 1, the textblob will draw outside of the clip,
         // this is a workround for this case
         if (!cacheImage_) {

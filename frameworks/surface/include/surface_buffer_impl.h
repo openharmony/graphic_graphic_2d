@@ -93,6 +93,8 @@ public:
     GSError ReadBufferRequestConfig(MessageParcel &parcel) override;
     const BufferRequestConfig* GetBufferRequestConfig() const override;
     void SetBufferRequestConfig(const BufferRequestConfig &config) override;
+    void SetConsumerAttachBufferFlag(bool value) override;
+    bool GetConsumerAttachBufferFlag() override;
 
 private:
     void FreeBufferHandleLocked();
@@ -107,6 +109,7 @@ private:
     int32_t surfaceBufferHeight_ = 0;
     mutable std::mutex mutex_;
     BufferRequestConfig bufferRequestConfig_;
+    bool isConsumerAttachBufferFlag_ = false;
 };
 } // namespace OHOS
 

@@ -21,7 +21,7 @@
 #include "directory_ex.h"
 
 #include "egl_defs.h"
-#include "../wrapper_log.h"
+#include "wrapper_log.h"
 
 using namespace OHOS;
 namespace OHOS {

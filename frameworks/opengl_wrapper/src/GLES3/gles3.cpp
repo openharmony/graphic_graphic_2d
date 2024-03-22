@@ -16,9 +16,9 @@
 #include <dlfcn.h>
 #include <string>
 
-#include "../hook.h"
-#include "../thread_private_data_ctl.h"
-#include "../wrapper_log.h"
+#include "hook.h"
+#include "thread_private_data_ctl.h"
+#include "wrapper_log.h"
 
 using GetGlHookTableFunc = OHOS::GlHookTable* (*)();
 template<typename Func = void*>
@@ -68,6 +68,6 @@ GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookT
 
 extern "C" {
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#include "../gl3_hook_entries.in"
+#include "gl3_hook_entries.in"
 #pragma GCC diagnostic warning "-Wunused-parameter"
 }

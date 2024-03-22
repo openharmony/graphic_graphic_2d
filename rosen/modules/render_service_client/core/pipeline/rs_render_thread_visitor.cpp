@@ -944,6 +944,7 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
         ROSEN_LOGE("ProcessTextureSurfaceRenderNode %{public}" PRIu64, node.GetId());
         return;
     }
+    node.ApplyModifiers();
     auto clipRect = RSPaintFilterCanvas::GetLocalClipBounds(*canvas_);
     if (!clipRect.has_value() ||
         clipRect->GetWidth() < std::numeric_limits<float>::epsilon() ||

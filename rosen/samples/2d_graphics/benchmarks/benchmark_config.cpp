@@ -19,7 +19,7 @@ namespace OHOS {
 namespace Rosen {
 enum BenchMarkName BenchmarkConfig::benchMarkType_ = BenchMarkName::LASTNAME;
 
-void BenchmarkConfig::SetBenchMarkType(std::string type)
+void BenchmarkConfig::SetBenchMarkType(const std::string &type)
 {
     std::cout << "type is " << type << std::endl;
     if (type == "singlethread") {

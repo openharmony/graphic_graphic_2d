@@ -115,6 +115,14 @@ public:
     {
         (void)config;
     };
+    virtual void SetConsumerAttachBufferFlag(bool value)
+    {
+        (void)value;
+    };
+    virtual bool GetConsumerAttachBufferFlag()
+    {
+        return false;
+    };
 
 protected:
     SurfaceBuffer() {}

@@ -20,7 +20,10 @@
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
 namespace {
-constexpr HiLogLabel LABEL = { LOG_CORE, 0xD001400, "SyncFence" };
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+#undef LOG_TAG
+#define LOG_TAG "SyncFence"
 }
 
 SyncFenceTracker::SyncFenceTracker(const std::string threadName)
@@ -58,7 +61,7 @@ void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
         RS_TRACE_NAME_FMT("Waiting for %s %d", threadName_.c_str(), fenceIndex);
         int32_t result = fence->Wait(SYNC_TIME_OUT);
         if (result < 0) {
-            HiLog::Debug(LABEL, "Error waiting for SyncFence: %s", strerror(result));
+            HILOG_DEBUG(LOG_CORE, "Error waiting for SyncFence: %s", strerror(result));
         }
     }
     fencesSignaled_++;

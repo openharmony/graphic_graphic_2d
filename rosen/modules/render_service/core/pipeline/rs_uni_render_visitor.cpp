@@ -487,11 +487,10 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         return true;
     }
     // subroot's dirty and cached filter should be count for parent root
-    if (!isDrawingCacheChanged_.empty() &&
-        (curDirty_ && !node.IsVisibleChanged() && node.ShouldPaint() && !ROSEN_EQ(node.GetGlobalAlpha(), 0.f))) {
+    if (!isDrawingCacheChanged_.empty()) {
         // Any child node dirty causes cache change
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus child:%" PRIu64 "", node.GetId());
-        isDrawingCacheChanged_.top() = true;
+        isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || curDirty_;
     }
     if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
         (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect() ||
@@ -507,8 +506,7 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
             return false;
         }
         // For rootnode, init drawing changes only if there is any content dirty
-        isDrawingCacheChanged_.push(curContentDirty_ &&
-            !node.IsVisibleChanged() && node.ShouldPaint() && !ROSEN_EQ(node.GetGlobalAlpha(), 0.f));
+        isDrawingCacheChanged_.push(curContentDirty_);
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateCacheChangeStatus: cachable node %" PRIu64 ""
             "contentDirty(cacheChanged): %d", node.GetId(), static_cast<int>(isDrawingCacheChanged_.top()));
         curCacheFilterRects_.push({});
@@ -2312,8 +2310,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mirrorAutoRotate_ = true;
         }
         canvas_->Save();
-        ScaleMirrorIfNeed(node);
-        RotateMirrorCanvasIfNeed(node);
+        bool canvasRotation = screenManager->GetCanvasRotation(node.GetScreenId());
+        ScaleMirrorIfNeed(node, canvasRotation);
+        RotateMirrorCanvasIfNeed(node, canvasRotation);
         bool forceCPU = false;
         auto params = RSUniRenderUtil::CreateBufferDrawParam(*mirrorNode, forceCPU);
         params.isMirror = true;
@@ -2353,9 +2352,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
                 RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode screen recording optimization is enable");
                 ScaleMirrorIfNeed(node, canvasRotation);
-                if (canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
-                    RotateMirrorCanvasIfNeed(node);
-                }
+                RotateMirrorCanvasIfNeed(node, canvasRotation);
                 canvas_->Save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
                 if (resetRotate_) {
@@ -2385,9 +2382,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 mirrorNode->SetCacheImgForCapture(nullptr);
                 auto saveCount = canvas_->Save();
                 ScaleMirrorIfNeed(node, canvasRotation);
-                if (canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
-                    RotateMirrorCanvasIfNeed(node);
-                }
+                RotateMirrorCanvasIfNeed(node, canvasRotation);
                 PrepareOffscreenRender(*mirrorNode);
                 canvas_->SetDisableFilterCache(true);
                 ProcessChildren(*mirrorNode);
@@ -3000,8 +2995,14 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
     }
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
-        displayDirtyManager->MergeDirtyRect(tempRect);
+        displayDirtyManager->MergeDirtyRect(tempRect, true);  // true：debugRect for dislplayNode skip
     }
+
+#ifdef RS_PROFILER_ENABLED
+    RS_LOGD("CalcDirtyRegion RSSystemProperties::GetFullDirtyScreenEnabled()");
+    std::pair<uint32_t, uint32_t> resolution = captureRecorder_.GetDirtyRect(screenInfo_.width, screenInfo_.height);
+    displayDirtyManager->MergeDirtyRect(RectI { 0, 0, resolution.first, resolution.second });
+#endif
 }
 
 void RSUniRenderVisitor::MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
@@ -4849,6 +4850,11 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
 void RSUniRenderVisitor::tryCapture(float width, float height)
 {
     if (!RSSystemProperties::GetRecordingEnabled()) {
+#ifdef RS_PROFILER_ENABLED
+        if (auto canvas = captureRecorder_.TryInstantCapture(width, height)) {
+            canvas_->AddCanvas(canvas);
+        }
+#endif
         return;
     }
     recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(width, height);
@@ -4864,6 +4870,9 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
 void RSUniRenderVisitor::endCapture() const
 {
     if (!RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetRecordingEnabled()) {
+#ifdef RS_PROFILER_ENABLED
+        captureRecorder_.EndInstantCapture();
+#endif
         return;
     }
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();
@@ -4873,29 +4882,35 @@ void RSUniRenderVisitor::endCapture() const
 }
 #endif
 
-void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node)
+void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation)
 {
     auto mirrorNode = node.GetMirrorSource().lock();
+    if ((canvasRotation && (RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) ||
+        (!canvasRotation && !(RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0))) {
+        return;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
+    auto mainWidth = static_cast<float>(mainScreenInfo.width);
+    auto mainHeight = static_cast<float>(mainScreenInfo.height);
     auto rotation = mirrorNode->GetScreenRotation();
     if (RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) {
-        if (rotation == ScreenRotation::ROTATION_270) {
-            rotation = ScreenRotation::ROTATION_0;
-        } else {
-            rotation = static_cast<ScreenRotation>(static_cast<int>(rotation) + 1);
+        if (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) {
+            std::swap(mainWidth, mainHeight);
         }
+        auto oriRotation = node.GetOriginScreenRotation();
+        rotation = static_cast<ScreenRotation>((static_cast<int>(oriRotation) -
+            static_cast<int>(rotation) + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     }
     if (rotation != ScreenRotation::ROTATION_0) {
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
         if (rotation == ScreenRotation::ROTATION_90) {
             canvas_->Rotate(90, 0, 0);
-            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.height)));
+            canvas_->Translate(0, -mainHeight);
         } else if (rotation == ScreenRotation::ROTATION_180) {
-            canvas_->Rotate(180, static_cast<float>(mainScreenInfo.width) / 2,
-                static_cast<float>(mainScreenInfo.height) / 2);
+            canvas_->Rotate(180, mainWidth / 2, mainHeight / 2);
         } else if (rotation == ScreenRotation::ROTATION_270) {
             canvas_->Rotate(270, 0, 0);
-            canvas_->Translate(-(static_cast<float>(mainScreenInfo.width)), 0);
+            canvas_->Translate(-mainWidth, 0);
         }
     }
 }
@@ -4905,8 +4920,11 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
     auto screenManager = CreateOrGetScreenManager();
     auto mirrorNode = node.GetMirrorSource().lock();
     auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
-    float mainWidth = static_cast<float>(mainScreenInfo.width);
-    float mainHeight = static_cast<float>(mainScreenInfo.height);
+    auto mainWidth = static_cast<float>(mainScreenInfo.width);
+    auto mainHeight = static_cast<float>(mainScreenInfo.height);
+    auto mirrorWidth = node.GetRenderProperties().GetBoundsWidth();
+    auto mirrorHeight = node.GetRenderProperties().GetBoundsHeight();
+    auto scaleMode = screenManager->GetScaleMode(node.GetScreenId());
     if (canvasRotation) {
         if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) ||
             mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_90 ||
@@ -4914,34 +4932,31 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
             std::swap(mainWidth, mainHeight);
         }
     } else {
-        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) ||
-            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
-            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270) {
-            std::swap(mainWidth, mainHeight);
-        }
-        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0 &&
-            (mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_90 ||
-            mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_270)) || mirrorAutoRotate_) {
-            std::swap(mainWidth, mainHeight);
+        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0)) {
+            auto oriRotation = node.GetOriginScreenRotation();
+            auto curRotation = node.GetScreenRotation();
+            auto rotation = static_cast<ScreenRotation>((static_cast<int>(oriRotation) -
+                static_cast<int>(curRotation) + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
+            if (rotation == ScreenRotation::ROTATION_0 ||
+                rotation == ScreenRotation::ROTATION_180) {
+                std::swap(mainWidth, mainHeight);
+            }
+        } else {
+            if ((node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
+                node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270)) {
+                std::swap(mirrorWidth, mirrorHeight);
+            }
         }
     }
-    float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
-    float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
     // If the width and height not match the main screen, calculate the dstRect.
-    if (mainWidth != boundsWidth || mainHeight != boundsHeight) {
+    if (mainWidth != mirrorWidth || mainHeight != mirrorHeight) {
         canvas_->Clear(SK_ColorBLACK);
-        float mirrorScale = 1.0f; // 1 for init scale
-        float startX = 0.0f;
-        float startY = 0.0f;
-        if ((boundsHeight / boundsWidth) < (mainHeight / mainWidth)) {
-            mirrorScale = boundsHeight / mainHeight;
-            startX = (boundsWidth - (mirrorScale * mainWidth)) / 2; // 2 for calc X
-        } else if ((boundsHeight / boundsWidth) > (mainHeight / mainWidth)) {
-            mirrorScale = boundsWidth / mainWidth;
-            startY = (boundsHeight - (mirrorScale * mainHeight)) / 2; // 2 for calc Y
+        auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
+        if (scaleMode == ScreenScaleMode::FILL_MODE) {
+            processor->Fill(*canvas_, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
+        } else if (scaleMode == ScreenScaleMode::UNISCALE_MODE) {
+            processor->UniScale(*canvas_, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
         }
-        canvas_->Translate(startX, startY);
-        canvas_->Scale(mirrorScale, mirrorScale);
     }
 }
 

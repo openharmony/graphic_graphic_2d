@@ -42,10 +42,8 @@ config("egl_public_config") {
 
 if (current_os != "ohos") {
   group("EGL") {
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
   }
 } else {
   ohos_shared_library("EGL") {
@@ -70,11 +68,8 @@ if (current_os != "ohos") {
 
     public_configs = [ ":egl_public_config" ]
 
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
-
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
@@ -121,10 +116,8 @@ ohos_shared_library("GLESv1") {
 
   public_configs = [ ":glesv1_public_config" ]
 
-  public_deps = [
-    "//third_party/EGL:libEGL",
-    "//third_party/openGLES:libGLES",
-  ]
+  public_external_deps = [ "egl:libEGL" ]
+  public_deps = [ "//third_party/openGLES:libGLES" ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -161,10 +154,8 @@ ohos_shared_library("GLESv2") {
 
   public_configs = [ ":glesv2_public_config" ]
 
-  public_deps = [
-    "//third_party/EGL:libEGL",
-    "//third_party/openGLES:libGLES",
-  ]
+  public_external_deps = [ "egl:libEGL" ]
+  public_deps = [ "//third_party/openGLES:libGLES" ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -194,10 +185,8 @@ config("glesv3_public_config") {
 
 if (current_os != "ohos") {
   group("GLESv3") {
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
   }
 } else {
   ohos_shared_library("GLESv3") {
@@ -206,10 +195,8 @@ if (current_os != "ohos") {
 
     public_configs = [ ":glesv3_public_config" ]
 
-    public_deps = [
-      "//third_party/EGL:libEGL",
-      "//third_party/openGLES:libGLES",
-    ]
+    public_external_deps = [ "egl:libEGL" ]
+    public_deps = [ "//third_party/openGLES:libGLES" ]
 
     external_deps = [ "hilog:libhilog" ]
 
@@ -280,7 +267,7 @@ ohos_shared_library("debug_layer_test1") {
 
   public_configs = [ ":debug_layer_test_public_config" ]
 
-  public_deps = [ "//third_party/EGL:libEGL" ]
+  public_external_deps = [ "egl:libEGL" ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -296,7 +283,7 @@ ohos_shared_library("debug_layer_test2") {
 
   public_configs = [ ":debug_layer_test_public_config" ]
 
-  public_deps = [ "//third_party/EGL:libEGL" ]
+  public_external_deps = [ "egl:libEGL" ]
 
   external_deps = [ "hilog:libhilog" ]
 

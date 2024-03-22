@@ -67,11 +67,8 @@ color_manager_source_set("color_manager_source") {
 
 if (current_os == "ohos") {
   ohos_shared_library("color_manager") {
-    public_deps = [
-      ":color_manager_source",
-      "//third_party/bounds_checking_function:libsec_shared",
-    ]
-
+    public_deps = [ ":color_manager_source" ]
+    public_external_deps = [ "bounds_checking_function:libsec_shared" ]
     if (defined(use_new_skia) && use_new_skia) {
       public_deps += [ "$skia_root_new:skia_ohos" ]
     } else {

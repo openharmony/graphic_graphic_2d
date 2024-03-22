@@ -632,7 +632,6 @@ private:
     bool isDirtyRegionUpdated_ = false;
     bool isContainBootAnimation_ = false;
     bool isLastVisible_ = false;
-    bool isVisibleChanged_ = false;
     bool fallbackAnimationOnDestroy_ = true;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
@@ -742,6 +741,9 @@ private:
     friend class RSRenderNodeMap;
     friend class RSRenderThread;
     friend class RSRenderTransition;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

@@ -14,8 +14,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "c/drawing_brush.h"
-#include "c/drawing_font.h"
+#include "drawing_brush.h"
+#include "drawing_font.h"
 
 using namespace testing;
 using namespace testing::ext;

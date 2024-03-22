@@ -25,8 +25,6 @@ ohos_source_set("webgl_src") {
     "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",
-    "//third_party/node/src",
-    "//commonlibrary/c_utils/base/include",
   ]
 
   sources = [
@@ -36,16 +34,16 @@ ohos_source_set("webgl_src") {
   ]
 
   external_deps = [
+    "c_utils:utils",
+    "egl:libEGL",
     "hilog:libhilog",
     "image_framework:image_native",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   if (ace_enable_gpu) {
-    include_dirs += [
-      "//third_party/EGL/api",
-      "//third_party/openGLES/api",
-    ]
+    include_dirs += [ "//third_party/openGLES/api" ]
 
     sources += [
       "src/egl_manager.cpp",
@@ -80,10 +78,8 @@ ohos_source_set("webgl_src") {
       "src/webgl_vertex_array_object.cpp",
     ]
 
-    deps = [
-      "$graphic_2d_root:libgl",
-      "//third_party/bounds_checking_function:libsec_shared",
-    ]
+    deps = [ "$graphic_2d_root:libgl" ]
+    external_deps += [ "bounds_checking_function:libsec_shared" ]
   }
 
   cflags = [

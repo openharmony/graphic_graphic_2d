@@ -20,7 +20,7 @@
 #include <parameters.h>
 #include <sstream>
 
-#include "../wrapper_log.h"
+#include "wrapper_log.h"
 
 namespace OHOS {
 namespace {

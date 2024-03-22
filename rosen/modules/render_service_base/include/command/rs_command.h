@@ -78,6 +78,12 @@ public:
     {
         return "commandType:[" + std::to_string(GetType()) + ", " + std::to_string(GetSubType()) + "], ";
     }
+
+#ifdef RS_PROFILER_ENABLED
+private:
+    friend class RSProfiler;
+    virtual void Patch() {}
+#endif
 };
 
 class RSSyncTask : public RSCommand {

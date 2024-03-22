@@ -15,11 +15,11 @@
 
 #include "gtest/gtest.h"
 
-#include "c/drawing_brush.h"
-#include "c/drawing_color.h"
-#include "c/drawing_filter.h"
-#include "c/drawing_mask_filter.h"
-#include "c/drawing_rect.h"
+#include "drawing_brush.h"
+#include "drawing_color.h"
+#include "drawing_filter.h"
+#include "drawing_mask_filter.h"
+#include "drawing_rect.h"
 
 using namespace testing;
 using namespace testing::ext;

@@ -142,6 +142,7 @@ ohos_executable("drawing_sample_rs") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/zlib:libz",
@@ -185,4 +186,71 @@ ohos_executable("drawing_sample_canvaskit0310") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+}
+
+ohos_executable("drawing_sample_replayer") {
+  install_enable = true
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-Wno-unused-parameter",
+    "-Wno-missing-field-initializers",
+    "-Wno-unused-variable",
+    "-Werror,-Wreturn-type",
+    "-Wno-error=deprecated-declarations",
+  ]
+
+  sources = [ "drawing_sample_replayer.cpp" ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  include_dirs = [
+    "include",
+    "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+    "foundation/communication/ipc/interfaces/innerkits/dm",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+  ]
+
+  deps = [
+    "$graphic_2d_root:libsurface",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  public_deps = libgl
+  defines = gpu_defines
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
+
+  defines += [
+    "VK_USE_PLATFORM_OHOS",
+    "NDEBUG",
+  ]
+  include_dirs += [
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+  ]
+  public_deps += [
+    "$graphic_2d_root:libvulkan",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "ipc:ipc_core",
+    "window_manager:libdm",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }

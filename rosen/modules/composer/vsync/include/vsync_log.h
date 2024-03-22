@@ -21,7 +21,10 @@
 namespace OHOS {
 namespace {
 // The "0xD001400" is the domain ID for graphic module that alloted by the OS.
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "Vsync" };
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+#undef LOG_TAG
+#define LOG_TAG "Vsync"
 }
 
 #if (defined(__aarch64__) || defined(__x86_64__))
@@ -35,16 +38,16 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "Vsync" }
 #endif
 
 #define VLOG_BASE(func, fmt, ...) \
-    func(LABEL, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    func(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
 #ifdef DEBUG
-#define VLOGD(fmt, ...) VLOG_BASE(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
+#define VLOGD(fmt, ...) VLOG_BASE(HILOG_DEBUG, fmt, ##__VA_ARGS__)
 #else
 #define VLOGD(fmt, ...)
 #endif
-#define VLOGI(fmt, ...) VLOG_BASE(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
-#define VLOGW(fmt, ...) VLOG_BASE(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
-#define VLOGE(fmt, ...) VLOG_BASE(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
+#define VLOGI(fmt, ...) VLOG_BASE(HILOG_INFO, fmt, ##__VA_ARGS__)
+#define VLOGW(fmt, ...) VLOG_BASE(HILOG_WARN, fmt, ##__VA_ARGS__)
+#define VLOGE(fmt, ...) VLOG_BASE(HILOG_ERROR, fmt, ##__VA_ARGS__)
 
 #define VLOG_SUCCESS(fmt, ...) VLOGI("Success, Way: " fmt, ##__VA_ARGS__)
 #define VLOG_FAILURE(fmt, ...) VLOGE("Failure, Reason: " fmt, ##__VA_ARGS__)

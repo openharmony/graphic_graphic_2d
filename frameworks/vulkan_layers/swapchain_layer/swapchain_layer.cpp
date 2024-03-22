@@ -1000,11 +1000,13 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSurfaceOHOS(VkInstance instance,
 
     Surface* surface = new (mem) Surface;
     surface->window = pCreateInfo->window;
+    NativeObjectReference(surface->window);
     surface->swapchainHandle = VK_NULL_HANDLE;
     NativeWindowHandleOpt(pCreateInfo->window, GET_USAGE, &(surface->consumerUsage));
 
     if (surface->consumerUsage == 0) {
         SWLOGE("native window get usage failed, error num : %{public}d", VK_ERROR_SURFACE_LOST_KHR);
+        NativeObjectUnreference(surface->window);
         surface->~Surface();
         allocator->pfnFree(allocator->pUserData, surface);
         return VK_ERROR_SURFACE_LOST_KHR;
@@ -1024,6 +1026,7 @@ VKAPI_ATTR void VKAPI_CALL DestroySurfaceKHR(
     if (pAllocator == nullptr) {
         pAllocator = &GetDefaultAllocator();
     }
+    NativeObjectUnreference(surface->window);
     surface->~Surface();
     pAllocator->pfnFree(pAllocator->pUserData, surface);
 }
