@@ -120,6 +120,12 @@ public:
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
 
+    static bool GetProfilerEnabled();
+    static bool GetInstantRecording();
+    static void SetInstantRecording(bool flag);
+    static bool GetSaveRDC();
+    static void SetSaveRDC(bool flag);
+
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
@@ -177,6 +183,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
     static bool GetDebugTraceEnabled();
+    static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
     static bool GetCacheCmdEnabled();

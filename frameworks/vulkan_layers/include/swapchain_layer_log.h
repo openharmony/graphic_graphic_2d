@@ -17,18 +17,17 @@
 
 #include <hilog/log.h>
 namespace OHOS {
-namespace {
-// The "0xD001405" is the domain ID for graphic module that alloted by the OS.
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001405, "VulkanSwapchainLayer" };
-}
 
-#define SWLOGD(fmt, ...) OHOS::HiviewDFX::HiLog::Debug(LABEL, \
-    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
-#define SWLOGI(fmt, ...) OHOS::HiviewDFX::HiLog::Info(LABEL, \
-    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
-#define SWLOGW(fmt, ...) OHOS::HiviewDFX::HiLog::Warn(LABEL, \
-    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
-#define SWLOGE(fmt, ...) OHOS::HiviewDFX::HiLog::Error(LABEL, \
-    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
+#undef LOG_DOMAIN
+#undef LOG_TAG
+// The "0xD001405" is the domain ID for graphic module that alloted by the OS.
+#define LOG_DOMAIN 0xD001405
+#define LOG_TAG "VulkanSwapchainLayer"
+
+#define SWLOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
+#define SWLOGI(fmt, ...) HILOG_INFO(LOG_CORE, "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
+#define SWLOGW(fmt, ...) HILOG_WARN(LOG_CORE, "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
+#define SWLOGE(fmt, ...) HILOG_ERROR(LOG_CORE, "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
+#define SWLOGF(fmt, ...) HILOG_FATAL(LOG_CORE, "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
 } // namespace OHOS
 #endif // SWAPCHAIN_LAYER_LOG_H

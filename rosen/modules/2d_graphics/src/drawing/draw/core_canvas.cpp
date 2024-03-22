@@ -189,24 +189,6 @@ void CoreCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
     impl_->DrawVertices(vertices, mode);
 }
 
-void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
-{
-    AttachPaint();
-    impl_->DrawBitmap(bitmap, px, py);
-}
-
-void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
-    FilterMode filter, const Brush* brush)
-{
-    impl_->DrawImageNine(image, center, dst, filter, brush);
-}
-
-void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-    FilterMode filter, const Brush* brush)
-{
-    impl_->DrawImageLattice(image, lattice, dst, filter, brush);
-}
-
 // opinc_begin
 bool CoreCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
 {
@@ -228,27 +210,34 @@ int CoreCanvas::CanDrawOpList(Drawing::OpListHandle handle)
     return impl_->CanDrawOpList(handle);
 }
 
-void CoreCanvas::PreOpListDrawArea(const Matrix& matrix)
+bool CoreCanvas::OpCalculateBefore(const Matrix& matrix)
 {
-    impl_->PreOpListDrawArea(matrix);
+    return impl_->OpCalculateBefore(matrix);
 }
 
-bool CoreCanvas::CanUseOpListDrawArea(Drawing::OpListHandle handle, const Rect* bound)
+std::shared_ptr<Drawing::OpListHandle> CoreCanvas::OpCalculateAfter(const Rect& bound)
 {
-    return impl_->CanUseOpListDrawArea(handle, bound);
-}
-
-Drawing::OpListHandle CoreCanvas::GetOpListDrawArea()
-{
-    return impl_->GetOpListDrawArea();
-}
-
-void CoreCanvas::OpincDrawImageRect(const Image& image, Drawing::OpListHandle drawAreas,
-    const SamplingOptions& sampling, SrcRectConstraint constraint)
-{
-    impl_->OpincDrawImageRect(image, drawAreas, sampling, constraint);
+    return impl_->OpCalculateAfter(bound);
 }
 // opinc_end
+
+void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
+{
+    AttachPaint();
+    impl_->DrawBitmap(bitmap, px, py);
+}
+
+void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+    FilterMode filter, const Brush* brush)
+{
+    impl_->DrawImageNine(image, center, dst, filter, brush);
+}
+
+void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+    FilterMode filter, const Brush* brush)
+{
+    impl_->DrawImageLattice(image, lattice, dst, filter, brush);
+}
 
 void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
 {

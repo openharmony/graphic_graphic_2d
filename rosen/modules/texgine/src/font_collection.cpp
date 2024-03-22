@@ -105,7 +105,7 @@ void FontCollection::FillDefaultChinesePointUnicode()
     chinesePointUnicode_.insert(std::make_pair(0xFF1A, SUPPORTFILE)); // 0xFF1A is ：
 }
 
-int FontCollection::DetectionScript(const std::string script) const
+int FontCollection::DetectionScript(const std::string &script) const
 {
     return supportScript_.find(script)->second;
 }

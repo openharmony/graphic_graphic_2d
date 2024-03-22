@@ -92,6 +92,33 @@ void RSSystemProperties::SetRecordingDisenabled()
     RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
 }
 
+bool RSSystemProperties::GetProfilerEnabled()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.profiler.enabled", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
+bool RSSystemProperties::GetInstantRecording()
+{
+    return (system::GetParameter("debug.graphic.instant.recording.enabled", "0") != "0");
+}
+
+void RSSystemProperties::SetInstantRecording(bool flag)
+{
+    system::SetParameter("debug.graphic.instant.recording.enabled", flag ? "1" : "0");
+}
+
+bool RSSystemProperties::GetSaveRDC()
+{
+    return (system::GetParameter("debug.graphic.rdcenabled", "0") != "0");
+}
+
+void RSSystemProperties::SetSaveRDC(bool flag)
+{
+    system::SetParameter("debug.graphic.rdcenabled", flag ? "1" : "0");
+}
+
 std::string RSSystemProperties::GetRecordingFile()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dumpfile.path", "");
@@ -520,6 +547,13 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return openDebugTrace;
 }
 
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    static int openDebugTraceLevel =
+        std::atoi((system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str());
+    return openDebugTraceLevel;
+}
+
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");
@@ -675,7 +709,7 @@ const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
     static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "2")).c_str()));
 const DdgrOpincDfxType RSSystemProperties::ddgrOpincDfxType_ =
     static_cast<DdgrOpincDfxType>(std::atoi((
-        system::GetParameter("persist.ddgr.opinctype.debugtype", "0")).c_str()));
+        system::GetParameter("persist.rosen.ddgr.opinctype.debugtype", "0")).c_str()));
 
 DdgrOpincType RSSystemProperties::GetDdgrOpincType()
 {
@@ -689,7 +723,8 @@ bool RSSystemProperties::IsDdgrOpincEnable()
         GetDdgrOpincType() == DdgrOpincType::DDGR_RENDERCACHE ||
         GetDdgrOpincType() == DdgrOpincType::DDGR_OPINCUPDATE) &&
         (RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR)) ||
-        (GetDdgrOpincType() == DdgrOpincType::DDGR_UNRESTRICTED_MODE);
+        (GetDdgrOpincType() == DdgrOpincType::DDGR_UNRESTRICTED_MODE) ||
+        (GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE_REALDRAW);
 }
 
 bool RSSystemProperties::IsOpincRealDrawCacheEnable()
@@ -708,11 +743,11 @@ bool RSSystemProperties::GetAutoCacheDebugEnabled()
 }
 #endif
 
-
 #ifdef RS_ENABLE_STACK_CULLING
-bool GetViewOcclusionCullingEnabled()
+bool RSSystemProperties::GetViewOcclusionCullingEnabled()
 {
-    static bool stackViewCullingEnabled = system::GetBoolParameter("persist.sys.graphic.stack.culling.enabled", true);
+    static bool stackViewCullingEnabled =
+        system::GetBoolParameter("persist.sys.graphic.stack.culling.enabled", true);
     return stackViewCullingEnabled;
 }
 #endif

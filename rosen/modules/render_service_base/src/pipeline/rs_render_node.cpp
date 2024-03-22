@@ -33,6 +33,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -783,35 +784,13 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
 {
     bool dirtyEmpty = dirtyTypes_.none();
     // TO avoid redundant add, only add if both: 1. on-tree node 2. newly dirty node (or forceAddToActiveList = true)
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (dirtyStatus_ < NodeDirty::DIRTY || dirtyEmpty || forceAddToActiveList) {
-#else
     if (dirtyStatus_ == NodeDirty::CLEAN || dirtyEmpty || forceAddToActiveList) {
-#endif
         if (auto context = GetContext().lock()) {
             context->AddActiveNode(shared_from_this());
         }
     }
     dirtyStatus_ = NodeDirty::DIRTY;
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-void RSRenderNode::SetDirtyByOnTree(bool forceAddToActiveList)
-{
-    bool dirtyEmpty = dirtyTypes_.none();
-    if (isOnTheTree_ && (dirtyStatus_ < NodeDirty::ON_TREE_DIRTY || dirtyEmpty || forceAddToActiveList)) {
-        if (auto context = GetContext().lock()) {
-            context->AddActiveNode(shared_from_this());
-        }
-    }
-    dirtyStatus_ = NodeDirty::ON_TREE_DIRTY;
-}
-
-bool RSRenderNode::IsOnTreeDirty()
-{
-    return dirtyStatus_ == NodeDirty::ON_TREE_DIRTY && !GetRenderProperties().IsDirty();
-}
-#endif
 
 void RSRenderNode::SetClean()
 {
@@ -977,7 +956,6 @@ bool RSRenderNode::Update(
     if (!ShouldPaint() && !isLastVisible_) {
         SetClean();
         GetMutableRenderProperties().ResetDirty();
-        isVisibleChanged_ = false;
         return false;
     }
     // [planning] surfaceNode use frame instead
@@ -999,7 +977,6 @@ bool RSRenderNode::Update(
         }
     }
     isDirtyRegionUpdated_ = false;
-    isVisibleChanged_ = (isLastVisible_ != ShouldPaint());
     isLastVisible_ = ShouldPaint();
     GetMutableRenderProperties().ResetDirty();
 
@@ -1062,7 +1039,7 @@ void RSRenderNode::UpdateDirtyRegion(
             }
         }
 
-        auto outline = GetRenderProperties().GetOutline();
+        auto& outline = GetRenderProperties().GetOutline();
         RectI outlineRect;
         if (outline && outline->HasBorder()) {
             RSPropertiesPainter::GetOutlineDirtyRect(outlineRect, GetRenderProperties());
@@ -1326,7 +1303,8 @@ bool RSRenderNode::ApplyModifiers()
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
         manager != nullptr &&
         (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
-        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_SHADER)))) {
         manager->InvalidateCache();
     }
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
@@ -1351,7 +1329,6 @@ bool RSRenderNode::ApplyModifiers()
 
 void RSRenderNode::UpdateDrawableVec()
 {
-#ifndef ROSEN_ARKUI_X
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
     if (!GetIsUsedBySubThread()) {
@@ -1366,12 +1343,10 @@ void RSRenderNode::UpdateDrawableVec()
         ROSEN_LOGI("%{public}s GetIsUsedBySubThread[%{public}d].", __func__, GetIsUsedBySubThread());
         UpdateDrawableVecInternal(dirtySlots);
     }
-#endif
 }
 
 void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
 {
-#ifndef ROSEN_ARKUI_X
      // initialize necessary save/clip/restore
     if (drawableVecStatus_ == 0) {
         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
@@ -1384,7 +1359,6 @@ void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawab
         RSPropertyDrawable::UpdateSaveRestore(
             *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
     }
-#endif
 }
 
 void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
@@ -1468,8 +1442,8 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
     if (globalAlpha_ == alpha) {
         return;
     }
-    if ((ROSEN_EQ(globalAlpha_, 1.0f) && alpha != 1.0f) ||
-        (ROSEN_EQ(alpha, 1.0f) && globalAlpha_ != 1.0f)) {
+    if ((ROSEN_EQ(globalAlpha_, 1.0f) && !ROSEN_EQ(alpha, 1.0f)) ||
+        (ROSEN_EQ(alpha, 1.0f) && !ROSEN_EQ(globalAlpha_, 1.0f))) {
         OnAlphaChanged();
     }
     globalAlpha_ = alpha;
@@ -1492,7 +1466,7 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
-bool RSRenderNode::NeedInitCacheSurface() const
+bool RSRenderNode::NeedInitCacheSurface()
 {
     auto cacheType = GetCacheType();
     int width = 0;
@@ -1506,9 +1480,21 @@ bool RSRenderNode::NeedInitCacheSurface() const
         width = shadowRect.GetWidth();
         height = shadowRect.GetHeight();
     } else {
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc()) {
+            auto& unionRect = GetAutoCache()->GetOpListUnionArea();
+            width = unionRect.GetWidth();
+            height = unionRect.GetHeight();
+        } else {
+            Vector2f size = GetOptionalBufferSize();
+            width =  size.x_;
+            height = size.y_;
+        }
+#else
         Vector2f size = GetOptionalBufferSize();
         width =  size.x_;
         height = size.y_;
+#endif
     }
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     if (cacheSurface_ == nullptr) {
@@ -1521,11 +1507,25 @@ bool RSRenderNode::NeedInitCacheSurface() const
     return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
 }
 
-bool RSRenderNode::NeedInitCacheCompletedSurface() const
+bool RSRenderNode::NeedInitCacheCompletedSurface()
 {
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    int width = 0;
+    int height = 0;
+    if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc()) {
+        auto& unionRect = GetAutoCache()->GetOpListUnionArea();
+        width = static_cast<int>(unionRect.GetWidth());
+        height = static_cast<int>(unionRect.GetHeight());
+    } else {
+        Vector2f size = GetOptionalBufferSize();
+        width = static_cast<int>(size.x_);
+        height = static_cast<int>(size.y_);
+    }
+#else
     Vector2f size = GetOptionalBufferSize();
     int width = static_cast<int>(size.x_);
     int height = static_cast<int>(size.y_);
+#endif
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     if (cacheCompletedSurface_ == nullptr) {
         return true;
@@ -1569,8 +1569,19 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         shadowRectOffsetX_ = -shadowRect.GetLeft();
         shadowRectOffsetY_ = -shadowRect.GetTop();
     } else {
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc()) {
+            auto& unionRect = GetAutoCache()->GetOpListUnionArea();
+            width = unionRect.GetWidth();
+            height = unionRect.GetHeight();
+        } else {
+            width = boundsWidth_;
+            height = boundsHeight_;
+        }
+#else
         width = boundsWidth_;
         height = boundsHeight_;
+#endif
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
@@ -1667,8 +1678,17 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     auto cacheType = GetCacheType();
     canvas.Save();
     Vector2f size = GetOptionalBufferSize();
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    if (!(RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc())) {
+        scaleX = size.x_ / boundsWidth_;
+        scaleY = size.y_ / boundsHeight_;
+    }
+#else
     float scaleX = size.x_ / boundsWidth_;
     float scaleY = size.y_ / boundsHeight_;
+#endif
     canvas.Scale(scaleX, scaleY);
     auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
     if (cacheImage == nullptr) {
@@ -1696,6 +1716,16 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         canvas.DrawImage(*cacheImage, -shadowRectOffsetX_ * scaleX + gravityTranslate.x_,
             -shadowRectOffsetY_ * scaleY + gravityTranslate.y_, samplingOptions);
     } else {
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        if (RSSystemProperties::IsOpincRealDrawCacheEnable() && GetAutoCache()->isComputeDrawAreaSucc() &&
+            GetAutoCache()->DrawAutoCache(canvas, *cacheImage, samplingOptions,
+            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT)) {
+            canvas.DetachBrush();
+            GetAutoCache()->DrawAutoCacheDfx(canvas);
+            canvas.Restore();
+            return;
+        }
+#endif
         if (canvas.GetTotalMatrix().HasPerspective()) {
             // In case of perspective transformation, make dstRect 1px outset to anti-alias
             Drawing::Rect dst(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight());
@@ -1770,6 +1800,7 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
         RS_LOGE("get backendTexture failed");
         return nullptr;
     }
+    SKResourceManager::Instance().HoldResource(completeImage);
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
@@ -1882,7 +1913,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    return nodeGroupType_ & NodeGroupType::GROUPED_BY_USER || nodeGroupType_ & NodeGroupType::GROUPED_BY_AUTO;
+    return nodeGroupType_ & (NodeGroupType::GROUPED_BY_USER | NodeGroupType::GROUPED_BY_AUTO);
 #else
     return nodeGroupType_ & NodeGroupType::GROUPED_BY_USER;
 #endif
@@ -1908,7 +1939,7 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
             nodeGroupType_ &= ~type;
         }
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (!(nodeGroupType_ & NodeGroupType::GROUPED_BY_AUTO)) {
+        if (type != NodeGroupType::GROUPED_BY_AUTO)) {
             SetDirty();
         }
 #else
@@ -2136,11 +2167,7 @@ void RSRenderNode::OnTreeStateChanged()
 {
     if (isOnTheTree_) {
         // Set dirty and force add to active node list, re-generate children list if needed
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        SetDirtyByOnTree(true);
-#else
         SetDirty(true);
-#endif
     }
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!isOnTheTree_) {
@@ -2483,6 +2510,11 @@ void RSRenderNode::SetDrawingCacheChanged(bool cacheChanged)
 {
     isDrawingCacheChanged_ = drawingCacheNeedUpdate_ || cacheChanged;
     drawingCacheNeedUpdate_ = isDrawingCacheChanged_;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (RSSystemProperties::IsDdgrOpincEnable()) {
+        GetAutoCache()->SetOpincCacheChanged(cacheChanged);
+    }
+#endif
 }
 bool RSRenderNode::GetDrawingCacheChanged() const
 {

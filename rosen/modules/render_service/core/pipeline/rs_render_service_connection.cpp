@@ -37,6 +37,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+#include "rs_profiler.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -833,6 +834,12 @@ bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id
     return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+bool RSRenderServiceConnection::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->SetVirtualMirrorScreenScaleMode(id, scaleMode);
+}
+
 int32_t RSRenderServiceConnection::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -1169,11 +1176,7 @@ void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
             "pid = %{public}d renderTid = %{public}d ",
         info.bundleName.c_str(), info.uid, info.state, info.pid, info.renderTid);
 
-    if (info.state == 1) {
-        FrameReport::GetInstance().SetGameScene(true);
-    } else if (info.state == 0) {
-        FrameReport::GetInstance().SetGameScene(false);
-    }
+    FrameReport::GetInstance().SetGameScene(info.pid, info.state);
 }
 
 void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
@@ -1225,5 +1228,15 @@ void RSRenderServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScreen
     }
     return;
 }
+
+#ifdef RS_PROFILER_ENABLED
+int RSRenderServiceConnection::OnRemoteRequest(
+    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+{
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
+    return RSRenderServiceConnectionStub::OnRemoteRequest(code, data, reply, option);
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

@@ -225,7 +225,6 @@ public:
 
     void RenderTraceDebug() const;
     bool ShouldPaint() const;
-    bool IsVisibleChanged() const { return isVisibleChanged_; }
 
     RectI GetOldDirty() const;
     RectI GetOldDirtyInSurface() const;
@@ -259,8 +258,8 @@ public:
     bool HasUseEffectNodes() const;
     bool HasSubSurface() const;
 
-    bool NeedInitCacheSurface() const;
-    bool NeedInitCacheCompletedSurface() const;
+    bool NeedInitCacheSurface();
+    bool NeedInitCacheCompletedSurface();
     bool IsPureContainer() const;
     bool IsContentNode() const;
 
@@ -316,8 +315,6 @@ public:
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    bool IsOnTreeDirty();
-    void SetDirtyByOnTree(bool forceAddToActiveList = false);
     Vector4f GetOptionBufferBound() const;
     Vector2f GetOpincBufferSize() const;
     Drawing::Rect GetOpincBufferBound() const;
@@ -473,6 +470,7 @@ public:
     class RSAutoCache;
     const std::shared_ptr<RSAutoCache>& GetAutoCache();
     bool isOpincRectOutParent_ = false;
+    bool isOpincPrepareDis_ = false;
 #endif
 
 #ifdef RS_ENABLE_STACK_CULLING
@@ -492,9 +490,6 @@ protected:
 
     enum class NodeDirty {
         CLEAN = 0,
-    #ifdef DDGR_ENABLE_FEATURE_OPINC
-        ON_TREE_DIRTY,
-    #endif
         DIRTY,
     };
     void SetClean();
@@ -592,7 +587,6 @@ private:
     bool isDirtyRegionUpdated_ = false;
     bool isContainBootAnimation_ = false;
     bool isLastVisible_ = false;
-    bool isVisibleChanged_ = false;
     bool fallbackAnimationOnDestroy_ = true;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
@@ -702,6 +696,9 @@ private:
     friend class RSRenderNodeMap;
     friend class RSRenderThread;
     friend class RSRenderTransition;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

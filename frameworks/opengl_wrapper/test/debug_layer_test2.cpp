@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "../src/wrapper_log.h"
+#include "wrapper_log.h"
 
 namespace {
 constexpr const char *MY_LOG_TAG = "DebugLayerTest2";

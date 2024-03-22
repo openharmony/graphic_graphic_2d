@@ -27,6 +27,7 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -88,7 +89,7 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
         return nullptr;
     }
 
-    auto parcelCopied = std::make_shared<MessageParcel>();
+    auto parcelCopied = RS_PROFILER_COPY_PARCEL(old);
     if (!parcelCopied->ParseFrom(reinterpret_cast<uintptr_t>(base), dataSize)) {
         RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed ParseFrom failed");
         free(base);
@@ -164,7 +165,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE): {
-            auto nodeId = data.ReadUint64();
+            auto nodeId = RS_PROFILER_READ_NODE_ID(data);
             auto surfaceName = data.ReadString();
             auto bundleName = data.ReadString();
             RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .bundleName = bundleName};
@@ -172,7 +173,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
-            auto nodeId = data.ReadUint64();
+            auto nodeId = RS_PROFILER_READ_NODE_ID(data);
             auto surfaceName = data.ReadString();
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
             auto bundleName = data.ReadString();
@@ -197,11 +198,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            int32_t pid = data.ReadInt32();
+            int32_t pid = RS_PROFILER_READ_PID(data);
             int32_t uid = data.ReadInt32();
             std::string bundleName = data.ReadString();
             std::string abilityName = data.ReadString();
-            uint64_t focusNodeId = data.ReadUint64();
+            uint64_t focusNodeId = RS_PROFILER_READ_NODE_ID(data);
             int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
             reply.WriteInt32(status);
             break;
@@ -449,7 +450,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE): {
-            NodeId id = data.ReadUint64();
+            NodeId id = RS_PROFILER_READ_NODE_ID(data);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -472,7 +473,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            uint32_t pid = data.ReadUint32();
+            uint32_t pid = RS_PROFILER_READ_PID(data);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -528,7 +529,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            auto pid = data.ReadInt32();
+            auto pid = RS_PROFILER_READ_PID(data);
             MemoryGraphic memoryGraphic = GetMemoryGraphic(pid);
             reply.WriteParcelable(&memoryGraphic);
             break;
@@ -620,7 +621,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = data.ReadUint64();
+            NodeId id = RS_PROFILER_READ_NODE_ID(data);
             auto remoteObject = data.ReadRemoteObject();
             bool isFromRenderThread = data.ReadBool();
             if (remoteObject == nullptr) {
@@ -641,7 +642,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = data.ReadUint64();
+            NodeId id = RS_PROFILER_READ_NODE_ID(data);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -755,6 +756,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             bool canvasRotation = data.ReadBool();
             bool result = SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+            reply.WriteBool(result);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            ScreenScaleMode scaleMode = static_cast<ScreenScaleMode>(data.ReadUint32());
+            bool result = SetVirtualMirrorScreenScaleMode(id, scaleMode);
             reply.WriteBool(result);
             break;
         }
@@ -960,7 +974,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = data.ReadUint64();
+            NodeId id = RS_PROFILER_READ_NODE_ID(data);
             Drawing::Bitmap bm;
             bool result = GetBitmap(id, bm);
             reply.WriteBool(result);
@@ -975,7 +989,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            NodeId id = data.ReadUint64();
+            NodeId id = RS_PROFILER_READ_NODE_ID(data);
             std::shared_ptr<Media::PixelMap> pixelmap =
                 std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
             Drawing::Rect rect;
@@ -1030,7 +1044,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            NodeId id = data.ReadUint64();
+            NodeId id = RS_PROFILER_READ_NODE_ID(data);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -1059,7 +1073,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            NodeId id = data.ReadUint64();
+            NodeId id = RS_PROFILER_READ_NODE_ID(data);
             int32_t status = UnRegisterSurfaceOcclusionChangeCallback(id);
             reply.WriteInt32(status);
             break;

@@ -38,6 +38,7 @@ public:
     bool IsValid() const override;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
     std::string GetDescription() override;
+    std::string GetDetailedDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
@@ -56,6 +57,7 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
+    bool useKawase_ = false;
     std::optional<Vector2f> greyCoef_;
 };
 } // namespace Rosen

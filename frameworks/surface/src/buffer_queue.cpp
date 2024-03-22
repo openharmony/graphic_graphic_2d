@@ -391,15 +391,17 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
     dbs.insert(dbs.end(), deletingList_.begin(), deletingList_.end());
     deletingList_.clear();
 
-    if (needRealloc || isShared_ || producerCacheClean_) {
+    if (needRealloc || isShared_ || producerCacheClean_ || retval.buffer->GetConsumerAttachBufferFlag()) {
         BLOGND("RequestBuffer Succ realloc Buffer[%{public}d %{public}d] with new config "\
-            "qid: %{public}d id: %{public}" PRIu64, config.width, config.height, retval.sequence, uniqueId_);
+            "qid: %{public}d attachFlag: %{public}d id: %{public}" PRIu64,
+            config.width, config.height, retval.sequence, retval.buffer->GetConsumerAttachBufferFlag(), uniqueId_);
         if (producerCacheClean_) {
             producerCacheList_.push_back(retval.sequence);
             if (CheckProducerCacheList()) {
                 SetProducerCacheCleanFlagLocked(false);
             }
         }
+        retval.buffer->SetConsumerAttachBufferFlag(false);
     } else {
         BLOGND("RequestBuffer Succ Buffer[%{public}d %{public}d] in seq id: %{public}d "\
             "qid: %{public}" PRIu64 " releaseFence: %{public}d",

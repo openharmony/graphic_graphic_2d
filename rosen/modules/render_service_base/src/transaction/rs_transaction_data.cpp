@@ -20,6 +20,7 @@
 #include "command/rs_command_factory.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -240,6 +241,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                     commandType, commandSubType);
                 return false;
             }
+            RS_PROFILER_PATCH_COMMAND(parcel, command);
             payloadLock.lock();
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
@@ -249,7 +251,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     }
     int32_t pid;
     return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
-        parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid) && ({pid_ = pid; true;}) &&
+        parcel.ReadUint64(timestamp_) && ({RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, timestamp_); true;}) &&
+        parcel.ReadInt32(pid) && ({RS_PROFILER_PATCH_PID(parcel, pid); pid_ = pid; true;}) &&
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_);
 }
 

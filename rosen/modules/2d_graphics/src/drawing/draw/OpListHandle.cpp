@@ -21,6 +21,7 @@ namespace Rosen {
 namespace Drawing {
 
 OpListHandle::OpListHandle() : opImpl_(ImplFactory::CreateOplistHandleImpl()) {}
+OpListHandle::OpListHandle(OpInfo opinfo) : opImpl_(ImplFactory::CreateOplistHandleImpl()), opInfo_(opinfo) {}
 
 } // namespace Drawing
 } // namespace Rosen

@@ -24,7 +24,9 @@
 #include <set>
 
 #include "rs_base_render_engine.h"
-
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -127,9 +129,6 @@ public:
         drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
     }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    void OpincSetRectChangeState(RSCanvasRenderNode& node, RectI& boundsRect);
-#endif
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
@@ -261,7 +260,7 @@ private:
     void DrawChildRenderNode(RSRenderNode& node);
     void DrawChildCanvasRenderNode(RSRenderNode& node);
 
-    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node);
+    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
@@ -410,15 +409,12 @@ private:
     bool isSubSurfaceEnabled_ = false;
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     bool autoCacheEnable_ = false;
-    bool autoCacheChildDisable_ = false;
     bool autoCacheDrawingEnable_ = false;
     RSRenderNode::RSAutoCache::NodeStragyType nodeCacheType_ = RSRenderNode::RSAutoCache::CACHE_NONE;
     bool unchangeMark_ = false;
+    bool unchangeMarkEnable_ = false;
     bool isDiscardSurface_ = true;
     std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
-    int opNodeDepth_ = 0;
-    bool opIncSubtreePropDirty_ = false;
-    Drawing::Rect opincRootRect_;
     bool isOpincDropNodeExt_ = true;
 #endif
 
@@ -502,8 +498,10 @@ private:
     void endCapture() const;
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #endif
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder captureRecorder_;
+#endif
     bool isNodeSingleFrameComposer_ = false;
-
     // use for screen recording optimization
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
 

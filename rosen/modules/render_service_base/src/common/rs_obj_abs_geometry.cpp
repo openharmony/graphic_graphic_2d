@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "utils/log.h"
 #include "common/rs_obj_abs_geometry.h"
 
 #include "utils/camera3d.h"
@@ -150,29 +149,20 @@ bool RSObjAbsGeometry::IsNeedClientCompose() const
     return !ROSEN_EQ(std::remainder(trans_->rotation_, 90.f), 0.f, EPSILON);
 }
 
-void RSObjAbsGeometry::ApplySkewToMatrix(Drawing::Matrix& m, bool preConcat)
-{
-    if (!ROSEN_EQ(trans_->skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->skewY_, 0.f, EPSILON)) {
-        if (preConcat) {
-            m.PreSkew(trans_->skewX_, trans_->skewY_);
-        } else {
-            m.PostSkew(trans_->skewX_, trans_->skewY_);
-        }
-    }
-}
-
-void RSObjAbsGeometry::ApplySkewToMatrix44(Drawing::Matrix44& m44, bool preConcat)
-{
-    if (!ROSEN_EQ(trans_->skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->skewY_, 0.f, EPSILON)) {
-        Drawing::Matrix44 skewM44 {};
-        skewM44.SetMatrix44RowMajor({1.f, trans_->skewX_, 0.f, 0.f,
-            trans_->skewY_, 1.f, 0.f, 0.f,
-            0.f, 0.f, 1.f, 0.f,
-            0.f, 0.f, 0.f, 1.f});
-        if (preConcat) {
-            m44 =  skewM44 * m44;
-        } else {
-            m44 =  m44 *skewM44;
+namespace {
+    void ApplySkewToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
+    {
+        if (!ROSEN_EQ(trans.skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans.skewY_, 0.f, EPSILON)) {
+            Drawing::Matrix44 skewM44 {};
+            skewM44.SetMatrix44RowMajor({1.f, trans.skewX_, 0.f, 0.f,
+                trans.skewY_, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                0.f, 0.f, 0.f, 1.f});
+            if (preConcat) {
+                m44 = skewM44 * m44;
+            } else {
+                m44 = m44 * skewM44;
+            }
         }
     }
 }
@@ -191,7 +181,9 @@ void RSObjAbsGeometry::UpdateAbsMatrix2D()
             matrix_.PreRotate(trans_->rotation_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
         }
         // Skew
-        ApplySkewToMatrix(matrix_);
+        if (!ROSEN_EQ(trans_->skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->skewY_, 0.f, EPSILON)) {
+            matrix_.PreSkew(trans_->skewX_, trans_->skewY_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
+        }
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
             matrix_.PreScale(trans_->scaleX_, trans_->scaleY_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
@@ -224,7 +216,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         matrix4.SetMatrix44ColMajor(buffer);
         matrix3D = matrix3D * matrix4;
         // Skew
-        ApplySkewToMatrix44(matrix3D, false);
+        ApplySkewToMatrix44(trans_.value(), matrix3D, false);
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
             matrix3D.PreScale(trans_->scaleX_, trans_->scaleY_, 1.f);
@@ -259,7 +251,9 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         camera.RotateZDegrees(-trans_->rotation_);
         camera.ApplyToMatrix(matrix3D);
         // Skew
-        ApplySkewToMatrix(matrix3D, false);
+        if (!ROSEN_EQ(trans_->skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->skewY_, 0.f, EPSILON)) {
+            matrix3D.PreSkew(trans_->skewX_, trans_->skewY_);
+        }
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
             matrix3D.PreScale(trans_->scaleX_, trans_->scaleY_);

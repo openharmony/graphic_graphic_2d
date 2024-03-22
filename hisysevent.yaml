@@ -125,6 +125,22 @@ INTERACTION_RENDER_JANK:
   IS_FOLD_DISP: {type: BOOL, desc: 'default false, set true if fold screen in expand state'}
   BUNDLE_NAME_EX: {type: STRING, desc: real package name when sceneboard start app}
 
+INTERACTION_HITCH_TIME_RATIO:
+  __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction hitch time ratio statistics}
+  UNIQUE_ID: {type: INT32, desc: unique id}
+  SCENE_ID: {type: STRING, desc: interation scene id}
+  PROCESS_NAME: {type: STRING, desc: process name}
+  MODULE_NAME: {type: STRING, desc: package name}
+  ABILITY_NAME: {type: STRING, desc: ability name}
+  PAGE_URL: {type: STRING, desc: page url}
+  UI_START_TIME: {type: UINT64, desc: animation start time of the scene in ArkUI}
+  RS_START_TIME: {type: UINT64, desc: animation start time of the scene in render service}
+  DURATION: {type: UINT64, desc: total animation time during the scene}
+  HITCH_TIME: {type: UINT64, desc: total hitch time during the scene}
+  HITCH_TIME_RATIO: {type: FLOAT, desc: hitch time ratio during the scene}
+  IS_FOLD_DISP: {type: BOOL, desc: 'default false, set true if fold screen in expand state'}
+  BUNDLE_NAME_EX: {type: STRING, desc: real package name when sceneboard start app}
+
 FIRST_FRAME_DRAWN:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction jank statistics}
   APP_PID: {type: INT32, desc: app process id}

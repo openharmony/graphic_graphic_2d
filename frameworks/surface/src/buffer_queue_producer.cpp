@@ -123,7 +123,8 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
     BufferRequestConfig config = {};
     int64_t startTimeNs = 0;
     int64_t endTimeNs = 0;
-    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+    bool isActiveGame = Rosen::FrameReport::GetInstance().IsActiveGameWithPid(connectedPid_);
+    if (isActiveGame) {
         startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
     }
@@ -140,7 +141,7 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
         reply.WriteInt32Vector(retval.deletingBuffers);
     }
 
-    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+    if (isActiveGame) {
         endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
         Rosen::FrameReport::GetInstance().SetDequeueBufferTime(name_, (endTimeNs - startTimeNs));
@@ -169,8 +170,8 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
     int64_t startTimeNs = 0;
     int64_t endTimeNs = 0;
-
-    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+    bool isActiveGame = Rosen::FrameReport::GetInstance().IsActiveGameWithPid(connectedPid_);
+    if (isActiveGame) {
         startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
     }
@@ -185,10 +186,14 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
 
     reply.WriteInt32(sret);
 
-    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+    if (isActiveGame) {
+        uint64_t uniqueId = GetUniqueId();
         endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-        Rosen::FrameReport::GetInstance().SetQueueBufferTime(name_, (endTimeNs - startTimeNs));
+        Rosen::FrameReport::GetInstance().SetQueueBufferTime(uniqueId, name_, (endTimeNs - startTimeNs));
+    }
+    if (Rosen::FrameReport::GetInstance().IsGameScene(connectedPid_)) {
+        Rosen::FrameReport::GetInstance().Report(connectedPid_, name_);
     }
 
     return 0;

@@ -18,7 +18,7 @@
 #include <string>
 #include <EGL/egl.h>
 
-#include "../thread_private_data_ctl.h"
+#include "thread_private_data_ctl.h"
 
 using EglWrapperFuncPointer = __eglMustCastToProperFunctionPointerType;
 

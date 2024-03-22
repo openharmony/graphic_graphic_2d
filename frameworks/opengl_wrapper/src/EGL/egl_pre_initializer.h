@@ -15,8 +15,8 @@
 #ifndef FRAMEWORKS_OPENGL_WRAPPER_EGL_PRE_INITIALIZER_H
 #define FRAMEWORKS_OPENGL_WRAPPER_EGL_PRE_INITIALIZER_H
 #include "egl_defs.h"
-#include "../thread_private_data_ctl.h"
-#include "../wrapper_log.h"
+#include "thread_private_data_ctl.h"
+#include "wrapper_log.h"
 
 namespace OHOS {
 class EglPreInitializer {

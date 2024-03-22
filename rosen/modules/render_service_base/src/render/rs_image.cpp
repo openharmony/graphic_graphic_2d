@@ -25,6 +25,7 @@
 #include "render/rs_pixel_map_util.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -356,6 +357,7 @@ static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& widt
         RS_LOGE("RSImage::Unmarshalling uniqueId fail");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, uniqueId);
     if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
         RS_LOGE("RSImage::Unmarshalling width fail");
         return false;
@@ -423,6 +425,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
         RS_LOGE("RSImage::Unmarshalling nodeId fail");
         return nullptr;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId);
 
     bool useSkImage;
     std::shared_ptr<Drawing::Image> img;

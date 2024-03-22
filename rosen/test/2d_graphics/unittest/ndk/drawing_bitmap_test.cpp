@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "c/drawing_bitmap.h"
-#include "c/drawing_types.h"
+#include "drawing_bitmap.h"
+#include "drawing_types.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -159,6 +159,78 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetImageInfo001, TestS
     OH_Drawing_BitmapGetImageInfo(bitmap_, imageInfo);
     EXPECT_EQ(width, imageInfo->width);
     EXPECT_EQ(height, imageInfo->height);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_GetColorFormat001
+ * @tc.desc: test for drawing_BitmapGetColorFormat.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetColorFormat001, TestSize.Level1)
+{
+    const unsigned int width = 500;
+    const unsigned int height = 500;
+    OH_Drawing_ColorFormat formats[] = {
+        COLOR_FORMAT_ALPHA_8,
+        COLOR_FORMAT_RGB_565,
+        COLOR_FORMAT_ARGB_4444,
+        COLOR_FORMAT_RGBA_8888,
+        COLOR_FORMAT_BGRA_8888
+    };
+
+    OH_Drawing_AlphaFormat alphaFormats[] = {
+        ALPHA_FORMAT_OPAQUE,
+        ALPHA_FORMAT_PREMUL,
+        ALPHA_FORMAT_UNPREMUL
+    };
+    OH_Drawing_ColorFormat colorFormat_;
+    for (int i = 0; i < 5; i++) {
+        OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
+        if (!bitmap) {
+            break;
+        }
+        OH_Drawing_BitmapFormat bitmapFormat = {formats[i], alphaFormats[1]};
+        OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
+        colorFormat_ = OH_Drawing_BitmapGetColorFormat(bitmap);
+        EXPECT_EQ(colorFormat_, formats[i]);
+    }
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_GetAlphaFormat001
+ * @tc.desc: test for drawing_BitmapGetAlphaFormat.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetAlphaFormat001, TestSize.Level1)
+{
+    const unsigned int width = 500;
+    const unsigned int height = 500;
+    OH_Drawing_ColorFormat formats[] = {
+        COLOR_FORMAT_ALPHA_8,
+        COLOR_FORMAT_RGB_565,
+        COLOR_FORMAT_ARGB_4444,
+        COLOR_FORMAT_RGBA_8888,
+        COLOR_FORMAT_BGRA_8888
+    };
+
+    OH_Drawing_AlphaFormat alphaFormats[] = {
+        ALPHA_FORMAT_OPAQUE,
+        ALPHA_FORMAT_PREMUL,
+        ALPHA_FORMAT_UNPREMUL
+    };
+    OH_Drawing_AlphaFormat alphaFormat_;
+    for (int i = 0; i < 3; i++) {
+        OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
+        if (!bitmap) {
+            break;
+        }
+        OH_Drawing_BitmapFormat bitmapFormat = {formats[2], alphaFormats[i]};
+        OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
+        alphaFormat_ = OH_Drawing_BitmapGetAlphaFormat(bitmap);
+        EXPECT_EQ(alphaFormat_, alphaFormats[i]);
+    }
 }
 } // namespace Drawing
 } // namespace Rosen

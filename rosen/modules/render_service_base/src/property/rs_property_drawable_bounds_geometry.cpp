@@ -39,6 +39,7 @@
 
 namespace {
 constexpr int PARAM_DOUBLE = 2;
+constexpr int TRACE_LEVEL_TWO = 2;
 constexpr int16_t BORDER_TRANSPARENT = 255;
 } // namespace
 namespace OHOS::Rosen {
@@ -501,6 +502,9 @@ void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas&
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSShadowDrawable::DrawShadow, Radius: %f, ShadowOffsetX: %f, ShadowOffsetY: %f, bounds: %s", radius_, offsetX_,
+        offsetY_, content.GetRenderProperties().GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     auto deviceClipBounds = canvas.GetDeviceClipBounds();
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path;
@@ -532,6 +536,11 @@ void RSHardwareAccelerationShadowDrawable::Draw(const RSRenderContent& content, 
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSHardwareAccelerationShadowDrawable::DrawShadow, Elevation: %f, ShadowOffsetX: %f, "
+        "ShadowOffsetY: %f, bounds: %s",
+        shadowElevation_, offsetX_, offsetY_,
+        content.GetRenderProperties().GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path;
     ClipShadowPath(content, canvas, path);

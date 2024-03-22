@@ -359,7 +359,7 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
-    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
+    const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -1112,6 +1112,9 @@ private:
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

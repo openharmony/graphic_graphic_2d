@@ -425,7 +425,7 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
     SendCommandFromRT(command, GetId());
 }
 
-std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetDirtyManager() const
+const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNode::GetDirtyManager() const
 {
     return dirtyManager_;
 }

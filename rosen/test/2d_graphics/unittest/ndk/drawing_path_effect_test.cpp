@@ -14,8 +14,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "c/drawing_path_effect.h"
-#include "c/drawing_pen.h"
+#include "drawing_path_effect.h"
+#include "drawing_pen.h"
 
 using namespace testing;
 using namespace testing::ext;

@@ -51,7 +51,7 @@ public:
      * @param fontProviders The font providers setting by user
      * @param widthLimit The maximum display width set by the user
      */
-    std::vector<LineMetrics> DoShape(const std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
+    std::vector<LineMetrics> DoShape(const std::vector<VariantSpan> &spans, const TypographyStyle &tstyle,
         const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit);
     bool DidExceedMaxLines() const;
     double GetMinIntrinsicWidth() const;

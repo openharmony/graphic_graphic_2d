@@ -23,7 +23,6 @@ RSRenderParticleSystem::RSRenderParticleSystem(
     : particlesRenderParams_(particlesRenderParams)
 {
     CreateEmitter();
-    CreateEffector();
 }
 
 void RSRenderParticleSystem::CreateEmitter()
@@ -34,17 +33,12 @@ void RSRenderParticleSystem::CreateEmitter()
     }
 }
 
-void RSRenderParticleSystem::CreateEffector()
-{
-    effector_ = std::make_shared<RSRenderParticleEffector>(activeParticles_);
-}
-
 void RSRenderParticleSystem::ClearEmitter()
 {
     emitters_.clear();
 }
 
-void RSRenderParticleSystem::Emit(int64_t deltaTime)
+void RSRenderParticleSystem::Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_)
 {
     for (size_t iter = 0; iter < emitters_.size(); iter++) {
         if (emitters_[iter] != nullptr) {
@@ -55,23 +49,24 @@ void RSRenderParticleSystem::Emit(int64_t deltaTime)
     }
 }
 
-void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
+void RSRenderParticleSystem::UpdateParticle(
+    int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_)
 {
     if (activeParticles_.empty()) {
         return;
     }
     for (auto it = activeParticles_.begin(); it != activeParticles_.end();) {
-        std::shared_ptr<RSRenderParticle> particle = *it;
-        if (particle == nullptr || !particle->IsAlive()) {
+        // std::shared_ptr<RSRenderParticle> particle = *it;
+        if ((*it) == nullptr || !(*it)->IsAlive()) {
             it = activeParticles_.erase(it);
         } else {
+            Update((*it), deltaTime);
             ++it;
         }
     }
-    effector_->Update(activeParticles_, deltaTime);
 }
 
-bool RSRenderParticleSystem::IsFinish()
+bool RSRenderParticleSystem::IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_)
 {
     bool finish = true;
     if (!activeParticles_.empty()) {
@@ -85,16 +80,5 @@ bool RSRenderParticleSystem::IsFinish()
     return finish;
 }
 
-std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleSystem::GetActiveParticles()
-{
-    return activeParticles_;
-}
-
-std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleSystem::Simulation(int64_t deltaTime)
-{
-    Emit(deltaTime);
-    UpdateParticle(deltaTime);
-    return activeParticles_;
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -216,6 +216,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);

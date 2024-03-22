@@ -88,7 +88,7 @@ public:
     };
 
     FontParser();
-    std::vector<FontDescriptor> GetVisibilityFonts(const std::string locale = SIMPLIFIED_CHINESE);
+    std::vector<FontDescriptor> GetVisibilityFonts(const std::string &locale = SIMPLIFIED_CHINESE);
     std::unique_ptr<FontDescriptor> GetVisibilityFontByName(const std::string& fontName,
         const std::string locale = SIMPLIFIED_CHINESE);
 

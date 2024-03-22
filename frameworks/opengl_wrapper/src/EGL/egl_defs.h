@@ -18,7 +18,7 @@
 #include <map>
 
 #include "egl_wrapper_entry.h"
-#include "../hook.h"
+#include "hook.h"
 namespace OHOS {
 struct EglWrapperDispatchTable {
     enum { GLESV1_INDEX = 0, GLESV2_INDEX = 1 };

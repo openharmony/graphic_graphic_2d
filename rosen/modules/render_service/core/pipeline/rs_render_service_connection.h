@@ -49,6 +49,10 @@ public:
         return token_;
     }
 
+#ifdef RS_PROFILER_ENABLED
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+#endif
+
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
@@ -168,6 +172,8 @@ private:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
@@ -283,6 +289,10 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
+    
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

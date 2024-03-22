@@ -24,16 +24,18 @@
 #ifdef REPLAY_TOOL_CLIENT // adapt to windows on client side
 #include <memory>
 
-#include "../rs_adapt.h"
+#include "rs_adapt.h"
 #endif
 
 namespace OHOS::Rosen {
 
-struct ReplayImageCacheRecordFile {
+struct FileImageCacheRecord {
     std::shared_ptr<void> image;
     uint32_t imageSize = 0u;
     uint32_t skipBytes = 0u;
 };
+
+using FileImageCache = std::map<uint64_t, FileImageCacheRecord>;
 
 struct RSFileLayer final {
     std::pair<uint32_t, uint32_t> layerHeader; // to put in GLOBAL HEADER
@@ -68,9 +70,12 @@ public:
     void SetWriteTime(double time);
     double GetWriteTime() const;
 
-    void AddHeaderPID(pid_t pid);
-    const std::vector<pid_t>& GetHeaderPIDList() const;
-    void SetImageMapPtr(std::map<uint64_t, ReplayImageCacheRecordFile>* imageMapPtr);
+    const std::string& GetHeaderFirstFrame() const;
+    void AddHeaderFirstFrame(const std::string& dataFirstFrame);
+
+    void AddHeaderPid(pid_t pid);
+    const std::vector<pid_t>& GetHeaderPids() const;
+    void SetImageCache(FileImageCache* cache);
 
     uint32_t AddLayer();
     void LayerAddHeaderProperty(uint32_t layer, const std::string& name, const std::string& value);
@@ -154,20 +159,14 @@ private:
 
 private:
     FILE* file_ = nullptr;
-
     double writeStartTime_ = 0.0;
-
     uint32_t headerOff_ = 0u;
     std::vector<pid_t> headerPidList_;
-
     std::vector<RSFileLayer> layerData_;
-
     uint32_t writeDataOff_ = 0u; // last byte of file where we can continue writing
-
-    std::map<uint64_t, ReplayImageCacheRecordFile>* imageMapPtr_ = nullptr;
-
+    FileImageCache* imageCache_ = nullptr;
+    std::string headerFirstFrame_;
     std::mutex writeMutex_;
-
     bool wasChanged_ = false;
 };
 

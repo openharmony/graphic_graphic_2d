@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "egl_blob_cache.h"
-#include "../wrapper_log.h"
+#include "wrapper_log.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <errors.h>

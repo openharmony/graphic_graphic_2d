@@ -14,6 +14,7 @@
  */
 
 #include "transaction/rs_marshalling_helper.h"
+#include "rs_profiler.h"
 
 #include <cstdint>
 #include <memory>
@@ -531,7 +532,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
     success = success && Marshalling(parcel, val.emitSize_.x_);
     success = success && Marshalling(parcel, val.emitSize_.y_);
     success = success && Marshalling(parcel, val.particleCount_);
-    success = success && Marshalling(parcel, val.lifeTime_);
+    success = success && Marshalling(parcel, val.lifeTime_.start_);
+    success = success && Marshalling(parcel, val.lifeTime_.end_);
     success = success && Marshalling(parcel, val.type_);
     success = success && Marshalling(parcel, val.radius_);
     success = success && Marshalling(parcel, val.image_);
@@ -550,7 +552,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     float emitSizeWidth = 0.f;
     float emitSizeHeight = 0.f;
     int particleCount = 0;
-    int64_t lifeTime = 0;
+    int64_t lifeTimeStart = 0;
+    int64_t lifeTimeEnd = 0;
     ParticleType particleType = ParticleType::POINTS;
     float radius = 0.f;
     std::shared_ptr<RSImage> image = nullptr;
@@ -566,7 +569,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success = success && Unmarshalling(parcel, emitSizeHeight);
     Vector2f emitSize(emitSizeWidth, emitSizeHeight);
     success = success && Unmarshalling(parcel, particleCount);
-    success = success && Unmarshalling(parcel, lifeTime);
+    success = success && Unmarshalling(parcel, lifeTimeStart);
+    success = success && Unmarshalling(parcel, lifeTimeEnd);
     success = success && Unmarshalling(parcel, particleType);
     success = success && Unmarshalling(parcel, radius);
     Unmarshalling(parcel, image);
@@ -574,6 +578,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success = success && Unmarshalling(parcel, imageHeight);
     Vector2f imageSize(imageWidth, imageHeight);
     if (success) {
+        Range<int64_t> lifeTime(lifeTimeStart, lifeTimeEnd);
         val = EmitterConfig(
             emitRate, emitShape, position, emitSize, particleCount, lifeTime, particleType, radius, image, imageSize);
     }
@@ -982,7 +987,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
         return parcel.WriteInt32(-1);
     }
     auto position = parcel.GetWritePosition();
-    if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
+    if (!(parcel.WriteInt32(1) && RS_PROFILER_MARSHAL_PIXELMAP(parcel, val))) {
         ROSEN_LOGE("failed RSMarshallingHelper::Marshalling Media::PixelMap");
         return false;
     }
@@ -1003,7 +1008,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         val = nullptr;
         return true;
     }
-    val.reset(Media::PixelMap::Unmarshalling(parcel));
+    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         return false;
@@ -1529,6 +1534,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
         if (!Unmarshalling(parcel, value)) {                                                                          \
             return false;                                                                                             \
         }                                                                                                             \
+        RS_PROFILER_PATCH_NODE_ID(parcel, id);                                                                        \
         val.reset(new TEMPLATE<T>(value, id, type));                                                                  \
         return val != nullptr;                                                                                        \
     }

@@ -329,7 +329,7 @@ std::string FontParser::ToUtf8(const std::string& str)
 }
 #endif
 
-std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts(const std::string locale)
+std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts(const std::string &locale)
 {
     if (SetFontDescriptor(GetLanguageId(locale)) != SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "set visibility font descriptor failed";
@@ -340,7 +340,7 @@ std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts(const std
 
 class SystemFont {
 public:
-    SystemFont(const char* fPath = SYSTEM_FONT_PATH)
+    explicit SystemFont(const char* fPath = SYSTEM_FONT_PATH)
     {
         ParseConfig(fPath);
     }

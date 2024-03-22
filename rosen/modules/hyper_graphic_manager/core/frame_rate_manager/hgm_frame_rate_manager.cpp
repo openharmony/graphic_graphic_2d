@@ -377,18 +377,23 @@ int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, flo
 
 int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velocity) const
 {
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
+    auto &configData = HgmCore::Instance().GetPolicyConfigData();
     if (!configData) {
         return 0;
     }
-    auto config = configData->GetRSAnimateRateConfig(curScreenStrategyId_, std::to_string(curRefreshRateMode_), type);
-    auto iter = std::find_if(config.begin(), config.end(), [&velocity](const auto& pair) {
-        return velocity >= pair.second.min && (velocity < pair.second.max || pair.second.max == -1);
-    });
-    if (iter != config.end()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, rate: %d",
-            type.c_str(), velocity, iter->second.preferred_fps);
-        return iter->second.preferred_fps;
+    const std::string settingMode = std::to_string(curRefreshRateMode_);
+    if (configData->screenConfigs_.count(curScreenStrategyId_) &&
+        configData->screenConfigs_[curScreenStrategyId_].count(settingMode) &&
+        configData->screenConfigs_[curScreenStrategyId_][settingMode].animationDynamicSettings.count(type)) {
+        auto& config = configData->screenConfigs_[curScreenStrategyId_][settingMode].animationDynamicSettings[type];
+        auto iter = std::find_if(config.begin(), config.end(), [&velocity](const auto& pair) {
+            return velocity >= pair.second.min && (velocity < pair.second.max || pair.second.max == -1);
+        });
+        if (iter != config.end()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, rate: %d",
+                type.c_str(), velocity, iter->second.preferred_fps);
+            return iter->second.preferred_fps;
+        }
     }
     return 0;
 }
@@ -823,7 +828,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
     }
 }
 
-void HgmFrameRateManager::HandleTempEvent(std::string tempEventName, bool eventStatus, uint32_t min, uint32_t max)
+void HgmFrameRateManager::HandleTempEvent(
+    const std::string& tempEventName, bool eventStatus, uint32_t min, uint32_t max)
 {
     RS_TRACE_NAME_FMT("HandleTempEvent TempEvent:%s, status:%u, value:[%d-%d]",
         tempEventName.c_str(), eventStatus, min, max);
