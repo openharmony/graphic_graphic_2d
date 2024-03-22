@@ -45,12 +45,9 @@
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 
-<<<<<<< HEAD
 #include "draw/surface.h"
 #include "image/gpu_context.h"
 
-=======
->>>>>>> zhangpeng/master
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -232,11 +229,7 @@ public:
     bool UpdateLocalDrawRect();
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-<<<<<<< HEAD
-        std::optional<RectI> clipRect = std::nullopt);
-=======
         std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
->>>>>>> zhangpeng/master
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();
@@ -568,11 +561,7 @@ protected:
     NodeId drawingCacheRootId_ = INVALID_NODEID;
     bool mustRenewedInfo_ = false;
 
-<<<<<<< HEAD
-    std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)> dirtyTypes_;
-=======
     ModifierDirtyTypes dirtyTypes_;
->>>>>>> zhangpeng/master
     bool isBootAnimation_ = false;
 
 private:

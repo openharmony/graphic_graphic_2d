@@ -2182,7 +2182,6 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         node->GetAutoCache()->OpincEndMarkStableNode(unchangeMark_);
     }
 #endif
-<<<<<<< HEAD
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     // skip content node and its children, calculate dirty contain background and foreground
     if (drivenInfo_ && isContentCanvasNode) {
@@ -2196,8 +2195,6 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         node.SetFullSurfaceOpaqueMarks(curSurfaceNode_);
     }
 #endif
-=======
->>>>>>> zhangpeng/master
 }
 
 void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
@@ -2331,7 +2328,6 @@ void RSUniRenderVisitor::DrawCacheRegionForDFX(std::vector<RectI> cacheRects)
     const float fillAlpha = 0.2;
     for (const auto& subRect : cacheRects) {
         DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL, fillAlpha);
-<<<<<<< HEAD
     }
 }
 
@@ -2346,8 +2342,6 @@ void RSUniRenderVisitor::DrawHwcRegionForDFX(std::vector<std::shared_ptr<RSSurfa
             RSUniRenderUtil::DrawRectForDfx(*canvas_, node->GetDstRect(), Drawing::Color::COLOR_BLUE, fillAlpha,
                 node->GetName());
         }
-=======
->>>>>>> zhangpeng/master
     }
 }
 
@@ -2827,14 +2821,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mirrorAutoRotate_ = true;
         }
         canvas_->Save();
-<<<<<<< HEAD
         bool canvasRotation = screenManager->GetCanvasRotation(node.GetScreenId());
         ScaleMirrorIfNeed(node, canvasRotation);
         RotateMirrorCanvasIfNeed(node, canvasRotation);
-=======
-        ScaleMirrorIfNeed(node);
-        RotateMirrorCanvasIfNeed(node);
->>>>>>> zhangpeng/master
         bool forceCPU = false;
         auto params = RSUniRenderUtil::CreateBufferDrawParam(*mirrorNode, forceCPU);
         params.isMirror = true;
@@ -2912,10 +2901,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 DrawWatermarkIfNeed(*mirrorNode, true);
                 canvas_->RestoreToCount(saveCount);
             }
-<<<<<<< HEAD
             canvas_->SetDisableFilterCache(false);
-=======
->>>>>>> zhangpeng/master
         } else {
             mirrorNode->SetOriginScreenRotation(node.GetOriginScreenRotation());
             processor_->ProcessDisplaySurface(*mirrorNode);
@@ -3046,12 +3032,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         bool clipPath = false;
 #ifdef RS_ENABLE_VK
         int saveCountBeforeClip = 0;
-<<<<<<< HEAD
         if (RSSystemProperties::IsUseVulkan()) {
-=======
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
->>>>>>> zhangpeng/master
             saveCountBeforeClip = canvas_->Save();
         }
 #endif
@@ -3251,12 +3232,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mainThread->RemoveTask(CLEAR_GPU_CACHE);
         }
 #ifdef RS_ENABLE_VK
-<<<<<<< HEAD
         if (RSSystemProperties::IsUseVulkan()) {
-=======
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
->>>>>>> zhangpeng/master
             canvas_->RestoreToCount(saveCountBeforeClip);
         }
 #endif
@@ -3417,34 +3393,7 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
         return;
     }
 #endif
-<<<<<<< HEAD
     canvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
-=======
-    // if listenedCanvas is nullptr, that means disabled or listen failed
-    std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
-
-    if (RSOverdrawController::GetInstance().IsEnabled()) {
-        auto &oc = RSOverdrawController::GetInstance();
-        listenedCanvas = std::make_shared<RSListenedCanvas>(*drSurface.get());
-        overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
-        if (overdrawListener == nullptr) {
-            overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
-        }
-
-        if (overdrawListener != nullptr) {
-            listenedCanvas->SetListener(overdrawListener);
-        } else {
-            // create listener failed
-            listenedCanvas = nullptr;
-        }
-    }
-
-    if (listenedCanvas != nullptr) {
-        canvas_ = listenedCanvas;
-    } else {
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
-    }
->>>>>>> zhangpeng/master
 }
 
 bool RSUniRenderVisitor::IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const
@@ -4000,7 +3949,6 @@ void RSUniRenderVisitor::AlignGlobalAndSurfaceDirtyRegions(std::shared_ptr<RSDis
     }
 }
 
-<<<<<<< HEAD
 std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &region)
 {
     const std::vector<Occlusion::Rect>& rects = region.GetRegionRects();
@@ -4024,8 +3972,6 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
     return retRects;
 }
 
-=======
->>>>>>> zhangpeng/master
 void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
 {
     if (node.IsStaticCached()) {
@@ -4415,12 +4361,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 #endif
 #ifdef RS_ENABLE_VK
-<<<<<<< HEAD
     if (RSSystemProperties::IsUseVulkan()) {
-=======
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
->>>>>>> zhangpeng/master
         node.SetDrawingGPUContext(renderEngine_->GetSkContext().get());
     }
 #endif
@@ -4463,7 +4404,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isOpDropped_ && node.IsAppWindow()) {
         const auto& visibleRegions = node.GetVisibleRegion().GetRegionRects();
         if (visibleRegions.size() == 1) {
-<<<<<<< HEAD
             auto visibleRect = Drawing::Rect(
                 visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_);
             Drawing::Matrix inverse;
@@ -4471,10 +4411,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 inverse.MapRect(visibleRect, visibleRect);
             }
             canvas_->SetVisibleRect(visibleRect);
-=======
-            canvas_->SetVisibleRect(Drawing::Rect(
-                visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
->>>>>>> zhangpeng/master
         }
     }
 
@@ -4862,14 +4798,11 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     processedCanvasNodeInCurrentSurface_++;
     if (!node.ShouldPaint() ||
         (canvas_ && canvas_->GetDeviceClipBounds().IsEmpty() && hardwareEnabledNodes_.empty())) {
-<<<<<<< HEAD
 #ifdef DDGR_ENABLE_FEATURE_OPINC
         if (isOpincDropNodeExt_) {
             return;
         }
 #else
-=======
->>>>>>> zhangpeng/master
         return;
 #endif
     }
@@ -4885,7 +4818,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #endif
     }
     node.MarkNodeSingleFrameComposer(isNodeSingleFrameComposer_);
-<<<<<<< HEAD
 
 #ifdef RS_ENABLE_STACK_CULLING
     if (RSSystemProperties::GetViewOcclusionCullingEnabled()) {
@@ -4913,8 +4845,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
 #endif
 
-=======
->>>>>>> zhangpeng/master
     if ((isOpDropped_ && (curSurfaceNode_ != nullptr)) || isCanvasNodeSkipDfxEnabled_) {
         // If all the child nodes have drawing areas that do not exceed the current node, then current node
         // can be directly skipped if not intersect with any dirtyregion.
@@ -4948,7 +4878,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
-<<<<<<< HEAD
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     // clip hole for driven render
     if (drivenInfo_ && !drivenInfo_->prepareInfo.hasInvalidScene &&
@@ -4965,8 +4894,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         }
     }
 #endif
-=======
->>>>>>> zhangpeng/master
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     bool isProcessAutoCache = autoCacheEnable_ && !isDiscardSurface_ && node->GetAutoCache()->IsOpincUnchangeNode();
     if (isProcessAutoCache) {
@@ -5014,12 +4941,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
             // The second param is null, 0 is an invalid value.
             RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
         };
-<<<<<<< HEAD
         auto threadId = RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIndex_];
         drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc }, threadId);
-=======
-        drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
->>>>>>> zhangpeng/master
     }
     CheckAndSetNodeCacheType(node);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
@@ -5034,11 +4957,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         }
 #endif
     notRunCheckAndSetNodeCacheType_ = false;
-<<<<<<< HEAD
-=======
-    isTextNeedCached_ = false;
-    canvas_->SetCacheType(preType);
->>>>>>> zhangpeng/master
     canvas_->Restore();
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (isProcessAutoCache) {
@@ -5130,7 +5048,6 @@ void RSUniRenderVisitor::FinishOffscreenRender(bool isMirror)
     canvas_ = std::move(canvasBackup_);
 }
 
-<<<<<<< HEAD
 void RSUniRenderVisitor::StartOverDraw()
 {
     if (!RSOverdrawController::GetInstance().IsEnabled()) {
@@ -5182,8 +5099,6 @@ void RSUniRenderVisitor::FinishOverDraw()
     overdrawCanvas_ = nullptr;
 }
 
-=======
->>>>>>> zhangpeng/master
 void RSUniRenderVisitor::ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node)
 {
     if (!doAnimate_) {
@@ -5315,10 +5230,7 @@ void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
     appWindowNum_ = num;
 }
 
-<<<<<<< HEAD
-=======
 // [planning] sharedTransition should be updated before in case dirtyflag changes
->>>>>>> zhangpeng/master
 void RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
 {
     // set flag for surface node whose children contain shared transition node
@@ -5488,11 +5400,6 @@ void RSUniRenderVisitor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, boo
             static_cast<int>(rotation) + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     }
     if (rotation != ScreenRotation::ROTATION_0) {
-<<<<<<< HEAD
-=======
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
->>>>>>> zhangpeng/master
         if (rotation == ScreenRotation::ROTATION_90) {
             canvas_->Rotate(90, 0, 0);
             canvas_->Translate(0, -mainHeight);
@@ -5539,7 +5446,6 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
         }
     }
     // If the width and height not match the main screen, calculate the dstRect.
-<<<<<<< HEAD
     if (mainWidth != mirrorWidth || mainHeight != mirrorHeight) {
         canvas_->Clear(SK_ColorBLACK);
         auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
@@ -5548,22 +5454,6 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
         } else if (scaleMode == ScreenScaleMode::UNISCALE_MODE) {
             processor->UniScale(*canvas_, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
         }
-=======
-    if (mainWidth != boundsWidth || mainHeight != boundsHeight) {
-        canvas_->Clear(SK_ColorBLACK);
-        float mirrorScale = 1.0f; // 1 for init scale
-        float startX = 0.0f;
-        float startY = 0.0f;
-        if ((boundsHeight / boundsWidth) < (mainHeight / mainWidth)) {
-            mirrorScale = boundsHeight / mainHeight;
-            startX = (boundsWidth - (mirrorScale * mainWidth)) / 2; // 2 for calc X
-        } else if ((boundsHeight / boundsWidth) > (mainHeight / mainWidth)) {
-            mirrorScale = boundsWidth / mainWidth;
-            startY = (boundsHeight - (mirrorScale * mainHeight)) / 2; // 2 for calc Y
-        }
-        canvas_->Translate(startX, startY);
-        canvas_->Scale(mirrorScale, mirrorScale);
->>>>>>> zhangpeng/master
     }
 }
 

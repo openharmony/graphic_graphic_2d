@@ -45,10 +45,7 @@
 #include "platform/drawing/rs_vsync_client.h"
 #include "platform/common/rs_event_manager.h"
 #include "transaction/rs_transaction_data.h"
-<<<<<<< HEAD
-=======
 #include "params/rs_render_thread_params.h"
->>>>>>> zhangpeng/master
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
@@ -98,12 +95,7 @@ public:
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
-<<<<<<< HEAD
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
-=======
-    void QosStateDump(std::string& dumpString);
-    void RenderServiceTreeDump(std::string& dumpString) const;
->>>>>>> zhangpeng/master
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
@@ -547,13 +539,10 @@ private:
     ScreenId displayNodeScreenId_ = 0;
 
     bool forceUIFirstChanged_ = false;
-<<<<<<< HEAD
     bool hasRosenWebNode_ = false;
-=======
     RSDrawFrame drawFrame_;
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     RsParallelType rsParallelType_;
->>>>>>> zhangpeng/master
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
