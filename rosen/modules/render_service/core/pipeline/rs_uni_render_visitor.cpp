@@ -3524,7 +3524,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         node.InitCacheSurface(canvas_ ? canvas_->GetGPUContext().get() : nullptr, func, threadIndex_);
     }
     auto surface = node.GetCacheSurface(threadIndex_, true);
-    if (UNLIKELY(!surface)) {
+    if (!surface) {
         RS_LOGE("Get CacheSurface failed");
         return false;
     }
@@ -3677,19 +3677,19 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
 void RSUniRenderVisitor::DrawChildCanvasRenderNode(RSRenderNode& node)
 {
      if (node.GetCacheType() == CacheType::NONE) {
-         if (node.IsPureContainer()) {
-             processedPureContainerNode_++;
-             node.ApplyBoundsGeometry(*canvas_);
-             goto process;
-         } else if (node.IsContentNode()) {
-             node.ApplyBoundsGeometry(*canvas_);
-             node.ApplyAlpha(*canvas_);
-             node.ProcessRenderContents(*canvas_);
-             process:
-                ProcessChildren(node);
-                node.RSRenderNode::ProcessTransitionAfterChildren(*canvas_);
-                return;
-         }
+        if (node.IsPureContainer()) {
+            processedPureContainerNode_++;
+            node.ApplyBoundsGeometry(*canvas_);
+            goto process;
+        } else if (node.IsContentNode()) {
+            node.ApplyBoundsGeometry(*canvas_);
+            node.ApplyAlpha(*canvas_);
+            node.ProcessRenderContents(*canvas_);
+            process:
+            ProcessChildren(node);
+            node.RSRenderNode::ProcessTransitionAfterChildren(*canvas_);
+            return;
+        }
     }
     DrawChildRenderNode(node);
 }
