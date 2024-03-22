@@ -1866,7 +1866,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest059, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     double result = OH_Drawing_TypographyTextlineStyleGetFontSize(typoStyle);
-    EXPECT_TRUE(result == 14.0);
+    EXPECT_TRUE(result == 14.0); // 14.0 for test
     result = OH_Drawing_TypographyTextlineStyleGetFontSize(nullptr);
     EXPECT_TRUE(result == 0);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -1899,7 +1899,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest061, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    double lineStyleFontHeight = 2.0; //For test
+    double lineStyleFontHeight = 2.0; //2.0 for test
     OH_Drawing_SetTypographyTextLineStyleFontHeight(typoStyle, lineStyleFontHeight);
     bool result = OH_Drawing_TypographyTextlineStyleGetHeightOnly(typoStyle);
     EXPECT_TRUE(result == true);
