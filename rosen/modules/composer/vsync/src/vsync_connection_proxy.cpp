@@ -25,7 +25,7 @@ VSyncConnectionProxy::VSyncConnectionProxy(const sptr<IRemoteObject>& impl)
 
 VsyncError VSyncConnectionProxy::RequestNextVSync()
 {
-    MessageOption opt;
+    MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;
     MessageParcel ret;
 
