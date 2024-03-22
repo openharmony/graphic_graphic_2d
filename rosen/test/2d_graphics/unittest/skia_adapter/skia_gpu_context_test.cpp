@@ -169,6 +169,26 @@ HWTEST_F(SkiaGPUContextTest, PurgeUnlockedResourcesByTag001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PurgeUnlockedResourcesByPid001
+ * @tc.desc: Test PurgeUnlockedResourcesByPid
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(SkiaGPUContextTest, PurgeUnlockedResourcesByPid001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUResourceTag tag;
+    std::set<pid_t> pidset;
+    gpuContext->PurgeUnlockedResourcesByPid(true, pidset);
+#ifdef NEW_SKIA
+    GrMockOptions options;
+    gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
+#endif
+    gpuContext->PurgeUnlockedResourcesByPid(true, pidset);
+}
+
+/**
  * @tc.name: PurgeUnlockAndSafeCacheGpuResources001
  * @tc.desc: Test PurgeUnlockAndSafeCacheGpuResources
  * @tc.type: FUNC

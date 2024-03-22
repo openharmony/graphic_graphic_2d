@@ -83,6 +83,8 @@ public:
 
     void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) override;
 
+    void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) override;
+
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
     void ReleaseByTag(const GPUResourceTag &tag) override;

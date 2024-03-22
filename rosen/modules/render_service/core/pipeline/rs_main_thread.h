@@ -96,7 +96,7 @@ public:
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
-    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false);
+    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -396,6 +396,7 @@ private:
     uint64_t lastAnimateTimestamp_ = 0;
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
+    pid_t lastCleanCachePid_ = -1;
     int hardwareTid_ = -1;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
@@ -557,6 +558,8 @@ private:
     friend class RSProfiler;
 #endif
     bool isCurtainScreenOn_ = false;
+    pid_t exitedPid_ = -1;
+    std::set<pid_t> exitedPidSet_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

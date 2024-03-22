@@ -1939,6 +1939,228 @@ bool OH_Drawing_TextStyleGetHalfLeading(OH_Drawing_TextStyle*);
  */
 const char* OH_Drawing_TextStyleGetLocale(OH_Drawing_TextStyle*);
 
+/**
+ * @brief Mark the Typography as dirty, and initially state the Typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_TypographyMarkDirty(OH_Drawing_Typography*);
+
+/**
+ * @brief Get the unresolved Glyphs count of lines in a text.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @return Returns unresolved Glyphs count.
+ * @since 12
+ * @version 1.0
+ */
+int32_t OH_Drawing_TypographyGetUnresolvedGlyphsCount(OH_Drawing_Typography*);
+
+/**
+ * @brief Update the font size of lines in a text.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param from Indicates the source of the original font size.
+ * @param to Indicates the destination of the updated font size.
+ * @param fontSize Indicates the size of the font.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography*, size_t from, size_t to, float fontSize);
+
+/**
+ * @brief Get whether the text layout enables line styles.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to the text <b>OH_Drawing_TypographyStyle</b> object.
+ * @return Whether or not to enable line styles in text layout only, true means enable, false means disable.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the font weight of line style for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the font weight of line style for text typography. For details, see the enum <b>OH_Drawing_FontWeight</b>.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_FontWeight OH_Drawing_TypographyTextlineStyleGetFontWeight(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the font style of line style for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the font style of line style for text typography. For details, see the enum <b>OH_Drawing_FontStyle</b>.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_FontStyle OH_Drawing_TypographyTextlineStyleGetFontStyle(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the font families of line style for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @param num The number of obtained font names.
+ * @return Return the font families of line style for text typography.
+ * @since 12
+ * @version 1.0
+ */
+char** OH_Drawing_TypographyTextlineStyleGetFontFamilies(OH_Drawing_TypographyStyle*, size_t* num);
+
+/**
+ * @brief Releases the memory occupied by a list of font families names.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param fontFamilies Indicates the pointer to a list of font families names.
+ * @param fontFamiliesNum Indicates the number of obtained font names.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_DestroyFontFamilies(char** fontFamilies, size_t fontFamiliesNum);
+
+/**
+ * @brief Get the font size of font size for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the font size of font size for text typography.
+ * @since 12
+ * @version 1.0
+ */
+double OH_Drawing_TypographyTextlineStyleGetFontSize(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the font height scale in text layout.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Retrun the font height scale in text layout.
+ * @since 12
+ * @version 1.0
+ */
+double OH_Drawing_TypographyTextlineStyleGetHeightScale(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get whether to enable font height for line styles in text layout only.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Whether or not to enable the font height for line styles in text layout only, true means enable, false means disable.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_TypographyTextlineStyleGetHeightOnly(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the half leading of line style for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Whether to enable the text line half leading style, true means enable, false means disable.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_TypographyTextlineStyleGetHalfLeading(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the spacing scale of line style for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the spacing scale of line style for text typography.
+ * @since 12
+ * @version 1.0
+ */
+double OH_Drawing_TypographyTextlineStyleGetSpacingScale(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get whether only line style is enabled for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Returns whether only line style is enabled for text layout, true means it is enabled, false means it is not.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_TypographyTextlineGetStyleOnly(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the text alignment mode.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the text alignment mode. For details, see the enum <b>OH_Drawing_TextAlign</b>.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_TextAlign OH_Drawing_TypographyGetTextAlign(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the text direction.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the text direction. For details, see the enum <b>OH_Drawing_TextDirection</b>.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_TextDirection OH_Drawing_TypographyGetTextDirection(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Sets the maximum number of lines in a text.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the maximum number of lines in a text.
+ * @since 12
+ * @version 1.0
+ */
+size_t OH_Drawing_TypographyGetTextMaxLines(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Get the ellipsis of lines in a text.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
+ * @return Return the ellipsis of lines in a text.
+ * @since 12
+ * @version 1.0
+ */
+char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle*);
+
+/**
+ * @brief Releases the memory occupied by a list of Ellipsis names.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param ellipsis Indicates the pointer to a list of Ellipsis names.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_DestroyEllipsis(char* ellipsis);
+
+/**
+ * @brief Overriding the class ParagraphStyle equals operator.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param from Indicates source of comparison object.
+ * @param to Indicates comparison object.
+ * @return Compare result.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_TypographyStyleEquals(OH_Drawing_TypographyStyle* from, OH_Drawing_TypographyStyle* to);
+
 #ifdef __cplusplus
 }
 #endif

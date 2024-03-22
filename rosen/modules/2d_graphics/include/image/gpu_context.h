@@ -15,7 +15,7 @@
 
 #ifndef GPU_CONTEXT_H
 #define GPU_CONTEXT_H
-
+#include <set>
 #include "impl_interface/gpu_context_impl.h"
 #include "utils/drawing_macros.h"
 #include "utils/data.h"
@@ -186,6 +186,12 @@ public:
      *                          the provided byte count has been reached or we have purged all unlocked resources.
      */
     void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag);
+
+    /*
+     * @brief                   Purge unlocked resources by pid from the cache until
+     *                          the provided byte count has been reached or we have purged all unlocked resources.
+     */
+    void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
 
     /*
      * @brief                   Purge unlocked resources from the safe cache until
