@@ -2996,6 +2996,12 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
         displayDirtyManager->MergeDirtyRect(tempRect, true);  // true：debugRect for dislplayNode skip
     }
+
+#ifdef RS_PROFILER_ENABLED
+    RS_LOGD("CalcDirtyRegion RSSystemProperties::GetFullDirtyScreenEnabled()");
+    std::pair<uint32_t, uint32_t> resolution = captureRecorder_.GetDirtyRect(screenInfo_.width, screenInfo_.height);
+    displayDirtyManager->MergeDirtyRect(RectI { 0, 0, resolution.first, resolution.second });
+#endif
 }
 
 void RSUniRenderVisitor::MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
@@ -4843,6 +4849,11 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
 void RSUniRenderVisitor::tryCapture(float width, float height)
 {
     if (!RSSystemProperties::GetRecordingEnabled()) {
+#ifdef RS_PROFILER_ENABLED
+        if (auto canvas = captureRecorder_.TryInstantCapture(width, height)) {
+            canvas_->AddCanvas(canvas);
+        }
+#endif
         return;
     }
     recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(width, height);
@@ -4858,6 +4869,9 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
 void RSUniRenderVisitor::endCapture() const
 {
     if (!RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetRecordingEnabled()) {
+#ifdef RS_PROFILER_ENABLED
+        captureRecorder_.EndInstantCapture();
+#endif
         return;
     }
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();

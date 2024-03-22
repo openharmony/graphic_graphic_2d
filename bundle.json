@@ -84,7 +84,10 @@
           "bounds_checking_function",
           "egl",
           "opengles",
-          "node"
+          "node",
+          "vulkan-headers",
+          "hiview",
+          "battery_manager"
         ],
         "third_party": [
           "flutter",

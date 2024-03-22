@@ -129,7 +129,6 @@ public:
     RSB_EXPORT static pid_t ReadPid(Parcel& parcel);
     RSB_EXPORT static uint64_t PatchTime(uint64_t time);
     RSB_EXPORT static uint64_t PatchTransactionTime(const Parcel& parcel, uint64_t timeAtRecordProcess);
-    RSB_EXPORT static void SetReplayTimes(double replayStartTime, double recordStartTime);
 
     template<typename T>
     static T PatchNodeId(const Parcel& parcel, T id)

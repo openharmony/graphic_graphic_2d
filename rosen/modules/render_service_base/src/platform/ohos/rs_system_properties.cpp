@@ -92,6 +92,33 @@ void RSSystemProperties::SetRecordingDisenabled()
     RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
 }
 
+bool RSSystemProperties::GetProfilerEnabled()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.profiler.enabled", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
+bool RSSystemProperties::GetInstantRecording()
+{
+    return (system::GetParameter("debug.graphic.instant.recording.enabled", "0") != "0");
+}
+
+void RSSystemProperties::SetInstantRecording(bool flag)
+{
+    system::SetParameter("debug.graphic.instant.recording.enabled", flag ? "1" : "0");
+}
+
+bool RSSystemProperties::GetSaveRDC()
+{
+    return (system::GetParameter("debug.graphic.rdcenabled", "0") != "0");
+}
+
+void RSSystemProperties::SetSaveRDC(bool flag)
+{
+    system::SetParameter("debug.graphic.rdcenabled", flag ? "1" : "0");
+}
+
 std::string RSSystemProperties::GetRecordingFile()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dumpfile.path", "");
