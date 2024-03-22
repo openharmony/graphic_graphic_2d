@@ -81,11 +81,7 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
         return nullptr;
     }
     Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(),
-<<<<<<< HEAD
         Drawing::ColorType::COLORTYPE_RGBA_8888,  Drawing::AlphaType::ALPHATYPE_PREMUL };
-=======
-    Drawing::ColorType::COLORTYPE_RGBA_8888,  Drawing::AlphaType::ALPHATYPE_PREMUL };
->>>>>>> zhangpeng/master
     auto srfce = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
     auto cnvs = srfce->GetCanvas();
     cnvs->Clear(Drawing::Color::COLOR_YELLOW);

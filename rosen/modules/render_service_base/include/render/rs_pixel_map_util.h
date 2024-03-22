@@ -35,11 +35,8 @@ public:
     static std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
     static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
                                         Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas);
-<<<<<<< HEAD
     static void DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,
                              const Drawing::scalar px, const Drawing::scalar py);
-=======
->>>>>>> zhangpeng/master
 };
 } // namespace Rosen
 } // namespace OHOS

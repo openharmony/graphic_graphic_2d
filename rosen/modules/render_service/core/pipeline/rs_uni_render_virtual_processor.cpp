@@ -143,7 +143,6 @@ void RSUniRenderVirtualProcessor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& 
 
 void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
 {
-<<<<<<< HEAD
     if (mainWidth_ == mirrorWidth_ && mainHeight_ == mirrorHeight_) {
         return;
     }
@@ -178,22 +177,6 @@ void RSUniRenderVirtualProcessor::JudgeResolution(RSDisplayRenderNode& node)
                 std::swap(mirrorWidth_, mirrorHeight_);
             }
         }
-=======
-    if (mainWidth_ != mirrorWidth_ || mainHeight_ != mirrorHeight_) {
-        canvas_->Clear(SK_ColorBLACK);
-        float mirrorScale = 1.0f; // 1 for init scale
-        float startX = 0.0f;
-        float startY = 0.0f;
-        if ((mirrorHeight_ / mirrorWidth_) < (mainHeight_ / mainWidth_)) {
-            mirrorScale = mirrorHeight_ / mainHeight_;
-            startX = (mirrorWidth_ - (mirrorScale * mainWidth_)) / 2; // 2 for calc X
-        } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight_ / mainWidth_)) {
-            mirrorScale = mirrorWidth_ / mainWidth_;
-            startY = (mirrorHeight_ - (mirrorScale * mainHeight_)) / 2; // 2 for calc Y
-        }
-        canvas_->Translate(startX, startY);
-        canvas_->Scale(mirrorScale, mirrorScale);
->>>>>>> zhangpeng/master
     }
 }
 
@@ -252,31 +235,13 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             canvas_->ConcatMatrix(invertMatrix);
         }
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
-<<<<<<< HEAD
         
         JudgeResolution(node);
-=======
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-        mainWidth_ = static_cast<float>(mainScreenInfo.width);
-        mainHeight_ = static_cast<float>(mainScreenInfo.height);
-        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
-            std::swap(mainWidth_, mainHeight_);
-        }
-
-        auto rotation = canvasRotation_ ? node.GetScreenRotation() : node.GetOriginScreenRotation();
-        if (rotation == ScreenRotation::ROTATION_90 ||
-            rotation == ScreenRotation::ROTATION_270) {
-            std::swap(mainWidth_, mainHeight_);
-        }
-
->>>>>>> zhangpeng/master
         ScaleMirrorIfNeed(node);
         RotateMirrorCanvasIfNeed(node, canvasRotation_);
 
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
         canvas_->Restore();
-<<<<<<< HEAD
     }
 }
 
@@ -308,8 +273,6 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
         }
         canvas.Translate(startX, startY);
         canvas.Scale(mirrorScale, mirrorScale);
-=======
->>>>>>> zhangpeng/master
     }
 }
 

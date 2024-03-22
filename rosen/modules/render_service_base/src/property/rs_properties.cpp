@@ -158,11 +158,7 @@ RSProperties::RSProperties()
 
 RSProperties::~RSProperties() = default;
 
-<<<<<<< HEAD
-void RSProperties::ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes)
-=======
 void RSProperties::ResetProperty(const ModifierDirtyTypes& dirtyTypes)
->>>>>>> zhangpeng/master
 {
     if (dirtyTypes.none()) {
         return;
@@ -380,8 +376,6 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
-<<<<<<< HEAD
-=======
 bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& parent,
     bool needParentOffset, const std::optional<Drawing::Rect>& clipRect)
 {
@@ -412,7 +406,6 @@ bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& p
     }
 }
 
->>>>>>> zhangpeng/master
 bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
 {

@@ -129,8 +129,7 @@ void RSBaseRenderEngine::InitCapture(bool independentContext)
         captureRenderContext_->SetUniRenderMode(true);
     }
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::IsUseVulkan()) {
         captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
         captureRenderContext_->SetUpGpuContext(captureSkContext_);
     } else {

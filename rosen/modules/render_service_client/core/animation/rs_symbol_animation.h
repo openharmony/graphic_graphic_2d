@@ -73,16 +73,8 @@ private:
     bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
         std::vector<float>& timePercents);
 
-    bool isEqual(const Vector2f val1, const Vector2f val2);
-    template<typename T>
-    bool CreateOrSetModifierValue(std::shared_ptr<RSAnimatableProperty<T>>& property, const T& value);
-
-    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeFirst(const std::shared_ptr<RSNode>& rsNode);
-    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeSecond(const std::shared_ptr<RSNode>& rsNode);
-    std::shared_ptr<RSAnimation> VariableColorSymbolAnimationNodeThird(const std::shared_ptr<RSNode>& rsNode);
-
-
     std::shared_ptr<RSNode> rsNode_ = nullptr;
+
     // scale symbol animation
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleStartProperty_ = nullptr;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_ = nullptr;

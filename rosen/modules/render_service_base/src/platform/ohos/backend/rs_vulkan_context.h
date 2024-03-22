@@ -199,10 +199,7 @@ private:
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
     GrVkExtensions skVkExtensions_;
-<<<<<<< HEAD
     RsVulkanMemStat mVkMemStat;
-=======
->>>>>>> zhangpeng/master
     static thread_local std::shared_ptr<Drawing::GPUContext> drawingContext_;
     std::shared_ptr<Drawing::GPUContext> hcontext_ = nullptr;
     // static thread_local GrVkBackendContext backendContext_;

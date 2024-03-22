@@ -196,14 +196,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         output->ReleaseLayers();
         RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
-<<<<<<< HEAD
-
-        if (hasGameScene) {
-=======
         // TO-DO
         RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();
-        if (FrameReport::GetInstance().IsGameScene()) {
->>>>>>> zhangpeng/master
+        if (hasGameScene) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             FrameReport::GetInstance().SetLastSwapBufferTime(endTimeNs - startTimeNs);
@@ -366,12 +361,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-<<<<<<< HEAD
     if (RSSystemProperties::IsUseVulkan()) {
-=======
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
->>>>>>> zhangpeng/master
         canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqsVK;
@@ -583,7 +573,7 @@ void RSHardwareThread::AddRefreshRateCount()
     }
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
 }
-#ifdef RES_SCHED_ENABLE
+
 void RSHardwareThread::SubScribeSystemAbility()
 {
     RS_LOGD("%{public}s", __func__);
@@ -598,23 +588,6 @@ void RSHardwareThread::SubScribeSystemAbility()
     std::string strPid = std::to_string(getpid());
     std::string strTid = std::to_string(gettid());
 
-<<<<<<< HEAD
-void RSHardwareThread::SubScribeSystemAbility()
-{
-    RS_LOGD("%{public}s", __func__);
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        RS_LOGE("%{public}s failed to get system ability manager client", __func__);
-        return;
-    }
-    std::string threadName = "RSHardwareThread";
-    std::string strUid = std::to_string(getuid());
-    std::string strPid = std::to_string(getpid());
-    std::string strTid = std::to_string(gettid());
-
-=======
->>>>>>> zhangpeng/master
     saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
     int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
     if (ret != ERR_OK) {
@@ -622,11 +595,7 @@ void RSHardwareThread::SubScribeSystemAbility()
         saStatusChangeListener_ = nullptr;
     }
 }
-<<<<<<< HEAD
 
-=======
-#endif
->>>>>>> zhangpeng/master
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers)
 {

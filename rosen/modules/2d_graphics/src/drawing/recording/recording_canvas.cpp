@@ -52,12 +52,12 @@ void RecordingCanvas::Clear() const
     cmdList_->ClearOp();
 }
 
-<<<<<<< HEAD
 void RecordingCanvas::ResetCanvas(int32_t width, int32_t height)
 {
     Clear();
     Reset(width, height);
-=======
+}
+
 void RecordingCanvas::Reset(int32_t width, int32_t height, bool addDrawOpImmediate)
 {
     DrawCmdList::UnmarshalMode mode =
@@ -73,7 +73,6 @@ void RecordingCanvas::Reset(int32_t width, int32_t height, bool addDrawOpImmedia
     DetachBrush();
     DetachPen();
     NoDrawCanvas::Reset(width, height);
->>>>>>> zhangpeng/master
 }
 
 void RecordingCanvas::DrawPoint(const Point& point)

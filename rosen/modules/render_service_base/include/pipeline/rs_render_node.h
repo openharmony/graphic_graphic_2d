@@ -564,6 +564,16 @@ protected:
     std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)> dirtyTypes_;
     bool isBootAnimation_ = false;
 
+    inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
+    {
+        renderContent_->DrawPropertyDrawable(slot, canvas);
+    }
+    inline void DrawPropertyDrawableRange(
+        RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas)
+    {
+        renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
+    }
+
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -717,6 +727,7 @@ private:
 
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
+    void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
     void UpdateDisplayList();
     void UpdateShadowRect();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
@@ -757,6 +768,7 @@ private:
     bool foregroundFilterInteractWithDirty_ = false;
 
     friend class DrawFuncOpItem;
+    friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
     friend class RSModifierDrawable;

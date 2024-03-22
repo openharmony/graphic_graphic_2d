@@ -543,32 +543,6 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
-<<<<<<< HEAD
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node == nullptr) {
-            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture: node is nullptr");
-            callback->OnSurfaceCapture(id, nullptr);
-            return;
-        }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
-            mainThread_->GetDeviceType() == DeviceType::PHONE) ? !node->IsOnTheTree() : false;
-        std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
-            RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
-            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-            RSSurfaceCaptureTask task(id, scaleX, scaleY, isProcOnBgThread);
-            if (!task.Run(callback)) {
-                callback->OnSurfaceCapture(id, nullptr);
-            }
-            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        };
-        std::function<void()> captureTaskOnBgThread = [=]() -> void {
-            mainThread_->SetSurfaceCapProcFinished(false);
-            RSBackgroundThread::Instance().PostTask(captureTask);
-        };
-        auto task = isProcOnBgThread ? captureTaskOnBgThread : captureTask;
-        mainThread_->PostTask(task);
-=======
         if (RSSystemParameters::GetRsSurfaceCaptureType() == RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
             auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
             auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -600,7 +574,6 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             };
             renderThread_.PostTask(captureTask);
         }
->>>>>>> zhangpeng/master
     } else {
         TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY);
     }

@@ -666,12 +666,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 
     filter->PreProcess(imageSnapshot);
     if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-<<<<<<< HEAD
         Drawing::Matrix mat = canvas.GetTotalMatrix();
         filter->SetCanvasChange(mat, surface->Width(), surface->Height());
-=======
-        filter->SetCanvasChange(canvas);
->>>>>>> zhangpeng/master
         filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
     }
 
@@ -823,16 +819,6 @@ void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& prop
 
 void RSPropertiesPainter::ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-<<<<<<< HEAD
-=======
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        // do nothing
-    } else if (properties.GetClipBounds() != nullptr) {
-        canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
-    } else { // we always do clip for ApplyBackgroundEffect, even if ClipToBounds is false
-        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
-    }
->>>>>>> zhangpeng/master
     canvas.ResetMatrix();
     auto visibleRect = canvas.GetVisibleRect();
     visibleRect.Round();
@@ -867,8 +853,6 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     canvas.DrawImageRect(*effectData->cachedImage_, srcRect, dstRect,
                          Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
-<<<<<<< HEAD
-=======
 }
 
 void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
@@ -890,7 +874,6 @@ void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
     dirtyPixelStretch.top_ = std::floor(drawingRect.GetTop());
     dirtyPixelStretch.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
     dirtyPixelStretch.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
->>>>>>> zhangpeng/master
 }
 
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
@@ -1439,33 +1422,6 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
     DrawMask(properties, canvas, maskBounds);
 }
 
-<<<<<<< HEAD
-RectF RSPropertiesPainter::GetCmdsClipRect(Drawing::DrawCmdListPtr& cmds)
-{
-    ROSEN_LOGE("Drawing Unsupport RSPropertiesPainter::GetCmdsClipRect");
-    return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
-}
-
-void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-                                             Drawing::DrawCmdListPtr& cmds)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    if (cmds == nullptr) {
-        return;
-    }
-    Rosen::Drawing::Matrix mat;
-    if (GetGravityMatrix(
-            properties.GetFrameGravity(), properties.GetFrameRect(), cmds->GetWidth(), cmds->GetHeight(), mat)) {
-        canvas.ConcatMatrix(mat);
-    }
-    auto frameRect = Rect2DrawingRect(properties.GetFrameRect());
-    // temporary solution for driven content clip
-    cmds->Playback(canvas, &frameRect);
-#endif
-}
-
-=======
->>>>>>> zhangpeng/master
 void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     const std::shared_ptr<Drawing::Surface>& spherizeSurface)
 {
@@ -1842,12 +1798,8 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
     canvas.Save();
     canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
 
-    if (canvas.GetBlendOffscreenLayerCnt() == 0 && IsDangerousBlendMode(blendMode - 1, blendModeApplyType)) {
-        Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
-        canvas.SaveLayer(maskLayerRec);
-        canvas.AddBlendOffscreenLayer(true);
-        ROSEN_LOGD("Dangerous fast blendmode may produce transparent pixels, add extra offscreen here.");
-    }
+    // TODO: fix offscreen protector
+
     // fast blend mode
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         canvas.SaveEnv();
@@ -1865,13 +1817,7 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
     blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
     canvas.SaveLayer(maskLayerRec);
-<<<<<<< HEAD
-
-    canvas.AddBlendOffscreenLayer(false);
-    canvas.SaveBlendMode();
-=======
     canvas.SaveEnv();
->>>>>>> zhangpeng/master
     canvas.SetBlendMode(std::nullopt);
     canvas.SaveAlpha();
     canvas.SetAlpha(1.0f);
@@ -1887,32 +1833,15 @@ void RSPropertiesPainter::EndBlendMode(RSPaintFilterCanvas& canvas, const RSProp
         return;
     }
 
+    // TODO: fix offscreen protector
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
-<<<<<<< HEAD
-        canvas.RestoreBlendMode();
-        if (canvas.IsBlendOffscreenExtraLayer()) {
-            canvas.Restore();
-            canvas.MinusBlendOffscreenLayer();
-        }
-=======
         canvas.RestoreEnv();
->>>>>>> zhangpeng/master
     } else {
         canvas.RestoreEnv();
         canvas.RestoreAlpha();
         canvas.Restore();
-<<<<<<< HEAD
-        canvas.MinusBlendOffscreenLayer();
-        if (canvas.IsBlendOffscreenExtraLayer()) {
-            canvas.Restore();
-            canvas.MinusBlendOffscreenLayer();
-        }
     }
     canvas.Restore();
-=======
-    }
-        canvas.Restore();
->>>>>>> zhangpeng/master
 }
 } // namespace Rosen
 } // namespace OHOS

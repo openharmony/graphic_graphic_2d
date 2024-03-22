@@ -36,7 +36,6 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
     }
 }
 
-<<<<<<< HEAD
 void SurfaceNodeCommandHelper::CreateWithConfig(
     RSContext& context, NodeId nodeId, std::string name, uint8_t type, std::string bundleName)
 {
@@ -47,8 +46,6 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-=======
->>>>>>> zhangpeng/master
 void SurfaceNodeCommandHelper::SetContextMatrix(
     RSContext& context, NodeId id, const std::optional<Drawing::Matrix>& matrix)
 {

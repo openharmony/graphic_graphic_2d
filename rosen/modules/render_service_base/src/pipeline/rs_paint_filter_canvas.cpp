@@ -1092,56 +1092,36 @@ void RSPaintFilterCanvas::RestoreAlphaToCount(int count)
 
 void RSPaintFilterCanvas::SetBlendMode(std::optional<int> blendMode)
 {
-<<<<<<< HEAD
-    blendModeStack_.top() = blendMode;
-}
-
-int RSPaintFilterCanvas::SaveBlendMode()
-{
-    // make a copy of top of stack
-    blendModeStack_.push(blendModeStack_.top());
-    // return prev stack height
-    return blendModeStack_.size() - 1;
-}
-
-void RSPaintFilterCanvas::RestoreBlendMode()
-{
-    if (blendModeStack_.empty()) {
-        return;
-    }
-    blendModeStack_.pop();
-=======
     envStack_.top().blendMode_ = blendMode;
->>>>>>> zhangpeng/master
 }
 
-std::optional<int> RSPaintFilterCanvas::GetBlendMode()
-{
-    return blendModeStack_.empty() ? std::nullopt : blendModeStack_.top();
-}
+// std::optional<int> RSPaintFilterCanvas::GetBlendMode()
+// {
+//     return blendModeStack_.empty() ? std::nullopt : blendModeStack_.top();
+// }
 
-void RSPaintFilterCanvas::AddBlendOffscreenLayer(bool isExtra)
-{
-    blendOffscreenStack_.push(isExtra);
-}
+// void RSPaintFilterCanvas::AddBlendOffscreenLayer(bool isExtra)
+// {
+//     blendOffscreenStack_.push(isExtra);
+// }
 
-void RSPaintFilterCanvas::MinusBlendOffscreenLayer()
-{
-    if (blendOffscreenStack_.empty()) {
-        return;
-    }
-    blendOffscreenStack_.pop();
-}
+// void RSPaintFilterCanvas::MinusBlendOffscreenLayer()
+// {
+//     if (blendOffscreenStack_.empty()) {
+//         return;
+//     }
+//     blendOffscreenStack_.pop();
+// }
 
-bool RSPaintFilterCanvas::IsBlendOffscreenExtraLayer() const
-{
-    return blendOffscreenStack_.empty() ? false : blendOffscreenStack_.top();
-}
+// bool RSPaintFilterCanvas::IsBlendOffscreenExtraLayer() const
+// {
+//     return blendOffscreenStack_.empty() ? false : blendOffscreenStack_.top();
+// }
 
-int RSPaintFilterCanvas::GetBlendOffscreenLayerCnt() const
-{
-    return blendOffscreenStack_.size();
-}
+// int RSPaintFilterCanvas::GetBlendOffscreenLayerCnt() const
+// {
+//     return blendOffscreenStack_.size();
+// }
 
 int RSPaintFilterCanvas::SaveEnv()
 {

@@ -137,13 +137,10 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
     vkContext.vkBindImageMemory(device, image, memory, 0);
 
-<<<<<<< HEAD
     OHOS::Rosen::RsVulkanMemStat& memStat = vkContext.GetRsVkMemStat();
     auto time = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::system_clock::now());
     std::string timeStamp = std::to_string(static_cast<uint64_t>(time.time_since_epoch().count()));
     memStat.InsertResource(timeStamp, static_cast<uint64_t>(memRequirements.size));
-=======
->>>>>>> zhangpeng/master
     OHOS::Rosen::Drawing::BackendTexture backendTexture(true);
     OHOS::Rosen::Drawing::TextureInfo textureInfo;
     textureInfo.SetWidth(width);
@@ -823,8 +820,6 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
     dirtyStatus_ = NodeDirty::DIRTY;
 }
 
-<<<<<<< HEAD
-=======
 #ifdef DDGR_ENABLE_FEATURE_OPINC
 void RSRenderNode::SetDirtyByOnTree(bool forceAddToActiveList)
 {
@@ -843,7 +838,6 @@ bool RSRenderNode::IsOnTreeDirty()
 }
 #endif
 
->>>>>>> zhangpeng/master
 void RSRenderNode::SetClean()
 {
     isNewOnTree_ = false;
@@ -1541,58 +1535,17 @@ void RSRenderNode::RenderTraceDebug() const
 
 void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
 {
-<<<<<<< HEAD
     DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, canvas);
-=======
-    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
-    //     DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, canvas);
-    //     return;
-    // }
-    renderNodeSaveCount_ = canvas.SaveAllStatus();
-    auto boundsGeo = (GetRenderProperties().GetBoundsGeometry());
-    if (boundsGeo && (!boundsGeo->IsEmpty() || boundsGeo->IsValidOffset())) {
-        canvas.ConcatMatrix(boundsGeo->GetMatrix());
-    }
->>>>>>> zhangpeng/master
 }
 
 void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 {
-<<<<<<< HEAD
     DrawPropertyDrawable(RSPropertyDrawableSlot::ALPHA, canvas);
-=======
-    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
-    //     DrawPropertyDrawable(RSPropertyDrawableSlot::ALPHA, canvas);
-    //     return;
-    // }
-    auto alpha = GetRenderProperties().GetAlpha();
-    if (alpha < 1.f) {
-        if (!(GetRenderProperties().GetAlphaOffscreen() || IsForcedDrawInGroup())) {
-            canvas.MultiplyAlpha(alpha);
-        } else {
-            auto rect = RSPropertiesPainter::Rect2DrawingRect(GetRenderProperties().GetBoundsRect());
-            Drawing::Brush brush;
-            brush.SetAlpha(std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
-            Drawing::SaveLayerOps slr(&rect, &brush);
-            canvas.SaveLayer(slr);
-        }
-    }
->>>>>>> zhangpeng/master
 }
 
 void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-<<<<<<< HEAD
     DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
-=======
-    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
-    //     DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
-    //     return;
-    // }
-    ApplyBoundsGeometry(canvas);
-    ApplyAlpha(canvas);
-    RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
->>>>>>> zhangpeng/master
 }
 
 void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
@@ -1602,28 +1555,12 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 
 void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
-<<<<<<< HEAD
     DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
-=======
-    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
-    //     DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
-    //     return;
-    // }
-    canvas.RestoreStatus(renderNodeSaveCount_);
->>>>>>> zhangpeng/master
 }
 
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-<<<<<<< HEAD
     DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
-=======
-    // if (RSSystemProperties::GetPropertyDrawableEnable()) {
-    //     DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
-    //     return;
-    // }
-    canvas.RestoreStatus(renderNodeSaveCount_);
->>>>>>> zhangpeng/master
 }
 
 void RSRenderNode::UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
@@ -1707,13 +1644,6 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 // Drawing is not supported
 }
 
-<<<<<<< HEAD
-bool RSRenderNode::ApplyModifiers()
-{
-    // quick reject test
-    if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
-        return false;
-=======
 void RSRenderNode::ApplyPositionZModifier() {
     constexpr auto positionZModifierType = static_cast<size_t>(RSModifierType::POSITION_Z);
     if (!dirtyTypes_.test(positionZModifierType)) {
@@ -1743,7 +1673,6 @@ void RSRenderNode::ApplyModifiers()
     // quick reject test
     if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
         return;
->>>>>>> zhangpeng/master
     }
 
     // Reset and re-apply all modifiers
@@ -1766,26 +1695,6 @@ void RSRenderNode::ApplyModifiers()
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
 
-<<<<<<< HEAD
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
-        manager != nullptr &&
-        (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
-        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
-        manager->InvalidateCache();
-    }
-    if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
-        manager->InvalidateCache();
-    }
-
-    // Generate drawable
-    UpdateDrawableVec();
-#endif
-
-    // update state
-    dirtyTypes_.reset();
-    UpdateShouldPaint();
-=======
 // #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 //     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
 //         manager != nullptr &&
@@ -1816,7 +1725,6 @@ void RSRenderNode::ApplyModifiers()
 
     // update state
     dirtyTypes_.reset();
->>>>>>> zhangpeng/master
 
     // update rate decider scale reference size.
     animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
@@ -1834,7 +1742,6 @@ void RSRenderNode::MarkParentNeedRegenerateChildren() const
 
 void RSRenderNode::UpdateDrawableVec()
 {
-<<<<<<< HEAD
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
     if (!GetIsUsedBySubThread()) {
@@ -1845,8 +1752,6 @@ void RSRenderNode::UpdateDrawableVec()
                 node->UpdateDrawableVecInternal(dirtySlots);
             }
         });
-=======
-#ifndef ROSEN_ARKUI_X
     // Step 1: Collect dirty slots
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
 
@@ -1873,9 +1778,24 @@ void RSRenderNode::UpdateDrawableVec()
     // Merge dirty slots
     if (dirtySlots_.empty()) {
         dirtySlots_ = std::move(dirtySlots);
->>>>>>> zhangpeng/master
     } else {
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
+    }
+}
+
+void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
+{
+     // initialize necessary save/clip/restore
+    if (drawableVecStatus_ == 0) {
+        RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
+    }
+    // Update or regenerate drawable
+    bool drawableChanged =
+        RSPropertyDrawable::UpdateDrawableVec(*renderContent_, renderContent_->propertyDrawablesVec_, dirtySlots);
+    // if 1. first initialized or 2. any drawables changed, update save/clip/restore
+    if (drawableChanged || drawableVecStatus_ == 0) {
+        RSPropertyDrawable::UpdateSaveRestore(
+            *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
     }
 }
 
@@ -1900,20 +1820,6 @@ void RSRenderNode::UpdateShadowRect()
 
 void RSRenderNode::UpdateDisplayList()
 {
-<<<<<<< HEAD
-     // initialize necessary save/clip/restore
-    if (drawableVecStatus_ == 0) {
-        RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
-    }
-    // Update or regenerate drawable
-    bool drawableChanged =
-        RSPropertyDrawable::UpdateDrawableVec(*renderContent_, renderContent_->propertyDrawablesVec_, dirtySlots);
-    // if 1. first initialized or 2. any drawables changed, update save/clip/restore
-    if (drawableChanged || drawableVecStatus_ == 0) {
-        RSPropertyDrawable::UpdateSaveRestore(
-            *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
-    }
-=======
 #ifndef ROSEN_ARKUI_X
     stagingDrawCmdList_.clear();
 
@@ -1957,7 +1863,6 @@ void RSRenderNode::UpdateDisplayList()
 
     drawCmdListNeedSync_ = true;
 #endif
->>>>>>> zhangpeng/master
 }
 
 void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced)
@@ -2180,10 +2085,6 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #else
         width = boundsWidth_;
         height = boundsHeight_;
-<<<<<<< HEAD
-#endif
-=======
->>>>>>> zhangpeng/master
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
@@ -2527,28 +2428,11 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
-<<<<<<< HEAD
+    RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
         if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
             nodeGroupType_ |= type;
-=======
-    RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
-    if (type >= nodeGroupType_) {
-        if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
-            auto context = GetContext().lock();
-            if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
-                nodeGroupType_ = type;
-                SetDirty();
-            }
-        } else {
-            nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (nodeGroupType_ != NodeGroupType::GROUPED_BY_AUTO) {
-                SetDirty();
-            }
-#else
->>>>>>> zhangpeng/master
             SetDirty();
         }
     } else {
@@ -2787,11 +2671,7 @@ void RSRenderNode::OnTreeStateChanged()
     if (isOnTheTree_) {
         // Set dirty and force add to active node list, re-generate children list if needed
         SetDirty(true);
-<<<<<<< HEAD
-=======
-#endif
         SetParentSubTreeDirty();
->>>>>>> zhangpeng/master
     }
 // #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 //     if (!isOnTheTree_) {
@@ -3152,17 +3032,7 @@ RSDrawingCacheType RSRenderNode::GetDrawingCacheType() const
 }
 void RSRenderNode::SetDrawingCacheChanged(bool cacheChanged)
 {
-<<<<<<< HEAD
-    isDrawingCacheChanged_ = drawingCacheNeedUpdate_ || cacheChanged;
-    drawingCacheNeedUpdate_ = isDrawingCacheChanged_;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (RSSystemProperties::IsDdgrOpincEnable()) {
-        GetAutoCache()->SetOpincCacheChanged(cacheChanged);
-    }
-#endif
-=======
     stagingRenderParams_->SetDrawingCacheChanged(cacheChanged);
->>>>>>> zhangpeng/master
 }
 bool RSRenderNode::GetDrawingCacheChanged() const
 {

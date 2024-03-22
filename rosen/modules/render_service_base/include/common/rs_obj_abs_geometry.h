@@ -65,8 +65,6 @@ public:
     }
 
 private:
-    void ApplySkewToMatrix(Drawing::Matrix& m, bool preConcat = true);
-    void ApplySkewToMatrix44(Drawing::Matrix44& m44, bool preConcat = true);
     void UpdateAbsMatrix2D();
     void UpdateAbsMatrix3D();
     void SetAbsRect();

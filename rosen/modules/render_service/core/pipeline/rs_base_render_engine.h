@@ -275,10 +275,7 @@ private:
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
     std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
-<<<<<<< HEAD
-=======
     std::shared_ptr<Drawing::GPUContext> captureSkContext_ = nullptr;
->>>>>>> zhangpeng/master
     std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
 #endif
     using SurfaceId = uint64_t;

@@ -33,13 +33,8 @@ void RSUniRenderListener::OnBufferAvailable()
         RS_LOGE("RSUniRenderListener::OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
-<<<<<<< HEAD
-    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
-    node->IncreaseAvailableBuffer();
-=======
     RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
     surfaceHandler->IncreaseAvailableBuffer();
->>>>>>> zhangpeng/master
     RSMainThread::Instance()->NotifyUniRenderFinish();
 }
 }

@@ -64,13 +64,8 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
     }
     // Reset the matrix of the current view
     matrix_.Reset();
-<<<<<<< HEAD
-    // filter invalid width and height
-    if (IsEmpty()) {
-=======
     // filter invalid width, height, x, y
     if (IsEmpty() && !IsValidOffset()) {
->>>>>>> zhangpeng/master
         return;
     }
     // If the view has no transformations or only 2D transformations, update the absolute matrix with 2D
@@ -154,7 +149,6 @@ bool RSObjAbsGeometry::IsNeedClientCompose() const
     return !ROSEN_EQ(std::remainder(trans_->rotation_, 90.f), 0.f, EPSILON);
 }
 
-<<<<<<< HEAD
 namespace {
     void ApplySkewToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
     {
@@ -169,31 +163,6 @@ namespace {
             } else {
                 m44 = m44 * skewM44;
             }
-=======
-void RSObjAbsGeometry::ApplySkewToMatrix(Drawing::Matrix& m, bool preConcat)
-{
-    if (!ROSEN_EQ(trans_->skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->skewY_, 0.f, EPSILON)) {
-        if (preConcat) {
-            m.PreSkew(trans_->skewX_, trans_->skewY_);
-        } else {
-            m.PostSkew(trans_->skewX_, trans_->skewY_);
-        }
-    }
-}
-
-void RSObjAbsGeometry::ApplySkewToMatrix44(Drawing::Matrix44& m44, bool preConcat)
-{
-    if (!ROSEN_EQ(trans_->skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->skewY_, 0.f, EPSILON)) {
-        Drawing::Matrix44 skewM44 {};
-        skewM44.SetMatrix44RowMajor({1.f, trans_->skewX_, 0.f, 0.f,
-            trans_->skewY_, 1.f, 0.f, 0.f,
-            0.f, 0.f, 1.f, 0.f,
-            0.f, 0.f, 0.f, 1.f});
-        if (preConcat) {
-            m44 =  skewM44 * m44;
-        } else {
-            m44 =  m44 *skewM44;
->>>>>>> zhangpeng/master
         }
     }
 }
@@ -314,10 +283,6 @@ void RSObjAbsGeometry::SetAbsRect()
 RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix) const
 {
     RectI absRect;
-<<<<<<< HEAD
-    auto& matrix = GetAbsMatrix();
-=======
->>>>>>> zhangpeng/master
     // Check if the matrix has skew or negative scaling
     if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {

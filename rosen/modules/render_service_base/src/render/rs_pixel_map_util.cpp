@@ -179,7 +179,6 @@ void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pi
         dst.SetBottom(dst.GetBottom() + transformData.translateY / HALF_F / abs(transformData.scaleY));
     }
 }
-<<<<<<< HEAD
 
 void RSPixelMapUtil::DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,
                                   const Drawing::scalar px, const Drawing::scalar py)
@@ -195,7 +194,5 @@ void RSPixelMapUtil::DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixe
         drawingImageInfo, (void*)pixelMap.GetWritablePixels(), static_cast<uint32_t>(pixelMap.GetRowBytes()));
     canvas.DrawBitmap(pixelBitmap, px, py);
 }
-=======
->>>>>>> zhangpeng/master
 } // namespace Rosen
 } // namespace OHOS
