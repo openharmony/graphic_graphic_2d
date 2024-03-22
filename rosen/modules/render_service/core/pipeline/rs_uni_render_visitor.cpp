@@ -373,17 +373,17 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     auto parentNode = std::move(logicParentNode_);
     logicParentNode_ = node.weak_from_this();
     node.ResetChildrenRect();
+    const auto& properties = node.GetRenderProperties();
 
-    auto tempCornerRadius = curCornerRadius_;
     if (!isSubNodeOfSurfaceInPrepare_) {
-        Vector4f::Max(node.GetRenderProperties().GetCornerRadius(), curCornerRadius_, curCornerRadius_);
+        Vector4f::Max(properties.GetCornerRadius(), curCornerRadius_, curCornerRadius_);
     }
     if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
         node.SetGlobalCornerRadius(curCornerRadius_);
     }
 
     float alpha = curAlpha_;
-    curAlpha_ *= node.GetRenderProperties().GetAlpha();
+    curAlpha_ *= properties.GetAlpha();
     node.SetGlobalAlpha(curAlpha_);
     const auto& children = node.GetSortedChildren();
     // check curSurfaceDirtyManager_ for SubTree updates
@@ -420,7 +420,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         SetNodeCacheChangeStatus(node);
     }
 
-    curCornerRadius_ = std::move(tempCornerRadius);
     curAlpha_ = alpha;
     // restore environment variables
     logicParentNode_ = std::move(parentNode);
@@ -880,7 +879,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     if (result) {
         return false;
     }
-    node.UpdateSurfaceCacheContentStatic({});
+    node.UpdateSurfaceCacheContentStatic();
     RS_OPTIONAL_TRACE_NAME("Skip static surface " + node.GetName() + " nodeid - pid: " +
         std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
     // static node's dirty region is empty
@@ -1163,8 +1162,9 @@ void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    auto nodeId = node.GetId();
     RS_OPTIONAL_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] nodeid: " +
-        std::to_string(node.GetId()) +  " pid: " + std::to_string(ExtractPid(node.GetId())) +
+        std::to_string(nodeId) +  " pid: " + std::to_string(ExtractPid(nodeId)) +
         ", nodeType " + std::to_string(static_cast<uint>(node.GetSurfaceNodeType())));
     if (curDisplayNode_ == nullptr) {
         ROSEN_LOGE("RSUniRenderVisitor::PrepareSurfaceRenderNode, curDisplayNode_ is nullptr.");
@@ -1188,7 +1188,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     CheckColorSpace(node);
     CheckPixelFormat(node);
     // only need collect first level node's security & skip layer info
-    if (node.GetId() == node.GetFirstLevelNodeId()) {
+    if (nodeId == node.GetFirstLevelNodeId()) {
         UpdateSecurityAndSkipLayerRecord(node);
     }
     // stop traversal if node keeps static
@@ -1227,7 +1227,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     auto skipNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
-    if (skipNodeMap.count(node.GetId()) != 0) {
+    if (skipNodeMap.count(nodeId) != 0) {
         auto parentNode = node.GetParent().lock();
         auto rsParent = (parentNode);
         dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, prepareClipRect_);
@@ -1269,7 +1269,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // record visible node position for display render node dirtyManager
         if (node.ShouldPaint()) {
-            curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty());
+            curDisplayNode_->UpdateSurfaceNodePos(nodeId, node.GetOldDirty());
         }
 
         if (node.IsAppWindow()) {
@@ -1340,7 +1340,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     PrepareTypesOfSurfaceRenderNodeAfterUpdate(node);
     if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsCurrentFrameDirty())) {
-        dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
+        dirtySurfaceNodeMap_.emplace(nodeId, node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     UpdateSurfaceRenderNodeScale(node);
 #if defined(RS_ENABLE_DRIVEN_RENDER)

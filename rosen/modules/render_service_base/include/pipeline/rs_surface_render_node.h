@@ -828,6 +828,8 @@ public:
         return surfaceCacheContentStatic_;
     }
 
+    void UpdateSurfaceCacheContentStatic();
+
     void UpdateSurfaceCacheContentStatic(
         const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds);
     // temperory limit situation:
@@ -908,7 +910,10 @@ private:
     bool IsHistoryOccludedDirtyRegionNeedSubmit();
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
-    bool IsHardwareDisabledBySrcRect() const;
+    inline bool IsHardwareDisabledBySrcRect() const
+    {
+        return isHardwareForcedDisabledBySrcRect_;
+    }
     bool IsYUVBufferFormat() const;
 
     std::mutex mutexRT_;

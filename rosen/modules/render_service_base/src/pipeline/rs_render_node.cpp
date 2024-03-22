@@ -207,11 +207,6 @@ RSRenderNode::RSRenderNode(
     : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
 {}
 
-bool RSRenderNode::GetIsTextureExportNode() const
-{
-    return isTextureExportNode_;
-}
-
 void RSRenderNode::AddChild(SharedPtr child, int index)
 {
     // sanity check, avoid loop
@@ -244,11 +239,6 @@ void RSRenderNode::SetContainBootAnimation(bool isContainBootAnimation)
 {
     isContainBootAnimation_ = isContainBootAnimation;
     isFullChildrenListValid_ = false;
-}
-
-bool RSRenderNode::GetContainBootAnimation() const
-{
-    return isContainBootAnimation_;
 }
 
 void RSRenderNode::MoveChild(SharedPtr child, int index)
@@ -498,11 +488,6 @@ void RSRenderNode::ResetParent()
     parent_.reset();
     SetIsOnTheTree(false);
     OnResetParent();
-}
-
-RSRenderNode::WeakPtr RSRenderNode::GetParent() const
-{
-    return parent_;
 }
 
 bool RSRenderNode::IsFirstLevelSurfaceNode()
@@ -761,16 +746,6 @@ void RSRenderNode::DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType
     }
 }
 
-void RSRenderNode::ResetIsOnlyBasicGeoTransform()
-{
-    isOnlyBasicGeoTransform_ = true;
-}
-
-bool RSRenderNode::IsOnlyBasicGeoTransform() const
-{
-    return isOnlyBasicGeoTransform_;
-}
-
 // attention: current all base node's dirty ops causing content dirty
 void RSRenderNode::SetContentDirty()
 {
@@ -789,13 +764,6 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
         }
     }
     dirtyStatus_ = NodeDirty::DIRTY;
-}
-
-void RSRenderNode::SetClean()
-{
-    isNewOnTree_ = false;
-    isContentDirty_ = false;
-    dirtyStatus_ = NodeDirty::CLEAN;
 }
 
 void RSRenderNode::CollectSurface(
@@ -907,11 +875,6 @@ void RSRenderNode::ActivateDisplaySync()
     }
 }
 
-void RSRenderNode::InActivateDisplaySync()
-{
-    displaySync_ = nullptr;
-}
-
 void RSRenderNode::UpdateDisplaySyncRange()
 {
     if (!displaySync_) {
@@ -940,11 +903,6 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
 bool RSRenderNode::IsClipBound() const
 {
     return GetRenderProperties().GetClipBounds() || GetRenderProperties().GetClipToFrame();
-}
-
-const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
-{
-    return renderContent_;
 }
 
 bool RSRenderNode::Update(
@@ -994,11 +952,6 @@ bool RSRenderNode::Update(
 RSProperties& RSRenderNode::GetMutableRenderProperties()
 {
     return renderContent_->GetMutableRenderProperties();
-}
-
-const RSProperties& RSRenderNode::GetRenderProperties() const
-{
-    return renderContent_->GetRenderProperties();
 }
 
 void RSRenderNode::UpdateDirtyRegion(
@@ -1406,11 +1359,6 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
     }
 }
 
-bool RSRenderNode::ShouldPaint() const
-{
-    return shouldPaint_;
-}
-
 void RSRenderNode::UpdateShouldPaint()
 {
     // node should be painted if either it is visible or it has disappearing transition animation, but only when its
@@ -1434,11 +1382,6 @@ void RSRenderNode::SetSharedTransitionParam(const std::optional<SharedTransition
     }
     sharedTransitionParam_ = sharedTransitionParam;
     SetDirty();
-}
-
-const std::optional<RSRenderNode::SharedTransitionParam>& RSRenderNode::GetSharedTransitionParam() const
-{
-    return sharedTransitionParam_;
 }
 
 void RSRenderNode::SetGlobalAlpha(float alpha)
@@ -2318,10 +2261,6 @@ uint32_t RSRenderNode::GetChildrenCount() const
     return children_.size();
 }
 
-bool RSRenderNode::IsOnTheTree() const
-{
-    return isOnTheTree_;
-}
 void RSRenderNode::SetTunnelHandleChange(bool change)
 {
     isTunnelHandleChange_ = change;
@@ -2348,10 +2287,6 @@ void RSRenderNode::ResetHasRemovedChild()
 bool RSRenderNode::HasRemovedChild() const
 {
     return hasRemovedChild_;
-}
-void RSRenderNode::ResetChildrenRect()
-{
-    childrenRect_ = RectI();
 }
 RectI RSRenderNode::GetChildrenRect() const
 {

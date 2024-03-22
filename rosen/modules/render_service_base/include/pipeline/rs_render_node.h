@@ -77,7 +77,10 @@ public:
 
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);
-    bool GetContainBootAnimation() const;
+    inline bool GetContainBootAnimation() const
+    {
+        return isContainBootAnimation_;
+    }
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
@@ -102,10 +105,19 @@ public:
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
     void SetContentDirty();
-    void ResetIsOnlyBasicGeoTransform();
-    bool IsOnlyBasicGeoTransform() const;
+    inline void ResetIsOnlyBasicGeoTransform()
+    {
+        isOnlyBasicGeoTransform_ = true;
+    }
+    inline bool IsOnlyBasicGeoTransform() const
+    {
+        return isOnlyBasicGeoTransform_;
+    }
 
-    WeakPtr GetParent() const;
+    inline WeakPtr GetParent() const
+    {
+        return parent_;
+    }
 
     inline NodeId GetId() const
     {
@@ -127,14 +139,20 @@ public:
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID);
-    bool IsOnTheTree() const;
+    inline bool IsOnTheTree() const
+    {
+        return isOnTheTree_;
+    }
 
-    bool IsNewOnTree() const
+    inline bool IsNewOnTree() const
     {
         return isNewOnTree_;
     }
 
-    bool GetIsTextureExportNode() const;
+    inline bool GetIsTextureExportNode() const
+    {
+        return isTextureExportNode_;
+    }
 
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
@@ -175,7 +193,10 @@ public:
 
     void ResetHasRemovedChild();
     bool HasRemovedChild() const;
-    void ResetChildrenRect();
+    inline void ResetChildrenRect()
+    {
+        childrenRect_ = RectI();
+    }
     RectI GetChildrenRect() const;
 
     bool ChildHasFilter() const;
@@ -204,7 +225,10 @@ public:
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();
-    const RSProperties& GetRenderProperties() const;
+    inline const RSProperties& GetRenderProperties() const
+    {
+        return renderContent_->GetRenderProperties();
+    }
     void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
     bool IsRenderUpdateIgnored() const;
 
@@ -224,8 +248,14 @@ public:
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
     void RenderTraceDebug() const;
-    bool ShouldPaint() const;
-    bool IsVisibleChanged() const { return isVisibleChanged_; }
+    inline bool ShouldPaint() const
+    {
+        return shouldPaint_;
+    }
+    inline bool IsVisibleChanged() const
+    {
+        return isVisibleChanged_;
+    }
 
     RectI GetOldDirty() const;
     RectI GetOldDirtyInSurface() const;
@@ -432,7 +462,10 @@ public:
     // shared transition params, in format <InNodeId, target weakPtr>, nullopt means no transition
     using SharedTransitionParam = std::pair<NodeId, std::weak_ptr<RSRenderNode>>;
     void SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam);
-    const std::optional<SharedTransitionParam>& GetSharedTransitionParam() const;
+    inline const std::optional<SharedTransitionParam>& GetSharedTransitionParam() const
+    {
+        return sharedTransitionParam_;
+    }
 
     void SetGlobalAlpha(float alpha);
     float GetGlobalAlpha() const;
@@ -449,7 +482,10 @@ public:
     }
 
     void ActivateDisplaySync();
-    void InActivateDisplaySync();
+    inline void InActivateDisplaySync()
+    {
+        displaySync_ = nullptr;
+    }
     void UpdateDisplaySyncRange();
 
     void MarkNonGeometryChanged();
@@ -485,7 +521,10 @@ public:
     int32_t coldDownCounter_ = 0;
 #endif
 
-    const std::shared_ptr<RSRenderContent> GetRenderContent() const;
+    inline const std::shared_ptr<RSRenderContent> GetRenderContent() const
+    {
+        return renderContent_;
+    }
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -493,7 +532,12 @@ protected:
         CLEAN = 0,
         DIRTY,
     };
-    void SetClean();
+    inline void SetClean()
+    {
+        isNewOnTree_ = false;
+        isContentDirty_ = false;
+        dirtyStatus_ = NodeDirty::CLEAN;
+    }
 
     void DumpNodeType(std::string& out) const;
 
