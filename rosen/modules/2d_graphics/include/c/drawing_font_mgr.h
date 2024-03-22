@@ -50,7 +50,7 @@ extern "C" {
  * @since 12
  * @version 1.0
  */
-enum OH_Drawing_FontFormWeight {
+enum OH_Drawing_FontStyleWeight {
     /* Invisible font weight */
     INVISIBLE_WEIGHT = 0,
     /* Thin font weight */
@@ -81,7 +81,7 @@ enum OH_Drawing_FontFormWeight {
  * @since 12
  * @version 1.0
  */
-enum OH_Drawing_FontFormWidth {
+enum OH_Drawing_FontStyleWidth {
     /* Ultra condensed font width */
     ULTRA_CONDENSED_WIDTH = 1,
     /* Extra condensed font width */
@@ -108,7 +108,7 @@ enum OH_Drawing_FontFormWidth {
  * @since 12
  * @version 1.0
  */
-enum OH_Drawing_FontFormSlant {
+enum OH_Drawing_FontStyleSlant {
     /* Upright font slant */
     UPRIGHT_SLANT,
     /* Italic font slant */
@@ -123,14 +123,14 @@ enum OH_Drawing_FontFormSlant {
  * @since 12
  * @version 1.0
  */
-typedef struct OH_Drawing_FontForm {
+typedef struct OH_Drawing_FontStyleStruct {
     /** Font weight */
-    OH_Drawing_FontFormWeight weight;
+    OH_Drawing_FontStyleWeight weight;
     /** Font width */
-    OH_Drawing_FontFormWidth width;
+    OH_Drawing_FontStyleWidth width;
     /** Font slant */
-    OH_Drawing_FontFormSlant slant;
-} OH_Drawing_FontForm;
+    OH_Drawing_FontStyleSlant slant;
+} OH_Drawing_FontStyleStruct;
 
 /**
  * @brief Creates an <b>OH_Drawing_FontMgr</b> object.
@@ -164,7 +164,7 @@ void OH_Drawing_FontMgrDestroy(OH_Drawing_FontMgr*);
 int OH_Drawing_FontMgrGetFamiliesCount(OH_Drawing_FontMgr*);
 
 /**
- * @brief Gets the font family name from the index.
+ * @brief Gets the font family name by the index.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
@@ -195,7 +195,7 @@ void OH_Drawing_DestroyFamilyName(char* familyName);
  * @since 12
  * @version 1.0
  */
-OH_Drawing_FontStyleSet* OH_Drawing_FontStyleSetCreate(OH_Drawing_FontMgr*, int index);
+OH_Drawing_FontStyleSet* OH_Drawing_FontMgrCreateFontStyleSet(OH_Drawing_FontMgr*, int index);
 
 /**
  * @brief Releases the memory occupied by an <b>OH_Drawing_FontStyleSet</b> object.
@@ -205,7 +205,7 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontStyleSetCreate(OH_Drawing_FontMgr*, int 
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_DestroyFontStyleSet(OH_Drawing_FontStyleSet*);
+void OH_Drawing_FontMgrDestroyFontStyleSet(OH_Drawing_FontStyleSet*);
 
 /**
  * @brief Get the pointer to an <b>OH_Drawing_FontStyleSet</b> object for the given font style set family name.
@@ -225,13 +225,13 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr*, cons
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
  * @param familyName Indicates the family name of a font style set to be matched.
- * @param OH_Drawing_FontForm Indicates the pointer to an <b>OH_Drawing_FontForm</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
  * @return Returns the pointer to the <b>OH_Drawing_Typeface</b> object matched.
  * @since 12
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
-    const char* familyName, OH_Drawing_FontForm*);
+    const char* familyName, OH_Drawing_FontStyleStruct*);
 
 /**
  * @brief Get the pointer to an <b>OH_Drawing_Typeface</b> object for the given character.
@@ -239,7 +239,7 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
  * @param familyName Indicates the family name of a font style set to be matched.
- * @param OH_Drawing_FontForm Indicates the pointer to an <b>OH_Drawing_FontForm</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
  * @param bcp47 Indicates an array of languages which indicate the language of character.
  * @param bcp47Count Indicates the array size of bcp47.
  * @param character Indicates a UTF8 value to be matched.
@@ -248,7 +248,7 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr*, const char* familyName,
-    OH_Drawing_FontForm*, const char* bcp47[], int bcp47Count, int32_t character);
+    OH_Drawing_FontStyleStruct*, const char* bcp47[], int bcp47Count, int32_t character);
 
 #ifdef __cplusplus
 }
