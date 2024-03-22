@@ -382,18 +382,19 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     if (boundsGeo_ == nullptr) {
         return false;
     }
-    auto boundsGeoPtr = (boundsGeo_);
+    auto& boundsGeoPtr = (boundsGeo_);
 
     if (!dirtyFlag && !geoDirty_) {
         return false;
     }
-    auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
-    if (parentGeo && sandbox_ && sandbox_->matrix_) {
-        parentGeo = std::make_shared<RSObjAbsGeometry>();
+    auto parentGeoPtr = parent == nullptr ? nullptr : (parent->boundsGeo_.get());
+    if (parentGeoPtr && sandbox_ && sandbox_->matrix_) {
+        auto parentGeo = std::make_shared<RSObjAbsGeometry>();
         parentGeo->ConcatMatrix(*(sandbox_->matrix_));
+        boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+    } else {
+        boundsGeoPtr->UpdateMatrix(parent == nullptr ? nullptr : (parent->boundsGeo_), offset, clipRect);
     }
-    CheckEmptyBounds();
-    boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
     if (lightSourcePtr_ && lightSourcePtr_->IsLightSourceValid()) {
         CalculateAbsLightPosition();
         RSPointLightManager::Instance()->AddDirtyLightSource(backref_);

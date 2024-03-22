@@ -64,7 +64,7 @@ public:
         return activeScreenId_;
     }
 
-    std::shared_ptr<PolicyConfigData> GetPolicyConfigData() const
+    const std::shared_ptr<PolicyConfigData>& GetPolicyConfigData() const
     {
         return mPolicyConfigData_;
     }

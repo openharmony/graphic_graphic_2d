@@ -51,6 +51,9 @@ private:
 
     friend class RSRenderNode;
     friend class RSModifierDrawable;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

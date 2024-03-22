@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "c/drawing_color.h"
-#include "c/drawing_pen.h"
+#include "drawing_color.h"
+#include "drawing_pen.h"
 
 using namespace testing;
 using namespace testing::ext;

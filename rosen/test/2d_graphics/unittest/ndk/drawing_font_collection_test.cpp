@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "c/drawing_font_collection.h"
+#include "drawing_font_collection.h"
 
 #include "gtest/gtest.h"
-#include "c/drawing_text_declaration.h"
+#include "drawing_text_declaration.h"
 
 using namespace testing;
 using namespace testing::ext;

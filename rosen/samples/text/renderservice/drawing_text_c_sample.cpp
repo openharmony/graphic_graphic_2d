@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "c/drawing_canvas.h"
-#include "c/drawing_color.h"
-#include "c/drawing_bitmap.h"
-#include "c/drawing_font_collection.h"
-#include "c/drawing_text_declaration.h"
-#include "c/drawing_types.h"
-#include "c/drawing_text_typography.h"
+#include "drawing_canvas.h"
+#include "drawing_color.h"
+#include "drawing_bitmap.h"
+#include "drawing_font_collection.h"
+#include "drawing_text_declaration.h"
+#include "drawing_types.h"
+#include "drawing_text_typography.h"
 
 #include <securec.h>
 

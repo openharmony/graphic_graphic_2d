@@ -152,11 +152,6 @@ NodeId RSProfiler::PatchPlainNodeId(const Parcel& parcel, NodeId id)
     return Utils::PatchNodeId(id);
 }
 
-bool RSProfiler::IsIdle()
-{
-    return g_mode == Mode::NONE;
-}
-
 pid_t RSProfiler::PatchPlainPid(const Parcel& parcel, pid_t pid)
 {
     if (!IsEnabled()) {
@@ -326,7 +321,7 @@ std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(RSContext& conte
         return nullptr;
     }
 
-    return RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(root->GetSortedChildren().front());
+    return RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(root->GetSortedChildren()->front());
 }
 
 Vector4f RSProfiler::GetScreenRect(RSContext& context)

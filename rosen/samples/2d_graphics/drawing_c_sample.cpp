@@ -35,13 +35,13 @@
 #include "foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
 #include "foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
 
-#include "c/drawing_canvas.h"
-#include "c/drawing_color.h"
-#include "c/drawing_bitmap.h"
-#include "c/drawing_path.h"
-#include "c/drawing_pen.h"
-#include "c/drawing_brush.h"
-#include "c/drawing_types.h"
+#include "drawing_canvas.h"
+#include "drawing_color.h"
+#include "drawing_bitmap.h"
+#include "drawing_path.h"
+#include "drawing_pen.h"
+#include "drawing_brush.h"
+#include "drawing_types.h"
 
 #include "utils/log.h"
 

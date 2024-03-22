@@ -193,9 +193,30 @@ ohos_shared_library("librender_service") {
 
   if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
       use_rosen_drawing) {
-    deps +=
-        [ "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample" ]
+    deps += [
+      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
+      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
+    ]
   }
+
+  #profiler
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+    sources += [
+      "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_archive.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_network.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_utils.cpp",
+    ]
+  }
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
   public_deps = [
     "//third_party/libpng:libpng",
@@ -238,6 +259,7 @@ ohos_shared_library("librender_service") {
   }
 
   external_deps = [
+    "battery_manager:batterysrv_client",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
@@ -247,6 +269,7 @@ ohos_shared_library("librender_service") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",

@@ -550,6 +550,10 @@ private:
 
     bool forceUIFirstChanged_ = false;
     bool hasRosenWebNode_ = false;
+
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

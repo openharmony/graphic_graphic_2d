@@ -19,6 +19,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -178,6 +179,7 @@ bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse values failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, rotationId_);
     SetInterpolator(interpolator);
     SetRotationMode(static_cast<RotationMode>(rotationMode));
     SetIsNeedPath(isNeedPath);

@@ -24,7 +24,9 @@
 #include <set>
 
 #include "rs_base_render_engine.h"
-
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -496,8 +498,10 @@ private:
     void endCapture() const;
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #endif
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder captureRecorder_;
+#endif
     bool isNodeSingleFrameComposer_ = false;
-
     // use for screen recording optimization
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
 
