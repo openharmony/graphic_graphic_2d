@@ -797,13 +797,21 @@ std::vector<TextRect> TypographyImpl::MergeRects(const std::vector<TextRect> &bo
             std::fabs(*pre->rect.fRight_ - *rect.rect.fLeft_) < MINDEV) {
             *pre->rect.fRight_ = *rect.rect.fRight_;
         } else {
+#ifdef CROSS_PLATFORM
+            rects.push_back(pre.__get());
+#else
             rects.push_back(pre.value());
+#endif
             pre = rect;
         }
     }
 
     if (pre.has_value()) {
+#ifdef CROSS_PLATFORM
+        rects.push_back(pre.__get());
+#else
         rects.push_back(pre.value());
+#endif
     }
 
     return rects;
