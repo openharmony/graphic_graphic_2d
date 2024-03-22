@@ -64,8 +64,8 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
     }
     // Reset the matrix of the current view
     matrix_.Reset();
-    // filter invalid width, height, x, y
-    if (IsEmpty() && !IsValidOffset()) {
+    // filter invalid width and height
+    if (IsEmpty()) {
         return;
     }
     // If the view has no transformations or only 2D transformations, update the absolute matrix with 2D

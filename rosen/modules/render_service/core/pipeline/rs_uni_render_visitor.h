@@ -133,15 +133,6 @@ public:
         isHardwareForcedDisabled_ = true;
     }
 
-    void SetDrivenRenderFlag(bool hasDrivenNodeOnUniTree, bool hasDrivenNodeMarkRender)
-    {
-        if (!drivenInfo_) {
-            return;
-        }
-        drivenInfo_->prepareInfo.hasDrivenNodeOnUniTree = hasDrivenNodeOnUniTree;
-        drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
-    }
-
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);

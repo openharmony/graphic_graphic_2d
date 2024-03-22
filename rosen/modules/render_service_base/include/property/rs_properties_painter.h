@@ -41,7 +41,7 @@ public:
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
-        const RSProperties& properties, const bool& isAbsCoordinate = true);
+        const RSProperties& properties, const bool isAbsCoordinate = true);
     static bool PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& drPath,
     Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds, RSColor& colorPicked);
     static void GetDarkColor(RSColor& color);

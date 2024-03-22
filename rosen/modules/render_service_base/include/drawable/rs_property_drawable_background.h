@@ -28,6 +28,7 @@ namespace Drawing {
 class RuntimeEffect;
 }
 
+namespace DrawableV2 {
 class RSShadowDrawable : public RSDrawable {
 public:
     RSShadowDrawable() = default;
@@ -169,6 +170,6 @@ private:
     float stagingDynamicLightUpRate_ = 0.0f;
     float stagingDynamicLightUpDeg_ = 0.0f;
 };
-
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_BACKGROUND_H

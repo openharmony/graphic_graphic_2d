@@ -21,6 +21,7 @@
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
 
+namespace DrawableV2 {
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -34,6 +35,6 @@ private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 };
-
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H

@@ -23,6 +23,7 @@
 #include "property/rs_point_light_manager.h"
 
 namespace OHOS::Rosen {
+namespace DrawableV2 {
 namespace {
 constexpr int PARAM_TWO = 2;
 constexpr int MAX_LIGHT_SOURCES = 4;
@@ -541,4 +542,5 @@ bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
     }
     return true;
 }
+} // namespace DrawableV2
 } // namespace OHOS::Rosen

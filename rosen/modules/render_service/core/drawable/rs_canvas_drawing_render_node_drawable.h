@@ -20,7 +20,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 class RSCanvasDrawingRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -39,5 +39,5 @@ private:
     static Registrar instance_;
 };
 
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2
 #endif // RENDER_SERVICE_DRAWABLE_RS_CANVAS_DRAWING_RENDER_NODE_DRAWABLE_H

@@ -19,9 +19,8 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 RSRootRenderNodeDrawable::Registrar RSRootRenderNodeDrawable::instance_;
-
 RSRootRenderNodeDrawable::RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSCanvasRenderNodeDrawable(std::move(node))
 {}
@@ -44,4 +43,4 @@ void RSRootRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     RSCanvasRenderNodeDrawable::OnCapture(canvas);
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2

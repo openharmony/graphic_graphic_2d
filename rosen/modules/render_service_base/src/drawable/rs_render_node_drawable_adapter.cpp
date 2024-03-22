@@ -18,7 +18,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::DrawableV2 {
 std::unordered_map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
@@ -58,4 +58,4 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     RenderNodeDrawableCache.emplace(id, sharedPtr);
     return sharedPtr;
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::DrawableV2

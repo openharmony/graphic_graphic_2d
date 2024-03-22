@@ -28,6 +28,7 @@ namespace Drawing {
 class Canvas;
 }
 
+namespace DrawableV2 {
 class RSB_EXPORT RSRenderNodeDrawableAdapter {
 public:
     explicit RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node);
@@ -39,15 +40,16 @@ public:
     RSRenderNodeDrawableAdapter& operator=(const RSRenderNodeDrawableAdapter&) = delete;
     RSRenderNodeDrawableAdapter& operator=(const RSRenderNodeDrawableAdapter&&) = delete;
 
-    virtual void Draw(Drawing::Canvas& canvas) = 0;
-    virtual void DrawWithoutShadow(Drawing::Canvas& canvas) = 0;
-    virtual void DrawShadow(Drawing::Canvas& canvas) = 0;
-
     using Ptr = RSRenderNodeDrawableAdapter*;
     using SharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>;
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
-    static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
 
+    virtual void Draw(Drawing::Canvas& canvas) = 0;
+    virtual void DrawWithoutShadow(Drawing::Canvas& canvas) = 0;
+    virtual void DrawShadow(Drawing::Canvas& canvas) = 0;
+    virtual void OnDraw(Drawing::Canvas& canvas) = 0;
+    virtual void OnCapture(Drawing::Canvas& canvas) = 0;
+    static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     virtual void DumpDrawableTree(int32_t depth, std::string& out) const = 0;
 
 protected:
@@ -65,5 +67,6 @@ protected:
         }
     };
 };
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_ADAPTER_H

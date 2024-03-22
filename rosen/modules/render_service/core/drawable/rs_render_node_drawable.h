@@ -29,6 +29,7 @@ class RSPaintFilterCanvas;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
+namespace DrawableV2 { 
 enum class ReplayType : uint8_t {
     // Default
     REPLAY_ALL,
@@ -50,8 +51,8 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void Draw(Drawing::Canvas& canvas) override;
 
-    virtual void OnDraw(Drawing::Canvas& canvas);
-    virtual void OnCapture(Drawing::Canvas& canvas);
+    void OnDraw(Drawing::Canvas& canvas) override;
+    void OnCapture(Drawing::Canvas& canvas) override;
 
     void DrawWithoutShadow(Drawing::Canvas& canvas) override;
     void DrawShadow(Drawing::Canvas& canvas) override;
@@ -111,5 +112,6 @@ private:
     static inline bool drawBlurForCache_ = false;
     // used foe render group cache
 };
+} // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H

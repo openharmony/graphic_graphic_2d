@@ -23,6 +23,8 @@
 
 namespace OHOS::Rosen {
 namespace {
+using namespace DrawableV2;
+
 // NOTE: This LUT should always the same size and order as RSModifierType
 // key = RSModifierType, value = RSDrawableSlot
 constexpr int DIRTY_LUT_SIZE = static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE);

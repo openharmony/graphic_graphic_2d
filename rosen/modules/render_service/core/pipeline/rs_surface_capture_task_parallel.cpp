@@ -42,8 +42,7 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
-#include "drawable/rs_surface_render_node_drawable.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -59,19 +58,19 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         return false;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
-    std::unique_ptr<RSSurfaceRenderNodeDrawable> surfaceNodeDrawable = nullptr;
-    std::unique_ptr<RSDisplayRenderNodeDrawable> displayNodeDrawable = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr surfaceNodeDrawable = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr displayNodeDrawable = nullptr;
     visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(scaleX_, scaleY_, RSUniRenderJudgement::IsUniRender());
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
-        surfaceNodeDrawable = std::make_unique<RSSurfaceRenderNodeDrawable>(surfaceNode);
+        surfaceNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         visitor_->SetHasingSecurityOrSkipLayer(FindSecurityOrSkipLayer());
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(),
             visitor_->GetHasingSecurityOrSkipLayer());
         visitor_->IsDisplayNode(true);
-        displayNodeDrawable = std::make_unique<RSDisplayRenderNodeDrawable>(displayNode);
+        displayNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode);
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Run: Invalid RSRenderNodeType!");
         return false;
@@ -100,7 +99,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         visitor_->SetSurface(surface.get());
         node->Process(visitor_);
     } else {
-        auto rootNodeDrawable = std::make_unique<RSRenderNodeDrawable>(node);
+        auto rootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
         RSUniRenderThread::SetIsInCapture(true);
         RSPaintFilterCanvas canvas(surface.get());
         canvas.Scale(scaleX_, scaleY_);

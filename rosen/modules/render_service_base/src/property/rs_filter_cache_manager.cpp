@@ -28,8 +28,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
-constexpr float PARALLEL_FILTER_RATIO_THRESHOLD = 0.8f;
 constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
 const char* RSFilterCacheManager::GetCacheState() const
 {
@@ -151,7 +149,6 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         --cacheUpdateInterval_;
     }
     bool shouldClearFilteredCache = false;
-    PostPartialFilterRenderInit(canvas, filter, dst, shouldClearFilteredCache);
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
         auto previousFilterHash = cachedFilterHash_;
         GenerateFilteredSnapshot(canvas, filter, dst);

@@ -181,6 +181,11 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
         RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::PARTICLE_EFFECT, canvas);
 }
 
+void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
+{
+    DrawPropertyDrawableRange(RSPropertyDrawableSlot::PIXEL_STRETCH, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+}
+
 void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
     DrawPropertyDrawableRange(RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
@@ -208,7 +213,18 @@ void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModi
         }
     } else {
         for (const auto& modifier : itr->second) {
+            modifier->Apply(context);
         }
+    }
+}
+
+void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
+{
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    canvas.Translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
+
+    if (GetRenderProperties().GetClipToFrame()) {
+        RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 
