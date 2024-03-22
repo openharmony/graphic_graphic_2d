@@ -201,6 +201,9 @@ template("render_service_client_source_set") {
     } else {
       external_deps = [ "hilog:libhilog" ]
     }
+    if (!defined(public_external_deps)) {
+      public_external_deps = [ "graphic_surface:surface_headers" ]
+    }
     if (rosen_cross_platform) {
       deps += [ "$rosen_root/modules/platform:hilog" ]
     }
@@ -271,10 +274,6 @@ ohos_shared_library("librender_service_client") {
   public_deps = [ ":render_service_client_src" ]
 
   external_deps = [ "hilog:libhilog" ]
-
-  public_external_deps = [
-    "graphic_surface:surface_headers"
-  ]
 
   innerapi_tags = [ "platformsdk" ]
 
