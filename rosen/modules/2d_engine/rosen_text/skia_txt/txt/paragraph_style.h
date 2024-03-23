@@ -43,7 +43,6 @@ public:
     double fontSize = 16;
     double height = 1;
     bool heightOverride = false;
-    TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
 
     bool strutEnabled = false;
     FontWeight strutFontWeight = FontWeight::W400;
