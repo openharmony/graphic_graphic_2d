@@ -1504,17 +1504,19 @@ void RSNode::ClearAllModifiers()
 
 void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
-        return;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
+            return;
+        }
+        if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
+            modifier->SetMotionPathOption(motionPathOption_);
+        }
+        auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
+        modifier->AttachToNode(rsnode);
+        modifiers_.emplace(modifier->GetPropertyId(), modifier);
+        modifiersTypeMap_[(int16_t)modifier->GetModifierType()] = modifier;
     }
-    if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
-        modifier->SetMotionPathOption(motionPathOption_);
-    }
-    auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
-    modifier->AttachToNode(rsnode);
-    modifiers_.emplace(modifier->GetPropertyId(), modifier);
-    modifiersTypeMap_[(int16_t)modifier->GetModifierType()] = modifier;
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
     }
@@ -1547,26 +1549,28 @@ void RSNode::DoFlushModifier()
 
 void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    if (!modifier) {
-        return;
-    }
-    auto iter = modifiers_.find(modifier->GetPropertyId());
-    if (iter == modifiers_.end()) {
-        return;
-    }
-    auto deleteType = modifier->GetModifierType();
-    modifiers_.erase(iter);
-    bool isExist = false;
-    for (auto [id, value] : modifiers_) {
-        if (value && value->GetModifierType() == deleteType) {
-            modifiersTypeMap_[(int16_t)deleteType] = value;
-            isExist = true;
-            break;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (!modifier) {
+            return;
         }
-    }
-    if (isExist) {
-        modifiersTypeMap_[(int16_t)deleteType] = nullptr;
+        auto iter = modifiers_.find(modifier->GetPropertyId());
+        if (iter == modifiers_.end()) {
+            return;
+        }
+        auto deleteType = modifier->GetModifierType();
+        modifiers_.erase(iter);
+        bool isExist = false;
+        for (auto [id, value] : modifiers_) {
+            if (value && value->GetModifierType() == deleteType) {
+                modifiersTypeMap_[(int16_t)deleteType] = value;
+                isExist = true;
+                break;
+            }
+        }
+        if (isExist) {
+            modifiersTypeMap_[(int16_t)deleteType] = nullptr;
+        }
     }
     modifier->DetachFromNode();
     std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());

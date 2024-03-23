@@ -2900,7 +2900,7 @@ void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSS
     if (iter != context_->activeNodesInRoot_.end()) {
         instanceNode->UpdateSurfaceCacheContentStatic(iter->second);
     } else {
-        instanceNode->UpdateSurfaceCacheContentStatic({});
+        instanceNode->UpdateSurfaceCacheContentStatic();
     }
 }
 

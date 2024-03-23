@@ -103,11 +103,6 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
     }
 }
 
-bool RSSurfaceRenderNode::IsHardwareDisabledBySrcRect() const
-{
-    return isHardwareForcedDisabledBySrcRect_;
-}
-
 bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1019,9 +1014,6 @@ bool RSSurfaceRenderNode::SubNodeIntersectWithDirty(const RectI& r) const
 
 bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const
 {
-    if (dirtyManager_ == nullptr) {
-        return true;
-    }
     switch (opDropType) {
         case PartialRenderType::SET_DAMAGE_AND_DROP_OP:
             return SubNodeIntersectWithDirty(r);
@@ -1078,9 +1070,6 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
 
 void RSSurfaceRenderNode::CalcFilterCacheValidForOcclusion()
 {
-    if (!dirtyManager_) {
-        return;
-    }
     isFilterCacheStatusChanged_ = false;
     bool currentCacheValidForOcclusion = isFilterCacheFullyCovered_ && dirtyManager_->IsFilterCacheRectValid();
     if (isFilterCacheValidForOcclusion_ != currentCacheValidForOcclusion) {
@@ -1137,9 +1126,6 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged)
 {
-    if (!dirtyManager_) {
-        return;
-    }
     // traversal filter nodes including app window
     for (auto node : filterNodes_) {
         if (node == nullptr || !node->IsOnTheTree() || !node->GetRenderProperties().NeedFilter()) {
@@ -1520,6 +1506,14 @@ void RSSurfaceRenderNode::ResetAbilityNodeIds()
     abilityNodeIds_.clear();
 }
 
+void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic()
+{
+    dirtyContentNodeNum_ = 0;
+    dirtyGeoNodeNum_ = 0;
+    dirtynodeNum_ = 0;
+    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform();
+}
+
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
     const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds)
 {
@@ -1681,7 +1675,7 @@ bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
 bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 {
     bool isDirty = deviceType == DeviceType::PC ? !surfaceCacheContentStatic_ :
-        (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty());
+        !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty();
     if (isDirty) {
         return false;
     }
@@ -1707,9 +1701,6 @@ bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
 {
     bool isStaticUnderVisibleRegion = false;
-    if (dirtyManager_ == nullptr) {
-        return false;
-    }
     if (!dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
         if (deviceType != DeviceType::PC) {
             return false;
