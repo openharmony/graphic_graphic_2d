@@ -118,6 +118,9 @@ public:
     virtual double GetGlyphsBoundsRight() = 0;
     virtual bool DidExceedMaxLines() const = 0;
     virtual int GetLineCount() const = 0;
+    virtual void MarkDirty() = 0;
+    virtual int32_t GetUnresolvedGlyphsCount() = 0;
+    virtual void UpdateFontSize(size_t from, size_t to, float fontSize) = 0;
 
     virtual void SetIndents(const std::vector<float>& indents) = 0;
     virtual float DetectIndents(size_t index) = 0;

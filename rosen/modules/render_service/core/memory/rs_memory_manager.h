@@ -37,6 +37,7 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, NodeId surfaceNodeId);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
+    static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, std::set<pid_t> exitedPidSet);
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
