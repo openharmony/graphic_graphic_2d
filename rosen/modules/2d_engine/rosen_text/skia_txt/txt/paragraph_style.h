@@ -43,6 +43,7 @@ public:
     double fontSize = 16;
     double height = 1;
     bool heightOverride = false;
+    TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
 
     bool strutEnabled = false;
     FontWeight strutFontWeight = FontWeight::W400;
@@ -64,7 +65,6 @@ public:
     bool textOverflower = false;
     TextStyle spTextStyle;
     bool customSpTextStyle = false;
-    TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
 };
 } // namespace SPText
 } // namespace Rosen
