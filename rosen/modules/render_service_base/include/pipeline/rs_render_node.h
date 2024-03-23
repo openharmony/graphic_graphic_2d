@@ -252,10 +252,6 @@ public:
     {
         return shouldPaint_;
     }
-    inline bool IsVisibleChanged() const
-    {
-        return isVisibleChanged_;
-    }
 
     RectI GetOldDirty() const;
     RectI GetOldDirtyInSurface() const;
