@@ -2136,5 +2136,6 @@ OH_Drawing_TextHeightBehavior OH_Drawing_TypographyTextGetHeightMode(OH_Drawing_
     if (style == nullptr || convertStyle == nullptr) {
         return TEXT_HEIGHT_ALL;
     }
-    return static_cast<OH_Drawing_TextHeightBehavior>(ConvertToOriginalText<TypographyStyle>(style)->textHeightBehavior);
+    TextHeightBehavior innerHeightBehavior = ConvertToOriginalText<TypographyStyle>(style)->textHeightBehavior;
+    return static_cast<OH_Drawing_TextHeightBehavior>(innerHeightBehavior);
 }
