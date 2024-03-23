@@ -115,7 +115,7 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
     int32_t width = frameDarwin->width_;
     int32_t height = frameDarwin->height_;
     int32_t size = width * height * 0x4;
-    onRender_(addr, size, width, height);
+    onRender_(addr, size, width, height, uiTimestamp);
 
 #ifdef USE_GLFW_WINDOW
     GlfwRenderContext::GetGlobal()->SwapBuffers();

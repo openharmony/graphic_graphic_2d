@@ -147,6 +147,15 @@ public:
     // index The index of element in indents vector.
     virtual float DetectIndents(size_t index) = 0;
 
+    // Mark the Typography as dirty, and initially state the Typography.
+    virtual void MarkDirty() = 0;
+
+    // Get the unresolved Glyphs count of lines in a text.
+    virtual int32_t GetUnresolvedGlyphsCount() = 0;
+
+    // Update the font size of lines in a text.
+    virtual void UpdateFontSize(size_t from, size_t to, float fontSize) = 0;
+
     // Layout calculates the positioning of all the glyphs.
     // This method must be called before other methods are called.
     virtual void Layout(double width) = 0;

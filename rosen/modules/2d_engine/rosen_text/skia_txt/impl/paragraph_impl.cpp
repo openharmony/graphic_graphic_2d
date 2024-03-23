@@ -105,6 +105,30 @@ size_t ParagraphImpl::GetLineCount() const
     return paragraph_->lineNumber();
 }
 
+void ParagraphImpl::MarkDirty()
+{
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->markDirty();
+}
+
+int32_t ParagraphImpl::GetUnresolvedGlyphsCount()
+{
+    if (paragraph_ == nullptr) {
+        return 0;
+    }
+    return paragraph_->unresolvedGlyphs();
+}
+
+void ParagraphImpl::UpdateFontSize(size_t from, size_t to, float fontSize)
+{
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->updateFontSize(from, to, fontSize);
+}
+
 void ParagraphImpl::SetIndents(const std::vector<float>& indents)
 {
     paragraph_->setIndents(indents);

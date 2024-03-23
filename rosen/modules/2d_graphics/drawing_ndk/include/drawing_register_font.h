@@ -71,7 +71,6 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection*, const char* fontFam
  */
 uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection*, const char* fontFamily, uint8_t* fontBuffer,
     size_t length);
-
 #ifdef __cplusplus
 }
 #endif
