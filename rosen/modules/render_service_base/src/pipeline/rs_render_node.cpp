@@ -514,7 +514,7 @@ bool RSRenderNode::IsFirstLevelSurfaceNode()
     auto parentNode = parent_.lock();
     while (parentNode && !parentNode->IsInstanceOf<RSDisplayRenderNode>()) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentNode);
-        if (node != nullptr && (node->IsMainWindowType() || node->IsLeashWindow())) {
+        if (node != nullptr && (node->IsLeashOrMainWindow())) {
             return false;
         }
         parentNode = parentNode->GetParent().lock();

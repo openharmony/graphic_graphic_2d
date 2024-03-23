@@ -267,8 +267,9 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
         RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: node GetBuffer == nullptr");
         return nullptr;
     }
-    int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
-    int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
+    const auto& property = node->GetRenderProperties();
+    int pixmapWidth = property.GetBoundsWidth();
+    int pixmapHeight = property.GetBoundsHeight();
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);

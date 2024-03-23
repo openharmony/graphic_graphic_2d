@@ -1020,7 +1020,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         surfaceNode->ResetAnimateState();
         // Reset BasicGeoTrans info at the beginning of cmd process
-        if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
+        if (surfaceNode->IsLeashOrMainWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransform();
         }
         if (surfaceNode->IsHardwareEnabledType()
@@ -1211,11 +1211,7 @@ void RSMainThread::CollectInfoForDrivenRender()
         node->SetPaintState(false);
         node->SetIsMarkDrivenRender(false);
     }
-    if (!drivenNodes.empty()) {
-        hasDrivenNodeOnUniTree_ = true;
-    } else {
-        hasDrivenNodeOnUniTree_ = false;
-    }
+    hasDrivenNodeOnUniTree_ = !drivenNodes.empty()
     if (markRenderDrivenNodes.size() == 1) { // only support 1 driven node
         auto node = markRenderDrivenNodes.front();
         node->SetIsMarkDrivenRender(true);

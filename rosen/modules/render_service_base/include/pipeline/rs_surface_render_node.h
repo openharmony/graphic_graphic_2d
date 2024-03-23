@@ -210,14 +210,16 @@ public:
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
+    bool IsLeashOrMainWindow() const
+    {
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    }
+
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::DEFAULT ||
-               nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
 
     bool IsSelfDrawingType() const
@@ -649,8 +651,9 @@ public:
 
     void UpdatePositionZ()
     {
-        zOrderChanged_ = !ROSEN_EQ(GetRenderProperties().GetPositionZ(), positionZ_);
-        positionZ_ = GetRenderProperties().GetPositionZ();
+        const auto& zProperties = GetRenderProperties().GetPositionZ();
+        zOrderChanged_ = !ROSEN_EQ(zProperties, positionZ_);
+        positionZ_ = zProperties;
     }
 
     inline bool HasContainerWindow() const
