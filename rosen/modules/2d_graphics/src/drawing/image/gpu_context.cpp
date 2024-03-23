@@ -124,6 +124,11 @@ void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GP
     impl_->PurgeUnlockedResourcesByTag(scratchResourcesOnly, tag);
 }
 
+void GPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet)
+{
+    impl_->PurgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
+}
+
 void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
 {
     impl_->PurgeUnlockAndSafeCacheGpuResources();

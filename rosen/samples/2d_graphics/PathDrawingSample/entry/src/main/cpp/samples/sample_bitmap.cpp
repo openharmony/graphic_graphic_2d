@@ -181,7 +181,7 @@ void SampleBitMap::DrawPathHelper()
     // 绘制圆角矩形
     int x1 = 50; // x-axis point 1 50
     float rectY1 = height_ / 4 + 2 * distance; // divide h by 4 and 2 times the distance to get rect y1
-    float rectY2 = height_ / 4 + 6 * distance; // divide h by 4 and 6 times the distance to get rect y2
+    float rectY2 = height_ / 4 + 4 * distance; // divide h by 4 and 4 times the distance to get rect y2
     cRect_ = OH_Drawing_RectCreate(x1, rectY1, distance + width_ / 3, rectY2); // divide w by 3 to get rect x2
     int angle = 20; // round rect angle 20
     cRRect_ = OH_Drawing_RoundRectCreate(cRect_, angle, angle);
@@ -190,7 +190,7 @@ void SampleBitMap::DrawPathHelper()
     OH_Drawing_CanvasDrawPath(cCanvas_, cPath_);
     // 绘制黑色背景图片
     rectY1 = height_ / 2 + 2 * distance; // divide h by 2 and 2 times the distance to get rect y1
-    rectY2 = height_ / 2 + 6 * distance; // divide h by 2 and 6 times the distance to get rect y2
+    rectY2 = height_ / 2 + 4 * distance; // divide h by 2 and 4 times the distance to get rect y2
     cRect2_ = OH_Drawing_RectCreate(x1, rectY1, distance + width_ / 3, rectY2); // divide w by 3 to get rect x2
     cImage_ = OH_Drawing_ImageCreate();
     cBitmap2_ = OH_Drawing_BitmapCreate();
@@ -223,9 +223,9 @@ void SampleBitMap::DrawPath()
     OH_Drawing_CanvasDrawLine(cCanvas_, x2 + lineLen, y1, x1, y1 + lineLen);
     // 绘制圆形
     float centerX = width_ / 2; // divide w by 2 to get x-axis of center of the circle
-    float centerY = height_ / 10; // divide h by 10 to get y-axis of center of the circle
+    float centerY = height_ / 8; // divide h by 8 to get y-axis of center of the circle
     cCenter_ = OH_Drawing_PointCreate(centerX, centerY);
-    float radius = width_ / 8; // divide w by 8 to get radius of the circle
+    float radius = width_ / 14; // divide w by 14 to get radius of the circle
     OH_Drawing_CanvasDrawCircle(cCanvas_, cCenter_, radius);
     // 绘制三阶贝塞尔圆滑曲线
     cPath_ = OH_Drawing_PathCreate();

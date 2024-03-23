@@ -147,11 +147,11 @@ enum class SystemAnimatedScenes : uint32_t {
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
     APP_WINDOW_NODE,          // surfacenode created as app main window
+    STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
+    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
+    LEASH_WINDOW_NODE,        // leashwindow
     ABILITY_COMPONENT_NODE,   // surfacenode created as ability component
     SELF_DRAWING_NODE,        // surfacenode created by arkui component (except ability component)
-    STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
-    LEASH_WINDOW_NODE,        // leashwindow
-    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
     SURFACE_TEXTURE_NODE,      // create by video
     FOREGROUND_SURFACE,
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
@@ -225,25 +225,25 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
-inline bool ROSEN_LNE(float left, float right) //less not equal
+inline bool ROSEN_LNE(float left, float right) // less not equal
 {
     constexpr float epsilon = -0.001f;
     return (left - right) < epsilon;
 }
 
-inline bool ROSEN_GNE(float left, float right) //great not equal
+inline bool ROSEN_GNE(float left, float right) // great not equal
 {
     constexpr float epsilon = 0.001f;
     return (left - right) > epsilon;
 }
 
-inline bool ROSEN_GE(float left, float right) //great or equal
+inline bool ROSEN_GE(float left, float right) // great or equal
 {
     constexpr float epsilon = -0.001f;
     return (left - right) > epsilon;
 }
 
-inline bool ROSEN_LE(float left, float right) //less or equal
+inline bool ROSEN_LE(float left, float right) // less or equal
 {
     constexpr float epsilon = 0.001f;
     return (left - right) < epsilon;

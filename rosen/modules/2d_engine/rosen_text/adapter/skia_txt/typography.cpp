@@ -143,6 +143,30 @@ Drawing::FontMetrics Typography::MeasureText()
     return paragraph_->MeasureText();
 }
 
+void Typography::MarkDirty()
+{
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->MarkDirty();
+}
+
+int32_t Typography::GetUnresolvedGlyphsCount()
+{
+    if (paragraph_ == nullptr) {
+        return 0;
+    }
+    return paragraph_->GetUnresolvedGlyphsCount();
+}
+
+void Typography::UpdateFontSize(size_t from, size_t to, float fontSize)
+{
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->UpdateFontSize(from, to, fontSize);
+}
+
 void Typography::Paint(SkCanvas *canvas, double x, double y)
 {
     return paragraph_->Paint(canvas, x, y);

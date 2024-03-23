@@ -1915,7 +1915,7 @@ void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature
     fontFeature = nullptr;
 }
 
-void OH_Drawing_TextStyleSetBaseLineShift(OH_Drawing_TextStyle* style, double lineShift)
+void OH_Drawing_TextStyleSetBaselineShift(OH_Drawing_TextStyle* style, double lineShift)
 {
     if (style == nullptr) {
         return;
@@ -1926,7 +1926,7 @@ void OH_Drawing_TextStyleSetBaseLineShift(OH_Drawing_TextStyle* style, double li
     }
 }
 
-double OH_Drawing_TextStyleGetBaseLineShift(OH_Drawing_TextStyle* style)
+double OH_Drawing_TextStyleGetBaselineShift(OH_Drawing_TextStyle* style)
 {
     TextStyle* convertStyle = ConvertToOriginalText<TextStyle>(style);
     if (convertStyle == nullptr) {
@@ -2743,4 +2743,248 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo* drawFontC
         drawFontCfgInfo->fontGenericInfoSize);
     ResetStringArray(&drawFontCfgInfo->fontDirSet, drawFontCfgInfo->fontDirSize);
     delete drawFontCfgInfo;
+}
+    
+void OH_Drawing_TypographyTextSetHeightMode(OH_Drawing_TypographyStyle* style, OH_Drawing_TextHeightBehavior heightMode)
+{
+    TypographyStyle* convertStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (style == nullptr || convertStyle == nullptr) {
+        return;
+    }
+    TextHeightBehavior rosenHeightBehavior;
+    switch (heightMode) {
+        case TEXT_HEIGHT_ALL: {
+            rosenHeightBehavior = TextHeightBehavior::ALL;
+            break;
+        }
+        case TEXT_HEIGHT_DISABLE_FIRST_ASCENT: {
+            rosenHeightBehavior = TextHeightBehavior::DISABLE_FIRST_ASCENT;
+            break;
+        }
+        case TEXT_HEIGHT_DISABLE_LAST_ASCENT: {
+            rosenHeightBehavior = TextHeightBehavior::DISABLE_LAST_ASCENT;
+            break;
+        }
+        case TEXT_HEIGHT_DISABLE_ALL: {
+            rosenHeightBehavior = TextHeightBehavior::DISABLE_ALL;
+            break;
+        }
+        default: {
+            rosenHeightBehavior = TextHeightBehavior::ALL;
+        }
+    }
+    convertStyle->textHeightBehavior = rosenHeightBehavior;
+}
+
+OH_Drawing_TextHeightBehavior OH_Drawing_TypographyTextGetHeightMode(OH_Drawing_TypographyStyle* style)
+{
+    TypographyStyle* convertStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (style == nullptr || convertStyle == nullptr) {
+        return TEXT_HEIGHT_ALL;
+    }
+    TextHeightBehavior innerHeightBehavior = ConvertToOriginalText<TypographyStyle>(style)->textHeightBehavior;
+    return static_cast<OH_Drawing_TextHeightBehavior>(innerHeightBehavior);
+}
+
+void OH_Drawing_TypographyMarkDirty(OH_Drawing_Typography* typography)
+{
+    if (typography == nullptr || ConvertToOriginalText<Typography>(typography) == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<Typography>(typography)->MarkDirty();
+}
+
+int32_t OH_Drawing_TypographyGetUnresolvedGlyphsCount(OH_Drawing_Typography* typography)
+{
+    if (typography == nullptr || ConvertToOriginalText<Typography>(typography) == nullptr) {
+        return 0;
+    }
+    return ConvertToOriginalText<Typography>(typography)->GetUnresolvedGlyphsCount();
+}
+
+void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography* typography, size_t from, size_t to, float fontSize)
+{
+    if (typography == nullptr || ConvertToOriginalText<Typography>(typography) == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<Typography>(typography)->UpdateFontSize(from, to, fontSize);
+}
+
+bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return false;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->useLineStyle;
+}
+
+OH_Drawing_FontWeight OH_Drawing_TypographyTextlineStyleGetFontWeight(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return FONT_WEIGHT_400;
+    }
+    return static_cast<OH_Drawing_FontWeight>(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontWeight);
+}
+
+OH_Drawing_FontStyle OH_Drawing_TypographyTextlineStyleGetFontStyle(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return FONT_STYLE_NORMAL;
+    }
+    return static_cast<OH_Drawing_FontStyle>(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontStyle);
+}
+
+char** OH_Drawing_TypographyTextlineStyleGetFontFamilies(OH_Drawing_TypographyStyle* style, size_t* num)
+{
+    if (style == nullptr || num == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return nullptr;
+    }
+    char** fontFamilie = nullptr;
+    const std::vector<std::string> &systemFontFamilies =
+        ConvertToOriginalText<TypographyStyle>(style)-> lineStyleFontFamilies;
+    if (systemFontFamilies.empty()) {
+        num = 0;
+        return nullptr;
+    }
+    fontFamilie = new char* [systemFontFamilies.size()];
+    for (size_t i = 0; i < systemFontFamilies.size(); ++i) {
+        fontFamilie[i] = new char[systemFontFamilies[i].size() + 1];
+        auto retMemset = memset_s(fontFamilie[i], systemFontFamilies[i].size() + 1,
+            '\0', systemFontFamilies[i].size() + 1);
+        auto retCopy = strcpy_s(fontFamilie[i], systemFontFamilies[i].size() + 1,
+            systemFontFamilies[i].c_str());
+        if (retMemset != 0 || retCopy != 0) {
+            for (size_t j = 0; j <= i; j++) {
+                delete[] fontFamilie[j];
+                fontFamilie[j] = nullptr;
+            }
+            delete[] fontFamilie;
+            fontFamilie = nullptr;
+            return nullptr;
+        }
+    }
+    *num = systemFontFamilies.size();
+    return fontFamilie;
+}
+
+void OH_Drawing_DestroyFontFamilies(char** fontFamilies, size_t num)
+{
+    if (fontFamilies == nullptr) {
+        return;
+    }
+    for (size_t i = 0; i < num; ++i) {
+        if (fontFamilies[i] == nullptr) {
+            continue;
+        }
+        delete[] fontFamilies[i];
+        fontFamilies[i] = nullptr;
+    }
+    delete[] fontFamilies;
+    fontFamilies = nullptr;
+}
+
+double OH_Drawing_TypographyTextlineStyleGetFontSize(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return 0;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontSize;
+}
+
+double OH_Drawing_TypographyTextlineStyleGetHeightScale(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return 0;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightScale;
+}
+
+bool OH_Drawing_TypographyTextlineStyleGetHeightOnly(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return false;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightOnly;
+}
+
+bool OH_Drawing_TypographyTextlineStyleGetHalfLeading(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return false;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->lineStyleHalfLeading;
+}
+
+double OH_Drawing_TypographyTextlineStyleGetSpacingScale(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return 0;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->lineStyleSpacingScale;
+}
+
+bool OH_Drawing_TypographyTextlineGetStyleOnly(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return false;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->lineStyleOnly;
+}
+
+OH_Drawing_TextAlign OH_Drawing_TypographyGetTextAlign(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return TEXT_ALIGN_LEFT;
+    }
+    return static_cast<OH_Drawing_TextAlign>(ConvertToOriginalText<TypographyStyle>(style)->textAlign);
+}
+
+OH_Drawing_TextDirection OH_Drawing_TypographyGetTextDirection(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return TEXT_DIRECTION_LTR;
+    }
+    return static_cast<OH_Drawing_TextDirection>(ConvertToOriginalText<TypographyStyle>(style)->textDirection);
+}
+
+size_t OH_Drawing_TypographyGetTextMaxLines(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return 0;
+    }
+    return ConvertToOriginalText<TypographyStyle>(style)->maxLines;
+}
+
+char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return nullptr;
+    }
+    std::u16string ellipsis = ConvertToOriginalText<TypographyStyle>(style)->ellipsis;
+    const char16_t* buffer = ellipsis.c_str();
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+    std::string str = convert.to_bytes(buffer);
+    char* result = new char[str.size()+1];
+    strcpy(result, str.c_str());
+    return result;
+}
+
+void OH_Drawing_DestroyEllipsis(char* ellipsis)
+{
+    if (ellipsis == nullptr) {
+        return;
+    }
+    delete[] ellipsis;
+    ellipsis = nullptr;
+}
+
+bool OH_Drawing_TypographyStyleEquals(OH_Drawing_TypographyStyle* from, OH_Drawing_TypographyStyle* to)
+{
+    if(from  == to ) {
+        return true;
+    }
+    if (from == nullptr || to == nullptr) {
+        return false;
+    }
+    return *ConvertToOriginalText<TypographyStyle>(from) == *ConvertToOriginalText<TypographyStyle>(to);
 }

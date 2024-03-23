@@ -98,6 +98,14 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
     GoForeground();
 }
 
+void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->SetFlushEmptyCallback(flushEmptyCallback);
+    }
+}
+
 void RSUIDirector::StartTextureExport()
 {
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();

@@ -21,6 +21,7 @@
 
 #include "text_style.h"
 #include "typography_types.h"
+#include "modules/skparagraph/include/TextStyle.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,6 +59,37 @@ struct TypographyStyle {
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     float textSplitRatio = 0.5f;
 
+    bool operator==(const TypographyStyle &rhs) const {
+        return
+            this->ELLIPSIS == rhs.ELLIPSIS &&
+            this->fontWeight == rhs.fontWeight &&
+            this->fontStyle == rhs.fontStyle &&
+            this->fontFamily == rhs.fontFamily &&
+            skia::textlayout::nearlyEqual(this->fontSize, rhs.fontSize) &&
+            skia::textlayout::nearlyEqual(this->heightScale, rhs.heightScale) &&
+            this->halfLeading == rhs.halfLeading &&
+            this->heightOnly == rhs.heightOnly &&
+            this->useLineStyle == rhs.useLineStyle &&
+            this->lineStyleFontWeight == rhs.lineStyleFontWeight &&
+            this->lineStyleFontStyle == rhs.lineStyleFontStyle &&
+            this->lineStyleFontFamilies == rhs.lineStyleFontFamilies &&
+            skia::textlayout::nearlyEqual(this->lineStyleFontSize, rhs.lineStyleFontSize) &&
+            skia::textlayout::nearlyEqual(this->lineStyleHeightScale, rhs.lineStyleHeightScale) &&
+            this->lineStyleHeightOnlyInit == rhs.lineStyleHeightOnlyInit &&
+            this->lineStyleHeightOnly == rhs.lineStyleHeightOnly &&
+            this->lineStyleHalfLeading == rhs.lineStyleHalfLeading &&
+            skia::textlayout::nearlyEqual(this->lineStyleSpacingScale, rhs.lineStyleSpacingScale) &&
+            this->lineStyleOnly == rhs.lineStyleOnly &&
+            this->textAlign == rhs.textAlign &&
+            this->textDirection == rhs.textDirection &&
+            this->maxLines == rhs.maxLines &&
+            this->ellipsis == rhs.ellipsis &&
+            this->locale == rhs.locale &&
+            this->breakStrategy == rhs.breakStrategy &&
+            this->wordBreakType == rhs.wordBreakType &&
+            this->ellipsisModal == rhs.ellipsisModal &&
+            skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio);
+    }
     TextStyle GetTextStyle() const;
     void SetTextStyle(TextStyle& textstyle);
     TextAlign GetEffectiveAlign() const;
@@ -69,6 +101,7 @@ struct TypographyStyle {
     }
     TextStyle insideTextStyle;
     bool customTextStyle = false;
+    TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
 };
 } // namespace Rosen
 } // namespace OHOS
