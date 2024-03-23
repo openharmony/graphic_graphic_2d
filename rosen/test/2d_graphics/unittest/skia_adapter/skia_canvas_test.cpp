@@ -17,6 +17,10 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_canvas.h"
 #include "draw/core_canvas.h"
+// opinc_begin
+#include "skia_adapter/skia_canvas_autocache.h"
+#include "skia_adapter/skia_oplist_handle.h"
+// opinc_end
 
 using namespace testing;
 using namespace testing::ext;
@@ -962,6 +966,113 @@ HWTEST_F(SkiaCanvasTest, DrawImageLattice001, TestSize.Level1)
     Brush brush;
     skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, &brush);
     skiaCanvas->DrawImageLattice(&image, lattice, dst, FilterMode::LINEAR, nullptr);
+}
+
+/**
+ * @tc.name: BeginOpRecordingTest001
+ * @tc.desc: Test BeginOpRecording
+ * @tc.type: FUNC
+ * @tc.require: I9B0X4
+ */
+HWTEST_F(SkiaCanvasTest, BeginOpRecordingTest001, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    Rect rect = {0, 0, 0, 0};
+    bool isDynamic = false;
+    ASSERT_EQ(skiaCanvas.BeginOpRecording(&rect, isDynamic), false);
+}
+
+/**
+ * @tc.name: CanDrawOpListTest001
+ * @tc.desc: Test CanDrawOpList
+ * @tc.type: FUNC
+ * @tc.require: I9B0X4
+ */
+HWTEST_F(SkiaCanvasTest, CanDrawOpListTest001, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    ASSERT_EQ(skiaCanvas.CanDrawOpList({}), -1);
+}
+
+/**
+ * @tc.name: OpCalculateBeforeTest001
+ * @tc.desc: Test OpCalculateBefore
+ * @tc.type: FUNC
+ * @tc.require: I9B0X4
+ */
+HWTEST_F(SkiaCanvasTest, OpCalculateBeforeTest001, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    Matrix matrix;
+    ASSERT_EQ(skiaCanvas.OpCalculateBefore(matrix), true);
+}
+
+/**
+ * @tc.name: OpCalculateAfterTest001
+ * @tc.desc: Test OpCalculateAfter
+ * @tc.type: FUNC
+ * @tc.require: I9B0X4
+ */
+HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest001, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    Rect rect;
+    auto handle = skiaCanvas.OpCalculateAfter(rect);
+    ASSERT_EQ(handle, nullptr);
+}
+
+/**
+ * @tc.name: OpCalculateAfterTest002
+ * @tc.desc: Test OpCalculateAfter
+ * @tc.type: FUNC
+ * @tc.require: I9B0X4
+ */
+HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest002, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    Matrix matrix;
+    skiaCanvas.OpCalculateBefore(matrix);
+    Rect rect;
+    auto handle = skiaCanvas.OpCalculateAfter(rect);
+    ASSERT_EQ(handle, nullptr);
+}
+
+/**
+ * @tc.name: GetOpsNumTest001
+ * @tc.desc: Test GetOpsNum
+ * @tc.type: FUNC
+ * @tc.require: I9B0X4
+ */
+HWTEST_F(SkiaCanvasTest, GetOpsNumTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkCanvas>();
+    ASSERT_NE(skiaCanvas, nullptr);
+    Matrix matrix;
+    auto m = matrix.GetImpl<SkiaMatrix>();
+    ASSERT_NE(m, nullptr);
+    auto tmp = std::make_shared<SkiaCanvasAutoCache>(skiaCanvas.get());
+    ASSERT_NE(tmp, nullptr);
+    tmp->Init(m->ExportSkiaMatrix());
+    ASSERT_EQ(tmp->GetOpsNum(), 0);
+}
+
+/**
+ * @tc.name: GetOpsPercentTest001
+ * @tc.desc: Test GetOpsPercent
+ * @tc.type: FUNC
+ * @tc.require: I9B0X4
+ */
+HWTEST_F(SkiaCanvasTest, GetOpsPercentTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkCanvas>();
+    ASSERT_NE(skiaCanvas, nullptr);
+    Matrix matrix;
+    auto m = matrix.GetImpl<SkiaMatrix>();
+    ASSERT_NE(m, nullptr);
+    auto tmp = std::make_shared<SkiaCanvasAutoCache>(skiaCanvas.get());
+    ASSERT_NE(tmp, nullptr);
+    tmp->Init(m->ExportSkiaMatrix());
+    ASSERT_EQ(tmp->GetOpsPercent(), 0);
 }
 
 } // namespace Drawing
