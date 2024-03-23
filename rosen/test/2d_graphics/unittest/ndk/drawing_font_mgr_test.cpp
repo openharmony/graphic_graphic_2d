@@ -122,14 +122,15 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest006, TestSize.Level1)
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
 
-    const char* matchFamilyName = "HarmonyOS-Sans";
+    const char* matchFamilyName = "OS-Sans";
     OH_Drawing_FontStyleStruct normalStyle;
     normalStyle.weight = NORMAL_WEIGHT;
     normalStyle.width = NORMAL_WIDTH;
     normalStyle.slant = UPRIGHT_SLANT;
 
-    const char *bcp47[] = {"zh-Hans"};//"zh-CN", 
-    OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(mgr, matchFamilyName, &normalStyle, bcp47, 1, ' ');
+    const char *bcp47[] = {"zh-Hans", "zh-CN"};
+    OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(mgr, matchFamilyName, 
+                                                                                    &normalStyle, bcp47, 1, ' ');
     EXPECT_NE(CharTypeface, nullptr);
     OH_Drawing_TypefaceDestroy(CharTypeface);
 
