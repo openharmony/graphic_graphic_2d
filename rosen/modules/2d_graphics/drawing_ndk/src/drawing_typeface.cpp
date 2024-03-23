@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,13 +18,11 @@
 #include <unordered_map>
 
 #include "text/typeface.h"
+#include "utils/object_mgr.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
-
-static std::mutex g_typefaceLockMutex;
-static std::unordered_map<void*, std::shared_ptr<Typeface>> g_typefaceMap;
 
 static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cCanvas)
 {
@@ -34,9 +32,9 @@ static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cCanvas)
 OH_Drawing_Typeface* OH_Drawing_TypefaceCreateDefault()
 {
     std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
-    std::lock_guard<std::mutex> lock(g_typefaceLockMutex);
-    g_typefaceMap.insert({typeface.get(), typeface});
-    return (OH_Drawing_Typeface*)typeface.get();
+    OH_Drawing_Typeface* drawingTypeface = reinterpret_cast<OH_Drawing_Typeface*>(typeface.get());
+    TypefaceMgr::GetInstance().Insert(drawingTypeface, typeface);
+    return drawingTypeface;
 }
 
 OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int index)
@@ -45,9 +43,9 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int ind
     if (typeface == nullptr) {
         return nullptr;
     }
-    std::lock_guard<std::mutex> lock(g_typefaceLockMutex);
-    g_typefaceMap.insert({typeface.get(), typeface});
-    return (OH_Drawing_Typeface*)typeface.get();
+    OH_Drawing_Typeface* drawingTypeface = reinterpret_cast<OH_Drawing_Typeface*>(typeface.get());
+    TypefaceMgr::GetInstance().Insert(drawingTypeface, typeface);
+    return drawingTypeface;
 }
 
 OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromStream(OH_Drawing_MemoryStream* cMemoryStream, int32_t index)
@@ -60,17 +58,15 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromStream(OH_Drawing_MemoryStream
     if (typeface == nullptr) {
         return nullptr;
     }
-    std::lock_guard<std::mutex> lock(g_typefaceLockMutex);
-    g_typefaceMap.insert({typeface.get(), typeface});
-    return (OH_Drawing_Typeface*)typeface.get();
+    OH_Drawing_Typeface* drawingTypeface = reinterpret_cast<OH_Drawing_Typeface*>(typeface.get());
+    TypefaceMgr::GetInstance().Insert(drawingTypeface, typeface);
+    return drawingTypeface;
 }
 
 void OH_Drawing_TypefaceDestroy(OH_Drawing_Typeface* cTypeface)
 {
-    std::lock_guard<std::mutex> lock(g_typefaceLockMutex);
-    auto it = g_typefaceMap.find(cTypeface);
-    if (it == g_typefaceMap.end()) {
+    if (cTypeface == nullptr) {
         return;
     }
-    g_typefaceMap.erase(it);
+    TypefaceMgr::GetInstance().Remove(cTypeface);
 }

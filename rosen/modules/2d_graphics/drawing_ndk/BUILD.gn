@@ -62,6 +62,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_filter.cpp",
       "$drawing_ndk_src_dir/drawing_font.cpp",
       "$drawing_ndk_src_dir/drawing_font_collection.cpp",
+      "$drawing_ndk_src_dir/drawing_font_mgr.cpp",
       "$drawing_ndk_src_dir/drawing_image.cpp",
       "$drawing_ndk_src_dir/drawing_mask_filter.cpp",
       "$drawing_ndk_src_dir/drawing_matrix.cpp",

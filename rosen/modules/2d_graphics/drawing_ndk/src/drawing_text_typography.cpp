@@ -1301,6 +1301,9 @@ void OH_Drawing_DestroySystemFontList(char** fontList, size_t num)
         return;
     }
     for (size_t i = 0; i < num; ++i) {
+        if (fontList[i] == nullptr) {
+            continue;
+        }
         delete[] fontList[i];
         fontList[i] = nullptr;
     }

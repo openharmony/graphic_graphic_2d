@@ -75,6 +75,31 @@ Typeface* FontMgr::MatchFamilyStyle(const char familyName[], const FontStyle& fo
     }
     return nullptr;
 }
+
+int FontMgr::CountFamilies() const
+{
+    if (fontMgrImpl_ == nullptr) {
+        return 0;
+    }
+    return fontMgrImpl_->CountFamilies();
+}
+
+void FontMgr::GetFamilyName(int index, std::string& str) const
+{
+    if (fontMgrImpl_ == nullptr) {
+        return;
+    }
+    fontMgrImpl_->GetFamilyName(index, str);
+}
+
+FontStyleSet* FontMgr::CreateStyleSet(int index) const
+{
+    if (fontMgrImpl_ == nullptr) {
+        return nullptr;
+    }
+    return fontMgrImpl_->CreateStyleSet(index);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

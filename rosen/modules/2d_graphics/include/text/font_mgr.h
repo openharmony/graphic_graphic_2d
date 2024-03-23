@@ -98,6 +98,12 @@ public:
      */
     Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const;
 
+    int CountFamilies() const;
+
+    void GetFamilyName(int index, std::string& str) const;
+
+    FontStyleSet* CreateStyleSet(int index) const;
+
 private:
     std::shared_ptr<FontMgrImpl> fontMgrImpl_;
 };
