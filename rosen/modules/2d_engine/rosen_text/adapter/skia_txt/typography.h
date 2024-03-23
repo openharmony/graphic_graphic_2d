@@ -39,6 +39,9 @@ public:
     double GetGlyphsBoundsRight() override;
     bool DidExceedMaxLines() const override;
     int GetLineCount() const override;
+    void MarkDirty() override;
+    int32_t GetUnresolvedGlyphsCount() override;
+    void UpdateFontSize(size_t from, size_t to, float fontSize) override;
 
     void SetIndents(const std::vector<float>& indents) override;
     float DetectIndents(size_t index) override;

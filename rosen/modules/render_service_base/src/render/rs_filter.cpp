@@ -36,6 +36,11 @@ std::string RSFilter::GetDescription()
     return "RSFilter " + std::to_string(type_);
 }
 
+std::string RSFilter::GetDetailedDescription()
+{
+    return "RSFilter " + std::to_string(type_);
+}
+
 std::shared_ptr<RSFilter> RSFilter::CreateBlurFilter(float blurRadiusX, float blurRadiusY)
 {
     return std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);

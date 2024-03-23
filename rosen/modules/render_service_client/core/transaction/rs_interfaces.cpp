@@ -517,5 +517,10 @@ void RSInterfaces::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 {
     renderServiceClient_->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
 }
+
+void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+}
 } // namespace Rosen
 } // namespace OHOS

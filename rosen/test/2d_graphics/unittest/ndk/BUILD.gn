@@ -38,6 +38,7 @@ ohos_unittest("2d_graphics_ndk_test") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//third_party/googletest/googletest/include",
   ]
   if (enable_text_gine) {
@@ -53,6 +54,7 @@ ohos_unittest("2d_graphics_ndk_test") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "//third_party/googletest:gtest_main",
   ]
 

@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "c/drawing_bitmap.h"
-#include "c/drawing_types.h"
+#include "drawing_bitmap.h"
+#include "drawing_types.h"
 
 using namespace testing;
 using namespace testing::ext;

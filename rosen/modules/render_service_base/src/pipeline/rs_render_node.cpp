@@ -33,6 +33,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -513,7 +514,7 @@ bool RSRenderNode::IsFirstLevelSurfaceNode()
     auto parentNode = parent_.lock();
     while (parentNode && !parentNode->IsInstanceOf<RSDisplayRenderNode>()) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentNode);
-        if (node != nullptr && (node->IsMainWindowType() || node->IsLeashWindow())) {
+        if (node != nullptr && (node->IsLeashOrMainWindow())) {
             return false;
         }
         parentNode = parentNode->GetParent().lock();
@@ -1038,7 +1039,7 @@ void RSRenderNode::UpdateDirtyRegion(
             }
         }
 
-        auto outline = GetRenderProperties().GetOutline();
+        auto& outline = GetRenderProperties().GetOutline();
         RectI outlineRect;
         if (outline && outline->HasBorder()) {
             RSPropertiesPainter::GetOutlineDirtyRect(outlineRect, GetRenderProperties());
@@ -1302,7 +1303,8 @@ bool RSRenderNode::ApplyModifiers()
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
         manager != nullptr &&
         (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
-        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_SHADER)))) {
         manager->InvalidateCache();
     }
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
@@ -1693,7 +1695,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         canvas.Restore();
         return;
     }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (cacheImage->IsTextureBacked()) {
             RS_LOGI("RSRenderNode::DrawCacheSurface convert cacheImage from texture to raster image");
@@ -1798,6 +1800,7 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
         RS_LOGE("get backendTexture failed");
         return nullptr;
     }
+    SKResourceManager::Instance().HoldResource(completeImage);
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };

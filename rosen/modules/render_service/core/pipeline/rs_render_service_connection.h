@@ -49,6 +49,10 @@ public:
         return token_;
     }
 
+#ifdef RS_PROFILER_ENABLED
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+#endif
+
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
@@ -245,6 +249,7 @@ private:
 #endif
 
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
@@ -285,6 +290,10 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
+    
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

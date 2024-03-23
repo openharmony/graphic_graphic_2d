@@ -126,7 +126,7 @@ std::shared_ptr<RSRenderPropertyBase> RSSpringModel<std::shared_ptr<RSRenderProp
         return coeffPeriod *= coeffDecay;
     } else if (dampingRatio_ == 1) {
         // critical-damped
-        return (initialOffset_ + coeffScale_ * time) *= coeffDecay;
+        return ((coeffScale_ * time) += initialOffset_) *= coeffDecay;
     } else {
         // over-damped
         double coeffDecayAlt = exp(coeffDecayAlt_ * time);

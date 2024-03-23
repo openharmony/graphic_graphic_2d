@@ -27,6 +27,7 @@ ohos_fuzztest("DrawingFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
@@ -41,7 +42,9 @@ ohos_fuzztest("DrawingFuzzTest") {
     "get_object.h",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

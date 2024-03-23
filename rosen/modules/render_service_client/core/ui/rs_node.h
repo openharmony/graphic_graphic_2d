@@ -398,7 +398,7 @@ protected:
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
 
-    std::recursive_mutex& GetPropertyMutex()
+    std::recursive_mutex& GetPropertyMutex() const
     {
         return propertyMutex_;
     }
@@ -442,8 +442,9 @@ private:
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
-    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
-    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+    std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
+    std::shared_ptr<RSModifier> modifiersTypeMap_[(uint16_t)RSModifierType::MAX_RS_MODIFIER_TYPE] = { nullptr };
+    std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
 
@@ -454,7 +455,7 @@ private:
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
     std::mutex animationMutex_;
-    std::recursive_mutex propertyMutex_;
+    mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;
     friend class RSTransition;

@@ -37,6 +37,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+#include "rs_profiler.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -1226,6 +1227,23 @@ void RSRenderServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScreen
         NotifyRefreshRateEvent(event);
     }
     return;
+}
+
+#ifdef RS_PROFILER_ENABLED
+int RSRenderServiceConnection::OnRemoteRequest(
+    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+{
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
+    return RSRenderServiceConnectionStub::OnRemoteRequest(code, data, reply, option);
+}
+#endif
+
+void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    auto task = [this, isCurtainScreenOn]() -> void {
+        mainThread_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+    };
+    mainThread_->PostTask(task);
 }
 } // namespace Rosen
 } // namespace OHOS

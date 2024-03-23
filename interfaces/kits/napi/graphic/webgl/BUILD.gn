@@ -99,6 +99,7 @@ ohos_source_set("webgl_src") {
 }
 
 ohos_shared_library("libwebglnapi") {
+  external_deps = [ "hilog:libhilog" ]
   deps = [ ":webgl_src" ]
   if (ace_enable_gpu) {
     install_enable = true

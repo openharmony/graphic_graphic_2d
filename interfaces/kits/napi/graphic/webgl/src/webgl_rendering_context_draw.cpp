@@ -447,7 +447,8 @@ napi_value WebGLRenderingContextBaseImpl::BufferSubData(
     glBufferSubData(target, offset, static_cast<GLsizeiptr>(bufferData.GetBufferLength()),
         static_cast<uint8_t*>(bufferData.GetBuffer()));
     LOGD("WebGL bufferSubData offset %{public}u target %{public}u size %{public}zu result %{public}u ",
-        offset, target,  bufferData.GetBufferLength(), GetError_());
+         static_cast<unsigned int>(offset), static_cast<unsigned int>(target),
+         bufferData.GetBufferLength(), static_cast<unsigned int>(GetError_()));
     return NVal::CreateNull(env).val_;
 }
 

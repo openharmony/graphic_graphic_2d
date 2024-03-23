@@ -72,6 +72,10 @@ private:
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
     sptr<VSyncDistributor> appVSyncDistributor_;
+
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // Rosen
 } // OHOS

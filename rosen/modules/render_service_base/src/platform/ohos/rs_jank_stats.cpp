@@ -210,6 +210,7 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefres
     }
 
     // hitch time ratio
+    jankFrames.lastMaxHitchTime_ = jankFrames.maxHitchTime_;
     jankFrames.lastTotalHitchTimeSteady_ = jankFrames.totalHitchTimeSteady_;
     jankFrames.lastTotalFrameTimeSteadyForHTR_ = jankFrames.totalFrameTimeSteadyForHTR_;
     if (dynamicRefreshRate == 0) {
@@ -221,6 +222,7 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefres
     const bool isCalculateOnVsyncTimeForHTR = jankFrames.isFirstFrame_ || isFirstSetEnd_;
     const int64_t frameDurationForHTR =
         (isCalculateOnVsyncTimeForHTR ? frameTimeForHTR : (endTimeSteady_ - lastEndTimeSteady_));
+    jankFrames.maxHitchTime_ = std::max<float>(jankFrames.maxHitchTime_, frameHitchTime);
     jankFrames.totalHitchTimeSteady_ += frameHitchTime;
     jankFrames.totalFrameTimeSteadyForHTR_ += frameDurationForHTR;
 }
@@ -414,7 +416,8 @@ void RSJankStats::ReportEventJankFrame(const JankFrames& jankFrames, bool isRepo
             "PAGE_URL", info.pageUrl, "TOTAL_FRAMES", jankFrames.totalFrames_, "TOTAL_MISSED_FRAMES",
             jankFrames.totalMissedFrames_, "MAX_FRAMETIME", static_cast<uint64_t>(jankFrames.maxFrameTimeSteady_),
             "AVERAGE_FRAMETIME", aveFrameTimeSteady, "MAX_SEQ_MISSED_FRAMES", jankFrames.maxSeqMissedFrames_,
-            "IS_FOLD_DISP", IS_FOLD_DISP, "BUNDLE_NAME_EX", info.note);
+            "IS_FOLD_DISP", IS_FOLD_DISP, "BUNDLE_NAME_EX", info.note, "MAX_HITCH_TIME",
+            static_cast<uint64_t>(jankFrames.maxHitchTime_));
     } else {
         if (jankFrames.lastTotalFrames_ <= 0) {
             ROSEN_LOGD("RSJankStats::ReportEventJankFrame totalFrames is zero, nothing need to report");
@@ -431,7 +434,7 @@ void RSJankStats::ReportEventJankFrame(const JankFrames& jankFrames, bool isRepo
             jankFrames.lastTotalMissedFrames_, "MAX_FRAMETIME", static_cast<uint64_t>(
             jankFrames.lastMaxFrameTimeSteady_), "AVERAGE_FRAMETIME", aveFrameTimeSteady,
             "MAX_SEQ_MISSED_FRAMES", jankFrames.lastMaxSeqMissedFrames_, "IS_FOLD_DISP", IS_FOLD_DISP,
-            "BUNDLE_NAME_EX", info.note);
+            "BUNDLE_NAME_EX", info.note, "MAX_HITCH_TIME", static_cast<uint64_t>(jankFrames.lastMaxHitchTime_));
     }
 }
 

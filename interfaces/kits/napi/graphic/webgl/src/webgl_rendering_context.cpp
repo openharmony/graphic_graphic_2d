@@ -83,7 +83,7 @@ bool WebGLRenderingContext::Export(napi_env env, napi_value exports)
     std::vector<napi_property_descriptor> properties = {};
     WebGLRenderingContextBase::GetRenderingContextBasePropertyDesc(properties);
     properties.insert(properties.end(), props.begin(), props.end());
-    LOGD("WebGLRenderingContext properties %{public}d", properties.size());
+    LOGD("WebGLRenderingContext properties %{public}d", static_cast<int>(properties.size()));
     napi_status status = napi_define_properties(env, exports, properties.size(), properties.data());
     if (status != napi_ok) {
         return false;

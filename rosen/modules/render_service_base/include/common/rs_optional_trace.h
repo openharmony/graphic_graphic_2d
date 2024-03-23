@@ -18,6 +18,7 @@
 
 #include "rs_trace.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/common/rs_log.h"
 
 #define RS_OPTIONAL_TRACE_BEGIN(name)                            \
     do {                                                         \
@@ -39,6 +40,20 @@
             HITRACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, fmt, ##__VA_ARGS__); \
         }                                                                   \
     } while (0)
+
+#ifdef ROSEN_TRACE_DISABLE
+#define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
+    do {                                                                    \
+        ROSEN_LOGD("TRACE_LEVEL_TWO = %d", TRACE_LEVEL_TWO);                \
+    } while (0)
+#else
+#define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
+    do {                                                                    \
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= Level) {     \
+            HITRACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, fmt, ##__VA_ARGS__); \
+        }                                                                   \
+    } while (0)
+#endif
 
 #define RS_APPOINTED_TRACE_BEGIN(node, name)                           \
     do {                                                             \

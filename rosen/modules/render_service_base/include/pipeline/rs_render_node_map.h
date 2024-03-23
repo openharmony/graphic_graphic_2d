@@ -91,6 +91,9 @@ private:
 
     friend class RSContext;
     friend class RSMainThread;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

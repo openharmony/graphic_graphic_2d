@@ -102,6 +102,7 @@
 #include "vsync_iconnection_token.h"
 
 #include "mem_mgr_client.h"
+#include "rs_profiler.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
@@ -272,6 +273,7 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
+        RS_PROFILER_ON_FRAME_BEGIN();
         mainLooping_.store(true);
         RenderFrameStart(timestamp_);
 #if defined(RS_ENABLE_UNI_RENDER)
@@ -290,8 +292,10 @@ void RSMainThread::Init()
 #if defined(RS_ENABLE_DRIVEN_RENDER)
         CollectInfoForDrivenRender();
 #endif
+        RS_PROFILER_ON_RENDER_BEGIN();
         // may mark rsnotrendering
         Render();
+        RS_PROFILER_ON_RENDER_END();
 
         // move rnv after mark rsnotrendering
         if (needRequestNextVsyncAnimate_ || rsVSyncDistributor_->HasPendingUIRNV()) {
@@ -318,6 +322,7 @@ void RSMainThread::Init()
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
         mainLooping_.store(false);
+        RS_PROFILER_ON_FRAME_END();
     };
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
         [] (std::shared_ptr<Drawing::Image> image) -> void {
@@ -568,6 +573,7 @@ void RSMainThread::ProcessCommand()
     } else {
         context_->currentTimestamp_ = lastAnimateTimestamp_;
     }
+    RS_PROFILER_ON_PROCESS_COMMAND();
     if (isUniRender_) {
         ProcessCommandForUniRender();
     } else {
@@ -1014,7 +1020,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         surfaceNode->ResetAnimateState();
         // Reset BasicGeoTrans info at the beginning of cmd process
-        if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
+        if (surfaceNode->IsLeashOrMainWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransform();
         }
         if (surfaceNode->IsHardwareEnabledType()
@@ -1205,11 +1211,7 @@ void RSMainThread::CollectInfoForDrivenRender()
         node->SetPaintState(false);
         node->SetIsMarkDrivenRender(false);
     }
-    if (!drivenNodes.empty()) {
-        hasDrivenNodeOnUniTree_ = true;
-    } else {
-        hasDrivenNodeOnUniTree_ = false;
-    }
+    hasDrivenNodeOnUniTree_ = !drivenNodes.empty()
     if (markRenderDrivenNodes.size() == 1) { // only support 1 driven node
         auto node = markRenderDrivenNodes.front();
         node->SetIsMarkDrivenRender(true);
@@ -1282,7 +1284,7 @@ uint32_t RSMainThread::GetDynamicRefreshRate() const
     return refreshRate;
 }
 
-void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
+void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
@@ -1290,6 +1292,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
     this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
+    this->exitedPidSet_.emplace(pid);
     PostTask(
         [this, moment, deeply]() {
             auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
@@ -1301,18 +1304,24 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
             SKResourceManager::Instance().ReleaseResource();
             grContext->Flush();
             SkGraphics::PurgeAllCaches(); // clear cpu cache
-            if (deeply || this->deviceType_ != DeviceType::PHONE) {
-                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+            auto pid = *(this->exitedPidSet_.begin());
+            if (this->exitedPidSet_.size() == 1 && pid == -1) {         // no exited app, just clear scratch resource
+                if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                    MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+                } else {
+                    MemoryManager::ReleaseUnlockGpuResource(grContext);
+                }
             } else {
-                MemoryManager::ReleaseUnlockGpuResource(grContext);
+                MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
             }
             grContext->FlushAndSubmit(true);
             this->clearMemoryFinished_ = true;
+            this->exitedPidSet_.clear();
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         },
-        CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
-            / GetRefreshRate());
+        CLEAR_GPU_CACHE,
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate());
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -2112,6 +2121,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
+    RS_PROFILER_PATCH_TIME(timestamp_);
+    RS_PROFILER_PATCH_TIME(curTime_);
     requestNextVsyncNum_ = 0;
     frameCount_++;
     if (isUniRender_) {
@@ -2505,13 +2516,15 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
 
     // clear cpu cache when process exit
     // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time
-    if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
+    if (remotePid != lastCleanCachePid_ ||
+        ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD) > CLEAN_CACHE_FREQ) {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_LOGD("RSMainThread: clear cpu cache pid:%{public}d", remotePid);
         if (!IsResidentProcess(remotePid)) {
-            ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true);
+            ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true, remotePid);
+            lastCleanCacheTimestamp_ = timestamp_;
+            lastCleanCachePid_ = remotePid;
         }
-        lastCleanCacheTimestamp_ = timestamp_;
 #endif
     }
 }
@@ -2706,6 +2719,7 @@ void RSMainThread::ForceRefreshForUni()
             RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
             auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
+            RS_PROFILER_PATCH_TIME(now);
             timestamp_ = timestamp_ + (now - curTime_);
             curTime_ = now;
             RS_TRACE_NAME("RSMainThread::ForceRefreshForUni timestamp:" + std::to_string(timestamp_));
@@ -3115,5 +3129,17 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
     }
 }
 
+void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    isCurtainScreenOn_ = isCurtainScreenOn;
+    SetDirtyFlag();
+    RequestNextVSync();
+    RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);
+}
+
+bool RSMainThread::IsCurtainScreenOn() const
+{
+    return isCurtainScreenOn_;
+}
 } // namespace Rosen
 } // namespace OHOS

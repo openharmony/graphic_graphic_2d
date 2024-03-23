@@ -34,6 +34,7 @@
 #include <platform/common/rs_log.h>
 #include <system_ability_definition.h>
 #include "parameter.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -112,6 +113,7 @@ bool RSRenderService::Init()
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
 
+    RS_PROFILER_INIT(this);
     return true;
 }
 
@@ -124,6 +126,7 @@ void RSRenderService::Run()
 sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     pid_t remotePid = GetCallingPid();
+    RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
     sptr<RSIRenderServiceConnection> newConn(

@@ -16,6 +16,7 @@
 #include "rs_profiler.h"
 
 #include <filesystem>
+#include <list>
 
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "rs_profiler_capture_recorder.h"
@@ -359,13 +360,15 @@ void RSProfiler::HiddenSpaceTurnOn()
     }
 
     const auto& rootRenderNode = g_renderServiceContext->GetGlobalRootRenderNode();
-    auto& children = rootRenderNode->GetChildren();
+    auto& children = *rootRenderNode->GetChildren();
     if (children.empty()) {
         return;
     }
     if (auto& displayNode = children.front()) {
         if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
-            g_childOfDisplayNodes = displayNode->GetChildren();
+            g_childOfDisplayNodes.insert(std::begin(g_childOfDisplayNodes),
+                                         std::begin(*displayNode->GetChildren()),
+                                         std::end(*displayNode->GetChildren()));
 
             displayNode->ClearChildren();
             displayNode->AddChild(rootNode);
@@ -380,7 +383,7 @@ void RSProfiler::HiddenSpaceTurnOn()
 void RSProfiler::HiddenSpaceTurnOff()
 {
     const auto& rootRenderNode = g_renderServiceContext->GetGlobalRootRenderNode();
-    const auto& children = rootRenderNode->GetChildren();
+    const auto& children = *rootRenderNode->GetChildren();
     if (children.empty()) {
         return;
     }
@@ -934,7 +937,7 @@ void RSProfiler::PlaybackUpdate()
 
         RSRenderServiceConnection* connection = GetConnection(Utils::GetMockPid(pid));
         if (!connection) {
-            const std::vector<pid_t>& pids = g_playbackFile.GetHeaderPIDList();
+            const std::vector<pid_t>& pids = g_playbackFile.GetHeaderPids();
             if (!pids.empty()) {
                 connection = GetConnection(Utils::GetMockPid(pids[0]));
             }
