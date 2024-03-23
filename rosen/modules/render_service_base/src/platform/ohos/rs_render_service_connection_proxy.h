@@ -214,6 +214,7 @@ public:
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

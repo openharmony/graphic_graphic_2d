@@ -1238,5 +1238,12 @@ int RSRenderServiceConnection::OnRemoteRequest(
 }
 #endif
 
+void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    auto task = [this, isCurtainScreenOn]() -> void {
+        mainThread_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+    };
+    mainThread_->PostTask(task);
+}
 } // namespace Rosen
 } // namespace OHOS

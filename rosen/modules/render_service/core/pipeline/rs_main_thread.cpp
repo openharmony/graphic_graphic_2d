@@ -3129,5 +3129,17 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
     }
 }
 
+void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+    isCurtainScreenOn_ = isCurtainScreenOn;
+    SetDirtyFlag();
+    RequestNextVSync();
+    RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);
+}
+
+bool RSMainThread::IsCurtainScreenOn() const
+{
+    return isCurtainScreenOn_;
+}
 } // namespace Rosen
 } // namespace OHOS
