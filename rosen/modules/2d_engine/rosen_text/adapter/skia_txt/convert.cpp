@@ -96,6 +96,16 @@ SPText::PlaceholderRun Convert(const PlaceholderSpan& run)
     };
 }
 
+static std::string RemoveQuotes(const std::string& str)
+{
+    if (str.empty() || str.front() != '\"' || str.back() != '\"') {
+        return str;
+    }
+    auto first = str.find_first_of('\"');
+    auto end = str.find_last_of('\"');
+    return str.substr(first + 1, end - first - 1);
+}
+
 SPText::TextStyle Convert(const TextStyle& style)
 {
     SPText::TextStyle textStyle;
@@ -143,7 +153,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     }
 
     for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(tag, value);
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
     }
     return textStyle;
 }
