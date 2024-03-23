@@ -19,8 +19,8 @@ namespace Rosen {
 void DrawPathTest::OnTestFunctionCpu(Drawing::Canvas* canvas)
 {
     Drawing::Pen pen;
-    pen.SetColor(0xFFFF0000);
-    pen.SetWidth(10.0f);
+    pen.SetColor(0xFFFF0000); // color:red
+    pen.SetWidth(10.0f); // width:10
     canvas->AttachPen(pen);
     Drawing::Path path;
     path.MoveTo(0, 0); // from (0, 0)
@@ -38,8 +38,8 @@ void DrawPathTest::OnTestFunctionGpuUpScreen(Drawing::Canvas* canvas)
 void DrawPathTest::OnTestPerformance(Drawing::Canvas* canvas)
 {
     Drawing::Pen pen;
-    pen.SetColor(0xFFFF0000);
-    pen.SetWidth(10.0f);
+    pen.SetColor(0xFFFF0000); // color:red
+    pen.SetWidth(10.0f); // width:10
     canvas->AttachPen(pen);
     Drawing::Path path;
     path.MoveTo(0, 0); // from (0, 0)

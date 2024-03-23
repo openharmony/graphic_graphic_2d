@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "drawing_demo.h"
+#include <sstream>
 #include "display_manager.h"
 #include "test_case/draw_path.h"
 #include "test_case/draw_rect.h"
@@ -60,8 +61,8 @@ DrawingDemo::~DrawingDemo()
 
 int DrawingDemo::Test()
 {
-    std::cout << "eg: drawing_demo function [cpu | gpu] {caseName?} {displayTime?}" << std::endl;
-    std::cout << "eg: drawing_demo performance [cpu | gpu] caseName count {displayTime?}" << std::endl;
+    TestCommon::Log("eg: drawing_demo function [cpu | gpu] {caseName?} {displayTime?}");
+    TestCommon::Log("eg: drawing_demo performance [cpu | gpu] caseName count {displayTime?}");
     if (argc_ <= INDEX_DRAWING_TYPE) {
         return RET_PARAM_ERR;
     }
@@ -88,7 +89,7 @@ int DrawingDemo::InitWindow()
 {
     rsUiDirector_ = RSUIDirector::Create();
     if (rsUiDirector_ == nullptr) {
-        std::cout << "Failed to create rsUiDirector_" << std::endl;
+        TestCommon::Log("Failed to create rsUiDirector_");
         return RET_FAILED;
     }
     rsUiDirector_->Init();
@@ -99,7 +100,7 @@ int DrawingDemo::InitWindow()
 
     rootNode_ = RSRootNode::Create();
     if (rootNode_ == nullptr) {
-        std::cout << "Failed to create rootNode" << std::endl;
+        TestCommon::Log("Failed to create rootNode");
         return RET_FAILED;
     }
     rootNode_->SetBounds(0, 0, rect_.width_, rect_.height_);
@@ -109,7 +110,7 @@ int DrawingDemo::InitWindow()
 
     canvasNode_ = RSCanvasNode::Create();
     if (canvasNode_ == nullptr) {
-        std::cout << "Failed to create canvasNode" << std::endl;
+        TestCommon::Log("Failed to create canvasNode");
         return RET_FAILED;
     }
     canvasNode_->SetFrame(0, 0, rect_.width_, rect_.height_);
@@ -121,15 +122,17 @@ int DrawingDemo::InitWindow()
 
 int DrawingDemo::CreateWindow()
 {
-    std::cout << "create window start" << std::endl;
-    int32_t defaultWidth = 0;
-    int32_t defaultHeight = 0;
+    TestCommon::Log("create window start");
     sptr<Display> display = DisplayManager::GetInstance().GetDefaultDisplay();
-    if (display != nullptr) {
-        defaultWidth = display->GetWidth();
-        defaultHeight = display->GetHeight();
+    if (display == nullptr) {
+        TestCommon::Log("Failed to get display!");
+        return RET_FAILED;
     }
-    std::cout << "display: " << defaultWidth << "*" << defaultHeight << std::endl;
+    int32_t defaultWidth = display->GetWidth();
+    int32_t defaultHeight = display->GetHeight();
+    std::ostringstream stream;
+    stream << "display: " << defaultWidth << "*" << defaultHeight;
+    TestCommon::Log(stream.str());
 
     std::string demoName = "drawing_demo";
     RSSystemProperties::GetUniRenderEnabled();
@@ -146,7 +149,7 @@ int DrawingDemo::CreateWindow()
         }
         window_ = Window::Create(demoName, option);
         if (window_ == nullptr) {
-            std::cout << "Failed to create window" << std::endl;
+            TestCommon::Log("Failed to create window");
             return RET_FAILED;
         }
 
@@ -157,14 +160,17 @@ int DrawingDemo::CreateWindow()
     } while (rect_.width_ == 0 && rect_.height_ == 0 && count < MAX_TRY_NUMBER);
 
     if (rect_.width_ == 0 || rect_.height_ == 0) {
-        std::cout << "Failed to create window, rect is 0!" << std::endl;
+        TestCommon::Log("Failed to create window, rect is 0!");
+        return RET_FAILED;
     }
     
     int ret = InitWindow();
     if (ret != RET_OK) {
         return ret;
     }
-    std::cout << "create window success: " << rect_.width_ << " * " << rect_.height_ << std::endl;
+    stream.str("");
+    stream << "create window success: " << rect_.width_ << " * " << rect_.height_;
+    TestCommon::Log(stream.str());
     return RET_OK;
 }
 
@@ -178,9 +184,9 @@ int DrawingDemo::GetFunctionalParam(std::unordered_map<std::string, std::functio
 
     caseName_ = argv_[INDEX_CASE_NAME];
     if (map.find(caseName_) == map.end()) {
-        std::cout << "TestCase not exist, please try again. All testcase:" << std::endl;
+        TestCommon::Log("TestCase not exist, please try again. All testcase:");
         for (auto iter : map) {
-            std::cout << "    " << iter.first << std::endl;
+            TestCommon::Log(iter.first);
         }
         return RET_PARAM_ERR;
     }
@@ -200,7 +206,7 @@ int DrawingDemo::TestFunction(
         return ret;
     }
 
-    std::cout << "TestFunction start!" << std::endl;
+    TestCommon::Log("TestFunction start!");
     ret = CreateWindow();
     if (ret != RET_OK) {
         return ret;
@@ -214,7 +220,9 @@ int DrawingDemo::TestFunction(
         auto canvas = canvasNode_->BeginRecording(rect_.width_, rect_.height_);
         auto testCase = iter.second();
         if (testCase == nullptr) {
-            std::cout << "Failed to create testcase:" << iter.first << std::endl;
+            std::ostringstream stream;
+            stream << "Failed to create testcase:" << iter.first;
+            TestCommon::Log(stream.str());
             continue;
         }
 
@@ -234,9 +242,11 @@ int DrawingDemo::TestFunction(
     }
     
     int time = (caseName_ != ALL_TAST_CASE ? displayTime_ : 1);
-    std::cout << "wait " << time << " s" << std::endl;
+    std::ostringstream stream;
+    stream << "wait: " << time << "s";
+    TestCommon::Log(stream.str());
     sleep(time);
-    std::cout << "TestFunction end!" << std::endl;
+    TestCommon::Log("TestFunction end!");
     return RET_OK;
 }
 
@@ -269,14 +279,14 @@ int DrawingDemo::TestPerformance(
 
     auto iter = map.find(caseName_);
     if (iter == map.end()) {
-        std::cout << "TestCase not exist, please try again. All testcase:" << std::endl;
+        TestCommon::Log("TestCase not exist, please try again. All testcase:");
         for (auto iter : map) {
-            std::cout << iter.first << std::endl;
+            TestCommon::Log(iter.first);
         }
         return RET_PARAM_ERR;
     }
 
-    std::cout << "TestPerformance start!" << std::endl;
+    TestCommon::Log("TestPerformance start!");
     ret = CreateWindow();
     if (ret != RET_OK) {
         return ret;
@@ -285,7 +295,7 @@ int DrawingDemo::TestPerformance(
     auto canvas = canvasNode_->BeginRecording(rect_.width_, rect_.height_);
     auto testCase = iter->second();
     if (testCase == nullptr) {
-        std::cout << "Failed to create testcase" << std::endl;
+        TestCommon::Log("Failed to create testcase");
         return RET_FAILED;
     }
     testCase->SetCanvas((TestDisplayCanvas*)(canvas));
@@ -300,9 +310,11 @@ int DrawingDemo::TestPerformance(
     canvasNode_->FinishRecording();
     rsUiDirector_->SendMessages();
 
-    std::cout << "wait " << displayTime_ << " s" << std::endl;
+    std::ostringstream stream;
+    stream << "wait: " << displayTime_ << "s";
+    TestCommon::Log(stream.str());
     sleep(displayTime_);
-    std::cout << "TestPerformance end!" << std::endl;
+    TestCommon::Log("TestPerformance end!");
     return RET_OK;
 }
 } // namespace Rosen
@@ -312,12 +324,12 @@ int main(int argc, char* argv[])
 {
     std::shared_ptr<DrawingDemo> drawingDemo = std::make_shared<DrawingDemo>(argc, argv);
     if (drawingDemo == nullptr) {
-        std::cout << "Failed to create DrawingDemo" << std::endl;
+        TestCommon::Log("Failed to create DrawingDemo");
         return 0;
     }
     int ret = drawingDemo->Test();
     if (ret == RET_PARAM_ERR) {
-        std::cout << "Invalid parameter, please confirm" << std::endl;
+        TestCommon::Log("Invalid parameter, please confirm");
     }
     return ret;
 }

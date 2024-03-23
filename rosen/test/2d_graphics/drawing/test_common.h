@@ -33,6 +33,7 @@ public:
     static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(OHOS::Media::ColorSpace colorSpace);
     static Drawing::ColorType PixelFormatToDrawingColorType(OHOS::Media::PixelFormat pixelFormat);
     static Drawing::AlphaType AlphaTypeToDrawingAlphaType(OHOS::Media::AlphaType alphaType);
+    static void Log(std::string info);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -20,24 +20,30 @@
 
 namespace OHOS {
 namespace Rosen {
+void TestCommon::Log(std::string info)
+{
+    LOGE("%{public}s", info.c_str());
+    std::cout << info.c_str() << std::endl;
+}
+
 int TestCommon::PackingPixmap(std::shared_ptr<OHOS::Media::PixelMap> pixmap, std::string fileName)
 {
     if (pixmap == nullptr || fileName == "") {
-        LOGE("invalied param");
+        Log("invalied param");
         return RET_FAILED;
     }
     OHOS::Media::ImagePacker imagePacker;
     std::set<std::string> formats;
     uint32_t ret = imagePacker.GetSupportedFormats(formats);
     if (ret != 0) {
-        LOGE("failed to GetSupportedFormats");
+        Log("failed to GetSupportedFormats");
         return RET_FAILED;
     }
 
     std::string path = "/data/test/" + fileName + ".jpg";
     int32_t fileDes = open(path.c_str(), O_CREAT | O_RDWR);
     if (fileDes <= 0) {
-        LOGE("failed to open");
+        Log("failed to open");
         return RET_FAILED;
     }
 
@@ -45,20 +51,20 @@ int TestCommon::PackingPixmap(std::shared_ptr<OHOS::Media::PixelMap> pixmap, std
     option.format = "image/jpeg";
     uint32_t result = imagePacker.StartPacking(fileDes, option);
     if (result != 0) {
-        LOGE("failed to StartPacking");
+        Log("failed to StartPacking");
         close(fileDes);
         return RET_FAILED;
     }
     result = imagePacker.AddImage(*pixmap);
     if (result != 0) {
-        LOGE("failed to AddImage");
+        Log("failed to AddImage");
         close(fileDes);
         return RET_FAILED;
     }
     int64_t packedSize = 0;
     result = imagePacker.FinalizePacking(packedSize);
     if (result != 0) {
-        LOGE("failed to FinalizePacking");
+        Log("failed to FinalizePacking");
         close(fileDes);
         return RET_FAILED;
     }
@@ -75,7 +81,6 @@ std::shared_ptr<Drawing::ColorSpace> TestCommon::ColorSpaceToDrawingColorSpace(O
         case OHOS::Media::ColorSpace::LINEAR_SRGB:
             return Drawing::ColorSpace::CreateSRGBLinear();
         case OHOS::Media::ColorSpace::SRGB:
-            return Drawing::ColorSpace::CreateSRGB();
         default:
             return Drawing::ColorSpace::CreateSRGB();
     }

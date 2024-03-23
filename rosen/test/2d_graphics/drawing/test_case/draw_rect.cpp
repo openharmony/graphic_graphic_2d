@@ -19,7 +19,7 @@ namespace Rosen {
 void DrawRectTest::OnTestFunction(Drawing::Canvas* canvas)
 {
     Drawing::Brush brush;
-    brush.SetColor(0xFFFF0000);
+    brush.SetColor(0xFFFF0000); // color:red
     canvas->AttachBrush(brush);
     auto rect = Drawing::Rect(0, 0, 100, 100); // xy (0, 0), size 100*100
     canvas->DrawRect(rect);
@@ -28,7 +28,7 @@ void DrawRectTest::OnTestFunction(Drawing::Canvas* canvas)
 void DrawRectTest::OnTestPerformance(Drawing::Canvas* canvas)
 {
     Drawing::Brush brush;
-    brush.SetColor(0xFFFF0000);
+    brush.SetColor(0xFFFF0000); // color:red
     canvas->AttachBrush(brush);
     auto rect = Drawing::Rect(0, 0, 100, 100); // xy (0, 0), size 100*100
     for (int i = 0; i < testCount_; i++) {

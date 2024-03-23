@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 #include "test_base.h"
+#include <sstream>
 #include <string>
-#include "test_common.h"
 #include "image/image.h"
+#include "test_common.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -34,7 +35,7 @@ int TestBase::CreateBitmapCanvas()
     pixelMap_.reset(pixelMap.get());
     pixelMap.release();
     if (pixelMap_ == nullptr) {
-        LOGE("failed to create pixelmap");
+        TestCommon::Log("failed to create pixelmap");
         return RET_FAILED;
     }
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
@@ -48,13 +49,13 @@ int TestBase::CreateBitmapCanvas()
     bitmap_.SetInfo(drawingImageInfo);
     void* pixel = const_cast<void*>(reinterpret_cast<const void*>(pixelMap_->GetPixels()));
     if (pixel == nullptr) {
-        LOGE("failed to GetPixels");
+        TestCommon::Log("failed to GetPixels");
         return RET_FAILED;
     }
     bitmap_.SetPixels(pixel);
     bitmapCanvas_ = std::make_shared<Drawing::Canvas>();
     if (bitmapCanvas_ == nullptr) {
-        LOGE("failed to create bitmapCanvas");
+        TestCommon::Log("failed to create bitmapCanvas");
         return RET_FAILED;
     }
     bitmapCanvas_->Bind(bitmap_);
@@ -64,7 +65,7 @@ int TestBase::CreateBitmapCanvas()
 int TestBase::DiasplayToScreen()
 {
     if (playbackCanvas_ == nullptr) {
-        LOGE("playbackCanvas_ is null ");
+        TestCommon::Log("playbackCanvas_ is null ");
         return RET_FAILED;
     }
     playbackCanvas_->DrawColor(0xff000000); //0xff000000 black
@@ -101,7 +102,7 @@ void TestBase::TestPerformanceCpu()
 void TestBase::TestFunctionGpuUpScreen()
 {
     if (playbackCanvas_ == nullptr) {
-        LOGE("playbackCanvas_ is null ");
+        TestCommon::Log("playbackCanvas_ is null ");
         return;
     }
     OnTestFunctionGpuUpScreen(playbackCanvas_);
@@ -109,7 +110,7 @@ void TestBase::TestFunctionGpuUpScreen()
 void TestBase::TestPerformanceGpuUpScreen()
 {
     if (playbackCanvas_ == nullptr) {
-        LOGE("playbackCanvas_ is null ");
+        TestCommon::Log("playbackCanvas_ is null ");
         return;
     }
     LogStart();
@@ -124,9 +125,10 @@ void TestBase::LogEnd()
 {
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
     int time = std::chrono::duration_cast<std::chrono::milliseconds>(end - timeStart_).count();
-    LOGE("DrawingApiTest TotalApiCallTime: [%{public}d]", time);
-    LOGE("DrawingApiTest TotalApiCallCount: [%{public}d]", testCount_);
-    std::cout << "TestPerformanceCpu count:" << testCount_ << " time:" << time << "ms" << std::endl;
+    std::ostringstream stream;
+    stream << "DrawingApiTest TotalApiCallTime: [" << time << "]\n";
+    stream << "DrawingApiTest TotalApiCallCount: [" << testCount_ << "]";
+    TestCommon::Log(stream.str());
 }
 } // namespace Rosen
 } // namespace OHOS
