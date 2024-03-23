@@ -644,7 +644,7 @@ HWTEST_F(BufferQueueTest, GetDefaultWidth001, Function | MediumTest | Level2)
  */
 HWTEST_F(BufferQueueTest, SetDefaultUsage001, Function | MediumTest | Level2)
 {
-    uint32_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
+    uint64_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
     GSError ret = bq->SetDefaultUsage(usage);
     ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_EQ(usage, bq->GetDefaultUsage());

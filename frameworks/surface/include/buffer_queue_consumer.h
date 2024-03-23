@@ -48,7 +48,7 @@ public:
     GSError UnregisterConsumerListener();
 
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
-    GSError SetDefaultUsage(uint32_t usage);
+    GSError SetDefaultUsage(uint64_t usage);
     void Dump(std::string &result) const;
     GraphicTransformType GetTransform() const;
     GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) const;
