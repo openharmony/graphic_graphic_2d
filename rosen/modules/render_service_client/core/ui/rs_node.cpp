@@ -1515,8 +1515,8 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
         auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
         modifier->AttachToNode(rsnode);
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
+        modifiersTypeMap_[(int16_t)modifier->GetModifierType()] = modifier;
     }
-    modifiersTypeMap_[(int16_t)modifier->GetModifierType()] = modifier;
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
     }
