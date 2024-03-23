@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawing_font_mgr.h"
-#include "c/drawing_typeface.h"
+#include "drawing_typeface.h"
 
 using namespace testing;
 using namespace testing::ext;
