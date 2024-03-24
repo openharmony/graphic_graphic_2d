@@ -2744,8 +2744,16 @@ void RSMainThread::PerfForBlurIfNeeded()
     handler_->RemoveTask("PerfForBlurIfNeeded");
     static uint64_t prePerfTimestamp = 0;
     static int preBlurCnt = 0;
+    static int cnt = 0;
     auto task = [this]() {
-        if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR_TIMEOUT && preBlurCnt != 0) {
+        if (preBlurCnt == 0) {
+            return;
+        }
+        auto now = std::chrono::steady_clock::now().time_since_epoch();
+        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded now[%ld] timestamp[%ld] preBlurCnt[%d]",
+            now, timestamp, preBlurCnt);
+        if (timestamp - prePerfTimestamp > PERF_PERIOD_BLUR_TIMEOUT) {
             PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
             prePerfTimestamp = 0;
             preBlurCnt = 0;
@@ -2756,14 +2764,24 @@ void RSMainThread::PerfForBlurIfNeeded()
     int blurCnt = RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
-    if ((blurCnt > preBlurCnt || blurCnt == 0) && preBlurCnt != 0) {
+    if (blurCnt < preBlurCnt) {
+        cnt++;
+    } else {
+        cnt = 0;
+    }
+    // if blurCnt > preBlurCnt, than change perf code;
+    // if blurCnt < preBlurCnt 10 times continuously, than change perf code.
+    bool cntIsMatch = blurCnt > preBlurCnt || cnt > 10;
+    if (cntIsMatch && preBlurCnt != 0) {
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded Perf close, preBlurCnt[%d] blurCnt[%ld]", preBlurCnt, blurCnt);
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
-        preBlurCnt = 0;
+        preBlurCnt = blurCnt == 0 ? 0 : preBlurCnt;
     }
     if (blurCnt == 0) {
         return;
     }
-    if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || blurCnt > preBlurCnt) {
+    if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || cntIsMatch) {
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded PerfRequest, preBlurCnt[%d] blurCnt[%ld]", preBlurCnt, blurCnt);
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
         prePerfTimestamp = timestamp_;
         preBlurCnt = blurCnt;
