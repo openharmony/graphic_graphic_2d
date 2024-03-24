@@ -51,6 +51,7 @@ template("drawing_ndk_source_set") {
       "$drawing_root:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     ]
+    public_external_deps = [ "jsoncpp:jsoncpp" ]
     external_deps = [ "napi:ace_napi" ]
     configs = [ ":export_config" ]
     sources = [

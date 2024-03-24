@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2106,5 +2106,20 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest071, TestSize.Level
     to = nullptr;
     EXPECT_TRUE(from == nullptr);
     EXPECT_TRUE(to == nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest072
+ * @tc.desc: test for create and releases the memory occupied by system font configuration information
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level1)
+{
+    OH_Drawing_FontConfigInfoErrorCode code = UNKNOWN_ERROR;
+    OH_Drawing_FontConfigInfo* configJsonInfo = OH_Drawing_GetSystemFontConfigInfo(&code);
+    EXPECT_EQ(code, OK);
+    EXPECT_EQ(configJsonInfo != nullptr, true);
+    OH_Drawing_DestroySystemFontConfigInfo(configJsonInfo);
+    configJsonInfo = nullptr;
 }
 }

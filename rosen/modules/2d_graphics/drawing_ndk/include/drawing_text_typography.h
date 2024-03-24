@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -256,6 +256,107 @@ typedef struct OH_Drawing_LineMetrics {
 } OH_Drawing_LineMetrics;
 
 /**
+ * @brief Fallback font information.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontFallbackInfo {
+    /** The type of language supported by the font set. The language format is bcp47 */
+    char* language;
+    /** Font family name */
+    char* familyName;
+} OH_Drawing_FontFallbackInfo;
+
+/**
+ * @brief Fallback font group.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontFallbackGroup {
+    /**
+     * The name of the font set corresponding to the fallback font set. If the value is null,
+     * all fonts can be set using the fallback font set list.
+     */
+    char* groupName;
+    /** Fallback font Info Size */
+    size_t fallbackInfoSize;
+    /** A list of font sets for fallback fonts */
+    OH_Drawing_FontFallbackInfo* fallbackInfoSet;
+} OH_Drawing_FontFallbackGroup;
+
+/**
+ * @brief Font weight mapping information.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontAdjustInfo {
+    /** The font's original weight value */
+    int weight;
+    /** The font weight displayed in the application */
+    int to;
+} OH_Drawing_FontAdjustInfo;
+
+/**
+ * @brief Alias font information.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontAliasInfo {
+    /** Font family name */
+    char* familyName;
+    /**
+     * Font weight value. When the weight value is greater than 0,
+     * the font set contains only fonts with the specified weight.
+     * When the weight value is equal to 0, the font set contains all fonts.
+     */
+    int weight;
+} OH_Drawing_FontAliasInfo;
+
+/**
+ * @brief General font set information supported by the system.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontGenericInfo {
+    /** Font family name */
+    char* familyName;
+    /** The size of alias font lists */
+    size_t aliasInfoSize;
+    /** The size of font weight mapping information lists */
+    size_t adjustInfoSize;
+    /** List of alias fonts */
+    OH_Drawing_FontAliasInfo* aliasInfoSet;
+    /** Font weight mapping information lists */
+    OH_Drawing_FontAdjustInfo* adjustInfoSet;
+} OH_Drawing_FontGenericInfo;
+
+/**
+ * @brief System font configuration information.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontConfigInfo {
+    /** Count of system font file paths */
+    size_t fontDirSize;
+    /** List size of generic font sets */
+    size_t fontGenericInfoSize;
+    /** Count of fallback font set lists */
+    size_t fallbackGroupSize;
+    /** List of system font file paths */
+    char** fontDirSet;
+    /** List of generic font sets */
+    OH_Drawing_FontGenericInfo* fontGenericInfoSet;
+    /** List of fallback font sets */
+    OH_Drawing_FontFallbackGroup* fallbackGroupSet;
+} OH_Drawing_FontConfigInfo;
+
+/**
  * @brief Enumerates text decoration style.
  *
  * @since 11
@@ -352,6 +453,25 @@ typedef enum {
     /** Max style */
     RECT_WIDTH_STYLE_MAX,
 } OH_Drawing_RectWidthStyle;
+
+/**
+ * @brief Gets system font configuration information list result enum.
+ *
+ * @since 12
+ * @version 1.0
+ */
+enum OH_Drawing_FontConfigInfoErrorCode {
+    /** The list of system font configuration information was successfully obtained */
+    OK = 0,
+    /** Unknown error */
+    UNKNOWN_ERROR = 1,
+    /** Parse system config file error */
+    PARSE_FILE_ERROR = 2,
+    /** Alloc memory error */
+    ALLOC_MEMORY_ERROR = 3,
+    /** Copy string data error */
+    COPY_STRING_DATA_ERROR = 4,
+};
 
 /**
  * @brief Defines the fontfeature.
@@ -2200,6 +2320,29 @@ void OH_Drawing_DestroyEllipsis(char* ellipsis);
  */
 bool OH_Drawing_TypographyStyleEquals(OH_Drawing_TypographyStyle* from, OH_Drawing_TypographyStyle* to);
 
+/**
+ * @brief Gets system font configuration information.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_FontConfigInfoErrorCode Indicates error code returned, based on the error code to
+ * release the memory of system font configuration information.
+ * For details, see the enum <b>OH_Drawing_FontConfigInfoErrorCode</b>.
+ * @return Returns a pointer to system font configuration information.
+ * Indicates the pointer to an <b>OH_Drawing_FontConfigInfo</b> object.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_FontConfigInfo* OH_Drawing_GetSystemFontConfigInfo(OH_Drawing_FontConfigInfoErrorCode*);
+
+/**
+ * @brief Releases the memory occupied by system font configuration information.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_FontConfigInfo Indicates the pointer to an <b>OH_Drawing_FontConfigInfo</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo*);
 #ifdef __cplusplus
 }
 #endif

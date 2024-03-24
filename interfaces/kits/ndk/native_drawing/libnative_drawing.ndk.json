@@ -348,5 +348,7 @@
     { "name": "OH_Drawing_TypographyGetTextMaxLines" },
     { "name": "OH_Drawing_TypographyGetTextEllipsis" },
     { "name": "OH_Drawing_DestroyEllipsis" },
-    { "name": "OH_Drawing_TypographyStyleEquals" }
+    { "name": "OH_Drawing_TypographyStyleEquals" },
+    { "name": "OH_Drawing_GetSystemFontConfigInfo" },
+    { "name": "OH_Drawing_DestroySystemFontConfigInfo" }
 ]
