@@ -2991,3 +2991,39 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo* drawFontC
     ResetStringArray(&drawFontCfgInfo->fontDirSet, drawFontCfgInfo->fontDirSize);
     delete drawFontCfgInfo;
 }
+
+OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typography* typography,
+    size_t lineNumber, size_t* charNumber, bool* success)
+{
+    if (!typography || !charNumber || !lineNumber) {
+        *success = false;
+        return nullptr;
+    }
+    auto txtSKTypograph = ConvertToOriginalText<Typography>(typography);
+    std::vector<Drawing::FontMetrics> grabFontMetrics;
+    if (!txtSKTypograph->GetLineFontMetrics(lineNumber, *charNumber, grabFontMetrics)) {
+        *success = false;
+        return nullptr;
+    }
+
+    OH_Drawing_Font_Metrics* fontMetrics = new OH_Drawing_Font_Metrics[grabFontMetrics.size()];
+    if (fontMetrics == nullptr) {
+        *success = false;
+        return nullptr;
+    }
+
+    for (size_t further = 0; further < grabFontMetrics.size(); further++) {
+        ConvertFontMetrics(grabFontMetrics[further], fontMetrics[further]);
+    }
+    *success = true;
+    return fontMetrics;
+}
+
+void OH_Drawing_DestroyLineFontMetrics(OH_Drawing_Font_Metrics* lineFontMetric)
+{
+    if (!lineFontMetric) {
+        return;
+    }
+    delete[] lineFontMetric;
+    lineFontMetric = nullptr;
+}

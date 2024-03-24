@@ -2343,6 +2343,30 @@ OH_Drawing_FontConfigInfo* OH_Drawing_GetSystemFontConfigInfo(OH_Drawing_FontCon
  * @version 1.0
  */
 void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo*);
+
+/**
+ * @brief Getting all font metrics from target row
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates a pointer to a typesetting object
+ * @param lineNumber Indicates specifies the number of rows
+ * @param charNumber Indicates current line char number
+ * @param success Indicates Check that this process is finished correctly
+ * @return Returns all character measures for the current row
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typography*,
+    size_t lineNumber, size_t* charNumber, bool* success);
+
+/**
+ * @brief Free up all the space taken up by the lineFontMetric
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param lineFontMetric Indicates the first address of the lineFontMetric gather to be destroyed
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_DestroyLineFontMetrics(OH_Drawing_Font_Metrics*);
 #ifdef __cplusplus
 }
 #endif
