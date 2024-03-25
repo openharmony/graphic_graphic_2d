@@ -31,8 +31,8 @@ static const std::string ALPHA_PROP = "alpha";
 static const unsigned int PROPERTIES = 2; // symbol animation property contains two values, change from one to the other
 static const unsigned int PROP_START = 0; // symbol animation property contains two values, change from START to the END
 static const unsigned int PROP_END = 1; // symbol animation property contains two values, change from START to the END
-statuc const uint16_t UNIT = 1; // the number of groups is 1
-statuc const uint16_t VARIABLE_3_GROUP = 3; // the number of groups is 3
+static const uint16_t UNIT = 1; // the number of groups is 1
+static const uint16_t VARIABLE_3_GROUP = 3; // the number of groups is 3
 
 bool IsEqual(const Vector2f& val1, const Vector2f& val2)
 {
