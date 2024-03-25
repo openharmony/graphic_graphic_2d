@@ -2993,33 +2993,26 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo* drawFontC
 }
 
 OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typography* typography,
-    size_t lineNumber, size_t* fontMetricsSize, bool* success)
+    size_t lineNumber, size_t* fontMetricsSize)
 {
-    if (success == nullptr) {
-        return nullptr;
-    }
     if (!typography || !fontMetricsSize || !lineNumber) {
-        *success = false;
         return nullptr;
     }
 
     auto txtSKTypograph = ConvertToOriginalText<Typography>(typography);
     std::vector<Drawing::FontMetrics> grabFontMetrics;
     if (!txtSKTypograph->GetLineFontMetrics(lineNumber, *fontMetricsSize, grabFontMetrics)) {
-        *success = false;
         return nullptr;
     }
 
     OH_Drawing_Font_Metrics* fontMetrics = new OH_Drawing_Font_Metrics[grabFontMetrics.size()];
-    if (fontMetrics == nullptr) {
-        *success = false;
+    if (fontMetrics == nullptr || !grabFontMetrics.size()) {
         return nullptr;
     }
 
     for (size_t further = 0; further < grabFontMetrics.size(); further++) {
         ConvertFontMetrics(grabFontMetrics[further], fontMetrics[further]);
     }
-    *success = true;
     return fontMetrics;
 }
 
