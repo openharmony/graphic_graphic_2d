@@ -35,6 +35,7 @@ enum class MaskType {
     SVG,
     GRADIENT,
     PATH,
+    PIXEL_MAP
 };
 
 class RSB_EXPORT RSMask : public std::enable_shared_from_this<RSMask> {
@@ -47,6 +48,7 @@ public:
         const Drawing::Path& maskPath, const Drawing::Pen&  maskPen, const Drawing::Brush& maskBrush);
     static std::shared_ptr<RSMask> CreateSVGMask(double x, double y, double scaleX, double scaleY,
         const sk_sp<SkSVGDOM>& svgDom);
+    static std::shared_ptr<RSMask> CreatePixelMapMask(const std::shared_ptr<Media::PixelMap> pixelMap);
 
     void SetSvgX(double x);
     double GetSvgX() const;
@@ -66,10 +68,14 @@ public:
     void SetSvgDom(const sk_sp<SkSVGDOM>& svgDom);
     sk_sp<SkSVGDOM> GetSvgDom() const;
     std::shared_ptr<Drawing::Picture> GetSvgPicture() const;
+    void SetPixelMap(const std::shared_ptr<Media::PixelMap> pixelMap);
+    std::shared_ptr<Media::PixelMap> GetPixelMap() const;
+    std::shared_ptr<Drawing::Image> GetImage() const;
     void SetMaskType(MaskType type);
     bool IsSvgMask() const;
     bool IsGradientMask() const;
     bool IsPathMask() const;
+    bool IsPixelMapMask() const;
 
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const;
@@ -93,6 +99,8 @@ private:
     Drawing::Pen maskPen_;
     Drawing::Brush maskBrush_;
     std::shared_ptr<Drawing::Path> maskPath_;
+    std::shared_ptr<Media::PixelMap> pixelMap_;
+    std::shared_ptr<Drawing::Image> image_;
 
 };
 } // namespace Rosen
