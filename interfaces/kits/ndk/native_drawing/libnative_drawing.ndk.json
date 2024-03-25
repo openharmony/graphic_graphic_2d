@@ -352,5 +352,5 @@
     { "name": "OH_Drawing_GetSystemFontConfigInfo" },
     { "name": "OH_Drawing_DestroySystemFontConfigInfo" },
     { "name": "OH_Drawing_TypographyGetLineFontMetrics" },
-    { "name": "OH_Drawing_DestroyLineFontMetrics" }
+    { "name": "OH_Drawing_TypographyDestroyLineFontMetrics" }
 ]

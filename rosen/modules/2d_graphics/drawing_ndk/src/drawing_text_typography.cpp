@@ -3016,7 +3016,7 @@ OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typo
     return fontMetrics;
 }
 
-void OH_Drawing_DestroyLineFontMetrics(OH_Drawing_Font_Metrics* lineFontMetric)
+void OH_Drawing_TypographyDestroyLineFontMetrics(OH_Drawing_Font_Metrics* lineFontMetric)
 {
     if (!lineFontMetric) {
         return;
