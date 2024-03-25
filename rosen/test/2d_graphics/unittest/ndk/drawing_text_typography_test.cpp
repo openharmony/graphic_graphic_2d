@@ -2145,7 +2145,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
     const char *temp[] = {"1", "2", "3", "4"};
     for(int i = 0; i < strutstyle->strutStyleFamiliesSize; i++){
         strutstyle->strutStyleFamilies[i] = (char*)malloc(2*sizeof(char));
-        strcpy(strutstyle->strutStyleFamilies[i], temp[i]);
+        strcpy_s(strutstyle->strutStyleFamilies[i], temp[i]);
     }
     
     OH_Drawing_SetTypographyTextStrutStyle(typoStyle, strutstyle);

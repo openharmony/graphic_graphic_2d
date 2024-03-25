@@ -3008,8 +3008,10 @@ void OH_Drawing_SetTypographyTextStrutStyle(OH_Drawing_TypographyStyle* style, O
 OH_Drawing_StrutStyle* OH_Drawing_TypographyGetStrutStyle(OH_Drawing_TypographyStyle* style)
 {
     OH_Drawing_StrutStyle* strutstyle = new OH_Drawing_StrutStyle();
-    strutstyle->strutStyleWeight = (OH_Drawing_FontWeight)(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontWeight);
-    strutstyle->strutStyleStyle = (OH_Drawing_FontStyle)(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontStyle);
+    strutstyle->strutStyleWeight = (OH_Drawing_FontWeight)(
+        ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontWeight);
+    strutstyle->strutStyleStyle = (OH_Drawing_FontStyle)(
+        ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontStyle);
     strutstyle->strutStyleSize = ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontSize;
     strutstyle->strutStyleHeightScale = ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightScale;
     strutstyle->strutStyleHeightOnly = ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightOnly;
@@ -3019,9 +3021,12 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyGetStrutStyle(OH_Drawing_TypographyS
     strutstyle->strutStyleFamiliesSize = ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies.size();
 
     strutstyle->strutStyleFamilies = (char**)malloc(strutstyle->strutStyleFamiliesSize*sizeof(char*));
-    for(size_t i = 0; i < ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies.size(); i++){
-        strutstyle->strutStyleFamilies[i] = (char*)malloc(sizeof(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies[i].data()));
-        strcpy(strutstyle->strutStyleFamilies[i], ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies[i].data());
+    for(size_t i = 0; i < ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies.size(); i++)
+    {
+        strutstyle->strutStyleFamilies[i] = 
+        (char*)malloc(sizeof(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies[i].data()));
+        strcpy_s(strutstyle->strutStyleFamilies[i], 
+        ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies[i].data());
     }
 
     return strutstyle;
@@ -3032,14 +3037,19 @@ bool OH_Drawing_OverridingStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawi
     if (from == nullptr || to == nullptr) {
         return false;
     }
-    if(from->strutStyleWeight == to->strutStyleWeight && from->strutStyleStyle == to->strutStyleStyle && 
-    from->strutStyleSize == to->strutStyleSize && from->strutStyleHeightScale == to->strutStyleHeightScale && 
-    from->strutStyleHeightOnly == to->strutStyleHeightOnly && from->strutStyleHalfLeading == to->strutStyleHalfLeading && 
-    from->strutStyleSpacingScale == to->strutStyleSpacingScale && from->strutStyleOnly == to->strutStyleOnly && 
-    from->strutStyleFamiliesSize == to->strutStyleFamiliesSize){
+    if(from->strutStyleWeight == to->strutStyleWeight && 
+    from->strutStyleStyle == to->strutStyleStyle && 
+    from->strutStyleSize == to->strutStyleSize && 
+    from->strutStyleHeightScale == to->strutStyleHeightScale && 
+    from->strutStyleHeightOnly == to->strutStyleHeightOnly && 
+    from->strutStyleHalfLeading == to->strutStyleHalfLeading && 
+    from->strutStyleSpacingScale == to->strutStyleSpacingScale && 
+    from->strutStyleOnly == to->strutStyleOnly && 
+    from->strutStyleFamiliesSize == to->strutStyleFamiliesSize)
+    {
         for(size_t i = 0; i < from->strutStyleFamiliesSize; i++){
-            int is = strcmp(from->strutStyleFamilies[i],to->strutStyleFamilies[i]);
-            if(is != 0){
+            if(strcmp(from->strutStyleFamilies[i],to->strutStyleFamilies[i]) != 0)
+            {
                 return false;
             }
         }
