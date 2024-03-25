@@ -2113,10 +2113,10 @@ const char* OH_Drawing_TextStyleGetLocale(OH_Drawing_TextStyle* style)
     return textStyle->locale.c_str();
 }
 
-void OH_Drawing_TypographyTextSetHeightMode(OH_Drawing_TypographyStyle* style, OH_Drawing_TextHeightBehavior heightMode)
+void OH_Drawing_TypographyTextSetHeightBehavior(OH_Drawing_TypographyStyle* style, OH_Drawing_TextHeightBehavior heightMode)
 {
     TypographyStyle* convertStyle = ConvertToOriginalText<TypographyStyle>(style);
-    if (style == nullptr || convertStyle == nullptr) {
+    if (convertStyle == nullptr) {
         return;
     }
     TextHeightBehavior rosenHeightBehavior;
@@ -2144,10 +2144,10 @@ void OH_Drawing_TypographyTextSetHeightMode(OH_Drawing_TypographyStyle* style, O
     convertStyle->textHeightBehavior = rosenHeightBehavior;
 }
 
-OH_Drawing_TextHeightBehavior OH_Drawing_TypographyTextGetHeightMode(OH_Drawing_TypographyStyle* style)
+OH_Drawing_TextHeightBehavior OH_Drawing_TypographyTextGetHeightBehavior(OH_Drawing_TypographyStyle* style)
 {
     TypographyStyle* convertStyle = ConvertToOriginalText<TypographyStyle>(style);
-    if (style == nullptr || convertStyle == nullptr) {
+    if (convertStyle == nullptr) {
         return TEXT_HEIGHT_ALL;
     }
     TextHeightBehavior innerHeightBehavior = ConvertToOriginalText<TypographyStyle>(style)->textHeightBehavior;
