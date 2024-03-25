@@ -62,11 +62,6 @@ void RSContext::AddPendingSyncNode(const std::shared_ptr<RSRenderNode> &node)
     pendingSyncNodes_.emplace(node->GetId(), node);
 }
 
-bool RSContext::HasPendingSyncNode(NodeId nodeId)
-{
-    return pendingSyncNodes_.count(nodeId) > 0;
-}
-
 void RSContext::MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType)
 {
     clearMoment_ = moment;

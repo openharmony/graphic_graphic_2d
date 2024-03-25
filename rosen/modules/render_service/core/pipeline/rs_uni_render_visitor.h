@@ -63,7 +63,7 @@ public:
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     // restore node's flag and filter dirty collection
-    void PrepareChildrenAfter(RSRenderNode& node);
+    void PostPrepare(RSRenderNode& node);
     void CalculateOcclusion(RSSurfaceRenderNode& node);
 
     void PrepareChildren(RSRenderNode& node) override;
@@ -236,7 +236,7 @@ private:
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 
-    void UpdatePrepareclip(RSRenderNode& node);
+    void UpdatePrepareClip(RSRenderNode& node);
 
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;

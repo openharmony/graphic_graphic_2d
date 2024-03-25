@@ -280,7 +280,7 @@ public:
     void MapAndUpdateChildrenRect();
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
     virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
-        const std::optional<RectI>& clipRect = std::nullopt, bool isForground = false);
+        const std::optional<RectI>& clipRect = std::nullopt, bool isForeground = false);
 
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
@@ -467,8 +467,10 @@ public:
     void UpdateDisplaySyncRange();
 
     void MarkNonGeometryChanged();
+
     void ApplyModifiers();
     void ApplyPositionZModifier();
+    void PostPrepare();
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren();
     void UpdateDrawingCacheInfoAfterChildren();
@@ -765,7 +767,7 @@ private:
 
     // for blur cache
     void ResetFilterCacheClearFlags();
-    void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
+    // void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
 
     RectI lastFilterRegion_;
     bool backgroundFilterRegionChanged_ = false;

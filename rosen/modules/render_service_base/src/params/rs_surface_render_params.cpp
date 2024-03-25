@@ -40,6 +40,7 @@ Occlusion::Region RSSurfaceRenderParams::GetVisibleRegion() const
 void RSSurfaceRenderParams::SetVisibleRegion(const Occlusion::Region& visibleRegion)
 {
     visibleRegion_ = visibleRegion;
+    needSync_ = true;
 }
 
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)

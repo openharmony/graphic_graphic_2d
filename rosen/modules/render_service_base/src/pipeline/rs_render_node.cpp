@@ -881,6 +881,7 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     ApplyModifiers();
     visitor->QuickPrepareChildren(*this);
+    PostPrepare();
 }
 
 bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
@@ -942,14 +943,14 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
             GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
     }
 
-    if (stagingRenderParams_->NeedSync()) {
-        if (auto context = GetContext().lock()) {
-            context->AddPendingSyncNode(shared_from_this());
-        } else {
-            RS_LOGE("RSRenderNode::UpdateDrawingCacheInfoAfterChildren context is null");
-            OnSync();
-        }
-    }
+    // if (stagingRenderParams_->NeedSync()) {
+    //     if (auto context = GetContext().lock()) {
+    //         context->AddPendingSyncNode(shared_from_this());
+    //     } else {
+    //         RS_LOGE("RSRenderNode::UpdateDrawingCacheInfoAfterChildren context is null");
+    //         OnSync();
+    //     }
+    // }
 }
 
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -1494,7 +1495,8 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         flag = true;
         auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
         filterDrawable->MarkFilterRegionInteractWithDirty();
-        UpdateDirtySlotsAndPendingNodes(slot);
+        // UpdateDirtySlotsAndPendingNodes(slot);
+        dirtySlots_.emplace(slot);
     }
 #endif
 }
@@ -1516,20 +1518,21 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
         flag = true;
         auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
         filterDrawable->MarkFilterRegionChanged();
-        UpdateDirtySlotsAndPendingNodes(slot);
+        // UpdateDirtySlotsAndPendingNodes(slot);
+        dirtySlots_.emplace(slot);
     }
 #endif
 }
 
-void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)
-{
-    if (dirtySlots_.find(slot) == dirtySlots_.end()) {
-        dirtySlots_.emplace(slot);
-    }
-    if (auto context = GetContext().lock(); !context->HasPendingSyncNode(GetId())) {
-        context->AddPendingSyncNode(shared_from_this());
-    }
-}
+// void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)
+// {
+//     if (dirtySlots_.find(slot) == dirtySlots_.end()) {
+//         dirtySlots_.emplace(slot);
+//     }
+//     if (auto context = GetContext().lock()) {
+//         context->AddPendingSyncNode(shared_from_this());
+//     }
+// }
 
 void RSRenderNode::RenderTraceDebug() const
 {
@@ -1713,9 +1716,20 @@ void RSRenderNode::ApplyModifiers()
     UpdateShouldPaint();
     // Temporary code, copy matrix into render params
     // TODO: only run UpdateRenderParams on matrix change
-    UpdateRenderParams();
     UpdateDrawableVec();
     UpdateDrawableVecV2();
+
+    // update state
+    dirtyTypes_.reset();
+
+    // update rate decider scale reference size.
+    animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
+        GetRenderProperties().GetBoundsHeight());
+}
+
+void RSRenderNode::PostPrepare()
+{
+    UpdateRenderParams();
 
     if (stagingRenderParams_->NeedSync() || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
         if (auto context = GetContext().lock()) {
@@ -1726,13 +1740,6 @@ void RSRenderNode::ApplyModifiers()
             OnSync();
         }
     }
-
-    // update state
-    dirtyTypes_.reset();
-
-    // update rate decider scale reference size.
-    animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
-        GetRenderProperties().GetBoundsHeight());
 }
 
 void RSRenderNode::MarkParentNeedRegenerateChildren() const
@@ -3347,7 +3354,9 @@ void RSRenderNode::ValidateLightResources()
 
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
-    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
+    // UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
+    // AddDirtyType(RSDrawableSlot::POINT_LIGHT);
+    dirtySlots_.emplace(RSDrawableSlot::POINT_LIGHT);
 }
 
 SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)

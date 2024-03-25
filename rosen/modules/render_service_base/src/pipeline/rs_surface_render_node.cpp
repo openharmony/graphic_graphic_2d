@@ -422,7 +422,7 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     if (!visitor) {
         return;
     }
-    RSRenderNode::ApplyModifiers();
+    ApplyModifiers();
     visitor->QuickPrepareSurfaceRenderNode(*this);
 
     if ((IsAppWindow() || IsScbScreen()) && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this)) {
@@ -446,7 +446,7 @@ void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
-    RSRenderNode::ApplyModifiers();
+    ApplyModifiers();
     visitor->PrepareSurfaceRenderNode(*this);
 }
 
@@ -2114,14 +2114,14 @@ void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetOcclusionVisible(visible);
-        if (stagingRenderParams_->NeedSync()) {
-            if (auto context = GetContext().lock()) {
-                context->AddPendingSyncNode(shared_from_this());
-            } else {
-                RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
-                OnSync();
-            }
-        }
+        // if (stagingRenderParams_->NeedSync()) {
+        //     if (auto context = GetContext().lock()) {
+        //         context->AddPendingSyncNode(shared_from_this());
+        //     } else {
+        //         RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
+        //         OnSync();
+        //     }
+        // }
     } else {
         RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible stagingSurfaceParams is null");
     }

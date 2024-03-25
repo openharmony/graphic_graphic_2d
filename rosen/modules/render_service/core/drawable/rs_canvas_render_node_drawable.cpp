@@ -51,13 +51,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    if (params->HasSharedTransition()) {
-        canvas.SetMatrix(params->GetMatrix());
-        paintFilterCanvas->SetAlpha(params->GetAlpha());
-    } else {
-        canvas.ConcatMatrix(params->GetMatrix());
-        paintFilterCanvas->MultiplyAlpha(params->GetAlpha());
-    }
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
         QuickReject(canvas, params->GetLocalDrawRect())) {
@@ -83,13 +77,7 @@ void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    if (params->HasSharedTransition()) {
-        canvas.SetMatrix(params->GetMatrix());
-        paintFilterCanvas->SetAlpha(params->GetAlpha());
-    } else {
-        canvas.ConcatMatrix(params->GetMatrix());
-        paintFilterCanvas->MultiplyAlpha(params->GetAlpha());
-    }
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     bool quickRejected = canvas.QuickReject(params->GetBounds());
     if (quickRejected) {
         RS_LOGD("this drawable has quickRejected");
@@ -111,13 +99,7 @@ void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas)
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    if (params->HasSharedTransition()) {
-        canvas.SetMatrix(params->GetMatrix());
-        paintFilterCanvas->SetAlpha(params->GetAlpha());
-    } else {
-        canvas.ConcatMatrix(params->GetMatrix());
-        paintFilterCanvas->MultiplyAlpha(params->GetAlpha());
-    }
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     bool quickRejected = canvas.QuickReject(params->GetBounds());
     if (quickRejected) {
         RS_LOGD("this drawable has quickRejected");
@@ -139,13 +121,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    if (params->HasSharedTransition()) {
-        canvas.SetMatrix(params->GetMatrix());
-        paintFilterCanvas->SetAlpha(params->GetAlpha());
-    } else {
-        canvas.ConcatMatrix(params->GetMatrix());
-        paintFilterCanvas->MultiplyAlpha(params->GetAlpha());
-    }
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
 
     CheckCacheTypeAndDraw(canvas, *params);
 }

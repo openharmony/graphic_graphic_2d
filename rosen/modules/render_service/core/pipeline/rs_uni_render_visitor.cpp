@@ -1176,6 +1176,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     if (node.IsSubTreeDirty()) {
         QuickPrepareChildren(node);
     }
+    PostPrepare(node);
 
     UpdateSurfaceDirtyAndGlobalDirty();
     SurfaceOcclusionCallbackToWMS();
@@ -1201,8 +1202,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
 
     // 1. Update matrix and collect dirty region
-    bool dirtyFlag = dirtyFlag_;
-    RectI prepareClipRect = prepareClipRect_;
+    auto dirtyFlag = dirtyFlag_;
+    auto prepareClipRect = prepareClipRect_;
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*curSurfaceDirtyManager_, node.GetParent().lock(),
         dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
     if (!AfterUpdateSurfaceDirtyCalc(node)) {
@@ -1218,7 +1219,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*(node.GetDirtyManager()), dirtyFlag_);
 
-    PrepareChildrenAfter(node);
+    PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
@@ -1323,7 +1324,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     // 0. check current node need to tranverse
     auto nodeParent = node.GetParent().lock();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-    bool dirtyFlag = dirtyFlag_;
+    auto dirtyFlag = dirtyFlag_;
 
     RectI prepareClipRect = prepareClipRect_;
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager,
@@ -1334,17 +1335,17 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, dirtyFlag_);
 
-    PrepareChildrenAfter(node);
+    PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
 }
 
 void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    // 0. check current node need to tranverse
+    // 0. check current node need to traverse
     auto nodeParent = node.GetParent().lock();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-    bool dirtyFlag = dirtyFlag_;
+    auto dirtyFlag = dirtyFlag_;
 
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoBeforeChildren();
@@ -1353,8 +1354,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     RectI prepareClipRect = prepareClipRect_;
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager,
         nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
-    // update prepareclip before children
-    UpdatePrepareclip(node);
+    // update prepare clip before children
+    UpdatePrepareClip(node);
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     bool IsSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
@@ -1362,12 +1363,12 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, dirtyFlag_);
 
-    PrepareChildrenAfter(node);
+    PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
 }
 
-void RSUniRenderVisitor::UpdatePrepareclip(RSRenderNode& node)
+void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
     auto geoPtr = property.GetBoundsGeometry();
@@ -1411,13 +1412,12 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
         });
     }
     node.ResetGeoUpdateDelay();
-
     if (node.GetSharedTransitionParam()) {
         node.GetStagingRenderParams()->SetAlpha(curAlpha_);
     } else {
         node.GetStagingRenderParams()->SetAlpha(alpha);
     }
-
+    PostPrepare(node);
     curAlpha_ = prevAlpha;
 }
 
@@ -1442,7 +1442,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     screenInfo_ = screenManager_->QueryScreenInfo(node.GetScreenId());
     curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
 
-    RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
+    // RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
@@ -1965,7 +1965,7 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
     }
 }
 
-void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
+void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
 {
     if (node.GetRenderProperties().NeedFilter()) {
         UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, node.GetOldDirtyInSurface());
@@ -1981,12 +1981,14 @@ void RSUniRenderVisitor::PrepareChildrenAfter(RSRenderNode& node)
         }
     }
     node.MapAndUpdateChildrenRect();
-    if (node.UpdateLocalDrawRect()) {
-        RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
-    }
+    node.UpdateLocalDrawRect();
+    // if (node.UpdateLocalDrawRect()) {
+    //     RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
+    // }
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoAfterChildren();
     }
+    node.PostPrepare();
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(
@@ -2353,7 +2355,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         node.GetId(), ExtractPid(node.GetId()), node.IsSubTreeDirty());
     bool dirtyFlag = dirtyFlag_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
-    RectI prepareClipRect = prepareClipRect_;
+    auto prepareClipRect = prepareClipRect_;
 
     auto nodeParent = (node.GetParent().lock());
     const auto& property = node.GetRenderProperties();
@@ -2394,7 +2396,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
         IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
             node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, dirtyFlag_);
-        PrepareChildrenAfter(node);
+        PostPrepare(node);
     } else {
         node.UpdateChildrenOutOfRectFlag(false);
         PrepareChildren(node);

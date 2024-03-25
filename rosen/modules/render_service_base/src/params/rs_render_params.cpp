@@ -46,6 +46,17 @@ const Drawing::Matrix& RSRenderParams::GetMatrix() const
     return matrix_;
 }
 
+void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const
+{
+    if (HasSharedTransition()) {
+        canvas.SetMatrix(matrix_);
+        canvas.SetAlpha(alpha_);
+    } else {
+        canvas.ConcatMatrix(matrix_);
+        canvas.MultiplyAlpha(alpha_);
+    }
+}
+
 void RSRenderParams::SetBoundsRect(const Drawing::RectF& boundsRect)
 {
     if (boundsRect_ == boundsRect) {
