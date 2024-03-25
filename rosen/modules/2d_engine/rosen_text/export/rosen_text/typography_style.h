@@ -48,7 +48,6 @@ struct TypographyStyle {
     double lineStyleSpacingScale = -1.0;
     bool lineStyleOnly = false;
 
-    bool hintingIsOn = true;
 
     TextAlign textAlign = TextAlign::START;
     TextDirection textDirection = TextDirection::LTR;
@@ -104,6 +103,7 @@ struct TypographyStyle {
     TextStyle insideTextStyle;
     bool customTextStyle = false;
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
+    bool hintingIsOn = true;
 };
 } // namespace Rosen
 } // namespace OHOS
