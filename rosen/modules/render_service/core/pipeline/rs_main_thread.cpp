@@ -2047,14 +2047,13 @@ void RSMainThread::SurfaceOcclusionCallback()
         float visibleAreaRatio = 0.0f;
         bool isOnTheTree = savedAppWindowNode_[listener.first].first->IsOnTheTree();
         if (isOnTheTree) {
-            const auto& property = savedAppWindowNode_[listener.first].first->GetRenderProperties();
+            const auto& property = savedAppWindowNode_[listener.first].second->GetRenderProperties();
             auto dstRect = property.GetBoundsGeometry()->GetAbsRect();
             if (dstRect.IsEmpty()) {
                 continue;
             }
             visibleAreaRatio = static_cast<float>(savedAppWindowNode_[listener.first].second->
-                GetVisibleRegionForCallBack().IntersectArea(dstRect)) /
-                static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
+                GetVisibleRegionForCallBack().Area()) / static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
             auto& partitionVector = std::get<2>(listener.second); // get tuple 2 partition points vector
             bool vectorEmpty = partitionVector.empty();
             if (vectorEmpty && (visibleAreaRatio > 0.0f)) {
