@@ -188,8 +188,8 @@ HWTEST_F(RSUniRenderVisitorTest, DrawCacheRegionForDFX001, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     RectI rect(0, 0, 0, 0);
-    std::vector<RectI> dirtyRects;
-    dirtyRects.push_back(rect);
+    std::map<NodeId, RectI> dirtyRects;
+    dirtyRects[0] = rect;
     rsUniRenderVisitor->DrawCacheRegionForDFX(dirtyRects);
 }
 
