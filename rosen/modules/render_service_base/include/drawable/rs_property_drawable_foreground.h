@@ -19,6 +19,8 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector4.h"
 #include "drawable/rs_property_drawable.h"
+#include "property/rs_properties.h"
+#include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
 class RSFilter;
@@ -103,23 +105,29 @@ public:
 private:
 };
 
-class RSPointLightDrawable : public RSPropertyDrawable {
+class RSPointLightDrawable : public RSDrawable {
 public:
-    RSPointLightDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSPointLightDrawable() : RSPropertyDrawable() {}
+    RSPointLightDrawable(const RSProperties &properties) : properties_(properties) {}
+    ~RSPointLightDrawable() override = default;
+    void OnSync() override;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder_;
-
+    const RSProperties &properties_;
+    std::list<RSLightSource> lightSourceList_;
+    RectI rect_  = {};
+    IlluminatedType illuminatedType_ = IlluminatedType::INVALID;
+    Drawing::RoundRect borderRRect_ = {};
+    Drawing::RoundRect contentRRect_ = {};
+    float borderWidth_ = 0.0f;
+    void DrawLight(Drawing::Canvas* canvas) const;
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
-    static void DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
-        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity);
-    static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
-        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity);
+    void DrawContentLight(Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity) const;
+    void DrawBorderLight(Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity) const;
 };
 
 // ============================================================================

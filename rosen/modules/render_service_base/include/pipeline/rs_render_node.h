@@ -513,7 +513,7 @@ public:
     void UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     void SetNeedSyncFlag(bool needSync);
-
+    void UpdatePointLightDirtySlot();
     void Sync()
     {
         OnSync();
@@ -631,7 +631,7 @@ private:
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
-
+    void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
     bool shouldPaint_ = true;
     bool isSubTreeDirty_ = false;

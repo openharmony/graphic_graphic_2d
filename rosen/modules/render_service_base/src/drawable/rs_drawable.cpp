@@ -180,7 +180,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
-    nullptr,                                          // POINT_LIGHT,
+    RSPointLightDrawable::OnGenerate,                 // POINT_LIGHT,
     RSBorderDrawable::OnGenerate,                     // BORDER,
     ModifierGenerator<RSModifierType::OVERLAY_STYLE>, // OVERLAY,
     RSParticleDrawable::OnGenerate,                   // PARTICLE_EFFECT,

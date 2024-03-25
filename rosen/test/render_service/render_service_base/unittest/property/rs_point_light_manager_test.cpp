@@ -78,21 +78,17 @@ HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated001, TestSize.L
 
     std::shared_ptr<RSObjAbsGeometry> illuminatedGeoPtr = std::make_shared<RSObjAbsGeometry>();
 
-    instance->CalculateLightPosForIlluminated(nullptr, illuminatedGeoPtr);
-
-    instance->CalculateLightPosForIlluminated(lightSourcePtr, nullptr);
-
     instance->SetScreenRotation(ScreenRotation::ROTATION_0);
-    auto pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
+    auto pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_90);
-    pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
+    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_180);
-    pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
+    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_270);
-    pos = instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedGeoPtr);
+    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
 }
 } // namespace Rosen
 } // namespace OHOS

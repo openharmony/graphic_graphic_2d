@@ -28,7 +28,6 @@ namespace {
 constexpr int PARAM_TWO = 2;
 constexpr int MAX_LIGHT_SOURCES = 4;
 } // namespace
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::phongShaderBuilder_ = nullptr;
 
 // ====================================
 // Binarization
@@ -329,71 +328,103 @@ bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 
 RSDrawable::Ptr RSPointLightDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSPointLightDrawable>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSPointLightDrawable>(node.GetRenderProperties()); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
 };
 
+Drawing::RecordingCanvas::DrawFunc RSPointLightDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSPointLightDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        ptr->DrawLight(canvas);
+    };
+}
+
 bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
 {
-    auto lightBuilder = GetPhongShaderBuilder();
-    if (!lightBuilder) {
-        ROSEN_LOGE("RSPointLightDrawable::OnUpdate lightBuilder is null.");
+    const auto& illuminatedPtr = properties_.GetIlluminated();
+    if (!illuminatedPtr || !illuminatedPtr->IsIlluminatedValid()) {
         return false;
     }
-    const RSProperties& properties = node.GetRenderProperties();
-    if (properties.GetIlluminated() == nullptr) {
-        ROSEN_LOGE("RSPointLightDrawable::OnUpdate illuminated is null.");
-        return false;
-    }
-    const auto& lightSources = properties.GetIlluminated()->GetLightSources();
-    if (lightSources.empty()) {
-        ROSEN_LOGE("RSPointLightDrawable::OnUpdate lightSourceList is empty.");
-        return false;
-    }
-    const auto& geoPtr = properties.GetBoundsGeometry();
-    if (!geoPtr || geoPtr->IsEmpty()) {
-        ROSEN_LOGE("RSPointLightDrawable::OnUpdate geoPtr is null or empty.");
-        return false;
-    }
+    return true;
+}
 
-    auto iter = lightSources.begin();
+void RSPointLightDrawable::OnSync()
+{
+    lightSourceList_.clear();
+    auto& lightSources = properties_.GetIlluminated()->GetLightSources();
+    for (auto &lightSource : lightSources) {
+        lightSourceList_.push_back(*lightSource);
+    }
+    if (lightSourceList_.empty()) {
+        return;
+    }
+    illuminatedType_ = properties_.GetIlluminated()->GetIlluminatedType();
+    borderWidth_ = std::ceil(properties_.GetIlluminatedBorderWidth());
+    auto& rrect = properties_.GetRRect();
+    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT || illuminatedType_ == IlluminatedType::BORDER) {
+        auto borderRect = rrect.rect_;
+        float borderRadius = rrect.radius_[0].x_;
+        auto borderRRect = RRect(RectF(borderRect.left_ + borderWidth_ / 2.0f, borderRect.top_ + borderWidth_ / 2.0f,
+                                     borderRect.width_ - borderWidth_, borderRect.height_ - borderWidth_),
+                                     borderRadius - borderWidth_ / 2.0f, borderRadius - borderWidth_ / 2.0f);
+        borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
+    }
+    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT || illuminatedType_ == IlluminatedType::CONTENT) {
+        contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
+    }
+    if (properties_.GetBoundsGeometry()) {
+        rect_ = properties_.GetBoundsGeometry()->GetAbsRect();
+    }
+}
+
+void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
+{
+    if (lightSourceList_.empty()) {
+        return;
+    }
+    auto phongShaderBuilder = GetPhongShaderBuilder();
+    if (!phongShaderBuilder) {
+        return;
+    }
+    auto iter = lightSourceList_.begin();
     auto cnt = 0;
     Drawing::Matrix44 lightPositionMatrix;
     Drawing::Matrix44 viewPosMatrix;
     Vector4f lightIntensityV4;
-    while (iter != lightSources.end() && cnt < MAX_LIGHT_SOURCES) {
-        auto lightPos = RSPointLightManager::Instance()->CalculateLightPosForIlluminated((*iter), geoPtr);
-        lightIntensityV4[cnt] = (*iter)->GetLightIntensity();
+    while (iter != lightSourceList_.end() && cnt < MAX_LIGHT_SOURCES) {
+        auto lightPos = RSPointLightManager::Instance()->CalculateLightPosForIlluminated((*iter), rect_);
+        auto lightIntensity = (*iter).GetLightIntensity();
+        lightIntensityV4[cnt] = lightIntensity;
         lightPositionMatrix.SetCol(cnt, lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_);
         viewPosMatrix.SetCol(cnt, lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_);
         iter++;
         cnt++;
     }
-    lightBuilder->SetUniform("lightPos", lightPositionMatrix);
-    lightBuilder->SetUniform("viewPos", viewPosMatrix);
+    phongShaderBuilder->SetUniform("lightPos", lightPositionMatrix);
+    phongShaderBuilder->SetUniform("viewPos", viewPosMatrix);
     Drawing::Pen pen;
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
-    auto illuminatedType = properties.GetIlluminated()->GetIlluminatedType();
-    ROSEN_LOGD("RSPointLightDrawable::OnUpdate illuminatedType:%{public}d", illuminatedType);
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    if (illuminatedType == IlluminatedType::CONTENT || illuminatedType == IlluminatedType::BORDER_CONTENT) {
-        DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensityV4);
+    ROSEN_LOGD("RSPropertiesPainter::DrawLight illuminatedType:%{public}d", illuminatedType_);
+    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT) {
+        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityV4);
+        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityV4);
+    } else if (illuminatedType_ == IlluminatedType::CONTENT) {
+        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityV4);
+    } else if (illuminatedType_ == IlluminatedType::BORDER) {
+        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityV4);
     }
-    if (illuminatedType == IlluminatedType::BORDER || illuminatedType == IlluminatedType::BORDER_CONTENT) {
-        DrawBorderLight(properties, canvas, lightBuilder, pen, lightIntensityV4);
-    }
-    return true;
 }
 
 const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetPhongShaderBuilder()
 {
-    if (phongShaderBuilder_) {
-        return phongShaderBuilder_;
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder;
+    if (phongShaderBuilder) {
+        return phongShaderBuilder;
     }
     std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
     std::string lightString(R"(
@@ -433,15 +464,15 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
     std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(lightString);
     if (!effect) {
         ROSEN_LOGE("light effect error");
-        return phongShaderBuilder_;
+        return phongShaderBuilder;
     }
     lightEffect = std::move(effect);
-    phongShaderBuilder_ = std::make_shared<Drawing::RuntimeShaderBuilder>(lightEffect);
-    return phongShaderBuilder_;
+    phongShaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(lightEffect);
+    return phongShaderBuilder;
 }
 
-void RSPointLightDrawable::DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
-    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity)
+void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity) const
 {
     auto contentStrength = lightIntensity * 0.3f;
     lightBuilder->SetUniformVec4(
@@ -449,26 +480,21 @@ void RSPointLightDrawable::DrawContentLight(const RSProperties& properties, Draw
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     brush.SetShaderEffect(shader);
     canvas.AttachBrush(brush);
-    canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
+    canvas.DrawRoundRect(contentRRect_);
     canvas.DetachBrush();
 }
 
-void RSPointLightDrawable::DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
-    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity)
+void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity) const
 {
     lightBuilder->SetUniformVec4(
         "specularStrength", lightIntensity.x_, lightIntensity.y_, lightIntensity.z_, lightIntensity.w_);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     pen.SetShaderEffect(shader);
-    float borderWidth = std::ceil(properties.GetIlluminatedBorderWidth());
+    float borderWidth = std::ceil(borderWidth_);
     pen.SetWidth(borderWidth);
-    auto borderRect = properties.GetRRect().rect_;
-    float borderRadius = properties.GetRRect().radius_[0].x_;
-    auto borderRRect = RRect(RectF(borderRect.left_ + borderWidth / 2.0f, borderRect.top_ + borderWidth / 2.0f,
-                                 borderRect.width_ - borderWidth, borderRect.height_ - borderWidth),
-        borderRadius - borderWidth / 2.0f, borderRadius - borderWidth / 2.0f);
     canvas.AttachPen(pen);
-    canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect));
+    canvas.DrawRoundRect(borderRRect_);
     canvas.DetachPen();
 }
 
