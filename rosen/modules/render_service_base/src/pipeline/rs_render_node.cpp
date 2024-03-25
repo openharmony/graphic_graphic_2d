@@ -42,6 +42,7 @@
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+#include "property/rs_point_light_manager.h"
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
 #include "rs_auto_cache.h"
@@ -1198,6 +1199,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             }
         }
     }
+    ValidateLightResources();
     // 3. update dirtyRegion if needed
     if (GetRenderProperties().GetBackgroundFilter() && !isInTransparentSurfaceNode) {
         UpdateFilterCacheWithDirty(dirtyManager);
@@ -3304,6 +3306,23 @@ void RSRenderNode::ResetFilterCacheClearFlags()
     backgroundFilterInteractWithDirty_ = false;
     foregroundFilterRegionChanged_ = false;
     foregroundFilterInteractWithDirty_ = false;
+}
+
+void RSRenderNode::ValidateLightResources()
+{
+    auto& properties = GetMutableRenderProperties();
+    if (properties.lightSourcePtr_ && properties.lightSourcePtr_->IsLightSourceValid()) {
+        properties.CalculateAbsLightPosition();
+        RSPointLightManager::Instance()->AddDirtyLightSource(weak_from_this());
+    }
+    if (properties.illuminatedPtr_ && properties.illuminatedPtr_->IsIlluminatedValid()) {
+        RSPointLightManager::Instance()->AddDirtyIlluminated(weak_from_this());
+    }
+}
+
+void RSRenderNode::UpdatePointLightDirtySlot()
+{
+    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
 }
 } // namespace Rosen
 } // namespace OHOS

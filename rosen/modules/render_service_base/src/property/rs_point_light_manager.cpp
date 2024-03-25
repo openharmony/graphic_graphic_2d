@@ -68,6 +68,11 @@ void RSPointLightManager::ClearDirtyList()
 }
 void RSPointLightManager::PrepareLight()
 {
+    for (auto &[_, weakPtr] : illuminatedNodeMap_) {
+        if (auto node = weakPtr.lock()) {
+            node->UpdatePointLightDirtySlot();
+        }
+    }
     if (lightSourceNodeMap_.empty() || illuminatedNodeMap_.empty()) {
         ClearDirtyList();
         return;
@@ -139,15 +144,11 @@ void RSPointLightManager::CheckIlluminated(
 }
 
 Vector4f RSPointLightManager::CalculateLightPosForIlluminated(
-    const std::shared_ptr<RSLightSource>& lightSourcePtr, const std::shared_ptr<RSObjAbsGeometry>& illuminatedGeoPtr)
+    const RSLightSource& lightSource, const RectI& illuminatedAbsRect)
 {
-    if (!illuminatedGeoPtr || !lightSourcePtr) {
-        return Vector4f();
-    }
     Vector4f lightPos;
-    auto illuminatedAbsRect = illuminatedGeoPtr->GetAbsRect();
-    auto lightSourceAbsPosition = lightSourcePtr->GetAbsLightPosition();
-    auto lightPosition = lightSourcePtr->GetLightPosition();
+    auto lightSourceAbsPosition = lightSource.GetAbsLightPosition();
+    auto lightPosition = lightSource.GetLightPosition();
     auto rotation = GetScreenRotation();
     switch (rotation) {
         case ScreenRotation::ROTATION_0:

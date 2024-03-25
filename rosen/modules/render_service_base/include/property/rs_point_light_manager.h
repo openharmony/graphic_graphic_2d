@@ -33,8 +33,8 @@ public:
     void AddDirtyLightSource(std::weak_ptr<RSRenderNode> renderNode);
     void AddDirtyIlluminated(std::weak_ptr<RSRenderNode> renderNode);
     void PrepareLight();
-    Vector4f CalculateLightPosForIlluminated(const std::shared_ptr<RSLightSource>& lightSourcePtr,
-        const std::shared_ptr<RSObjAbsGeometry>& illuminatedGeoPtr);
+    Vector4f CalculateLightPosForIlluminated(const RSLightSource& lightSource,
+        const RectI& illuminatedAbsRect);
     void SetScreenRotation(ScreenRotation screenRotation)
     {
         screenRotation_ = screenRotation;
