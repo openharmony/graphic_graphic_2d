@@ -1096,7 +1096,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
         bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
-    SamplingOptions sampling;
+    SamplingOptions sampling(FilterMode::LINEAR, MipmapMode::LINEAR);
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
     PaintHandle fakePaintHandle;
     fakePaintHandle.isAntiAlias = true;
