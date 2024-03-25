@@ -2718,4 +2718,21 @@ HWTEST_F(RSMainThreadTest, ReleaseSurface, TestSize.Level1)
     mainThread->tmpSurfaces_.push(nullptr);
     mainThread->ReleaseSurface();
 }
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus
+ * @tc.desc: SetCurtainScreenUsingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetCurtainScreenUsingStatus(true);
+    ASSERT_EQ(mainThread->IsCurtainScreenOn(), true);
+
+    // restore curtain screen status
+    mainThread->SetCurtainScreenUsingStatus(false);
+}
 } // namespace OHOS::Rosen
