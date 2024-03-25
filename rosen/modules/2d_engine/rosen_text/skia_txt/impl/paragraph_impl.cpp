@@ -315,6 +315,15 @@ Drawing::FontMetrics ParagraphImpl::GetFontMetricsResult(const SPText::TextStyle
     skTextStyle.getFontMetrics(&fontMetrics);
     return fontMetrics;
 }
+
+bool ParagraphImpl::GetLineFontMetrics(const size_t lineNumber, size_t& charNumber,
+    std::vector<Drawing::FontMetrics>& fontMetrics)
+{
+    if (!paragraph_) {
+        return false;
+    }
+    return paragraph_->GetLineFontMetrics(lineNumber, charNumber, fontMetrics);
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
