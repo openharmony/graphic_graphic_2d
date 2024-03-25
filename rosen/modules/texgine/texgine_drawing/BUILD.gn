@@ -70,6 +70,10 @@ if (defined(use_rosen_drawing) && use_rosen_drawing) {
     }
 
     public_deps = [ "//third_party/skia:skia_$platform" ]
+    deps = []
+    if (is_cross_platform) {
+      deps += [ "//third_party/bounds_checking_function:libsec_static" ]
+    }
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines = [ "USE_ROSEN_DRAWING" ]
@@ -120,7 +124,7 @@ if (defined(use_rosen_drawing) && use_rosen_drawing) {
     deps = []
 
     if (is_cross_platform) {
-      public_deps += [ "foundation/appframework/icu_data:static_icudata" ]
+      public_deps += [ "//foundation/appframework/icu_data:static_icudata" ]
     }
 
     innerapi_tags = [ "platformsdk" ]

@@ -43,7 +43,7 @@ using namespace OHOS::Rosen;
 namespace {
 __attribute__((constructor)) void init()
 {
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(CROSS_PLATFORM)
     u_setDataDirectory("/system/usr/ohos_icu");
 #else
     u_setDataDirectory(".");

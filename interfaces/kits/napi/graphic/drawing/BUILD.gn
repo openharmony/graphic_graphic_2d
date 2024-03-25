@@ -53,52 +53,84 @@ ohos_shared_library("drawing_napi") {
   subsystem_name = "graphic"
 }
 
-ohos_shared_library("drawing_napi_impl") {
-  sources = [
-    "brush_napi/js_brush.cpp",
-    "canvas_napi/js_canvas.cpp",
-    "color_filter_napi/js_color_filter.cpp",
-    "enum_napi/js_enum.cpp",
-    "font_napi/js_font.cpp",
-    "font_napi/js_typeface.cpp",
-    "js_common.cpp",
-    "js_drawing_init.cpp",
-    "js_drawing_utils.cpp",
-    "path_napi/js_path.cpp",
-    "pen_napi/js_pen.cpp",
-    "text_blob_napi/js_text_blob.cpp",
-  ]
-
-  defines = []
-  configs = [ ":local_drawing_config" ]
-  public_configs = [ ":drawing_config" ]
-
-  deps = [ "../../../../../rosen/modules/2d_graphics:2d_graphics" ]
-
-  external_deps = [ "napi:ace_napi" ]
-
-  if (current_os == "ohos" || current_os == "ohos_ng") {
-    external_deps += [
-      "hilog:libhilog",
-      "image_framework:image_native",
+if (is_arkui_x) {
+  ohos_source_set("drawing_napi_impl") {
+    sources = [
+      "brush_napi/js_brush.cpp",
+      "canvas_napi/js_canvas.cpp",
+      "color_filter_napi/js_color_filter.cpp",
+      "enum_napi/js_enum.cpp",
+      "font_napi/js_font.cpp",
+      "font_napi/js_typeface.cpp",
+      "js_common.cpp",
+      "js_drawing_init.cpp",
+      "js_drawing_utils.cpp",
+      "path_napi/js_path.cpp",
+      "pen_napi/js_pen.cpp",
+      "text_blob_napi/js_text_blob.cpp",
     ]
-    deps += [ "../../../../../utils:libgraphic_utils" ]
-    defines += [ "ROSEN_OHOS" ]
-    cflags = [ "-fstack-protector-strong" ]
-    cflags_cc = [
-      "-fstack-protector-strong",
-      "-std=c++17",
+
+    defines = []
+    configs = [ ":local_drawing_config" ]
+    public_configs = [ ":drawing_config" ]
+
+    deps = [
+      "../../../../../rosen/modules/2d_graphics:2d_graphics",
+      "//foundation/arkui/napi:ace_napi",
     ]
-  } else {
     defines += [ "MODULE_DRAWING" ]
     cflags_cc = [ "-std=c++17" ]
-  }
 
-  if (current_os == "mingw") {
-    defines += [ "WINDOWS_PLATFORM" ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
+} else {
+  ohos_shared_library("drawing_napi_impl") {
+    sources = [
+      "brush_napi/js_brush.cpp",
+      "canvas_napi/js_canvas.cpp",
+      "color_filter_napi/js_color_filter.cpp",
+      "enum_napi/js_enum.cpp",
+      "font_napi/js_font.cpp",
+      "font_napi/js_typeface.cpp",
+      "js_common.cpp",
+      "js_drawing_init.cpp",
+      "js_drawing_utils.cpp",
+      "path_napi/js_path.cpp",
+      "pen_napi/js_pen.cpp",
+      "text_blob_napi/js_text_blob.cpp",
+    ]
+    defines = []
+    configs = [ ":local_drawing_config" ]
+    public_configs = [ ":drawing_config" ]
 
-  innerapi_tags = [ "platformsdk" ]
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+    deps = [ "../../../../../rosen/modules/2d_graphics:2d_graphics" ]
+
+    external_deps = [ "napi:ace_napi" ]
+
+    if (current_os == "ohos" || current_os == "ohos_ng") {
+      external_deps += [
+        "hilog:libhilog",
+        "image_framework:image_native",
+      ]
+      deps += [ "../../../../../utils:libgraphic_utils" ]
+      defines += [ "ROSEN_OHOS" ]
+      cflags = [ "-fstack-protector-strong" ]
+      cflags_cc = [
+        "-fstack-protector-strong",
+        "-std=c++17",
+      ]
+    } else {
+      defines += [ "MODULE_DRAWING" ]
+      cflags_cc = [ "-std=c++17" ]
+    }
+
+    if (current_os == "mingw") {
+      defines += [ "WINDOWS_PLATFORM" ]
+    }
+
+    innerapi_tags = [ "platformsdk" ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }
