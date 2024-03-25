@@ -505,7 +505,7 @@ HWTEST_F(NativeBufferTest, OHNativeBufferMapPlanes002, Function | MediumTest | L
         void *virAddr = nullptr;
         OH_NativeBuffer_Planes outPlanes;
         int32_t ret = OH_NativeBuffer_MapPlanes(nativeBuffer, &virAddr, &outPlanes);
-        if (ret != 50001130) {
+        if (ret != 50001999) {
             ASSERT_EQ(ret, OHOS::GSERROR_OK);
             ASSERT_NE(virAddr, nullptr);
             ASSERT_EQ(outPlanes.planeCount, 3);
