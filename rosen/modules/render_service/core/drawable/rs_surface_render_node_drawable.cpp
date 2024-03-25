@@ -61,7 +61,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (surfaceParams->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if ((!uniParam || uniParam->IsOpDropped()) && surfaceParams->IsMainWindowType() &&
+        surfaceParams->GetVisibleRegion().IsEmpty()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s NodeId:%" PRIu64 "",
             surfaceNode->GetName().c_str(), surfaceParams->GetId());
         return;

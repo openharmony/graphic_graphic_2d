@@ -5099,9 +5099,9 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isDisplayDirtyDfxEnabled_ = isDisplayDirtyDfxEnabled_;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = isOpaqueRegionDfxEnabled_;
     renderThreadParams->isVisibleRegionDfxEnabled_ = isVisibleRegionDfxEnabled_;
-    renderThreadParams->isVisibleRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
-    renderThreadParams->isVisibleRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
+    renderThreadParams->isTargetDirtyRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
     renderThreadParams->dirtyRegionDebugType_ = dirtyRegionDebugType_;
+    renderThreadParams->isOpDropped_ = isOpDropped_;
     renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);
 }
 

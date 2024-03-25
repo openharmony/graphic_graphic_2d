@@ -2060,6 +2060,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     }
 
     surfaceParams->SetVisibleRegion(visibleRegion_);
+    surfaceParams->dstRect_ = GetDstRect();
 }
 
 void RSSurfaceRenderNode::InitRenderParams()
@@ -2084,7 +2085,6 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
-    surfaceParams->dstRect_ = GetDstRect();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->frameGravity_ = properties.GetFrameGravity();
 

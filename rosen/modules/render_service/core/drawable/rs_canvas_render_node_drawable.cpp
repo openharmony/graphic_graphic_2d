@@ -52,7 +52,8 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto localDrawRect = params->GetLocalDrawRect();
     bool quickRejected = canvas.QuickReject(
         {localDrawRect.GetLeft(), localDrawRect.GetTop(),localDrawRect.GetRight(), localDrawRect.GetBottom()});
-    if (quickRejected) {
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if ((!uniParam || uniParam->IsOpDropped()) &&quickRejected) {
         RS_LOGD("This Node have no intersect with canvas's clipRegion");
         //return;
     }
