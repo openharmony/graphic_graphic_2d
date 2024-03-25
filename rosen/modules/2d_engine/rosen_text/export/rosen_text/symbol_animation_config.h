@@ -27,10 +27,12 @@ namespace TextEngine {
 
 
 enum SymbolAnimationEffectStrategy {
-    INVALID_EFFECT_STRATEGY = 0,
-    SYMBOL_NONE = 1,
-    SYMBOL_SCALE = 2,
-    SYMBOL_HIERARCHICAL = 3,
+    SYMBOL_NONE = 0,
+    SYMBOL_SCALE = 1,
+    SYMBOL_VARIABLE_COLOR = 2,
+    SYMBOL_APPEAR = 3,
+    SYMBOL_DISAPPEAR = 4,
+    SYMBOL_BOUNCE =5
 };
 
 using SymbolNode = struct SymbolNode {
@@ -39,12 +41,16 @@ using SymbolNode = struct SymbolNode {
     Vector4f nodeBoundary;
     Drawing::DrawingHMSymbolData symbolData;
     uint32_t animationIndex = 0;
+    bool isMask = false;
 };
 using SymbolAnimationConfig = struct SymbolAnimationConfig {
     std::vector<SymbolNode> SymbolNodes;
     uint32_t numNodes = 0;
     SymbolAnimationEffectStrategy effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_NONE;
     uint64_t symbolSpanId = 0;
+    uint16_t animationMode = 0;
+    int repeatCount = 1;
+    bool aminationStart = false;
 };
 }
 }

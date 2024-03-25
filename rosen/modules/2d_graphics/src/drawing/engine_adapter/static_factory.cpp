@@ -310,9 +310,9 @@ std::shared_ptr<DrawingSymbolLayersGroups> StaticFactory::GetSymbolLayersGroups(
 }
 
 std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> StaticFactory::GetGroupParameters(
-    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode)
 {
-    return EngineStaticFactory::GetGroupParameters(type, subType, animationMode);
+    return EngineStaticFactory::GetGroupParameters(type, groupSum, animationMode);
 }
 
 FontStyleSet* StaticFactory::CreateEmpty()

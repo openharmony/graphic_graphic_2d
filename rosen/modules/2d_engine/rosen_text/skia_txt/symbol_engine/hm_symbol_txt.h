@@ -66,11 +66,41 @@ public:
     }
 
     bool operator ==(HMSymbolTxt const &sym) const;
+
+    void SetAnimationMode(const uint16_t animationMode) {
+        animationMode_ = animationMode;
+    }
+
+    void SetRepeatCount(const int repeatCount) {
+        repeatCount_ = repeatCount;
+    }
+
+    void SetAminationStart(const bool aminationStart) {
+        aminationStart_ = aminationStart;
+    }
+
+    uint16_t GetAnimationMode() const
+    {
+        return animationMode_;
+    }
+
+    int GetRepeatCount() const
+    {
+        return repeatCount_;
+    }
+
+    bool GetAminationStart() const
+    {
+        return aminationStart_;
+    }
      
 private:
     std::vector<RSSColor> colorList_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
+    uint16_t animationMode_ = 0;
+    int repeatCount_ = 1;
+    bool aminationStart_ = false;
 };
 }
 }

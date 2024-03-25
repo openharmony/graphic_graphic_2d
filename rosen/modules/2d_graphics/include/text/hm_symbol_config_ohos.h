@@ -30,7 +30,7 @@ public:
     static std::shared_ptr<DrawingSymbolLayersGroups> GetSymbolLayersGroups(uint32_t glyphId);
 
     static std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> GetGroupParameters(
-        DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode);
+        DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode);
 };
 
 } // namespace Drawing

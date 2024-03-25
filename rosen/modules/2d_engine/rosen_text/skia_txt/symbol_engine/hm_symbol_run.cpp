@@ -14,7 +14,6 @@
  */
 
 #include "hm_symbol_run.h"
-
 #include "draw/path.h"
 #include "hm_symbol_node_build.h"
 
@@ -128,8 +127,8 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
         RSEffectStrategy symbolEffect = symbolTxt.GetEffectStrategy();
         uint32_t symbolId = static_cast<uint32_t>(glyphId);
         std::pair<double, double> offsetXY(offset.GetX(), offset.GetY());
-        if (symbolEffect > 1) { // 1 > has animation
-            if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt.GetEffectStrategy())) {
+        if (symbolEffect > 0) { // 0 > has animation
+            if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt)) {
                 ClearSymbolAnimation(symbolData, symbolId, offsetXY);
                 canvas->DrawSymbol(symbolData, offset);
             }
@@ -143,21 +142,25 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
 }
 
 bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
-        const std::pair<double, double> offset, const RSEffectStrategy effectMode)
+    const std::pair<double, double> offset, const HMSymbolTxt& symbolTxt)
 {
+    RSEffectStrategy effectMode = symbolTxt.GetEffectStrategy();
+    uint16_t animationMode = symbolTxt.GetAnimationMode();
     if (effectMode == RSEffectStrategy::NONE) {
         return false;
     }
     RSAnimationSetting animationSetting;
-    int scaleType = static_cast<int>(RSEffectStrategy::SCALE);
-
-    bool check = GetAnimationGroups(glyphid, effectMode, animationSetting);
-    if ((!check) && static_cast<int>(effectMode) != scaleType) {
-        return check;
+    if(animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
+        if (!GetAnimationGroups(glyphid, effectMode, animationSetting)) {
+            return false;
+        }
     }
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
     symbolNode.SetAnimation(animationFunc_);
     symbolNode.SetSymbolId(symbolId_);
+    symbolNode.SetAnimationMode(animationMode);
+    symbolNode.SetRepeatCount(symbolTxt.GetRepeatCount());
+    symbolNode.SetAminationStart(symbolTxt.GetAminationStart());
     if (!symbolNode.DecomposeSymbolAndDraw()) {
         return false;
     }
@@ -184,28 +187,17 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyphid, const RSEffectStrat
         return false;
     }
     std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
-
-    RSAnimationType animationType = RSAnimationType::INVALID_ANIMATION_TYPE;
-    RSAnimationSubType animationSubType = RSAnimationSubType::INVALID_ANIMATION_SUB_TYPE;
-    uint32_t animationMode = 1;
-    if (effectStrategy == RSEffectStrategy::SCALE) {
-        animationType = RSAnimationType::SCALE_EFFECT;
-        animationSubType = RSAnimationSubType::UNIT;
-        return true;
-    }
-
-    if (effectStrategy == RSEffectStrategy::HIERARCHICAL) {
-        animationType = RSAnimationType::VARIABLE_COLOR;
-        animationSubType = RSAnimationSubType::VARIABLE_3_GROUP;
-    }
+    RSAnimationType animationType = static_cast<RSAnimationType>(effectStrategy);
 
     for (size_t i = 0; i < animationSettings.size(); i++) {
-        if (animationType == animationSettings[i].animationType &&
-            animationSubType == animationSettings[i].animationSubType &&
-            animationMode == animationSettings[i].animationMode) {
-                animationOut = animationSettings[i];
-                return true;
-            }
+        if (std::find(animationSettings[i].animationTypes.begin(), animationSettings[i].animationTypes.end(),
+            animationType) == animationSettings[i].animationTypes.end()) {
+            continue;
+        }
+        if (animationSettings[i].groupSettings.size() > 0) {
+            animationOut = animationSettings[i];
+            return true;
+        }
     }
     return false;
 }

@@ -117,14 +117,16 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     float nodeHeight = rect.GetHeight();
     Vector4f nodeBounds = Vector4f(offsetX_, offsetY_, nodeWidth, nodeHeight);
 
-    if (effectStrategy_ == RSEffectStrategy::SCALE) {
-        AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE;
-    }
-    if (effectStrategy_ == RSEffectStrategy::HIERARCHICAL) {
+    if (effectStrategy_ == RSEffectStrategy::VARIABLE_COLOR || animationMode_ == 0) {
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL;
+    } else{
+        AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
     }
+
+    symbolAnimationConfig->effectStrategy = static_cast<TextEngine::SymbolAnimationEffectStrategy>(effectStrategy_);
+    symbolAnimationConfig->repeatCount = repeatCount_;
+    symbolAnimationConfig->animationMode = animationMode_;
+    symbolAnimationConfig->aminationStart = aminationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);
     return true;

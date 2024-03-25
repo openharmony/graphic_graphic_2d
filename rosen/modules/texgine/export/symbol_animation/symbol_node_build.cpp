@@ -114,9 +114,9 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
         AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
         symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_SCALE;
     }
-    if (effectStrategy_ == RSEffectStrategy::HIERARCHICAL) {
+    if (effectStrategy_ == RSEffectStrategy::VARIABLE_COLOR) {
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL;
+        symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR;
     }
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);

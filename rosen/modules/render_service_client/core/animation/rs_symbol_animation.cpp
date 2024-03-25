@@ -31,6 +31,8 @@ static const std::string ALPHA_PROP = "alpha";
 static const unsigned int PROPERTIES = 2; // symbol animation property contains two values, change from one to the other
 static const unsigned int PROP_START = 0; // symbol animation property contains two values, change from START to the END
 static const unsigned int PROP_END = 1; // symbol animation property contains two values, change from START to the END
+statuc const uint16_t UNIT = 1; // the number of groups is 1
+statuc const uint16_t VARIABLE_3_GROUP = 3; // the number of groups is 3
 
 bool IsEqual(const Vector2f& val1, const Vector2f& val2)
 {
@@ -99,7 +101,7 @@ bool RSSymbolAnimation::SetSymbolAnimation(
     if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE) {
         return SetScaleUnitAnimation(symbolAnimationConfig);
     } else if (symbolAnimationConfig->effectStrategy ==
-        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL) {
+        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR) {
         return SetVariableColorAnimation(symbolAnimationConfig);
     }
     return false;
@@ -156,7 +158,7 @@ bool RSSymbolAnimation::GetScaleUnitAnimationParas(Drawing::DrawingPiecewisePara
     Vector2f& scaleValueBegin, Vector2f& scaleValue)
 {
     // AnimationType, AnimationSubType, animation_mode; animation_mode is 1 when AnimationSubTpe is Unit
-    auto scaleParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::SCALE_EFFECT, Drawing::UNIT, 1);
+    auto scaleParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::SCALE_EFFECT, UNIT, 1);
     if (scaleParas == nullptr || scaleParas->empty() || scaleParas->at(UNIT_GROUP).empty()) {
         ROSEN_LOGD("[%{public}s] can not get scaleParas \n", __func__);
         return false;
@@ -244,6 +246,8 @@ bool RSSymbolAnimation::SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode,
         auto boundsModifier = std::make_shared<RSBoundsModifier>(boundsProperty);
         rsNode->AddModifier(boundsModifier);
     }
+    rsNode_->SetClipToBounds(false);
+    rsNode_->SetClipToFrame(false);
     return true;
 }
 
@@ -355,7 +359,7 @@ bool RSSymbolAnimation::GetVariableColorAnimationParas(const uint32_t index, uin
     std::vector<float>& timePercents)
 {
     auto multiGroupParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::VARIABLE_COLOR,
-                                                                           Drawing::VARIABLE_3_GROUP, 1);
+                                                                           VARIABLE_3_GROUP, 1);
     if (multiGroupParas == nullptr || multiGroupParas->size() <= index || multiGroupParas->at(index).empty()) {
         ROSEN_LOGD("[%{public}s] can not get multiGroupParas \n", __func__);
         return false;

@@ -139,6 +139,9 @@ SPText::TextStyle Convert(const TextStyle& style)
         textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
         textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
         textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+        textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
+        textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
+        textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
     }
     if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
         textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);
