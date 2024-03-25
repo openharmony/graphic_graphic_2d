@@ -195,10 +195,11 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         return;
     }
     SkAutoCanvasRestore acr(skCanvas_, true);
-    auto clipBounds = skCanvas_->getDeviceClipBounds();
-    auto image = skSurface->makeImageSnapshot(clipBounds);
-    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
     auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shaderString));
+    if (effect == nullptr) {
+        LOGE("sdf make shader fail : %{public}s", err.c_str());
+        return;
+    }
     float width = skCanvas_->imageInfo().width();
     SkRuntimeShaderBuilder builder(effect);
     if (shape.GetParaNum() > 0) {

@@ -40,7 +40,6 @@ ohos_ndk_headers("native_drawing_header") {
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include/drawing_register_font.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include/drawing_round_rect.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include/drawing_sampling_options.h",
-    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include/drawing_sdf_shaper.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include/drawing_shader_effect.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include/drawing_text_blob.h",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include/drawing_text_declaration.h",
@@ -84,6 +83,5 @@ ohos_ndk_library("libnative_drawing_ndk") {
     "native_drawing/drawing_typeface.h",
     "native_drawing/drawing_types.h",
     "native_drawing/drawing_sampling_options.h",
-    "native_drawing/drawing_sdf_shaper.h",
   ]
 }
