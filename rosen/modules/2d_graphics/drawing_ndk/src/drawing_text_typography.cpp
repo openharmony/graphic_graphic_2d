@@ -2991,3 +2991,71 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo* drawFontC
     ResetStringArray(&drawFontCfgInfo->fontDirSet, drawFontCfgInfo->fontDirSize);
     delete drawFontCfgInfo;
 }
+
+void OH_Drawing_SetTypographyTextStrutStyle(OH_Drawing_TypographyStyle* style, OH_Drawing_StrutStyle* strutstyle)
+{
+    OH_Drawing_SetTypographyTextLineStyleFontWeight(style, strutstyle->strutStyleWeight);
+    OH_Drawing_SetTypographyTextLineStyleFontStyle(style, strutstyle->strutStyleStyle);
+    OH_Drawing_SetTypographyTextLineStyleFontFamilies(style, strutstyle->strutStyleFamiliesSize, 
+    const_cast<const char**>(strutstyle->strutStyleFamilies));
+    OH_Drawing_SetTypographyTextLineStyleFontSize(style, strutstyle->strutStyleSize);
+    OH_Drawing_SetTypographyTextLineStyleFontHeight(style, strutstyle->strutStyleHeightScale);
+    OH_Drawing_SetTypographyTextLineStyleHalfLeading(style, strutstyle->strutStyleHalfLeading);
+    OH_Drawing_SetTypographyTextLineStyleSpacingScale(style, strutstyle->strutStyleSpacingScale);
+    OH_Drawing_SetTypographyTextLineStyleOnly(style, strutstyle->strutStyleOnly);
+}
+
+OH_Drawing_StrutStyle* OH_Drawing_TypographyGetStrutStyle(OH_Drawing_TypographyStyle* style)
+{
+    OH_Drawing_StrutStyle* strutstyle = new OH_Drawing_StrutStyle();
+    strutstyle->strutStyleWeight = (OH_Drawing_FontWeight)(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontWeight);
+    strutstyle->strutStyleStyle = (OH_Drawing_FontStyle)(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontStyle);
+    strutstyle->strutStyleSize = ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontSize;
+    strutstyle->strutStyleHeightScale = ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightScale;
+    strutstyle->strutStyleHeightOnly = ConvertToOriginalText<TypographyStyle>(style)->lineStyleHeightOnly;
+    strutstyle->strutStyleHalfLeading = ConvertToOriginalText<TypographyStyle>(style)->lineStyleHalfLeading;
+    strutstyle->strutStyleSpacingScale = ConvertToOriginalText<TypographyStyle>(style)->lineStyleSpacingScale;
+    strutstyle->strutStyleOnly = ConvertToOriginalText<TypographyStyle>(style)->lineStyleOnly;
+    strutstyle->strutStyleFamiliesSize = ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies.size();
+
+    strutstyle->strutStyleFamilies = (char**)malloc(strutstyle->strutStyleFamiliesSize*sizeof(char*));
+    for(size_t i = 0; i < ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies.size(); i++){
+        strutstyle->strutStyleFamilies[i] = (char*)malloc(sizeof(ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies[i].data()));
+        strcpy(strutstyle->strutStyleFamilies[i], ConvertToOriginalText<TypographyStyle>(style)->lineStyleFontFamilies[i].data());
+    }
+
+    return strutstyle;
+}
+
+bool OH_Drawing_OverridingStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutStyle* to)
+{
+    if (from == nullptr || to == nullptr) {
+        return false;
+    }
+    if(from->strutStyleWeight == to->strutStyleWeight && from->strutStyleStyle == to->strutStyleStyle && 
+    from->strutStyleSize == to->strutStyleSize && from->strutStyleHeightScale == to->strutStyleHeightScale && 
+    from->strutStyleHeightOnly == to->strutStyleHeightOnly && from->strutStyleHalfLeading == to->strutStyleHalfLeading && 
+    from->strutStyleSpacingScale == to->strutStyleSpacingScale && from->strutStyleOnly == to->strutStyleOnly && 
+    from->strutStyleFamiliesSize == to->strutStyleFamiliesSize){
+        for(size_t i = 0; i < from->strutStyleFamiliesSize; i++){
+            int is = strcmp(from->strutStyleFamilies[i],to->strutStyleFamilies[i]);
+            if(is != 0){
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+void OH_Drawing_TurnHintingOff(OH_Drawing_TypographyStyle* style)
+{
+    if (style == nullptr) {
+        return;
+    }
+    TypographyStyle* typographyStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (typographyStyle == nullptr) {
+        return;
+    }
+    typographyStyle->hintingIsOn = false;
+}

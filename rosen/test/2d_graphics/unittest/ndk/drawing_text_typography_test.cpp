@@ -2122,4 +2122,68 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level
     OH_Drawing_DestroySystemFontConfigInfo(configJsonInfo);
     configJsonInfo = nullptr;
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest028
+ * @tc.desc: test for getting strutstyle for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_StrutStyle *strutstyle = new OH_Drawing_StrutStyle();
+    strutstyle->strutStyleWeight = FONT_WEIGHT_400;
+    strutstyle->strutStyleStyle = FONT_STYLE_ITALIC;
+    strutstyle->strutStyleSize = 17;
+    strutstyle->strutStyleHeightScale = 2;
+    strutstyle->strutStyleHeightOnly = true;
+    strutstyle->strutStyleHalfLeading = true;
+    strutstyle->strutStyleSpacingScale = 3;
+    strutstyle->strutStyleOnly = true;
+    strutstyle->strutStyleFamiliesSize = 4;
+    strutstyle->strutStyleFamilies = (char**)malloc(strutstyle->strutStyleFamiliesSize*sizeof(char*));
+    const char *temp[] = {"1", "2", "3", "4"};
+    for(int i = 0; i < strutstyle->strutStyleFamiliesSize; i++){
+        strutstyle->strutStyleFamilies[i] = (char*)malloc(2*sizeof(char));
+        strcpy(strutstyle->strutStyleFamilies[i], temp[i]);
+    }
+    
+    OH_Drawing_SetTypographyTextStrutStyle(typoStyle, strutstyle);
+    EXPECT_EQ(OH_Drawing_TypographyGetStrutStyle(typoStyle) != nullptr, true);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest029
+ * @tc.desc: test for getting strutstyle for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
+{
+    OH_Drawing_StrutStyle* from = new OH_Drawing_StrutStyle();
+    OH_Drawing_StrutStyle* to = new OH_Drawing_StrutStyle();
+    bool result = OH_Drawing_OverridingStrutStyleEquals(from, to);
+    EXPECT_TRUE(result == true);
+    result = OH_Drawing_OverridingStrutStyleEquals(nullptr, to);
+    EXPECT_TRUE(result == false);
+    result = OH_Drawing_OverridingStrutStyleEquals(from, nullptr);
+    EXPECT_TRUE(result == false);
+    delete from;
+    delete to;
+    from = nullptr;
+    to = nullptr;
+    EXPECT_TRUE(from == nullptr);
+    EXPECT_TRUE(to == nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest030
+ * @tc.desc: test for turning the hinting off of text typography.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TurnHintingOff(typoStyle);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->hintingIsOn, false);
+}
 }
