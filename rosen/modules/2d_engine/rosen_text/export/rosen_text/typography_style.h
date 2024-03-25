@@ -48,6 +48,8 @@ struct TypographyStyle {
     double lineStyleSpacingScale = -1.0;
     bool lineStyleOnly = false;
 
+    bool hintingIsOn = true;
+
     TextAlign textAlign = TextAlign::START;
     TextDirection textDirection = TextDirection::LTR;
     size_t maxLines = 1e9;
