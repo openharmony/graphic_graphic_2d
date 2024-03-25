@@ -3052,9 +3052,14 @@ HWTEST_F(RSUniRenderVisitorTest, DrawCurrentRefreshRate001, TestSize.Level2)
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(20, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-    rsUniRenderVisitor->DrawCurrentRefreshRate(0, 0);
+    rsUniRenderVisitor->DrawCurrentRefreshRate(0, 0, *rsDisplayRenderNode);
 }
 
 
