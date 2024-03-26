@@ -34,7 +34,7 @@ enum DrawingAnimationType {
     VARIABLE_COLOR_TYPE = 2,
     APPEAR_TYPE = 3,
     DISAPPEAR_TYPE = 4,
-    BOUNCE_TYPE =5
+    BOUNCE_TYPE = 5
 };
 
 enum DrawingCurveType {

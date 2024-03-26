@@ -56,15 +56,18 @@ public:
         symblSpanId_ = symbolSpanId;
     }
 
-    void SetAnimationMode(const uint16_t animationMode) {
-        animationMode_ = animationMode;
+    void SetAnimationMode(const uint16_t animationMode)
+    {
+        animationMode_ = animationMode > 0 ? 1: 0; // 1 is whole or add, 0 is hierarchical or iterate
     }
 
-    void SetRepeatCount(const int repeatCount) {
+    void SetRepeatCount(const int repeatCount)
+    {
         repeatCount_ = repeatCount;
     }
 
-    void SetAminationStart(const bool aminationStart) {
+    void SetAminationStart(const bool aminationStart)
+    {
         aminationStart_ = aminationStart;
     }
 

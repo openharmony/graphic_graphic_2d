@@ -32,7 +32,7 @@ enum SymbolAnimationEffectStrategy {
     SYMBOL_VARIABLE_COLOR = 2,
     SYMBOL_APPEAR = 3,
     SYMBOL_DISAPPEAR = 4,
-    SYMBOL_BOUNCE =5
+    SYMBOL_BOUNCE = 5
 };
 
 using SymbolNode = struct SymbolNode {
