@@ -2421,7 +2421,8 @@ void OH_Drawing_TypographyDestroyLineFontMetrics(OH_Drawing_Font_Metrics*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_SetTextStyleFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle, OH_Drawing_FontStyleStruct fontStyle);
+void OH_Drawing_SetTextStyleFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle,
+    OH_Drawing_FontStyleStruct fontStyle);
 
 /**
  * @brief Gets the text style, including font weight, font width and font slant.
@@ -2432,7 +2433,8 @@ void OH_Drawing_SetTextStyleFontStyleStruct(OH_Drawing_TextStyle* drawingTextSty
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle, OH_Drawing_FontStyleStruct* fontStyle);
+void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle,
+    OH_Drawing_FontStyleStruct* fontStyle);
 
 /**
  * @brief Sets the typography style, including font weight, font width and fony slant.
@@ -2443,7 +2445,8 @@ void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextSty
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle, OH_Drawing_FontStyleStruct fontStyle);
+void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle,
+    OH_Drawing_FontStyleStruct fontStyle);
 
 /**
  * @brief Gets the typography style, including font weight, font width and fony slant.
@@ -2454,7 +2457,8 @@ void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* dr
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TypographyStyleGetFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle, OH_Drawing_FontStyleStruct* fontStyle);
+void OH_Drawing_TypographyStyleGetFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle,
+    OH_Drawing_FontStyleStruct* fontStyle);
 
 #ifdef __cplusplus
 }

@@ -313,7 +313,7 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
         auto metrics = paragraph_->GetLineMetrics();
         for (SPText::LineMetrics& spLineMetrics : metrics) {
             LineMetrics& line = lineMetrics.emplace_back();
-            if (!spLineMetrics.runMetrics.empty() && 
+            if (!spLineMetrics.runMetrics.empty() &&
                 spLineMetrics.runMetrics.find(spLineMetrics.startIndex) != spLineMetrics.runMetrics.end()) {
                 auto &spFontMetrics = spLineMetrics.runMetrics.at(spLineMetrics.startIndex).fontMetrics;
                 line.firstCharMetrics = spFontMetrics;
