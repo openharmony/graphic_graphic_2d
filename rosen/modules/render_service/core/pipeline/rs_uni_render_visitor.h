@@ -178,6 +178,9 @@ public:
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     void PartialRenderOptionInit();
+    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
+        const Occlusion::Region& selfDrawRegion);
+    void SurfaceOcclusionCallbackToWMS();
     void CalcChildFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
     void CalcSurfaceFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
@@ -481,6 +484,9 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
+    // vector of current frame mainwindow surface visible info
+    VisibleData dstCurVisVec_;
+    std::mutex occlusionMutex_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;

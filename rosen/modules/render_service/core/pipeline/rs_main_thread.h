@@ -269,6 +269,7 @@ public:
         return !threeFingerScenesList_.empty();
     }
 
+    void SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec);
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void NotifySurfaceCapProcFinish();

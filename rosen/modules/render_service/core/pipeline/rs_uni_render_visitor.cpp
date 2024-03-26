@@ -77,6 +77,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
+constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
 constexpr int ROTATION_90 = 90;
 constexpr int ROTATION_270 = 270;
 constexpr float EPSILON_SCALE = 0.00001f;
@@ -87,7 +88,8 @@ static uint32_t cacheReuseTimes = 0;
 static std::mutex cacheRenderNodeMapMutex;
 static std::mutex groupedTransitionNodesMutex;
 // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
-static std::queue<NodeId> preMainAndLeashWindowNodesIds_;;
+static std::queue<NodeId> preMainAndLeashWindowNodesIds_;
+static VisibleData lastVisVec_;
 using groupedTransitionNodesType = std::unordered_map<NodeId, std::pair<RSUniRenderVisitor::RenderParam,
     std::unordered_map<NodeId, RSUniRenderVisitor::RenderParam>>>;
 static std::unordered_map<NodeId, std::pair<RSUniRenderVisitor::RenderParam,
@@ -1176,6 +1178,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
 
     UpdateSurfaceDirtyAndGlobalDirty();
+    SurfaceOcclusionCallbackToWMS();
     curDisplayNode_->UpdatePartialRenderParams();
     curDisplayNode_->UpdateScreenRenderParams(screenInfo_);
     HandleColorGamuts(node, screenManager_);
@@ -1227,15 +1230,43 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
         needRecalculateOcclusion_ = node.CheckIfOcclusionChanged();
     }
     // Update node visbleRegion
+    Occlusion::Rect selfDrawRect = node.GetSurfaceOcclusionRect(true);
+    Occlusion::Region selfDrawRegion { selfDrawRect };
     if (needRecalculateOcclusion_) {
-        Occlusion::Rect occlusionRect = node.GetSurfaceOcclusionRect(true);
-        Occlusion::Region curRegion { occlusionRect };
-        Occlusion::Region subResult = curRegion.Sub(accumulatedOcclusionRegion_);
+        Occlusion::Region subResult = selfDrawRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(subResult);
     }
+    // check current surface Participate In Occlusion
     if (node.CheckParticipateInOcclusion()) {
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
     }
+
+    // collect surface occlusion visibleLevel
+    auto visibleLevel = GetRegionVisibleLevel(node.GetVisibleRegion(), selfDrawRegion);
+    // wms default all visible about sefdrawing node and AbilityComponent node
+    if (node.IsSelfDrawingNode() || node.IsAbilityComponent()) {
+        dstCurVisVec_.emplace_back(std::make_pair(node.GetId(),
+            WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE));
+        return;
+    }
+    if (visibleLevel != RSVisibleLevel::RS_INVISIBLE) {
+        dstCurVisVec_.emplace_back(std::make_pair(node.GetId(),
+            node.GetVisibleLevelForWMS(visibleLevel)));
+    }
+}
+
+RSVisibleLevel RSUniRenderVisitor::GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
+    const Occlusion::Region& selfDrawRegion)
+{
+    if (visibleRegion.IsEmpty()) {
+        return RSVisibleLevel::RS_INVISIBLE;
+    } else if (visibleRegion.Area() == selfDrawRegion.Area()) {
+        return RSVisibleLevel::RS_ALL_VISIBLE;
+    } else if (static_cast<uint>(visibleRegion.Area()) <
+        (static_cast<uint>(selfDrawRegion.Area()) >> VISIBLEAREARATIO_FORQOS)) {
+        return RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
+    }
+    return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
 }
 
 void RSUniRenderVisitor::RecordDrawCmdList(RSRenderNode& node)
@@ -1508,6 +1539,29 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
+}
+
+void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
+{
+    if (!needRecalculateOcclusion_) {
+        RS_LOGD("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS no need to callback");
+        return;
+    }
+    bool visibleChanged = dstCurVisVec_.size() != lastVisVec_.size();
+    if (!visibleChanged) {
+        for (uint32_t i = 0; i < dstCurVisVec_.size(); i++) {
+            if ((dstCurVisVec_[i].first != lastVisVec_[i].first) ||
+                (dstCurVisVec_[i].second != lastVisVec_[i].second)) {
+                visibleChanged = true;
+                break;
+            }
+        }
+    }
+    if (visibleChanged) {
+        RSMainThread::Instance()->SurfaceOcclusionChangeCallback(dstCurVisVec_);
+    }
+    lastVisVec_.clear();
+    std::swap(lastVisVec_, dstCurVisVec_);
 }
 
 void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const

@@ -2318,6 +2318,16 @@ void RSMainThread::ClearSurfaceOcclusionChangeCallback(pid_t pid)
     }
 }
 
+void RSMainThread::SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec)
+{
+    std::lock_guard<std::mutex> lock(occlusionMutex_);
+    for (auto it = occlusionListeners_.begin(); it != occlusionListeners_.end(); it++) {
+        if (it->second) {
+            it->second->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(dstCurVisVec));
+        }
+    }
+}
+
 bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
 {
     std::vector<NodeId> registeredSurfaceOnTree;
