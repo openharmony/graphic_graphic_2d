@@ -39,13 +39,14 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("params is nullptr");
         return;
     }
-    Drawing::AutoCanvasRestore acr(canvas, true);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (params->HasSharedTransition()) {
         canvas.SetMatrix(params->GetMatrix());
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-        paintFilterCanvas->SetAlpha(1.0f);
+        paintFilterCanvas->SetAlpha(params->GetAlpha());
     } else {
         canvas.ConcatMatrix(params->GetMatrix());
+        paintFilterCanvas->MultiplyAlpha(params->GetAlpha());
     }
 
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
@@ -65,13 +66,14 @@ void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGE("params is nullptr");
         return;
     }
-    Drawing::AutoCanvasRestore acr(canvas, true);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (params->HasSharedTransition()) {
         canvas.SetMatrix(params->GetMatrix());
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-        paintFilterCanvas->SetAlpha(1.0f);
+        paintFilterCanvas->SetAlpha(params->GetAlpha());
     } else {
         canvas.ConcatMatrix(params->GetMatrix());
+        paintFilterCanvas->MultiplyAlpha(params->GetAlpha());
     }
     RSRenderNodeDrawable::OnCapture(canvas);
 }

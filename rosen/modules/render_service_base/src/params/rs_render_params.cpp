@@ -20,7 +20,20 @@
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
-void RSRenderParams::SetMatrix(Drawing::Matrix matrix)
+void RSRenderParams::SetAlpha(float alpha)
+{
+    if (alpha_ == alpha) {
+        return;
+    }
+    alpha_ = alpha;
+    needSync_ = true;
+}
+float RSRenderParams::GetAlpha() const
+{
+    return alpha_;
+}
+
+void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 {
     if (matrix_ == matrix) {
         return;
@@ -28,13 +41,12 @@ void RSRenderParams::SetMatrix(Drawing::Matrix matrix)
     matrix_ = matrix;
     needSync_ = true;
 }
-
-const Drawing::Matrix RSRenderParams::GetMatrix() const
+const Drawing::Matrix& RSRenderParams::GetMatrix() const
 {
     return matrix_;
 }
 
-void RSRenderParams::SetBoundsRect(Drawing::RectF boundsRect)
+void RSRenderParams::SetBoundsRect(const Drawing::RectF& boundsRect)
 {
     if (boundsRect_ == boundsRect) {
         return;
@@ -43,12 +55,12 @@ void RSRenderParams::SetBoundsRect(Drawing::RectF boundsRect)
     needSync_ = true;
 }
 
-const Drawing::Rect RSRenderParams::GetBounds() const
+const Drawing::Rect& RSRenderParams::GetBounds() const
 {
     return boundsRect_;
 }
 
-void RSRenderParams::SetFrameRect(Drawing::RectF frameRect)
+void RSRenderParams::SetFrameRect(const Drawing::RectF& frameRect)
 {
     if (frameRect_ == frameRect) {
         return;
@@ -58,12 +70,12 @@ void RSRenderParams::SetFrameRect(Drawing::RectF frameRect)
     needSync_ = true;
 }
 
-const Drawing::Rect RSRenderParams::GetFrameRect() const
+const Drawing::Rect& RSRenderParams::GetFrameRect() const
 {
     return frameRect_;
 }
 
-bool RSRenderParams::SetLocalDrawRect(RectI localDrawRect)
+bool RSRenderParams::SetLocalDrawRect(const RectI& localDrawRect)
 {
     if (localDrawRect_ == localDrawRect) {
         return false;
@@ -73,7 +85,7 @@ bool RSRenderParams::SetLocalDrawRect(RectI localDrawRect)
     return true;
 }
 
-const RectI RSRenderParams::GetLocalDrawRect() const
+const RectI& RSRenderParams::GetLocalDrawRect() const
 {
     return localDrawRect_;
 }
@@ -218,6 +230,7 @@ bool RSRenderParams::NeedSync() const
 }
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
+    target->alpha_ = alpha_;
     target->SetMatrix(matrix_);
     target->SetBoundsRect(boundsRect_);
     target->SetFrameRect(frameRect_);

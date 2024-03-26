@@ -161,45 +161,6 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
 }
 
 // ============================================================================
-// Alpha
-RSDrawable::Ptr RSAlphaDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSAlphaDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-}
-bool RSAlphaDrawable::OnUpdate(const RSRenderNode& node)
-{
-    auto alpha = node.GetRenderProperties().GetAlpha();
-    if (alpha == 1) {
-        return false;
-    }
-    stagingAlpha_ = alpha;
-    stagingOffscreen_ = node.GetRenderProperties().GetAlphaOffscreen();
-    needSync_ = true;
-    return true;
-}
-void RSAlphaDrawable::OnSync()
-{
-    if (!needSync_) {
-        return;
-    }
-    alpha_ = stagingAlpha_;
-    offscreen_ = stagingOffscreen_;
-    needSync_ = false;
-}
-Drawing::RecordingCanvas::DrawFunc RSAlphaDrawable::CreateDrawFunc() const
-{
-    auto ptr = std::static_pointer_cast<const RSAlphaDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        // TODO: implement alpha offscreen
-        paintFilterCanvas->MultiplyAlpha(ptr->alpha_);
-    };
-}
-
-// ============================================================================
 // Save and Restore
 RSSaveDrawable::RSSaveDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
 Drawing::RecordingCanvas::DrawFunc RSSaveDrawable::CreateDrawFunc() const

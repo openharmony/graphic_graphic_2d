@@ -40,18 +40,21 @@ public:
     RSRenderParams() = default;
     virtual ~RSRenderParams() = default;
 
-    void SetMatrix(Drawing::Matrix matrix);
-    const Drawing::Matrix GetMatrix() const;
+    void SetAlpha(float alpha);
+    float GetAlpha() const;
 
-    void SetBoundsRect(Drawing::RectF boundsRect);
-    const Drawing::Rect GetBounds() const;
+    void SetMatrix(const Drawing::Matrix& matrix);
+    const Drawing::Matrix& GetMatrix() const;
 
-    void SetFrameRect(Drawing::RectF frameRect);
-    const Drawing::Rect GetFrameRect() const;
+    void SetBoundsRect(const Drawing::RectF& boundsRect);
+    const Drawing::Rect& GetBounds() const;
+
+    void SetFrameRect(const Drawing::RectF& frameRect);
+    const Drawing::Rect& GetFrameRect() const;
 
     // return to add some dirtynode does not mark pending
-    bool SetLocalDrawRect(RectI localDrawRect);
-    const RectI GetLocalDrawRect() const;
+    bool SetLocalDrawRect(const RectI& localDrawRect);
+    const RectI& GetLocalDrawRect() const;
 
     void SetHasSharedTransition(bool hasSharedTransition);
     bool HasSharedTransition() const;
@@ -116,6 +119,7 @@ private:
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
     Drawing::RectF frameRect_;
+    float alpha_ = 1.0f;
     // this rect should map display coordination
     RectI localDrawRect_;
     Vector2f cacheSize_;

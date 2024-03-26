@@ -3285,9 +3285,6 @@ void RSRenderNode::UpdateRenderParams()
     if (!boundGeo) {
         return;
     }
-    // TODO: Temporary fix, we should split RSRenderNode::Update into two steps: 1. Calculate own relative matrix, 2.
-    // Accumulate total matrix
-    boundGeo->UpdateByMatrixFromSelf();
 
     stagingRenderParams_->SetMatrix(
         GetSharedTransitionParam() != nullptr ? boundGeo->GetAbsMatrix() : boundGeo->GetMatrix());

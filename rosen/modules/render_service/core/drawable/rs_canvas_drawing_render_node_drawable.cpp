@@ -47,14 +47,14 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!params->GetShouldPaint()) {
         return;
     }
-
-    Drawing::AutoCanvasRestore acr(canvas, true);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (params->HasSharedTransition()) {
         canvas.SetMatrix(params->GetMatrix());
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-        paintFilterCanvas->SetAlpha(1.0f);
+        paintFilterCanvas->SetAlpha(params->GetAlpha());
     } else {
         canvas.ConcatMatrix(params->GetMatrix());
+        paintFilterCanvas->MultiplyAlpha(params->GetAlpha());
     }
 
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
@@ -67,12 +67,6 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
     auto canvasDrawingNodeRenderContent = canvasDrawingRenderNode->GetRenderContent();
-
-    auto paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    if (!paintFilterCanvas) {
-        RS_LOGE("Failed to draw canvas drawing node, paint filter canvas is null!");
-        return;
-    }
 
     auto clearFunc = [](std::shared_ptr<Drawing::Surface> surface) {
         // The second param is null, 0 is an invalid value.

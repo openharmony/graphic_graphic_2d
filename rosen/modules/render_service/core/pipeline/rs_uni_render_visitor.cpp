@@ -1393,8 +1393,9 @@ void RSUniRenderVisitor::UpdatePrepareclip(RSRenderNode& node)
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
     MergeRemovedChildDirtyRegion(node);
-    bool alpha = curAlpha_;
-    curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
+    auto prevAlpha = curAlpha_;
+    auto alpha = std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
+    curAlpha_ *= alpha;
     node.ResetChildRelevantFlags();
     auto children = node.GetSortedChildren();
     // leashwindow should not include multi mainwindow
@@ -1410,7 +1411,14 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
         });
     }
     node.ResetGeoUpdateDelay();
-    curAlpha_ = alpha;
+
+    if (node.GetSharedTransitionParam()) {
+        node.GetStagingRenderParams()->SetAlpha(curAlpha_);
+    } else {
+        node.GetStagingRenderParams()->SetAlpha(alpha);
+    }
+
+    curAlpha_ = prevAlpha;
 }
 
 bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)

@@ -135,29 +135,6 @@ private:
 };
 
 // ============================================================================
-// Alpha
-class RSAlphaDrawable : public RSDrawable {
-public:
-    explicit RSAlphaDrawable() = default;
-    ~RSAlphaDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-
-protected:
-    bool needSync_ = false;
-    // Render properties
-    float alpha_ = 0.0f;
-    bool offscreen_ = false;
-    // Staging properties
-    float stagingAlpha_ = 0.0f;
-    bool stagingOffscreen_ = false;
-};
-
-// ============================================================================
 // EnvFGColor
 class RSEnvFGColorDrawable : public RSDrawable {
 public:
