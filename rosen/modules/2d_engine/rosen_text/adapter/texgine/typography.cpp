@@ -74,13 +74,10 @@ bool Boundary::operator ==(const Boundary& rhs) const
 
 namespace AdapterTextEngine {
 #ifndef USE_GRAPHIC_TEXT_GINE
-Typography::Typography(std::shared_ptr<Texgine::Typography> typography)
+Typography::Typography(std::shared_ptr<Texgine::Typography> typography) : typography_(std::move(typography)) {}
 #else
-Typography::Typography(std::shared_ptr<TextEngine::Typography> typography)
+Typography::Typography(std::shared_ptr<TextEngine::Typography> typography) : typography_(std::move(typography)) {}
 #endif
-{
-    typography_ = std::move(typography);
-}
 
 double Typography::GetMaxWidth() const
 {
