@@ -2144,6 +2144,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
     EXPECT_TRUE(typography != nullptr);
     OH_Drawing_Font_Metrics* StartLineFont = OH_Drawing_TypographyGetLineFontMetrics(typography, 1, &charNumber);
     EXPECT_TRUE(StartLineFont == nullptr);
-    OH_Drawing_DestroyLineFontMetrics(StartLineFont);
+    OH_Drawing_TypographyDestroyLineFontMetrics(StartLineFont);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
 }
