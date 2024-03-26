@@ -226,9 +226,6 @@ public:
 
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    virtual void HandlePostureData(const SensorEvent * const event) = 0;
-#endif
     virtual ScreenId GetActiveScreenId() = 0;
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
@@ -237,6 +234,10 @@ public:
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) = 0;
+#endif
+
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    virtual void HandlePostureData(const SensorEvent * const event) = 0;
 #endif
 };
 
@@ -383,9 +384,6 @@ public:
 
     int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    void HandlePostureData(const SensorEvent * const event) override;
-#endif
     ScreenId GetActiveScreenId() override;
     
     /* only used for mock tests */
@@ -401,6 +399,10 @@ public:
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     float GetScreenBrightnessNits(ScreenId id) override;
+#endif
+
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    void HandlePostureData(const SensorEvent * const event) override;
 #endif
 
 private:
