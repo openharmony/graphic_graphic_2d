@@ -186,7 +186,7 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrat
     RSAnimationType animationType =  static_cast<RSAnimationType>(effectStrategy);
 
     for (size_t i = 0; i < animationSettings.size(); i++) {
-        if (std::find(animationSettings[i].animationTypes.begin(),animationSettings[i].animationTypes.end(),
+        if (std::find(animationSettings[i].animationTypes.begin(), animationSettings[i].animationTypes.end(),
             animationType) == animationSettings[i].animationTypes.end()) {
             continue;
         }

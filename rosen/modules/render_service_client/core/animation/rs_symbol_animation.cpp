@@ -357,7 +357,7 @@ bool RSSymbolAnimation::GetVariableColorAnimationParas(const uint32_t index, uin
     std::vector<float>& timePercents)
 {
     // AnimationType, Animation groups, animation_mode; the variable color groups is 3 , animation_mode is 1
-    auto multiGroupParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::VARIABLE_COLOR, 3, 1);
+    auto multiGroupParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::VARIABLE_COLOR_TYPE, 3, 1);
     if (multiGroupParas == nullptr || multiGroupParas->size() <= index || multiGroupParas->at(index).empty()) {
         ROSEN_LOGD("[%{public}s] can not get multiGroupParas \n", __func__);
         return false;

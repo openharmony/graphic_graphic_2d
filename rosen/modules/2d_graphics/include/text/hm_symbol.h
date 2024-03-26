@@ -92,9 +92,9 @@ enum DrawingEffectStrategy {
     NONE = 0,
     SCALE = 1,
     VARIABLE_COLOR = 2,
-    APPER = 3,
+    APPEAR = 3,
     DISAPPEAR = 4,
-    BOUNCE =5
+    BOUNCE = 5
 };
 
 struct DrawingSymbolLayers {

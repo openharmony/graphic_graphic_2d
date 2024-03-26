@@ -33,7 +33,7 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
     {0, Drawing::DrawingEffectStrategy::NONE},
     {1, Drawing::DrawingEffectStrategy::SCALE},
     {2, Drawing::DrawingEffectStrategy::VARIABLE_COLOR},
-    {3, Drawing::DrawingEffectStrategy::APPER},
+    {3, Drawing::DrawingEffectStrategy::APPEAR},
     {4, Drawing::DrawingEffectStrategy::DISAPPEAR},
     {5, Drawing::DrawingEffectStrategy::BOUNCE}};
 
@@ -107,15 +107,18 @@ public:
         return effectStrategy_;
     }
 
-    void SetAnimationMode(const uint16_t animationMode) {
+    void SetAnimationMode(const uint16_t animationMode)
+    {
         animationMode_ = animationMode > 0 ? 1: 0; // 1 is whole or add, 0 is hierarchical or iterate
     }
 
-    void SetRepeatCount(const int repeatCount) {
+    void SetRepeatCount(const int repeatCount)
+    {
         repeatCount_ = repeatCount;
     }
 
-    void SetAminationStart(const bool aminationStart) {
+    void SetAminationStart(const bool aminationStart)
+    {
         aminationStart_ = aminationStart;
     }
 

@@ -150,7 +150,7 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
         return false;
     }
     RSAnimationSetting animationSetting;
-    if(animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
+    if (animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
         if (!GetAnimationGroups(glyphid, effectMode, animationSetting)) {
             return false;
         }

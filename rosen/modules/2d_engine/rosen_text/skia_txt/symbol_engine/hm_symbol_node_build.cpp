@@ -128,7 +128,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
 
     if (effectStrategy_ == RSEffectStrategy::VARIABLE_COLOR || animationMode_ == 0) {
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
-    } else{
+    } else {
         AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
     }
 
