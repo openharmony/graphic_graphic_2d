@@ -47,6 +47,21 @@ const Drawing::Rect RSRenderParams::GetBounds() const
     return boundsRect_;
 }
 
+void RSRenderParams::SetFrameRect(Drawing::RectF frameRect)
+{
+    if (frameRect_ == frameRect) {
+        return;
+    }
+
+    frameRect_ = frameRect;
+    needSync_ = true;
+}
+
+const Drawing::Rect RSRenderParams::GetFrameRect() const
+{
+    return frameRect_;
+}
+
 bool RSRenderParams::SetLocalDrawRect(RectI localDrawRect)
 {
     if (localDrawRect_ == localDrawRect) {
@@ -176,6 +191,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     target->SetMatrix(matrix_);
     target->SetBoundsRect(boundsRect_);
+    target->SetFrameRect(frameRect_);
     target->shouldPaint_ = shouldPaint_;
     target->SetLocalDrawRect(localDrawRect_);
     target->id_ = id_;

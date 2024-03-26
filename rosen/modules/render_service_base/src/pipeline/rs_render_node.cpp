@@ -3260,6 +3260,7 @@ void RSRenderNode::UpdateRenderParams()
 
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
+    stagingRenderParams_->SetFrameRect({ 0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight() });
     stagingRenderParams_->SetShouldPaint(shouldPaint_);
     stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
 }

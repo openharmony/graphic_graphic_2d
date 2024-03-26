@@ -36,6 +36,9 @@ public:
     virtual void SetBoundsRect(Drawing::RectF boundsRect);
     const Drawing::Rect GetBounds() const;
 
+    virtual void SetFrameRect(Drawing::RectF frameRect);
+    const Drawing::Rect GetFrameRect() const;
+
     // return to add some dirtynode does not mark pending
     virtual bool SetLocalDrawRect(RectI localDrawRect);
     const RectI GetLocalDrawRect() const;
@@ -86,6 +89,7 @@ private:
     NodeId id_;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
+    Drawing::RectF frameRect_;
     // this rect should map display coordination
     RectI localDrawRect_;
     bool shouldPaint_;

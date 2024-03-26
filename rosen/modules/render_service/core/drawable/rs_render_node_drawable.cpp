@@ -67,7 +67,7 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     auto& renderParams = renderNode_->GetRenderParams();
-    Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+    Drawing::Rect bounds = renderParams ? renderParams->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.endIndex_);
 }
@@ -254,7 +254,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         if (HasFilterOrEffect()) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);
-            DrawContent(canvas, params.GetBounds());
+            DrawContent(canvas, params.GetFrameRect());
             DrawChildren(canvas, params.GetBounds());
             DrawForeground(canvas, params.GetBounds());
             return;
@@ -574,7 +574,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     std::swap(cacheCanvasPtr, curCanvas);
     // draw content + children
     auto bounds = params.GetBounds();
-    DrawContent(*curCanvas, bounds);
+    DrawContent(*curCanvas, params.GetFrameRect());
     DrawChildren(*curCanvas, bounds);
 
     std::swap(cacheCanvasPtr, curCanvas);
