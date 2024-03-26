@@ -480,26 +480,26 @@ enum OH_Drawing_FontConfigInfoErrorCode {
  * @version 1.0
  */
 typedef struct {
-    /** The font weight of strutstyle */
-    OH_Drawing_FontWeight strutStyleWeight;
-    /** The font style of strutstyle */
-    OH_Drawing_FontStyle strutStyleStyle;
-    /** The size of strutstyle */
-    double strutStyleSize;
-    /** The height of strutstyle */
-    double strutStyleHeightScale;
-    /** Whether the height is only */
-    bool strutStyleHeightOnly;
-    /** Whether the halfleading is true */
-    bool strutStyleHalfLeading;
-    /** The space size of strutstyle */
-    double strutStyleSpacingScale;
-    /** Whether the strutstyle is only */
-    bool strutStyleOnly;
-    /** The number of font families */
-    size_t strutStyleFamiliesSize;
-    /** The  font families of strutstyle*/
-    char** strutStyleFamilies;
+    /** The font weight to use when calculating the strut */
+    OH_Drawing_FontWeight Weight;
+    /** The font style to use when calculating the strut */
+    OH_Drawing_FontStyle Style;
+    /** The size of text to use when obtaining metrics from the font */
+    double Size;
+    /** The minimum height of the strut, as a multiple of fontSize */
+    double HeightScale;
+    /** Whether the height is override */
+    bool HeightOverride;
+    /** Whether the halfleading is enable */
+    bool HalfLeading;
+    /** The additional leading to apply to the strut as a multiple of Size */
+    double Leading;
+    /** Whether the strut height should be forced */
+    bool ForceStrutHeight;
+    /** The size of font families */
+    size_t FamiliesSize;
+    /** The families of the font to use when calculating the strut */
+    char** Families;
 } OH_Drawing_StrutStyle;
 
 /**
@@ -2378,22 +2378,22 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @param OH_Drawing_StrutStyle Indicates strut style for text typography to set.
+ * @param OH_Drawing_StrutStyle Indicates the pointer of <b>OH_Drawing_StrutStyle</b> object.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_SetTypographyTextStrutStyle(OH_Drawing_TypographyStyle*, OH_Drawing_StrutStyle*);
+void OH_Drawing_SetTypographyStyleTextStrutStyle(OH_Drawing_TypographyStyle*, OH_Drawing_StrutStyle*);
 
 /**
  * @brief Gets the strut style for text typography.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @return Returns the pointer of <b>OH_Drawing_StrutStyle</b> objects.
+ * @return Returns the pointer of <b>OH_Drawing_StrutStyle</b> object.
  * @since 12
  * @version 1.0
  */
-OH_Drawing_StrutStyle* OH_Drawing_TypographyGetStrutStyle(OH_Drawing_TypographyStyle*);
+OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_TypographyStyle*);
 
 /**
  * @brief Overriding the struct StrutStyle equals operator.
@@ -2404,17 +2404,18 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyGetStrutStyle(OH_Drawing_TypographyS
  * @since 12
  * @version 1.0
  */
-bool OH_Drawing_OverridingStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutStyle* to);
+bool OH_Drawing_StrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutStyle* to);
 
 /**
- * @brief Turns the hinting off of text typography.
+ * @brief Sets the hinting of text typography.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param hintingIsOn Indicates the hinting of text typography..
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TurnHintingOff(OH_Drawing_TypographyStyle* style);
+void OH_Drawing_TypographyStyleSetHintingOn(OH_Drawing_TypographyStyle* style, bool hintingIsOn);
 
 /**
  * @brief Getting all font metrics from target row.
