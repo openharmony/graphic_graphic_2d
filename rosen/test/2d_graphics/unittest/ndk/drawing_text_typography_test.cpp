@@ -2125,12 +2125,40 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest073
- * @tc.desc: test for whether two TextStyle objects are equal
+ * @tc.desc: test for getting all font metrics array from current line
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level1)
 {
-    OH_Drawing_TextStyle *textStyle1 = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    EXPECT_TRUE(typoStyle != nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    EXPECT_TRUE(handler != nullptr);
+    size_t charNumber = 0;
+    const char* text = "OpenHarmony\n";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    EXPECT_TRUE(typography != nullptr);
+    OH_Drawing_Font_Metrics* StartLineFont = OH_Drawing_TypographyGetLineFontMetrics(typography, 1, &charNumber);
+    EXPECT_TRUE(StartLineFont == nullptr);
+    OH_Drawing_TypographyDestroyLineFontMetrics(StartLineFont);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest074
+ * @tc.desc: test for whether two TextStyle objects are equal
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
+{
+ OH_Drawing_TextStyle *textStyle1 = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle *textStyle2 = OH_Drawing_CreateTextStyle();
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
@@ -2146,11 +2174,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest074
+ * @tc.name: OH_Drawing_TypographyTest075
  * @tc.desc: test for the font properties of two TextStyle objects are equal
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
 {
     OH_Drawing_TextStyle *textStyle1 = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle *textStyle2 = OH_Drawing_CreateTextStyle();
@@ -2168,11 +2196,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest075
+ * @tc.name: OH_Drawing_TypographyTest076
  * @tc.desc: test for the two TextStyle objects have matching properties
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level1)
 {
     OH_Drawing_TextStyle *textStyle1 = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle *textStyle2 = OH_Drawing_CreateTextStyle();
@@ -2188,11 +2216,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest076
+ * @tc.name: OH_Drawing_TypographyTest077
  * @tc.desc: test for sets and gets isPlaceholder for TextStyle objects
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level1)
 {
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_EQ(OH_Drawing_TextStyleIsPlaceholder(txtStyle), false);
@@ -2201,11 +2229,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest077
+ * @tc.name: OH_Drawing_TypographyTest078
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(typoStyle), TEXT_ALIGN_START);

@@ -492,7 +492,11 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWi
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas,
     double potisionX, double potisionY)
 {
-    ConvertToOriginalText<Typography>(typography)->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas),
+    auto drawingCanvas = reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas);
+    if (drawingCanvas && drawingCanvas->GetDrawingType() == OHOS::Rosen::Drawing::DrawingType::RECORDING) {
+        (static_cast<OHOS::Rosen::Drawing::RecordingCanvas*>(drawingCanvas))->SetIsCustomTypeface(true);
+    }
+    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas,
         potisionX, potisionY);
 }
 
@@ -2993,6 +2997,7 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo* drawFontC
     delete drawFontCfgInfo;
 }
 
+<<<<<<< HEAD
 bool OH_Drawing_TextStyleIsEquals(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* compareStyle)
 {
     if (style == nullptr || compareStyle == nullptr) {
@@ -3124,6 +3129,8 @@ bool OH_Drawing_TypographyStyleIsHintingEnabled(OH_Drawing_TypographyStyle* styl
     return typographyStyle->hintingIsOn;
 }
 
+=======
+>>>>>>> ab1620cc9ec50f95fadbb21fd797cf93796e9efb
 OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typography* typography,
     size_t lineNumber, size_t* fontMetricsSize)
 {

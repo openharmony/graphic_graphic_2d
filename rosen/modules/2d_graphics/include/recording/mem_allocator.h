@@ -35,6 +35,7 @@ public:
      * @brief       Creates a read-only memory allocator form a read-only buffer that will not be freed when destroyed.
      * @param data  A read-only buffer.
      * @param size  The size of a read-only buffer.
+     * @return      true if build succeeded, otherwise false.
      */
     bool BuildFromData(const void* data, size_t size);
 
@@ -42,11 +43,14 @@ public:
      * @brief       Creates a memory allocator by copying the specified data.
      * @param data  A read-only buffer.
      * @param size  The size of a read-only buffer.
+     * @return      true if build succeeded, otherwise false.
      */
     bool BuildFromDataWithCopy(const void* data, size_t size);
 
     /**
      * @brief   Creates an object of T from a contiguous buffer in the memory allocator.
+     * @param T     The name of object class.
+     * @param Args  Constructs arguments.
      * @return  The pointer to an object of T.
      */
     template<typename T, typename... Args>

@@ -177,6 +177,13 @@ public:
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 };
 
+class RSPixelMapMaskDrawable : public RSMaskDrawable {
+public:
+    explicit RSPixelMapMaskDrawable(std::shared_ptr<RSMask> mask);
+    ~RSPixelMapMaskDrawable() override = default;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+};
+
 // ============================================================================
 // Shadow
 class RSShadowBaseDrawable : public RSPropertyDrawable {

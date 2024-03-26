@@ -175,60 +175,6 @@ CmdListData CmdList::GetAllBitmapData() const
     return std::make_pair(bitmapAllocator_.GetData(), bitmapAllocator_.GetSize());
 }
 
-OpDataHandle CmdList::AddTypeface(const std::shared_ptr<Typeface>& typeface)
-{
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    OpDataHandle ret = {0, 0};
-    uint32_t uniqueId = typeface->GetUniqueID();
-
-    for (auto iter = typefaceHandleVec_.begin(); iter != typefaceHandleVec_.end(); iter++) {
-        if (iter->first == uniqueId) {
-            return iter->second;
-        }
-    }
-
-    auto data = typeface->Serialize();
-    if (data == nullptr || data->GetSize() == 0) {
-        LOGD("typeface is vaild");
-        return ret;
-    }
-    void* addr = imageAllocator_.Add(data->GetData(), data->GetSize());
-    if (addr == nullptr) {
-        LOGD("CmdList AddTypefaceData failed!");
-        return ret;
-    }
-    uint32_t offset = imageAllocator_.AddrToOffset(addr);
-    typefaceHandleVec_.push_back(std::pair<uint32_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
-
-    return {offset, data->GetSize()};
-}
-
-std::shared_ptr<Typeface> CmdList::GetTypeface(const OpDataHandle& typefaceHandle)
-{
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    auto typefaceIt = typefaceMap_.find(typefaceHandle.offset);
-    if (typefaceIt != typefaceMap_.end()) {
-        return typefaceMap_[typefaceHandle.offset];
-    }
-
-    if (typefaceHandle.size == 0) {
-        LOGD("typeface is vaild");
-        return nullptr;
-    }
-
-    const void* ptr = imageAllocator_.OffsetToAddr(typefaceHandle.offset);
-    if (ptr == nullptr) {
-        LOGD("get typeface data failed");
-        return nullptr;
-    }
-
-    auto typefaceData = std::make_shared<Data>();
-    typefaceData->BuildWithoutCopy(ptr, typefaceHandle.size);
-    auto typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
-    typefaceMap_[typefaceHandle.offset] = typeface;
-    return typeface;
-}
-
 uint32_t CmdList::AddImageObject(const std::shared_ptr<ExtendImageObject>& object)
 {
     std::lock_guard<std::mutex> lock(imageObjectMutex_);

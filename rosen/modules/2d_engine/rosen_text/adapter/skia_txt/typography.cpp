@@ -375,6 +375,15 @@ Drawing::FontMetrics Typography::GetFontMetrics(const OHOS::Rosen::TextStyle& te
     auto spTextStyle = Convert(textStyle);
     return paragraph_->GetFontMetricsResult(spTextStyle);
 }
+
+bool Typography::GetLineFontMetrics(const size_t lineNumber,
+    size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics)
+{
+    if (!paragraph_) {
+        return false;
+    }
+    return paragraph_->GetLineFontMetrics(lineNumber, charNumber, fontMetrics);
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

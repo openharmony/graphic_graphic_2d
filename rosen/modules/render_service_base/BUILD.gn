@@ -230,6 +230,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
+    "src/render/rs_typeface_cache.cpp",
 
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",

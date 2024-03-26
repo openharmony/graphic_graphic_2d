@@ -123,7 +123,6 @@ public:
      * @param dst     destination Bitmap
      * @param srcLeft column index whose absolute value is less than GetWidth()
      * @param srcTop  row index whose absolute value is less than GetHeight()
-     * @return true if pixels are copied to dst Bitmap Pixels
      */
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const;
     
@@ -207,15 +206,15 @@ public:
     void SetInfo(const ImageInfo& info);
 
     /**
-     * @brief Returns width, height, AlphaType, ColorType, and ColorSpace.
-     * @return reference to ImageInfo
+     * @brief Gets Image info which contains width, height, AlphaType, ColorType, and ColorSpace.
+     * @return Returns ImageInfo describing this Bitmap
      */
     ImageInfo GetImageInfo() const;
 
     /**
-     * @brief Returns a constant reference to the Pixmap holding the Bitmap pixel
+     * @brief Gets a constant reference to the Pixmap holding the Bitmap pixel
      * address, row bytes, and ImageInfo.
-     * @return reference to Pixmap describing this Bitmap
+     * @return Returns Pixmap describing this Bitmap
      */
     Pixmap GetPixmap() const;
 

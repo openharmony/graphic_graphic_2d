@@ -193,7 +193,7 @@ void OH_Drawing_MatrixScale(OH_Drawing_Matrix*, float sx, float sy, float px, fl
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
  * @param inverse Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
- * @return Returns true if matrix can be inverted, or flase.
+ * @return Returns true if matrix can be inverted, or false.
  * @since 12
  * @version 1.0
  */
@@ -221,7 +221,7 @@ bool OH_Drawing_MatrixSetPolyToPoly(OH_Drawing_Matrix*, const OH_Drawing_Point2D
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
  * @param other Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
- * @return Returns true if the two matrices are equal, or flase.
+ * @return Returns true if the two matrices are equal, or false.
  * @since 12
  * @version 1.0
  */
@@ -235,7 +235,7 @@ bool OH_Drawing_MatrixIsEqual(OH_Drawing_Matrix*, OH_Drawing_Matrix* other);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
- * @return Returns true if matrix is identity, or flase.
+ * @return Returns true if matrix is identity, or false.
  * @since 12
  * @version 1.0
  */

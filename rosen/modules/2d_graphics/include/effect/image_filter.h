@@ -40,11 +40,12 @@ public:
     };
     /**
      * @brief Create a filter that blurs its input by the separate X and Y sinma value.
-     * @param sigmaX  The Gaussian sigma value for blurring along the X axis.
-     * @param sigmaY  The Gaussian sigma value for blurring along the Y axis.
-     * @param mode    The tile mode applied at edges.
-     * @param input   The input filter that is blurred, uses source bitmap if this is null.
-     * @return        A shared pointer to ImageFilter that its type is blur.
+     * @param sigmaX     The Gaussian sigma value for blurring along the X axis.
+     * @param sigmaY     The Gaussian sigma value for blurring along the Y axis.
+     * @param mode       The tile mode applied at edges.
+     * @param input      The input filter that is blurred, uses source bitmap if this is null.
+     * @param blurType   The BlurType of Image, default as GAUSS.
+     * @return           A shared pointer to ImageFilter that its type is blur.
      */
     static std::shared_ptr<ImageFilter> CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,
         std::shared_ptr<ImageFilter> input, ImageBlurType blurType = ImageBlurType::GAUSS);

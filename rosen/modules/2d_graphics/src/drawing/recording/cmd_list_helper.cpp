@@ -369,21 +369,6 @@ DrawingGroupInfo CmdListHelper::GetGroupInfoFromCmdList(const CmdList& cmdList, 
     return groupInfo;
 }
 
-OpDataHandle CmdListHelper::AddTypefaceToCmdList(CmdList& cmdList, const std::shared_ptr<Typeface>& typeface)
-{
-    if (typeface == nullptr) {
-        LOGD("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return { 0 };
-    }
-    return cmdList.AddTypeface(typeface);
-}
-
-std::shared_ptr<Typeface> CmdListHelper::GetTypefaceFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& opDataHandle)
-{
-    return (const_cast<CmdList&>(cmdList)).GetTypeface(opDataHandle);
-}
-
 OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx)
 {
     if (!textBlob) {

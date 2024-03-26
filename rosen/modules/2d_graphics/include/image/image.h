@@ -246,8 +246,11 @@ public:
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
 
     /**
-     * @brief  Create Image from ImageInfo, sharing pixels.
-     * @return A shared pointer to Image
+     * @brief              Create Image from ImageInfo, sharing pixels.
+     * @param  info        Image info which contains width, height, alpha type, color type and color space.
+     * @param  pixels      Address or pixel storage.
+     * @param  rowBytes    Image sharing pixels, or nullptr.
+     * @return             A shared pointer to Image.
      */
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
                                                  size_t rowBytes);
@@ -256,7 +259,7 @@ public:
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
      * @param gpuContext  GPU context.
      * @param bitmap      BitmapInfo, pixel address and row bytes.
-     * @return            True if Image is created successed.
+     * @return            True if Image is created succeeded.
      */
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap);
 
@@ -269,7 +272,7 @@ public:
      * @param width       Width of full Image.
      * @param height      Height of full Image.
      * @param type        Type of compression used.
-     * @return            True if Image is created successed.
+     * @return            True if Image is created succeeded.
      */
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type);
@@ -282,7 +285,7 @@ public:
                             One of TextureOrigin::Top_Left, TextureOrigion::Bottom_Left.
      * @param bitmapFormat  It contains ColorType and AlphaType.
      * @param colorSpace    Range of colors, may be nullptr.
-     * @return              True if Image is created successed.
+     * @return              True if Image is created succeeded.
      */
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
@@ -296,7 +299,7 @@ public:
                             One of TextureOrigin::Top_Left, TextureOrigion::Bottom_Left.
      * @param bitmapFormat  It contains ColorType and AlphaType.
      * @param colorSpace    Range of colors, may be nullptr.
-     * @return              True if Image is created successed.
+     * @return              True if Image is created succeeded.
      */
     bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);

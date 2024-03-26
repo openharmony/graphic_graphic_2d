@@ -362,6 +362,10 @@ public:
 
     void SetFrameNodeInfo(int32_t id, std::string tag);
 
+    virtual void SetTextureExport(bool isTextureExportNode);
+
+    void SyncTextureExport(bool isTextureExportNode);
+
     int32_t GetFrameNodeId();
 
     std::string GetFrameNodeTag();
@@ -413,6 +417,7 @@ private:
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
+    virtual void CreateTextureExportRenderNodeInRT() {};
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);

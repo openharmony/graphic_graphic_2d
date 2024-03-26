@@ -23,6 +23,9 @@
 #else
 #include "rosen_text/font_collection.h"
 #endif
+#include "text/font_mgr.h"
+#include "text/typeface.h"
+#include "utils/log.h"
 
 #ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
@@ -39,6 +42,7 @@ using namespace OHOS::Rosen;
 #define ERROR_NULL_FONT_BUFFER 6
 #define ERROR_BUFFER_SIZE_ZERO 7
 #define ERROR_NULL_FONT_COLLECTION 8
+#define ERROR_REGISTER_FAILED 9
 
 #ifdef BUILD_NON_SDK_VER
 static bool StdFilesystemExists(const std::string &p, std::error_code &ec)
@@ -66,11 +70,27 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
         return ERROR_NULL_FONT_COLLECTION;
     }
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
+    Drawing::Typeface* typeface = nullptr;
 #ifndef USE_GRAPHIC_TEXT_GINE
     fc->LoadFontFromList(data, dataLength, familyName);
 #else
-    fc->LoadFont(familyName, data, dataLength);
+    typeface = fc->LoadFont(familyName, data, dataLength);
 #endif
+    if (typeface) {
+        std::shared_ptr<Drawing::Typeface> drawingTypeface(typeface);
+        std::string name = familyName;
+        if (name.empty()) {
+            name = drawingTypeface->GetFamilyName();
+        }
+        fc->AddLoadedFamilyName(name);
+        if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+            bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(drawingTypeface);
+            if (!ret) {
+                LOGE("LoadFromFontCollection: register typeface failed.");
+                return ERROR_REGISTER_FAILED;
+            }
+        }
+    }
     return 0;
 }
 

@@ -196,6 +196,8 @@ public:
 
     virtual OHOS::Rosen::Drawing::FontMetrics MeasureText() = 0;
     virtual OHOS::Rosen::Drawing::FontMetrics GetFontMetricsResult(const OHOS::Rosen::SPText::TextStyle& textStyle) = 0;
+    virtual bool GetLineFontMetrics(const size_t lineNumber,
+        size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

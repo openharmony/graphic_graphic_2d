@@ -25,9 +25,9 @@ namespace Drawing {
 class DrawOpItem;
 class DRAWING_API DrawCmdList : public CmdList {
 public:
-    /*
+    /**
      * @brief   there are two mode for DrawCmdList to add new op
-     * @param   IMMEDIATE   add op to continouns buffer immediately, overload will benifit from this
+     * @param   IMMEDIATE   add op to continouns buffer immediately, overload will benefit from this
      * @param   DEFERRED    add op to vector and then add to contiguous buffer if needed
      * @detail  playback can get all op from continouns buffer in IMMEDIATE mode or vector int DEFERRED mode
      */
@@ -39,27 +39,32 @@ public:
     /**
      * @brief   Creates a DrawCmdList with contiguous buffers.
      * @param   data    A contiguous buffers.
+     * @param   isCopy  Whether to copy data or not.
      * @detail  Called only by Unmarshalling-Thread, the default mode is DEFERRED since all DrawOp store in vector
      */
     static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
-    /*
+    /**
      * @brief   Creates a DrawCmdList
      */
     DrawCmdList(UnmarshalMode mode = UnmarshalMode::IMMEDIATE);
     DrawCmdList(int32_t width, int32_t height, UnmarshalMode mode = UnmarshalMode::IMMEDIATE);
 
-    /*
+    /**
      * @brief   Destroy a DrawCmdList
      */
     ~DrawCmdList() override;
 
+    /**
+     * @brief   Gets cmd list type.
+     * @return  Returns DRAW_CMD_LIST
+     */
     uint32_t GetType() const override
     {
         return Type::DRAW_CMD_LIST;
     }
 
-    /*
+    /**
      * @brief   Add DrawOpItem to DrawCmdList, only can be used in IMMEDIATE mode
      * @param   T   The name of DrawOpItem class
      * @param   Args    Constructs arguments to the DrawOpItem
@@ -89,7 +94,7 @@ public:
         return true;
     }
 
-    /*
+    /**
      * @brief   Add DrawOpItem to DrawCmdList, only can be used in DEFERRED mode
      * @param   drawOpItem  A real DrawOpItem instance
      * @return  true if add success, false if not in DEFERRED mode
@@ -101,22 +106,22 @@ public:
      */
     void ClearOp();
 
-    /*
+    /**
      * @brief   Get op vector size
      */
     size_t GetOpItemSize() const;
 
-    /*
+    /**
      * @brief   for each op in vector, combine there desc together
      */
     std::string GetOpsWithDesc() const;
 
-    /*
+    /**
      * @brief   Marshalling Draw Ops Param from vector to contiguous buffers.
      */
     void MarshallingDrawOps();
 
-    /*
+    /**
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
      *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
      */
@@ -130,6 +135,7 @@ public:
     /**
      * @brief         Calls the corresponding operations of all opitems in DrawCmdList to the canvas.
      * @param canvas  Implements the playback action of the DrawCmdList in the Canvas.
+     * @param rect    Rect used to playback, may be nullptr.
      */
     void Playback(Canvas& canvas, const Rect* rect = nullptr);
 
@@ -153,7 +159,7 @@ public:
      */
     void SetHeight(int32_t height);
 
-    /*
+    /**
      * @brief   Convert Textblob Op to Image Op, it is different for difference mode
      *          IMMEDIATE: the Image Op will add to the end of buffer, and the mapped offset will be recorded in
      *          replacedOpListForBuffer.

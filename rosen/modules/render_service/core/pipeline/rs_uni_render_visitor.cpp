@@ -79,6 +79,8 @@ constexpr int ROTATION_90 = 90;
 constexpr int ROTATION_270 = 270;
 constexpr int MAX_ALPHA = 255;
 constexpr float EPSILON_SCALE = 0.00001f;
+constexpr float CACHE_FILL_ALPHA = 0.2f;
+constexpr float CACHE_UPDATE_FILL_ALPHA = 0.8f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
@@ -1416,6 +1418,7 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
                 || !ROSEN_EQ(std::max(dstRectWidth, dstRectHeight), std::max(boundsWidth, boundsHeight), EPSILON_SCALE);
         }
     }
+    node.SetIsScaleInPreFrame(node.IsScale());
     node.SetIsScale(isScale);
 }
 
@@ -1805,15 +1808,19 @@ void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
 {
     const float fillAlpha = 0.2;
     for (const auto& subRect : dirtyRects) {
-        DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE, fillAlpha);
+        DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL, fillAlpha);
     }
 }
 
-void RSUniRenderVisitor::DrawCacheRegionForDFX(std::vector<RectI> cacheRects)
+void RSUniRenderVisitor::DrawCacheRegionForDFX(std::map<NodeId, RectI>& cacheRects)
 {
-    const float fillAlpha = 0.2;
-    for (const auto& subRect : cacheRects) {
-        DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL, fillAlpha);
+    for (const auto& [nodeId, subRect] : cacheRects) {
+        auto iter = cacheRenderNodeIsUpdateMap_.find(nodeId);
+        if ((iter != cacheRenderNodeIsUpdateMap_.end()) && (iter->second)) {
+            DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_RED, RSPaintStyle::FILL, CACHE_UPDATE_FILL_ALPHA);
+        } else {
+            DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL, CACHE_FILL_ALPHA);
+        }
     }
 }
 
@@ -3733,7 +3740,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
             }
             node.DrawCacheSurface(*canvas_, threadIndex_, false);
             node.ProcessAnimatePropertyAfterChildren(*canvas_);
-            cacheRenderNodeMapRects_.push_back(node.GetOldDirtyInSurface());
+            cacheRenderNodeMapRects_[node.GetId()] = node.GetOldDirtyInSurface();
             break;
         }
         case CacheType::ANIMATE_PROPERTY: {
@@ -4251,6 +4258,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
         return;
     }
     uint32_t updateTimes = 0;
+    cacheRenderNodeIsUpdateMap_[node.GetId()] = node.GetDrawingCacheChanged();
     if (node.GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE) {
         // Regardless of the number of consecutive refreshes, the current cache is forced to be updated.
         if (node.GetDrawingCacheChanged()) {

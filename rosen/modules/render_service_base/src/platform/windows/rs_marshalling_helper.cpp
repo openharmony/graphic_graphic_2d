@@ -105,6 +105,15 @@ bool RSMarshallingHelper::UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<
     return {};
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    return {};
+}
 
 // Drawing::Image
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)

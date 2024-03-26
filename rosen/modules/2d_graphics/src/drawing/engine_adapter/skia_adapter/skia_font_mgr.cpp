@@ -42,7 +42,7 @@ std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDynamicFontMgr()
     return std::make_shared<SkiaFontMgr>(dynamicFontManager);
 }
 
-void SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength)
+Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength)
 {
     auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
     auto typeface = SkTypeface::MakeFromStream(std::move(stream));
@@ -52,6 +52,11 @@ void SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* 
     } else {
         dynamicFontMgr->font_provider().RegisterTypeface(typeface, familyName);
     }
+    if (!typeface) {
+        return nullptr;
+    }
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
+    return new Typeface(typefaceImpl);
 }
 
 void SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,

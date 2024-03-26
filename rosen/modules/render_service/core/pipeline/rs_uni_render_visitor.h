@@ -185,7 +185,7 @@ private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color,
         const RSPaintStyle fillType, float alpha, int edgeWidth, std::string extra = "");
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
-    void DrawCacheRegionForDFX(std::vector<RectI> cacheRects);
+    void DrawCacheRegionForDFX(std::map<NodeId, RectI>& cacheRects);
     void DrawHwcRegionForDFX(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hwcNodes);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     void DrawAutoCacheRegionForDFX(std::vector<RectI, std::string> cacheRegionInfo);
@@ -358,7 +358,8 @@ private:
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    std::vector<RectI> cacheRenderNodeMapRects_;
+    std::map<NodeId, RectI> cacheRenderNodeMapRects_;
+    std::map<NodeId, bool> cacheRenderNodeIsUpdateMap_;
     Drawing::Rect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;
 

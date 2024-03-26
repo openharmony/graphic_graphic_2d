@@ -406,6 +406,9 @@ public:
     bool IsScale() const;
     void SetIsScale(bool isScale);
 
+    bool IsScaleInPreFrame() const;
+    void SetIsScaleInPreFrame(bool isScale);
+
     void SetPriority(NodePriorityType priority);
     NodePriorityType GetPriority();
 
@@ -679,6 +682,7 @@ private:
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
+    bool isScaleInPreFrame_ = false;
     bool hasFilter_ = false;
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;

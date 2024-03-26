@@ -72,6 +72,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",

@@ -301,6 +301,8 @@ RSPropertyDrawable::DrawablePtr RSMaskDrawable::Generate(const RSRenderContent& 
         return std::make_unique<RSGradientMaskDrawable>(mask);
     } else if (mask->IsPathMask()) {
         return std::make_unique<RSPathMaskDrawable>(mask);
+    } else if (mask->IsPixelMapMask()) {
+        return std::make_unique<RSPixelMapMaskDrawable>(mask);
     }
     return nullptr;
 }
@@ -409,6 +411,30 @@ void RSPathMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
         canvas.DrawPath(*mask_->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    }
+    canvas.RestoreToCount(tmpLayer);
+    Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);
+    canvas.SaveLayer(slrContent);
+    canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, true);
+}
+
+RSPixelMapMaskDrawable::RSPixelMapMaskDrawable(std::shared_ptr<RSMask> mask) : RSMaskDrawable(mask) {}
+
+void RSPixelMapMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    auto& properties = content.GetRenderProperties();
+    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
+    canvas.Save();
+    Drawing::SaveLayerOps slr(&bounds, nullptr);
+    canvas.SaveLayer(slr);
+    int tmpLayer = canvas.GetSaveCount();
+    Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
+    canvas.SaveLayer(slrMask);
+    {
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        if (mask_->GetImage()) {
+            canvas.DrawImage(*mask_->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
+        }
     }
     canvas.RestoreToCount(tmpLayer);
     Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);

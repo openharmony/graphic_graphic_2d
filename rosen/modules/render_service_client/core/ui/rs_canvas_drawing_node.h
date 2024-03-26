@@ -51,6 +51,7 @@ protected:
     RSCanvasDrawingNode(const RSCanvasDrawingNode&&) = delete;
     RSCanvasDrawingNode& operator=(const RSCanvasDrawingNode&) = delete;
     RSCanvasDrawingNode& operator=(const RSCanvasDrawingNode&&) = delete;
+    void CreateTextureExportRenderNodeInRT() override;
 };
 } // namespace Rosen
 } // namespace OHOS

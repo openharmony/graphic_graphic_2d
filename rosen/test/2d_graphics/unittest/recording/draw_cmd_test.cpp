@@ -163,10 +163,10 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr);
     OpDataHandle opDataHandle;
-    OpDataHandle typefaceHandle;
+    uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        typefaceHandle, 0, 0, paintHandle};
+        globalUniqueId, 0, 0, paintHandle};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle);
     player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle);
 }
@@ -580,9 +580,9 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     auto opDataHandle = CmdListHelper::AddTextBlobToCmdList(*drawCmdList, textBlob.get());
     opDataHandle.offset = 2;
     opDataHandle.size = 10;
-    OpDataHandle typefaceHandle;
+    uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, typefaceHandle, 10, 10, paintHandle}; // 10: x, y
+    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId, 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
 }
 
