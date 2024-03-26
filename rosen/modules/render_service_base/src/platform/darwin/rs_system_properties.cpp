@@ -352,5 +352,10 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
 {
     return false;
 }
+
+SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
+{
+    return SubTreePrepareCheckType::ENABLED;
+}
 } // namespace Rosen
 } // namespace OHOS

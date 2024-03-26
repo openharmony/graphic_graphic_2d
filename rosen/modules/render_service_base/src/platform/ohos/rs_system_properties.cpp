@@ -751,5 +751,13 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
         std::atoi((system::GetParameter("rosen.dumpUIPixelmapEnabled.enabled", "0")).c_str()) != 0;
     return dumpUIPixelmapEnabled;
 }
+
+SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.SubTreePrepareCheckType.type", "2");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2));
+}
 } // namespace Rosen
 } // namespace OHOS

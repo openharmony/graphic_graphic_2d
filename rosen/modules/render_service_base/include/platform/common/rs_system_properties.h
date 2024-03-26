@@ -91,6 +91,12 @@ enum class HgmRefreshRateModes {
     SET_RATE_MODE_HIGH = 3
 };
 
+enum class SubTreePrepareCheckType {
+    DISABLED = 0,                       // 0, Disable the IsSubTreeNeedPrepare check, prepare the whole subtree 
+    DISABLE_SUBTREE_DIRTY_CHECK = 1,    // 1, Disable the IsSubTreeDirty check
+    ENABLED = 2,                        // 2, Enable the IsSubTreeNeedPrepare check
+};
+
 #ifdef DDGR_ENABLE_FEATURE_OPINC
 enum class DdgrOpincType {
     DDGR_OPINC_NONE = 0,
@@ -195,6 +201,7 @@ public:
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
+    static SubTreePrepareCheckType GetSubTreePrepareCheckType();
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     static DdgrOpincType GetDdgrOpincType();
