@@ -3058,13 +3058,13 @@ bool OH_Drawing_StrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutSt
         from->Leading == to->Leading && 
         from->ForceStrutHeight == to->ForceStrutHeight && 
         from->FamiliesSize == to->FamiliesSize){
-        for (size_t i = 0; i < from->FamiliesSize; i++){
-            if (strcmp(from->Families[i],to->Families[i]) != 0){
-                return false;
+            for (size_t i = 0; i < from->FamiliesSize; i++){
+                if (strcmp(from->Families[i],to->Families[i]) != 0){
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
-    }
     return false;
 }
 

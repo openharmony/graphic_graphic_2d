@@ -83,7 +83,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .spTextStyle = Convert(style.insideTextStyle),
         .customSpTextStyle = style.customTextStyle,
         .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
-        .hintingIsOn = style.hintingIsOn;
+        .hintingIsOn = style.hintingIsOn,
     };
 }
 
