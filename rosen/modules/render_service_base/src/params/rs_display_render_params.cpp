@@ -52,7 +52,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
 
 std::string RSDisplayRenderParams::ToString() const
 {
-    std::string ret = RSRenderParams::ToString() + "\nRSDisplayRenderParams: {\n";
+    std::string ret = RSRenderParams::ToString() + ", RSDisplayRenderParams: {";
     ret += RENDER_BASIC_PARAM_TO_STRING(offsetX_);
     ret += RENDER_BASIC_PARAM_TO_STRING(offsetY_);
     ret += RENDER_BASIC_PARAM_TO_STRING(int(nodeRotation_));

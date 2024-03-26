@@ -615,6 +615,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpNodeType(out);
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
+    if (sharedTransitionParam_) {
+        out += sharedTransitionParam_->Dump();
+    }
     if (IsSuggestedDrawInGroup()) {
         out += ", [node group" + std::to_string(nodeGroupType_) + "]";
     }
@@ -817,6 +820,7 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
         if (auto context = GetContext().lock()) {
             context->AddActiveNode(shared_from_this());
         }
+        SetParentSubTreeDirty();
     }
     dirtyStatus_ = NodeDirty::DIRTY;
 }
@@ -829,6 +833,7 @@ void RSRenderNode::SetDirtyByOnTree(bool forceAddToActiveList)
         if (auto context = GetContext().lock()) {
             context->AddActiveNode(shared_from_this());
         }
+        SetParentSubTreeDirty();
     }
     dirtyStatus_ = NodeDirty::ON_TREE_DIRTY;
 }
@@ -942,15 +947,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
             "childHasVisibleEffect:%d",
             GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
     }
-
-    // if (stagingRenderParams_->NeedSync()) {
-    //     if (auto context = GetContext().lock()) {
-    //         context->AddPendingSyncNode(shared_from_this());
-    //     } else {
-    //         RS_LOGE("RSRenderNode::UpdateDrawingCacheInfoAfterChildren context is null");
-    //         OnSync();
-    //     }
-    // }
 }
 
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -1495,7 +1491,6 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         flag = true;
         auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
         filterDrawable->MarkFilterRegionInteractWithDirty();
-        // UpdateDirtySlotsAndPendingNodes(slot);
         dirtySlots_.emplace(slot);
     }
 #endif
@@ -1518,21 +1513,10 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
         flag = true;
         auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
         filterDrawable->MarkFilterRegionChanged();
-        // UpdateDirtySlotsAndPendingNodes(slot);
         dirtySlots_.emplace(slot);
     }
 #endif
 }
-
-// void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)
-// {
-//     if (dirtySlots_.find(slot) == dirtySlots_.end()) {
-//         dirtySlots_.emplace(slot);
-//     }
-//     if (auto context = GetContext().lock()) {
-//         context->AddPendingSyncNode(shared_from_this());
-//     }
-// }
 
 void RSRenderNode::RenderTraceDebug() const
 {
@@ -2699,7 +2683,7 @@ void RSRenderNode::OnTreeStateChanged()
         if (auto pairedNode = sharedTransitionParam_->GetPairedNode(id_)) {
             pairedNode->SetSharedTransitionParam(nullptr);
         }
-        sharedTransitionParam_ = nullptr;
+        SetSharedTransitionParam(nullptr);
     }
 // #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 //     if (!isOnTheTree_) {
@@ -3354,8 +3338,6 @@ void RSRenderNode::ValidateLightResources()
 
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
-    // UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
-    // AddDirtyType(RSDrawableSlot::POINT_LIGHT);
     dirtySlots_.emplace(RSDrawableSlot::POINT_LIGHT);
 }
 
@@ -3393,6 +3375,11 @@ bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)
                                                       : NodeHierarchyRelation::IN_NODE_BELOW_OUT_NODE;
     // If crossApplication_ is true, first visited node (this node) has higher hierarchy. and vice versa.
     return !crossApplication_;
+}
+
+std::string SharedTransitionParam::Dump() const
+{
+    return ", SharedTransitionParam: [" + std::to_string(inNodeId_) + " -> " + std::to_string(outNodeId_) + "]";
 }
 } // namespace Rosen
 } // namespace OHOS

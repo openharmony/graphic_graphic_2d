@@ -1172,6 +1172,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
 
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
+    curAlpha_ = 1.0f;
 
     if (node.IsSubTreeDirty()) {
         QuickPrepareChildren(node);
@@ -1210,6 +1211,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode AfterUpdateSurfaceDirtyCalc fail");
         return;
     }
+    auto prevAlpha = curAlpha_;
+    curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
 
     UpdateHwcNodeInfoForAppNode(node);
 
@@ -1219,10 +1222,12 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*(node.GetDirtyManager()), dirtyFlag_);
 
+    node.SetGlobalAlpha(curAlpha_);
     PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
+    curAlpha_ = prevAlpha;
 }
 
 void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
@@ -1325,6 +1330,8 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     auto nodeParent = node.GetParent().lock();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     auto dirtyFlag = dirtyFlag_;
+    auto prevAlpha = curAlpha_;
+    curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
 
     RectI prepareClipRect = prepareClipRect_;
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager,
@@ -1338,6 +1345,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
+    curAlpha_ = prevAlpha;
 }
 
 void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
@@ -1346,6 +1354,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto nodeParent = node.GetParent().lock();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     auto dirtyFlag = dirtyFlag_;
+    auto prevAlpha = curAlpha_;
+    curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
 
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoBeforeChildren();
@@ -1366,6 +1376,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
+    curAlpha_ = prevAlpha;
 }
 
 void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
@@ -1394,9 +1405,6 @@ void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
     MergeRemovedChildDirtyRegion(node);
-    auto prevAlpha = curAlpha_;
-    auto alpha = std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
-    curAlpha_ *= alpha;
     node.ResetChildRelevantFlags();
     auto children = node.GetSortedChildren();
     // leashwindow should not include multi mainwindow
@@ -1411,14 +1419,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             node->QuickPrepare(shared_from_this());
         });
     }
-    node.ResetGeoUpdateDelay();
-    if (node.GetSharedTransitionParam()) {
-        node.GetStagingRenderParams()->SetAlpha(curAlpha_);
-    } else {
-        node.GetStagingRenderParams()->SetAlpha(alpha);
-    }
-    PostPrepare(node);
-    curAlpha_ = prevAlpha;
 }
 
 bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
@@ -1441,8 +1441,6 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     }
     screenInfo_ = screenManager_->QueryScreenInfo(node.GetScreenId());
     curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
-
-    // RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
@@ -1982,11 +1980,13 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
     }
     node.MapAndUpdateChildrenRect();
     node.UpdateLocalDrawRect();
-    // if (node.UpdateLocalDrawRect()) {
-    //     RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
-    // }
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoAfterChildren();
+    }
+    if (node.GetSharedTransitionParam()) {
+        node.GetStagingRenderParams()->SetAlpha(curAlpha_);
+    } else {
+        node.GetStagingRenderParams()->SetAlpha(node.GetRenderProperties().GetAlpha());
     }
     node.PostPrepare();
 }
@@ -2361,6 +2361,8 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     const auto& property = node.GetRenderProperties();
     bool geoDirty = property.IsGeoDirty();
     auto geoPtr = (property.GetBoundsGeometry());
+    auto prevAlpha = curAlpha_;
+    curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
 
     if (curSurfaceDirtyManager_ == nullptr) {
         RS_LOGE("RSUniRenderVisitor::PrepareRootRenderNode curSurfaceDirtyManager is nullptr");
@@ -2403,6 +2405,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         node.UpdateParentChildrenRect(logicParentNode_.lock());
     }
 
+    curAlpha_ = prevAlpha;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;

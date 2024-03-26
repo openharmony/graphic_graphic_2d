@@ -41,7 +41,6 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
     auto rootNodeId = node->GetInstanceRootNodeId();
     std::unique_lock<std::mutex> lock(activeNodesInRootMutex_);
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
-    node->SetParentSubTreeDirty();
 }
 
 bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)

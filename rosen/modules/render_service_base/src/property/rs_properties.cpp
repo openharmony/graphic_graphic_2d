@@ -382,12 +382,18 @@ bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& p
     if (boundsGeo_ == nullptr) {
         return false;
     }
-    auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
-    auto parentGeo = parent ? parentProperties->GetBoundsGeometry() : nullptr;
-    // [planning] surfaceNode use frame instead
     std::optional<Drawing::Point> offset;
-    if (parentProperties && needParentOffset) {
-        offset = Drawing::Point { parentProperties->GetFrameOffsetX(), parentProperties->GetFrameOffsetY() };
+    std::shared_ptr<RSObjAbsGeometry> parentGeo;
+
+    // [planning] surfaceNode use frame instead
+    if (sandbox_) {
+        auto instanceRootNode = parent ? parent->GetInstanceRootNode() : nullptr;
+        parentGeo = instanceRootNode ? instanceRootNode->GetRenderProperties().GetBoundsGeometry() : nullptr;
+        offset = Drawing::Point { sandbox_->position_->x_, sandbox_->position_->y_ };
+    } else if (parent && needParentOffset) {
+        auto& parentProperties = parent->GetRenderProperties();
+        parentGeo = parentProperties.GetBoundsGeometry();
+        offset = Drawing::Point { parentProperties.GetFrameOffsetX(), parentProperties.GetFrameOffsetY() };
     }
     auto prevAbsMatrix = prevAbsMatrix_;
     boundsGeo_->UpdateMatrix(parentGeo, offset, clipRect);
@@ -2384,7 +2390,7 @@ std::string RSProperties::Dump() const
         return "Failed to memset_s for Alpha, ret=" + std::to_string(ret);
     }
     if (!ROSEN_EQ(GetAlpha(), 1.f) &&
-        sprintf_s(buffer, UINT8_MAX, ", Alpha[%.1f]", GetAlpha()) != -1) {
+        sprintf_s(buffer, UINT8_MAX, ", Alpha[%.3f]", GetAlpha()) != -1) {
         dumpInfo.append(buffer);
     }
 

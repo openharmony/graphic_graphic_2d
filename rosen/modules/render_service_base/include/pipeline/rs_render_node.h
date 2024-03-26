@@ -767,7 +767,6 @@ private:
 
     // for blur cache
     void ResetFilterCacheClearFlags();
-    // void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
 
     RectI lastFilterRegion_;
     bool backgroundFilterRegionChanged_ = false;
@@ -794,6 +793,7 @@ struct SharedTransitionParam {
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
+    std::string Dump() const;
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;

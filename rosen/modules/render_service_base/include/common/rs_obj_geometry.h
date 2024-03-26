@@ -305,15 +305,6 @@ public:
         }
         return *this;
     }
-    virtual void Reset()
-    {
-        x_ = -INFINITY;
-        y_ = -INFINITY;
-        z_ = 0.0f;
-        width_ = -INFINITY;
-        height_ = -INFINITY;
-        trans_.reset();
-    }
 
 protected:
     float x_;

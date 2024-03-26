@@ -262,8 +262,14 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 
 std::string RSRenderParams::ToString() const
 {
-    std::string ret = "\nRSRenderParams:";
+    std::string ret = "RSRenderParams:";
     ret += RENDER_BASIC_PARAM_TO_STRING(id_);
+    if (alpha_ != 1.0f) {
+        ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
+    }
+    if (hasSharedTransition_) {
+        ret += RENDER_BASIC_PARAM_TO_STRING(hasSharedTransition_);
+    }
     ret += RENDER_RECT_PARAM_TO_STRING(localDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);
     return ret;

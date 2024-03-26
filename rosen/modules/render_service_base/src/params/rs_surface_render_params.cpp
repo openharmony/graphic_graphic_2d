@@ -156,7 +156,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
 
 std::string RSSurfaceRenderParams::ToString() const
 {
-    std::string ret = RSRenderParams::ToString() + "\nRSSurfaceRenderParams: {\n";
+    std::string ret = RSRenderParams::ToString() + ", RSSurfaceRenderParams: {";
     ret += RENDER_BASIC_PARAM_TO_STRING(int(rsSurfaceNodeType_));
     ret += RENDER_BASIC_PARAM_TO_STRING(int(selfDrawingType_));
     ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
