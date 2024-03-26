@@ -121,5 +121,19 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         shadows == rhs.shadows &&
         fontFeatures == rhs.fontFeatures;
 }
+
+bool isEqualByFonts(const TextStyle &rhs) const
+{
+    return !isPlaceholder && !rhs.isPlaceholder &&
+        fontStyle == rhs.fontStyle &&
+        fontFamilies == rhs.fontFamilies &&
+        fontFeatures == rhs.fontFeatures &&
+        Drawing::IsScalarAlmostEqual(letterSpacing, rhs.letterSpacing) &&
+        Drawing::IsScalarAlmostEqual(wordSpacing, rhs.wordSpacing) &&
+        Drawing::IsScalarAlmostEqual(heightScale, rhs.heightScale) &&
+        Drawing::IsScalarAlmostEqual(baseLineShift, rhs.baseLineShift) &&
+        Drawing::IsScalarAlmostEqual(fontSize, rhs.fontSize) &&
+        locale == rhs.locale;
+}
 } // namespace Rosen
 } // namespace OHOS

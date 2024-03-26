@@ -528,7 +528,7 @@ typedef enum {
     LetterSpacing,
     /** Word spacing style */
     WordSpacing
-}OH_Drawing_TextStyleType;
+} OH_Drawing_TextStyleType;
 
 /**
  * @brief Creates an <b>OH_Drawing_TypographyStyle</b> object.
@@ -2333,7 +2333,7 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_DestroyEllipsis(char* ellipsis);
+void OH_Drawing_TypographyStyleDestroyEllipsis(char* ellipsis);
 
 /**
  * @brief Overriding the class ParagraphStyle equals operator.
@@ -2372,42 +2372,42 @@ OH_Drawing_FontConfigInfo* OH_Drawing_GetSystemFontConfigInfo(OH_Drawing_FontCon
 void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo*);
 
 /**
- * @brief Gets whether two TextStyle objects are equal.
+ * @brief Gets whether the two TextStyle objects are equal.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param style Indicates source of comparison OH_Drawing_TextStyle object.
- * @param compareStyle Indicates comparison OH_Drawing_TextStyle object.
+ * @param style Indicates source of comparison <b>OH_Drawing_TextStyle</b> object.
+ * @param comparedStyle Indicates comparison <b>OH_Drawing_TextStyle</b> object.
  * @return Compare result.
  * @since 12
  * @version 1.0
  */
-bool OH_Drawing_TextStyleIsEquals(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* compareStyle);
+bool OH_Drawing_TextStyleIsEquals(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* comparedStyle);
 
 /**
  * @brief Gets whether the font properties of two TextStyle objects are equal.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param style Indicates source of comparison OH_Drawing_TextStyle object.
- * @param compareStyle Indicates comparison OH_Drawing_TextStyle object.
+ * @param style Indicates source of <b>comparison OH_Drawing_TextStyle</b> object.
+ * @param comparedStyle Indicates comparison <b>OH_Drawing_TextStyle</b> object.
  * @return Compare result.
  * @since 12
  * @version 1.0
  */
-bool OH_Drawing_TextStyleIsEqualsByFonts(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* compareStyle);
+bool OH_Drawing_TextStyleIsEqualsByFonts(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* comparedStyle);
 
 /**
  * @brief Gets whether two TextStyle objects match attributes
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param textStyleType Indicates enumerates of text style type.
- * @param style Indicates source of comparison OH_Drawing_TextStyle object.
- * @param compareStyle Indicates comparison OH_Drawing_TextStyle object.
+ * @param style Indicates source of comparison <b>OH_Drawing_TextStyle</b> object.
+ * @param comparedStyle Indicates comparison <b>OH_Drawing_TextStyle</b> object.
  * @return Match attributes result.
  * @since 12
  * @version 1.0
  */
 bool OH_Drawing_TextStyleIsMatchOneAttribute(OH_Drawing_TextStyleType textStyleType,
-    const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* compareStyle);
+    const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* comparedStyle);
 
 /**
  * @brief Set placeholder of TextStyle.
@@ -2442,11 +2442,11 @@ bool OH_Drawing_TextStyleIsPlaceholder(OH_Drawing_TextStyle* style);
 OH_Drawing_TextAlign OH_Drawing_TypographyStyleGetEffectiveAlignment(OH_Drawing_TypographyStyle* style);
 
 /**
- * @brief Gets whether hinting is enabled.
+ * @brief Gets whether the hinting is enabled.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @return True indicates that the hinting takes effect, false indicates that the hinting does not take effect.
+ * @return True, if the hinting takes effect; false if the hinting does not take effect.
  * @since 12
  * @version 1.0
  */

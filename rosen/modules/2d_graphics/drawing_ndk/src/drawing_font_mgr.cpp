@@ -193,3 +193,71 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_Font
     TypefaceMgr::GetInstance().Insert(drawingTypeface, sharedTypeface);
     return drawingTypeface;
 }
+
+OH_Drawing_Typeface* OH_Drawing_FontStyleSetCreateTypeface(OH_Drawing_FontStyleSet* fontStyleSet, int index)
+{
+    FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
+    if (converFontStyleSet == nullptr) {
+        return nullptr;
+    }
+    auto drawingTypeface = converFontStyleSet->CreateTypeface(index);
+    if (!drawingTypeface) {
+        return nullptr;
+    }
+    std::shared_ptr<Typeface> typeface(drawingTypeface);
+    TypefaceMgr::GetInstance().Insert(drawingTypeface, typeface);
+    return reinterpret_cast<OH_Drawing_Typeface*>(drawingTypeface);
+}
+
+void OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet* fontStyleSet, int32_t index,
+    OH_Drawing_FontStyleStruct* fontStyleStruct, const char* styleName)
+{
+    if (fontStyleStruct == nullptr) {
+        return;
+    }
+    FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
+    if (converFontStyleSet == nullptr) {
+        return;
+    }
+    FontStyle tempFontStyle;
+    std::string tempStringPtr;
+    size_t len = tempStringPtr.length() + 1;
+    converFontStyleSet->GetStyle(index, &tempFontStyle, &tempStringPtr);
+    char* allocatedMemoryForStyleName = new char[len];
+    strcpy_s(allocatedMemoryForStyleName, len, tempStringPtr.c_str());
+    styleName = &allocatedMemoryForStyleName;
+    delete[] allocatedMemoryForStyleName;
+    fontStyleStruct->weight = static_cast<OH_Drawing_FontStyleWeight>(tempFontStyle.GetWeight());
+    fontStyleStruct->width = static_cast<OH_Drawing_FontStyleWidth>(tempFontStyle.GetWidth());
+    fontStyleStruct->slant = static_cast<OH_Drawing_FontStyleSlant>(tempFontStyle.GetSlant());
+}
+
+OH_Drawing_Typeface* OH_Drawing_FontStyleSetMatchStyle(OH_Drawing_FontStyleSet* fontStyleSet,
+    OH_Drawing_FontStyleStruct* fontStyleStruct)
+{
+    if (fontStyleStruct == nullptr) {
+        return nullptr;
+    }
+    FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
+    if (converFontStyleSet == nullptr) {
+        return nullptr;
+    }
+    auto drawingTypeface = converFontStyleSet->MatchStyle(
+        FontStyle(fontStyleStruct.weight, fontStyleStruct.width,
+        static_cast<FontStyle::Slant>(fontStyleStruct->slant)));
+    if (!drawingTypeface) {
+        return nullptr;
+    }
+    std::shared_ptr<Typeface> typeface(drawingTypeface);
+    TypefaceMgr::GetInstance().Insert(drawingTypeface, typeface);
+    return reinterpret_cast<OH_Drawing_Typeface*>(drawingTypeface);
+}
+
+int OH_Drawing_FontStyleSetCount(OH_Drawing_FontStyleSet* fontStyleSet)
+{
+    FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
+    if (converFontStyleSet == nullptr) {
+        return 0;
+    }
+    return converFontStyleSet->Count();
+}

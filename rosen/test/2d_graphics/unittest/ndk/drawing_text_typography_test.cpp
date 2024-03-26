@@ -2079,7 +2079,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest070, TestSize.Level
     EXPECT_TRUE(result != nullptr);
     result = OH_Drawing_TypographyGetTextEllipsis(nullptr);
     EXPECT_TRUE(result == nullptr);
-    OH_Drawing_DestroyEllipsis(result);
+    OH_Drawing_TypographyStyleDestroyEllipsis(result);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     typoStyle = nullptr;
     EXPECT_TRUE(typoStyle == nullptr);
@@ -2158,19 +2158,18 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
 {
- OH_Drawing_TextStyle *textStyle1 = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyle *textStyle2 = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
-    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    bool result = OH_Drawing_TextStyleIsEquals(typography, textStyle1, textStyle2);
+    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
+    bool result = OH_Drawing_TextStyleIsEquals(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == true);
-    OH_Drawing_SetTextStyleColor(textStyle1, 1);
-    result = OH_Drawing_TextStyleIsEquals(typography, textStyle1, textStyle2);
-    OH_Drawing_SetTextStyleColor(textStyle2, 1);
-    result = OH_Drawing_TextStyleIsEquals(typography, textStyle1, textStyle2);
+    OH_Drawing_SetTextStyleColor(txtStyle, 1);
+    result = OH_Drawing_TextStyleIsEquals(txtStyle, txtStyleCompare);
+    EXPECT_TRUE(result == false);
+    OH_Drawing_SetTextStyleColor(txtStyleCompare, 1);
+    result = OH_Drawing_TextStyleIsEquals(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == true);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTextStyle(txtStyleCompare);
 }
 
 /*
@@ -2180,19 +2179,17 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
 {
-    OH_Drawing_TextStyle *textStyle1 = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyle *textStyle2 = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
-    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    OH_Drawing_SetTextStyleLocale(textStyle1, "en");
-    OH_Drawing_SetTextStyleLocale(textStyle2, "en");
-    bool result = OH_Drawing_TextStyleIsEqualsByFonts(typography, textStyle1, textStyle2);
+    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleLocale(txtStyle, "en");
+    OH_Drawing_SetTextStyleLocale(txtStyleCompare, "en");
+    bool result = OH_Drawing_TextStyleIsEqualsByFonts(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == true);
-    OH_Drawing_SetTextStyleLocale(textStyle2,"ch");
-    result = OH_Drawing_TextStyleIsEqualsByFonts(typography, textStyle1, textStyle2);
+    OH_Drawing_SetTextStyleLocale(txtStyle, "ch");
+    result = OH_Drawing_TextStyleIsEqualsByFonts(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == false);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTextStyle(txtStyleCompare);
 }
 
 /*
@@ -2202,17 +2199,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level1)
 {
-    OH_Drawing_TextStyle *textStyle1 = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyle *textStyle2 = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
-    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    bool result = OH_Drawing_TextStyleIsMatchOneAttribute(typography, AllAttributes, textStyle1, textStyle2);
+    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
+    bool result = OH_Drawing_TextStyleIsMatchOneAttribute(AllAttributes, txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == true);
-    OH_Drawing_SetTextStyleLocale(textStyle2,"en");
-    result = OH_Drawing_TextStyleIsMatchOneAttribute(typography, AllAttributes, textStyle1, textStyle2);
+    OH_Drawing_SetTextStyleLocale(txtStyle, "en");
+    result = OH_Drawing_TextStyleIsMatchOneAttribute(AllAttributes, txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == false);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTextStyle(txtStyleCompare);
 }
 
 /*
@@ -2226,6 +2221,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level
     EXPECT_EQ(OH_Drawing_TextStyleIsPlaceholder(txtStyle), false);
     OH_Drawing_TextStyleSetPlaceholder(txtStyle);
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->isPlaceholder, true);
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
 
 /*
@@ -2236,7 +2232,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(typoStyle), TEXT_ALIGN_START);
+    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(typoStyle), TEXT_ALIGN_LEFT);
     EXPECT_EQ(OH_Drawing_TypographyStyleIsHintingEnabled(typoStyle), false);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 }
