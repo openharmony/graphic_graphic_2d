@@ -25,6 +25,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "utils/region.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -139,6 +140,10 @@ public:
     ~RSPaintFilterCanvas() override {};
 
     void CopyConfiguration(const RSPaintFilterCanvas& other);
+    void UpdateDirtyRegion(Drawing::Region& resultRegion);
+    Drawing::Region& GetDirtyRegion();
+    void SetDirtyFlag(bool flag);
+    bool GetDirtyFlag();
 
     // alpha related
     void MultiplyAlpha(float alpha);
@@ -269,6 +274,9 @@ private:
     Drawing::Surface* surface_ = nullptr;
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
+
+    Drawing::Region visibleRegion_ = Drawing::Region();
+    bool visibleDirtyFlag_ = false;
     
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;

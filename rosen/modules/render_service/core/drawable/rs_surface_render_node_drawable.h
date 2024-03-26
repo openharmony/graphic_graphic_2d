@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 
 #include "drawable/rs_render_node_drawable.h"
+#include "params/rs_surface_render_params.h"
 
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
@@ -35,6 +36,8 @@ private:
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
+    Drawing::Region CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
+        std::shared_ptr<RSSurfaceRenderNode> surfaceNode) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 };

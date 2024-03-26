@@ -17,10 +17,12 @@
 
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "utils/rect.h"
+#include "utils/region.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -32,6 +34,17 @@ RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(std::shared_ptr<const RSR
 RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
     return new RSCanvasRenderNodeDrawable(std::move(node));
+}
+
+bool RSCanvasRenderNodeDrawable::QuickReject(Drawing::Canvas& canvas, RectI localDrawRect)
+{
+    Drawing::Rect dst;
+    canvas.GetTotalMatrix().MapRect(dst, {localDrawRect.GetLeft(), localDrawRect.GetTop(),
+        localDrawRect.GetRight(), localDrawRect.GetBottom()});
+    auto deviceClipRegion = static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyRegion();
+    Drawing::Region dstRegion;
+    dstRegion.SetRect(dst.RoundOut());
+    return !(deviceClipRegion.IsIntersects(dstRegion));
 }
 
 /*
@@ -49,12 +62,10 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
-    auto localDrawRect = params->GetLocalDrawRect();
-    bool quickRejected = canvas.QuickReject(
-        {localDrawRect.GetLeft(), localDrawRect.GetTop(),localDrawRect.GetRight(), localDrawRect.GetBottom()});
-    if (quickRejected) {
+    if (static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
+        QuickReject(canvas, params->GetLocalDrawRect())) {
         RS_LOGD("This Node have no intersect with canvas's clipRegion");
-        //return;
+        return;
     }
 
     if (params->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {

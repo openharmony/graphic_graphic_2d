@@ -204,7 +204,6 @@ RectI RSDirtyRegionManager::GetPixelAlignedRect(const RectI& rect, int32_t align
 
 void RSDirtyRegionManager::Clear()
 {
-    dirtyRegion_.Clear();
     currentFrameDirtyRegion_.Clear();
     visitedDirtyRegions_.clear();
     mergedDirtyRegions_.clear();

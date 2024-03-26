@@ -32,6 +32,7 @@ public:
     void DrawShadow(Drawing::Canvas& canvas) override;
 
 private:
+    bool QuickReject(Drawing::Canvas& canvas, RectI localDrawRect);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
     static Registrar instance_;
 };

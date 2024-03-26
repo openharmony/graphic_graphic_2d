@@ -1197,6 +1197,26 @@ void RSPaintFilterCanvas::RestoreStatus(const SaveStatus& status)
     RestoreEnvToCount(status.envSaveCount);
 }
 
+void RSPaintFilterCanvas::UpdateDirtyRegion(Drawing::Region& resultRegion)
+{
+    visibleRegion_ = resultRegion;
+}
+
+Drawing::Region& RSPaintFilterCanvas::GetDirtyRegion()
+{
+    return visibleRegion_;
+}
+
+void RSPaintFilterCanvas::SetDirtyFlag(bool flag)
+{
+    visibleDirtyFlag_ = flag;
+}
+
+bool RSPaintFilterCanvas::GetDirtyFlag()
+{
+    return visibleDirtyFlag_;
+}
+
 void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
 {
     // Note:

@@ -15,17 +15,20 @@
 
 #include "drawable/rs_surface_render_node_drawable.h"
 
+#include <memory>
 #include "rs_trace.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "impl_interface/region_impl.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
-#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "utils/rect.h"
+#include "utils/region.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -37,6 +40,34 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
     return new RSSurfaceRenderNodeDrawable(std::move(node));
+}
+
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
+   std::shared_ptr<RSSurfaceRenderNode> surfaceNode) const
+{
+    Drawing::Region resultRegion;
+    if (!surfaceParams->IsMainWindowType()) {
+        return resultRegion;
+    }
+
+    // The region is dirty region of this SurfaceNode.
+    Occlusion::Region surfaceNodeDirtyRegion(surfaceNode->GetDirtyManager()->GetDirtyRegion());
+    // The region is the result of global dirty region AND occlusion region.
+    Occlusion::Region globalDirtyRegion = static_cast<Occlusion::Region>(surfaceNode->GetGlobalDirtyRegion());
+    // This include dirty region and occlusion region when surfaceNode is mainWindow.
+    auto visibleDirtyRegion = globalDirtyRegion.Or(surfaceNodeDirtyRegion);
+    if (visibleDirtyRegion.IsEmpty()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s NodeId:%" PRIu64 "",
+            surfaceNode->GetName().c_str(), surfaceParams->GetId());
+        return resultRegion;
+    }
+
+    for (auto& rect : visibleDirtyRegion.GetRegionRects()) {
+        Drawing::Region tempRegion;
+        tempRegion.SetRect(Drawing::RectI(rect.left_, rect.top_, rect.right_, rect.bottom_));
+        resultRegion.Op(tempRegion, Drawing::RegionOp::UNION);
+    }
+    return resultRegion;
 }
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
@@ -54,16 +85,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
+    Drawing::Region resultRegion = CalculateVisibleRegion(surfaceParams, surfaceNode);
+    if (surfaceParams->IsMainWindowType() && resultRegion.IsEmpty()) {
+        return;
+    }
 
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
-        return;
-    }
-
-    if (surfaceParams->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s NodeId:%" PRIu64 "",
-            surfaceNode->GetName().c_str(), surfaceParams->GetId());
         return;
     }
 
@@ -97,6 +126,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->Save();
     }
 
+    if (surfaceParams->IsMainWindowType()) {
+        rscanvas->UpdateDirtyRegion(resultRegion);
+        rscanvas->SetDirtyFlag(true);
+    }
+
     rscanvas->ConcatMatrix(surfaceParams->GetMatrix());
 
     if (isSelfDrawingSurface) {
@@ -114,6 +148,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     RSRenderNodeDrawable::OnDraw(canvas);
+    rscanvas->SetDirtyFlag(false);
 }
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
