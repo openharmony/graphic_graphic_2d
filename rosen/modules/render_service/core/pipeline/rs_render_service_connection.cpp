@@ -35,6 +35,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
+#include "render/rs_typeface_cache.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
@@ -174,6 +175,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
             mainThread_->ClearSurfaceOcclusionChangeCallback(remotePid_);
         }).wait();
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         cleanDone_ = true;
@@ -1016,6 +1018,23 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
             RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getPixelmapTask, true);
     }
     return result;
+}
+
+bool RSRenderServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
+    std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    RS_LOGD("RSRenderServiceConnection::RegisterTypeface: pid[%{public}d] register typeface[%{public}u]",
+        RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+    return true;
+}
+
+bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+{
+    RS_LOGD("RSRenderServiceConnection::UnRegisterTypeface: pid[%{public}d] unregister typeface[%{public}u]",
+        RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
+    return true;
 }
 
 int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)

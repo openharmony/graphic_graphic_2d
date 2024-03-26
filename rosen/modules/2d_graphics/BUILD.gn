@@ -313,6 +313,7 @@ template("graphics2d_source_set") {
       }
 
       deps += [ "//third_party/bounds_checking_function:libsec_static" ]
+      deps += [ "$graphic_2d_root/utils:sandbox_utils" ]
       defines += [ "MODULE_DRAWING" ]
 
       deps += [ "//third_party/skia:skia_$platform" ]

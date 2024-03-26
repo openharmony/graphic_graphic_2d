@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <functional>
 
 #include "rs_interfaces.h"
@@ -187,6 +188,22 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
+}
+
+bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        return renderServiceClient_->RegisterTypeface(typeface);
+    }
+    return true;
+}
+
+bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        return renderServiceClient_->UnRegisterTypeface(typeface);
+    }
+    return true;
 }
 
 #ifndef ROSEN_ARKUI_X

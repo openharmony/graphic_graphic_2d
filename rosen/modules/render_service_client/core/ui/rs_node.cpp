@@ -1623,6 +1623,7 @@ void RSNode::UpdateImplicitAnimator()
 
 std::vector<PropertyId> RSNode::GetModifierIds() const
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::vector<PropertyId> ids;
     for (const auto& [id, _] : modifiers_) {
         ids.push_back(id);
@@ -1888,6 +1889,9 @@ void RSNode::AddChild(SharedPtr child, int index)
         children_.insert(children_.begin() + index, childId);
     }
     child->SetParent(id_);
+    if (isTextureExportNode_) {
+        child->SyncTextureExport(isTextureExportNode_);
+    }
     child->OnAddChildren();
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
@@ -2063,6 +2067,38 @@ void RSNode::ClearChildren()
     auto nodeId = GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(nodeId);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
+}
+
+void RSNode::SetTextureExport(bool isTextureExportNode)
+{
+    if (isTextureExportNode == isTextureExportNode_) {
+        return;
+    }
+    isTextureExportNode_ = isTextureExportNode;
+    if (!isTextureExportNode_) {
+        DoFlushModifier();
+        return;
+    }
+    CreateTextureExportRenderNodeInRT();
+    DoFlushModifier();
+}
+
+void RSNode::SyncTextureExport(bool isTextureExportNode)
+{
+    if (isTextureExportNode == isTextureExportNode_) {
+        return;
+    }
+    SetTextureExport(isTextureExportNode);
+    for (uint32_t index = 0; index < children_.size(); index++) {
+        if (auto childPtr = RSNodeMap::Instance().GetNode(children_[index])) {
+            childPtr->SyncTextureExport(isTextureExportNode);
+            if (auto transactionProxy = RSTransactionProxy::GetInstance()) {
+                std::unique_ptr<RSCommand> command =
+                    std::make_unique<RSBaseNodeAddChild>(id_, childPtr->GetHierarchyCommandNodeId(), index);
+                transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+            }
+        }
+    }
 }
 
 const std::optional<NodeId> RSNode::GetChildIdByIndex(int index) const

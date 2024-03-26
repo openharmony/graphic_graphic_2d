@@ -222,6 +222,37 @@ static void sk_free_releaseproc(const void* ptr, void*)
     ptr = nullptr;
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (!typeface) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Typeface is nullptr");
+        return false;
+    }
+    std::shared_ptr<Drawing::Data> data = typeface->Serialize();
+    if (!data) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Typeface serialize failed");
+        return false;
+    }
+    Marshalling(parcel, data);
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    std::shared_ptr<Drawing::Data> data;
+    if (!Unmarshalling(parcel, data) || !data) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Typeface data");
+        return false;
+    }
+    typeface = Drawing::Typeface::Deserialize(data->GetData(), data->GetSize());
+    if (typeface == nullptr) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Typeface Deserialize");
+        return false;
+    }
+
+    return true;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
 {
     if (!val) {

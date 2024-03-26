@@ -14,6 +14,7 @@
  */
 
 #include "rs_render_service_connection_stub.h"
+#include <memory>
 #include "ivsync_connection.h"
 #include "securec.h"
 #include "sys_binder.h"
@@ -1001,6 +1002,32 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (result) {
                 RSMarshallingHelper::Marshalling(reply, pixelmap);
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            uint64_t uniqueId = data.ReadUint64();
+            std::shared_ptr<Drawing::Typeface> typeface;
+            bool result = false;
+            result = RSMarshallingHelper::Unmarshalling(data, typeface);
+            if (result) {
+                RegisterTypeface(uniqueId, typeface);
+            }
+            reply.WriteBool(result);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            uint64_t uniqueId = data.ReadUint64();
+            UnRegisterTypeface(uniqueId);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL): {

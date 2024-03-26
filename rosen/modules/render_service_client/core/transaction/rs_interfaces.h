@@ -81,6 +81,8 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f);
 
+    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 #ifndef ROSEN_ARKUI_X
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 

@@ -2625,6 +2625,14 @@ void RSRenderNode::SetIsScale(bool isScale)
 {
     isScale_ = isScale;
 }
+bool RSRenderNode::IsScaleInPreFrame() const
+{
+    return isScaleInPreFrame_;
+}
+void RSRenderNode::SetIsScaleInPreFrame(bool isScale)
+{
+    isScaleInPreFrame_ = isScale;
+}
 void RSRenderNode::SetPriority(NodePriorityType priority)
 {
     priority_ = priority;

@@ -18,6 +18,7 @@
 
 #include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
+#include <memory>
 #include <platform/ohos/rs_irender_service_connection.h>
 #include <platform/ohos/rs_irender_service_connection_ipc_interface_code.h>
 #include "sandbox_utils.h"
@@ -160,6 +161,8 @@ public:
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) override;
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList) override;
+    bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
+    bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 

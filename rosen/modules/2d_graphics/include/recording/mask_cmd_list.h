@@ -36,8 +36,9 @@ public:
     }
 
     /**
-     * @brief       Creates a PathCmdList with contiguous buffers.
-     * @param data  A contiguous buffers.
+     * @brief         Creates a MaskCmdList with contiguous buffers.
+     * @param data    A contiguous buffers.
+     * @param isCopy  Whether to copy data or not.
      */
     static std::shared_ptr<MaskCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 

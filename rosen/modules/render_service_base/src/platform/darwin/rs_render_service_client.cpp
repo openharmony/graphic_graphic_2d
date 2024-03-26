@@ -357,6 +357,16 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::
     return {};
 }
 
+bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    return {};
+}
+
+bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     return {};

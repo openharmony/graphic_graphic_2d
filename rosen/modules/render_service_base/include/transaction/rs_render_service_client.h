@@ -243,6 +243,8 @@ public:
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
+    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
