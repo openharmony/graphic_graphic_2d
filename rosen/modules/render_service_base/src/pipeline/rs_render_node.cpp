@@ -883,11 +883,8 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->QuickPrepareChildren(*this);
 }
 
-bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded, bool drawingCacheEnabled)
+bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
 {
-    if (drawingCacheEnabled) {
-        UpdateDrawingCacheInfoBeforeChildren(isOccluded);
-    }
     // stop visit invisible or clean without filter subtree
     if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
@@ -909,9 +906,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded, bo
     return ChildHasVisibleFilter() ? filterInGlobal : false;
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isOccluded)
+void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren()
 {
-    if (!ShouldPaint() || isOccluded) {
+    if (!ShouldPaint()) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return;
     }

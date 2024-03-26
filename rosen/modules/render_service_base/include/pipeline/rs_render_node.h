@@ -104,7 +104,7 @@ public:
     virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false, bool drawingCacheEnabled = false);
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;
@@ -469,7 +469,7 @@ public:
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
-    void UpdateDrawingCacheInfoBeforeChildren(bool isOccluded);
+    void UpdateDrawingCacheInfoBeforeChildren();
     void UpdateDrawingCacheInfoAfterChildren();
 
     virtual RectI GetFilterRect() const;
