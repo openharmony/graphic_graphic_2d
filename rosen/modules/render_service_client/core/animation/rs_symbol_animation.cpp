@@ -31,6 +31,8 @@ static const std::string ALPHA_PROP = "alpha";
 static const unsigned int PROPERTIES = 2; // symbol animation property contains two values, change from one to the other
 static const unsigned int PROP_START = 0; // symbol animation property contains two values, change from START to the END
 static const unsigned int PROP_END = 1; // symbol animation property contains two values, change from START to the END
+static const unsigned int WIDTH = 2;
+static const unsigned int HEIGHT = 3;
 
 bool IsEqual(const Vector2f& val1, const Vector2f& val2)
 {
@@ -202,9 +204,8 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
     Vector4f offsets = CalculateOffset(symbolNode.symbolData.path_,
         symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]); // index 0 offsetX of layout, 1 offsetY of layout
 
-        // 0: offsetX of newNode; 1: offsetY; 2: width; 3: height
-    if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1],
-        symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]))) {
+    if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode; 1: offsetY
+        symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
         return false;
     }
     Drawing::DrawingPiecewiseParameter scaleUnitParas;
@@ -219,7 +220,7 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
         return false;
     }
     animation->Start(canvasNode);
-    auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]);
+    auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]);
     DrawSymbolOnCanvas(recordingCanvas, symbolNode, offsets);
     canvasNode->FinishRecording();
     rsNode_->AddChild(canvasNode, -1);
@@ -324,16 +325,24 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
         } else {
             rsNode_->canvasNodesListMap[symbolSpanId] = {canvasNode};
         }
-        // 0: offsetX of newNode 1: offsetY 2: width 3: height
-        if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1],
-            symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]))) {
+        if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
+            symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
             return false;
+        }
+        auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[WIDTH],
+                                                          symbolNode.nodeBoundary[HEIGHT]);
+        DrawPathOnCanvas(recordingCanvas, symbolNode, offsets);
+        canvasNode->FinishRecording();
+        rsNode_->AddChild(canvasNode, -1);
+
+        if (symbolNode.animationIndex == -1) {
+            continue;
         }
         std::shared_ptr<RSAnimation> animation = nullptr;
         uint32_t duration = 0;
         int delay = 0;
         std::vector<float> timePercents;
-        if (!GetVariableColorAnimationParas(n, duration, delay, timePercents)) {
+        if (!GetVariableColorAnimationParas(symbolNode.animationIndex, duration, delay, timePercents)) {
             return false;
         }
         auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaPropertyPhases_[0]); // initial the alpha status
@@ -343,10 +352,6 @@ bool RSSymbolAnimation::SetVariableColorAnimation(const std::shared_ptr<TextEngi
             return false;
         }
         animation->Start(canvasNode);
-        auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[2], symbolNode.nodeBoundary[3]);
-        DrawPathOnCanvas(recordingCanvas, symbolNode, offsets);
-        canvasNode->FinishRecording();
-        rsNode_->AddChild(canvasNode, -1);
     }
     return true;
 }
@@ -424,13 +429,13 @@ void RSSymbolAnimation::SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen
 }
 
 std::shared_ptr<RSAnimation> RSSymbolAnimation::VariableColorSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-    uint32_t& duration, int& delay, std::vector<float>& timePercents)
+    const uint32_t& duration, const int& delay, const std::vector<float>& timePercents)
 {
-    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(alphaPropertyPhases_[0]); // initial the alpha status
-    if (keyframeAnimation == nullptr || rsNode == nullptr) {
+    if (alphaPropertyPhases_.size() == 0 || timePercents.size() != alphaPropertyPhases_.size()) {
         return nullptr;
     }
-    if (timePercents.size() != alphaPropertyPhases_.size()) {
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(alphaPropertyPhases_[0]); // initial the alpha status
+    if (keyframeAnimation == nullptr || rsNode == nullptr) {
         return nullptr;
     }
     keyframeAnimation->SetStartDelay(delay);
