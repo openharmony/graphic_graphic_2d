@@ -3022,6 +3022,9 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
         return nullptr;
     }
     OH_Drawing_StrutStyle* strutstyle = new OH_Drawing_StrutStyle();
+    if (strutstyle == nullptr) {
+        return nullptr;
+    }
     strutstyle->Weight = (OH_Drawing_FontWeight)(typographyStyle->lineStyleFontWeight);
     strutstyle->Style = (OH_Drawing_FontStyle)(typographyStyle->lineStyleFontStyle);
     strutstyle->Size = typographyStyle->lineStyleFontSize;
@@ -3031,7 +3034,6 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
     strutstyle->Leading = typographyStyle->lineStyleSpacingScale;
     strutstyle->ForceStrutHeight = typographyStyle->lineStyleOnly;
     strutstyle->FamiliesSize = typographyStyle->lineStyleFontFamilies.size();
-
     strutstyle->Families = (char**)malloc(strutstyle->FamiliesSize*sizeof(char*));
     for (size_t i = 0; i < strutstyle->FamiliesSize; i++)
     {
