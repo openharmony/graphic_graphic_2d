@@ -27,6 +27,7 @@
 #include "benchmarks/file_utils.h"
 #include "common/rs_optional_trace.h"
 #include "modifier/rs_modifier_type.h"
+#include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -2492,6 +2493,17 @@ bool RSRenderNode::HasUseEffectNodes() const
     return hasEffectNode_;
 }
 
+void RSRenderNode::ExcuteSurfaceCaptureCommand()
+{
+    auto task = RSOffscreenRenderThread::Instance().GetCaptureTask(GetId());
+    if (task) {
+        RSOffscreenRenderThread::Instance().PostTask(task);
+        commandExcuted_ = false;
+    } else {
+        commandExcuted_ = true;
+    }
+}
+
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {
     visitedCacheRoots_ = visitedNodes;
@@ -2624,6 +2636,14 @@ bool RSRenderNode::IsScale() const
 void RSRenderNode::SetIsScale(bool isScale)
 {
     isScale_ = isScale;
+}
+bool RSRenderNode::IsScaleInPreFrame() const
+{
+    return isScaleInPreFrame_;
+}
+void RSRenderNode::SetIsScaleInPreFrame(bool isScale)
+{
+    isScaleInPreFrame_ = isScale;
 }
 void RSRenderNode::SetPriority(NodePriorityType priority)
 {

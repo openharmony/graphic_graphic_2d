@@ -491,7 +491,11 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWi
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas,
     double potisionX, double potisionY)
 {
-    ConvertToOriginalText<Typography>(typography)->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas),
+    auto drawingCanvas = reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas);
+    if (drawingCanvas && drawingCanvas->GetDrawingType() == OHOS::Rosen::Drawing::DrawingType::RECORDING) {
+        (static_cast<OHOS::Rosen::Drawing::RecordingCanvas*>(drawingCanvas))->SetIsCustomTypeface(true);
+    }
+    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas,
         potisionX, potisionY);
 }
 

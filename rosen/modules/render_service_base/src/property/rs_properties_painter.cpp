@@ -1395,6 +1395,11 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    } else if (mask->IsPixelMapMask()) {
+        Drawing::AutoCanvasRestore arc(canvas, true);
+        if (mask->GetImage()) {
+            canvas.DrawImage(*mask->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
+        }
     }
 
     // back to mask layer

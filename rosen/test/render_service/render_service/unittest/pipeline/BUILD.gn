@@ -475,6 +475,10 @@ ohos_unittest("RSUniRenderVisitorTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
+  if (graphic_2d_feature_enable_opinc) {
+    import("//foundation/graphic/graphic_2d_ext/opinc/config.gni")
+    include_dirs += opinc_adapter_opt_set.opinc_include_set
+  }
 }
 
 ## Build RSUniUiCaptureTest
@@ -857,6 +861,10 @@ ohos_unittest("RSDrivenRenderManagerTest") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
+  if (graphic_2d_feature_enable_opinc) {
+    import("//foundation/graphic/graphic_2d_ext/opinc/config.gni")
+    include_dirs += opinc_adapter_opt_set.opinc_include_set
   }
 }
 

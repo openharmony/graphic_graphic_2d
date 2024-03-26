@@ -254,17 +254,6 @@ void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas*, const OH_Drawing_Bitmap
 void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas*, const OH_Drawing_Rect*);
 
 /**
- * @brief Draws a sdf shape.
- *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @param OH_Drawing_Sdf Indicates the pointer to an <b>OH_Drawing_Sdf</b> object.
- * @since 12
- * @version 1.0
- */
-void OH_Drawing_CanvasDrawSdf(OH_Drawing_Canvas*, const OH_Drawing_Sdf*);
-
-/**
  * @brief Draws a circle.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -480,7 +469,7 @@ typedef enum {
      */
     SHADOW_FLAGS_GEOMETRIC_ONLY,
     /**
-     * Use all shadow falgs.
+     * Use all shadow flags.
      */
     SHADOW_FLAGS_ALL,
 } OH_Drawing_CanvasShadowFlags;

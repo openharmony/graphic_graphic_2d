@@ -238,14 +238,6 @@ typedef struct OH_Drawing_Image OH_Drawing_Image;
 typedef struct OH_Drawing_SamplingOptions OH_Drawing_SamplingOptions;
 
 /**
- * @brief Defines a sdf shape, which is used to describe directed vector dield.
- *
- * @since 12
- * @version 1.0
- */
-typedef struct OH_Drawing_Sdf OH_Drawing_Sdf;
-
-/**
  * @brief Defines a textBlobBuilder, which is used to build the textBlob.
  *
  * @since 11

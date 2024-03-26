@@ -300,7 +300,7 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
     }
 }
 
-void RSSurfaceNode::CreateTextExportRenderNodeInRT()
+void RSSurfaceNode::CreateTextureExportRenderNodeInRT()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
         RSSurfaceNodeType::SELF_DRAWING_NODE, true);
@@ -335,7 +335,7 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
         DoFlushModifier();
         return;
     }
-    CreateTextExportRenderNodeInRT();
+    CreateTextureExportRenderNodeInRT();
     SetIsTextureExportNode(isTextureExportNode);
     SetSurfaceIdToRenderNode();
     DoFlushModifier();

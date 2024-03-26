@@ -34,11 +34,12 @@ std::shared_ptr<FontMgr> FontMgr::CreateDynamicFontMgr()
     return std::make_shared<FontMgr>(ImplFactory::CreateDynamicFontMgrImpl());
 }
 
-void FontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength)
+Typeface* FontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength)
 {
     if (fontMgrImpl_) {
-        fontMgrImpl_->LoadDynamicFont(familyName, data, dataLength);
+        return fontMgrImpl_->LoadDynamicFont(familyName, data, dataLength);
     }
+    return nullptr;
 }
 
 void FontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,

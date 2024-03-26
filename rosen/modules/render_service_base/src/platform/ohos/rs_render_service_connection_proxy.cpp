@@ -16,6 +16,7 @@
 #include "rs_render_service_connection_proxy.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <message_option.h>
 #include <message_parcel.h>
 #include <vector>
@@ -714,7 +715,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -730,6 +731,7 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     data.WriteFloat(scaleX);
     data.WriteFloat(scaleY);
     data.WriteUint8(static_cast<uint8_t>(surfaceCaptureType));
+    data.WriteBool(isSync);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1549,6 +1551,48 @@ bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Medi
         RS_LOGD("RSRenderServiceConnectionProxy::GetPixelmap: GetPixelmap failed");
         return false;
     }
+    return true;
+}
+
+bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
+    std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(globalUniqueId);
+    RSMarshallingHelper::Marshalling(data, typeface);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGD("RSRenderServiceConnectionProxy::RegisterTypeface: RegisterTypeface failed");
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
+}
+
+bool RSRenderServiceConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(globalUniqueId);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGD("RSRenderServiceConnectionProxy::UnRegisterTypeface: send request failed");
+        return false;
+    }
+
     return true;
 }
 

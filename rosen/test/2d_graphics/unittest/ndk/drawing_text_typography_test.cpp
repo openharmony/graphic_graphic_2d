@@ -2191,4 +2191,30 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level
     OH_Drawing_TypographyStyleSetHintingOn(typoStyle, true);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->hintingIsOn, true);
 }
+ * @tc.name: OH_Drawing_TypographyTest073
+ * @tc.desc: test for getting all font metrics array from current line
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    EXPECT_TRUE(typoStyle != nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    EXPECT_TRUE(handler != nullptr);
+    size_t charNumber = 0;
+    const char* text = "OpenHarmony\n";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    EXPECT_TRUE(typography != nullptr);
+    OH_Drawing_Font_Metrics* StartLineFont = OH_Drawing_TypographyGetLineFontMetrics(typography, 1, &charNumber);
+    EXPECT_TRUE(StartLineFont == nullptr);
+    OH_Drawing_TypographyDestroyLineFontMetrics(StartLineFont);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
 }

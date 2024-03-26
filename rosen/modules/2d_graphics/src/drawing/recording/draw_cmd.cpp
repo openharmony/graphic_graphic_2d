@@ -14,6 +14,7 @@
  */
 
 #include "recording/draw_cmd.h"
+#include <cstdint>
 
 #include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
@@ -33,6 +34,7 @@
 #include "utils/log.h"
 #include "utils/scalar.h"
 #include "utils/system_properties.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,6 +63,13 @@ void DrawOpItem::SetBaseCallback(
     std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc)
 {
     holdDrawingImagefunc_ = holdDrawingImagefunc;
+}
+
+std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> DrawOpItem::customTypefaceQueryfunc_ = nullptr;
+void DrawOpItem::SetTypefaceQueryCallBack(
+    std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc)
+{
+    customTypefaceQueryfunc_ = customTypefaceQueryfunc;
 }
 
 void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush)
@@ -959,7 +968,11 @@ void SimplifyPaint(ColorQuad colorQuad, Paint& paint)
 DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
-    auto typeface = CmdListHelper::GetTypefaceFromCmdList(cmdList, handle->typeface);
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+    if (DrawOpItem::customTypefaceQueryfunc_) {
+        typeface = DrawOpItem::customTypefaceQueryfunc_(handle->globalUniqueId);
+    }
+
     TextBlob::Context ctx {typeface, false};
     if (typeface != nullptr) {
         ctx.SetIsCustomTypeface(true);
@@ -974,12 +987,19 @@ std::shared_ptr<DrawOpItem> DrawTextBlobOpItem::Unmarshalling(const DrawCmdList&
 
 void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
 {
+    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     TextBlob::Context ctx {nullptr, false};
-    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(cmdList, textBlob_.get());
-    auto typefaceHandle = CmdListHelper::AddTypefaceToCmdList(cmdList, ctx.GetTypeface());
-    cmdList.AddOp<ConstructorHandle>(textBlobHandle, typefaceHandle, x_, y_, paintHandle);
+    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(cmdList, textBlob_.get(), &ctx);
+    uint32_t typefaceId = 0;
+    uint64_t globalUniqueId = 0;
+    if (ctx.GetTypeface() != nullptr) {
+        typefaceId = ctx.GetTypeface()->GetUniqueID();
+        globalUniqueId = (shiftedPid | typefaceId);
+    }
+
+    cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, x_, y_, paintHandle);
 }
 
 void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)

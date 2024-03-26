@@ -17,6 +17,7 @@
 
 #include "include/core/SkTypeface.h"
 #include "convert.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,28 @@ FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollecti
     fontCollection_->SetDynamicFontManager(dfmanager_);
 }
 
+FontCollection::~FontCollection()
+{
+    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
+        return;
+    }
+    for (auto& name : familyNames_) {
+        auto styleSet = dfmanager_->MatchFamily(name.c_str());
+        if (!styleSet) {
+            continue;
+        }
+        int count = styleSet->Count();
+        for (int i = 0; i < count; ++i) {
+            Drawing::Typeface* typeface = styleSet->CreateTypeface(i);
+            if (!typeface) {
+                continue;
+            }
+            std::shared_ptr<Drawing::Typeface> drawingTypeface(typeface);
+            Drawing::Typeface::GetTypefaceUnRegisterCallBack()(drawingTypeface);
+        }
+    }
+}
+
 std::shared_ptr<txt::FontCollection> FontCollection::Get()
 {
     return fontCollection_;
@@ -59,10 +82,21 @@ void FontCollection::DisableSystemFont()
     fontCollection_->SetDefaultFontManager(nullptr);
 }
 
-void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+std::shared_ptr<Drawing::FontMgr> FontCollection::GetFontMgr()
 {
-    dfmanager_->LoadDynamicFont(familyName, data, datalen);
+    return dfmanager_;
+}
+
+void FontCollection::AddLoadedFamilyName(const std::string& name)
+{
+    familyNames_.emplace_back(name);
+}
+
+Drawing::Typeface* FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+{
+    Drawing::Typeface* typeface = dfmanager_->LoadDynamicFont(familyName, data, datalen);
     fontCollection_->ClearFontFamilyCache();
+    return typeface;
 }
 
 void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)

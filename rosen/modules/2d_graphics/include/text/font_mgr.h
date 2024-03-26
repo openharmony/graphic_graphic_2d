@@ -50,8 +50,9 @@ public:
      * @param familyName  Font family name.
      * @param data        Font data.
      * @param dataLength  The size of font data.
+     * @return  A pointer to typeface.
      */
-    void LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength);
+    Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength);
 
     /**
      * @brief             Load theme font typeface.

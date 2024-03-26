@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <functional>
 
 #include "rs_interfaces.h"
@@ -167,8 +168,8 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
     return renderServiceClient_->SetShowRefreshRateEnabled(enable);
 }
 
-bool RSInterfaces::TakeSurfaceCaptureForUI(
-    std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {
     if (!node) {
         ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
@@ -182,11 +183,30 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
         return false;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
+        if (isSync) {
+            node->SetTakeSurfaceForUIFlag();
+        }
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
-            SurfaceCaptureType::UICAPTURE);
+            SurfaceCaptureType::UICAPTURE, isSync);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
+}
+
+bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        return renderServiceClient_->RegisterTypeface(typeface);
+    }
+    return true;
+}
+
+bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        return renderServiceClient_->UnRegisterTypeface(typeface);
+    }
+    return true;
 }
 
 #ifndef ROSEN_ARKUI_X

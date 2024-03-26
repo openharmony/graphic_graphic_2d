@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cstdint>
 #define EGL_EGLEXT_PROTOTYPES
 #include "pipeline/rs_main_thread.h"
 
@@ -84,6 +85,7 @@
 #include "xcollie/watchdog.h"
 
 #include "render_frame_trace.h"
+#include "render/rs_typeface_cache.h"
 
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
@@ -321,6 +323,7 @@ void RSMainThread::Init()
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
+        RSTypefaceCache::Instance().HandleDelayDestroyQueue();
         mainLooping_.store(false);
         RS_PROFILER_ON_FRAME_END();
     };
@@ -331,6 +334,11 @@ void RSMainThread::Init()
             }
         };
     Drawing::DrawOpItem::SetBaseCallback(holdDrawingImagefunc);
+    static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
+        [] (uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
+            return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+        };
+    Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
@@ -2047,14 +2055,13 @@ void RSMainThread::SurfaceOcclusionCallback()
         float visibleAreaRatio = 0.0f;
         bool isOnTheTree = savedAppWindowNode_[listener.first].first->IsOnTheTree();
         if (isOnTheTree) {
-            const auto& property = savedAppWindowNode_[listener.first].first->GetRenderProperties();
+            const auto& property = savedAppWindowNode_[listener.first].second->GetRenderProperties();
             auto dstRect = property.GetBoundsGeometry()->GetAbsRect();
             if (dstRect.IsEmpty()) {
                 continue;
             }
             visibleAreaRatio = static_cast<float>(savedAppWindowNode_[listener.first].second->
-                GetVisibleRegionForCallBack().IntersectArea(dstRect)) /
-                static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
+                GetVisibleRegionForCallBack().Area()) / static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
             auto& partitionVector = std::get<2>(listener.second); // get tuple 2 partition points vector
             bool vectorEmpty = partitionVector.empty();
             if (vectorEmpty && (visibleAreaRatio > 0.0f)) {

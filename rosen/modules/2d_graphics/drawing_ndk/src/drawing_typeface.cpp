@@ -18,11 +18,13 @@
 #include <unordered_map>
 
 #include "text/typeface.h"
+#include "utils/log.h"
 #include "utils/object_mgr.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
+static const std::string G_SYSTTEM_FONT_DIR = "/system/fonts/";
 
 static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cCanvas)
 {
@@ -43,6 +45,16 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int ind
     if (typeface == nullptr) {
         return nullptr;
     }
+    std::string pathStr(path);
+    // system font is not sent to RenderService to optimize performance.
+    if (pathStr.substr(0, G_SYSTTEM_FONT_DIR.length()) != G_SYSTTEM_FONT_DIR &&
+        Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface);
+        if (!ret) {
+            LOGE("OH_Drawing_TypefaceCreateFromFile: register typeface failed.");
+            return nullptr;
+        }
+    }
     OH_Drawing_Typeface* drawingTypeface = reinterpret_cast<OH_Drawing_Typeface*>(typeface.get());
     TypefaceMgr::GetInstance().Insert(drawingTypeface, typeface);
     return drawingTypeface;
@@ -58,6 +70,13 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromStream(OH_Drawing_MemoryStream
     if (typeface == nullptr) {
         return nullptr;
     }
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface);
+        if (!ret) {
+            LOGE("OH_Drawing_TypefaceCreateFromStream: register typeface failed.");
+            return nullptr;
+        }
+    }
     OH_Drawing_Typeface* drawingTypeface = reinterpret_cast<OH_Drawing_Typeface*>(typeface.get());
     TypefaceMgr::GetInstance().Insert(drawingTypeface, typeface);
     return drawingTypeface;
@@ -67,6 +86,9 @@ void OH_Drawing_TypefaceDestroy(OH_Drawing_Typeface* cTypeface)
 {
     if (cTypeface == nullptr) {
         return;
+    }
+    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() != nullptr) {
+        Drawing::Typeface::GetTypefaceUnRegisterCallBack()(TypefaceMgr::GetInstance().Find(cTypeface));
     }
     TypefaceMgr::GetInstance().Remove(cTypeface);
 }

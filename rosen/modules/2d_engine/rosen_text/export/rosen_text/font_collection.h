@@ -21,6 +21,7 @@
 #include <string>
 
 #include "common/rs_macros.h"
+#include "text/font_mgr.h"
 
 namespace txt {
 class FontCollection;
@@ -36,8 +37,10 @@ public:
 
     virtual void DisableFallback() = 0;
     virtual void DisableSystemFont() = 0;
-    virtual void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
+    virtual Drawing::Typeface* LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
     virtual void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
+    virtual std::shared_ptr<Drawing::FontMgr> GetFontMgr() = 0;
+    virtual void AddLoadedFamilyName(const std::string& name) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
