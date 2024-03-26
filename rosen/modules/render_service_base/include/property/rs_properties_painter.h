@@ -131,6 +131,7 @@ private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
     inline static int g_blurCnt = 0;
 };
 } // namespace Rosen
