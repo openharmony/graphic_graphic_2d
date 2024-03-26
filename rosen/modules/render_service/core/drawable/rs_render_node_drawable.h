@@ -70,6 +70,7 @@ protected:
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
     bool HasFilterOrEffect() const;
+    virtual bool QuickReject(Drawing::Canvas& canvas, RectI localDrawRect);
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;

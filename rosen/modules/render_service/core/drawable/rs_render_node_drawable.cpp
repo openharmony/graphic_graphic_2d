@@ -179,11 +179,33 @@ std::string RSRenderNodeDrawable::DumpDrawableVec() const
     return str;
 }
 
+bool RSRenderNodeDrawable::QuickReject(Drawing::Canvas& canvas, RectI localDrawRect)
+{
+    Drawing::Rect dst;
+    canvas.GetTotalMatrix().MapRect(dst, {localDrawRect.GetLeft(), localDrawRect.GetTop(),
+        localDrawRect.GetRight(), localDrawRect.GetBottom()});
+    auto deviceClipRegion = static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyRegion();
+    Drawing::Region dstRegion;
+    dstRegion.SetRect(dst.RoundOut());
+    return !(deviceClipRegion.IsIntersects(dstRegion));
+}
+
 void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params)
 {
     // check if drawing cache enabled
     if (!isDrawingCacheEnabled_) {
         return;
+    }
+    if (params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw id:%llu cacheType:%d cacheChanged:%d" \
+            " size:[%.2f, %.2f] ChildHasVisibleFilter:%d ChildHasVisibleEffect:%d" \
+            " shadowRect:[%.2f, %.2f, %.2f, %.2f] HasFilterOrEffect:%d",
+            params.GetId(), params.GetDrawingCacheType(), params.GetDrawingCacheChanged(),
+            params.GetCacheSize().x_, params.GetCacheSize().y_,
+            params.ChildHasVisibleFilter(), params.ChildHasVisibleEffect(),
+            params.GetShadowRect().GetLeft(), params.GetShadowRect().GetTop(),
+            params.GetShadowRect().GetWidth(), params.GetShadowRect().GetHeight(),
+            HasFilterOrEffect());
     }
 
     // check drawing cache type (disabled: clear cache)

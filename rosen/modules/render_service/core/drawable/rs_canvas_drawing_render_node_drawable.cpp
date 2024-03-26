@@ -15,6 +15,7 @@
 
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 
+#include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
@@ -49,9 +50,11 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
-    auto& bounds = params->GetBounds();
-    bool quickRejected = canvas.QuickReject(bounds);
-    if (quickRejected) {
+
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
+        QuickReject(canvas, params->GetLocalDrawRect())) {
+        RS_LOGD("CanvasDrawingNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
         return;
     }
 
@@ -70,6 +73,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, UNI_RENDER_THREAD_INDEX, 0);
     };
     canvasDrawingNodeRenderContent->SetSurfaceClearFunc({ UNI_RENDER_THREAD_INDEX, clearFunc });
+    auto& bounds = params->GetBounds();
     if (!canvasDrawingNodeRenderContent->InitSurface(bounds.GetWidth(), bounds.GetHeight(), *paintFilterCanvas)) {
         RS_LOGE("Failed to init surface!");
         return;
