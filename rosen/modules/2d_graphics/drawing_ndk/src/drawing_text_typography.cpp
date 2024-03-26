@@ -2113,7 +2113,8 @@ const char* OH_Drawing_TextStyleGetLocale(OH_Drawing_TextStyle* style)
     return textStyle->locale.c_str();
 }
 
-void OH_Drawing_TypographyTextSetHeightBehavior(OH_Drawing_TypographyStyle* style, OH_Drawing_TextHeightBehavior heightMode)
+void OH_Drawing_TypographyTextSetHeightBehavior(OH_Drawing_TypographyStyle* style,
+                                                OH_Drawing_TextHeightBehavior heightMode)
 {
     TypographyStyle* convertStyle = ConvertToOriginalText<TypographyStyle>(style);
     if (convertStyle == nullptr) {
