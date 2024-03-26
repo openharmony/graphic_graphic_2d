@@ -15,6 +15,7 @@
 #include "render/rs_dynamic_dim_filter.h"
 
 #include "src/core/SkOpts.h"
+#include "platform/common/rs_log.h"
 #include "effect/color_matrix.h"
 
 namespace OHOS {
@@ -99,7 +100,7 @@ bool RSDynamicDimFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, flo
         ROSEN_LOGE("RSDynamicDimFilter::IsNearEqual: the types of filters are different.");
         return true;
     }
-    float otherDynamicDimDegree = otherDynamicDimFilter->GetLightUpDegree();
+    float otherDynamicDimDegree = otherDynamicDimFilter->GetDynamicDimDegree();
     return ROSEN_EQ(dynamicDimDegree_, otherDynamicDimDegree, threshold);
 }
 
