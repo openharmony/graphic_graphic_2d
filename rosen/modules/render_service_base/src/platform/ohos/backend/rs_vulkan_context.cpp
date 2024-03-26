@@ -440,7 +440,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateNewDrawingContext()
     std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
     auto size = vkVersion.size();
     memHandler_->ConfigureContext(&options, vkVersion.c_str(), size);
-    drawingContext_->BuildFromVK(backendContext_, options);
+    drawingContext_->BuildFromVK(hbackendContext_, options);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     int cacheLimitsTimes = CACHE_LIMITS_TIMES;

@@ -21,18 +21,10 @@ namespace TextEngine {
 class MyAnySpan : public AnySpan {
 public:
     MyAnySpan(double width, double height,
-              AnySpanAlignment align = AnySpanAlignment::ABOVE_BASELINE,
-              TextBaseline baseline = TextBaseline::ALPHABETIC,
-              double offset = 0.0,
-              uint32_t color = SK_ColorGRAY)
-    {
-        width_ = width;
-        height_ = height;
-        align_ = align;
-        baseline_ = baseline;
-        offset_ = offset;
-        color_ = color;
-    }
+        AnySpanAlignment align = AnySpanAlignment::ABOVE_BASELINE,
+        TextBaseline baseline = TextBaseline::ALPHABETIC,
+        double offset = 0.0, uint32_t color = SK_ColorGRAY) : width_(width), height_(height),
+        align_(align), baseline_(baseline), offset_(offset), color_(color) {}
 
     ~MyAnySpan() = default;
 

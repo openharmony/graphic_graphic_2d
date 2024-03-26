@@ -33,10 +33,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-SkiaPath::SkiaPath(const SkiaPath& other) noexcept
-{
-    path_ = other.path_;
-}
+SkiaPath::SkiaPath(const SkiaPath& other) noexcept : path_(other.path_) {}
 
 SkiaPath& SkiaPath::operator=(const SkiaPath& other) noexcept
 {

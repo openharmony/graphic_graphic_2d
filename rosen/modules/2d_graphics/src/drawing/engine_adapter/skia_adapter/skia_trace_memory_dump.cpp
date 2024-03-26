@@ -20,10 +20,8 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 SkiaTraceMemoryDump::SkiaTraceMemoryDump(const char* categoryKey, bool itemizeType)
-    : TraceMemoryDumpImpl(categoryKey, itemizeType)
-{
-    skiaMemoryTrace_ = std::make_shared<SkiaMemoryTracer>(categoryKey, itemizeType);
-}
+    : TraceMemoryDumpImpl(categoryKey, itemizeType),
+      skiaMemoryTrace_(std::make_shared<SkiaMemoryTracer>(categoryKey, itemizeType)) {}
 
 void SkiaTraceMemoryDump::DumpNumericValue(const char* dumpName,
     const char* valueName, const char* units, uint64_t value)

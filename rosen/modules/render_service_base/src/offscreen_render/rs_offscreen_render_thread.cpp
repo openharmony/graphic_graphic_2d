@@ -75,6 +75,26 @@ void RSOffscreenRenderThread::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSOffscreenRenderThread::InSertCaptureTask(NodeId nodeId, std::function<void()>& task)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    taskMap_[nodeId] = task;
+}
+
+const std::function<void()>& RSOffscreenRenderThread::GetCaptureTask(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (!taskMap_.empty()) {
+        auto iter = taskMap_.find(nodeId);
+        if (iter != taskMap_.end()) {
+            auto task = taskMap_[nodeId];
+            taskMap_.erase(nodeId);
+            return task;
+        }
+    }
+    return nullptr;
+}
+
 #ifdef ROSEN_OHOS
 const std::shared_ptr<RenderContext>& RSOffscreenRenderThread::GetRenderContext()
 {
