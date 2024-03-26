@@ -6,5 +6,7 @@
     { "name": "OH_NativeBuffer_Map" },
     { "name": "OH_NativeBuffer_Unmap" },
     { "name": "OH_NativeBuffer_GetSeqNum" },
-    { "name": "OH_NativeBuffer_SetColorSpace" }
+    { "name": "OH_NativeBuffer_SetColorSpace" },
+    { "name": "OH_NativeBuffer_MapPlanes" },
+    { "name": "OH_NativeBuffer_FromNativeWindowBuffer" }
 ]
