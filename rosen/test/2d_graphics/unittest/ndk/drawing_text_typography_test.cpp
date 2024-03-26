@@ -2150,7 +2150,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level
     for(int i = 0; i < strutstyle->FamiliesSize; i++){
         //2 For Test
         strutstyle->Families[i] = (char*)malloc(2*sizeof(char));
-        strcpy_s(strutstyle->Families[i], temp[i]);
+        strcpy_s(strutstyle->Families[i], 2, temp[i]);
     }
     
     OH_Drawing_SetTypographyStyleTextStrutStyle(typoStyle, strutstyle);
@@ -2191,6 +2191,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level
     OH_Drawing_TypographyStyleSetHintingOn(typoStyle, true);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->hintingIsOn, true);
 }
+
+/**
  * @tc.name: OH_Drawing_TypographyTest073
  * @tc.desc: test for getting all font metrics array from current line
  * @tc.type: FUNC
