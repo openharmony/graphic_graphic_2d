@@ -30,7 +30,7 @@ public:
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
-    void PostProcess(RSDisplayRenderNode* node) override;
+    void PostProcess() override;
     void Fill(RSPaintFilterCanvas& canvas,
         float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
     void UniScale(RSPaintFilterCanvas& canvas,

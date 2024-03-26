@@ -194,7 +194,7 @@ void RSUniRenderVirtualProcessor::CanvasAdjustment(RSDisplayRenderNode& node, bo
     }
 }
 
-void RSUniRenderVirtualProcessor::PostProcess(RSDisplayRenderNode* node)
+void RSUniRenderVirtualProcessor::PostProcess()
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess surface is null!");

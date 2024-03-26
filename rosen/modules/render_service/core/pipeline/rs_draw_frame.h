@@ -44,6 +44,7 @@ private:
     void UnblockMainThread();
     void Sync();
     void Render();
+    void ReleaseSelfDrawingNodeBuffer();
 
     RSUniRenderThread& unirenderInstance_;
 

@@ -36,7 +36,9 @@
 #include "platform/common/rs_surface_ext.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
+#include "surface_buffer.h"
 #include "surface_type.h"
+#include "sync_fence.h"
 #include "transaction/rs_occlusion_data.h"
 
 
@@ -151,6 +153,9 @@ public:
     {
         return hasSubNodeShouldPaint_;
     }
+
+    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        const sptr<SurfaceBuffer>& preBuffer);
 
     bool IsLastFrameHardwareEnabled() const
     {
@@ -299,8 +304,7 @@ public:
     void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     // keep specified nodetype preparation
-    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false,
-        bool drawingCacheEnabled = false) override;
+    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 

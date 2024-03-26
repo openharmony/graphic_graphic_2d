@@ -177,7 +177,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
     layer->SetGravity(info.gravity);
-    SetMetaDataInfoToLayer(layer, info, surface);
+    SetMetaDataInfoToLayer(layer, info.buffer, surface);
 }
 
 void RSUniRenderComposerAdapter::SetBufferColorSpace(RSDisplayRenderNode& node)
@@ -221,18 +221,18 @@ void RSUniRenderComposerAdapter::SetBufferColorSpace(RSDisplayRenderNode& node)
     }
 }
 
-void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const ComposeInfo& info,
+void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
                                                         const sptr<IConsumerSurface>& surface) const
 {
     HDRMetaDataType type;
-    if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
+    if (surface->QueryMetaDataType(buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGD("RSUniRenderComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
         return;
     }
     switch (type) {
         case HDRMetaDataType::HDR_META_DATA: {
             std::vector<GraphicHDRMetaData> metaData;
-            if (surface->GetMetaData(info.buffer->GetSeqNum(), metaData) != GSERROR_OK) {
+            if (surface->GetMetaData(buffer->GetSeqNum(), metaData) != GSERROR_OK) {
                 RS_LOGE("RSUniRenderComposerAdapter::SetComposeInfoToLayer: GetMetaData failed");
                 return;
             }
@@ -242,7 +242,7 @@ void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& laye
         case HDRMetaDataType::HDR_META_DATA_SET: {
             GraphicHDRMetadataKey key;
             std::vector<uint8_t> metaData;
-            if (surface->GetMetaDataSet(info.buffer->GetSeqNum(), key, metaData) != GSERROR_OK) {
+            if (surface->GetMetaDataSet(buffer->GetSeqNum(), key, metaData) != GSERROR_OK) {
                 RS_LOGE("RSUniRenderComposerAdapter::SetComposeInfoToLayer: GetMetaDataSet failed");
                 return;
             }

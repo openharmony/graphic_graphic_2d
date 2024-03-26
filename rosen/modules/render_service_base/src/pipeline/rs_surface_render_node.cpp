@@ -407,7 +407,7 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     }
 }
 
-bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded, bool drawingCacheEnabled)
+bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
 {
     // force preparation case
     if (IsLeashWindow()) {
@@ -415,7 +415,7 @@ bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOcclu
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    return RSRenderNode::IsSubTreeNeedPrepare(filterInGlobal, isOccluded, drawingCacheEnabled);
+    return RSRenderNode::IsSubTreeNeedPrepare(filterInGlobal, isOccluded);
 }
 
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -725,6 +725,24 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
     }
 #endif
 #endif
+}
+
+void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+    const sptr<SurfaceBuffer>& preBuffer)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetBuffer(buffer);
+    surfaceParams->SetAcquireFence(acquireFence);
+    surfaceParams->SetPreBuffer(preBuffer);
+    // TODO remove code below if hwc enabled
+    if (stagingRenderParams_->NeedSync()) {
+        if (auto context = GetContext().lock()) {
+            context->AddPendingSyncNode(shared_from_this());
+        } else {
+            RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
+            OnSync();
+        }
+    }
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -2058,9 +2076,10 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         RS_LOGE("RSSurfaceRenderNode::UpdatePartialRenderParams surfaceParams is null");
         return;
     }
-
-    surfaceParams->SetVisibleRegion(visibleRegion_);
-    surfaceParams->dstRect_ = GetDstRect();
+    if (IsMainWindowType()) {
+        surfaceParams->SetVisibleRegion(visibleRegion_);
+    }
+    surfaceParams->absDrawRect_ = GetAbsDrawRect();
 }
 
 void RSSurfaceRenderNode::InitRenderParams()

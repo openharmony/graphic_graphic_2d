@@ -130,6 +130,12 @@ bool RSProcessor::InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirror
     screenInfo_ = params->GetrScreenInfo();
     screenInfo_.rotation = params->GetNodeRotation();
 
+    renderEngine_ = renderEngine;
+    if (renderEngine_ == nullptr) {
+        RS_LOGE("renderEngine is nullptr");
+        return false;
+    }
+
     // CalculateScreenTransformMatrix
     auto mirrorNode = params->GetMirrorSource().lock();
 

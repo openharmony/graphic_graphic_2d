@@ -20,7 +20,7 @@
 
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
-
+class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
@@ -32,6 +32,9 @@ public:
     void OnCapture(Drawing::Canvas& canvas) override;
 
 private:
+    void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
+        RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 };

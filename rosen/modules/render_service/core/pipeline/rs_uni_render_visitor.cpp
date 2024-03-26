@@ -1208,8 +1208,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
 
     // 2. Recursively traverse child nodes
-    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_,
-        IsSubTreeOccluded(node), isDrawingCacheEnabled_);
+    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node));
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*(node.GetDirtyManager()), dirtyFlag_);
 
@@ -1297,7 +1296,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
         nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
 
     // 1. Recursively traverse child nodes
-    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, false, isDrawingCacheEnabled_);
+    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_);
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, dirtyFlag_);
 
@@ -1313,6 +1312,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     bool dirtyFlag = dirtyFlag_;
 
+    if (isDrawingCacheEnabled_) {
+        node.UpdateDrawingCacheInfoBeforeChildren();
+    }
+
     RectI prepareClipRect = prepareClipRect_;
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager,
         nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
@@ -1320,8 +1323,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdatePrepareclip(node);
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
-    bool IsSubTreeNeedPrepare = !curSurfaceNode_ ||
-        node.IsSubTreeNeedPrepare(filterInGlobal_, false, isDrawingCacheEnabled_);
+    bool IsSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_);
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, dirtyFlag_);
 
@@ -1493,9 +1495,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         auto dirtyManager = surfaceNode->GetDirtyManager();
         // 1. calculate abs dirtyrect and update partialRenderParams
         // currently only sync visible region info
-        if (surfaceNode->IsMainWindowType()) {
-            surfaceNode->UpdatePartialRenderParams();
-        }
+        surfaceNode->UpdatePartialRenderParams();
         // 2. check surface node dirtyrect need merge into displayDirtyManager
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
         // 3. check surface node's transparent dirtyrect need merge into displayDirtyManager
@@ -2053,7 +2053,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
 
     if (RSSystemProperties::GetQuickPrepareEnabled()) {
-        bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, false, isDrawingCacheEnabled_);
+        bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_);
         IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
             node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, dirtyFlag_);
         PrepareChildrenAfter(node);
@@ -2826,7 +2826,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         mirrorAutoRotate_ = false;
         renderFrame_->Flush();
         processor_->ProcessDisplaySurface(node);
-        processor_->PostProcess(&node);
+        processor_->PostProcess();
         return;
     }
 
@@ -2970,7 +2970,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
                 DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
-                processor_->PostProcess(&node);
+                processor_->PostProcess();
             }
             return;
         } else {
@@ -3253,7 +3253,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
     }
-    processor_->PostProcess(&node);
+    processor_->PostProcess();
     {
         std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
         EraseIf(groupedTransitionNodes, [](auto& iter) -> bool {
@@ -5167,7 +5167,7 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
         }
     }
     DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
-    processor_->PostProcess(displayNode.get());
+    processor_->PostProcess();
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;
 }

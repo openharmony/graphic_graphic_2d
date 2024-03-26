@@ -50,6 +50,7 @@ public:
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
     void PostSyncTask(const std::function<void()>& task);
     void Render();
+    void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyDisplayNodeBufferReleased();
     bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler);

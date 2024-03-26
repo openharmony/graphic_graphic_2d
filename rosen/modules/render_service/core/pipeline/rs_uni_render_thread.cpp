@@ -16,16 +16,22 @@
 #include <memory>
 
 #include <malloc.h>
+#include "graphic_common_c.h"
 #include "rs_trace.h"
 #include "hgm_core.h"
 
 #include "common/rs_common_def.h"
 #include "include/core/SkGraphics.h"
+#include "surface.h"
+#include "sync_fence.h"
 #include "memory/rs_memory_manager.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #ifdef RES_SCHED_ENABLE
@@ -159,6 +165,31 @@ void RSUniRenderThread::Render()
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
     rootNodeDrawable_->OnDraw(canvas);
+}
+
+void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
+{
+    for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (!params->GetHardwareEnabled()) {
+            auto& preBuffer = params->GetPreBuffer();
+            if (preBuffer == nullptr) {
+                continue;
+            }
+            auto releaseTask = [buffer = preBuffer, consumer = surfaceNode->GetConsumer()]() mutable {
+                auto ret = consumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
+                if (ret != OHOS::SURFACE_ERROR_OK) {
+                    RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
+                }
+            };
+            preBuffer = nullptr;
+            if (params->GetLastFrameHardwareEnabled()) {
+                RSHardwareThread::Instance().PostTask(releaseTask);
+            } else {
+                releaseTask();
+            }
+        }
+    }
 }
 
 uint64_t RSUniRenderThread::GetTimestamp()

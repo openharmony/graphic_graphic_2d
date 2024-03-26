@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "params/rs_surface_render_params.h"
 #include "utils/matrix.h"
 
 #include "rs_base_render_engine.h"
@@ -28,6 +29,7 @@ namespace OHOS {
 namespace Rosen {
 class RSRcdSurfaceRenderNode;
 class RSDisplayRenderParams;
+class RSSurfaceRenderParams;
 class RSProcessor {
 public:
     RSProcessor() = default;
@@ -37,9 +39,10 @@ public:
     void operator=(const RSProcessor&) = delete;
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false);
+    virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
-    virtual void PostProcess(RSDisplayRenderNode* node = nullptr) = 0;
+    virtual void PostProcess() = 0;
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);

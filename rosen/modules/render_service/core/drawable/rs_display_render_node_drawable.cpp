@@ -23,6 +23,7 @@
 
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -239,7 +240,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 return;
             }
         processor->ProcessDisplaySurface(*mirrorNode);
-        processor->PostProcess(displayNodeSp.get());
+        processor->PostProcess();
         return;
     }
 
@@ -274,7 +275,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     {
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-        if (!uniParam || !uniParam->IsOpDropped()) {
+        if (!uniParam || uniParam->IsOpDropped()) {
             ClipRegion(*curCanvas_, region);
         }
         SetHighContrastIfEnabled(*curCanvas_);
@@ -296,8 +297,18 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_TRACE_END();
 
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable CommitLayer");
+    auto& selfDrawingNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetSelfDrawingNodes();
+    float globalZOrder = 0.f;
+    for (const auto& surfaceNode : selfDrawingNodes) {
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (params->GetHardwareEnabled()) {
+            processor->CreateLayer(*surfaceNode, *params);
+            globalZOrder++;
+        }
+    }
+    displayNodeSp->SetGlobalZOrder(globalZOrder);
     processor->ProcessDisplaySurface(*displayNodeSp);
-    processor->PostProcess(displayNodeSp.get());
+    processor->PostProcess();
     RS_TRACE_END();
 }
 

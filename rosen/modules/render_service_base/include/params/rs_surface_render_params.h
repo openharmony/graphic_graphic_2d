@@ -21,8 +21,32 @@
 #include "common/rs_occlusion_region.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
-
+#include "surface_buffer.h"
+#include "surface_type.h"
+#include "sync_fence.h"
 namespace OHOS::Rosen {
+class RSSurfaceRenderNode;
+struct RSLayerInfo {
+    GraphicIRect srcRect;
+    GraphicIRect dstRect;
+    GraphicIRect boundRect;
+    GraphicMatrix matrix;
+    int32_t gravity;
+    int32_t zOrder;
+    sptr<SurfaceBuffer> buffer;
+    sptr<SurfaceBuffer> preBuffer;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    GraphicBlendType blendType;
+    GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    bool operator==(const RSLayerInfo& layerInfo) const
+    {
+        return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
+            (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
+            (zOrder == layerInfo.zOrder) && (buffer == layerInfo.buffer) && (preBuffer == layerInfo.preBuffer) &&
+            (acquireFence == layerInfo.acquireFence) && (blendType == layerInfo.blendType) &&
+            (transformType == layerInfo.transformType);
+    }
+};
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams();
@@ -68,9 +92,9 @@ public:
     {
         return backgroundColor_;
     }
-    const RectI& GetDstRect() const
+    const RectI& GetAbsDrawRect() const
     {
-        return dstRect_;
+        return absDrawRect_;
     }
     const RRect& GetRRect() const
     {
@@ -82,6 +106,20 @@ public:
 
     void SetVisibleRegion(const Occlusion::Region& visibleRegion);
     Occlusion::Region GetVisibleRegion() const;
+
+    void SetLayerInfo(const RSLayerInfo& layerInfo);
+    RSLayerInfo& GetLayerInfo();
+    void SetHardwareEnabled(bool enabled);
+    bool GetHardwareEnabled() const;
+    void SetLastFrameHardwareEnabled(bool enabled);
+    bool GetLastFrameHardwareEnabled() const;
+
+    void SetBuffer(const sptr<SurfaceBuffer>& buffer);
+    sptr<SurfaceBuffer> GetBuffer() const;
+    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer);
+    sptr<SurfaceBuffer>& GetPreBuffer();
+    void SetAcquireFence(const sptr<SyncFence>& acquireFence);
+    sptr<SyncFence> GetAcquireFence() const;
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 
@@ -101,11 +139,14 @@ private:
     Gravity frameGravity_ = Gravity::CENTER;
     Color backgroundColor_ = RgbPalette::Transparent();
 
-    RectI dstRect_;
+    RectI absDrawRect_;
     RRect rrect_;
 
     bool occlusionVisible_ = false;
     Occlusion::Region visibleRegion_;
+    RSLayerInfo layerInfo_;
+    bool isHardwareEnabled_ = false;
+    bool isLastFrameHardwareEnabled_ = false;
 
     friend class RSSurfaceRenderNode;
 };

@@ -42,6 +42,90 @@ void RSSurfaceRenderParams::SetVisibleRegion(const Occlusion::Region& visibleReg
     visibleRegion_ = visibleRegion;
 }
 
+void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
+{
+    if (layerInfo_ == layerInfo) {
+        return;
+    }
+    layerInfo_ = layerInfo;
+    needSync_ = true;
+}
+
+RSLayerInfo& RSSurfaceRenderParams::GetLayerInfo()
+{
+    return layerInfo_;
+}
+
+void RSSurfaceRenderParams::SetHardwareEnabled(bool enabled)
+{
+    if (isHardwareEnabled_ == enabled) {
+        return;
+    }
+    isHardwareEnabled_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetHardwareEnabled() const
+{
+    return isHardwareEnabled_;
+}
+
+void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
+{
+    if (isLastFrameHardwareEnabled_ == enabled) {
+        return;
+    }
+    isLastFrameHardwareEnabled_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
+{
+    return isLastFrameHardwareEnabled_;
+}
+
+void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
+{
+    if (layerInfo_.buffer == buffer) {
+        return;
+    }
+    layerInfo_.buffer = buffer;
+    needSync_ = true;
+}
+
+sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
+{
+    return layerInfo_.buffer;
+}
+
+void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
+{
+    if (layerInfo_.preBuffer == preBuffer) {
+        return;
+    }
+    layerInfo_.preBuffer = preBuffer;
+    needSync_ = true;
+}
+
+sptr<SurfaceBuffer>& RSSurfaceRenderParams::GetPreBuffer()
+{
+    return layerInfo_.preBuffer;
+}
+
+void RSSurfaceRenderParams::SetAcquireFence(const sptr<SyncFence>& acquireFence)
+{
+    if (layerInfo_.acquireFence == acquireFence) {
+        return;
+    }
+    layerInfo_.acquireFence = acquireFence;
+    needSync_ = true;
+}
+
+sptr<SyncFence> RSSurfaceRenderParams::GetAcquireFence() const
+{
+    return layerInfo_.acquireFence;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -59,10 +143,13 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->frameGravity_ = frameGravity_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
-    targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->absDrawRect_ = absDrawRect_;
     targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
     targetSurfaceParams->visibleRegion_ = visibleRegion_;
+    targetSurfaceParams->layerInfo_ = layerInfo_;
+    targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     RSRenderParams::OnSync(target);
 }
 
@@ -76,7 +163,7 @@ std::string RSSurfaceRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(needBilinearInterpolation_);
     ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
     ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
-    ret += RENDER_RECT_PARAM_TO_STRING(dstRect_);
+    ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(occlusionVisible_);
     ret += "}";
     return ret;

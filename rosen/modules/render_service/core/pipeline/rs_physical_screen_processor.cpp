@@ -47,7 +47,7 @@ bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX,
         [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
 }
 
-void RSPhysicalScreenProcessor::PostProcess(RSDisplayRenderNode* node)
+void RSPhysicalScreenProcessor::PostProcess()
 {
     composerAdapter_->CommitLayers(layers_);
     MultiLayersPerf(layers_.size());

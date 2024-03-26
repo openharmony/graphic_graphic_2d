@@ -44,6 +44,12 @@ void RSDrawFrame::RenderFrame()
     Sync();
     UnblockMainThread();
     Render();
+    ReleaseSelfDrawingNodeBuffer();
+}
+
+void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
+{
+    unirenderInstance_.ReleaseSelfDrawingNodeBuffer();
 }
 
 void RSDrawFrame::PostAndWait()

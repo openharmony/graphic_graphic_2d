@@ -31,7 +31,7 @@ public:
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
-    void PostProcess(RSDisplayRenderNode* node) override;
+    void PostProcess() override;
 private:
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers);
     uint32_t GetLayerLevel(uint32_t layerLevel) const;

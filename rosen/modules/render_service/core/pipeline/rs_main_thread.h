@@ -275,7 +275,6 @@ public:
     void WaitUntilSurfaceCapProcFinished();
     void SetSurfaceCapProcFinished(bool flag);
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
     bool GetParallelCompositionEnabled();
     std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
 private:
@@ -368,6 +367,8 @@ private:
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
+
+    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -477,6 +478,7 @@ private:
 
     // used for hardware enabled case
     bool doDirectComposition_ = true;
+    bool isLastFrameDirectComposition_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;

@@ -73,7 +73,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // TO-DO [DFX] Draw Context ClipRect
 
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnDraw:[" + surfaceNode->GetName() + "] " +
-                  surfaceParams->GetDstRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
+                  surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ",child size:%{public}u,"
             "name:%{public}s,OcclusionVisible:%{public}d",
@@ -107,40 +107,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     nodeSp->ProcessRenderBeforeChildren(*rscanvas);
 
-    if (surfaceNode->GetBuffer() != nullptr) {
-        surfaceNode->SetGlobalAlpha(1.0f); // TO-DO
-        int threadIndex = 0;
-        auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, false, threadIndex, true);
-        params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-        auto screenManager = CreateOrGetScreenManager();
-        auto ancestor = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (!ancestor) {
-            RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
-            return;
-        }
-        auto ancestorParam = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
-        params.screenBrightnessNits =
-            screenManager->GetScreenBrightnessNits(ancestorParam ? ancestorParam->GetScreenId() : 0);
-#endif
-        auto bgColor = surfaceParams->GetBackgroundColor();
-        if ((surfaceParams->GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
-            (bgColor != RgbPalette::Transparent())) {
-            auto bounds = RSPropertiesPainter::Rect2DrawingRect(
-                { 0, 0, surfaceParams->GetBounds().GetWidth(), surfaceParams->GetBounds().GetHeight() });
-            Drawing::SaveLayerOps layerOps(&bounds, nullptr);
-            rscanvas->SaveLayer(layerOps);
-            rscanvas->SetAlpha(1.0f);
-            Drawing::Brush brush;
-            brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
-            rscanvas->AttachBrush(brush);
-            rscanvas->DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams->GetRRect()));
-            rscanvas->DetachBrush();
-            renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
-            rscanvas->Restore();
-        } else {
-            renderEngine_->DrawSurfaceNodeWithParams(*rscanvas, *surfaceNode, params);
-        }
+    if (surfaceParams->GetBuffer() != nullptr) {
+        DealWithSelfDrawingNodeBuffer(*surfaceNode, *rscanvas, *surfaceParams);
     }
 
     if (isSelfDrawingSurface) {
@@ -153,5 +121,50 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RSRenderNodeDrawable::OnCapture(canvas);
+}
+
+void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
+    RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams)
+{
+    if (surfaceParams.GetHardwareEnabled()) {
+        if (!surfaceNode.IsHardwareEnabledTopSurface()) {
+            canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+        }
+        return;
+    }
+    surfaceNode.SetGlobalAlpha(1.0f); // TO-DO
+    int threadIndex = 0;
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadIndex, true);
+    params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    auto screenManager = CreateOrGetScreenManager();
+    auto ancestor = surfaceParams.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (!ancestor) {
+        RS_LOGE("surfaceNode GetAncestorDisplayNode() return nullptr");
+        return;
+    }
+    auto ancestorParam = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
+    params.screenBrightnessNits =
+        screenManager->GetScreenBrightnessNits(ancestorParam ? ancestorParam->GetScreenId() : 0);
+#endif
+    auto bgColor = surfaceParams.GetBackgroundColor();
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
+        (bgColor != RgbPalette::Transparent())) {
+        auto bounds = RSPropertiesPainter::Rect2DrawingRect(
+            { 0, 0, surfaceParams.GetBounds().GetWidth(), surfaceParams.GetBounds().GetHeight() });
+        Drawing::SaveLayerOps layerOps(&bounds, nullptr);
+        canvas.SaveLayer(layerOps);
+        canvas.SetAlpha(1.0f);
+        Drawing::Brush brush;
+        brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+        canvas.AttachBrush(brush);
+        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRect()));
+        canvas.DetachBrush();
+        renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+        canvas.Restore();
+    } else {
+        renderEngine->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+    }
 }
 } // namespace OHOS::Rosen::DrawableV2

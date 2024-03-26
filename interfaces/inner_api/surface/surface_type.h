@@ -150,14 +150,19 @@ using GraphicLayerInfo = struct {
     GraphicPixelFormat pixFormat; /**< Pixel format of the layer */
 };
 
-typedef struct {
+typedef struct GraphicIRect {
     int32_t x;      /**< Start X coordinate of the rectangle */
     int32_t y;      /**< Start Y coordinate of the rectangle */
     int32_t w;      /**< Width of the rectangle */
     int32_t h;      /**< Height of the rectangle */
+
+    bool operator==(const GraphicIRect& rect) const
+    {
+        return (x == rect.x) && (y == rect.y) && (w == rect.w) && (h == rect.h);
+    }
 } GraphicIRect;
 
-typedef struct {
+typedef struct GraphicMatrix {
     float scaleX;   /* horizontal scale factor */
     float skewX;    /* horizontal skew factor */
     float transX;   /* horizontal translation */
@@ -167,6 +172,13 @@ typedef struct {
     float pers0;    /* input x-axis perspective factor */
     float pers1;    /* input y-axis perspective factor */
     float pers2;    /* perspective scale factor */
+
+    bool operator==(const GraphicMatrix& matrix) const
+    {
+        return (scaleX == matrix.scaleX) && (skewX == matrix.skewX) && (transX == matrix.transX) &&
+               (skewY == matrix.skewY) && (scaleY == matrix.scaleY) && (transY == matrix.transY) &&
+               (pers0 == matrix.pers0) && (pers1 == matrix.pers1) && (pers2 == matrix.pers2);
+    }
 } GraphicMatrix;
 
 using BufferAllocInfo = struct {

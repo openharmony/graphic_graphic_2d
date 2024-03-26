@@ -48,6 +48,7 @@
 #include "common/rs_optional_trace.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "params/rs_surface_render_params.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
@@ -59,6 +60,7 @@
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_hardware_thread.h"
+#include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_thread.h"
@@ -270,6 +272,8 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         mainLooping_.store(true);
+        // fill the params, and sync to render thread later
+        renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
         RenderFrameStart(timestamp_);
 #if defined(RS_ENABLE_UNI_RENDER)
         WaitUntilSurfaceCapProcFinished();
@@ -285,8 +289,10 @@ void RSMainThread::Init()
         ProcessHgmFrameRate(timestamp_);
         // may mark rsnotrendering
         Render(); // now render is traverse tree to prepare
-        drawFrame_.SetRenderThreadParams(renderThreadParams_);
-        drawFrame_.PostAndWait();
+        if (!doDirectComposition_) {
+            drawFrame_.SetRenderThreadParams(renderThreadParams_);
+            drawFrame_.PostAndWait();
+        }
 
         // move rnv after mark rsnotrendering
         if (needRequestNextVsyncAnimate_ || rsVSyncDistributor_->HasPendingUIRNV()) {
@@ -297,7 +303,6 @@ void RSMainThread::Init()
         }
 
         InformHgmNodeInfo();
-        ReleaseAllNodesBuffer();
         SendCommands();
         {
             std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
@@ -1024,6 +1029,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
             }
+            if (surfaceNode->IsCurrentFrameBufferConsumed()) {
+                surfaceNode->UpdateBufferInfo(surfaceNode->GetBuffer(), surfaceNode->GetAcquireFence(),
+                    surfaceNode->GetPreBuffer().buffer);
+            }
             if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceNode->IsCurrentFrameBufferConsumed()
                 && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
                     RS_OPTIONAL_TRACE_NAME(surfaceNode->GetName() +
@@ -1073,16 +1082,21 @@ void RSMainThread::CollectInfoForHardwareComposer()
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
         [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
+            if (surfaceNode == nullptr) {
                 return;
-            }
-            if (surfaceNode->IsLeashWindow() && surfaceNode->GetForceUIFirstChanged()) {
-                forceUIFirstChanged_ = true;
-                surfaceNode->SetForceUIFirstChanged(false);
             }
             if (surfaceNode->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
             }
+            if (!surfaceNode->IsOnTheTree()) {
+                return;
+            }
+
+            if (surfaceNode->IsLeashWindow() && surfaceNode->GetForceUIFirstChanged()) {
+                forceUIFirstChanged_ = true;
+                surfaceNode->SetForceUIFirstChanged(false);
+            }
+
             if (!surfaceNode->IsHardwareEnabledType()) {
                 return;
             }
@@ -1450,7 +1464,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
         && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {
-            needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
+            needTraverseNodeTree = !DoDirectComposition(rootNode, !isLastFrameDirectComposition_);
         } else if (forceUpdateUniRenderFlag_) {
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else if (colorPickerForceRequestVsync_) {
@@ -1475,6 +1489,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
+        doDirectComposition_ = false;
+        renderThreadParams_->selfDrawingNodes_ = std::move(selfDrawingNodes_);
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_ || forceUIFirstChanged_);
         forceUIFirstChanged_ = false;
@@ -1528,6 +1544,60 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     hasRosenWebNode_ = false;
 }
 
+bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT)
+{
+    auto children = rootNode->GetChildren();
+    if (children->empty()) {
+        return false;
+    }
+    RS_TRACE_NAME("DoDirectComposition");
+    auto displayNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(children->front());
+    if (!displayNode ||
+        displayNode->GetCompositeType() != RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
+        RS_LOGE("RSMainThread::DoDirectComposition displayNode state error");
+        return false;
+    }
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    auto screenInfo = screenManager->QueryScreenInfo(displayNode->GetScreenId());
+    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
+        RS_LOGE("RSMainThread::DoDirectComposition: ScreenState error!");
+        return false;
+    }
+    auto processor = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
+    auto renderEngine = GetRenderEngine();
+    if (processor == nullptr || renderEngine == nullptr) {
+        RS_LOGE("RSMainThread::DoDirectComposition: RSProcessor or renderEngine is null!");
+        return false;
+    }
+
+    if (!processor->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
+        INVALID_SCREEN_ID, renderEngine)) {
+        RS_LOGE("RSMainThread::DoDirectComposition: processor init failed!");
+        return false;
+    }
+
+    if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
+        RS_LOGW("RSMainThread::DoDirectComposition: hardwareThread task has too many to excute");
+    }
+    processor->ProcessDisplaySurface(*displayNode);
+    for (auto& surfaceNode: selfDrawingNodes_) {
+        if (surfaceNode->IsCurrentFrameHardwareEnabled()) {
+            auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+            processor->CreateLayer(*surfaceNode, *params);
+        }
+    }
+    if (waitForRT) {
+        RSUniRenderThread::Instance().PostSyncTask([processor]() {
+            RS_TRACE_NAME("DoDirectComposition PostProcess");
+            processor->PostProcess();
+        });
+    } else {
+        processor->PostProcess();
+    }
+    RS_LOGD("RSMainThread::DoDirectComposition end");
+    return true;
+}
+
 pid_t RSMainThread::GetDesktopPidForRotationScene() const
 {
     return desktopPidForRotationScene_;
@@ -1546,7 +1616,6 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
-    renderThreadParams_ = std::make_unique<RSRenderThreadParams>(); // fill the params, and sync to render thread later
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
@@ -2794,15 +2863,11 @@ void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSS
 void RSMainThread::ResetHardwareEnabledState()
 {
     isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
-    doDirectComposition_ = !isHardwareForcedDisabled_;
+    isLastFrameDirectComposition_ = doDirectComposition_;
+    doDirectComposition_ = false; //!isHardwareForcedDisabled_;
     isHardwareEnabledBufferUpdated_ = false;
     hardwareEnabledNodes_.clear();
     selfDrawingNodes_.clear();
-}
-
-const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDrawingNodes() const
-{
-    return selfDrawingNodes_;
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

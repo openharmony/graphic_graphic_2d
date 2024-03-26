@@ -250,12 +250,12 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     auto buoundHeight = isRenderThread ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
     params.dstRect = Drawing::Rect(0, 0, buoundWidth, buoundHeight);
 
-    const sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    const sptr<SurfaceBuffer> buffer = nodeParams->GetBuffer();
     if (buffer == nullptr) {
         return params;
     }
     params.buffer = buffer;
-    params.acquireFence = node.GetAcquireFence();
+    params.acquireFence = nodeParams->GetAcquireFence();
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
 
     auto& consumer = node.GetConsumer();

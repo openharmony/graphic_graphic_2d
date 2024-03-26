@@ -75,7 +75,7 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
     return true;
 }
 
-void RSVirtualScreenProcessor::PostProcess(RSDisplayRenderNode* node)
+void RSVirtualScreenProcessor::PostProcess()
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::PostProcess surface is null!");
