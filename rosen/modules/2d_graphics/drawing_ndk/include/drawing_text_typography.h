@@ -2437,7 +2437,7 @@ void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextSty
     OH_Drawing_FontStyleStruct* fontStyle);
 
 /**
- * @brief Sets the typography style, including font weight, font width and fony slant.
+ * @brief Sets the typography style, including font weight, font width and font slant.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
@@ -2449,7 +2449,7 @@ void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* dr
     OH_Drawing_FontStyleStruct fontStyle);
 
 /**
- * @brief Gets the typography style, including font weight, font width and fony slant.
+ * @brief Gets the typography style, including font weight, font width and font slant.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
