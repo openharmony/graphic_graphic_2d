@@ -166,7 +166,7 @@ void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
     renderContent_->type_ = GetType();
-    renderContent_->GetMutableRenderProperties().backref_ = weak_from_this();
+    renderContent_->renderProperties_.backref_ = weak_from_this();
     SetDirty(true);
 }
 
