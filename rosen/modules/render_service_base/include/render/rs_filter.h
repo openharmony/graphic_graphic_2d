@@ -59,7 +59,6 @@ public:
         float radius, float saturation, float brightness, uint32_t colorValue,
         BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT);
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
-    static std::shared_ptr<RSFilter> CreateDynamicDimFilter(float dynamicDimDegree);
 
     enum FilterType {
         NONE = 0,

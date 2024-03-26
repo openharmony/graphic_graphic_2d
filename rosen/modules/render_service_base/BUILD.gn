@@ -215,7 +215,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_border.cpp",
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
-    "src/render/rs_dynamic_dim_filter.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",

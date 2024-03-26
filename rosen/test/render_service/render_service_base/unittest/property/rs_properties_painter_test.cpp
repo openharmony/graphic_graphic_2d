@@ -574,5 +574,19 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
 }
+
+/**
+ * @tc.name: DrawDynamicDim001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawDynamicDim001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetDynamicDimDegree(0.5);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSPropertiesPainter::DrawDynamicDim(properties, canvas);
+}
 } // namespace Rosen
 } // namespace OHOS
