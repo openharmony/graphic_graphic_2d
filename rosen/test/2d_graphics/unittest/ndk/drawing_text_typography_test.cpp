@@ -2124,11 +2124,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest072
+ * @tc.name: OH_Drawing_TypographyTest074
  * @tc.desc: test for getting and setting text style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_NE(txtStyle, nullptr);
@@ -2147,11 +2147,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest073
+ * @tc.name: OH_Drawing_TypographyTest075
  * @tc.desc: test for getting and setting typography style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     EXPECT_NE(typoStyle, nullptr);
