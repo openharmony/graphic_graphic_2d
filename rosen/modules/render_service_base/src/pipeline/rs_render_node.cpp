@@ -885,12 +885,19 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
 {
+    auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
+    if (checkType == SubTreePrepareCheckType::DISABLED) {
+        return true;
+    }
     // stop visit invisible or clean without filter subtree
     if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
         RS_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
             GetId(), shouldPaint_, isOccluded);
         return false;
+    }
+    if (checkType == SubTreePrepareCheckType::DISABLE_SUBTREE_DIRTY_CHECK) {
+        return true;
     }
     if (IsSubTreeDirty()) {
         // reset iff traverses dirty subtree
@@ -1205,6 +1212,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     if ((IsDirty() || accumGeoDirty) && (shouldPaint_ || isLastVisible_)) {
         // update FrontgroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
+        UpdateDirtyRegionInfoForDFX();
     }
     if (GetRenderProperties().GetBackgroundFilter()) {
         UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
@@ -1214,6 +1222,14 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     GetMutableRenderProperties().ResetDirty();
     isLastVisible_ = shouldPaint_;
     return accumGeoDirty;
+}
+
+void RSRenderNode::UpdateDirtyRegionInfoForDFX()
+{
+    DirtyRegionInfoForDFX dirtyRegionInfo;
+    dirtyRegionInfo.oldDirty = oldDirty_;
+    dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
+    stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
 }
 
 bool RSRenderNode::Update(

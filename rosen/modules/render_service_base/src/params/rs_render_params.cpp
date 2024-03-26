@@ -178,6 +178,20 @@ Drawing::Rect RSRenderParams::GetShadowRect() const
     return shadowRect_;
 }
 
+void RSRenderParams::SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo)
+{
+    if (dirtyRegionInfoForDFX_ == dirtyRegionInfo) {
+        return;
+    }   
+    dirtyRegionInfoForDFX_ = dirtyRegionInfo;
+    needSync_ = true;
+}
+
+DirtyRegionInfoForDFX RSRenderParams::GetDirtyRegionInfoForDFX() const
+{
+    return dirtyRegionInfoForDFX_;
+}
+
 void RSRenderParams::SetNeedSync(bool needSync)
 {
     needSync_ = needSync;
@@ -201,6 +215,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheType_ = drawingCacheType_;
+    target->SetDirtyRegionInfoForDFX(dirtyRegionInfoForDFX_);
 
     needSync_ = false;
 }

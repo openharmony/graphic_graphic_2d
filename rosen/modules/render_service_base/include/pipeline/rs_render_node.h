@@ -228,6 +228,7 @@ public:
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
         const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty,
         std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
+    void UpdateDirtyRegionInfoForDFX();
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
 
