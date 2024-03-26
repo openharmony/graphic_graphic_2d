@@ -2076,8 +2076,10 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         RS_LOGE("RSSurfaceRenderNode::UpdatePartialRenderParams surfaceParams is null");
         return;
     }
-
-    surfaceParams->SetVisibleRegion(visibleRegion_);
+    if (IsMainWindowType()) {
+        surfaceParams->SetVisibleRegion(visibleRegion_);
+    }
+    surfaceParams->absDrawRect_ = GetAbsDrawRect();
 }
 
 void RSSurfaceRenderNode::InitRenderParams()
@@ -2102,7 +2104,6 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
-    surfaceParams->dstRect_ = GetDstRect();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->frameGravity_ = properties.GetFrameGravity();
 

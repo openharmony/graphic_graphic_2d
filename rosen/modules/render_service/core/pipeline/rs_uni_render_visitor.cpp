@@ -1498,9 +1498,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         auto dirtyManager = surfaceNode->GetDirtyManager();
         // 1. calculate abs dirtyrect and update partialRenderParams
         // currently only sync visible region info
-        if (surfaceNode->IsMainWindowType()) {
-            surfaceNode->UpdatePartialRenderParams();
-        }
+        surfaceNode->UpdatePartialRenderParams();
         // 2. check surface node dirtyrect need merge into displayDirtyManager
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
         // 3. check surface node's transparent dirtyrect need merge into displayDirtyManager
@@ -5104,9 +5102,9 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isDisplayDirtyDfxEnabled_ = isDisplayDirtyDfxEnabled_;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = isOpaqueRegionDfxEnabled_;
     renderThreadParams->isVisibleRegionDfxEnabled_ = isVisibleRegionDfxEnabled_;
-    renderThreadParams->isVisibleRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
-    renderThreadParams->isVisibleRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
+    renderThreadParams->isTargetDirtyRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
     renderThreadParams->dirtyRegionDebugType_ = dirtyRegionDebugType_;
+    renderThreadParams->isOpDropped_ = isOpDropped_;
     renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);
 }
 

@@ -92,9 +92,9 @@ public:
     {
         return backgroundColor_;
     }
-    const RectI& GetDstRect() const
+    const RectI& GetAbsDrawRect() const
     {
-        return dstRect_;
+        return absDrawRect_;
     }
     const RRect& GetRRect() const
     {
@@ -139,7 +139,7 @@ private:
     Gravity frameGravity_ = Gravity::CENTER;
     Color backgroundColor_ = RgbPalette::Transparent();
 
-    RectI dstRect_;
+    RectI absDrawRect_;
     RRect rrect_;
 
     bool occlusionVisible_ = false;

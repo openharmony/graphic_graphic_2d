@@ -62,7 +62,8 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
-    if (static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
         QuickReject(canvas, params->GetLocalDrawRect())) {
         RS_LOGD("This Node have no intersect with canvas's clipRegion");
         return;
@@ -72,7 +73,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw id:%llu cacheType:%d cacheChanged:%d" \
             " size:[%.2f, %.2f] ChildHasVisibleFilter:%d ChildHasVisibleEffect:%d" \
             " shadowRect:[%.2f, %.2f, %.2f, %.2f] HasFilterOrEffect:%d",
-            renderNode_->GetId(), params->GetDrawingCacheType(), params->GetDrawingCacheChanged(),
+            params->GetId(), params->GetDrawingCacheType(), params->GetDrawingCacheChanged(),
             params->GetCacheSize().x_, params->GetCacheSize().y_,
             params->ChildHasVisibleFilter(), params->ChildHasVisibleEffect(),
             params->GetShadowRect().GetLeft(), params->GetShadowRect().GetTop(),

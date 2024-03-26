@@ -27,15 +27,19 @@ public:
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
 
-    bool IsPartialRenderEnabled()
+    bool IsPartialRenderEnabled() const
     {
         return isPartialRenderEnabled_;
     }
 
-
-    bool IsRegionDebugEnabled()
+    bool IsRegionDebugEnabled() const
     {
         return isRegionDebugEnabled_;
+    }
+
+    bool IsOpDropped() const
+    {
+        return isOpDropped_;
     }
 
     uint64_t GetTimestamp()
@@ -59,6 +63,7 @@ private:
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
+    bool isOpDropped_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
 
