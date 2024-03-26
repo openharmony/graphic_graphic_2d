@@ -3037,8 +3037,8 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
     strutstyle->Families = (char**)malloc(strutstyle->FamiliesSize*sizeof(char*));
     for (size_t i = 0; i < strutstyle->FamiliesSize; i++)
     {
-        int size = typographyStyle->lineStyleFontFamilies[i].size();
-        strutstyle->Families[i] = (char*)malloc(size+1);
+        int size = typographyStyle->lineStyleFontFamilies[i].size()+1;
+        strutstyle->Families[i] = (char*)malloc(size);
         strcpy_s(strutstyle->Families[i], size, typographyStyle->lineStyleFontFamilies[i].c_str());
     }
 
