@@ -29,6 +29,7 @@ struct TypographyStyle {
     const static inline std::u16string ELLIPSIS = u"\u2026";
 
     FontWeight fontWeight = FontWeight::W400;
+    FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     std::string fontFamily = "";
     double fontSize = 14.0; // default is libtxt text style fonst size
@@ -38,6 +39,7 @@ struct TypographyStyle {
     bool useLineStyle = false;
 
     FontWeight lineStyleFontWeight = FontWeight::W400;
+    FontWidth lineStyleFontWidth = FontWidth::NORMAL;
     FontStyle lineStyleFontStyle = FontStyle::NORMAL;
     std::vector<std::string> lineStyleFontFamilies;
     double lineStyleFontSize = 14.0; // default is libtxt text style font size

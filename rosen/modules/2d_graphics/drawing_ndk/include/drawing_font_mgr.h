@@ -38,99 +38,12 @@
  */
 
 #include "drawing_types.h"
+#include "drawing_text_typography.h"
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @brief Enumerates font weight.
- *
- * @since 12
- * @version 1.0
- */
-enum OH_Drawing_FontStyleWeight {
-    /* Invisible font weight */
-    INVISIBLE_WEIGHT = 0,
-    /* Thin font weight */
-    THIN_WEIGHT = 100,
-    /* Extra light font weight */
-    EXTRA_LIGHT_WEIGHT = 200,
-    /* Light font weight */
-    LIGHT_WEIGHT = 300,
-    /* Normal font weight */
-    NORMAL_WEIGHT = 400,
-    /* Medium font weight */
-    MEDIUM_WEIGHT = 500,
-    /* Semi blod font weight */
-    SEMI_BOLD_WEIGHT = 600,
-    /* Blod font weight */
-    BOLD_WEIGHT = 700,
-    /* Extra blod font weight */
-    EXTRA_BOLD_WEIGHT = 800,
-    /* Black font weight */
-    BLACK_WEIGHT = 900,
-    /* Extra black font weight */
-    EXTRA_BLACK_WEIGHT = 1000,
-};
-
-/**
- * @brief Enumerates font width.
- *
- * @since 12
- * @version 1.0
- */
-enum OH_Drawing_FontStyleWidth {
-    /* Ultra condensed font width */
-    ULTRA_CONDENSED_WIDTH = 1,
-    /* Extra condensed font width */
-    EXTRA_CONDENSED_WIDTH = 2,
-    /* condensed font width */
-    CONDENSED_WIDTH = 3,
-    /* Semi condensed font width */
-    SEMI_CONDENSED_WIDTH = 4,
-    /* Normal font width */
-    NORMAL_WIDTH = 5,
-    /* Semi expanded font width */
-    SEMI_EXPANDED_WIDTH = 6,
-    /* Expanded font width */
-    EXPANDED_WIDTH = 7,
-    /* Extra expanded font width */
-    EXTRA_EXPANDED_WIDTH = 8,
-    /* Ultra expanded font width */
-    ULTRA_EXPANDED_WIDTH = 9,
-};
-
-/**
- * @brief Enumerates font slant.
- *
- * @since 12
- * @version 1.0
- */
-enum OH_Drawing_FontStyleSlant {
-    /* Upright font slant */
-    UPRIGHT_SLANT,
-    /* Italic font slant */
-    ITALIC_SLANT,
-    /* Oblique font slant */
-    OBLIQUE_SLANT,
-};
-
-/**
- * @brief Defines the font form.
- *
- * @since 12
- * @version 1.0
- */
-typedef struct OH_Drawing_FontStyleStruct {
-    /** Font weight */
-    OH_Drawing_FontStyleWeight weight;
-    /** Font width */
-    OH_Drawing_FontStyleWidth width;
-    /** Font slant */
-    OH_Drawing_FontStyleSlant slant;
-} OH_Drawing_FontStyleStruct;
 
 /**
  * @brief Creates an <b>OH_Drawing_FontMgr</b> object.
@@ -161,7 +74,7 @@ void OH_Drawing_FontMgrDestroy(OH_Drawing_FontMgr*);
  * @since 12
  * @version 1.0
  */
-int OH_Drawing_FontMgrGetFamiliesCount(OH_Drawing_FontMgr*);
+int OH_Drawing_FontMgrGetFamilyCount(OH_Drawing_FontMgr*);
 
 /**
  * @brief Gets the font family name by the index.

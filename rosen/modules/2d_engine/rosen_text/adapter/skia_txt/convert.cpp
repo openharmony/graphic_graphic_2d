@@ -56,6 +56,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
 {
     return {
         .fontWeight = static_cast<SPText::FontWeight>(style.fontWeight),
+        .fontWidth = static_cast<SPText::FontWidth>(style.fontWidth),
         .fontStyle = static_cast<SPText::FontStyle>(style.fontStyle),
         .wordBreakType = static_cast<SPText::WordBreakType>(style.wordBreakType),
         .fontFamily = style.fontFamily,
@@ -64,6 +65,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .heightOverride = style.heightOnly,
         .strutEnabled = style.useLineStyle,
         .strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight),
+        .strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth),
         .strutFontStyle = static_cast<SPText::FontStyle>(style.lineStyleFontStyle),
         .strutFontFamilies = style.lineStyleFontFamilies,
         .strutFontSize = style.lineStyleFontSize,
@@ -118,6 +120,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.decorationStyle = static_cast<SPText::TextDecorationStyle>(style.decorationStyle);
     textStyle.decorationThicknessMultiplier = style.decorationThicknessScale;
     textStyle.fontWeight = static_cast<SPText::FontWeight>(style.fontWeight);
+    textStyle.fontWidth = static_cast<SPText::FontWidth>(style.fontWidth);
     textStyle.fontStyle = static_cast<SPText::FontStyle>(style.fontStyle);
     textStyle.baseline = static_cast<SPText::TextBaseline>(style.baseline);
     textStyle.halfLeading = style.halfLeading;

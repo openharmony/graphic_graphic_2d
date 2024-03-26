@@ -2122,4 +2122,49 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level
     OH_Drawing_DestroySystemFontConfigInfo(configJsonInfo);
     configJsonInfo = nullptr;
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest072
+ * @tc.desc: test for getting and setting text style
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_NE(txtStyle, nullptr);
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
+    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, normalStyle);
+
+    OH_Drawing_FontStyleStruct style;
+    OH_Drawing_TextStyleGetFontStyleStruct(txtStyle, &style);
+    EXPECT_EQ(style.weight, normalStyle.weight);
+    EXPECT_EQ(style.width, normalStyle.width);
+    EXPECT_EQ(style.slant, normalStyle.slant);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest073
+ * @tc.desc: test for getting and setting typography style
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    EXPECT_NE(typoStyle, nullptr);
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
+    OH_Drawing_SetTypographyStyleFontStyleStruct(typoStyle, normalStyle);
+
+    OH_Drawing_FontStyleStruct style;
+    OH_Drawing_TypographyStyleGetFontStyleStruct(typoStyle, &style);
+    EXPECT_EQ(style.weight, normalStyle.weight);
+    EXPECT_EQ(style.width, normalStyle.width);
+    EXPECT_EQ(style.slant, normalStyle.slant);
+}
 }

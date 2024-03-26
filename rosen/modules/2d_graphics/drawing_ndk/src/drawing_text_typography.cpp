@@ -3028,3 +3028,176 @@ void OH_Drawing_TypographyDestroyLineFontMetrics(OH_Drawing_Font_Metrics* lineFo
     delete[] lineFontMetric;
     lineFontMetric = nullptr;
 }
+
+static FontStyle GetFontStyle(OH_Drawing_FontStyle style)
+{
+    FontStyle fontStyle;
+    switch (style) {
+        case FONT_STYLE_NORMAL: {
+            fontStyle = FontStyle::NORMAL;
+            break;
+        }
+        case FONT_STYLE_ITALIC: {
+            fontStyle = FontStyle::ITALIC;
+            break;
+        }
+        case FONT_STYLE_OBLIQUE: {
+            fontStyle = FontStyle::OBLIQUE;
+            break;
+        }
+        default: {
+            fontStyle = FontStyle::NORMAL;
+        }
+    }
+    return fontStyle;
+}
+
+static FontWeight GetFontWeight(OH_Drawing_FontWeight weight)
+{
+    FontWeight fontWeight;
+    switch (weight) {
+        case FONT_WEIGHT_100: {
+            fontWeight = FontWeight::W100;
+            break;
+        }
+        case FONT_WEIGHT_200: {
+            fontWeight = FontWeight::W200;
+            break;
+        }
+        case FONT_WEIGHT_300: {
+            fontWeight = FontWeight::W300;
+            break;
+        }
+        case FONT_WEIGHT_400: {
+            fontWeight = FontWeight::W400;
+            break;
+        }
+        case FONT_WEIGHT_500: {
+            fontWeight = FontWeight::W500;
+            break;
+        }
+        case FONT_WEIGHT_600: {
+            fontWeight = FontWeight::W600;
+            break;
+        }
+        case FONT_WEIGHT_700: {
+            fontWeight = FontWeight::W700;
+            break;
+        }
+        case FONT_WEIGHT_800: {
+            fontWeight = FontWeight::W800;
+            break;
+        }
+        case FONT_WEIGHT_900: {
+            fontWeight = FontWeight::W900;
+            break;
+        }
+        default: {
+            fontWeight = FontWeight::W400;
+        }
+    }
+    return fontWeight;
+}
+
+static FontWidth GetFontWidth(OH_Drawing_FontWidth width)
+{
+    FontWidth fontWidth;
+    switch (width) {
+        case FONT_WIDTH_ULTRA_CONDENSED: {
+            fontWidth = FontWidth::ULTRA_CONDENSED;
+            break;
+        }
+        case FONT_WIDTH_EXTRA_CONDENSED: {
+            fontWidth = FontWidth::EXTRA_CONDENSED;
+            break;
+        }
+        case FONT_WIDTH_CONDENSED: {
+            fontWidth = FontWidth::CONDENSED;
+            break;
+        }
+        case FONT_WIDTH_SEMI_CONDENSED: {
+            fontWidth = FontWidth::SEMI_CONDENSED;
+            break;
+        }
+        case FONT_WIDTH_NORMAL: {
+            fontWidth = FontWidth::NORMAL;
+            break;
+        }
+        case FONT_WIDTH_SEMI_EXPANDED: {
+            fontWidth = FontWidth::SEMI_EXPANDED;
+            break;
+        }
+        case FONT_WIDTH_EXPANDED: {
+            fontWidth = FontWidth::EXPANDED;
+            break;
+        }
+        case FONT_WIDTH_EXTRA_EXPANDED: {
+            fontWidth = FontWidth::EXTRA_EXPANDED;
+            break;
+        }
+        case FONT_WIDTH_ULTRA_EXPANDED: {
+            fontWidth = FontWidth::ULTRA_EXPANDED;
+            break;
+        }
+        default: {
+            fontWidth = FontWidth::NORMAL;
+        }
+    }
+    return fontWidth;
+}
+
+void OH_Drawing_SetTextStyleFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle, OH_Drawing_FontStyleStruct fontStyle)
+{
+    if (drawingTextStyle == nullptr) {
+        return;
+    }
+    TextStyle* style = ConvertToOriginalText<TextStyle>(drawingTextStyle);
+    if (style == nullptr) {
+        return;
+    }
+    style->fontWeight = GetFontWeight(fontStyle.weight);
+    style->fontWidth = GetFontWidth(fontStyle.width);
+    style->fontStyle = GetFontStyle(fontStyle.slant);
+}
+
+void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle, OH_Drawing_FontStyleStruct* fontStyle)
+{
+    if (drawingTextStyle == nullptr || fontStyle == nullptr) {
+        return;
+    }
+    TextStyle* style = ConvertToOriginalText<TextStyle>(drawingTextStyle);
+    if (style == nullptr) {
+        return;
+    }
+    fontStyle->weight = static_cast<OH_Drawing_FontWeight>(style->fontWeight);
+    fontStyle->width = static_cast<OH_Drawing_FontWidth>(style->fontWidth);
+    fontStyle->slant = static_cast<OH_Drawing_FontStyle>(style->fontStyle);
+}
+
+void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle, OH_Drawing_FontStyleStruct fontStyle)
+{
+    if (drawingStyle == nullptr) {
+        return;
+    }
+    TypographyStyle* style = ConvertToOriginalText<TypographyStyle>(drawingStyle);
+    if (style == nullptr) {
+        return;
+    }
+    style->fontWeight = GetFontWeight(fontStyle.weight);
+    style->fontWidth = GetFontWidth(fontStyle.width);
+    style->fontStyle = GetFontStyle(fontStyle.slant);
+}
+
+void OH_Drawing_TypographyStyleGetFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle, OH_Drawing_FontStyleStruct* fontStyle)
+{
+    if (drawingStyle == nullptr || fontStyle == nullptr) {
+        return;
+    }
+    TypographyStyle* style = ConvertToOriginalText<TypographyStyle>(drawingStyle);
+    if (style == nullptr) {
+        return;
+    }
+    fontStyle->weight = static_cast<OH_Drawing_FontWeight>(style->fontWeight);
+    fontStyle->width = static_cast<OH_Drawing_FontWidth>(style->fontWidth);
+    fontStyle->slant = static_cast<OH_Drawing_FontStyle>(style->fontStyle);
+}
