@@ -1171,7 +1171,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
 
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
-    prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
+    prepareClipRect_ = screenRect_;
     curAlpha_ = 1.0f;
 
     if (node.IsSubTreeDirty()) {
@@ -1233,8 +1233,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
 {
     // CheckAndUpdateOpaqueRegion only in mainWindow
-    auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
-    node.CheckAndUpdateOpaqueRegion(screenRect, curDisplayNode_->GetRotation());
+    node.CheckAndUpdateOpaqueRegion(screenRect_, curDisplayNode_->GetRotation());
     if (!needRecalculateOcclusion_) {
         needRecalculateOcclusion_ = node.CheckIfOcclusionChanged();
     }
@@ -1441,6 +1440,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     }
     screenInfo_ = screenManager_->QueryScreenInfo(node.GetScreenId());
     curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+    screenRect_ = RectI{0, 0, screenInfo_.width, screenInfo_.height};
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
@@ -1751,6 +1751,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         // 4. check filter node need merge into displayDirtyManager
         CheckMergeTransparentFilterForDisplay(surfaceNode, accumulatedDirtyRegion);
     });
+    CheckAndUpdateFilterCacheOcclusion(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
@@ -1894,6 +1895,7 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
             "which is occluded don't need to process filter", surfaceNode->GetName().c_str());
         return;
     }
+    surfaceNode->SetFilterCacheFullyCovered(false);
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     auto filterVecIter = transparentCleanFilter_.find(surfaceNode->GetId());
     if (filterVecIter != transparentCleanFilter_.end()) {
@@ -1903,8 +1905,8 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
         for (auto it = filterVecIter->second.begin(); it != filterVecIter->second.end(); ++it) {
             auto filterRegion = Occlusion::Region{ Occlusion::Rect{ it->second } };
             auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
+            auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(it->first);
             if (!filterDirtyRegion.IsEmpty()) {
-                auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(it->first);
                 if (filterNode) { // backgroundfilter affected by below dirty
                     filterNode->UpdateFilterCacheWithDirty(*(curDisplayNode_->GetDirtyManager()));
                 }
@@ -1918,11 +1920,34 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
             } else {
                 globalFilter_.insert(it->second);
             }
+            // [attention] make sure filter valid check useful
+            surfaceNode->CheckValidFilterCacheFullyCoverTarget(*filterNode, screenRect_);
         }
     }
     auto surfaceDirtyRegion = Occlusion::Region{
         Occlusion::Rect{ surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion() } };
     accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
+}
+
+void RSUniRenderVisitor::CheckAndUpdateFilterCacheOcclusion(
+    std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces) const
+{
+    if (!RSSystemParameters::GetFilterCacheOcculusionEnabled()) {
+        return;
+    }
+    bool isScreenOccluded = false;
+    // top-down traversal all mainsurface
+    // if upper surface reuse filter cache which fully cover whole screen
+    // mark lower layers for process skip
+    std::for_each(curMainAndLeashSurfaces.begin(), curMainAndLeashSurfaces.end(),
+        [this, &isScreenOccluded](RSBaseRenderNode::SharedPtr& nodePtr) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
+        if (surfaceNode->IsMainWindowType()) {
+            // reset occluded status for all mainwindow
+            surfaceNode->UpdateOccludedByFilterCache(isScreenOccluded);
+        }
+        isScreenOccluded = isScreenOccluded || surfaceNode->GetFilterCacheFullyCovered();
+    });
 }
 
 void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion)
