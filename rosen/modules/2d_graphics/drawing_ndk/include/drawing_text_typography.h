@@ -2375,8 +2375,8 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo*);
  * @brief Gets whether two TextStyle objects are equal.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param style1 Indicates source of comparison object.
- * @param style2 Indicates comparison object.
+ * @param style Indicates source of comparison OH_Drawing_TextStyle object.
+ * @param compareStyle Indicates comparison OH_Drawing_TextStyle object.
  * @return Compare result.
  * @since 12
  * @version 1.0
