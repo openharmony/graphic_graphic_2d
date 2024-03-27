@@ -64,7 +64,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("Failed to draw canvas drawing node, paint filter canvas is null!");
         return;
     }
-    
+
     auto clearFunc = [](std::shared_ptr<Drawing::Surface> surface) {
         // The second param is null, 0 is an invalid value.
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, UNI_RENDER_THREAD_INDEX, 0);
@@ -95,7 +95,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     OnDraw(canvas);
 }
 
-std::shared_ptr RSCanvasDrawingRenderNodeDrawable::GetRenderContent()
+std::shared_ptr<RSCanvasDrawingRenderNodeContent> RSCanvasDrawingRenderNodeDrawable::GetRenderContent()
 {
     return canvasDrawingNodeRenderContent_;
 }

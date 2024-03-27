@@ -299,9 +299,6 @@ uint32_t RSCanvasDrawingRenderNode::GetTid() const
 
 Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()
 {
-    if (canvasDrawingNodeRenderContent_ != nullptr) {
-        return GetBitmap(UNI_RENDER_THREAD_INDEX);
-    }
     return GetBitmap(UNI_MAIN_THREAD_INDEX);
 }
 
