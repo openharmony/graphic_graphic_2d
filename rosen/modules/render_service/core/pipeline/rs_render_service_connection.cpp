@@ -546,6 +546,10 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         if (RSSystemParameters::GetRsSurfaceCaptureType() == RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
             auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
             auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+            if (node == nullptr) {
+                RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture node == nullptr");
+                return;
+            }
             auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
                 !node->IsOnTheTree() : false;
             std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
