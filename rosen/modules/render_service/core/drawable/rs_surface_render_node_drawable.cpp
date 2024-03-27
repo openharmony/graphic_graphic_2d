@@ -194,7 +194,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    unit32_t saveCount = canvas.GetSaveCount();
+    uint32_t saveCount = canvas.GetSaveCount();
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
@@ -213,19 +213,32 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         auto scaleY = RSUniRenderThread::GetCaptureParam().scaleY_;
         
         captureMatrix.Set(Drawing::Matrix::Index::SCALE_X, scaleX);
-        captureMatrix_.Set(Drawing::Matrix::Index::SCALE_Y, scaleY);
+        captureMatrix.Set(Drawing::Matrix::Index::SCALE_Y, scaleY);
         Drawing::Matrix invertMatrix;
         if (surfaceParams.GetMatrix().Invert(invertMatrix)) {
-            captureMatrix_.PreConcat(invertMatrix);
+            captureMatrix.PreConcat(invertMatrix);
         }
     } else if (nodeType == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
         canvas.SetMatrix(surfaceParams.GetMatrix());
     }
 
-    // TODO: maybe it can use DealWithSelfDrawingNodeBuffer
-    if (!surfaceNode.IsAppWindow() && surfaceNode.GetBuffer() != nullptr) {
-        auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false);
-        RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+    if (isSelfDrawingSurface) {
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
+    }
+
+    nodeSp->ProcessRenderBeforeChildren(canvas);
+
+    if (surfaceParams.IsSecurityLayer() || surfaceParams.IsSkipLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
+            surfaceParams.GetId());
+        canvas.Clear(Drawing::Color::COLOR_WHITE);
+        canvas.RestoreToCount(saveCount);
+        return;
+    }
+
+    if (surfaceParams.GetBuffer() != nullptr) {
+        DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
     }
 
     if (isSelfDrawingSurface) {
@@ -246,6 +259,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
 void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
+    if (surfaceParams.IsSecurityLayer() || surfaceParams.IsSkipLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) paused since it is security layer.",
+            surfaceParams.GetId());
+        return;
+    }
+
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     canvas.ConcatMatrix(surfaceParams.GetMatrix());
 
     // TODO
@@ -263,10 +284,18 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
         canvas.Save();
     }
 
-    // TODO: maybe it can use DealWithSelfDrawingNodeBuffer
-    if (!surfaceNode.IsAppWindow() && surfaceNode.GetBuffer() != nullptr) {
-        auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false);
-        RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+    if (isSelfDrawingSurface) {
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
+    }
+
+    nodeSp->ProcessRenderBeforeChildren(canvas);
+
+    if (isSelfDrawingSurface) {
+        canvas.Restore();
+    }
+
+    if (surfaceParams.GetBuffer() != nullptr) {
+        DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
     }
 
     if (isSelfDrawingSurface) {
