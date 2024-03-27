@@ -59,14 +59,7 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 
 void RSCanvasDrawingRenderNode::InitRenderContent()
 {
-    if (!canvasDrawingNodeRenderContent_) {
-        canvasDrawingNodeRenderContent_ = std::make_unique<RSCanvasDrawingRenderNodeContent>();
-    }
-}
-
-std::shared_ptr<RSCanvasDrawingRenderNodeContent> RSCanvasDrawingRenderNode::GetRenderContent()
-{
-    return canvasDrawingNodeRenderContent_;
+    drawingNodeRenderID = UNI_RENDER_THREAD_INDEX;
 }
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -298,8 +291,8 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
 
 uint32_t RSCanvasDrawingRenderNode::GetTid() const
 {
-    if (canvasDrawingNodeRenderContent_ != nullptr) {
-        return canvasDrawingNodeRenderContent_->GetTid();
+    if (UNI_RENDER_THREAD_INDEX == drawingNodeRenderID) {
+        return drawingNodeRenderID;
     }
     return curThreadInfo_.first;
 }
@@ -319,12 +312,20 @@ bool WriteSkImageToPixelmap(std::shared_ptr<Drawing::Image> image, Drawing::Imag
         info, pixelmap->GetWritablePixels(), pixelmap->GetRowStride(), rect->GetLeft(), rect->GetTop());
 }
 
+std::shared_ptr<Drawing::Image> RSCanvasDrawingRenderNode::GetImage(const uint64_t tid)
+{
+    if (GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetImage: image_ used by multi threads");
+        return nullptr;
+    }
+    if (!image_) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetImage: image_ is nullptr");
+    }
+    return image_;
+}
+
 Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
 {
-    if (canvasDrawingNodeRenderContent_ != nullptr) {
-        return canvasDrawingNodeRenderContent_->GetBitmap(tid);
-    }
-
     Drawing::Bitmap bitmap;
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!image_) {
@@ -344,10 +345,6 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
 bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
     const uint64_t tid, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
-    if (canvasDrawingNodeRenderContent_ != nullptr) {
-        return canvasDrawingNodeRenderContent_->GetPixelmap(pixelmap, rect, tid, drawCmdList);
-    }
-
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!pixelmap || !rect) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: pixelmap is nullptr");

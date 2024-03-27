@@ -321,8 +321,10 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
             canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
             canvasDrawingNode->ProcessRenderContents(*canvas_);
         } else {
-            Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap(UNI_MAIN_THREAD_INDEX);
-            canvas_->DrawBitmap(bitmap, 0, 0);
+            auto image = canvasDrawingNode->GetImage(UNI_MAIN_THREAD_INDEX);
+            if (image) {
+                canvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+            }
         }
     } else {
         node.ProcessRenderContents(*canvas_);

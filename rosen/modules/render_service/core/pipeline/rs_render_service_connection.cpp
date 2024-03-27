@@ -39,6 +39,7 @@
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "drawable/rs_canvas_drawing_render_node_drawable.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -993,7 +994,11 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
     if (tid == UNI_MAIN_THREAD_INDEX) {
         mainThread_->PostSyncTask(getBitmapTask);
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
-        renderThread_.PostSyncTask(getBitmapTask);
+        auto getDrawableBitmapTask = [&node, &bitmap, tid]() {
+            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+            bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
+                GetRenderContent()->GetBitmap(tid); };
+        renderThread_.PostSyncTask(getDrawableBitmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
             RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getBitmapTask, true);
@@ -1027,7 +1032,11 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         }
         mainThread_->PostSyncTask(getPixelmapTask);
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
-        renderThread_.PostSyncTask(getPixelmapTask);
+        auto getDrawablePixelmapTask = [&node, &pixelmap, rect, &result, tid, drawCmdList]() {
+            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+            result = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
+                GetRenderContent()->GetPixelmap(pixelmap, rect, tid, drawCmdList); };
+        renderThread_.PostSyncTask(getDrawablePixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
             RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getPixelmapTask, true);
