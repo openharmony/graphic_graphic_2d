@@ -3003,7 +3003,7 @@ void OH_Drawing_SetTypographyStyleTextStrutStyle(OH_Drawing_TypographyStyle* sty
     }
     OH_Drawing_SetTypographyTextLineStyleFontWeight(style, strutstyle->weight);
     OH_Drawing_SetTypographyTextLineStyleFontStyle(style, strutstyle->style);
-    OH_Drawing_SetTypographyTextLineStyleFontFamilies(style, strutstyle->familiesSize, 
+    OH_Drawing_SetTypographyTextLineStyleFontFamilies(style, strutstyle->familiesSize,
         const_cast<const char**>(strutstyle->families));
     OH_Drawing_SetTypographyTextLineStyleFontSize(style, strutstyle->size);
     OH_Drawing_SetTypographyTextLineStyleFontHeight(style, strutstyle->heightScale);
@@ -3044,7 +3044,7 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
     strutstyle->forceStrutHeight = typographyStyle->lineStyleOnly;
     strutstyle->familiesSize = typographyStyle->lineStyleFontFamilies.size();
     if (strutstyle->families != 0) {
-        strutstyle->families = new char*[strutstyle->familiesSize];
+        strutstyle->families = new char* [strutstyle->familiesSize];
         for (size_t i = 0; i < strutstyle->familiesSize; i++) {
             int size = typographyStyle->lineStyleFontFamilies[i].size() + 1;
             strutstyle->families[i] = new char[size];
