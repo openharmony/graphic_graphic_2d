@@ -51,6 +51,10 @@ public:
     static void BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType);
     static void EndBlendMode(RSPaintFilterCanvas& canvas);
 
+    static Color CalculateInvertColor(const Color& backgroundColor);
+    static Color GetInvertBackgroundColor(RSPaintFilterCanvas& canvas, bool needClipToBounds,
+        const Vector4f& boundsRect, const Color& backgroundColor);
+
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
 };

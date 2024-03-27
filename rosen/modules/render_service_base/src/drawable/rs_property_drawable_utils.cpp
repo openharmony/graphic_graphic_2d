@@ -18,6 +18,7 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_material_filter.h"
+#include "property/rs_properties_painter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -660,6 +661,39 @@ void RSPropertyDrawableUtils::EndBlendMode(RSPaintFilterCanvas& canvas)
     canvas.RestoreEnv();
     canvas.RestoreAlpha();
     canvas.Restore();
+}
+
+Color RSPropertyDrawableUtils::CalculateInvertColor(const Color& backgroundColor)
+{
+    uint32_t a = backgroundColor.GetAlpha();
+    uint32_t r = 255 - backgroundColor.GetRed(); // 255 max red channel value
+    uint32_t g = 255 - backgroundColor.GetGreen(); // 255 max green channel value
+    uint32_t b = 255 - backgroundColor.GetBlue(); // 255 max blue channel value
+    return Color(r, g, b, a);
+}
+
+Color RSPropertyDrawableUtils::GetInvertBackgroundColor(RSPaintFilterCanvas& canvas, bool needClipToBounds,
+    const Vector4f& boundsRect, const Color& backgroundColor)
+{
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    if (!needClipToBounds) {
+        RS_LOGI("RSPropertyDrawableUtils::GetInvertBackgroundColor not GetClipToBounds");
+        Drawing::Rect rect = Drawing::Rect(0, 0, boundsRect.z_, boundsRect.w_);
+        canvas.ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
+    }
+    if (backgroundColor.GetAlpha() == 0xff) { // 0xff = 255, max alpha value
+        RS_LOGI("RSPropertyDrawableUtils::GetInvertBackgroundColor not alpha");
+        return RSPropertyDrawableUtils::CalculateInvertColor(backgroundColor);
+    }
+    auto imageSnapshot = canvas.GetSurface()->GetImageSnapshot(canvas.GetDeviceClipBounds());
+    if (imageSnapshot == nullptr) {
+        RS_LOGI("RSPropertyDrawableUtils::GetInvertBackgroundColor imageSnapshot null");
+        return Color(0);
+    }
+    auto colorPicker = RSPropertiesPainter::CalcAverageColor(imageSnapshot);
+    return RSPropertyDrawableUtils::CalculateInvertColor(Color(
+        Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
+        Drawing::Color::ColorQuadGetB(colorPicker), Drawing::Color::ColorQuadGetA(colorPicker)));
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -26,6 +26,7 @@
 #include "drawable/rs_drawable.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
 enum class RSModifierType : int16_t;
@@ -151,6 +152,32 @@ protected:
     bool needSync_ = false;
     Color envFGColor_;
     Color stagingEnvFGColor_;
+};
+
+// ============================================================================
+// EnvFGColorStrategy
+class RSEnvFGColorStrategyDrawable : public RSDrawable {
+public:
+    explicit RSEnvFGColorStrategyDrawable() = default;
+    ~RSEnvFGColorStrategyDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+protected:
+    bool needSync_ = false;
+    ForegroundColorStrategyType envFGColorStrategy_;
+    bool needClipToBounds_;
+    Color backgroundColor_;
+    Vector4f boundsRect_;
+
+    ForegroundColorStrategyType stagingEnvFGColorStrategy_;
+    bool stagingNeedClipToBounds_;
+    Color stagingBackgroundColor_;
+    Vector4f stagingBoundsRect_;
 };
 
 // ============================================================================

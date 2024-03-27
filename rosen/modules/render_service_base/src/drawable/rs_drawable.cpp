@@ -120,8 +120,8 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::FOREGROUND_STYLE,  // FOREGROUND_STYLE
     RSDrawableSlot::OVERLAY,           // OVERLAY_STYLE
     RSDrawableSlot::INVALID,           // NODE_MODIFIER
-    RSDrawableSlot::INVALID,           // ENV_FOREGROUND_COLOR
-    RSDrawableSlot::INVALID,           // ENV_FOREGROUND_COLOR_STRATEGY
+    RSDrawableSlot::ENV_FOREGROUND_COLOR, // ENV_FOREGROUND_COLOR
+    RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY
     RSDrawableSlot::INVALID,           // GEOMETRYTRANS
     RSDrawableSlot::CHILDREN,          // CHILDREN
 };
@@ -156,7 +156,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSUseEffectDrawable::OnGenerate,                     // USE_EFFECT,
     ModifierGenerator<RSModifierType::BACKGROUND_STYLE>, // BACKGROUND_STYLE,
     RSDynamicLightUpDrawable::OnGenerate,                // DYNAMIC_LIGHT_UP,
-    nullptr,                                             // ENV_FOREGROUND_COLOR_STRATEGY,
+    RSEnvFGColorStrategyDrawable::OnGenerate,            // ENV_FOREGROUND_COLOR_STRATEGY,
     nullptr,                                             // BG_RESTORE_BOUNDS,
 
     // Frame Geometry
@@ -183,7 +183,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSBorderDrawable::OnGenerate,                     // BORDER,
     ModifierGenerator<RSModifierType::OVERLAY_STYLE>, // OVERLAY,
     RSParticleDrawable::OnGenerate,                   // PARTICLE_EFFECT,
-    nullptr,                                          // PIXEL_STRETCH,
+    RSPixelStretchDrawable::OnGenerate,               // PIXEL_STRETCH,
 
     // Restore state
     RSEndBlendModeDrawable::OnGenerate, // RESTORE_BLEND_MODE,

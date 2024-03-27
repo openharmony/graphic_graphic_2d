@@ -323,5 +323,65 @@ Drawing::RecordingCanvas::DrawFunc RSEnvFGColorDrawable::CreateDrawFunc() const
         paintFilterCanvas->SetEnvForegroundColor(ptr->envFGColor_);
     };
 }
+
+// ============================================================================
+// EnvFGColorStrategy
+RSDrawable::Ptr RSEnvFGColorStrategyDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSEnvFGColorStrategyDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSEnvFGColorStrategyDrawable::OnUpdate(const RSRenderNode& node)
+{
+    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto itr = drawCmdModifiers.find(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
+        return false;
+    }
+    const auto& modifier = itr->second.back();
+    auto property = std::static_pointer_cast<RSRenderAnimatableProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
+    stagingEnvFGColorStrategy_ = property->Get();
+    const auto& renderProperties = node.GetRenderProperties();
+    stagingBackgroundColor_ = renderProperties.GetBackgroundColor();
+    stagingNeedClipToBounds_ = renderProperties.GetClipToBounds();
+    stagingBoundsRect_ = renderProperties.GetBounds();
+    needSync_ = true;
+    return true;
+}
+
+void RSEnvFGColorStrategyDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    envFGColorStrategy_ = stagingEnvFGColorStrategy_;
+    backgroundColor_ = stagingBackgroundColor_;
+    needClipToBounds_ = stagingNeedClipToBounds_;
+    boundsRect_ = stagingBoundsRect_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSEnvFGColorStrategyDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSEnvFGColorStrategyDrawable>(shared_from_this());
+    return [this, ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        switch (envFGColorStrategy_) {
+            case ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR: {
+                // calculate the color by screebshot
+                Color color = RSPropertyDrawableUtils::GetInvertBackgroundColor(*paintFilterCanvas, needClipToBounds_,
+                    boundsRect_, backgroundColor_);
+                paintFilterCanvas->SetEnvForegroundColor(color);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    };
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
