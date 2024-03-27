@@ -828,6 +828,7 @@ public:
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
 
+    /* For filter cache occlusion calculation */
     bool GetFilterCacheFullyCovered() const
     {
         return isFilterCacheFullyCovered_;
@@ -843,7 +844,11 @@ public:
         return isFilterCacheValidForOcclusion_;
     }
 
+    // mark if any valid filter cache within surface fully cover targer range
+    void CheckValidFilterCacheFullyCoverTarget(const RSRenderNode& filterNode, const RectI& targetRect);
     void CalcFilterCacheValidForOcclusion();
+    // mark occluded by upper filtercache
+    void UpdateOccludedByFilterCache(bool val);
 
     bool IsFilterCacheStatusChanged() const
     {
@@ -1063,6 +1068,7 @@ private:
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
     bool isFilterCacheValidForOcclusion_ = false;
+    bool isOccludedByFilterCache_ = false;
     bool isFilterCacheStatusChanged_ = false;
     bool isTreatedAsTransparent_ = false;
     // valid filter nodes within, including itself

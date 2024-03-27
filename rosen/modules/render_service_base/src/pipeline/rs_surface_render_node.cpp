@@ -1248,6 +1248,24 @@ void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>&
     filterNodes_.emplace_back(nodePtr);
 }
 
+void RSSurfaceRenderNode::CheckValidFilterCacheFullyCoverTarget(const RSRenderNode& filterNode, const RectI& targetRect)
+{
+    if (filterNode.IsInstanceOf<RSEffectRenderNode>()) {
+        return;
+    }
+    if (isFilterCacheFullyCovered_ || !filterNode.IsBackgroundFilterCacheValid()) {
+        return;
+    }
+    isFilterCacheFullyCovered_ = targetRect.IsInsideOf(filterNode.GetOldDirtyInSurface());
+}
+
+void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
+{
+    isOccludedByFilterCache_ = val;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetOccludedByFilterCache(isOccludedByFilterCache_);
+}
+
 void RSSurfaceRenderNode::UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr)
 {
     if (nodePtr == nullptr) {

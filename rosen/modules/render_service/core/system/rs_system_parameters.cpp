@@ -121,7 +121,7 @@ bool RSSystemParameters::GetSystemAnimatedScenesEnabled()
 bool RSSystemParameters::GetFilterCacheOcculusionEnabled()
 {
     static bool filterCacheOcclusionEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheOcclusionEnabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheOcclusionEnabled", "1")).c_str()) != 0;
     return filterCacheOcclusionEnabled;
 }
 

@@ -85,6 +85,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
+    if (surfaceParams->GetOccludedByFilterCache()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] Id:%" PRIu64 "",
+            surfaceNode->GetName().c_str(), surfaceParams->GetId());
+        return;
+    }
     Drawing::Region resultRegion = CalculateVisibleRegion(surfaceParams, surfaceNode);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && surfaceParams->IsMainWindowType() && resultRegion.IsEmpty()) {

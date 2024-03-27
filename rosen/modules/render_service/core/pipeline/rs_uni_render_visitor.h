@@ -243,6 +243,8 @@ private:
 
     void CheckMergeTransparentFilterForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
+    // If reusable filter cache covers whole screen, mark lower layer to skip process
+    void CheckAndUpdateFilterCacheOcclusion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces) const;
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
 
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
@@ -398,6 +400,7 @@ private:
 
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
+    RectI screenRect_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
