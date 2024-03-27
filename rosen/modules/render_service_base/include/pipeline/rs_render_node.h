@@ -62,6 +62,8 @@ class RSCommand;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
+struct SharedTransitionParam;
+
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
@@ -278,7 +280,7 @@ public:
     void MapAndUpdateChildrenRect();
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
     virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
-        const std::optional<RectI>& clipRect = std::nullopt, bool isForground = false);
+        const std::optional<RectI>& clipRect = std::nullopt, bool isForeground = false);
 
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
@@ -443,10 +445,8 @@ public:
 
     /////////////////////////////////////////////
 
-    // shared transition params, in format <InNodeId, target weakPtr>, nullopt means no transition
-    using SharedTransitionParam = std::pair<NodeId, std::weak_ptr<RSRenderNode>>;
-    void SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam);
-    const std::optional<SharedTransitionParam>& GetSharedTransitionParam() const;
+    void SetSharedTransitionParam(const std::shared_ptr<SharedTransitionParam>& sharedTransitionParam);
+    const std::shared_ptr<SharedTransitionParam>& GetSharedTransitionParam() const;
 
     void SetGlobalAlpha(float alpha);
     float GetGlobalAlpha() const;
@@ -467,8 +467,10 @@ public:
     void UpdateDisplaySyncRange();
 
     void MarkNonGeometryChanged();
+
     void ApplyModifiers();
     void ApplyPositionZModifier();
+    void PostPrepare();
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren();
     void UpdateDrawingCacheInfoAfterChildren();
@@ -700,7 +702,7 @@ private:
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     float globalAlpha_ = 1.0f;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
-    std::optional<SharedTransitionParam> sharedTransitionParam_;
+    std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
@@ -765,7 +767,6 @@ private:
 
     // for blur cache
     void ResetFilterCacheClearFlags();
-    void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
 
     RectI lastFilterRegion_;
     bool backgroundFilterRegionChanged_ = false;
@@ -786,6 +787,27 @@ private:
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;
+
+struct SharedTransitionParam {
+    SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode);
+
+    RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
+    bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
+    std::string Dump() const;
+
+    std::weak_ptr<RSRenderNode> inNode_;
+    std::weak_ptr<RSRenderNode> outNode_;
+    NodeId inNodeId_;
+    NodeId outNodeId_;
+
+    enum class NodeHierarchyRelation : uint8_t {
+        UNKNOWN = -1,
+        IN_NODE_BELOW_OUT_NODE = 0,
+        IN_NODE_ABOVE_OUT_NODE = 1,
+    };
+    NodeHierarchyRelation relation_ = NodeHierarchyRelation::UNKNOWN;
+    bool crossApplication_ = false;
+};
 } // namespace Rosen
 } // namespace OHOS
 
