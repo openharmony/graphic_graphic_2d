@@ -264,12 +264,12 @@ int32_t ConsumerSurface::GetDefaultHeight()
     return producer_->GetDefaultHeight();
 }
 
-GSError ConsumerSurface::SetDefaultUsage(uint32_t usage)
+GSError ConsumerSurface::SetDefaultUsage(uint64_t usage)
 {
     return consumer_->SetDefaultUsage(usage);
 }
 
-uint32_t ConsumerSurface::GetDefaultUsage()
+uint64_t ConsumerSurface::GetDefaultUsage()
 {
     return producer_->GetDefaultUsage();
 }
