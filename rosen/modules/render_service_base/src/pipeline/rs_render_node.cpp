@@ -954,6 +954,36 @@ RSProperties& RSRenderNode::GetMutableRenderProperties()
     return renderContent_->GetMutableRenderProperties();
 }
 
+void RSRenderNode::UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
+        return;
+    }
+    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNode == nullptr) {
+        return;
+    }
+    auto buffer = surfaceNode->GetBuffer();
+    if (buffer != nullptr) {
+        // Use the matrix from buffer to relative coordinate and the absolute matrix
+        // to calculate the buffer damageRegion's absolute rect
+        auto rect = surfaceNode->GetDamageRegion();
+        auto matrix = surfaceNode->GetBufferRelMatrix();
+        matrix.PostConcat(GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
+        auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapAbsRectWithMatrix(
+            RectF(rect.x, rect.y, rect.w, rect.h), matrix);
+        bufferDirtyRect.JoinRect(drawRegion);
+        // The buffer's dirtyRect should not be out of the scope of the node's dirtyRect
+        dirtyRect = bufferDirtyRect.IntersectRect(dirtyRect);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode id: %" PRIu64 ", buffer size [%d,%d], "
+            "buffer damageRegion [%d,%d,%d,%d], dirtyRect %s", GetId(),
+            buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
+            rect.x, rect.y, rect.w, rect.h, dirtyRect.ToString().c_str());
+    }
+#endif
+}
+
 void RSRenderNode::UpdateDirtyRegion(
     RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect)
 {
@@ -976,34 +1006,41 @@ void RSRenderNode::UpdateDirtyRegion(
     } else {
         RectI drawRegion;
         RectI shadowRect;
-        auto dirtyRect = GetRenderProperties().GetDirtyRect(drawRegion);
+        auto& properties = GetRenderProperties();
+        auto dirtyRect = properties.GetDirtyRect(drawRegion);
         auto rectFromRenderProperties = dirtyRect;
-        if (GetRenderProperties().IsShadowValid()) {
+        // When surface node with buffer has damageRegion, use this instead of the node size
+        UpdateBufferDirtyRegion(dirtyRect, drawRegion);
+
+        // Add node's shadow region to dirtyRect
+        if (properties.IsShadowValid()) {
             SetShadowValidLastFrame(true);
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
-                const RectF absBounds = {0, 0, GetRenderProperties().GetBoundsWidth(),
-                    GetRenderProperties().GetBoundsHeight()};
-                RRect absClipRRect = RRect(absBounds, GetRenderProperties().GetCornerRadius());
-                RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &absClipRRect);
+                const RectF absBounds = {0, 0, properties.GetBoundsWidth(),
+                    properties.GetBoundsHeight()};
+                RRect absClipRRect = RRect(absBounds, properties.GetCornerRadius());
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect, properties, &absClipRRect);
             } else {
-                RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties());
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect, properties);
             }
             if (!shadowRect.IsEmpty()) {
                 dirtyRect = dirtyRect.JoinRect(shadowRect);
             }
         }
 
-        auto& outline = GetRenderProperties().GetOutline();
+        // Add node's outline region to dirtyRect
+        auto& outline = properties.GetOutline();
         RectI outlineRect;
         if (outline && outline->HasBorder()) {
-            RSPropertiesPainter::GetOutlineDirtyRect(outlineRect, GetRenderProperties());
+            RSPropertiesPainter::GetOutlineDirtyRect(outlineRect, properties);
             if (!outlineRect.IsEmpty()) {
                 dirtyRect = dirtyRect.JoinRect(outlineRect);
             }
         }
 
-        if (GetRenderProperties().pixelStretch_) {
-            auto stretchDirtyRect = GetRenderProperties().GetPixelStretchDirtyRect();
+        // Add node's pixelStretch region to dirtyRect
+        if (properties.pixelStretch_) {
+            auto stretchDirtyRect = properties.GetPixelStretchDirtyRect();
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
         }
 

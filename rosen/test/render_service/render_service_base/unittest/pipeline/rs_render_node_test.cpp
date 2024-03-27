@@ -15,8 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
@@ -47,6 +49,7 @@ void RSRenderNodeTest::SetUpTestCase()
 void RSRenderNodeTest::TearDownTestCase()
 {
     delete canvas_;
+    canvas_ = nullptr;
 }
 void RSRenderNodeTest::SetUp() {}
 void RSRenderNodeTest::TearDown() {}
@@ -412,6 +415,119 @@ HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest03, TestSize.Level1)
     ASSERT_EQ(node.IsOnlyBasicGeoTransform(), false);
     node.ResetIsOnlyBasicGeoTransform();
     ASSERT_EQ(node.IsOnlyBasicGeoTransform(), true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest01
+ * @tc.desc: check dirty region not join when not dirty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest01, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI clipRect{0, 0, 1000, 1000};
+    bool geoDirty = false;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest02
+ * @tc.desc: check dirty region not join when not geometry dirty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest02, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.geometryChangeNotPerceived_ = false;
+    bool geoDirty = false;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest03
+ * @tc.desc: check dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest03, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    bool isDirtyRectCorrect = (rsDirtyManager->GetCurrentFrameDirtyRegion() == absRect);
+    ASSERT_EQ(isDirtyRectCorrect, true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest04
+ * @tc.desc: check shadow dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest04, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    properties.SetShadowOffsetX(10.0f);
+    properties.SetShadowOffsetY(10.0f);
+    properties.SetShadowRadius(10.0f);
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest05
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest05, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    RectI clipRect{0, 0, 1000, 1000};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    properties.SetOutlineWidth(10.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

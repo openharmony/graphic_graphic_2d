@@ -1232,6 +1232,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.GetName().c_str());
         return;
     }
+
+    if (node.GetBuffer() != nullptr) {
+        node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
+    }
+
     auto skipNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
     // Update node properties, including position (dstrect), OldDirty()
     auto parentNode = node.GetParent().lock();
