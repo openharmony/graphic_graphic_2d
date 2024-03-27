@@ -1113,16 +1113,17 @@ void RSMainThread::CollectInfoForHardwareComposer()
 
             if (surfaceNode->GetBuffer() != nullptr) {
                 // collect hwc nodes vector, used for display node skip and direct composition cases
+                surfaceNode->SetIsLastFrameHwcEnabled(!surfaceNode->IsHardwareForcedDisabled());
                 hardwareEnabledNodes_.emplace_back(surfaceNode);
             }
 
             // set content dirty for hwc node if needed
             if (isHardwareForcedDisabled_) {
                 // buffer updated or hwc -> gpu
-                if (surfaceNode->IsCurrentFrameBufferConsumed() || surfaceNode->IsLastFrameHardwareEnabled()) {
+                if (surfaceNode->IsCurrentFrameBufferConsumed() || surfaceNode->GetIsLastFrameHwcEnabled()) {
                     surfaceNode->SetContentDirty();
                 }
-            } else if (!surfaceNode->IsLastFrameHardwareEnabled()) { // gpu -> hwc
+            } else if (!surfaceNode->GetIsLastFrameHwcEnabled()) { // gpu -> hwc
                 if (!IsLastFrameUIFirstEnabled(appNodeId)) {
                     if (surfaceNode->IsCurrentFrameBufferConsumed()) {
                         surfaceNode->SetContentDirty();
@@ -1581,7 +1582,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
     processor->ProcessDisplaySurface(*displayNode);
     for (auto& surfaceNode: selfDrawingNodes_) {
-        if (surfaceNode->IsCurrentFrameHardwareEnabled()) {
+        if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
             processor->CreateLayer(*surfaceNode, *params);
         }
@@ -2874,7 +2875,7 @@ void RSMainThread::ResetHardwareEnabledState()
 {
     isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
     isLastFrameDirectComposition_ = doDirectComposition_;
-    doDirectComposition_ = false; //!isHardwareForcedDisabled_;
+    doDirectComposition_ = !isHardwareForcedDisabled_;
     isHardwareEnabledBufferUpdated_ = false;
     hardwareEnabledNodes_.clear();
     selfDrawingNodes_.clear();

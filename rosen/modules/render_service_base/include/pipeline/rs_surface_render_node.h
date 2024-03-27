@@ -167,6 +167,11 @@ public:
         return isCurrentFrameHardwareEnabled_;
     }
 
+    void SetCurrentFrameHardwareEnabled(bool enable)
+    {
+        isCurrentFrameHardwareEnabled_ = enable;
+    }
+
     void MarkCurrentFrameHardwareEnabled()
     {
         isCurrentFrameHardwareEnabled_ = true;
@@ -211,7 +216,7 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_ || isHardwareDisabledByCache_ || isHardwareForcedDisabledBySrcRect_ ||
+        return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -223,6 +228,36 @@ public:
                nodeType_ == RSSurfaceNodeType::DEFAULT ||
                nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    }
+
+    bool GetIsLastFrameHwcEnabled() const
+    {
+        return isLastFrameHwcEnabled_;
+    }
+
+    void SetIsLastFrameHwcEnabled(bool enable)
+    {
+        isLastFrameHwcEnabled_ = enable;
+    }
+
+    bool GetNeedCollectHwcNode() const
+    {
+        return needCollectHwcNode_;
+    }
+
+    void ResetNeedCollectHwcNode()
+    {
+        needCollectHwcNode_ = false;
+    }
+
+    void SetIntersectByFilterInApp(bool intersect)
+    {
+        intersectByFilterInApp_ = intersect;
+    }
+
+    bool GetIntersectByFilterInApp() const
+    {
+        return intersectByFilterInApp_;
     }
 
     bool IsSelfDrawingType() const
@@ -316,6 +351,7 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsNeedSetVSync();
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
 
     void SetContextBounds(const Vector4f bounds);
     bool CheckParticipateInOcclusion() const;
@@ -732,7 +768,8 @@ public:
     // if surfacenode's buffer has been consumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
 
-    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect, bool hasRotation = false);
+    void UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect, bool hasRotation = false);
+    void UpdateHwcDisabledBySrcRect(bool hasRotation);
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
@@ -932,6 +969,7 @@ private:
     bool IsYUVBufferFormat() const;
     void InitRenderParams() override;
     void UpdateRenderParams() override;
+    void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;
@@ -1086,6 +1124,9 @@ private:
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool isLastFrameHwcEnabled_ = false;
+    bool needCollectHwcNode_ = false;
+    bool intersectByFilterInApp_ = false;
     bool hasSubNodeShouldPaint_ = false;
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true

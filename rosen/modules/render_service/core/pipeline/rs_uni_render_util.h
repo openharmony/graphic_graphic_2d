@@ -90,7 +90,14 @@ public:
     static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height,
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
 #endif
+    static void UpdateRealSrcRect(RSSurfaceRenderNode& node);
+    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void LayerScaleDown(RSSurfaceRenderNode& Node);
+    static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
 private:
+    static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,

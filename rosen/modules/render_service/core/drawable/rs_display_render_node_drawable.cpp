@@ -300,8 +300,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto& selfDrawingNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetSelfDrawingNodes();
     float globalZOrder = 0.f;
     for (const auto& surfaceNode : selfDrawingNodes) {
+        if (surfaceNode == nullptr) {
+            continue;
+        }
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        if (params->GetHardwareEnabled()) {
+        if (params->GetHardwareEnabled() && params->GetBuffer()) {
             processor->CreateLayer(*surfaceNode, *params);
             globalZOrder++;
         }

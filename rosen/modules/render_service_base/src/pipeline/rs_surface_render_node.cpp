@@ -127,7 +127,7 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 }
 #endif
 
-void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect,
+void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect,
     bool hasRotation)
 {
     auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(Drawing::Rect());
@@ -153,6 +153,23 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
             properties.GetBoundsWidth(), properties.GetBoundsHeight(), hasRotation,
             GetName().c_str(), GetId());
 #endif
+    }
+}
+
+void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
+{
+    const auto& buffer = GetBuffer();
+    isHardwareForcedDisabledBySrcRect_ = false;
+    if (buffer == nullptr) {
+        return;
+    }
+     // We allow 1px error value to avoid disable dss by mistake [this flag only used for YUV buffer format]
+    if (IsYUVBufferFormat()) {
+        auto width = static_cast<int>(buffer->GetSurfaceBufferWidth());
+        auto height = static_cast<int>(buffer->GetSurfaceBufferHeight());
+        isHardwareForcedDisabledBySrcRect_ =  hasRotation ?
+            srcRect_.width_ + 1 < width :
+            srcRect_.height_ + 1 < height;
     }
 }
 
@@ -360,6 +377,12 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
         if (auto instanceRootNode = GetInstanceRootNode()) {
             if (auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>()) {
                 surfaceNode->UpdateAbilityNodeIds(GetId(), IsOnTheTree());
+            }
+        }
+    } else if (IsHardwareEnabledType()) {
+        if (auto instanceRootNode = GetInstanceRootNode()) {
+            if (auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+                surfaceNode->UpdateChildHardwareEnabledNode(GetId(), IsOnTheTree());
             }
         }
     }
@@ -734,15 +757,6 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
     surfaceParams->SetBuffer(buffer);
     surfaceParams->SetAcquireFence(acquireFence);
     surfaceParams->SetPreBuffer(preBuffer);
-    // TODO remove code below if hwc enabled
-    if (stagingRenderParams_->NeedSync()) {
-        if (auto context = GetContext().lock()) {
-            context->AddPendingSyncNode(shared_from_this());
-        } else {
-            RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
-            OnSync();
-        }
-    }
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1039,6 +1053,47 @@ bool RSSurfaceRenderNode::IsNeedSetVSync()
 {
     return GetName().substr(0, SCB_NODE_NAME_PREFIX_LENGTH) != "SCB";
 }
+
+void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    auto layer = surfaceParams->GetLayerInfo();
+    layer.srcRect = {srcRect_.left_, srcRect_.top_, srcRect_.width_, srcRect_.height_};
+    layer.dstRect = {dstRect_.left_, dstRect_.top_, dstRect_.width_, dstRect_.height_};
+    const auto& properties = GetRenderProperties();
+    layer.boundRect = {0, 0,
+        static_cast<uint32_t>(properties.GetBoundsWidth()),
+        static_cast<uint32_t>(properties.GetBoundsHeight())};
+    layer.transformType = transform;
+    layer.zOrder = GetGlobalZOrder();
+    layer.gravity = static_cast<int32_t>(properties.GetFrameGravity());
+    layer.blendType = GetBlendType();
+    layer.matrix = GraphicMatrix {totalMatrix_.Get(Drawing::Matrix::Index::SCALE_X),
+        totalMatrix_.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix_.Get(Drawing::Matrix::Index::TRANS_X),
+        totalMatrix_.Get(Drawing::Matrix::Index::SKEW_Y), totalMatrix_.Get(Drawing::Matrix::Index::SCALE_Y),
+        totalMatrix_.Get(Drawing::Matrix::Index::TRANS_Y), totalMatrix_.Get(Drawing::Matrix::Index::PERSP_0),
+        totalMatrix_.Get(Drawing::Matrix::Index::PERSP_1), totalMatrix_.Get(Drawing::Matrix::Index::PERSP_2)};
+    RS_LOGD("RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: node: %{public}s-%{public}" PRIu64 ","
+        " src: %{public}s, dst: %{public}s, bounds: [%{public}d, %{public}d]"
+        " transform: %{public}d, zOrder: %{public}d, cur: %{public}d, last: %{public}d",
+        GetName().c_str(), GetId(),
+        srcRect_.ToString().c_str(),
+        dstRect_.ToString().c_str(),
+        layer.boundRect.w, layer.boundRect.h,
+        transform, layer.zOrder, !IsHardwareForcedDisabled(), isLastFrameHwcEnabled_);
+    surfaceParams->SetLayerInfo(layer);
+    surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
+    surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
+    if (stagingRenderParams_->NeedSync()) {
+        if (auto context = GetContext().lock()) {
+            context->AddPendingSyncNode(shared_from_this());
+        } else {
+            RS_LOGE("RSSurfaceRenderNode::UpdateHwcNodeLayerInfo context is null");
+            OnSync();
+        }
+    }
+}
+
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
@@ -1729,6 +1784,16 @@ void RSSurfaceRenderNode::ResetChildHardwareEnabledNodes()
 void RSSurfaceRenderNode::AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRenderNode> childNode)
 {
     childHardwareEnabledNodes_.emplace_back(childNode);
+}
+
+void RSSurfaceRenderNode::UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree)
+{
+    if (isOnTree) {
+        needCollectHwcNode_ = true;
+    } else {
+        // EraseIf(childHardwareEnabledNodes_, [&id](const auto& iter)
+        //     { return iter.lock() && iter.lock()->GetId() == id; });
+    }
 }
 
 const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetChildHardwareEnabledNodes() const

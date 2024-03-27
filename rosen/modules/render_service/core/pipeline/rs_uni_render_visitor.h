@@ -221,6 +221,20 @@ private:
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node);
+    void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect);
+    void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
+    void UpdateSrcRect(RSSurfaceRenderNode& node);
+    void UpdateDstRect(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node,
+        RSPaintFilterCanvas& canvas);
+    void UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node, RSPaintFilterCanvas& canvas);
+    void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
+        std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 
     void UpdatePrepareclip(RSRenderNode& node);
 
@@ -361,6 +375,11 @@ private:
     // used to catch overdraw
     void StartOverDraw();
     void FinishOverDraw();
+
+    bool ForcePrepareSubTree()
+    {
+        return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
+    }
 
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
