@@ -1395,6 +1395,11 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    } else if (mask->IsPixelMapMask()) {
+        Drawing::AutoCanvasRestore arc(canvas, true);
+        if (mask->GetImage()) {
+            canvas.DrawImage(*mask->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
+        }
     }
 
     // back to mask layer
@@ -1812,6 +1817,8 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
         // no blend
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertiesPainter::BlendMode, blendMode: %d, blendModeApplyType: %d", blendMode, blendModeApplyType);
 
     canvas.Save();
     canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);

@@ -139,7 +139,7 @@ namespace OHOS {
         uint32_t queueSize = GetData<uint32_t>();
         int32_t width = GetData<int32_t>();
         int32_t height = GetData<int32_t>();
-        uint32_t usage = GetData<uint32_t>();
+        uint64_t usage = GetData<uint64_t>();
         GraphicTransformType transform = GetData<GraphicTransformType>();
 
         // test

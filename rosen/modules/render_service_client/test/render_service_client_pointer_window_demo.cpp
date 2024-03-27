@@ -77,7 +77,7 @@ void DoDraw(uint8_t* addr, uint32_t width, uint32_t height)
 
     Drawing::Canvas canvas;
     canvas.Bind(bitmap);
-    canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+    canvas.Clear(Drawing::Color::COLOR_GREEN);
     Drawing::Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_RED);

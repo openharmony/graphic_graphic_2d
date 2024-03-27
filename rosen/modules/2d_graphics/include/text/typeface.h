@@ -16,6 +16,7 @@
 #ifndef TYPEFACE_H
 #define TYPEFACE_H
 
+#include <functional>
 #include <memory>
 #include <cstdint>
 
@@ -36,6 +37,10 @@ public:
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index = 0);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
+    static void RegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
+    static void UnRegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
+    static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceRegisterCallBack();
+    static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceUnRegisterCallBack();
 
     /**
      * @brief   Get the familyName for this typeface.
@@ -94,6 +99,8 @@ public:
 
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
+    static std::function<bool(std::shared_ptr<Typeface>)> registerTypefaceCallBack_;
+    static std::function<bool(std::shared_ptr<Typeface>)> unregisterTypefaceCallBack_;
 };
 } // namespace Drawing
 } // namespace Rosen

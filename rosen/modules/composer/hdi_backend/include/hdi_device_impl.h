@@ -18,6 +18,7 @@
 
 #include "hdi_device.h"
 #include "graphic_error.h"
+#include "v1_2/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -70,6 +70,7 @@ public:
     virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
+    virtual void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
     virtual int32_t GetScreenBacklight() const = 0;
     virtual void ResizeVirtualScreen(uint32_t width, uint32_t height) = 0;
@@ -143,6 +144,7 @@ public:
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
     void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
+    void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void ResizeVirtualScreen(uint32_t width, uint32_t height) override;
     void SetScreenBacklight(uint32_t level) override;
     int32_t GetScreenBacklight() const override;

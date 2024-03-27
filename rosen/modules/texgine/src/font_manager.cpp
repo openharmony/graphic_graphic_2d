@@ -87,7 +87,7 @@ FontParser::FontDescriptor* FontManager::FindAccurateResult(ResultSet* fontSrc, 
 {
     FontParser::FontDescriptor* descResPtr = nullptr;
     if (!resultCache.empty()) {
-        for (ResultCache::iterator it = resultCache.begin(); it != resultCache.end(); it++) {
+        for (ResultCache::iterator it = resultCache.begin(); it != resultCache.end(); ++it) {
             if (!ResAccurateMatch(*it, descFind)) {
                 continue;
             } else {
@@ -100,7 +100,7 @@ FontParser::FontDescriptor* FontManager::FindAccurateResult(ResultSet* fontSrc, 
             return descResPtr;
         }
     }
-    for (ResultSet::iterator it = fontSrc->begin(); it != fontSrc->end(); it++) {
+    for (ResultSet::iterator it = fontSrc->begin(); it != fontSrc->end(); ++it) {
         if (!ResAccurateMatch(*it, descFind)) {
             continue;
         } else {
@@ -125,7 +125,7 @@ FontParser::FontDescriptor* FontManager::FindFallbackResult(ResultSet* fontSrc, 
     }
     ResultSet fbkFonts;
     if (!resultCache.empty()) {
-        for (ResultCache::iterator it = resultCache.begin(); it != resultCache.end(); it++) {
+        for (ResultCache::iterator it = resultCache.begin(); it != resultCache.end(); ++it) {
             if (ResFallbackMatch(*it, descFind)) {
                 fbkFonts.push_back(*it);
                 LOGEX_FUNC_LINE_DEBUG() << "cache get fallback result";
@@ -133,7 +133,7 @@ FontParser::FontDescriptor* FontManager::FindFallbackResult(ResultSet* fontSrc, 
         }
     }
     if (fbkFonts.empty()) {
-        for (ResultSet::iterator it = fontSrc->begin(); it != fontSrc->end(); it++) {
+        for (ResultSet::iterator it = fontSrc->begin(); it != fontSrc->end(); ++it) {
             if (ResFallbackMatch(*it, descFind)) {
                 fbkFonts.push_back(*it);
                 LOGEX_FUNC_LINE_DEBUG() << "os get fallback result";
@@ -141,7 +141,7 @@ FontParser::FontDescriptor* FontManager::FindFallbackResult(ResultSet* fontSrc, 
         }
     }
     int bestScore = 0;
-    for (ResultSet::iterator it = fbkFonts.begin(); it != fbkFonts.end(); it++) {
+    for (ResultSet::iterator it = fbkFonts.begin(); it != fbkFonts.end(); ++it) {
         int score = ScoreFallbackMatch(*it, descFind);
         if (score > bestScore) {
             bestScore = score;

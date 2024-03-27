@@ -360,12 +360,12 @@ int32_t ProducerSurface::GetDefaultHeight()
     return producer_->GetDefaultHeight();
 }
 
-GSError ProducerSurface::SetDefaultUsage(uint32_t usage)
+GSError ProducerSurface::SetDefaultUsage(uint64_t usage)
 {
-    return GSERROR_NOT_SUPPORT;
+    return producer_->SetDefaultUsage(usage);
 }
 
-uint32_t ProducerSurface::GetDefaultUsage()
+uint64_t ProducerSurface::GetDefaultUsage()
 {
     return producer_->GetDefaultUsage();
 }

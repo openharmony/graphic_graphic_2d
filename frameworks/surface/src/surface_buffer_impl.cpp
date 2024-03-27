@@ -22,9 +22,9 @@
 #include <sys/mman.h>
 #include "buffer_log.h"
 #include "buffer_extra_data_impl.h"
-#include "native_buffer.h"
 #include "v1_1/buffer_handle_meta_key_type.h"
-#include "v1_1/include/idisplay_buffer.h"
+#include "v1_2/display_buffer_type.h"
+#include "v1_2/include/idisplay_buffer.h"
 
 namespace OHOS {
 namespace {
@@ -50,8 +50,7 @@ inline GSError GenerateError(GSError err, int32_t code)
     return GenerateError(err, static_cast<GraphicDispErrCode>(code));
 }
 
-using namespace OHOS::HDI::Display::Buffer::V1_1;
-using IDisplayBufferSptr = std::shared_ptr<IDisplayBuffer>;
+using IDisplayBufferSptr = std::shared_ptr<OHOS::HDI::Display::Buffer::V1_2::IDisplayBuffer>;
 static IDisplayBufferSptr g_displayBuffer;
 static std::mutex g_DisplayBufferMutex;
 class DisplayBufferDiedRecipient : public OHOS::IRemoteObject::DeathRecipient {
@@ -72,7 +71,7 @@ IDisplayBufferSptr GetDisplayBuffer()
         return g_displayBuffer;
     }
 
-    g_displayBuffer.reset(IDisplayBuffer::Get());
+    g_displayBuffer.reset(OHOS::HDI::Display::Buffer::V1_2::IDisplayBuffer::Get());
     if (g_displayBuffer == nullptr) {
         BLOGE("IDisplayBuffer::Get return nullptr.");
         return nullptr;
@@ -256,6 +255,32 @@ GSError SurfaceBufferImpl::FlushCache()
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
+GSError SurfaceBufferImpl::GetImageLayout(void *layout)
+{
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
+    BufferHandle *handle = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (handle_ == nullptr) {
+            BLOGE("handle is nullptr");
+            return GSERROR_INVALID_OPERATING;
+        } else if (planesInfo_.planeCount != 0) {
+            return GSERROR_OK;
+        }
+        handle = handle_;
+    }
+    auto dret = g_displayBuffer->GetImageLayout(*handle,
+        *(static_cast<OHOS::HDI::Display::Buffer::V1_2::ImageLayout*>(layout)));
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGE("Failed with %{public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
 GSError SurfaceBufferImpl::InvalidateCache()
 {
     if (GetDisplayBuffer() == nullptr) {
@@ -410,7 +435,7 @@ uint64_t SurfaceBufferImpl::GetPhyAddr() const
     return handle_->phyAddr;
 }
 
-void *SurfaceBufferImpl::GetVirAddr()
+void* SurfaceBufferImpl::GetVirAddr()
 {
     GSError ret = this->Map();
     if (ret != GSERROR_OK) {
@@ -438,6 +463,31 @@ uint32_t SurfaceBufferImpl::GetSize() const
         return 0;
     }
     return handle_->size;
+}
+
+GSError SurfaceBufferImpl::GetPlanesInfo(void **planesInfo)
+{
+    OHOS::HDI::Display::Buffer::V1_2::ImageLayout layout;
+    GSError ret = GetImageLayout(&layout);
+    if (ret != GSERROR_OK) {
+        BLOGW("GetImageLayout failed, ret:%d", ret);
+        return ret;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (planesInfo_.planeCount != 0) {
+        *planesInfo = static_cast<void*>(&planesInfo_);
+        return GSERROR_OK;
+    }
+    planesInfo_.planeCount = layout.planes.size();
+    for (uint32_t i = 0; i < planesInfo_.planeCount && i < 4; i++) { // 4: max plane count
+        planesInfo_.planes[i].offset = layout.planes[i].offset;
+        planesInfo_.planes[i].rowStride = layout.planes[i].hStride;
+        planesInfo_.planes[i].columnStride = layout.planes[i].vStride;
+    }
+
+    *planesInfo = static_cast<void*>(&planesInfo_);
+    return GSERROR_OK;
 }
 
 void SurfaceBufferImpl::SetExtraData(const sptr<BufferExtraData> &bedata)

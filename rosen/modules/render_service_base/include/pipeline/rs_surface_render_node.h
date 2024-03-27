@@ -210,14 +210,16 @@ public:
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
+    bool IsLeashOrMainWindow() const
+    {
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    }
+
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::DEFAULT ||
-               nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
 
     bool IsSelfDrawingType() const
@@ -359,7 +361,7 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
-    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
+    const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -649,8 +651,9 @@ public:
 
     void UpdatePositionZ()
     {
-        zOrderChanged_ = !ROSEN_EQ(GetRenderProperties().GetPositionZ(), positionZ_);
-        positionZ_ = GetRenderProperties().GetPositionZ();
+        const auto& zProperties = GetRenderProperties().GetPositionZ();
+        zOrderChanged_ = !ROSEN_EQ(zProperties, positionZ_);
+        positionZ_ = zProperties;
     }
 
     inline bool HasContainerWindow() const
@@ -828,6 +831,8 @@ public:
         return surfaceCacheContentStatic_;
     }
 
+    void UpdateSurfaceCacheContentStatic();
+
     void UpdateSurfaceCacheContentStatic(
         const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds);
     // temperory limit situation:
@@ -899,6 +904,16 @@ public:
         return !cornerRadius.IsZero();
     }
 
+    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    {
+        bufferRelMatrix_ = matrix;
+    }
+
+    const Drawing::Matrix& GetBufferRelMatrix() const
+    {
+        return bufferRelMatrix_;
+    }
+
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -908,7 +923,10 @@ private:
     bool IsHistoryOccludedDirtyRegionNeedSubmit();
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
-    bool IsHardwareDisabledBySrcRect() const;
+    inline bool IsHardwareDisabledBySrcRect() const
+    {
+        return isHardwareForcedDisabledBySrcRect_;
+    }
     bool IsYUVBufferFormat() const;
 
     std::mutex mutexRT_;
@@ -1108,10 +1126,14 @@ private:
     bool hasTransparentSurface_ = false;
     bool forceUIFirst_ = false;
     bool forceUIFirstChanged_ = false;
+    Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

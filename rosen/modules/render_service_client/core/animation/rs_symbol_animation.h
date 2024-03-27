@@ -69,7 +69,7 @@ private:
     RSAnimationTimingCurve SetScaleSpringTimingCurve(const std::map<std::string, double_t>& curveArgs);
 
     std::shared_ptr<RSAnimation> VariableColorSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-        uint32_t& duration, int& delay, std::vector<float>& timePercents);
+        const uint32_t& duration, const int& delay, const std::vector<float>& timePercents);
     bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
         std::vector<float>& timePercents);
 

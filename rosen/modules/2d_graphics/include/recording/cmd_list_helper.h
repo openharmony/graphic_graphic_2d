@@ -180,11 +180,6 @@ public:
         return childCmdList;
     }
 
-    static OpDataHandle AddTypefaceToCmdList(CmdList& cmdList,
-        const std::shared_ptr<Typeface>& typeface);
-    static std::shared_ptr<Typeface> GetTypefaceFromCmdList(const CmdList& cmdList,
-        const OpDataHandle& typefaceHandle);
-
     static OpDataHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx = nullptr);
     static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList,
         const OpDataHandle& textBlobHandle, void* ctx = nullptr);

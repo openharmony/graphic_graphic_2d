@@ -82,6 +82,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .textOverflower = style.Ellipsized(),
         .spTextStyle = Convert(style.insideTextStyle),
         .customSpTextStyle = style.customTextStyle,
+        .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
     };
 }
 
@@ -94,6 +95,16 @@ SPText::PlaceholderRun Convert(const PlaceholderSpan& run)
         static_cast<SPText::TextBaseline>(run.baseline),
         run.baselineOffset,
     };
+}
+
+static std::string RemoveQuotes(const std::string& str)
+{
+    if (str.empty() || str.front() != '\"' || str.back() != '\"') {
+        return str;
+    }
+    auto first = str.find_first_of('\"');
+    auto end = str.find_last_of('\"');
+    return str.substr(first + 1, end - first - 1);
 }
 
 SPText::TextStyle Convert(const TextStyle& style)
@@ -128,6 +139,9 @@ SPText::TextStyle Convert(const TextStyle& style)
         textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
         textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
         textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+        textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
+        textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
+        textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
     }
     if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
         textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);
@@ -143,7 +157,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     }
 
     for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(tag, value);
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
     }
     return textStyle;
 }

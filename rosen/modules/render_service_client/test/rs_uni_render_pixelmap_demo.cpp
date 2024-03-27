@@ -49,7 +49,7 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_GREEN);
 
     rsUiDirector->SetRoot(rootNode->GetId());
     canvasNode = RSCanvasNode::Create();
@@ -126,7 +126,8 @@ int main()
     auto allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
     shared_ptr<Media::PixelMap> pixelmap = DecodePixelMap("/data/local/tmp/test.jpg", allocatorType);
     shared_ptr<Media::PixelMap> bgpixelmap = DecodePixelMap("/data/local/tmp/test_bg.jpg", allocatorType);
-    if (pixelmap == nullptr || bgpixelmap == nullptr) {
+    shared_ptr<Media::PixelMap> maskPixelmap = DecodePixelMap("/data/local/tmp/mask.jpg", allocatorType);
+    if (pixelmap == nullptr || bgpixelmap == nullptr || maskPixelmap == nullptr) {
         return -1;
     }
 
@@ -164,6 +165,12 @@ int main()
 
     rsUiDirector->SendMessages();
     sleep(2);
+
+    cout << "rs pixelmap demo stage 5: mask" << endl;
+    auto mask = RSMask::CreatePixelMapMask(maskPixelmap);
+    surfaceNode->SetMask(mask);
+    rsUiDirector->SendMessages();
+    sleep(10);
 
     cout << "rs pixelmap demo stage 4: repeated drawing skImage" << endl;
     auto skimg = RSPixelMapUtil::ExtractSkImage(pixelmap);

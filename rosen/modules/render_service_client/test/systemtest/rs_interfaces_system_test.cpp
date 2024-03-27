@@ -156,6 +156,50 @@ HWTEST_F(RSInterfacesSystemTest, ShowWatermark, Function | MediumTest | Level2)
     (void)system("snapshot_display -i 0");
     sleep(3 * TEST_SLEEP_S);
 }
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus001
+ * @tc.desc: Test CurtainScreen on.
+ * @tc.type: FUNC
+ * @tc.require: issueI993OY
+ */
+HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus001, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetCurtainScreenUsingStatus(true);
+}
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus002
+ * @tc.desc: Test CurtainScreen off.
+ * @tc.type: FUNC
+ * @tc.require: issueI993OY
+ */
+HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus002, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetCurtainScreenUsingStatus(false);
+}
+
+/**
+ * @tc.name: SetVirtualScreenUsingStatus001
+ * @tc.desc: Virtual screen use status.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus001, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(true);
+}
+
+/**
+ * @tc.name: SetVirtualScreenUsingStatus002
+ * @tc.desc: Virtual screen don't use status.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus002, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(false);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

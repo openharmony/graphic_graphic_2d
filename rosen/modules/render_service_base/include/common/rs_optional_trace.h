@@ -18,7 +18,6 @@
 
 #include "rs_trace.h"
 #include "platform/common/rs_system_properties.h"
-#include "platform/common/rs_log.h"
 
 #define RS_OPTIONAL_TRACE_BEGIN(name)                            \
     do {                                                         \
@@ -44,7 +43,7 @@
 #ifdef ROSEN_TRACE_DISABLE
 #define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
     do {                                                                    \
-        ROSEN_LOGD("TRACE_LEVEL_TWO = %d", TRACE_LEVEL_TWO);                \
+        (void)TRACE_LEVEL_TWO;                                              \
     } while (0)
 #else
 #define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \

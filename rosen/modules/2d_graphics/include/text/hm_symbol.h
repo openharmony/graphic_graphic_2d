@@ -30,15 +30,11 @@ typedef unsigned U8CPU;
 
 enum DrawingAnimationType {
     INVALID_ANIMATION_TYPE = 0,
-    SCALE_EFFECT = 1,
-    VARIABLE_COLOR = 2,
-};
-
-enum DrawingAnimationSubType {
-    INVALID_ANIMATION_SUB_TYPE = 0,
-    UNIT = 1,
-    VARIABLE_3_GROUP = 2,
-    VARIABLE_4_GROUP = 3,
+    SCALE_TYPE = 1,
+    VARIABLE_COLOR_TYPE = 2,
+    APPEAR_TYPE = 3,
+    DISAPPEAR_TYPE = 4,
+    BOUNCE_TYPE = 5
 };
 
 enum DrawingCurveType {
@@ -51,13 +47,12 @@ struct DrawingPiecewiseParameter {
     DrawingCurveType curveType;
     std::map<std::string, double> curveArgs;
     uint32_t duration;
-    uint32_t delay;
+    int delay;
     std::map<std::string, std::vector<double>> properties;
 };
 
 struct DrawingAnimationPara {
     uint32_t animationMode;
-    DrawingAnimationSubType subType;
     std::vector<std::vector<DrawingPiecewiseParameter>> groupParameters;
 };
 
@@ -80,13 +75,11 @@ struct DrawingGroupInfo {
 
 struct DrawingGroupSetting {
     std::vector<DrawingGroupInfo> groupInfos;
-    uint32_t animationIndex;
+    int animationIndex;
 };
 
 struct DrawingAnimationSetting {
-    DrawingAnimationType animationType;
-    DrawingAnimationSubType animationSubType;
-    uint32_t animationMode;
+    std::vector<DrawingAnimationType> animationTypes;
     std::vector<DrawingGroupSetting> groupSettings;
 };
 
@@ -96,25 +89,24 @@ struct DrawingRenderGroup {
 };
 
 enum DrawingEffectStrategy {
-    INVALID_EFFECT_STRATEGY = 0,
-    NONE = 1,
-    SCALE = 2,
-    HIERARCHICAL = 3,
+    NONE = 0,
+    SCALE = 1,
+    VARIABLE_COLOR = 2,
+    APPEAR = 3,
+    DISAPPEAR = 4,
+    BOUNCE = 5
 };
 
 struct DrawingSymbolLayers {
     uint32_t symbolGlyphId;
     std::vector<std::vector<size_t>> layers;
     std::vector<DrawingRenderGroup> renderGroups;
-    DrawingEffectStrategy effect;
-    DrawingAnimationSetting animationSetting;
 };
 
 enum DrawingSymbolRenderingStrategy {
-    INVALID_RENDERING_STRATEGY = 0,
-    SINGLE = 1,
-    MULTIPLE_COLOR = 2,
-    MULTIPLE_OPACITY = 3,
+    SINGLE = 0,
+    MULTIPLE_COLOR = 1,
+    MULTIPLE_OPACITY = 2,
 };
 
 struct DrawingSymbolLayersGroups {

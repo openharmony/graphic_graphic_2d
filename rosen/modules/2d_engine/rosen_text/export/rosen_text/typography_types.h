@@ -86,6 +86,14 @@ enum class EllipsisModal {
     MIDDLE = 1,
     TAIL = 2,
 };
+
+enum TextHeightBehavior {
+    ALL = 0x0,
+    DISABLE_FIRST_ASCENT = 0x1,
+    DISABLE_LAST_ASCENT = 0x2,
+    DISABLE_ALL = 0x1 | 0x2,
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

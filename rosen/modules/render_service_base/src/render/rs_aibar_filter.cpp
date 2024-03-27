@@ -86,7 +86,7 @@ std::string RSAIBarFilter::GetDescription()
 
 std::string RSAIBarFilter::GetDetailedDescription()
 {
-    return "RSAIBarFilter";
+    return "RSAIBarFilterBlur";
 }
 
 std::vector<float> RSAIBarFilter::GetAiInvertCoef()

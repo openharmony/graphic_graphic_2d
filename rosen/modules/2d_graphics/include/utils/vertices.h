@@ -43,6 +43,7 @@ public:
 
     /**
      * @brief Make a copy from vertices data.
+     * @param mode         vertex mode.
      * @param vertexCount  Vertex count.
      * @param positions    Positions data pointer.
      * @param tex          Texture coordinate data pointer.
@@ -57,6 +58,7 @@ public:
 
     /**
      * @brief Make a copy from vertices data.
+     * @param mode         vertex mode.
      * @param vertexCount  Vertex count.
      * @param positions    Positions data pointer.
      * @param tex          Texture coordinate data pointer.
@@ -111,7 +113,7 @@ public:
         ColorQuad* Colors();
 
         /**
-         * @brief Detach the built vertices object. After yhe first call, this will always return null.
+         * @brief Detach the built vertices object. After the first call, this will always return null.
          * @return Return a shared pointer of Vertices object or nullptr.
          */
         std::shared_ptr<Vertices> Detach();

@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "c/drawing_matrix.h"
+#include "drawing_matrix.h"
 #include "utils/scalar.h"
 
 using namespace testing;

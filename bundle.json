@@ -84,7 +84,10 @@
           "bounds_checking_function",
           "egl",
           "opengles",
-          "node"
+          "node",
+          "vulkan-headers",
+          "hiview",
+          "battery_manager"
         ],
         "third_party": [
           "flutter",
@@ -112,8 +115,7 @@
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
-            "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-            "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_new",
+            "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
@@ -266,6 +268,7 @@
                 "render/rs_filter.h",
                 "render/rs_image_cache.h",
                 "render/rs_shadow.h",
+                "render/rs_typeface_cache.h",
                 "render/rs_mask.h",
                 "render/rs_path.h",
                 "render/rs_border.h",
@@ -317,6 +320,15 @@
                 "image/bitmap.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/drawing_ndk/include"
             }
           },
           {

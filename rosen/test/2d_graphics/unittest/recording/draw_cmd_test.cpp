@@ -163,10 +163,10 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr);
     OpDataHandle opDataHandle;
-    OpDataHandle typefaceHandle;
+    uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        typefaceHandle, 0, 0, paintHandle};
+        globalUniqueId, 0, 0, paintHandle};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle);
     player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle);
 }
@@ -252,15 +252,7 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
     Point point;
     Paint paint;
     DrawSymbolOpItem opItem{drawingHMSymbolData, point, paint};
-    opItem.SetSymbol();
-    opItem.InitialScale();
-    opItem.InitialVariableColor();
-    opItem.SetSymbol();
-    opItem.SetScale(0);
-    opItem.SetVariableColor(0);
     Path path;
-    opItem.UpdateScale(100, path); // 100: cur
-    opItem.UpdataVariableColor(100, 0); // 100: cur
     opItem.Marshalling(*drawCmdList);
     SymbolOpHandle symbolOpHandle;
     PaintHandle paintHandle;
@@ -270,19 +262,10 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     opItem.Playback(recordingCanvas.get(), nullptr);
     opItem.Playback(nullptr, nullptr);
-    
+
     DrawingHMSymbolData drawingHMSymbolData2;
-    drawingHMSymbolData2.symbolInfo_.effect = DrawingEffectStrategy::HIERARCHICAL;
     DrawSymbolOpItem opItem2{drawingHMSymbolData2, point, paint};
     opItem2.Playback(recordingCanvas.get(), nullptr);
-    opItem2.SetScale(10); // 10: scale
-    opItem2.SetVariableColor(5); // 5: index
-    opItem2.SetScale(0);
-    opItem2.SetScale(10); // 10: scale
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
 }
 
 /**
@@ -580,9 +563,9 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     auto opDataHandle = CmdListHelper::AddTextBlobToCmdList(*drawCmdList, textBlob.get());
     opDataHandle.offset = 2;
     opDataHandle.size = 10;
-    OpDataHandle typefaceHandle;
+    uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, typefaceHandle, 10, 10, paintHandle}; // 10: x, y
+    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId, 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
 }
 

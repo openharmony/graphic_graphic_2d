@@ -131,17 +131,6 @@ public:
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
 
-    DynamicSetting GetRSAnimateRateConfig(const std::string& screenType, const std::string& settingMode,
-        const std::string& animateType)
-    {
-        if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode) &&
-            screenConfigs_[screenType][settingMode].animationDynamicSettings.count(animateType)) {
-            return screenConfigs_[screenType][settingMode].animationDynamicSettings[animateType];
-        } else {
-            return {};
-        }
-    }
-
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {
         if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode)) {

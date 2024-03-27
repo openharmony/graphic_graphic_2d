@@ -111,6 +111,28 @@ std::shared_ptr<Typeface> Typeface::Deserialize(const void* data, size_t size)
 {
     return StaticFactory::DeserializeTypeface(data, size);
 }
+
+std::function<bool(std::shared_ptr<Typeface>)> Typeface::registerTypefaceCallBack_ = nullptr;
+void Typeface::RegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func)
+{
+    registerTypefaceCallBack_ = func;
+}
+
+std::function<bool(std::shared_ptr<Typeface>)>& Typeface::GetTypefaceRegisterCallBack()
+{
+    return registerTypefaceCallBack_;
+}
+
+std::function<bool(std::shared_ptr<Typeface>)> Typeface::unregisterTypefaceCallBack_ = nullptr;
+void Typeface::UnRegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func)
+{
+    unregisterTypefaceCallBack_ = func;
+}
+
+std::function<bool(std::shared_ptr<Typeface>)>& Typeface::GetTypefaceUnRegisterCallBack()
+{
+    return unregisterTypefaceCallBack_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

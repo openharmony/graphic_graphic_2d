@@ -135,9 +135,7 @@ void DrawCmdList::ClearOp()
     imageAllocator_.ClearData();
     bitmapAllocator_.ClearData();
     imageMap_.clear();
-    typefaceMap_.clear();
     imageHandleVec_.clear();
-    typefaceHandleVec_.clear();
     drawOpItems_.clear();
     lastOpGenSize_ = 0;
     lastOpItemOffset_ = std::nullopt;

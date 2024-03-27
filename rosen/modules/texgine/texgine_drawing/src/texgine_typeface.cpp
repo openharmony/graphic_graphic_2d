@@ -24,11 +24,8 @@ TexgineTypeface::TexgineTypeface(): typeface_(RSTypeface::MakeDefault()) {}
 
 TexgineTypeface::TexgineTypeface(std::shared_ptr<RSTypeface> typeface): typeface_(typeface) {}
 
-TexgineTypeface::TexgineTypeface(void *context)
-{
-    auto stf = reinterpret_cast<RSTypeface *>(context);
-    typeface_ = std::shared_ptr<RSTypeface>{stf, [](auto p) {}};
-}
+TexgineTypeface::TexgineTypeface(void *context) : typeface_(
+    std::shared_ptr<RSTypeface>{reinterpret_cast<RSTypeface *>(context), [](auto p) {}}) {}
 
 std::shared_ptr<RSTypeface> TexgineTypeface::GetTypeface() const
 {

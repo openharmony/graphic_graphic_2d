@@ -110,6 +110,7 @@ public:
      *  outer effect to the result of the inner's.
      *
      * result = outer(inner(path))
+     * @return a share pointer to PathEffect
      */
     static std::shared_ptr<PathEffect> CreateComposePathEffect(PathEffect& e1, PathEffect& e2);
 

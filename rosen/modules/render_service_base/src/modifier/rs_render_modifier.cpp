@@ -347,13 +347,13 @@ const T& Replace(const std::optional<T>& a, T&& b)
     void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifierContext& context) const                                 \
     {                                                                                                               \
         auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                          \
-        context.properties_.Set##MODIFIER_NAME(renderProperty->Get());                                              \
+        context.properties_.Set##MODIFIER_NAME(renderProperty->GetRef());                                              \
     }                                                                                                               \
     void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) \
     {                                                                                                               \
         if (auto property = std::static_pointer_cast<RSRenderProperty<TYPE>>(prop)) {                               \
             auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                      \
-            renderProperty->Set(property->Get());                                                                   \
+            renderProperty->Set(property->GetRef());                                                                   \
         }                                                                                                           \
     }
 

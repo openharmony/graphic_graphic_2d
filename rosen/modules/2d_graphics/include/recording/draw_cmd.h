@@ -16,6 +16,7 @@
 #ifndef DRAW_CMD_H
 #define DRAW_CMD_H
 
+#include <cstdint>
 #include <unordered_map>
 #include <functional>
 #include <stack>
@@ -102,12 +103,15 @@ public:
     virtual void Marshalling(DrawCmdList& cmdList) = 0;
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 
-    virtual void SetSymbol() {}
     virtual void SetNodeId(NodeId id) {}
 
     static void SetBaseCallback(
         std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc);
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc_;
+
+    static void SetTypefaceQueryCallBack(
+        std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc);
+    static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 };
 
 class UnmarshallingPlayer {
@@ -718,15 +722,15 @@ private:
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& textBlob, const OpDataHandle& typeface,
+        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
             scalar x, scalar y, const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), typeface(typeface),
+            : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
             x(x), y(y), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
-        OpDataHandle typeface;
+        uint64_t globalUniqueId;
         scalar x;
         scalar y;
         PaintHandle paintHandle;
@@ -752,18 +756,6 @@ private:
     bool callFromCacheFunc_ = false;
 };
 
-using DrawSymbolAnimation = struct DrawSymbolAnimation {
-    // all animation need
-    double startValue = 0;
-    double curValue = 0;
-    double endValue = 1;
-    double speedValue = 0.01;
-    uint32_t number = 0; // animate times when reach the destination
-    // hierarchy animation need
-    long long startDuration = 0;
-    std::chrono::milliseconds curTime; // frame timestamp
-};
-
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
@@ -783,28 +775,11 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
 
-    void SetSymbol() override;
-
-    void InitialScale();
-
-    void InitialVariableColor();
-
-    void SetScale(size_t index);
-
-    void SetVariableColor(size_t index);
-
-    static void UpdateScale(const double cur, Path& path);
-
-    void UpdataVariableColor(const double cur, size_t index);
 private:
     static void MergeDrawingPath(
         Path& multPath, DrawingRenderGroup& group, std::vector<Path>& pathLayers);
     DrawingHMSymbolData symbol_;
     Point locate_;
-
-    std::vector<DrawSymbolAnimation> animation_;
-    uint32_t number_ = 2; // one animation means a back and forth
-    bool startAnimation_ = false; // update animation_ if true
 };
 
 class ClipRectOpItem : public DrawOpItem {

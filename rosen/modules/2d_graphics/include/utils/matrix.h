@@ -153,8 +153,8 @@ public:
     void PreConcat(const Matrix& other);
 
     /**
-     * @brief         Sets Matrix to Matrix other multiplied by Matrix44.
-     * @param other   Matrix on left side of multiply expression.
+     * @brief            Sets Matrix to Matrix other multiplied by Matrix44.
+     * @param matrix44   Matrix on left side of multiply expression.
      */
     void PreConcat(const Matrix44& matrix44);
 

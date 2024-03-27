@@ -176,6 +176,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.turnHintingOff();
     skStyle.setReplaceTabCharacters(true);
     skStyle.setTextSplitRatio(txt.textSplitRatio);
+    skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
 
     return skStyle;
 }
@@ -249,6 +250,9 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
         paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
         paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
+        paint.symbol.SetAnimationMode(txt.symbol.GetAnimationMode());
+        paint.symbol.SetRepeatCount(txt.symbol.GetRepeatCount());
+        paint.symbol.SetAminationStart(txt.symbol.GetAminationStart());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 }

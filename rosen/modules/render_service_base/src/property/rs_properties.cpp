@@ -382,18 +382,19 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     if (boundsGeo_ == nullptr) {
         return false;
     }
-    auto boundsGeoPtr = (boundsGeo_);
+    auto& boundsGeoPtr = (boundsGeo_);
 
     if (!dirtyFlag && !geoDirty_) {
         return false;
     }
-    auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
-    if (parentGeo && sandbox_ && sandbox_->matrix_) {
-        parentGeo = std::make_shared<RSObjAbsGeometry>();
+    auto parentGeoPtr = parent == nullptr ? nullptr : (parent->boundsGeo_.get());
+    if (parentGeoPtr && sandbox_ && sandbox_->matrix_) {
+        auto parentGeo = std::make_shared<RSObjAbsGeometry>();
         parentGeo->ConcatMatrix(*(sandbox_->matrix_));
+        boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+    } else {
+        boundsGeoPtr->UpdateMatrix(parent == nullptr ? nullptr : (parent->boundsGeo_), offset, clipRect);
     }
-    CheckEmptyBounds();
-    boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
     if (lightSourcePtr_ && lightSourcePtr_->IsLightSourceValid()) {
         CalculateAbsLightPosition();
         RSPointLightManager::Instance()->AddDirtyLightSource(backref_);
@@ -1672,21 +1673,6 @@ void RSProperties::SetUseShadowBatching(bool useShadowBatching)
     SetDirty();
 }
 
-bool RSProperties::GetUseShadowBatching() const
-{
-    return useShadowBatching_;
-}
-
-void RSProperties::SetNeedSkipShadow(bool needSkipShadow)
-{
-    needSkipShadow_ = needSkipShadow;
-}
-
-bool RSProperties::GetNeedSkipShadow() const
-{
-    return needSkipShadow_;
-}
-
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
     pixelStretch_ = stretchSize;
@@ -1696,11 +1682,6 @@ void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
     if (pixelStretch_.has_value() && pixelStretch_->IsZero()) {
         pixelStretch_ = std::nullopt;
     }
-}
-
-const std::optional<Vector4f>& RSProperties::GetPixelStretch() const
-{
-    return pixelStretch_;
 }
 
 RectI RSProperties::GetPixelStretchDirtyRect() const
@@ -1727,11 +1708,6 @@ void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretch
     }
 }
 
-const std::optional<Vector4f>& RSProperties::GetPixelStretchPercent() const
-{
-    return pixelStretchPercent_;
-}
-
 // Image effect properties
 void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
 {
@@ -1739,11 +1715,6 @@ void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
     colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
-}
-
-const std::optional<float>& RSProperties::GetGrayScale() const
-{
-    return grayScale_;
 }
 
 void RSProperties::SetLightIntensity(float lightIntensity)
@@ -1840,16 +1811,6 @@ int RSProperties::GetIlluminatedType() const
     return illuminatedPtr_ ? static_cast<int>(illuminatedPtr_->GetIlluminatedType()) : 0;
 }
 
-float RSProperties::GetBloom() const
-{
-    return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
-}
-
-float RSProperties::GetIlluminatedBorderWidth() const
-{
-    return illuminatedPtr_ ? illuminatedPtr_->GetIlluminatedBorderWidth() : 0.f;
-}
-
 void RSProperties::CalculateAbsLightPosition()
 {
     auto lightSourceAbsRect = boundsGeo_->GetAbsRect();
@@ -1879,16 +1840,6 @@ void RSProperties::CalculateAbsLightPosition()
     lightAbsPosition.z_ = lightPos.z_;
     lightAbsPosition.w_ = lightPos.w_;
     lightSourcePtr_->SetAbsLightPosition(lightAbsPosition);
-}
-
-const std::shared_ptr<RSLightSource>& RSProperties::GetLightSource() const
-{
-    return lightSourcePtr_;
-}
-
-const std::shared_ptr<RSIlluminated>& RSProperties::GetIlluminated() const
-{
-    return illuminatedPtr_;
 }
 
 void RSProperties::SetBrightness(const std::optional<float>& brightness)

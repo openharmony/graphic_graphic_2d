@@ -22,15 +22,20 @@
 
 #include "text/hm_symbol.h"
 
-#define EFFECT_NONE 0
-#define EFFECT_SCALE 1
-#define EFFECT_HIERARCHICAL 2
 #define RENDER_SINGLE 0
 #define RENDER_MULTIPLE_COLOR 1
 #define RENDER_MULTIPLE_OPACITY 2
 
 namespace OHOS {
 namespace Rosen {
+
+static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
+    {0, Drawing::DrawingEffectStrategy::NONE},
+    {1, Drawing::DrawingEffectStrategy::SCALE},
+    {2, Drawing::DrawingEffectStrategy::VARIABLE_COLOR},
+    {3, Drawing::DrawingEffectStrategy::APPEAR},
+    {4, Drawing::DrawingEffectStrategy::DISAPPEAR},
+    {5, Drawing::DrawingEffectStrategy::BOUNCE}};
 
 class RS_EXPORT HMSymbolTxt {
 public:
@@ -81,18 +86,9 @@ public:
 
     void SetSymbolEffect(const uint32_t& effectStrategy)
     {
-        switch (effectStrategy) {
-            case EFFECT_NONE:
-                effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
-                break;
-            case EFFECT_SCALE:
-                effectStrategy_ = Drawing::DrawingEffectStrategy::SCALE;
-                break;
-            case EFFECT_HIERARCHICAL:
-                effectStrategy_ = Drawing::DrawingEffectStrategy::HIERARCHICAL;
-                break;
-            default:
-                break;
+        auto iter = EFFECT_TYPES.find(effectStrategy);
+        if (iter != EFFECT_TYPES.end()) {
+            effectStrategy_ = iter->second;
         }
     }
 
@@ -111,10 +107,43 @@ public:
         return effectStrategy_;
     }
 
+    void SetAnimationMode(const uint16_t animationMode)
+    {
+        animationMode_ = animationMode > 0 ? 1: 0; // 1 is whole or add, 0 is hierarchical or iterate
+    }
+
+    void SetRepeatCount(const int repeatCount)
+    {
+        repeatCount_ = repeatCount;
+    }
+
+    void SetAminationStart(const bool aminationStart)
+    {
+        aminationStart_ = aminationStart;
+    }
+
+    uint16_t GetAnimationMode() const
+    {
+        return animationMode_;
+    }
+
+    int GetRepeatCount() const
+    {
+        return repeatCount_;
+    }
+
+    bool GetAminationStart() const
+    {
+        return aminationStart_;
+    }
+
 private:
     std::vector<Drawing::DrawingSColor> colorList_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
     Drawing::DrawingEffectStrategy effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
+    uint16_t animationMode_ = 1;
+    int repeatCount_ = 1;
+    bool aminationStart_ = true;
 };
 }
 }

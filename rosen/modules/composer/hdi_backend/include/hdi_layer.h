@@ -27,6 +27,10 @@ namespace OHOS {
 namespace Rosen {
 
 using LayerInfoPtr = std::shared_ptr<HdiLayerInfo>;
+struct FPSInfo {
+    int64_t presentTime;
+    std::vector<std::string> windowsName;
+};
 
 class HdiLayer {
 public:
@@ -57,6 +61,8 @@ public:
 
     sptr<SyncFence> GetReleaseFence() const;
     void SavePrevLayerInfo();
+    void DumpByName(std::string windowName, std::string &result);
+    void SelectHitchsInfo(std::string windowName, std::string &result);
 
     /* only used for mock tests */
     int32_t SetHdiDeviceMock(HdiDevice* hdiDeviceMock);
@@ -72,7 +78,7 @@ private:
         sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     };
 
-    std::array<int64_t, FRAME_RECORDS_NUM> presentTimeRecords {};
+    std::array<FPSInfo, FRAME_RECORDS_NUM> presentTimeRecords {};
     uint32_t count = 0;
     std::array<int64_t, FRAME_RECORDS_NUM> mergedPresentTimeRecords {}; // used for uni render layer
     uint32_t mergedCount = 0; // used for uni render layer

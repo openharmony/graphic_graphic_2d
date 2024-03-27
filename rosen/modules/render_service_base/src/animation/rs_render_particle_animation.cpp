@@ -22,6 +22,7 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -135,11 +136,13 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling animationId failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, id);
     SetAnimationId(id);
     if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
     return true;
 }

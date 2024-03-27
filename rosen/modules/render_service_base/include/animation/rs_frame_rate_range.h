@@ -56,11 +56,13 @@ public:
         this->preferred_ = preferred;
     }
 
-    void Merge(const FrameRateRange& other)
+    bool Merge(const FrameRateRange& other)
     {
         if (this->preferred_ < other.preferred_) {
             this->Set(other.min_, other.max_, other.preferred_);
+            return true;
         }
+        return false;
     }
 
     bool operator==(const FrameRateRange& other) const

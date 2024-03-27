@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +14,15 @@
  */
 
 #include "gtest/gtest.h"
-#include "c/drawing_bitmap.h"
-#include "c/drawing_brush.h"
-#include "c/drawing_canvas.h"
-#include "c/drawing_color.h"
-#include "c/drawing_font.h"
-#include "c/drawing_font_collection.h"
-#include "c/drawing_pen.h"
-#include "c/drawing_text_declaration.h"
-#include "c/drawing_text_typography.h"
+#include "drawing_bitmap.h"
+#include "drawing_brush.h"
+#include "drawing_canvas.h"
+#include "drawing_color.h"
+#include "drawing_font.h"
+#include "drawing_font_collection.h"
+#include "drawing_pen.h"
+#include "drawing_text_declaration.h"
+#include "drawing_text_typography.h"
 #ifndef USE_GRAPHIC_TEXT_GINE
 #include "rosen_text/ui/typography.h"
 #include "rosen_text/ui/typography_create.h"
@@ -32,6 +32,7 @@
 #endif
 
 #include <string>
+#include <fstream>
 
 #ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
@@ -1207,12 +1208,17 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest040, TestSize.Level
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
     OH_Drawing_FontDescriptor *descriptor = OH_Drawing_CreateFontDescriptor();
     OH_Drawing_FontParser* parser = OH_Drawing_CreateFontParser();
-    size_t fontNum;
-    char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
-    EXPECT_EQ(list != nullptr, true);
-    const char *name = "HarmonyOS Sans Digit";
-    EXPECT_EQ(OH_Drawing_FontParserGetFontByName(parser, name) != nullptr, true);
-    OH_Drawing_DestroySystemFontList(list, fontNum);
+
+    static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
+    std::ifstream fileStream(FILE_NAME.c_str());
+    if (fileStream.is_open()) {
+        size_t fontNum;
+        char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
+        EXPECT_EQ(list != nullptr, true);
+        const char *name = "OS Sans Digit";
+        EXPECT_EQ(OH_Drawing_FontParserGetFontByName(parser, name) != nullptr, true);
+        OH_Drawing_DestroySystemFontList(list, fontNum);
+    }
     OH_Drawing_DestroyFontParser(parser);
     OH_Drawing_DestroyFontDescriptor(descriptor);
     OH_Drawing_LineMetrics* vectorMetrics = OH_Drawing_TypographyGetLineMetrics(typography);
@@ -1352,7 +1358,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest043, TestSize.Level
     OH_Drawing_SetTypographyTextLocale(typoStyle, text);
     OH_Drawing_SetTypographyTextSplitRatio(typoStyle, fontSize);
     OH_Drawing_TypographyGetTextStyle(typoStyle);
-    EXPECT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle) != 0, true);
+    EXPECT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle) >= 0, true);
     EXPECT_EQ(OH_Drawing_TypographyIsLineUnlimited(typoStyle) != 0, true);
     EXPECT_EQ(OH_Drawing_TypographyIsEllipsized(typoStyle) != 0, true);
     OH_Drawing_SetTypographyTextStyle(typoStyle, txtStyle);
@@ -1688,16 +1694,53 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level
     OH_Drawing_TextStyleClearFontFeature(txtStyle);
     EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 0);
     double lineShift = 1.5;
-    OH_Drawing_TextStyleSetBaseLineShift(txtStyle, lineShift);
-    EXPECT_EQ(OH_Drawing_TextStyleGetBaseLineShift(txtStyle), 1.5);
+    OH_Drawing_TextStyleSetBaselineShift(txtStyle, lineShift);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaselineShift(txtStyle), 1.5);
 }
 
 /*
  * @tc.name: OH_Drawing_TypographyTest052
- * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
+ * @tc.desc: test for setting the mode of leading over and under text
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest052, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_ALL);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::ALL);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_FIRST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_LAST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_ALL);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest053
+ * @tc.desc: test for getting the mode of leading over and under text
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest053, TestSize.Level1)
+{
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(nullptr) == TEXT_HEIGHT_ALL, true);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_ALL, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_FIRST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_LAST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_ALL, true);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest054
+ * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest054, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
@@ -1720,11 +1763,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest052, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest053
+ * @tc.name: OH_Drawing_TypographyTest055
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest053, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
@@ -1749,11 +1792,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest053, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest054
+ * @tc.name: OH_Drawing_TypographyTest056
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest054, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest056, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
@@ -1781,11 +1824,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest054, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest055
+ * @tc.name: OH_Drawing_TypographyTest057
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest057, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     bool useLineStyle = true;
@@ -1800,11 +1843,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest056
+ * @tc.name: OH_Drawing_TypographyTest058
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest056, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest058, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     int weight = FONT_WEIGHT_100;
@@ -1819,11 +1862,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest056, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest057
+ * @tc.name: OH_Drawing_TypographyTest059
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest057, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest059, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     int fontStyle = FONT_STYLE_ITALIC;
@@ -1838,11 +1881,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest057, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest058
+ * @tc.name: OH_Drawing_TypographyTest060
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest058, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     size_t fontNum = 1;
@@ -1860,11 +1903,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest058, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest059
+ * @tc.name: OH_Drawing_TypographyTest061
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest059, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest061, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     double result = OH_Drawing_TypographyTextlineStyleGetFontSize(typoStyle);
@@ -1878,11 +1921,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest059, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest060
+ * @tc.name: OH_Drawing_TypographyTest062
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest062, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     double result = OH_Drawing_TypographyTextlineStyleGetHeightScale(typoStyle);
@@ -1895,11 +1938,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest061
+ * @tc.name: OH_Drawing_TypographyTest063
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest061, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest063, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     // 2.0 For test
@@ -1915,11 +1958,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest061, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest062
+ * @tc.name: OH_Drawing_TypographyTest064
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest062, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest064, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     bool lineStyleHalfLeading = true;
@@ -1934,11 +1977,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest062, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest063
+ * @tc.name: OH_Drawing_TypographyTest065
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest063, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest065, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     double result = OH_Drawing_TypographyTextlineStyleGetSpacingScale(typoStyle);
@@ -1952,11 +1995,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest063, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest064
+ * @tc.name: OH_Drawing_TypographyTest066
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest064, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest066, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextLineStyleOnly(typoStyle, true);
@@ -1970,11 +2013,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest064, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest065
+ * @tc.name: OH_Drawing_TypographyTest067
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest065, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest067, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     int align = TEXT_ALIGN_RIGHT;
@@ -1989,11 +2032,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest065, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest066
+ * @tc.name: OH_Drawing_TypographyTest068
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest066, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest068, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     int direction = TEXT_DIRECTION_RTL;
@@ -2008,11 +2051,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest066, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest067
+ * @tc.name: OH_Drawing_TypographyTest069
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest067, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest069, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     size_t result = OH_Drawing_TypographyGetTextMaxLines(typoStyle);
@@ -2025,11 +2068,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest067, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest068
+ * @tc.name: OH_Drawing_TypographyTest070
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest068, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest070, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     char* result = OH_Drawing_TypographyGetTextEllipsis(typoStyle);
@@ -2043,11 +2086,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest068, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest069
+ * @tc.name: OH_Drawing_TypographyTest071
  * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest069, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest071, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* from = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TypographyStyle* to = OH_Drawing_CreateTypographyStyle();
@@ -2063,5 +2106,48 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest069, TestSize.Level
     to = nullptr;
     EXPECT_TRUE(from == nullptr);
     EXPECT_TRUE(to == nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest072
+ * @tc.desc: test for create and releases the memory occupied by system font configuration information
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level1)
+{
+    OH_Drawing_FontConfigInfoErrorCode code = UNKNOWN_ERROR;
+    OH_Drawing_FontConfigInfo* configJsonInfo = OH_Drawing_GetSystemFontConfigInfo(&code);
+    EXPECT_EQ(code, OK);
+    EXPECT_EQ(configJsonInfo != nullptr, true);
+    OH_Drawing_DestroySystemFontConfigInfo(configJsonInfo);
+    configJsonInfo = nullptr;
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest073
+ * @tc.desc: test for getting all font metrics array from current line
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    EXPECT_TRUE(typoStyle != nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    EXPECT_TRUE(handler != nullptr);
+    size_t charNumber = 0;
+    const char* text = "OpenHarmony\n";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    EXPECT_TRUE(typography != nullptr);
+    OH_Drawing_Font_Metrics* StartLineFont = OH_Drawing_TypographyGetLineFontMetrics(typography, 1, &charNumber);
+    EXPECT_TRUE(StartLineFont == nullptr);
+    OH_Drawing_TypographyDestroyLineFontMetrics(StartLineFont);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
 }

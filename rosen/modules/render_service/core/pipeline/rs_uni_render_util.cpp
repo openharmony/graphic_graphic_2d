@@ -147,6 +147,30 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
     }
 }
 
+Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node)
+{
+    const sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        return Drawing::Matrix();
+    }
+
+    auto& consumer = node.GetConsumer();
+    if (consumer == nullptr) {
+        return Drawing::Matrix();
+    }
+
+    BufferDrawParam params;
+    params.buffer = buffer;
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    const RSProperties& property = node.GetRenderProperties();
+    params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+    auto transform = consumer->GetTransform();
+    RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
+    RSBaseRenderUtil::FlipMatrix(transform, params);
+    return params.matrix;
+}
+
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node,
     bool forceCPU, uint32_t threadIndex)
 {
@@ -425,12 +449,12 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
     bool isPhoneType = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     bool isNeedAssignToSubThread = false;
     if (isPhoneType && node->IsLeashWindow()) {
-        isNeedAssignToSubThread = (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) ||
-            node->GetForceUIFirst()) && !node->HasFilter();
+        isNeedAssignToSubThread = (node->IsScale() || node->IsScaleInPreFrame()
+            || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) || node->GetForceUIFirst()) && !node->HasFilter();
         RS_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
-            " status:%d filter:%d isScale:%d forceUIFirst:%d isNeedAssign:%d",
-            node->GetName().c_str(), node->GetId(), node->GetCacheSurfaceProcessedStatus(),
-            node->HasFilter(), node->IsScale(), node->GetForceUIFirst(), isNeedAssignToSubThread);
+            " status:%d filter:%d isScale:%d isScalePreFrame:%d forceUIFirst:%d isNeedAssign:%d",
+            node->GetName().c_str(), node->GetId(), node->GetCacheSurfaceProcessedStatus(), node->HasFilter(),
+            node->IsScale(), node->IsScaleInPreFrame(), node->GetForceUIFirst(), isNeedAssignToSubThread);
     }
     std::string surfaceName = node->GetName();
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||

@@ -41,7 +41,8 @@ public:
      * vec4 main(vec2 inCoords, vec4 inColor) { ... }
      * Most shaders don't use the input color, so that parameter is optional.
      *
-     * @param sl 
+     * @param sl       shader sl
+     * @param options  runtime effect options to be set
      * @return A shared pointer to RuntimeEffect
      */
     static std::shared_ptr<RuntimeEffect> CreateForShader(const std::string& sl,

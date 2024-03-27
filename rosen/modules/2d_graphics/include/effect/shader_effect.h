@@ -54,6 +54,8 @@ public:
      * @return A shared pointer to ShaderEffect
      */
     static std::shared_ptr<ShaderEffect> CreateColorShader(ColorQuad color);
+    static std::shared_ptr<ShaderEffect> CreateColorSpaceShader(const Color4f& color,
+        std::shared_ptr<ColorSpace> colorSpace);
     
     static std::shared_ptr<ShaderEffect> CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode);
     static std::shared_ptr<ShaderEffect> CreateImageShader(
@@ -86,6 +88,7 @@ public:
     }
 
     ShaderEffect(ShaderEffectType t, ColorQuad color) noexcept;
+    ShaderEffect(ShaderEffectType t, const Color4f& color, std::shared_ptr<ColorSpace> colorSpace) noexcept;
     ShaderEffect(ShaderEffectType t, ShaderEffect& dst, ShaderEffect& src, BlendMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Image& image, TileMode tileX, TileMode tileY,
         const SamplingOptions& sampling, const Matrix& matrix) noexcept;

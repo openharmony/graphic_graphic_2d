@@ -72,6 +72,7 @@ public:
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
     void Dump(std::string &result) const;
     void DumpFps(std::string &result, const std::string &arg) const;
+    void DumpHitchs(std::string &result, const std::string &arg) const;
     void ClearFpsDump(std::string &result, const std::string &arg);
     void SetDirectClientCompEnableStatus(bool enableStatus);
     bool GetDirectClientCompEnableStatus() const;
@@ -95,7 +96,11 @@ public:
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
-    sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
+
+    std::vector<sptr<SyncFence>> historicalPresentfences_;
+    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::INVALID_FENCE;
+    int32_t presentFenceIndex_ = 0;
+
     sptr<SurfaceBuffer> currFrameBuffer_ = nullptr;
     sptr<SurfaceBuffer> lastFrameBuffer_ = nullptr;
 

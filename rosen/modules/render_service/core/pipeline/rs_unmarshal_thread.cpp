@@ -20,6 +20,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
+#include "rs_profiler.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -62,6 +63,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
         if (!transData) {
             return;
         }
+        RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));
     };

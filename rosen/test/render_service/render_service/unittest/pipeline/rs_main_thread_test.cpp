@@ -2718,4 +2718,210 @@ HWTEST_F(RSMainThreadTest, ReleaseSurface, TestSize.Level1)
     mainThread->tmpSurfaces_.push(nullptr);
     mainThread->ReleaseSurface();
 }
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus
+ * @tc.desc: SetCurtainScreenUsingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetCurtainScreenUsingStatus(true);
+    ASSERT_EQ(mainThread->IsCurtainScreenOn(), true);
+
+    // restore curtain screen status
+    mainThread->SetCurtainScreenUsingStatus(false);
+}
+
+/**
+ * @tc.name: CalcOcclusionImplementation001
+ * @tc.desc: calculate occlusion when surfaces do not overlap
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+
+    NodeId idBottom = 0;
+    auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    RectI rectBottom = RectI(0, 0, 100, 100);
+    nodeBottom->oldDirtyInSurface_ = rectBottom;
+    nodeBottom->SetDstRect(rectBottom);
+    nodeBottom->opaqueRegion_ = Occlusion::Region(rectBottom);
+
+    NodeId idTop = 1;
+    auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    RectI rectTop = RectI(100, 100, 100, 100);
+    nodeTop->oldDirtyInSurface_ = rectTop;
+    nodeTop->SetDstRect(rectTop);
+    nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
+    
+    curAllSurfaces.emplace_back(nodeBottom);
+    curAllSurfaces.emplace_back(nodeTop);
+    VisibleData dstCurVisVec;
+    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 1);
+    ASSERT_EQ(nodeTop->GetVisibleRegion().Size(), 1);
+}
+
+/**
+ * @tc.name: CalcOcclusionImplementation002
+ * @tc.desc: calculate occlusion when surfaces partially overlap
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+
+    NodeId idBottom = 0;
+    auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    RectI rectBottom = RectI(0, 0, 100, 100);
+    nodeBottom->oldDirtyInSurface_ = rectBottom;
+    nodeBottom->SetDstRect(rectBottom);
+    nodeBottom->opaqueRegion_ = Occlusion::Region(rectBottom);
+
+    NodeId idTop = 1;
+    auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    RectI rectTop = RectI(50, 50, 100, 100);
+    nodeTop->oldDirtyInSurface_ = rectTop;
+    nodeTop->SetDstRect(rectTop);
+    nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
+    
+    curAllSurfaces.emplace_back(nodeBottom);
+    curAllSurfaces.emplace_back(nodeTop);
+    VisibleData dstCurVisVec;
+    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 2);
+    ASSERT_EQ(nodeTop->GetVisibleRegion().Size(), 1);
+}
+
+/**
+ * @tc.name: CalcOcclusionImplementation003
+ * @tc.desc: calculate occlusion when the bottom node is occluded completely
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+
+    NodeId idBottom = 0;
+    auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    RectI rectBottom = RectI(0, 0, 100, 100);
+    nodeBottom->oldDirtyInSurface_ = rectBottom;
+    nodeBottom->SetDstRect(rectBottom);
+    nodeBottom->opaqueRegion_ = Occlusion::Region(rectBottom);
+
+    NodeId idTop = 1;
+    auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    RectI rectTop = RectI(0, 0, 100, 100);
+    nodeTop->oldDirtyInSurface_ = rectTop;
+    nodeTop->SetDstRect(rectTop);
+    nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
+    
+    curAllSurfaces.emplace_back(nodeBottom);
+    curAllSurfaces.emplace_back(nodeTop);
+    VisibleData dstCurVisVec;
+    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    ASSERT_EQ(nodeBottom->GetOcclusionVisible(), false);
+    ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 0);
+    ASSERT_EQ(nodeTop->GetVisibleRegion().Size(), 1);
+}
+
+/**
+ * @tc.name: CalcOcclusionImplementation004
+ * @tc.desc: calculate occlusion when the bottom node is occluded completely, and the top node is transparent
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+
+    NodeId idBottom = 0;
+    auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    RectI rectBottom = RectI(0, 0, 100, 100);
+    nodeBottom->oldDirtyInSurface_ = rectBottom;
+    nodeBottom->SetDstRect(rectBottom);
+    nodeBottom->opaqueRegion_ = Occlusion::Region(rectBottom);
+
+    NodeId idTop = 1;
+    auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    RectI rectTop = RectI(0, 0, 100, 100);
+    nodeTop->oldDirtyInSurface_ = rectTop;
+    nodeTop->SetDstRect(rectTop);
+    // The top node is transparent
+    nodeTop->SetGlobalAlpha(0.0f);
+    
+    curAllSurfaces.emplace_back(nodeBottom);
+    curAllSurfaces.emplace_back(nodeTop);
+    VisibleData dstCurVisVec;
+    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 1);
+    ASSERT_EQ(nodeTop->GetVisibleRegion().Size(), 1);
+}
+
+/**
+ * @tc.name: CalcOcclusionImplementation005
+ * @tc.desc: calculate occlusion when the bottom node is occluded completely,
+ * And the top node is transparent and filter cache valid
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+
+    NodeId idBottom = 0;
+    auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    RectI rectBottom = RectI(0, 0, 100, 100);
+    nodeBottom->oldDirtyInSurface_ = rectBottom;
+    nodeBottom->SetDstRect(rectBottom);
+    nodeBottom->opaqueRegion_ = Occlusion::Region(rectBottom);
+
+    NodeId idTop = 1;
+    auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    RectI rectTop = RectI(0, 0, 100, 100);
+    nodeTop->oldDirtyInSurface_ = rectTop;
+    nodeTop->SetDstRect(rectTop);
+    // The top node is transparent
+    nodeTop->SetGlobalAlpha(0.0f);
+    nodeTop->isFilterCacheValidForOcclusion_ = true;
+    
+    curAllSurfaces.emplace_back(nodeBottom);
+    curAllSurfaces.emplace_back(nodeTop);
+    VisibleData dstCurVisVec;
+    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    mainThread->CalcOcclusionImplementation(curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    ASSERT_EQ(nodeBottom->GetOcclusionVisible(), false);
+    ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
+    ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 0);
+    ASSERT_EQ(nodeTop->GetVisibleRegion().Size(), 1);
+}
 } // namespace OHOS::Rosen

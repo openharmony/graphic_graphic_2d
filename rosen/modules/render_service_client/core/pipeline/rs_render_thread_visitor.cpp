@@ -176,7 +176,9 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     auto rect = nodeParent->GetRenderProperties().GetBoundsRect();
     if (rect != surfaceNodeParentBoundsRect_) {
         surfaceNodeParentBoundsRect_ = rect;
-        node.SetContextClipRegion(Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()));
+        if (!node.GetIsTextureExportNode()) {
+            node.SetContextClipRegion(Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()));
+        }
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, nodeParent, dirtyFlag_);
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
@@ -730,8 +732,11 @@ Drawing::Matrix RSRenderThreadVisitor::CacRotationFromTransformType(GraphicTrans
 
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
-#ifdef ROSEN_OHOS
     const auto& property = node.GetRenderProperties();
+    auto geoPtr = property.GetBoundsGeometry();
+    canvas_->ConcatMatrix(geoPtr->GetMatrix());
+    canvas_->Save();
+#ifdef ROSEN_OHOS
     sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(node.GetSurfaceId());
     if (surface == nullptr) {
         RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %llu cannot find surface by surfaceId %llu",
@@ -762,13 +767,13 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     canvas_->ConcatMatrix(transfromMatrix);
     auto recordingCanvas =
         std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
-    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(
-        surfaceBuffer, bounds.left_, bounds.top_, bounds.width_, bounds.height_);
+    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, 0, 0, bounds.width_, bounds.height_);
     recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     drawCmdList->Playback(*canvas_);
     drawCmdListVector_.emplace_back(drawCmdList);
 #endif
+    canvas_->Restore();
 }
 
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -798,8 +803,10 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, invertMatrix failed");
     }
-    node.SetContextMatrix(contextMatrix);
-    node.SetContextAlpha(canvas_->GetAlpha());
+    if (!node.GetIsTextureExportNode()) {
+        node.SetContextMatrix(contextMatrix);
+        node.SetContextAlpha(canvas_->GetAlpha());
+    }
 
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.
     // We plan to refactor code here.
@@ -944,6 +951,7 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
         ROSEN_LOGE("ProcessTextureSurfaceRenderNode %{public}" PRIu64, node.GetId());
         return;
     }
+    node.ApplyModifiers();
     auto clipRect = RSPaintFilterCanvas::GetLocalClipBounds(*canvas_);
     if (!clipRect.has_value() ||
         clipRect->GetWidth() < std::numeric_limits<float>::epsilon() ||
@@ -994,7 +1002,9 @@ void RSRenderThreadVisitor::ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& n
         }
         return;
     }
-    node.SetContextClipRegion(clipRect);
+    if (!node.GetIsTextureExportNode()) {
+        node.SetContextClipRegion(clipRect);
+    }
     // temporary workaround since ContextAlpha/ContextClipRegion happens after ApplyModifiers
     node.ApplyModifiers();
 

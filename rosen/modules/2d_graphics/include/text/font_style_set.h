@@ -48,9 +48,9 @@ public:
     void GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName);
 
     /**
-     * @brief        Get the closest matching typeface.
-     * @param index  The font style to be matching.
-     * @return       A pointer to matched typeface.
+     * @brief          Get the closest matching typeface.
+     * @param pattern  The font style to be matching.
+     * @return         A pointer to matched typeface.
      */
     Typeface* MatchStyle(const FontStyle& pattern);
 

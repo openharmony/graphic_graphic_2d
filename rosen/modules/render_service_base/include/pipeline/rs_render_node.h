@@ -77,7 +77,10 @@ public:
 
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);
-    bool GetContainBootAnimation() const;
+    inline bool GetContainBootAnimation() const
+    {
+        return isContainBootAnimation_;
+    }
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
@@ -102,10 +105,19 @@ public:
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
     void SetContentDirty();
-    void ResetIsOnlyBasicGeoTransform();
-    bool IsOnlyBasicGeoTransform() const;
+    inline void ResetIsOnlyBasicGeoTransform()
+    {
+        isOnlyBasicGeoTransform_ = true;
+    }
+    inline bool IsOnlyBasicGeoTransform() const
+    {
+        return isOnlyBasicGeoTransform_;
+    }
 
-    WeakPtr GetParent() const;
+    inline WeakPtr GetParent() const
+    {
+        return parent_;
+    }
 
     inline NodeId GetId() const
     {
@@ -127,14 +139,20 @@ public:
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID);
-    bool IsOnTheTree() const;
+    inline bool IsOnTheTree() const
+    {
+        return isOnTheTree_;
+    }
 
-    bool IsNewOnTree() const
+    inline bool IsNewOnTree() const
     {
         return isNewOnTree_;
     }
 
-    bool GetIsTextureExportNode() const;
+    inline bool GetIsTextureExportNode() const
+    {
+        return isTextureExportNode_;
+    }
 
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
@@ -175,7 +193,10 @@ public:
 
     void ResetHasRemovedChild();
     bool HasRemovedChild() const;
-    void ResetChildrenRect();
+    inline void ResetChildrenRect()
+    {
+        childrenRect_ = RectI();
+    }
     RectI GetChildrenRect() const;
 
     bool ChildHasFilter() const;
@@ -204,7 +225,10 @@ public:
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();
-    const RSProperties& GetRenderProperties() const;
+    inline const RSProperties& GetRenderProperties() const
+    {
+        return renderContent_->GetRenderProperties();
+    }
     void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
     bool IsRenderUpdateIgnored() const;
 
@@ -224,7 +248,10 @@ public:
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
     void RenderTraceDebug() const;
-    bool ShouldPaint() const;
+    inline bool ShouldPaint() const
+    {
+        return shouldPaint_;
+    }
 
     RectI GetOldDirty() const;
     RectI GetOldDirtyInSurface() const;
@@ -360,6 +387,16 @@ public:
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
+    void ExcuteSurfaceCaptureCommand();
+    bool GetCommandExcuted() const
+    {
+        return commandExcuted_;
+    }
+
+    void SetCommandExcuted(bool commandExcuted)
+    {
+        commandExcuted_ = commandExcuted;
+    }
 
     std::recursive_mutex& GetSurfaceMutex() const;
 
@@ -378,6 +415,9 @@ public:
 
     bool IsScale() const;
     void SetIsScale(bool isScale);
+
+    bool IsScaleInPreFrame() const;
+    void SetIsScaleInPreFrame(bool isScale);
 
     void SetPriority(NodePriorityType priority);
     NodePriorityType GetPriority();
@@ -431,7 +471,10 @@ public:
     // shared transition params, in format <InNodeId, target weakPtr>, nullopt means no transition
     using SharedTransitionParam = std::pair<NodeId, std::weak_ptr<RSRenderNode>>;
     void SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam);
-    const std::optional<SharedTransitionParam>& GetSharedTransitionParam() const;
+    inline const std::optional<SharedTransitionParam>& GetSharedTransitionParam() const
+    {
+        return sharedTransitionParam_;
+    }
 
     void SetGlobalAlpha(float alpha);
     float GetGlobalAlpha() const;
@@ -448,7 +491,10 @@ public:
     }
 
     void ActivateDisplaySync();
-    void InActivateDisplaySync();
+    inline void InActivateDisplaySync()
+    {
+        displaySync_ = nullptr;
+    }
     void UpdateDisplaySyncRange();
 
     void MarkNonGeometryChanged();
@@ -484,7 +530,10 @@ public:
     int32_t coldDownCounter_ = 0;
 #endif
 
-    const std::shared_ptr<RSRenderContent> GetRenderContent() const;
+    inline const std::shared_ptr<RSRenderContent> GetRenderContent() const
+    {
+        return renderContent_;
+    }
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -492,7 +541,12 @@ protected:
         CLEAN = 0,
         DIRTY,
     };
-    void SetClean();
+    inline void SetClean()
+    {
+        isNewOnTree_ = false;
+        isContentDirty_ = false;
+        dirtyStatus_ = NodeDirty::CLEAN;
+    }
 
     void DumpNodeType(std::string& out) const;
 
@@ -578,6 +632,7 @@ private:
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
 
+    void UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
 
@@ -627,6 +682,7 @@ private:
     // specify if any subnode uses effect, not including itself
     bool hasEffectNode_ = false;
 
+    std::atomic<bool> commandExcuted_ = false;
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     // collect subtree's surfaceNode including itself
@@ -638,6 +694,7 @@ private:
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
+    bool isScaleInPreFrame_ = false;
     bool hasFilter_ = false;
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
@@ -696,6 +753,9 @@ private:
     friend class RSRenderNodeMap;
     friend class RSRenderThread;
     friend class RSRenderTransition;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

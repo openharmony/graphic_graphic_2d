@@ -52,6 +52,13 @@ ColorSpace::ColorSpace(ColorSpaceType t,
     impl_->InitWithRGB(func, matrix);
 }
 
+ColorSpace::ColorSpace(ColorSpaceType t,
+                       const CMSTransferFunction& func, const CMSMatrix3x3& matrix) noexcept : ColorSpace()
+{
+    type_ = t;
+    impl_->InitWithCustomRGB(func, matrix);
+}
+
 ColorSpace::ColorSpace() noexcept
     : type_(ColorSpace::ColorSpaceType::NO_TYPE), impl_(ImplFactory::CreateColorSpaceImpl())
 {}
@@ -82,6 +89,11 @@ std::shared_ptr<ColorSpace> ColorSpace::CreateRefImage(const Image& image)
 }
 
 std::shared_ptr<ColorSpace> ColorSpace::CreateRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix)
+{
+    return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::RGB, func, matrix);
+}
+
+std::shared_ptr<ColorSpace> ColorSpace::CreateCustomRGB(const CMSTransferFunction& func, const CMSMatrix3x3& matrix)
 {
     return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::RGB, func, matrix);
 }
