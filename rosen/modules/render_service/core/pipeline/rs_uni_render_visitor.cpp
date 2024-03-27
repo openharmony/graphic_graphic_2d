@@ -320,8 +320,7 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
             return;
         }
         if (child->GetRenderProperties().NeedFilter() || child->GetRenderProperties().GetUseEffect()) {
-            child->Update(*curSurfaceDirtyManager_, cacheRootNode,
-                dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+            child->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
         }
         if (child->GetRenderProperties().NeedFilter()) {
             UpdateForegroundFilterCacheWithDirty(*child, *curSurfaceDirtyManager_);
@@ -354,8 +353,7 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
         effectNode->SetRotationChanged(false);
     }
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
-    effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode,
-        dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+    effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
     if (effectNode->GetRenderProperties().NeedFilter()) {
         UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
@@ -1208,8 +1206,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     // 1. Update matrix and collect dirty region
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
-    dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*curSurfaceDirtyManager_, node.GetParent().lock(),
-        dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+    dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
+        *curSurfaceDirtyManager_, node.GetParent().lock(), dirtyFlag_, prepareClipRect_);
     if (!AfterUpdateSurfaceDirtyCalc(node)) {
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode AfterUpdateSurfaceDirtyCalc fail");
         return;
@@ -1330,8 +1328,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     bool dirtyFlag = dirtyFlag_;
 
     RectI prepareClipRect = prepareClipRect_;
-    dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager,
-        nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+    dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
 
     // 1. Recursively traverse child nodes
     bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
@@ -1355,8 +1352,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     }
 
     RectI prepareClipRect = prepareClipRect_;
-    dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager,
-        nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+    dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
     // update prepareclip before children
     UpdatePrepareclip(node);
 
@@ -1902,23 +1898,30 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
             "has transparentCleanFilter", surfaceNode->GetName().c_str());
         // check accumulatedDirtyRegion influence filter nodes which in the current surface
         for (auto it = filterVecIter->second.begin(); it != filterVecIter->second.end(); ++it) {
+            auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(it->first);
+            if (filterNode == nullptr) {
+                continue;
+            }
             auto filterRegion = Occlusion::Region{ Occlusion::Rect{ it->second } };
             auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
             auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(it->first);
             if (!filterDirtyRegion.IsEmpty()) {
-                if (filterNode) { // backgroundfilter affected by below dirty
+                if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
+                    // backgroundfilter affected by below dirty
                     filterNode->UpdateFilterCacheWithDirty(*(curDisplayNode_->GetDirtyManager()));
                 }
                 RS_LOGD("RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay merge "
                     "filterRegion %{public}s region %{public}s",
                     surfaceNode->GetName().c_str(), it->second.ToString().c_str());
                 curDisplayNode_->GetDirtyManager()->MergeDirtyRect(it->second);
-                if (filterNode) { // foregroundfilter affected by below dirty
+                if (filterNode->GetRenderProperties().GetFilter()) {
+                    // foregroundfilter affected by below dirty
                     filterNode->UpdateFilterCacheWithDirty(*(curDisplayNode_->GetDirtyManager()), true);
                 }
             } else {
                 globalFilter_.insert(it->second);
             }
+            filterNode->MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
             // [attention] make sure filter valid check useful
             surfaceNode->CheckValidFilterCacheFullyCoverTarget(*filterNode, screenRect_);
         }
@@ -2072,6 +2075,7 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node)
 {
     auto curDirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     auto globalFilterRect = node.GetOldDirtyInSurface();
+    bool isNodeAddedToTransparentCleanFilters = false;
     if (curSurfaceNode_) {
         bool isIntersect = curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
         if (isIntersect) {
@@ -2080,11 +2084,14 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node)
         }
         if (curSurfaceNode_->IsTransparent()) {
             globalFilterRects_.emplace_back(globalFilterRect);
-            if (isIntersect) {
-                curDisplayDirtyManager_->MergeDirtyRect(globalFilterRect);
-            } else {
+            if (!isIntersect || (isIntersect && node.GetRenderProperties().GetBackgroundFilter() &&
+                !node.IsBackgroundInAppOrNodeSelfDirty())) {
                 // record nodes which has transparent clean filter
                 transparentCleanFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalFilterRect});
+                isNodeAddedToTransparentCleanFilters = true;
+            }
+            if (isIntersect) {
+                curDisplayDirtyManager_->MergeDirtyRect(globalFilterRect);
             }
         } else {
             // record surface nodes and nodes in surface which has clean filter
@@ -2094,6 +2101,9 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node)
         globalFilterRects_.emplace_back(globalFilterRect);
         // record container nodes which need filter
         containerFilter_.insert(globalFilterRect);
+    }
+    if (curSurfaceNode_ && !isNodeAddedToTransparentCleanFilters) {
+        node.MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
     }
 }
 
@@ -2162,8 +2172,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (skipNodeMap.count(node.GetId()) != 0) {
         auto parentNode = node.GetParent().lock();
         auto rsParent = (parentNode);
-        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_,
-            rsParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, prepareClipRect_);
         dirtyFlag_ = dirtyFlag;
         RS_TRACE_NAME(node.GetName() + " PreparedNodes cacheCmdSkiped");
         return;
@@ -2182,8 +2191,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         && rsSurfaceParent->GetDstRect().IsEmpty()) {
             prepareClipRect_ = RectI {0, 0, 0, 0};
     }
-    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent,
-        dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, prepareClipRect_);
 
     // Calculate the absolute destination rectangle of the node, initialize with absolute bounds rect
     auto dstRect = geoPtr->GetAbsRect();
@@ -2388,11 +2396,10 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
 
     if (RSSystemProperties::GetQuickPrepareEnabled()) {
-        dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*curSurfaceDirtyManager_,
-            nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+        dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
+            *curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
     } else {
-        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_,
-        nodeParent, dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, prepareClipRect_);
     }
 
     if (nodeParent == curSurfaceNode_) {
@@ -2470,8 +2477,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 #endif
     // if canvasNode is not sub node of surfaceNode, merge the dirtyRegion to curDisplayDirtyManager_
     auto dirtyManager = isSubNodeOfSurfaceInPrepare_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-    dirtyFlag_ = node.Update(*dirtyManager, nodeParent,
-        dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+    dirtyFlag_ = node.Update(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
 
     const auto& property = node.GetRenderProperties();
     auto geoPtr = (property.GetBoundsGeometry());
@@ -2573,8 +2579,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     }
     auto parentNode = node.GetParent().lock();
     node.SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
-    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode,
-        dirtyFlag_, prepareClipRect_, IsInTransparentSurfaceNode());
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);
 
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareChildren(node);

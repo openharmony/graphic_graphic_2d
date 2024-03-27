@@ -17,6 +17,7 @@
 
 #include "rs_trace.h"
 
+#include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -24,6 +25,7 @@
 #include "property/rs_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
+constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
 namespace DrawableV2 {
 void RSPropertyDrawable::OnSync()
 {
@@ -156,9 +158,16 @@ void RSFilterDrawable::OnSync()
     }
 
     ClearFilterCache();
-
+    clearFilterredCache_ = stagingClearFilterredCache_;
+    
+    filterHashChanged_ = false;
     filterRegionChanged_ = false;
     filterInteractWithDirty_ = false;
+ 
+    stagingClearFilterredCache_ = false;
+    clearType_ = CACHE_TYPE_BOTH;
+    isLargeArea_ = false;
+    isFilterCacheValid_ = false;
     needSync_ = false;
 }
 
@@ -167,7 +176,8 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         if (canvas && ptr->filter_) {
-            RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_, ptr->cacheManager_, ptr->IsForeground());
+            RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
+                ptr->cacheManager_, ptr->clearFilterredCache_, ptr->IsForeground());
         }
     };
 }
@@ -182,20 +192,79 @@ void RSFilterDrawable::MarkFilterRegionInteractWithDirty()
     filterInteractWithDirty_ = true;
 }
 
-void RSFilterDrawable::ClearFilterCache()
+void RSFilterDrawable::MarkFilterRegionIsLargeArea()
 {
-    if (cacheManager_ == nullptr || filter_ == nullptr) {
+    isLargeArea_ = true;
+}
+ 
+void RSFilterDrawable::MarkNeedClearFilterCache()
+{
+    bool clearFilterredCacheAfterDrawing = IsClearFilterredSnapshotCacheAferDrawing();
+    stagingClearFilterredCache_ = clearFilterredCacheAfterDrawing;
+ 
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache hashChanged:%d, regionChanged_:%d, "
+        "belowDirty_:%d, isLastClearFilterredCahe:%d, isCrrentClearFilterredCahe:%d, "
+        "cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d", filterHashChanged_, filterRegionChanged_,
+        filterInteractWithDirty_, lastClearIsFilterredCache_, clearFilterredCacheAfterDrawing,
+        cacheUpdateInterval_, canSkipFrame_, isLargeArea_);
+ 
+    // clear both two type cache: 1. filter region changed
+    // 2. background changed and skip frame unenalbled
+    // 3. background changed and last frame when skip-frame enabled
+    // 4.clear snapshot cache last frame and clear filterred cache current frame
+    if (filterRegionChanged_ || (filterInteractWithDirty_ && cacheUpdateInterval_ <= 0) ||
+        (!lastClearIsFilterredCache_ && filterHashChanged_)) {
+        if (filterInteractWithDirty_ && cacheUpdateInterval_ <= 0) {
+            cacheUpdateInterval_ =filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL : 
+            (isLargeArea_ && canSkipFrame_ ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0);
+        }
+        clearType_ = FilterCacheType::CACHE_TYPE_BOTH;
+        lastClearIsFilterredCache_ = clearFilterredCacheAfterDrawing;
+        isFilterCacheValid_ = false;
         return;
     }
-
-    cacheManager_->UpdateCacheStateWithFilterHash(filter_);
-    if (cacheManager_->IsCacheValid() && filterRegionChanged_) {
-        cacheManager_->UpdateCacheStateWithFilterRegion();
+ 
+    // when blur filter changes, we need to clear filterred cache if it valid.
+    clearType_ = filterHashChanged_ ?
+        FilterCacheType::CACHE_TYPE_FILTERED_SNAPSHOT : FilterCacheType::CACHE_TYPE_NONE;
+    lastClearIsFilterredCache_ = clearFilterredCacheAfterDrawing;
+    isFilterCacheValid_ = true;
+    cacheUpdateInterval_--;
+}
+ 
+bool RSFilterDrawable::IsFilterCacheValid() const
+{
+    return isFilterCacheValid_;
+}
+ 
+void RSFilterDrawable::RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter)
+{
+    filterHashChanged_ = true;
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    if (filter != nullptr) {
+        filterType_ = filter->GetFilterType();
+        canSkipFrame_ = filter->CanSkipFrame();
     }
+}
 
-    if (cacheManager_->IsCacheValid() && filterInteractWithDirty_) {
-        cacheManager_->UpdateCacheStateWithDirtyRegion();
+void RSFilterDrawable::ClearFilterCache()
+{
+    if (!RSProperties::FilterCacheEnabled || cacheManager_ == nullptr || filter_ == nullptr) {
+        ROSEN_LOGD("Clear filter cache faild or no need to clear cache, filterCacheEnbaled:%{public}d,"
+            "cacheManager:%{public}d, filter:%{public}d", RSProperties::FilterCacheEnabled,
+            cacheManager_ != nullptr, filter_ == nullptr);
+        return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache clearType:%d", clearType_);
+    cacheManager_->InvalidateFilterCache(clearType_);
+}
+ 
+bool RSFilterDrawable::IsClearFilterredSnapshotCacheAferDrawing()
+{
+    if (filterHashChanged_ && !filterRegionChanged_) {
+        return true;
+    }
+    return false;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

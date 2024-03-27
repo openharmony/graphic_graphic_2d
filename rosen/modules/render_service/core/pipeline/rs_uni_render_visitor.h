@@ -393,11 +393,6 @@ private:
     std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
     std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
 
-    bool IsInTransparentSurfaceNode() const
-    {
-        return curSurfaceNode_ && curSurfaceNode_->IsTransparent();
-    }
-
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;

@@ -189,7 +189,8 @@ void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
 
 void RSPropertyDrawableUtils::DrawFilter(
     Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-    const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isForegroundFilter)
+    const std::unique_ptr<RSFilterCacheManager>& cacheManager,
+    const bool isClearFilterredCache, const bool isForegroundFilter))
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -234,7 +235,8 @@ void RSPropertyDrawableUtils::DrawFilter(
         //     filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
         //     filter->SetCanvasChange(*painterFilterCanvas);
         // }
-        cacheManager->DrawFilter(*painterFilterCanvas, filter, needSnapshotOutset);
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, needSnapshotOutset);
+        cacheManager->CompactFilterCache(isClearFilterredCache);
         return;
     }
 #endif

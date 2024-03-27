@@ -18,6 +18,8 @@
 
 #include <memory>
 
+#include "common/rs_common_def.h"
+#include "render/rs_filter.h"
 #include "recording/draw_cmd_list.h"
 
 #include "drawable/rs_drawable.h"
@@ -120,21 +122,41 @@ public:
     // set flags for clearing filter cache
     void MarkFilterRegionChanged();
     void MarkFilterRegionInteractWithDirty();
+    void MarkFilterRegionIsLargeArea();
+    void MarkNeedClearFilterCache();
+
+    virtual bool IsFilterCacheValid() const;
  
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
  
 private:
     void ClearFilterCache();
+    bool IsClearFilterredSnapshotCacheAferDrawing();
  
 protected:
-    bool needSync_ = false;
-    std::shared_ptr<RSFilter> filter_;
-    std::shared_ptr<RSFilter> stagingFilter_;
- 
+    void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
+
     // flags for clearing filter cache
+    bool filterHashChanged_ = false;
     bool filterRegionChanged_ = false;
     bool filterInteractWithDirty_ = false;
+ 
+    // clear one of snapshot cache and filterred cache after drawing 
+    bool stagingClearFilterredCache_ = false;
+    bool clearFilterredCache_ = false;
+    bool lastClearIsFilterredCache_ = false;
+ 
+    // the type cache needed clear before drawing
+    FilterCacheType clearType_ = CACHE_TYPE_BOTH;
+ 
+    // force cache with cacheUpdateInterval_
+    bool isLargeArea_ = false;
+    bool canSkipFrame_ = false;
+    RSFilter::FilterType filterType_ = RSFilter::NONE;
+    int cacheUpdateInterval_ = 0;
+    bool isFilterCacheValid_ = false; // catch status in current frame
+ 
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
 };
 } // namespace DrawableV2

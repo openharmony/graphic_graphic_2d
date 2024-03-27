@@ -226,14 +226,13 @@ public:
     const RectI& GetAbsDrawRect() const;
 
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
-        const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty,
-        std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
+        const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty, std::optional<RectI> clipRect = std::nullopt);
     void UpdateDirtyRegionInfoForDFX();
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
 
-    bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-        std::optional<RectI> clipRect = std::nullopt, bool isInTransparentSurfaceNode = false);
+    bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
+        bool parentDirty, std::optional<RectI> clipRect = std::nullopt);
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();
@@ -277,8 +276,6 @@ public:
     // update parent's children rect including childRect and itself
     void MapAndUpdateChildrenRect();
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
-    virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
-        const std::optional<RectI>& clipRect = std::nullopt, bool isForground = false);
 
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
@@ -414,8 +411,15 @@ public:
     OutOfParentType GetOutOfParent() const;
 
     void UpdateEffectRegion(std::optional<Drawing::RectI>& region, bool isForced = false);
-    bool IsBackgroundFilterCacheValid() const;
+
+    // for blur filter cache
     virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
+    virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
+        const std::optional<RectI>& clipRect = std::nullopt, bool isForeground = false);
+    bool IsBackgroundInAppOrNodeSelfDirty() const;
+    void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
+    void MarkFilterCacheFlagsAfterPrepare(bool isForeground = false);
+    bool IsBackgroundFilterCacheValid() const;
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -764,8 +768,9 @@ private:
     RSDrawable::Vec drawableVec_;
 
     // for blur cache
-    void ResetFilterCacheClearFlags();
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
+    void ResetFilterCacheClearFlags();
+    bool IsLargeArea(int width, int height);
 
     RectI lastFilterRegion_;
     bool backgroundFilterRegionChanged_ = false;

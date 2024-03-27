@@ -92,6 +92,13 @@ enum RSDrawingCacheType : uint8_t {
     TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
 };
 
+enum FilterCacheType : uint8_t {
+    CACHE_TYPE_NONE              = 0,
+    CACHE_TYPE_SNAPSHOT          = 1,
+    CACHE_TYPE_FILTERED_SNAPSHOT = 2,
+    CACHE_TYPE_BOTH              = CACHE_TYPE_SNAPSHOT | CACHE_TYPE_FILTERED_SNAPSHOT,
+};
+
 // priority for node, higher number means lower priority
 enum class NodePriorityType : uint8_t {
     MAIN_PRIORITY = 0, // node must render in main thread

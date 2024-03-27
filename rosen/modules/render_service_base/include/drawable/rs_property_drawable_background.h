@@ -138,6 +138,12 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+    // TODO delete after EffectRenderNode enable filter cache.
+    bool IsFilterCacheValid() const override
+    {
+        return false;
+    }
 };
 
 class RSUseEffectDrawable : public RSDrawable {

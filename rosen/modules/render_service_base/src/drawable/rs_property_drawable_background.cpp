@@ -395,6 +395,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     if (rsFilter == nullptr) {
         return false;
     }
+    RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
     return true;
@@ -406,6 +407,7 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
     if (rsFilter == nullptr) {
         return false;
     }
+    RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
     return true;

@@ -81,9 +81,11 @@ public:
 
     // Call this function to manually invalidate the cache. The next time DrawFilter() is called, it will regenerate the
     // cache.
-    void InvalidateCache(CacheType cacheType = CacheType::CACHE_TYPE_BOTH);
     void ReleaseCacheOffTree();
     void StopFilterPartialRender();
+
+    void InvalidateFilterCache(FilterCacheType clearType = FilterCacheType::CACHE_TYPE_BOTH);
+    void CompactFilterCache(bool shouldClearFilteredCache);
 
     inline bool IsCacheValid() const
     {
@@ -91,6 +93,12 @@ public:
     }
 
 private:
+    // TODO delete after EffectRenderNode enable filter cache. 
+    void TakeSnapshotV2(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
+        const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
+    void GenerateFilteredSnapshotV2(
+        RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
+
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(

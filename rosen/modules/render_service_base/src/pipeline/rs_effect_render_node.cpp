@@ -140,7 +140,7 @@ void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
         (manager->GetCachedImageRegion() != GetFilterRect() ||
             preRotationStatus_ != isRotationChanged_ || preStaticStatus_ != IsStaticCached())) {
         // If the cached image region is different from the filter rect, invalidate the cache
-        manager->InvalidateCache();
+        manager->InvalidateFilterCache();
     }
     // If the effectnode filter cache is invalid and there is no visited filter cache for occlusion
     // Invalid this surface's filter cache occlusion
