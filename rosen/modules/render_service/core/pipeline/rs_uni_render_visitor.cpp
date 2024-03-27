@@ -5044,7 +5044,7 @@ bool RSUniRenderVisitor::IsOutOfScreenRegion(RectI rect)
 
 void RSUniRenderVisitor::DrawCurtainScreen()
 {
-    if (!isCurtainScreenOn_) {
+    if (!isCurtainScreenOn_ || !canvas_) {
         return;
     }
     float screenWidth = static_cast<float>(screenInfo_.width);

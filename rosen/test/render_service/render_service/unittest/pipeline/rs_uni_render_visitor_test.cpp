@@ -3954,4 +3954,40 @@ HWTEST_F(RSUniRenderVisitorTest, SetHasSharedTransitionNode004, TestSize.Level2)
     rsUniRenderVisitor->SetHasSharedTransitionNode(*node, true);
     ASSERT_TRUE(parentNode->GetHasSharedTransitionNode());
 }
+
+/**
+ * @tc.name: DrawCurtainScreen001
+ * @tc.desc: Test DrawCurtainScreen while curtain screen is on
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSUniRenderVisitorTest, DrawCurtainScreen001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(drawingCanvas, nullptr);
+
+    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
+    rsUniRenderVisitor->isCurtainScreenOn_ = true;
+    rsUniRenderVisitor->DrawCurtainScreen();
+}
+
+/**
+ * @tc.name: DrawCurtainScreen002
+ * @tc.desc: Test DrawCurtainScreen while curtain screen is off
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSUniRenderVisitorTest, DrawCurtainScreen002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(drawingCanvas, nullptr);
+
+    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
+    rsUniRenderVisitor->isCurtainScreenOn_ = false;
+    rsUniRenderVisitor->DrawCurtainScreen();
+}
 } // OHOS::Rosen
