@@ -353,7 +353,7 @@
     { "name": "OH_Drawing_DestroySystemFontConfigInfo" },
     { "name": "OH_Drawing_SetTypographyStyleTextStrutStyle" },
     { "name": "OH_Drawing_TypographyStyleGetStrutStyle" },
-    { "name": "OH_Drawing_StrutStyleEquals" },
+    { "name": "OH_Drawing_TypographyStyleStrutStyleEquals" },
     { "name": "OH_Drawing_TypographyStyleSetHintingOn" },
     { "name": "OH_Drawing_TypographyGetLineFontMetrics" },
     { "name": "OH_Drawing_TypographyDestroyLineFontMetrics" }
