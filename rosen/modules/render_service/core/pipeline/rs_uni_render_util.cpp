@@ -967,7 +967,7 @@ RectI RSUniRenderUtil::SrcRectRotateTransform(RSSurfaceRenderNode& node)
     return srcRect;
 }
  
-void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node)
+void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect)
 {
     auto srcRect = SrcRectRotateTransform(node);
     const auto& property = node.GetRenderProperties();
@@ -999,7 +999,7 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node)
             srcRect.width_ = (bufferWidth / scale - (boundsWidth - srcRect.width_)) * scale;
             srcRect.height_ = (bufferHeight / scale - (boundsHeight - srcRect.height_)) * scale;
         } else {
-            if (property.GetBoundsGeometry()->GetAbsRect() == node.GetDstRect()) {
+            if (absRect == node.GetDstRect()) {
                 // If the SurfaceRenderNode is completely in the DisplayRenderNode,
                 // we do not need to crop the buffer.
                 srcRect.width_ = bufferWidth;

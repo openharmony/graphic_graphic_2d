@@ -250,6 +250,16 @@ public:
         needCollectHwcNode_ = false;
     }
 
+    bool GetCalcRectInPrepare() const
+    {
+        return calcRectInPrepare_;
+    }
+
+    void SetCalcRectInPrepare(bool calc)
+    {
+        calcRectInPrepare_ = calc;
+    }
+
     void SetIntersectByFilterInApp(bool intersect)
     {
         intersectByFilterInApp_ = intersect;
@@ -1133,6 +1143,7 @@ private:
     bool isLastFrameHwcEnabled_ = false;
     bool needCollectHwcNode_ = false;
     bool intersectByFilterInApp_ = false;
+    bool calcRectInPrepare_ = false;
     bool hasSubNodeShouldPaint_ = false;
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true

@@ -1081,6 +1081,13 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
         dstRect_.ToString().c_str(),
         layer.boundRect.w, layer.boundRect.h,
         transform, layer.zOrder, !IsHardwareForcedDisabled(), isLastFrameHwcEnabled_);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: node: %s-%lu,"
+        " src: %s, dst: %s, bounds: [%d, %d], transform: %d, zOrder: %d, cur: %d, last: %d",
+        GetName().c_str(), GetId(),
+        srcRect_.ToString().c_str(),
+        dstRect_.ToString().c_str(),
+        layer.boundRect.w, layer.boundRect.h,
+        transform, layer.zOrder, !IsHardwareForcedDisabled(), isLastFrameHwcEnabled_);
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
