@@ -729,6 +729,7 @@ private:
 
     std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
 
+    uint8_t drawableVecStatusV1_ = 0;
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
     void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);

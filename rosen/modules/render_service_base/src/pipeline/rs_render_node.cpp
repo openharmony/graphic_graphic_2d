@@ -1714,7 +1714,7 @@ void RSRenderNode::ApplyModifiers()
     // Temporary code, copy matrix into render params
     // TODO: only run UpdateRenderParams on matrix change
     UpdateRenderParams();
-    // UpdateDrawableVec();
+    UpdateDrawableVec();
     UpdateDrawableVecV2();
 
     if (stagingRenderParams_->NeedSync() || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
@@ -1795,16 +1795,16 @@ void RSRenderNode::UpdateDrawableVecV2()
 void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
 {
      // initialize necessary save/clip/restore
-    if (drawableVecStatus_ == 0) {
+    if (drawableVecStatusV1_ == 0) {
         RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
     }
     // Update or regenerate drawable
     bool drawableChanged =
         RSPropertyDrawable::UpdateDrawableVec(*renderContent_, renderContent_->propertyDrawablesVec_, dirtySlots);
     // if 1. first initialized or 2. any drawables changed, update save/clip/restore
-    if (drawableChanged || drawableVecStatus_ == 0) {
+    if (drawableChanged || drawableVecStatusV1_ == 0) {
         RSPropertyDrawable::UpdateSaveRestore(
-            *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
+            *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatusV1_);
     }
 }
 
