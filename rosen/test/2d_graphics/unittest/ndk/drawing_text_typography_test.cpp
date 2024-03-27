@@ -1706,13 +1706,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest052, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_ALL);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_ALL);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::ALL);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_FIRST_ASCENT);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_LAST_ASCENT);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_ALL);
 }
 
@@ -1723,16 +1723,16 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest052, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest053, TestSize.Level1)
 {
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(nullptr) == TEXT_HEIGHT_ALL, true);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(nullptr) == TEXT_HEIGHT_ALL, true);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_ALL);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_ALL, true);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_FIRST_ASCENT, true);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_LAST_ASCENT, true);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_ALL, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_ALL, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_FIRST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_LAST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_ALL, true);
 }
 
 /*
