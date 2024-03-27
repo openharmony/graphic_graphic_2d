@@ -11,19 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "brush_fuzzer:fuzztest",
-    "color_fuzzer:fuzztest",
-    "path_fuzzer:fuzztest",
-    "pen_fuzzer:fuzztest",
-    "rsxform_fuzzer:fuzztest",
-    "runtimeeffect_fuzzer:fuzztest",
-    "shadereffect_fuzzer:fuzztest",
-    "textblob_fuzzer:fuzztest",
-    "textblobbuilder_fuzzer:fuzztest",
-    "typeface_fuzzer:fuzztest",
-  ]
-}
+FUZZ
