@@ -1747,6 +1747,10 @@ void RSPropertiesPainter::DrawDynamicDim(const RSProperties& properties, RSPaint
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
         Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
     auto shader = MakeDynamicDimShader(properties.GetDynamicDimDegree().value(), imageShader);
+    if (shader == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicDim shader is null");
+        return;
+    }
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
     canvas.ResetMatrix();
