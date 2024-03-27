@@ -50,7 +50,7 @@ RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const
 
 void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
 {
-    if (UNLIKELY(RSUniRenderThread::GetIsInCapture())) {
+    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isInCaptureFlag_)) {
         OnCapture(canvas);
     } else {
         OnDraw(canvas);

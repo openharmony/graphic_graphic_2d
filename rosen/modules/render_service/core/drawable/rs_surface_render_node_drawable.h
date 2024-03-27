@@ -36,6 +36,11 @@ private:
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
+    void CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
+        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
+        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+
     Drawing::Region CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
         std::shared_ptr<RSSurfaceRenderNode> surfaceNode) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;

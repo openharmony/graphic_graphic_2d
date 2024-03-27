@@ -156,6 +156,123 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    if (!renderNode_) {
+        RS_LOGE("There is no SurfaceRender in RSSurfaceRenderNodeDrawable");
+        return;
+    }
+
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
+        return;
+    }
+
+    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (!rscanvas) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
+        return;
+    }
+    rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
+
+    if (surfaceParams->IsSecurityLayer() || surfaceParams->IsSkipLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
+            surfaceParams->GetId());
+        return;
+    }
+    
+    if (RSUniRenderThread::GetCaptureParam().isCaptureDisplay_) {
+        CaptureSurfaceInDisplay(*surfaceNode, *rscanvas, *surfaceParams);
+    } else {
+        CaptureSingleSurfaceNode(*surfaceNode, *rscanvas, *surfaceParams);
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
+{
+    unit32_t saveCount = canvas.GetSaveCount();
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto nodeType = surfaceParams.GetSurfaceNodeType();
+    bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
+    if (isSelfDrawingSurface) {
+        canvas.Save();
+    }
+
+    Drawing::Matrix captureMatrix = Drawing::Matrix();
+    if (nodeType == RSSurfaceNodeType::APP_WINDOW_NODE) {
+        // When CaptureSingleSurfaceNodeWithUni, we should consider scale factor of canvas_ and
+        // child nodes (self-drawing surfaceNode) of AppWindow should use relative coordinates
+        // which is the node relative to the upper-left corner of the window.
+        // So we have to get the invert matrix of AppWindow here and apply it to canvas_
+        // when we calculate the position of self-drawing surfaceNode.
+        auto scaleX = RSUniRenderThread::GetCaptureParam().scaleX_;
+        auto scaleY = RSUniRenderThread::GetCaptureParam().scaleY_;
+        
+        captureMatrix.Set(Drawing::Matrix::Index::SCALE_X, scaleX);
+        captureMatrix_.Set(Drawing::Matrix::Index::SCALE_Y, scaleY);
+        Drawing::Matrix invertMatrix;
+        if (surfaceParams.GetMatrix().Invert(invertMatrix)) {
+            captureMatrix_.PreConcat(invertMatrix);
+        }
+    } else if (nodeType == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
+        canvas.SetMatrix(surfaceParams.GetMatrix());
+    }
+
+    // TODO: maybe it can use DealWithSelfDrawingNodeBuffer
+    if (!surfaceNode.IsAppWindow() && surfaceNode.GetBuffer() != nullptr) {
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false);
+        RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+    }
+
+    if (isSelfDrawingSurface) {
+        canvas.Restore();
+    }
+
+    // TODO
+    // if (!surfaceNode.GetHasSecurityLayer() && !surfaceNode.GetHasSkipLayer() &&
+    //     isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(surfaceNode, canvas)) {
+    //     RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
+    //         process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
+    //         surfaceNode.GetName().c_str(), surfaceParams.GetId());
+    //     return;
+    // }
+    RSRenderNodeDrawable::OnCapture(canvas);
+}
+
+void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
+{
+    canvas.ConcatMatrix(surfaceParams.GetMatrix());
+
+    // TODO
+    // if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
+    //     isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
+    //     RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
+    //         process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
+    //         node.GetName().c_str(), node.GetId());
+    //     return;
+    // }
+
+    auto nodeType = surfaceParams.GetSurfaceNodeType();
+    bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
+    if (isSelfDrawingSurface) {
+        canvas.Save();
+    }
+
+    // TODO: maybe it can use DealWithSelfDrawingNodeBuffer
+    if (!surfaceNode.IsAppWindow() && surfaceNode.GetBuffer() != nullptr) {
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false);
+        RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, surfaceNode, params);
+    }
+
+    if (isSelfDrawingSurface) {
+        canvas.Restore();
+    }
+
     RSRenderNodeDrawable::OnCapture(canvas);
 }
 

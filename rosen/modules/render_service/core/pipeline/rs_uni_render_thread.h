@@ -67,7 +67,10 @@ public:
     void TrimMem(std::string& dumpString, std::string& type);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
-
+    
+    static void SetCaptureParam(const CaptureParam& param);
+    static const CaptureParam& GetCaptureParam();
+    static void ResetCaptureParam();
     std::vector<NodeId>& GetDrawStatusVec()
     {
         return curDrawStatusVec_;
@@ -76,9 +79,6 @@ public:
     {
         return renderThreadParams_;
     }
-
-    static void SetIsInCapture(bool flag);
-    static bool GetIsInCapture();
 
     void RenderServiceTreeDump(std::string& dumpString) const;
     void ReleaseSurface();
@@ -110,10 +110,9 @@ private:
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
-    static thread_local bool isInCaptureFlag_; // true if in capture mode
-
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
+    static thread_local CaptureParam captureParam_;
 };
 } // namespace Rosen
 } // namespace OHOS

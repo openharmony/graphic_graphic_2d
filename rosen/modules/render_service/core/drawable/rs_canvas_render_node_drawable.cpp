@@ -87,7 +87,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
 void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
 {
-    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+    if (RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) { // route to surface capture
         RSCanvasRenderNodeDrawable::OnCapture(canvas);
         return;
     }
@@ -108,7 +108,7 @@ void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
 
 void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas)
 {
-    if (RSUniRenderThread::GetIsInCapture()) { // route to surface capture
+    if (RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) { // route to surface capture
         RSCanvasRenderNodeDrawable::OnCapture(canvas);
         return;
     }
@@ -142,6 +142,6 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
 
-    RSRenderNodeDrawable::OnCapture(canvas);
+    CheckCacheTypeAndDraw(canvas, *params);
 }
 } // namespace OHOS::Rosen::DrawableV2

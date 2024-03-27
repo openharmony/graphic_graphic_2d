@@ -324,7 +324,6 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture params is null!");
         return;
     }
-    RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture params %s", params->ToString().c_str());
 
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(nodeSp);
@@ -336,19 +335,18 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     RS_TRACE_NAME("RSDisplayRenderNodeDrawable::OnCapture:" +
-        std::to_string(displayNodeSp->GetId()));
-    RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture child size:[%{public}d] total",
-        displayNodeSp->GetChildrenCount());
+        std::to_string(params->GetId()));
     Drawing::AutoCanvasRestore acr(canvas, true);
 
     if (params->GetDisplayHasSecSurface() || params->GetDisplayHasSkipSurface()) {
-        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
-            process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.", displayNodeSp->GetId());
+        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: params %{public}s \
+            process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
+            params->ToString().c_str(), params->GetId());
 
         // Adding matrix affine transformation logic
         auto geoPtr = (displayNodeSp->GetRenderProperties().GetBoundsGeometry());
         if (geoPtr != nullptr) {
-            rscanvas->ConcatMatrix(geoPtr->GetMatrix());
+            rscanvas->ConcatMatrix(params->GetMatrix());
         }
 
         RSRenderNodeDrawable::OnCapture(canvas);
@@ -372,8 +370,9 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
 
-        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
-            process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) using UniRender buffer.", displayNodeSp->GetId());
+        RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: params %{public}s \
+            process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) using UniRender buffer.",
+            params->ToString().c_str(), params->GetId());
 
         if (params->GetHardwareEnabledNodes().size() != 0) {
             AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledNodes(), canvas);

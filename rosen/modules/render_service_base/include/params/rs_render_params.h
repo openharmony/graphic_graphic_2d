@@ -64,6 +64,16 @@ public:
         return id_;
     }
 
+    inline bool IsSecurityLayer() const
+    {
+        return isSecurityLayer_;
+    }
+
+    inline bool IsSkipLayer() const
+    {
+        return isSkipLayer_;
+    }
+
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleEffect(bool val);
@@ -106,6 +116,8 @@ private:
     // this rect should map display coordination
     RectI localDrawRect_;
     bool shouldPaint_;
+    bool isSecurityLayer_;
+    bool isSkipLayer_;
 
     Vector2f cacheSize_;
     bool childHasVisibleFilter_ = false;

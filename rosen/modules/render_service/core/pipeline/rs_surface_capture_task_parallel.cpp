@@ -100,20 +100,21 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         node->Process(visitor_);
     } else {
         auto rootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
-        RSUniRenderThread::SetIsInCapture(true);
         RSPaintFilterCanvas canvas(surface.get());
         canvas.Scale(scaleX_, scaleY_);
         canvas.SetDisableFilterCache(true);
         if (surfaceNodeDrawable) {
+            RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, scaleX_, scaleY_));
             surfaceNodeDrawable->OnCapture(canvas);
         } else if (displayNodeDrawable) {
+            RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, scaleX_, scaleY_));
             displayNodeDrawable->OnCapture(canvas);
         } else {
             RS_LOGE("RSSurfaceCaptureTaskParallel::Run: Invalid RSRenderNodeDrawable!");
             return false;
         }
         rootNodeDrawable->OnCapture(canvas);
-        RSUniRenderThread::SetIsInCapture(false);
+        RSUniRenderThread::ResetCaptureParam();
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER

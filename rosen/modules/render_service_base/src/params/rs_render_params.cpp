@@ -28,6 +28,7 @@ void RSRenderParams::SetMatrix(Drawing::Matrix matrix)
     matrix_ = matrix;
     needSync_ = true;
 }
+
 const Drawing::Matrix RSRenderParams::GetMatrix() const
 {
     return matrix_;

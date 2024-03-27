@@ -49,16 +49,21 @@ constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 };
 
-thread_local bool RSUniRenderThread::isInCaptureFlag_ = false;
+thread_local CaptureParam RSUniRenderThread::captureParam_ = {};
 
-void RSUniRenderThread::SetIsInCapture(bool flag)
+void RSUniRenderThread::SetCaptureParam(const CaptureParam& param)
 {
-    isInCaptureFlag_ = flag;
+    captureParam_ = param;
 }
 
-bool RSUniRenderThread::GetIsInCapture()
+const CaptureParam& RSUniRenderThread::GetCaptureParam()
 {
-    return isInCaptureFlag_;
+    return captureParam_;
+}
+
+void RSUniRenderThread::ResetCaptureParam()
+{
+    captureParam_ = {};
 }
 
 RSUniRenderThread& RSUniRenderThread::Instance()
