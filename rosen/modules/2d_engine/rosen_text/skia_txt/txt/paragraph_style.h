@@ -65,7 +65,7 @@ public:
     TextStyle spTextStyle;
     bool customSpTextStyle = false;
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
-    bool hintingIsOn = true;
+    bool hintingIsOn = false;
 };
 } // namespace SPText
 } // namespace Rosen

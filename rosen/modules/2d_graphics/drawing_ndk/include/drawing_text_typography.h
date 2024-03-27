@@ -481,25 +481,25 @@ enum OH_Drawing_FontConfigInfoErrorCode {
  */
 typedef struct {
     /** The font weight to use when calculating the strut */
-    OH_Drawing_FontWeight Weight;
+    OH_Drawing_FontWeight weight;
     /** The font style to use when calculating the strut */
-    OH_Drawing_FontStyle Style;
+    OH_Drawing_FontStyle style;
     /** The size of the ascent plus descent in logical pixels */
-    double Size;
+    double size;
     /** The minimum height of the strut, as a multiple of fontSize */
-    double HeightScale;
+    double heightScale;
     /** Whether the height is override */
-    bool HeightOverride;
+    bool heightOverride;
     /** Whether the halfleading is enable */
-    bool HalfLeading;
+    bool halfLeading;
     /** The additional leading to apply to the strut as a multiple of Size */
-    double Leading;
+    double leading;
     /** Whether the strut height should be forced */
-    bool ForceStrutHeight;
+    bool forceStrutHeight;
     /** The size of font families */
-    size_t FamiliesSize;
+    size_t familiesSize;
     /** The families of the font to use when calculating the strut */
-    char** Families;
+    char** families;
 } OH_Drawing_StrutStyle;
 
 /**
@@ -2404,18 +2404,18 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
  * @since 12
  * @version 1.0
  */
-bool OH_Drawing_StrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutStyle* to);
+bool OH_Drawing_TypographyStyleStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutStyle* to);
 
 /**
  * @brief Sets the hinting of text typography.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @param hintingIsOn Indicates the hinting of text typography..
+ * @param hintingEnable Indicates the hinting of text typography..
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TypographyStyleSetHintingOn(OH_Drawing_TypographyStyle* style, bool hintingIsOn);
+void OH_Drawing_TypographyStyleSetHintingEnable(OH_Drawing_TypographyStyle* style, bool hintingEnable);
 
 /**
  * @brief Getting all font metrics from target row.

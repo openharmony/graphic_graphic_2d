@@ -3001,15 +3001,15 @@ void OH_Drawing_SetTypographyStyleTextStrutStyle(OH_Drawing_TypographyStyle* sty
     if (style == nullptr || strutstyle == nullptr) {
         return;
     }
-    OH_Drawing_SetTypographyTextLineStyleFontWeight(style, strutstyle->Weight);
-    OH_Drawing_SetTypographyTextLineStyleFontStyle(style, strutstyle->Style);
-    OH_Drawing_SetTypographyTextLineStyleFontFamilies(style, strutstyle->FamiliesSize, 
-    const_cast<const char**>(strutstyle->Families));
-    OH_Drawing_SetTypographyTextLineStyleFontSize(style, strutstyle->Size);
-    OH_Drawing_SetTypographyTextLineStyleFontHeight(style, strutstyle->HeightScale);
-    OH_Drawing_SetTypographyTextLineStyleHalfLeading(style, strutstyle->HalfLeading);
-    OH_Drawing_SetTypographyTextLineStyleSpacingScale(style, strutstyle->Leading);
-    OH_Drawing_SetTypographyTextLineStyleOnly(style, strutstyle->ForceStrutHeight);
+    OH_Drawing_SetTypographyTextLineStyleFontWeight(style, strutstyle->weight);
+    OH_Drawing_SetTypographyTextLineStyleFontStyle(style, strutstyle->style);
+    OH_Drawing_SetTypographyTextLineStyleFontFamilies(style, strutstyle->familiesSize, 
+    const_cast<const char**>(strutstyle->families));
+    OH_Drawing_SetTypographyTextLineStyleFontSize(style, strutstyle->size);
+    OH_Drawing_SetTypographyTextLineStyleFontHeight(style, strutstyle->heightScale);
+    OH_Drawing_SetTypographyTextLineStyleHalfLeading(style, strutstyle->halfLeading);
+    OH_Drawing_SetTypographyTextLineStyleSpacingScale(style, strutstyle->leading);
+    OH_Drawing_SetTypographyTextLineStyleOnly(style, strutstyle->forceStrutHeight);
 }
 
 OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_TypographyStyle* style)
@@ -3025,51 +3025,50 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
     if (strutstyle == nullptr) {
         return nullptr;
     }
-    strutstyle->Weight = (OH_Drawing_FontWeight)(typographyStyle->lineStyleFontWeight);
-    strutstyle->Style = (OH_Drawing_FontStyle)(typographyStyle->lineStyleFontStyle);
-    strutstyle->Size = typographyStyle->lineStyleFontSize;
-    strutstyle->HeightScale = typographyStyle->lineStyleHeightScale;
-    strutstyle->HeightOverride = typographyStyle->lineStyleHeightOnly;
-    strutstyle->HalfLeading = typographyStyle->lineStyleHalfLeading;
-    strutstyle->Leading = typographyStyle->lineStyleSpacingScale;
-    strutstyle->ForceStrutHeight = typographyStyle->lineStyleOnly;
-    strutstyle->FamiliesSize = typographyStyle->lineStyleFontFamilies.size();
-    strutstyle->Families = (char**)malloc(strutstyle->FamiliesSize*sizeof(char*));
-    for (size_t i = 0; i < strutstyle->FamiliesSize; i++)
-    {
-        int size = typographyStyle->lineStyleFontFamilies[i].size()+1;
-        strutstyle->Families[i] = (char*)malloc(size);
-        strcpy_s(strutstyle->Families[i], size, typographyStyle->lineStyleFontFamilies[i].c_str());
+    strutstyle->weight = (OH_Drawing_FontWeight)(typographyStyle->lineStyleFontWeight);
+    strutstyle->style = (OH_Drawing_FontStyle)(typographyStyle->lineStyleFontStyle);
+    strutstyle->size = typographyStyle->lineStyleFontSize;
+    strutstyle->heightScale = typographyStyle->lineStyleHeightScale;
+    strutstyle->heightOverride = typographyStyle->lineStyleHeightOnly;
+    strutstyle->halfLeading = typographyStyle->lineStyleHalfLeading;
+    strutstyle->leading = typographyStyle->lineStyleSpacingScale;
+    strutstyle->forceStrutHeight = typographyStyle->lineStyleOnly;
+    strutstyle->familiesSize = typographyStyle->lineStyleFontFamilies.size();
+    strutstyle->families = (char**)malloc(strutstyle->familiesSize*sizeof(char*));
+    for (size_t i = 0; i < strutstyle->familiesSize; i++) {
+        int size = typographyStyle->lineStyleFontFamilies[i].size() + 1;
+        strutstyle->families[i] = (char*)malloc(size);
+        strcpy_s(strutstyle->families[i], size, typographyStyle->lineStyleFontFamilies[i].c_str());
     }
 
     return strutstyle;
 }
 
-bool OH_Drawing_StrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutStyle* to)
+bool OH_Drawing_TypographyStyleStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_Drawing_StrutStyle* to)
 {
     if (from == nullptr || to == nullptr) {
         return false;
     }
-    if (from->Weight == to->Weight && 
-        from->Style == to->Style && 
-        from->Size == to->Size && 
-        from->HeightScale == to->HeightScale && 
-        from->HeightOverride == to->HeightOverride && 
-        from->HalfLeading == to->HalfLeading && 
-        from->Leading == to->Leading && 
-        from->ForceStrutHeight == to->ForceStrutHeight && 
-        from->FamiliesSize == to->FamiliesSize){
-            for (size_t i = 0; i < from->FamiliesSize; i++){
-                if (strcmp(from->Families[i],to->Families[i]) != 0){
-                    return false;
-                }
+    if (from->weight == to->weight && 
+        from->style == to->style && 
+        from->size == to->size && 
+        from->heightScale == to->heightScale && 
+        from->heightOverride == to->heightOverride && 
+        from->halfLeading == to->halfLeading && 
+        from->leading == to->leading && 
+        from->forceStrutHeight == to->forceStrutHeight && 
+        from->familiesSize == to->familiesSize) {
+        for (size_t i = 0; i < from->familiesSize; i++) {
+            if (strcmp(from->families[i], to->families[i]) != 0) {
+                return false;
             }
-            return true;
         }
+        return true;
+    }
     return false;
 }
 
-void OH_Drawing_TypographyStyleSetHintingOn(OH_Drawing_TypographyStyle* style, bool hintingIsOn)
+void OH_Drawing_TypographyStyleSetHintingEnable(OH_Drawing_TypographyStyle* style, bool hintingEnable)
 {
     if (style == nullptr) {
         return;
@@ -3078,7 +3077,7 @@ void OH_Drawing_TypographyStyleSetHintingOn(OH_Drawing_TypographyStyle* style, b
     if (typographyStyle == nullptr) {
         return;
     }
-    typographyStyle->hintingIsOn = hintingIsOn;
+    typographyStyle->hintingIsOn = hintingEnable;
 }
 
 OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typography* typography,

@@ -69,7 +69,7 @@ public:
     double strutLeading_ = -1;
     bool forceStrutHeight_ = false;
 
-    bool hintingIsOn_ = true;
+    bool hintingIsOn_ = false;
 
     TextAlign textAlign_ = TextAlign::START;
     TextDirection textDirection_ = TextDirection::LTR;
