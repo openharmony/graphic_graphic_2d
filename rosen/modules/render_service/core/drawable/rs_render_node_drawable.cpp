@@ -151,6 +151,7 @@ void RSRenderNodeDrawable::DumpDrawableTree(int32_t depth, std::string &out) con
     out += "[" + std::to_string(renderNode_->GetId()) + "]";
     renderNode_->DumpSubClassNode(out);
     out += ", DrawableVec:[" + DumpDrawableVec() + "]";
+    out += ", " + renderNode_->GetRenderParams()->ToString();
     out += "\n";
 
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(

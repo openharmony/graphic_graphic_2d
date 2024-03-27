@@ -107,6 +107,9 @@ public:
     void SetVisibleRegion(const Occlusion::Region& visibleRegion);
     Occlusion::Region GetVisibleRegion() const;
 
+    void SetOccludedByFilterCache(bool val);
+    bool GetOccludedByFilterCache() const;
+
     void SetLayerInfo(const RSLayerInfo& layerInfo);
     RSLayerInfo& GetLayerInfo();
     void SetHardwareEnabled(bool enabled);
@@ -144,6 +147,7 @@ private:
 
     bool occlusionVisible_ = false;
     Occlusion::Region visibleRegion_;
+    bool isOccludedByFilterCache_ = false;
     RSLayerInfo layerInfo_;
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;

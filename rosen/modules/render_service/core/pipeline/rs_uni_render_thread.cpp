@@ -213,9 +213,14 @@ void RSUniRenderThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& su
     tmpSurfaces_.push(std::move(surface));
 }
 
-uint64_t RSUniRenderThread::GetTimestamp()
+uint64_t RSUniRenderThread::GetCurrentTimestamp() const
 {
-    return renderThreadParams_->GetTimestamp();
+    return renderThreadParams_->GetCurrentTimestamp();
+}
+
+uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
+{
+    return renderThreadParams_->GetPendingScreenRefreshRate();
 }
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()

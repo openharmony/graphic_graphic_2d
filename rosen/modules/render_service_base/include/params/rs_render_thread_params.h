@@ -54,7 +54,12 @@ public:
         return isOpDropped_;
     }
 
-    uint64_t GetTimestamp()
+    void SetTimestamp(uint64_t timestamp)
+    {
+        timestamp_ = timestamp;
+    }
+
+    uint64_t GetCurrentTimestamp() const
     {
         return timestamp_;
     }
@@ -63,9 +68,20 @@ public:
     {
         return selfDrawingNodes_;
     }
+
+    void SetPendingScreenRefreshRate(uint32_t rate)
+    {
+        pendingScreenRefreshRate_ = rate;
+    }
+
+    uint32_t GetPendingScreenRefreshRate() const
+    {
+        return pendingScreenRefreshRate_;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
+    uint32_t pendingScreenRefreshRate_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool isRegionDebugEnabled_ = false;

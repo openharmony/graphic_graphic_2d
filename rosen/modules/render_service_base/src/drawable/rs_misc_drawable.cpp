@@ -40,12 +40,43 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
     stagingChildrenDrawableVec_.clear();
     for (const auto& child : *children) {
+        if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
+            continue;
+        }
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     }
     stagingUseShadowBatch_ = node.GetRenderProperties().GetUseShadowBatching();
     return true;
+}
+
+bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
+{
+    auto nodeId = node->GetId();
+    const auto& sharedTransitionParam = node->GetSharedTransitionParam();
+    // Test if this node is lower in the hierarchy
+    bool isLower = sharedTransitionParam->UpdateHierarchyAndReturnIsLower(nodeId);
+
+    auto pairedNode = sharedTransitionParam->GetPairedNode(nodeId);
+    if (!pairedNode) {
+        // clear invalid shared transition param
+        node->SetSharedTransitionParam(nullptr);
+        return false;
+    }
+    if (!pairedNode->IsOnTheTree()) {
+        // clear invalid shared transition param
+        node->SetSharedTransitionParam(nullptr);
+        pairedNode->SetSharedTransitionParam(nullptr);
+        return false;
+    }
+    if (!isLower) {
+        // for higher hierarchy node, we Draw paired node (lower in hierarchy) first, then Draw this node
+        if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
+            stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
+        }
+    }
+    return isLower;
 }
 
 void RSChildrenDrawable::OnSync()
@@ -126,45 +157,6 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
         for (const auto& drawCmdList : ptr->drawCmdListVec_) {
             drawCmdList->Playback(*canvas, rect);
         }
-    };
-}
-
-// ============================================================================
-// Alpha
-RSDrawable::Ptr RSAlphaDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSAlphaDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-}
-bool RSAlphaDrawable::OnUpdate(const RSRenderNode& node)
-{
-    auto alpha = node.GetRenderProperties().GetAlpha();
-    if (alpha == 1) {
-        return false;
-    }
-    stagingAlpha_ = alpha;
-    stagingOffscreen_ = node.GetRenderProperties().GetAlphaOffscreen();
-    needSync_ = true;
-    return true;
-}
-void RSAlphaDrawable::OnSync()
-{
-    if (!needSync_) {
-        return;
-    }
-    alpha_ = stagingAlpha_;
-    offscreen_ = stagingOffscreen_;
-    needSync_ = false;
-}
-Drawing::RecordingCanvas::DrawFunc RSAlphaDrawable::CreateDrawFunc() const
-{
-    auto ptr = std::static_pointer_cast<const RSAlphaDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        // TODO: implement alpha offscreen
-        paintFilterCanvas->MultiplyAlpha(ptr->alpha_);
     };
 }
 

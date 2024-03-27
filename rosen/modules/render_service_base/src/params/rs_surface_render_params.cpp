@@ -40,6 +40,21 @@ Occlusion::Region RSSurfaceRenderParams::GetVisibleRegion() const
 void RSSurfaceRenderParams::SetVisibleRegion(const Occlusion::Region& visibleRegion)
 {
     visibleRegion_ = visibleRegion;
+    needSync_ = true;
+}
+
+void RSSurfaceRenderParams::SetOccludedByFilterCache(bool val)
+{
+    if (isOccludedByFilterCache_ == val) {
+        return;
+    }
+    isOccludedByFilterCache_ = val;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetOccludedByFilterCache() const
+{
+    return isOccludedByFilterCache_;
 }
 
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
@@ -150,12 +165,13 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->layerInfo_ = layerInfo_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     RSRenderParams::OnSync(target);
 }
 
 std::string RSSurfaceRenderParams::ToString() const
 {
-    std::string ret = RSRenderParams::ToString() + "\nRSSurfaceRenderParams: {\n";
+    std::string ret = RSRenderParams::ToString() + ", RSSurfaceRenderParams: {";
     ret += RENDER_BASIC_PARAM_TO_STRING(int(rsSurfaceNodeType_));
     ret += RENDER_BASIC_PARAM_TO_STRING(int(selfDrawingType_));
     ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
@@ -165,6 +181,7 @@ std::string RSSurfaceRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
     ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(occlusionVisible_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(isOccludedByFilterCache_);
     ret += "}";
     return ret;
 }

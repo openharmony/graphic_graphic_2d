@@ -63,7 +63,7 @@ public:
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     // restore node's flag and filter dirty collection
-    void PrepareChildrenAfter(RSRenderNode& node);
+    void PostPrepare(RSRenderNode& node);
     void CalculateOcclusion(RSSurfaceRenderNode& node);
 
     void PrepareChildren(RSRenderNode& node) override;
@@ -236,13 +236,15 @@ private:
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 
-    void UpdatePrepareclip(RSRenderNode& node);
+    void UpdatePrepareClip(RSRenderNode& node);
 
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeTransparentDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
 
     void CheckMergeTransparentFilterForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
+    // If reusable filter cache covers whole screen, mark lower layer to skip process
+    void CheckAndUpdateFilterCacheOcclusion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces) const;
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
 
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
@@ -398,6 +400,7 @@ private:
 
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
+    RectI screenRect_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
@@ -512,11 +515,6 @@ private:
 
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     std::stack<RenderParam> curGroupedNodes_;
-    // return true if we should prepare/process, false if we should skip.
-    void PrepareSharedTransitionNode(RSBaseRenderNode& node);
-    bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
-    void ProcessUnpairedSharedTransitionNode();
-
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
     // adapt to sceneboard, mark if the canvasNode within the scope of surfaceNode

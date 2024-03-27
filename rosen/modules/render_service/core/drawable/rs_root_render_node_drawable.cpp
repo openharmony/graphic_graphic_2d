@@ -33,7 +33,14 @@ RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<c
 void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
-
+    auto& params = renderNode_->GetRenderParams();
+    if (!params) {
+        RS_LOGE("params is nullptr");
+        return;
+    }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     RSCanvasRenderNodeDrawable::OnDraw(canvas);
 }
 

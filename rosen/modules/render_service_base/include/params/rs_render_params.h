@@ -22,9 +22,9 @@
 #include "utils/matrix.h"
 
 namespace OHOS::Rosen {
-#define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string("param[") + #basicType + "]:" + std::to_string(basicType) + " \n")
-#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string("param[") + #rect + "]:" + rect.ToString() + " \n")
-#define RENDER_PARAM_TO_STRING(param) (std::string("param[") + #param + "]:" + param.ToString() + " \n")
+#define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string(#basicType "[") + std::to_string(basicType) + "] ")
+#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + rect.ToString() + "] ")
+#define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + param.ToString() + "] ")
 
 struct DirtyRegionInfoForDFX {
     RectI oldDirty;
@@ -40,18 +40,26 @@ public:
     RSRenderParams() = default;
     virtual ~RSRenderParams() = default;
 
-    virtual void SetMatrix(Drawing::Matrix matrix);
-    const Drawing::Matrix GetMatrix() const;
+    void SetAlpha(float alpha);
+    float GetAlpha() const;
 
-    virtual void SetBoundsRect(Drawing::RectF boundsRect);
-    const Drawing::Rect GetBounds() const;
+    void SetMatrix(const Drawing::Matrix& matrix);
+    const Drawing::Matrix& GetMatrix() const;
 
-    virtual void SetFrameRect(Drawing::RectF frameRect);
-    const Drawing::Rect GetFrameRect() const;
+    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
+
+    void SetBoundsRect(const Drawing::RectF& boundsRect);
+    const Drawing::Rect& GetBounds() const;
+
+    void SetFrameRect(const Drawing::RectF& frameRect);
+    const Drawing::Rect& GetFrameRect() const;
 
     // return to add some dirtynode does not mark pending
-    virtual bool SetLocalDrawRect(RectI localDrawRect);
-    const RectI GetLocalDrawRect() const;
+    bool SetLocalDrawRect(const RectI& localDrawRect);
+    const RectI& GetLocalDrawRect() const;
+
+    void SetHasSharedTransition(bool hasSharedTransition);
+    bool HasSharedTransition() const;
 
     bool GetShouldPaint() const;
     void SetShouldPaint(bool shouldPaint);
@@ -113,16 +121,18 @@ private:
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
     Drawing::RectF frameRect_;
+    float alpha_ = 1.0f;
     // this rect should map display coordination
     RectI localDrawRect_;
-    bool shouldPaint_;
+    Vector2f cacheSize_;
+
+    bool childHasVisibleEffect_ = false;
+    bool childHasVisibleFilter_ = false;
+    bool hasSharedTransition_ = false;
+    bool isDrawingCacheChanged_ = false;
     bool isSecurityLayer_ = false; // TODO
     bool isSkipLayer_ = false; // TODO
-
-    Vector2f cacheSize_;
-    bool childHasVisibleFilter_ = false;
-    bool childHasVisibleEffect_ = false;
-    bool isDrawingCacheChanged_ = false;
+    bool shouldPaint_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;

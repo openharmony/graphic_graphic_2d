@@ -55,7 +55,8 @@ public:
     void NotifyDisplayNodeBufferReleased();
     bool WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 
-    uint64_t GetTimestamp();
+    uint64_t GetCurrentTimestamp() const;
+    uint32_t GetPendingScreenRefreshRate() const;
 
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply);
     bool GetClearMemoryFinished() const;

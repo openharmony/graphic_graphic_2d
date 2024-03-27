@@ -422,7 +422,7 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     if (!visitor) {
         return;
     }
-    RSRenderNode::ApplyModifiers();
+    ApplyModifiers();
     visitor->QuickPrepareSurfaceRenderNode(*this);
 
     if ((IsAppWindow() || IsScbScreen()) && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this)) {
@@ -446,7 +446,7 @@ void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
-    RSRenderNode::ApplyModifiers();
+    ApplyModifiers();
     visitor->PrepareSurfaceRenderNode(*this);
 }
 
@@ -1248,6 +1248,24 @@ void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>&
     filterNodes_.emplace_back(nodePtr);
 }
 
+void RSSurfaceRenderNode::CheckValidFilterCacheFullyCoverTarget(const RSRenderNode& filterNode, const RectI& targetRect)
+{
+    if (filterNode.IsInstanceOf<RSEffectRenderNode>()) {
+        return;
+    }
+    if (isFilterCacheFullyCovered_ || !filterNode.IsBackgroundFilterCacheValid()) {
+        return;
+    }
+    isFilterCacheFullyCovered_ = targetRect.IsInsideOf(filterNode.GetOldDirtyInSurface());
+}
+
+void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
+{
+    isOccludedByFilterCache_ = val;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetOccludedByFilterCache(isOccludedByFilterCache_);
+}
+
 void RSSurfaceRenderNode::UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr)
 {
     if (nodePtr == nullptr) {
@@ -1598,12 +1616,7 @@ void RSSurfaceRenderNode::OnSync()
 {
     dirtyManager_->OnSync();
     if (IsMainWindowType() || IsLeashWindow()) {
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-        if (surfaceParams == nullptr) {
-            RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
-            return;
-        }
-        surfaceParams->SetNeedSync(true);
+        stagingRenderParams_->SetNeedSync(true);
     }
     RSRenderNode::OnSync();
 }
@@ -2119,14 +2132,14 @@ void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetOcclusionVisible(visible);
-        if (stagingRenderParams_->NeedSync()) {
-            if (auto context = GetContext().lock()) {
-                context->AddPendingSyncNode(shared_from_this());
-            } else {
-                RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
-                OnSync();
-            }
-        }
+        // if (stagingRenderParams_->NeedSync()) {
+        //     if (auto context = GetContext().lock()) {
+        //         context->AddPendingSyncNode(shared_from_this());
+        //     } else {
+        //         RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
+        //         OnSync();
+        //     }
+        // }
     } else {
         RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible stagingSurfaceParams is null");
     }
@@ -2172,6 +2185,8 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->frameGravity_ = properties.GetFrameGravity();
 
+    surfaceParams->SetNeedSync(true);
+
     RSRenderNode::UpdateRenderParams();
 }
 
@@ -2183,6 +2198,7 @@ void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
         return;
     }
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
+    surfaceParams->SetNeedSync(true);
 }
 } // namespace Rosen
 } // namespace OHOS

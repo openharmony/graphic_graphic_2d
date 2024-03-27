@@ -48,7 +48,7 @@ void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
-    RSRenderNode::ApplyModifiers();
+    ApplyModifiers();
     visitor->PrepareEffectRenderNode(*this);
 }
 
@@ -57,7 +57,7 @@ void RSEffectRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     if (!visitor) {
         return;
     }
-    RSRenderNode::ApplyModifiers();
+    ApplyModifiers();
     visitor->QuickPrepareEffectRenderNode(*this);
 }
 

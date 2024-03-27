@@ -116,6 +116,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
+    if (surfaceParams->GetOccludedByFilterCache()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] Id:%" PRIu64 "",
+            surfaceNode->GetName().c_str(), surfaceParams->GetId());
+        return;
+    }
     Drawing::Region resultRegion = CalculateVisibleRegion(surfaceParams, surfaceNode);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && surfaceParams->IsMainWindowType() && resultRegion.IsEmpty()) {
@@ -166,9 +171,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // TO-DO [Sub Thread] CheckFilterCache
 
-    RSAutoCanvasRestore acr(rscanvas);
-
-    rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
+    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
 
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid()) {
@@ -180,7 +184,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->SetDirtyFlag(true);
     }
 
-    rscanvas->ConcatMatrix(surfaceParams->GetMatrix());
+    surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
