@@ -41,6 +41,13 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params->GetMatrix());
+
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
+        QuickReject(canvas, params->GetLocalDrawRect())) {
+        RS_LOGD("EffectNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
+        return;
+    }
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 
