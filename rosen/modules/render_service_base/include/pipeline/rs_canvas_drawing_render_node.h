@@ -20,7 +20,6 @@
 #include <functional>
 #include <memory>
 
-#include "pipeline/rs_canvas_drawing_render_node_content.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 
@@ -43,8 +42,6 @@ public:
     // Used in uni render thread.
     void InitRenderContent();
 
-    std::shared_ptr<RSCanvasDrawingRenderNodeContent> GetRenderContent();
-
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
 
     RSRenderNodeType GetType() const override
@@ -54,6 +51,7 @@ public:
 
     Drawing::Bitmap GetBitmap();
     Drawing::Bitmap GetBitmap(const uint64_t tid);
+    std::shared_ptr<Drawing::Image> GetImage(const uint64_t tid);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
 
@@ -101,7 +99,7 @@ private:
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
 
     // Used in uni render thread.
-    std::shared_ptr<RSCanvasDrawingRenderNodeContent> canvasDrawingNodeRenderContent_;
+    uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
 };
 
 } // namespace Rosen

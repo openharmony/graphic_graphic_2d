@@ -18,6 +18,7 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_canvas_drawing_render_node_content.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen::DrawableV2 {
@@ -29,6 +30,7 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
+    std::shared_ptr<RSCanvasDrawingRenderNodeContent> GetRenderContent();
 
 private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
@@ -37,6 +39,7 @@ private:
         RSCanvasDrawingRenderNodeContent& renderContent, Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     static Registrar instance_;
+    std::shared_ptr<RSCanvasDrawingRenderNodeContent> canvasDrawingNodeRenderContent_;
 };
 
 } // namespace OHOS::Rosen::DrawableV2

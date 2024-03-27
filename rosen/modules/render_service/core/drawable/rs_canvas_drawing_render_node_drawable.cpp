@@ -29,6 +29,7 @@ RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
     canvasDrawingRenderNode->InitRenderContent();
+    canvasDrawingNodeRenderContent_ = std::make_unique();
 }
 
 RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -58,17 +59,13 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
-    auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
-    auto canvasDrawingNodeRenderContent = canvasDrawingRenderNode->GetRenderContent();
-
     auto clearFunc = [](std::shared_ptr<Drawing::Surface> surface) {
         // The second param is null, 0 is an invalid value.
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, UNI_RENDER_THREAD_INDEX, 0);
     };
-    canvasDrawingNodeRenderContent->SetSurfaceClearFunc({ UNI_RENDER_THREAD_INDEX, clearFunc });
+    canvasDrawingNodeRenderContent_->SetSurfaceClearFunc({ UNI_RENDER_THREAD_INDEX, clearFunc });
     auto& bounds = params->GetBounds();
-    if (!canvasDrawingNodeRenderContent->InitSurface(bounds.GetWidth(), bounds.GetHeight(), *paintFilterCanvas)) {
+    if (!canvasDrawingNodeRenderContent_->InitSurface(bounds.GetWidth(), bounds.GetHeight(), *paintFilterCanvas)) {
         RS_LOGE("Failed to init surface!");
         return;
     }
@@ -77,7 +74,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DrawBackground(canvas, bounds);
 
     // 2. Draw content of this drawing node by the content canvas.
-    DrawRenderContent(*canvasDrawingNodeRenderContent, canvas, bounds);
+    DrawRenderContent(*canvasDrawingNodeRenderContent_, canvas, bounds);
 
     // 3. Draw children of this drawing node by the main canvas.
     // DrawChildren(canvas, bounds);
@@ -90,6 +87,11 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     // TODO
     OnDraw(canvas);
+}
+
+std::shared_ptr RSCanvasDrawingRenderNodeDrawable::GetRenderContent()
+{
+    return canvasDrawingNodeRenderContent_;
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(
