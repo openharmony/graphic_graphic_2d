@@ -175,6 +175,7 @@ void RSDisplayRenderNode::OnSync()
     dirtyManager_->OnSync();
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
+    curMainAndLeashSurfaceNodes_.clear();
 }
 
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
@@ -218,7 +219,6 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
         return;
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
-    curMainAndLeashSurfaceNodes_.clear();
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
