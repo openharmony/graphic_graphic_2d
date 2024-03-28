@@ -135,11 +135,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (!rscanvas) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
-        return;
-    }
 #ifdef RS_PARALLEL
     if (surfaceParams->GetUifirstNodeEnableParam()) { // TODO: reuse cache type ?
         RS_TRACE_NAME_FMT("DrawUIFirstCache %s %lx", surfaceNode->GetName().c_str(), surfaceParams->GetId());
@@ -177,9 +172,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // TO-DO [Sub Thread] CheckFilterCache
 
-    RSAutoCanvasRestore acr(rscanvas);
-
-    rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
+    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
 
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid()) {
@@ -191,7 +185,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->SetDirtyFlag(true);
     }
 
-    rscanvas->ConcatMatrix(surfaceParams->GetMatrix());
+    surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);

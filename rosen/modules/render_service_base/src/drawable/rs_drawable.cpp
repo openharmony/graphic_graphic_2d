@@ -46,8 +46,8 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::INVALID,           // TRANSLATE_Z
     RSDrawableSlot::INVALID,           // SUBLAYER_TRANSFORM
     RSDrawableSlot::CLIP_TO_BOUNDS,    // CORNER_RADIUS
-    RSDrawableSlot::ALPHA,             // ALPHA
-    RSDrawableSlot::ALPHA,             // ALPHA_OFFSCREEN
+    RSDrawableSlot::INVALID,           // ALPHA
+    RSDrawableSlot::INVALID,           // ALPHA_OFFSCREEN
     RSDrawableSlot::FOREGROUND_COLOR,  // FOREGROUND_COLOR
     RSDrawableSlot::BACKGROUND_COLOR,  // BACKGROUND_COLOR
     RSDrawableSlot::BACKGROUND_SHADER, // BACKGROUND_SHADER
@@ -139,7 +139,6 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr, // SAVE_ALL
 
     // Bounds Geometry
-    RSAlphaDrawable::OnGenerate,                   // ALPHA,
     RSMaskDrawable::OnGenerate,                    // MASK,
     ModifierGenerator<RSModifierType::TRANSITION>, // TRANSITION,
     RSEnvFGColorDrawable::OnGenerate,              // ENV_FOREGROUND_COLOR,
@@ -197,11 +196,10 @@ enum DrawableVecStatus : uint8_t {
     FG_BOUNDS_PROPERTY = 1 << 2,
     CLIP_TO_FRAME      = 1 << 3,
     FRAME_PROPERTY     = 1 << 4,
-    HAVE_ALPHA         = 1 << 5,
-    HAVE_ENV_CHANGE    = 1 << 6,
+    HAVE_ENV_CHANGE    = 1 << 5,
     BOUNDS_MASK        = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
     FRAME_MASK         = CLIP_TO_FRAME | FRAME_PROPERTY,
-    OTHER_MASK         = HAVE_ALPHA | HAVE_ENV_CHANGE,
+    OTHER_MASK         = HAVE_ENV_CHANGE,
 };
 
 inline static bool HasPropertyDrawableInRange(
@@ -240,9 +238,6 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         result |= DrawableVecStatus::FRAME_PROPERTY;
     }
 
-    if (drawableVec[static_cast<size_t>(RSDrawableSlot::ALPHA)]) {
-        result |= DrawableVecStatus::HAVE_ALPHA;
-    }
     // Foreground color & Background Effect & Blend Mode should be processed here
     if (drawableVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] ||
         drawableVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)] ||
@@ -367,10 +362,6 @@ static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 
     // Parent will do canvas save/restore, we don't need to do it again
     uint8_t saveType = RSPaintFilterCanvas::SaveType::kNone;
-    if (flags & DrawableVecStatus::HAVE_ALPHA) {
-        // If we change alpha, we need to save alpha
-        saveType |= RSPaintFilterCanvas::SaveType::kAlpha;
-    }
     if (flags & DrawableVecStatus::HAVE_ENV_CHANGE) {
         // If we change env(fg color, effect, blendMode etc), we need to save env
         saveType |= RSPaintFilterCanvas::SaveType::kEnv;

@@ -48,20 +48,14 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!params->GetShouldPaint()) {
         return;
     }
-
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    canvas.ConcatMatrix(params->GetMatrix());
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
 
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
         QuickReject(canvas, params->GetLocalDrawRect())) {
         RS_LOGD("CanvasDrawingNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
-        return;
-    }
-
-    auto paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    if (!paintFilterCanvas) {
-        RS_LOGE("Failed to draw canvas drawing node, paint filter canvas is null!");
         return;
     }
 

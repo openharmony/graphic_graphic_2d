@@ -89,7 +89,6 @@ public:
     bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
     void AddPendingSyncNode(const std::shared_ptr<RSRenderNode>& node);
-    bool HasPendingSyncNode(NodeId nodeId);
 
     void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
 
