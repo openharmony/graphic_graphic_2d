@@ -397,6 +397,8 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
 {
     if (surfaceParams.GetHardwareEnabled()) {
         if (!surfaceNode.IsHardwareEnabledTopSurface()) {
+            RSAutoCanvasRestore arc(&canvas);
+            canvas.ClipRect(surfaceParams.GetBounds());
             canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
         return;
