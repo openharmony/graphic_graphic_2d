@@ -144,7 +144,7 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr*, cons
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
-    const char* familyName, OH_Drawing_FontStyleStruct);
+    const char* familyName, OH_Drawing_FontStyleStruct fontStyle);
 
 /**
  * @brief Get the pointer to an <b>OH_Drawing_Typeface</b> object for the given character.
@@ -161,7 +161,7 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr*, const char* familyName,
-    OH_Drawing_FontStyleStruct, const char* bcp47[], int bcp47Count, int32_t character);
+    OH_Drawing_FontStyleStruct fontStyle, const char* bcp47[], int bcp47Count, int32_t character);
 #ifdef __cplusplus
 }
 #endif
