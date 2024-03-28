@@ -1554,10 +1554,6 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
 {
     auto canvas = std::make_unique<Rosen::Drawing::Canvas>(screenInfo_.phyWidth, screenInfo_.phyHeight);
     canvas->ConcatMatrix(absMatrix);
-    if (displayNodeMatrix_.has_value()) {
-        auto& displayNodeMatrix = displayNodeMatrix_.value();
-        canvas->ConcatMatrix(displayNodeMatrix);
-    }
  
     auto dstRect = node.GetDstRect();
     Drawing::RectI dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(),
@@ -1651,56 +1647,55 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
     hwcRects.emplace_back(dst);
 }
  
-void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-    RSPaintFilterCanvas& canvas)
+void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    AccumulateMatrixAndAlpha(hwcNode, canvas);
-    float alpha = canvas.GetAlpha();
+    Drawing::Matrix totalMatrix;
+    float alpha = 1.f;
+    AccumulateMatrixAndAlpha(hwcNode, totalMatrix, alpha);
     if (!ROSEN_EQ(alpha, 1.f)) {
         hwcNode->SetHardwareForcedDisabledState(true);
         return;
     }
     // [planning] degree only multiples of 90 now
-    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas.GetTotalMatrix());
+    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(totalMatrix);
     bool hasRotate = degree % ROTATION_90 != 0;
     if (hasRotate) {
         hwcNode->SetHardwareForcedDisabledState(true);
         return;
     }
     if (!hwcNode->GetCalcRectInPrepare() &&
-        !(hwcNode->GetTotalMatrix() == canvas.GetTotalMatrix())) {
+        !(hwcNode->GetTotalMatrix() == totalMatrix)) {
         const auto& properties = hwcNode->GetRenderProperties();
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
-        canvas.GetTotalMatrix().MapRect(absRect, bounds);
+        totalMatrix.MapRect(absRect, bounds);
         RectI rect = {absRect.left_, absRect.top_, absRect.GetWidth(), absRect.GetHeight()};
         UpdateDstRect(*hwcNode, rect, RectI());
-        UpdateSrcRect(*hwcNode, canvas.GetTotalMatrix(), rect);
+        UpdateSrcRect(*hwcNode, totalMatrix, rect);
         UpdateHwcNodeByTransform(*hwcNode);
     }
-    hwcNode->SetTotalMatrix(canvas.GetTotalMatrix());
+    hwcNode->SetTotalMatrix(totalMatrix);
 }
  
 void RSUniRenderVisitor::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-    RSPaintFilterCanvas& canvas)
+    Drawing::Matrix& matrix, float& alpha)
 {
     const auto& property = hwcNode->GetRenderProperties();
-    canvas.MultiplyAlpha(property.GetAlpha());
-    canvas.ConcatMatrix(property.GetBoundsGeometry()->GetMatrix());
+    alpha = property.GetAlpha();
+    matrix = property.GetBoundsGeometry()->GetMatrix();
     auto parent = hwcNode->GetParent().lock();
     while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
         const auto& property = parent->GetRenderProperties();
-        canvas.MultiplyAlpha(property.GetAlpha());
-        canvas.ConcatMatrix(property.GetBoundsGeometry()->GetMatrix());
+        alpha *= property.GetAlpha();
+        matrix.PostConcat(property.GetBoundsGeometry()->GetMatrix());
         parent = parent->GetParent().lock();
     }
     if (!parent) {
         return;
     }
     const auto& parentProperty = parent->GetRenderProperties();
-    canvas.MultiplyAlpha(parentProperty.GetAlpha());
-    canvas.ConcatMatrix(parentProperty.GetBoundsGeometry()->GetMatrix());
+    alpha *= parentProperty.GetAlpha();
+    matrix.PostConcat(parentProperty.GetBoundsGeometry()->GetMatrix());
 }
  
 void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node)
@@ -1714,11 +1709,6 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSur
     if (hwcNodes.empty()) {
         return;
     }
-    auto drawingCanvas = std::make_unique<Rosen::Drawing::Canvas>(screenInfo_.width, screenInfo_.height);
-    auto canvas = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-    if (displayNodeMatrix_.has_value()) {
-        canvas->ConcatMatrix(displayNodeMatrix_.value());
-    }
     std::shared_ptr<RSSurfaceRenderNode> pointWindow;
     std::vector<RectI> hwcRects;
     for(auto hwcNode : hwcNodes) {  
@@ -1730,7 +1720,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSur
             pointWindow = hwcNodePtr;
             continue;
         }
-        UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr, *canvas);
+        UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
         UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
         UpdateHwcNodeDirtyRegionForApp(node, hwcNodePtr);
         hwcNodePtr->SetIntersectByFilterInApp(false);
