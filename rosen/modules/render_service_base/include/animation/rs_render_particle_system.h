@@ -27,9 +27,9 @@ public:
     RSRenderParticleSystem() = default;
     void CreateEmitter();
     void ClearEmitter();
-    void Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_);
-    void UpdateParticle(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_);
-    bool IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles_);
+    void Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
+    void UpdateParticle(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
+    bool IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
 
 private:
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_ = {};

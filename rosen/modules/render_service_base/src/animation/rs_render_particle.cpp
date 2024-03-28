@@ -672,7 +672,8 @@ bool RSRenderParticle::IsAlive() const
     if (dead_ == true) {
         return false;
     }
-    if (particleParams_->GetLifeTimeStartValue() == -1 && particleParams_->GetLifeTimeEndValue() == -1) {
+    if (particleParams_->GetLifeTimeStartValue() == -1 * NS_PER_MS &&
+        particleParams_->GetLifeTimeEndValue() == -1 * NS_PER_MS) {
         return true;
     }
     return activeTime_ < lifeTime_;

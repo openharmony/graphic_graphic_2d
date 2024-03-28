@@ -77,6 +77,16 @@ public:
         return rogWidth_;
     }
 
+    void SetRenderWindowsName(std::vector<std::string>& windowsName)
+    {
+        windowsName_ = windowsName;
+    }
+
+    std::vector<std::string>& GetRenderWindowName()
+    {
+        return windowsName_;
+    }
+
     uint32_t GetRogHeight() const
     {
         return rogHeight_;
@@ -309,6 +319,7 @@ private:
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    std::vector<std::string> windowsName_;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::mutex mtx_;

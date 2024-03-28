@@ -146,7 +146,7 @@ void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
         return;
     }
     std::map<uint32_t, uint64_t>::iterator iter;
-    for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); iter++) {
+    for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); ++iter) {
         dumpString.append(
             "Refresh Rate:" + std::to_string(iter->first) + ", Count:" + std::to_string(iter->second) + ";\n");
     }

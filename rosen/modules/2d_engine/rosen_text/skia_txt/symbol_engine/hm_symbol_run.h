@@ -46,7 +46,7 @@ public:
         std::vector<RSRenderGroup>& renderGroups);
 
     bool SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
-        const std::pair<double, double> offset, const RSEffectStrategy effectMode);
+        const std::pair<double, double> offset, const HMSymbolTxt& symbolTxt);
 
     void ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
         const std::pair<double, double> offset);

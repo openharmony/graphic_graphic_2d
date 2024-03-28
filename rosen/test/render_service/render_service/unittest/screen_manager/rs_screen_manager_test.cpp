@@ -1151,6 +1151,46 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetScreenData_003
+ * @tc.desc: Test GetScreenData, with virtual screen
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenData_003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = 1;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    screenManager->MockHdiScreenConnected(rsScreen);
+    RSScreenData screenData = screenManager->GetScreenData(screenId);
+    ASSERT_EQ(screenData.GetCapability().GetType(), DISP_INVALID);  // type_ attribute is INVALID for virtual screen.
+    ASSERT_EQ(screenData.GetActivityModeInfo().GetScreenModeId(), -1);  // virtual screen not support active mode.
+    ASSERT_EQ(screenData.GetSupportModeInfo().size(), 0);
+    ASSERT_EQ(screenData.GetPowerStatus(), INVALID_POWER_STATUS);
+}
+
+/*
+ * @tc.name: GetScreenData_004
+ * @tc.desc: Test GetScreenData, with mocked HDI device
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenData_004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager->SetScreenPowerStatus(screenId, POWER_STATUS_ON_ADVANCED);
+    RSScreenData screenData = screenManager->GetScreenData(screenId);
+    ASSERT_EQ(screenData.GetPowerStatus(), POWER_STATUS_ON_ADVANCED);
+}
+
+/*
  * @tc.name: GetScreenBacklight_002
  * @tc.desc: Test GetScreenBacklight
  * @tc.type: FUNC

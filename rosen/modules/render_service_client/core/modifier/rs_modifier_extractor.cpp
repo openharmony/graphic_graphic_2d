@@ -342,6 +342,11 @@ float RSModifierExtractor::GetLightUpEffectDegree() const
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_UP_EFFECT, 0.f, =);
 }
 
+float RSModifierExtractor::GetDynamicDimDegree() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, DYNAMIC_DIM_DEGREE, 0.f, =);
+}
+
 float RSModifierExtractor::GetLightIntensity() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_INTENSITY, 0.f, =);

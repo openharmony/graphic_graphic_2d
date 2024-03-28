@@ -45,7 +45,7 @@ public:
 
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
-    DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas, float width, float height);
+    DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas);
 
     static napi_value Init(napi_env env, napi_value exportObj);
 
@@ -64,6 +64,9 @@ public:
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();
+    DRAWING_API void ClipCanvas(float width, float height);
+    DRAWING_API void SaveCanvas();
+    DRAWING_API void RestoreCanvas();
 
 private:
     napi_value OnDrawRect(napi_env env, napi_callback_info info);

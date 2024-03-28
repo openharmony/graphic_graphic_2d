@@ -60,7 +60,7 @@ void OH_Drawing_FontMgrDestroy(OH_Drawing_FontMgr* drawingFontMgr)
     g_fontMgrMap.erase(it);
 }
 
-int OH_Drawing_FontMgrGetFamiliesCount(OH_Drawing_FontMgr* drawingFontMgr)
+int OH_Drawing_FontMgrGetFamilyCount(OH_Drawing_FontMgr* drawingFontMgr)
 {
     FontMgr* fontMgr = CastToFontMgr(drawingFontMgr);
     if (fontMgr == nullptr) {

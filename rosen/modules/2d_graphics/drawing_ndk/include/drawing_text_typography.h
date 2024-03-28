@@ -147,6 +147,8 @@ enum OH_Drawing_FontStyle {
     FONT_STYLE_NORMAL,
     /** Italic style */
     FONT_STYLE_ITALIC,
+    /** Oblique style */
+    FONT_STYLE_OBLIQUE,
 };
 
 /**
@@ -531,6 +533,48 @@ enum OH_Drawing_TextHeightBehavior {
       /** neither ascend of first row nor last row style */
     TEXT_HEIGHT_DISABLE_ALL = 0x1 | 0x2,
 };
+
+/**
+ * @brief Enumerates font width.
+ *
+ * @since 12
+ * @version 1.0
+ */
+enum OH_Drawing_FontWidth {
+    /* Ultra condensed font width */
+    FONT_WIDTH_ULTRA_CONDENSED = 1,
+    /* Extra condensed font width */
+    FONT_WIDTH_EXTRA_CONDENSED = 2,
+    /* condensed font width */
+    FONT_WIDTH_CONDENSED = 3,
+    /* Semi condensed font width */
+    FONT_WIDTH_SEMI_CONDENSED = 4,
+    /* Normal font width */
+    FONT_WIDTH_NORMAL = 5,
+    /* Semi expanded font width */
+    FONT_WIDTH_SEMI_EXPANDED = 6,
+    /* Expanded font width */
+    FONT_WIDTH_EXPANDED = 7,
+    /* Extra expanded font width */
+    FONT_WIDTH_EXTRA_EXPANDED = 8,
+    /* Ultra expanded font width */
+    FONT_WIDTH_ULTRA_EXPANDED = 9,
+};
+
+/**
+ * @brief Defines the font style struct.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontStyleStruct {
+    /** Font weight */
+    OH_Drawing_FontWeight weight;
+    /** Font width */
+    OH_Drawing_FontWidth width;
+    /** Font slant */
+    OH_Drawing_FontStyle slant;
+} OH_Drawing_FontStyleStruct;
 
 /**
  * @brief Creates an <b>OH_Drawing_TypographyStyle</b> object.
@@ -2114,7 +2158,7 @@ const char* OH_Drawing_TextStyleGetLocale(OH_Drawing_TextStyle*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TypographyTextSetHeightMode(OH_Drawing_TypographyStyle*, OH_Drawing_TextHeightBehavior heightMode);
+void OH_Drawing_TypographyTextSetHeightBehavior(OH_Drawing_TypographyStyle*, OH_Drawing_TextHeightBehavior heightMode);
 
 /**
  * @brief Get mode of applying the leading over and under text.
@@ -2125,7 +2169,7 @@ void OH_Drawing_TypographyTextSetHeightMode(OH_Drawing_TypographyStyle*, OH_Draw
  * @since 12
  * @version 1.0
  */
-OH_Drawing_TextHeightBehavior OH_Drawing_TypographyTextGetHeightMode(OH_Drawing_TypographyStyle*);
+OH_Drawing_TextHeightBehavior OH_Drawing_TypographyTextGetHeightBehavior(OH_Drawing_TypographyStyle*);
 
 /**
  * @brief Mark the Typography as dirty, and initially state the Typography.
@@ -2450,6 +2494,55 @@ OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typo
  * @version 1.0
  */
 void OH_Drawing_TypographyDestroyLineFontMetrics(OH_Drawing_Font_Metrics*);
+
+/**
+ * @brief Sets the text style, including font weight, font width and font slant.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_SetTextStyleFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle,
+    OH_Drawing_FontStyleStruct fontStyle);
+
+/**
+ * @brief Gets the text style, including font weight, font width and font slant.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle,
+    OH_Drawing_FontStyleStruct* fontStyle);
+
+/**
+ * @brief Sets the typography style, including font weight, font width and font slant.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle,
+    OH_Drawing_FontStyleStruct fontStyle);
+
+/**
+ * @brief Gets the typography style, including font weight, font width and font slant.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_TypographyStyleGetFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle,
+    OH_Drawing_FontStyleStruct* fontStyle);
+
 #ifdef __cplusplus
 }
 #endif

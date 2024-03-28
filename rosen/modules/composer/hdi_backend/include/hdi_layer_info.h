@@ -327,6 +327,16 @@ public:
         return preMulti_;
     }
 
+    void SetWindowsName(std::vector<std::string>& windowsName)
+    {
+        windowsName_ = windowsName;
+    }
+
+    const std::vector<std::string>& GetWindowsName()
+    {
+        return windowsName_;
+    }
+
     const std::vector<float> &GetColorTransform()
     {
         return colorTransformMatrix_;
@@ -485,6 +495,7 @@ private:
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
+    std::vector<std::string> windowsName_;
     bool tunnelHandleChange_ = false;
     bool IsSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};

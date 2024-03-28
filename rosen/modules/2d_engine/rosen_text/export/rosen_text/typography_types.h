@@ -71,9 +71,22 @@ enum class FontWeight {
     W900,
 };
 
+enum class FontWidth {
+    ULTRA_CONDENSED = 1,
+    EXTRA_CONDENSED = 2,
+    CONDENSED = 3,
+    SEMI_CONDENSED = 4,
+    NORMAL = 5,
+    SEMI_EXPANDED = 6,
+    EXPANDED = 7,
+    EXTRA_EXPANDED = 8,
+    ULTRA_EXPANDED = 9,
+};
+
 enum class FontStyle {
     NORMAL,
     ITALIC,
+    OBLIQUE,
 };
 
 enum class TextBaseline {

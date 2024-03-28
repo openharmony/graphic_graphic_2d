@@ -26,9 +26,8 @@ public:
 };
 
 HdiLayerContext::HdiLayerContext(GraphicIRect dstRect, GraphicIRect srcRect, uint32_t zOrder)
-    : srcRect_(srcRect), dstRect_(dstRect), zOrder_(zOrder)
+    : cSurface_(IConsumerSurface::Create()), srcRect_(srcRect), dstRect_(dstRect), zOrder_(zOrder)
 {
-    cSurface_ = IConsumerSurface::Create();
     cSurface_->SetDefaultWidthAndHeight(srcRect_.w, srcRect_.h);
     cSurface_->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
     sptr<IBufferConsumerListener> listener = new SurfaceListener();

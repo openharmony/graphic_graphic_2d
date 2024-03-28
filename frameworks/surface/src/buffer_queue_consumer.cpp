@@ -148,7 +148,7 @@ GSError BufferQueueConsumer::SetDefaultWidthAndHeight(int32_t width, int32_t hei
     return bufferQueue_->SetDefaultWidthAndHeight(width, height);
 }
 
-GSError BufferQueueConsumer::SetDefaultUsage(uint32_t usage)
+GSError BufferQueueConsumer::SetDefaultUsage(uint64_t usage)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

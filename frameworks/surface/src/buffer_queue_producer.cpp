@@ -69,6 +69,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue> bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_GET_TRANSFORM] = &BufferQueueProducer::GetTransformRemote;
     memberFuncMap_[BUFFER_PRODUCER_ATTACH_BUFFER_TO_QUEUE] = &BufferQueueProducer::AttachBufferToQueueRemote;
     memberFuncMap_[BUFFER_PRODUCER_DETACH_BUFFER_FROM_QUEUE] = &BufferQueueProducer::DetachBufferFromQueueRemote;
+    memberFuncMap_[BUFFER_PRODUCER_SET_DEFAULT_USAGE] = &BufferQueueProducer::SetDefaultUsageRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -333,10 +334,19 @@ int32_t BufferQueueProducer::GetDefaultHeightRemote(MessageParcel &arguments, Me
     return 0;
 }
 
+int32_t BufferQueueProducer::SetDefaultUsageRemote(MessageParcel &arguments, MessageParcel &reply,
+                                                   MessageOption &option)
+{
+    uint64_t usage = arguments.ReadUint64();
+    GSError sret = SetDefaultUsage(usage);
+    reply.WriteInt32(sret);
+    return 0;
+}
+
 int32_t BufferQueueProducer::GetDefaultUsageRemote(MessageParcel &arguments, MessageParcel &reply,
                                                    MessageOption &option)
 {
-    reply.WriteUint32(GetDefaultUsage());
+    reply.WriteUint64(GetDefaultUsage());
     return 0;
 }
 
@@ -622,7 +632,15 @@ int32_t BufferQueueProducer::GetDefaultHeight()
     return bufferQueue_->GetDefaultHeight();
 }
 
-uint32_t BufferQueueProducer::GetDefaultUsage()
+GSError BufferQueueProducer::SetDefaultUsage(uint64_t usage)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->SetDefaultUsage(usage);
+}
+
+uint64_t BufferQueueProducer::GetDefaultUsage()
 {
     if (bufferQueue_ == nullptr) {
         return 0;

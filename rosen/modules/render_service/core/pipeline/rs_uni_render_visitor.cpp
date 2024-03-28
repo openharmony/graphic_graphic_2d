@@ -76,6 +76,7 @@ namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
 constexpr int ROTATION_90 = 90;
+constexpr int ROTATION_180 = 180;
 constexpr int ROTATION_270 = 270;
 constexpr int MAX_ALPHA = 255;
 constexpr float EPSILON_SCALE = 0.00001f;
@@ -1232,6 +1233,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.GetName().c_str());
         return;
     }
+
+    if (node.GetBuffer() != nullptr) {
+        node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
+    }
+
     auto skipNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
     // Update node properties, including position (dstrect), OldDirty()
     auto parentNode = node.GetParent().lock();
@@ -1955,7 +1961,8 @@ void RSUniRenderVisitor::DrawEffectRenderNodeForDFX()
     }
 }
 
-void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate, uint32_t realtimeRefreshRate)
+void RSUniRenderVisitor::DrawCurrentRefreshRate(
+    uint32_t currentRefreshRate, uint32_t realtimeRefreshRate, RSDisplayRenderNode& node)
 {
     std::string info = std::to_string(currentRefreshRate) + " " + std::to_string(realtimeRefreshRate);
     auto color = currentRefreshRate <= 60 ? SK_ColorRED : SK_ColorGREEN;
@@ -1969,6 +1976,30 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate, uin
     brush.SetColor(color);
     brush.SetAntiAlias(true);
     canvas_->AttachBrush(brush);
+    auto rotation = node.GetScreenRotation();
+    if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) {
+        if (rotation == ScreenRotation::ROTATION_270) {
+            rotation = ScreenRotation::ROTATION_0;
+        } else {
+            rotation = static_cast<ScreenRotation>(static_cast<int>(rotation) + 1);
+        }
+    }
+    if (rotation != ScreenRotation::ROTATION_0) {
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+        if (rotation == ScreenRotation::ROTATION_90) {
+            canvas_->Rotate(-ROTATION_90, 0, 0);
+            canvas_->Translate(-(static_cast<float>(mainScreenInfo.height)), 0);
+        } else if (rotation == ScreenRotation::ROTATION_180) {
+            canvas_->Rotate(-ROTATION_180, static_cast<float>(mainScreenInfo.width) / 2,  // half of screen width
+                static_cast<float>(mainScreenInfo.height) / 2);                           // half of screen height
+        } else if (rotation == ScreenRotation::ROTATION_270) {
+            canvas_->Rotate(-ROTATION_270, 0, 0);
+            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.width)));
+        } else {
+            return;
+        }
+    }
     canvas_->DrawTextBlob(
         textBlob.get(), 100.f, 200.f);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas_->DetachBrush();
@@ -2622,6 +2653,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 region.GetBoundaryPath(&dirtyPath);
                 canvas_->ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
 #endif
+                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             }
         } else {
             canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -2725,7 +2757,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (realtimeRefreshRate > currentRefreshRate) {
                 realtimeRefreshRate = currentRefreshRate;
             }
-            DrawCurrentRefreshRate(currentRefreshRate, realtimeRefreshRate);
+            DrawCurrentRefreshRate(currentRefreshRate, realtimeRefreshRate, node);
             RS_TRACE_END();
         }
 
@@ -2761,6 +2793,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         AssignGlobalZOrderAndCreateLayer(appWindowNodesInZOrder_);
         node.SetGlobalZOrder(globalZOrder_++);
+        node.SetRenderWindowsName(windowsName_);
         processor_->ProcessDisplaySurface(node);
         auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
         auto& fence = surfaceHandler.GetAcquireFence();
@@ -3932,6 +3965,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
 
+    if (node.IsAppWindow()) {
+        windowsName_.emplace_back(node.GetName());
+    }
+
     // when display is in rotation state, occlusion relationship will be ruined,
     // hence visibleRegions cannot be used.
     if (isOpDropped_ && node.IsAppWindow()) {
@@ -5038,7 +5075,7 @@ bool RSUniRenderVisitor::IsOutOfScreenRegion(RectI rect)
 
 void RSUniRenderVisitor::DrawCurtainScreen()
 {
-    if (!isCurtainScreenOn_) {
+    if (!isCurtainScreenOn_ || !canvas_) {
         return;
     }
     float screenWidth = static_cast<float>(screenInfo_.width);

@@ -185,9 +185,9 @@ std::shared_ptr<DrawingSymbolLayersGroups> SkiaStaticFactory::GetSymbolLayersGro
 }
 
 std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaStaticFactory::GetGroupParameters(
-    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode)
 {
-    return SkiaHmSymbolConfigOhos::GetGroupParameters(type, subType, animationMode);
+    return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode);
 }
 
 FontStyleSet* SkiaStaticFactory::CreateEmpty()

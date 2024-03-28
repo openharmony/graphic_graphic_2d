@@ -47,7 +47,7 @@ HWTEST_F(SkiaHmSymbolConfigOhosTest, GetSymbolLayersGroups001, TestSize.Level1)
 {
     RenderGroup renderGroup;
     std::map<SymbolRenderingStrategy, std::vector<RenderGroup>> renderModeGroups {
-        { SymbolRenderingStrategy::INVALID_RENDERING_STRATEGY, { renderGroup } }
+        { SymbolRenderingStrategy::SINGLE, { renderGroup } }
     };
     AnimationSetting animationSetting;
     SymbolLayersGroups group {1, {}, renderModeGroups, { animationSetting } };

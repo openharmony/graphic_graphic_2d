@@ -22,9 +22,8 @@ HgmTaskHandleThread& HgmTaskHandleThread::Instance()
     return instance;
 }
 
-HgmTaskHandleThread::HgmTaskHandleThread()
+HgmTaskHandleThread::HgmTaskHandleThread() : runner_(AppExecFwk::EventRunner::Create("HgmTaskHandleThread"))
 {
-    runner_ = AppExecFwk::EventRunner::Create("HgmTaskHandleThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 }
 

@@ -225,22 +225,6 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     PaintDecoration(canvas, offsetX, offsetY, xs);
 }
 
-
-void TextSpan::SymbolAnimation(const TextStyle &xs)
-{
-    if (animationFunc_ == nullptr) {
-        return;
-    }
-    auto spanSymbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
-    if (spanSymbolAnimationConfig == nullptr) {
-        return;
-    }
-    spanSymbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy(xs.symbol.GetEffectStrategy());
-    if (spanSymbolAnimationConfig->effectStrategy == SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL) {
-        animationFunc_(spanSymbolAnimationConfig);
-    }
-}
-
 void TextSpan::PaintDecoration(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs)
 {
     double left = offsetX;

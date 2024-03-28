@@ -100,8 +100,14 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
         colorPickerTask_ = std::make_shared<RSColorPickerCacheTask>();
     }
 
+    float radiusForHash = DecreasePrecision(radius_);
+    float saturationForHash = DecreasePrecision(saturation_);
+    float brightnessForHash = DecreasePrecision(brightness_);
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&materialParam, sizeof(materialParam), hash_);
+    hash_ = SkOpts::hash(&radiusForHash, sizeof(radiusForHash), hash_);
+    hash_ = SkOpts::hash(&saturationForHash, sizeof(saturationForHash), hash_);
+    hash_ = SkOpts::hash(&brightnessForHash, sizeof(brightnessForHash), hash_);
+    hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
 }
 

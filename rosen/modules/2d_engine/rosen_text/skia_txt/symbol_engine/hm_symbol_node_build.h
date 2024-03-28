@@ -56,12 +56,30 @@ public:
         symblSpanId_ = symbolSpanId;
     }
 
+    void SetAnimationMode(const uint16_t animationMode)
+    {
+        animationMode_ = animationMode > 0 ? 1: 0; // 1 is whole or add, 0 is hierarchical or iterate
+    }
+
+    void SetRepeatCount(const int repeatCount)
+    {
+        repeatCount_ = repeatCount;
+    }
+
+    void SetAminationStart(const bool aminationStart)
+    {
+        aminationStart_ = aminationStart;
+    }
+
 private:
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
-    RSEffectStrategy effectStrategy_;
+    RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
     double offsetX_;
     double offsetY_;
+    uint16_t animationMode_ = 0;
+    int repeatCount_ = 1;
+    bool aminationStart_ = false;
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;

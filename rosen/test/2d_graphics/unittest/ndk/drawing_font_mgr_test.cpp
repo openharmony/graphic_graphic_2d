@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawing_font_mgr.h"
+#include "drawing_text_typography.h"
 #include "drawing_typeface.h"
 
 using namespace testing;
@@ -47,7 +48,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest002, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
-    int count = OH_Drawing_FontMgrGetFamiliesCount(mgr);
+    int count = OH_Drawing_FontMgrGetFamilyCount(mgr);
     EXPECT_TRUE(count > 0);
 
     char *familyName = OH_Drawing_FontMgrGetFamilyName(mgr, 0);
@@ -82,7 +83,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest004, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
-    const char* matchFamilyName = "OS-Sans";
+    const char* matchFamilyName = "HarmonyOS-Sans";
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrMatchFamily(mgr, matchFamilyName);
     EXPECT_NE(fontStyleSet, nullptr);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
@@ -100,11 +101,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest005, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
-    const char* matchFamilyName = "OS-Sans";
+    const char* matchFamilyName = "HarmonyOS-Sans";
     OH_Drawing_FontStyleStruct normalStyle;
-    normalStyle.weight = NORMAL_WEIGHT;
-    normalStyle.width = NORMAL_WIDTH;
-    normalStyle.slant = UPRIGHT_SLANT;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
     OH_Drawing_Typeface *typeface = OH_Drawing_FontMgrMatchFamilyStyle(mgr, matchFamilyName, &normalStyle);
     EXPECT_NE(typeface, nullptr);
     OH_Drawing_TypefaceDestroy(typeface);
@@ -122,11 +123,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest006, TestSize.Level1)
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
 
-    const char* matchFamilyName = "OS-Sans";
+    const char* matchFamilyName = "HarmonyOS-Sans";
     OH_Drawing_FontStyleStruct normalStyle;
-    normalStyle.weight = NORMAL_WEIGHT;
-    normalStyle.width = NORMAL_WIDTH;
-    normalStyle.slant = UPRIGHT_SLANT;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
 
     const char *bcp47[] = {"zh-Hans", "zh-CN"};
     OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(mgr, matchFamilyName,

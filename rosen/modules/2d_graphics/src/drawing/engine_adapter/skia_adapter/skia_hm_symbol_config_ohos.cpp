@@ -60,9 +60,10 @@ std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLaye
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)
 {
     DrawingAnimationSetting drawingSetting;
-    drawingSetting.animationMode = setting.animationMode;
-    drawingSetting.animationSubType = static_cast<DrawingAnimationSubType>(setting.animationSubType);
-    drawingSetting.animationType = static_cast<DrawingAnimationType>(setting.animationType);
+    for (size_t i = 0; i <setting.animationTypes.size(); i++) {
+        DrawingAnimationType animationType = static_cast<DrawingAnimationType>(setting.animationTypes[i]);
+        drawingSetting.animationTypes.push_back(animationType);
+    }
 
     std::vector<DrawingGroupSetting> groupSettings;
     for (size_t i = 0; i < setting.groupSettings.size(); i++) {
@@ -123,12 +124,11 @@ static std::vector<DrawingPiecewiseParameter> ConvertPiecewiseParametersVec(cons
 }
 
 std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaHmSymbolConfigOhos::GetGroupParameters(
-    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode)
 {
-    auto animationSubType = static_cast<AnimationSubType>(type);
-    auto animationType = static_cast<AnimationType>(subType);
+    auto animationType = static_cast<AnimationType>(type);
     auto parametersPtr = HmSymbolConfig_OHOS::getInstance()->getGroupParameters(
-        animationType, animationSubType, animationMode);
+        animationType, groupSum, animationMode);
     if (parametersPtr == nullptr) {
         return nullptr;
     }

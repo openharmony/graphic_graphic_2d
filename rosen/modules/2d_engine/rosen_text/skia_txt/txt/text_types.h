@@ -23,6 +23,7 @@ namespace SPText {
 enum class FontStyle {
     NORMAL,
     ITALIC,
+    OBLIQUE,
 };
 
 // FontWeight is font weight style.
@@ -36,6 +37,19 @@ enum class FontWeight {
     W700 = 6, // weight value 700 bold.
     W800 = 7, // weight value 800.
     W900 = 8, // weight value 900.
+};
+
+// FontWidth is font width style.
+enum class FontWidth {
+    ULTRA_CONDENSED = 1,
+    EXTRA_CONDENSED = 2,
+    CONDENSED = 3,
+    SEMI_CONDENSED = 4,
+    NORMAL = 5,
+    SEMI_EXPANDED = 6,
+    EXPANDED = 7,
+    EXTRA_EXPANDED = 8,
+    ULTRA_EXPANDED = 9,
 };
 
 // TextAlign is text alignment style.

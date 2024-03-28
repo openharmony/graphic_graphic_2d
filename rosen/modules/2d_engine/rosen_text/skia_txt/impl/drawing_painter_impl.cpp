@@ -45,6 +45,16 @@ static Drawing::Paint ConvertDecorStyle(const ParagraphPainter::DecorationStyle&
     paint.SetAntiAlias(true);
     paint.SetColor(PaintRecord::ToRSColor(decorStyle.getColor()));
     paint.SetWidth(decorStyle.getStrokeWidth());
+    if (decorStyle.getDashPathEffect().has_value()) {
+        auto dashPathEffect = decorStyle.getDashPathEffect().value();
+        Drawing::scalar intervals[] = {dashPathEffect.fOnLength, dashPathEffect.fOffLength,
+            dashPathEffect.fOnLength, dashPathEffect.fOffLength};
+        size_t count = sizeof(intervals) / sizeof(intervals[0]);
+        auto pathEffect1 = Drawing::PathEffect::CreateDashPathEffect(intervals, count, 0.0f);
+        auto pathEffect2 = Drawing::PathEffect::CreateDiscretePathEffect(0, 0);
+        auto pathEffect = Drawing::PathEffect::CreateComposePathEffect(*pathEffect1.get(), *pathEffect2.get());
+        paint.SetPathEffect(pathEffect);
+    }
     return paint;
 }
 

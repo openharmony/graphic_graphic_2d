@@ -75,8 +75,8 @@ public:
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height) override;
     int32_t GetDefaultWidth() override;
     int32_t GetDefaultHeight() override;
-    GSError SetDefaultUsage(uint32_t usage) override;
-    uint32_t GetDefaultUsage() override;
+    GSError SetDefaultUsage(uint64_t usage) override;
+    uint64_t GetDefaultUsage() override;
 
     GSError SetUserData(const std::string &key, const std::string &val) override;
     std::string GetUserData(const std::string &key) override;

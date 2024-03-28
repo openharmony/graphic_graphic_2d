@@ -1093,5 +1093,26 @@ HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipLayer, Function | SmallTest
     ASSERT_TRUE(task.FindSecurityOrSkipLayer());
     nodeMap.surfaceNodeMap_.clear();
 }
+
+/*
+ * @tc.name: ProcessDisplayRenderNode005
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode while curtain screen is on
+ * @tc.type: FUNC
+ * @tc.require: issueI7G9F0
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode005, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+
+    RSMainThread::Instance()->SetCurtainScreenUsingStatus(true);
+
+    ASSERT_NE(visitor_, nullptr);
+    visitor_->isUniRender_ =true;
+    visitor_->ProcessDisplayRenderNode(*displayNode);
+    // restore curtain screen status
+    RSMainThread::Instance()->SetCurtainScreenUsingStatus(false);
+}
 } // namespace Rosen
 } // namespace OHOS
