@@ -232,5 +232,10 @@ std::optional<float> RSShowingPropertiesFreezer::GetLightUpEffectDegree() const
 {
     return GetPropertyImpl<float, RSModifierType::LIGHT_UP_EFFECT>();
 }
+
+std::optional<float> RSShowingPropertiesFreezer::GetDynamicDimDegree() const
+{
+    return GetPropertyImpl<float, RSModifierType::DYNAMIC_DIM_DEGREE>();
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -46,36 +46,46 @@ size_t FontCollection::GetFontManagersCount() const
 void FontCollection::SetupDefaultFontManager()
 {
     std::unique_lock lock(collectionMutex_);
-    defaultFontManager_ = OHOS::Rosen::SPText::GetDefaultFontManager();
-    sktFontCollection_.reset();
+    if (!defaultFontManager_) {
+        defaultFontManager_ = OHOS::Rosen::SPText::GetDefaultFontManager();
+        sktFontCollection_.reset();
+    }
 }
 
 void FontCollection::SetDefaultFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
     std::unique_lock lock(collectionMutex_);
-    defaultFontManager_ = fontManager;
-    sktFontCollection_.reset();
+    if (defaultFontManager_ != fontManager) {
+        defaultFontManager_ = fontManager;
+        sktFontCollection_.reset();
+    }
 }
 
 void FontCollection::SetAssetFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
     std::unique_lock lock(collectionMutex_);
-    assetFontManager_ = fontManager;
-    sktFontCollection_.reset();
+    if (assetFontManager_ != fontManager) {
+        assetFontManager_ = fontManager;
+        sktFontCollection_.reset();
+    }
 }
 
 void FontCollection::SetDynamicFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
     std::unique_lock lock(collectionMutex_);
-    dynamicFontManager_ = fontManager;
-    sktFontCollection_.reset();
+    if (dynamicFontManager_ != fontManager) {
+        dynamicFontManager_ = fontManager;
+        sktFontCollection_.reset();
+    }
 }
 
 void FontCollection::SetTestFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
     std::unique_lock lock(collectionMutex_);
-    testFontManager_ = fontManager;
-    sktFontCollection_.reset();
+    if (testFontManager_ != fontManager) {
+        testFontManager_ = fontManager;
+        sktFontCollection_.reset();
+    }
 }
 
 std::vector<std::shared_ptr<RSFontMgr>> FontCollection::GetFontManagerOrder() const

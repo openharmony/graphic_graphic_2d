@@ -87,7 +87,9 @@ ohos_shared_library("libcomposer") {
       "drivers_interface_display:display_buffer_idl_headers",
       "drivers_interface_display:display_commontype_idl_headers",
       "drivers_interface_display:display_composer_idl_headers_1.1",
+      "drivers_interface_display:display_composer_idl_headers_1.2",
       "drivers_interface_display:libdisplay_composer_hdi_impl_1.1",
+      "drivers_interface_display:libdisplay_composer_hdi_impl_1.2",
     ]
     defines += [ "DRIVERS_INTERFACE_DISPLAY_ENABLE" ]
   }

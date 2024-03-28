@@ -28,6 +28,13 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, ColorQuad color) noexcept : Shade
     impl_->InitWithColor(color);
 }
 
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Color4f& color, std::shared_ptr<ColorSpace> colorSpace) noexcept
+    : ShaderEffect()
+{
+    type_ = t;
+    impl_->InitWithColorSpace(color, colorSpace);
+}
+
 ShaderEffect::ShaderEffect(ShaderEffectType t, ShaderEffect& dst, ShaderEffect& src, BlendMode mode) noexcept
     : ShaderEffect()
 {
@@ -107,6 +114,12 @@ ShaderEffect::ShaderEffectType ShaderEffect::GetType() const
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateColorShader(ColorQuad color)
 {
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, color);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateColorSpaceShader(const Color4f& color,
+    std::shared_ptr<ColorSpace> colorSpace)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, color, colorSpace);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode)

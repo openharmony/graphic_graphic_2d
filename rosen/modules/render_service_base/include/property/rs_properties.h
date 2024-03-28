@@ -149,10 +149,21 @@ public:
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
-    bool GetUseShadowBatching() const;
+    inline bool GetUseShadowBatching() const
+    {
+        return useShadowBatching_;
+    }
+
     void SetUseShadowBatching(bool useShadowBatching);
-    bool GetNeedSkipShadow() const;
-    void SetNeedSkipShadow(bool needSkipShadow);
+    inline bool GetNeedSkipShadow() const
+    {
+        return needSkipShadow_;
+    }
+
+    inline void SetNeedSkipShadow(bool needSkipShadow)
+    {
+        needSkipShadow_ = needSkipShadow;
+    }
 
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
@@ -201,6 +212,7 @@ public:
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
+    void SetDynamicDimDegree(const std::optional<float>& DimDegree);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
@@ -229,6 +241,7 @@ public:
     float GetShadowRadius() const;
     const std::optional<float>& GetDynamicLightUpRate() const;
     const std::optional<float>& GetDynamicLightUpDegree() const;
+    const std::optional<float>& GetDynamicDimDegree() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
@@ -261,9 +274,17 @@ public:
 
     // Pixel Stretch
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);
-    const std::optional<Vector4f>& GetPixelStretch() const;
+    inline const std::optional<Vector4f>& GetPixelStretch() const
+    {
+        return pixelStretch_;
+    }
+
     void SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent);
-    const std::optional<Vector4f>& GetPixelStretchPercent() const;
+    inline const std::optional<Vector4f>& GetPixelStretchPercent() const
+    {
+        return pixelStretchPercent_;
+    }
+
     void SetAiInvert(const std::optional<Vector4f>& aiInvert);
     const std::optional<Vector4f>& GetAiInvert() const;
     void SetSystemBarEffect(bool systemBarEffect);
@@ -287,10 +308,15 @@ public:
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
     bool IsDynamicLightUpValid() const;
+    bool IsDynamicDimValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
-    const std::optional<float>& GetGrayScale() const;
+    inline const std::optional<float>& GetGrayScale() const
+    {
+        return grayScale_;
+    }
+
     void SetBrightness(const std::optional<float>& brightness);
     const std::optional<float>& GetBrightness() const;
     void SetContrast(const std::optional<float>& contrast);
@@ -315,12 +341,26 @@ public:
     void SetBloom(float bloomIntensity);
     float GetLightIntensity() const;
     Vector4f GetLightPosition() const;
-    float GetIlluminatedBorderWidth() const;
+    inline float GetIlluminatedBorderWidth() const
+    {
+        return illuminatedPtr_ ? illuminatedPtr_->GetIlluminatedBorderWidth() : 0.f;
+    }
+
     int GetIlluminatedType() const;
-    float GetBloom() const;
+    inline float GetBloom() const
+    {
+        return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
+    }
+
     void CalculateAbsLightPosition();
-    const std::shared_ptr<RSLightSource>& GetLightSource() const;
-    const std::shared_ptr<RSIlluminated>& GetIlluminated() const;
+    inline const std::shared_ptr<RSLightSource>& GetLightSource() const
+    {
+        return lightSourcePtr_;
+    }
+    inline const std::shared_ptr<RSIlluminated>& GetIlluminated() const
+    {
+        return illuminatedPtr_;
+    }
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
@@ -422,6 +462,7 @@ private:
     std::optional<float> hueRotate_;
     std::optional<float> dynamicLightUpRate_;
     std::optional<float> dynamicLightUpDegree_;
+    std::optional<float> dynamicDimDegree_;
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
     std::optional<Vector2f> greyCoef_;

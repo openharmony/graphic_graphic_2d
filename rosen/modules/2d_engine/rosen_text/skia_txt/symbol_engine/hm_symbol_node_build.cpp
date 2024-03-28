@@ -18,6 +18,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+
+static const std::map<RSEffectStrategy, TextEngine::SymbolAnimationEffectStrategy> ANIMATION_TYPES = {
+    {RSEffectStrategy::NONE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_NONE},
+    {RSEffectStrategy::SCALE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE},
+    {RSEffectStrategy::VARIABLE_COLOR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR},
+    {RSEffectStrategy::APPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR},
+    {RSEffectStrategy::DISAPPEAR, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_DISAPPEAR},
+    {RSEffectStrategy::BOUNCE, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_BOUNCE}};
+
 static void MergePath(RSPath& multPath, const std::vector<RSGroupInfo>& groupInfos, std::vector<RSPath>& pathLayers)
 {
     for (const auto& groupInfo : groupInfos) {
@@ -43,14 +52,10 @@ static void MergePath(RSPath& multPath, const std::vector<RSGroupInfo>& groupInf
 }
 
 SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
-    const RSEffectStrategy effectStrategy, const std::pair<double, double> offset)
-{
-    animationSetting_ = animationSetting;
-    symbolData_ = symbolData;
-    effectStrategy_ = effectStrategy;
-    offsetX_ = offset.first;
-    offsetY_ = offset.second;
-}
+    const RSEffectStrategy effectStrategy,
+    const std::pair<double, double> offset) : animationSetting_(animationSetting),
+    symbolData_(symbolData), effectStrategy_(effectStrategy),
+    offsetX_(offset.first), offsetY_(offset.second) {}
 
 void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
     std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
@@ -117,14 +122,19 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     float nodeHeight = rect.GetHeight();
     Vector4f nodeBounds = Vector4f(offsetX_, offsetY_, nodeWidth, nodeHeight);
 
-    if (effectStrategy_ == RSEffectStrategy::SCALE) {
-        AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE;
-    }
-    if (effectStrategy_ == RSEffectStrategy::HIERARCHICAL) {
+    if (effectStrategy_ == RSEffectStrategy::VARIABLE_COLOR || animationMode_ == 0) {
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL;
+    } else {
+        AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
     }
+
+    auto iter = ANIMATION_TYPES.find(effectStrategy_);
+    if (iter != ANIMATION_TYPES.end()) {
+        symbolAnimationConfig->effectStrategy = iter->second;
+    }
+    symbolAnimationConfig->repeatCount = repeatCount_;
+    symbolAnimationConfig->animationMode = animationMode_;
+    symbolAnimationConfig->aminationStart = aminationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);
     return true;

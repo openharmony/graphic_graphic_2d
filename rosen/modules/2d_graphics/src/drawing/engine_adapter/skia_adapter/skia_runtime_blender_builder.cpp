@@ -21,11 +21,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-SkiaRuntimeBlenderBuilder::SkiaRuntimeBlenderBuilder(std::shared_ptr<RuntimeEffect> effect) noexcept
-{
-    skRuntimeBlendBuilder_ = std::make_shared<SkRuntimeBlendBuilder>(
-        effect->GetImpl<SkiaRuntimeEffect>()->GetRuntimeEffect());
-}
+SkiaRuntimeBlenderBuilder::SkiaRuntimeBlenderBuilder(
+    std::shared_ptr<RuntimeEffect> effect) noexcept : skRuntimeBlendBuilder_(std::make_shared<SkRuntimeBlendBuilder>(
+    effect->GetImpl<SkiaRuntimeEffect>()->GetRuntimeEffect())) {}
 
 std::shared_ptr<Blender> SkiaRuntimeBlenderBuilder::MakeBlender()
 {

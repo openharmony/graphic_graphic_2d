@@ -387,6 +387,16 @@ public:
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
+    void ExcuteSurfaceCaptureCommand();
+    bool GetCommandExcuted() const
+    {
+        return commandExcuted_;
+    }
+
+    void SetCommandExcuted(bool commandExcuted)
+    {
+        commandExcuted_ = commandExcuted;
+    }
 
     std::recursive_mutex& GetSurfaceMutex() const;
 
@@ -622,6 +632,7 @@ private:
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
 
+    void UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
 
@@ -671,6 +682,7 @@ private:
     // specify if any subnode uses effect, not including itself
     bool hasEffectNode_ = false;
 
+    std::atomic<bool> commandExcuted_ = false;
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     // collect subtree's surfaceNode including itself

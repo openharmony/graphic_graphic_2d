@@ -33,7 +33,6 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     }
 
     RSSymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
-    RSEffectStrategy effectMode = symbolText.GetEffectStrategy();
     if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
         renderMode = RSSymbolRenderingStrategy::SINGLE;
     }
@@ -47,12 +46,6 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     std::vector<RSSColor> colorList = symbolText.GetRenderColor();
     if (!colorList.empty()) {
         SetSymbolRenderColor(renderMode, colorList, symbolInfo);
-    }
-
-    if (effectMode == RSEffectStrategy::HIERARCHICAL &&
-        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups)) {
-        symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
-        symbolInfo.effect = effectMode;
     }
     return symbolInfo;
 }
@@ -190,28 +183,17 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrat
         return false;
     }
     std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
-
-    RSAnimationType animationType = RSAnimationType::INVALID_ANIMATION_TYPE;
-    RSAnimationSubType animationSubType = RSAnimationSubType::INVALID_ANIMATION_SUB_TYPE;
-    uint32_t animationMode = 1;
-    if (effectStrategy == RSEffectStrategy::SCALE) {
-        animationType = RSAnimationType::SCALE_EFFECT;
-        animationSubType = RSAnimationSubType::UNIT;
-        return true;
-    }
-
-    if (effectStrategy == RSEffectStrategy::HIERARCHICAL) {
-        animationType = RSAnimationType::VARIABLE_COLOR;
-        animationSubType = RSAnimationSubType::VARIABLE_3_GROUP;
-    }
+    RSAnimationType animationType =  static_cast<RSAnimationType>(effectStrategy);
 
     for (size_t i = 0; i < animationSettings.size(); i++) {
-        if (animationType == animationSettings[i].animationType &&
-            animationSubType == animationSettings[i].animationSubType &&
-            animationMode == animationSettings[i].animationMode) {
-                animationOut = animationSettings[i];
-                return true;
-            }
+        if (std::find(animationSettings[i].animationTypes.begin(), animationSettings[i].animationTypes.end(),
+            animationType) == animationSettings[i].animationTypes.end()) {
+            continue;
+        }
+        if (animationSettings[i].groupSettings.size() > 0) {
+            animationOut = animationSettings[i];
+            return true;
+        }
     }
     return false;
 }

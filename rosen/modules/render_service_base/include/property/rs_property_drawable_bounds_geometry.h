@@ -265,6 +265,17 @@ public:
 };
 
 // ============================================================================
+// DynamicDim
+class RSDynamicDimDrawable : public RSPropertyDrawable {
+public:
+    explicit RSDynamicDimDrawable() = default;
+    ~RSDynamicDimDrawable() override = default;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+    static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& context);
+    bool Update(const RSRenderContent& context) override;
+};
+
+// ============================================================================
 // BackgroundFilter
 class RSBackgroundFilterDrawable : public RSPropertyDrawable {
 public:

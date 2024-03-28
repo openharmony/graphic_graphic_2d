@@ -74,6 +74,7 @@ struct TextStyle {
     TextDecorationStyle decorationStyle = TextDecorationStyle::SOLID;
     double decorationThicknessScale = 1.0;
     FontWeight fontWeight = FontWeight::W400;
+    FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     TextBaseline baseline = TextBaseline::ALPHABETIC;
     std::vector<std::string> fontFamilies;
@@ -97,7 +98,8 @@ struct TextStyle {
     int styleId = 0;
 
     bool operator ==(const TextStyle &rhs) const;
-    bool isEqualByFonts(const TextStyle &rhs) const;
+    bool EqualByFonts(const TextStyle &rhs) const;
+    bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph
     bool isSymbolGlyph = false;
     HMSymbolTxt symbol;

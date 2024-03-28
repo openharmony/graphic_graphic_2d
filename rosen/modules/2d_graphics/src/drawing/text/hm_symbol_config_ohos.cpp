@@ -26,9 +26,9 @@ std::shared_ptr<DrawingSymbolLayersGroups> HmSymbolConfigOhos::GetSymbolLayersGr
 }
 
 std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> HmSymbolConfigOhos::GetGroupParameters(
-    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode)
 {
-    return StaticFactory::GetGroupParameters(type, subType, animationMode);
+    return StaticFactory::GetGroupParameters(type, groupSum, animationMode);
 }
 
 } // namespace Drawing

@@ -368,7 +368,24 @@ int32_t BufferClientProducer::GetDefaultHeight()
     return reply.ReadInt32();
 }
 
-uint32_t BufferClientProducer::GetDefaultUsage()
+GSError BufferClientProducer::SetDefaultUsage(uint64_t usage)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    arguments.WriteUint64(usage);
+
+    SEND_REQUEST(BUFFER_PRODUCER_SET_DEFAULT_USAGE, arguments, reply, option);
+
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+
+    return GSERROR_OK;
+}
+
+uint64_t BufferClientProducer::GetDefaultUsage()
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 

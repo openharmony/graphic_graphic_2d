@@ -45,6 +45,7 @@ public:
     {
         return absRect_;
     }
+    RectI MapAbsRectWithMatrix(const RectF& rect, const Drawing::Matrix& matrix) const;
     RectI MapAbsRect(const RectF& rect) const;
 
     // return transform matrix (context + self)

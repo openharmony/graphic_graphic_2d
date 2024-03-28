@@ -77,6 +77,12 @@ public:
         return type_ != FilterType::NONE;
     }
 
+    float DecreasePrecision(float value)
+    {
+        // preserve two digital precision when calculating hash, this can reuse filterCache as much as possible.
+        return 0.01 * round(value * 100);
+    }
+
     uint32_t Hash() const
     {
         return hash_;

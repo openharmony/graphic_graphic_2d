@@ -60,7 +60,7 @@ void OH_Drawing_FontMgrDestroy(OH_Drawing_FontMgr* drawingFontMgr)
     g_fontMgrMap.erase(it);
 }
 
-int OH_Drawing_FontMgrGetFamiliesCount(OH_Drawing_FontMgr* drawingFontMgr)
+int OH_Drawing_FontMgrGetFamilyCount(OH_Drawing_FontMgr* drawingFontMgr)
 {
     FontMgr* fontMgr = CastToFontMgr(drawingFontMgr);
     if (fontMgr == nullptr) {
@@ -210,7 +210,7 @@ OH_Drawing_Typeface* OH_Drawing_FontStyleSetCreateTypeface(OH_Drawing_FontStyleS
 }
 
 void OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet* fontStyleSet, int32_t index,
-    OH_Drawing_FontStyleStruct* fontStyleStruct, const char* styleName)
+    OH_Drawing_FontStyleStruct* fontStyleStruct, char** styleName)
 {
     if (fontStyleStruct == nullptr) {
         return;
@@ -221,15 +221,31 @@ void OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet* fontStyleSet, int3
     }
     FontStyle tempFontStyle;
     std::string tempStringPtr;
-    size_t len = tempStringPtr.length() + 1;
     converFontStyleSet->GetStyle(index, &tempFontStyle, &tempStringPtr);
-    char* allocatedMemoryForStyleName = new char[len];
-    strcpy_s(allocatedMemoryForStyleName, len, tempStringPtr.c_str());
-    styleName = &allocatedMemoryForStyleName;
-    delete[] allocatedMemoryForStyleName;
+    size_t len = tempStringPtr.length() + 1;
+    char* allocatedMemoryForStyleName = (char*)(malloc(len * sizeof(char)));
+    if (allocatedMemoryForStyleName != nullptr) {
+        auto retCopy = strcpy_s(allocatedMemoryForStyleName, len, tempStringPtr.c_str());
+        if (retCopy != 0) {
+            delete[] allocatedMemoryForStyleName;
+            return;
+        }
+    } else {
+        return;
+    }
+    *styleName = allocatedMemoryForStyleName;
     fontStyleStruct->weight = static_cast<OH_Drawing_FontStyleWeight>(tempFontStyle.GetWeight());
     fontStyleStruct->width = static_cast<OH_Drawing_FontStyleWidth>(tempFontStyle.GetWidth());
     fontStyleStruct->slant = static_cast<OH_Drawing_FontStyleSlant>(tempFontStyle.GetSlant());
+}
+
+void OH_Drawing_FontStyleSetFreeStyleName(char** styleName)
+{
+    if (*styleName != nullptr) {
+        free(*styleName);
+        *styleName = nullptr;
+    }
+    return;
 }
 
 OH_Drawing_Typeface* OH_Drawing_FontStyleSetMatchStyle(OH_Drawing_FontStyleSet* fontStyleSet,

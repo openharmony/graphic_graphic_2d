@@ -136,6 +136,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
+    [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
 };
 } // namespace
 
@@ -1083,6 +1084,17 @@ void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
     contentDirty_ = true;
 }
 
+void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
+{
+    dynamicDimDegree_ = DimDegree;
+    if (DimDegree.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
 void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
     filter_ = filter;
@@ -1124,11 +1136,21 @@ const std::optional<float>& RSProperties::GetDynamicLightUpDegree() const
     return dynamicLightUpDegree_;
 }
 
+const std::optional<float>& RSProperties::GetDynamicDimDegree() const
+{
+    return dynamicDimDegree_;
+}
+
 const std::optional<Vector2f>& RSProperties::GetGreyCoef() const
 {
     return greyCoef_;
 }
 
+bool RSProperties::IsDynamicDimValid() const
+{
+    return dynamicDimDegree_.has_value() &&
+           ROSEN_GE(*dynamicDimDegree_, 0.0) && ROSEN_LE(*dynamicDimDegree_, 1.0);
+}
 
 const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
 {
@@ -1673,21 +1695,6 @@ void RSProperties::SetUseShadowBatching(bool useShadowBatching)
     SetDirty();
 }
 
-bool RSProperties::GetUseShadowBatching() const
-{
-    return useShadowBatching_;
-}
-
-void RSProperties::SetNeedSkipShadow(bool needSkipShadow)
-{
-    needSkipShadow_ = needSkipShadow;
-}
-
-bool RSProperties::GetNeedSkipShadow() const
-{
-    return needSkipShadow_;
-}
-
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
     pixelStretch_ = stretchSize;
@@ -1697,11 +1704,6 @@ void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
     if (pixelStretch_.has_value() && pixelStretch_->IsZero()) {
         pixelStretch_ = std::nullopt;
     }
-}
-
-const std::optional<Vector4f>& RSProperties::GetPixelStretch() const
-{
-    return pixelStretch_;
 }
 
 RectI RSProperties::GetPixelStretchDirtyRect() const
@@ -1728,11 +1730,6 @@ void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretch
     }
 }
 
-const std::optional<Vector4f>& RSProperties::GetPixelStretchPercent() const
-{
-    return pixelStretchPercent_;
-}
-
 // Image effect properties
 void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
 {
@@ -1740,11 +1737,6 @@ void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
     colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
-}
-
-const std::optional<float>& RSProperties::GetGrayScale() const
-{
-    return grayScale_;
 }
 
 void RSProperties::SetLightIntensity(float lightIntensity)
@@ -1841,16 +1833,6 @@ int RSProperties::GetIlluminatedType() const
     return illuminatedPtr_ ? static_cast<int>(illuminatedPtr_->GetIlluminatedType()) : 0;
 }
 
-float RSProperties::GetBloom() const
-{
-    return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
-}
-
-float RSProperties::GetIlluminatedBorderWidth() const
-{
-    return illuminatedPtr_ ? illuminatedPtr_->GetIlluminatedBorderWidth() : 0.f;
-}
-
 void RSProperties::CalculateAbsLightPosition()
 {
     auto lightSourceAbsRect = boundsGeo_->GetAbsRect();
@@ -1880,16 +1862,6 @@ void RSProperties::CalculateAbsLightPosition()
     lightAbsPosition.z_ = lightPos.z_;
     lightAbsPosition.w_ = lightPos.w_;
     lightSourcePtr_->SetAbsLightPosition(lightAbsPosition);
-}
-
-const std::shared_ptr<RSLightSource>& RSProperties::GetLightSource() const
-{
-    return lightSourcePtr_;
-}
-
-const std::shared_ptr<RSIlluminated>& RSProperties::GetIlluminated() const
-{
-    return illuminatedPtr_;
 }
 
 void RSProperties::SetBrightness(const std::optional<float>& brightness)
@@ -2763,7 +2735,7 @@ void RSProperties::OnApplyModifiers()
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
-                      GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+                      IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
 #endif

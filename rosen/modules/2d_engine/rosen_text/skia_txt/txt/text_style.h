@@ -118,6 +118,7 @@ public:
     double decorationThicknessMultiplier = 1.0;
 
     FontWeight fontWeight = FontWeight::W400;
+    FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     TextBaseline baseline = TextBaseline::ALPHABETIC;
     bool halfLeading = false;

@@ -739,6 +739,28 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
             result += "\n surface [" + name + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
             layer->Dump(result);
         }
+        if (layer->GetLayerInfo()->GetUniRenderFlag()) {
+            auto windowsName = layer->GetLayerInfo()->GetWindowsName();
+            auto iter = std::find(windowsName.begin(), windowsName.end(), arg);
+            if (iter != windowsName.end()) {
+                result += "\n window [" + arg + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
+                layer->DumpByName(arg, result);
+            }
+        }
+    }
+}
+
+void HdiOutput::DumpHitchs(std::string &result, const std::string &arg) const
+{
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    ReorderLayerInfo(dumpLayerInfos);
+    result.append("\n");
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const LayerPtr &layer = layerInfo.layer;
+        if (layer->GetLayerInfo()->GetUniRenderFlag()) {
+            result += "\n window [" + arg + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
+            layer->SelectHitchsInfo(arg, result);
+        }
     }
 }
 

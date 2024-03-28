@@ -540,7 +540,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
@@ -568,12 +568,12 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         auto task = isProcOnBgThread ? captureTaskOnBgThread : captureTask;
         mainThread_->PostTask(task);
     } else {
-        TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY);
+        TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY, isSync);
     }
 }
 
 void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+    float scaleX, float scaleY, bool isSync)
 {
     std::function<void()> offscreenRenderTask = [scaleY, scaleX, callback, id]() -> void {
         RS_LOGD("RSRenderService::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender"
@@ -584,7 +584,17 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<R
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     };
-    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+    if (!isSync) {
+        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+    } else {
+        auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
+        if (node == nullptr || !node->GetCommandExcuted()) {
+            RSOffscreenRenderThread::Instance().InSertCaptureTask(node->GetId(), offscreenRenderTask);
+            return;
+        }
+        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+        node->SetCommandExcuted(false);
+    }
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)

@@ -31,11 +31,9 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-SkiaRuntimeShaderBuilder::SkiaRuntimeShaderBuilder(std::shared_ptr<RuntimeEffect> effect) noexcept
-{
-    skRuntimeShaderBuilder_ = std::make_shared<SkRuntimeShaderBuilder>(
-        effect->GetImpl<SkiaRuntimeEffect>()->GetRuntimeEffect());
-}
+SkiaRuntimeShaderBuilder::SkiaRuntimeShaderBuilder(
+    std::shared_ptr<RuntimeEffect> effect) noexcept : skRuntimeShaderBuilder_(std::make_shared<SkRuntimeShaderBuilder>(
+    effect->GetImpl<SkiaRuntimeEffect>()->GetRuntimeEffect())) {}
 
 std::shared_ptr<ShaderEffect> SkiaRuntimeShaderBuilder::MakeShader(const Matrix* localMatrix, bool isOpaque)
 {

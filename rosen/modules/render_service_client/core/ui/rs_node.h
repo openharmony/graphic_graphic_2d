@@ -120,6 +120,7 @@ public:
 
     bool IsUniRenderEnabled() const;
     bool IsRenderServiceNode() const;
+    void SetTakeSurfaceForUIFlag();
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
@@ -259,6 +260,7 @@ public:
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
+    void SetDynamicDimDegree(const float dimDegree);
     void SetGreyCoef(const Vector2f greyCoef);
     void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
 

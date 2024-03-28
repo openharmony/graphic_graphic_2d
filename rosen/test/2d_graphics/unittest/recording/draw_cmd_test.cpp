@@ -252,15 +252,7 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
     Point point;
     Paint paint;
     DrawSymbolOpItem opItem{drawingHMSymbolData, point, paint};
-    opItem.SetSymbol();
-    opItem.InitialScale();
-    opItem.InitialVariableColor();
-    opItem.SetSymbol();
-    opItem.SetScale(0);
-    opItem.SetVariableColor(0);
     Path path;
-    opItem.UpdateScale(100, path); // 100: cur
-    opItem.UpdataVariableColor(100, 0); // 100: cur
     opItem.Marshalling(*drawCmdList);
     SymbolOpHandle symbolOpHandle;
     PaintHandle paintHandle;
@@ -270,19 +262,10 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     opItem.Playback(recordingCanvas.get(), nullptr);
     opItem.Playback(nullptr, nullptr);
-    
+
     DrawingHMSymbolData drawingHMSymbolData2;
-    drawingHMSymbolData2.symbolInfo_.effect = DrawingEffectStrategy::HIERARCHICAL;
     DrawSymbolOpItem opItem2{drawingHMSymbolData2, point, paint};
     opItem2.Playback(recordingCanvas.get(), nullptr);
-    opItem2.SetScale(10); // 10: scale
-    opItem2.SetVariableColor(5); // 5: index
-    opItem2.SetScale(0);
-    opItem2.SetScale(10); // 10: scale
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
 }
 
 /**

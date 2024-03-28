@@ -43,14 +43,10 @@ static void MergePath(RSPath& multPath, const std::vector<RSGroupInfo>& groupInf
 }
 
 SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting animationSetting, const RSHMSymbolData symbolData,
-    const RSEffectStrategy effectStrategy, const std::pair<double, double> offset)
-{
-    animationSetting_ = animationSetting;
-    symbolData_ = symbolData;
-    effectStrategy_ = effectStrategy;
-    offsetX_ = offset.first;
-    offsetY_ = offset.second;
-}
+    const RSEffectStrategy effectStrategy,
+    const std::pair<double, double> offset) : animationSetting_(animationSetting),
+    symbolData_(symbolData), effectStrategy_(effectStrategy),
+    offsetX_(offset.first), offsetY_(offset.second) {}
 
 void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
     std::shared_ptr<SymbolAnimationConfig> symbolAnimationConfig)
@@ -114,9 +110,9 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
         AddWholeAnimation(symbolData_, nodeBounds, symbolAnimationConfig);
         symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_SCALE;
     }
-    if (effectStrategy_ == RSEffectStrategy::HIERARCHICAL) {
+    if (effectStrategy_ == RSEffectStrategy::VARIABLE_COLOR) {
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
-        symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL;
+        symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_VARIABLE_COLOR;
     }
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);

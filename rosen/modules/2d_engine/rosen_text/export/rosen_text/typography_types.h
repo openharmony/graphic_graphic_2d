@@ -71,9 +71,22 @@ enum class FontWeight {
     W900,
 };
 
+enum class FontWidth {
+    ULTRA_CONDENSED = 1,
+    EXTRA_CONDENSED = 2,
+    CONDENSED = 3,
+    SEMI_CONDENSED = 4,
+    NORMAL = 5,
+    SEMI_EXPANDED = 6,
+    EXPANDED = 7,
+    EXTRA_EXPANDED = 8,
+    ULTRA_EXPANDED = 9,
+};
+
 enum class FontStyle {
     NORMAL,
     ITALIC,
+    OBLIQUE,
 };
 
 enum class TextBaseline {
@@ -92,6 +105,18 @@ enum TextHeightBehavior {
     DISABLE_FIRST_ASCENT = 0x1,
     DISABLE_LAST_ASCENT = 0x2,
     DISABLE_ALL = 0x1 | 0x2,
+};
+
+enum StyleType {
+    NONE_ATTRIBUTES,
+    ALL_ATTRIBUTES,
+    FONT,
+    FOREGROUND,
+    BACKGROUND,
+    SHADOW,
+    DECORATIONS,
+    LETTER_SPACING,
+    WORD_SPACING
 };
 
 } // namespace Rosen

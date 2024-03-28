@@ -22,10 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-TexgineFontManager::TexgineFontManager()
-{
-    fontMgr_ = RSFontMgr::CreateDefaultFontMgr();
-}
+TexgineFontManager::TexgineFontManager() : fontMgr_(RSFontMgr::CreateDefaultFontMgr()) {}
 
 std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
 {

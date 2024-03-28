@@ -1193,6 +1193,12 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
         RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
 }
 
+void RSNode::SetDynamicDimDegree(const float dimDegree)
+{
+    SetProperty<RSDynamicDimDegreeModifier,
+        RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_DIM_DEGREE, dimDegree);
+}
+
 void RSNode::SetGreyCoef(const Vector2f greyCoef)
 {
     SetProperty<RSGreyCoefModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::GREY_COEF, greyCoef);
@@ -1349,6 +1355,15 @@ void RSNode::SetNodeName(const std::string& nodeName)
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());
         }
+    }
+}
+
+void RSNode::SetTakeSurfaceForUIFlag()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetTakeSurfaceForUIFlag>(GetId());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
 

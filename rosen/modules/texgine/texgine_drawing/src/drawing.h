@@ -73,7 +73,6 @@ using RSHMSymbolData = RSDrawing::DrawingHMSymbolData;
 using RSHmSymbolConfig_OHOS = RSDrawing::HmSymbolConfigOhos;
 using RSAnimationSetting = RSDrawing::DrawingAnimationSetting;
 using RSAnimationType = RSDrawing::DrawingAnimationType;
-using RSAnimationSubType = RSDrawing::DrawingAnimationSubType;
 using RSGroupInfo = RSDrawing::DrawingGroupInfo;
 using RSPathOp = RSDrawing::PathOp;
 using RSHMSymbol = RSDrawing::DrawingHMSymbol;

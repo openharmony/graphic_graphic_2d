@@ -1706,13 +1706,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest052, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_ALL);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_ALL);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::ALL);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_FIRST_ASCENT);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_LAST_ASCENT);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textHeightBehavior, TextHeightBehavior::DISABLE_ALL);
 }
 
@@ -1723,16 +1723,16 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest052, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest053, TestSize.Level1)
 {
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(nullptr) == TEXT_HEIGHT_ALL, true);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(nullptr) == TEXT_HEIGHT_ALL, true);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_ALL);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_ALL, true);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_FIRST_ASCENT, true);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_LAST_ASCENT, true);
-    OH_Drawing_TypographyTextSetHeightMode(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
-    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightMode(typoStyle) == TEXT_HEIGHT_DISABLE_ALL, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_ALL, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_FIRST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_FIRST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_LAST_ASCENT);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_LAST_ASCENT, true);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, TEXT_HEIGHT_DISABLE_ALL);
+    EXPECT_EQ(OH_Drawing_TypographyTextGetHeightBehavior(typoStyle) == TEXT_HEIGHT_DISABLE_ALL, true);
 }
 
 /*
@@ -2153,10 +2153,55 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest074
- * @tc.desc: test for whether two TextStyle objects are equal
+ * @tc.desc: test for getting and setting text style
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_NE(txtStyle, nullptr);
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
+    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, normalStyle);
+
+    OH_Drawing_FontStyleStruct style;
+    OH_Drawing_TextStyleGetFontStyleStruct(txtStyle, &style);
+    EXPECT_EQ(style.weight, normalStyle.weight);
+    EXPECT_EQ(style.width, normalStyle.width);
+    EXPECT_EQ(style.slant, normalStyle.slant);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest075
+ * @tc.desc: test for getting and setting typography style
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    EXPECT_NE(typoStyle, nullptr);
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
+    OH_Drawing_SetTypographyStyleFontStyleStruct(typoStyle, normalStyle);
+
+    OH_Drawing_FontStyleStruct style;
+    OH_Drawing_TypographyStyleGetFontStyleStruct(typoStyle, &style);
+    EXPECT_EQ(style.weight, normalStyle.weight);
+    EXPECT_EQ(style.width, normalStyle.width);
+    EXPECT_EQ(style.slant, normalStyle.slant);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest076
+ * @tc.desc: test for whether two TextStyle objects are equal
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level1)
 {
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
@@ -2173,11 +2218,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest075
+ * @tc.name: OH_Drawing_TypographyTest077
  * @tc.desc: test for the font properties of two TextStyle objects are equal
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level1)
 {
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
@@ -2193,29 +2238,29 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest076
+ * @tc.name: OH_Drawing_TypographyTest078
  * @tc.desc: test for the two TextStyle objects have matching properties
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level1)
 {
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
-    bool result = OH_Drawing_TextStyleIsMatchOneAttribute(AllAttributes, txtStyle, txtStyleCompare);
+    bool result = OH_Drawing_TextStyleIsMatchOneAttribute(txtStyle, txtStyleCompare, TextStyle_ALL_ATTRIBUTES);
     EXPECT_TRUE(result == true);
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
-    result = OH_Drawing_TextStyleIsMatchOneAttribute(AllAttributes, txtStyle, txtStyleCompare);
+    result = OH_Drawing_TextStyleIsMatchOneAttribute(txtStyle, txtStyleCompare, TextStyle_ALL_ATTRIBUTES);
     EXPECT_TRUE(result == false);
     OH_Drawing_DestroyTextStyle(txtStyle);
     OH_Drawing_DestroyTextStyle(txtStyleCompare);
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest077
+ * @tc.name: OH_Drawing_TypographyTest079
  * @tc.desc: test for sets and gets isPlaceholder for TextStyle objects
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest079, TestSize.Level1)
 {
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_EQ(OH_Drawing_TextStyleIsPlaceholder(txtStyle), false);
@@ -2225,11 +2270,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest078
+ * @tc.name: OH_Drawing_TypographyTest080
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest080, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(typoStyle), TEXT_ALIGN_LEFT);

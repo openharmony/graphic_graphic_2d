@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
@@ -41,6 +42,7 @@ void RSSurfaceRenderNodeTest::SetUpTestCase()
 void RSSurfaceRenderNodeTest::TearDownTestCase()
 {
     delete canvas_;
+    canvas_ = nullptr;
 }
 void RSSurfaceRenderNodeTest::SetUp() {}
 void RSSurfaceRenderNodeTest::TearDown() {}
@@ -714,6 +716,285 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds = {{subnode->GetId(), subnode}};
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     ASSERT_EQ(node->IsContentDirtyNodeLimited(), false);
+}
+
+/**
+ * @tc.name: SetSkipLayer001
+ * @tc.desc: Test SetSkipLayer for single surface node which is skip layer
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSkipLayer(true);
+    ASSERT_TRUE(node->GetSkipLayer());
+}
+
+/**
+ * @tc.name: SetSkipLayer002
+ * @tc.desc: Test SetSkipLayer for surface node which is skip layer
+    and has leash window node as instant parent
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto skipLayerNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(skipLayerNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[skipLayerNode->GetId()] = skipLayerNode;
+
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parentNode->AddChild(skipLayerNode);
+    parentNode->SetIsOnTheTree(true);
+    skipLayerNode->SetSkipLayer(true);
+
+    ASSERT_TRUE(parentNode->GetSkipLayer() && parentNode->GetHasSkipLayer());
+}
+
+/**
+ * @tc.name: SetSkipLayer003
+ * @tc.desc: Test SetSkipLayer for surface node which is skip layer
+        and don't have leash window node as instant parent
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto ancestorNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    auto skipLayerNode = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
+    ASSERT_NE(ancestorNode, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(skipLayerNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[ancestorNode->GetId()] = ancestorNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[skipLayerNode->GetId()] = skipLayerNode;
+
+    ancestorNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    ancestorNode->AddChild(parentNode);
+    parentNode->AddChild(skipLayerNode);
+    ancestorNode->SetIsOnTheTree(true);
+    skipLayerNode->SetSkipLayer(true);
+
+    ASSERT_TRUE(!ancestorNode->GetSkipLayer() && ancestorNode->GetHasSkipLayer());
+}
+
+/**
+ * @tc.name: SetSecurityLayer001
+ * @tc.desc: Test SetSecurityLayer for single surface node which is security layer
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSecurityLayer(true);
+    ASSERT_TRUE(node->GetSecurityLayer());
+}
+
+/**
+ * @tc.name: SetSecurityLayer002
+ * @tc.desc: Test SetSecurityLayer for surface node which is security layer
+    and has leash window node as instant parent
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto securityLayerNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(securityLayerNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[securityLayerNode->GetId()] = securityLayerNode;
+
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parentNode->AddChild(securityLayerNode);
+    parentNode->SetIsOnTheTree(true);
+    securityLayerNode->SetSecurityLayer(true);
+
+    ASSERT_TRUE(parentNode->GetSecurityLayer() && parentNode->GetHasSecurityLayer());
+}
+
+/**
+ * @tc.name: SetSecurityLayer003
+ * @tc.desc: Test SetSecurityLayer for surface node which is security layer
+        and don't have leash window node as instant parent
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto ancestorNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    auto securityLayerNode = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
+    ASSERT_NE(ancestorNode, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(securityLayerNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[ancestorNode->GetId()] = ancestorNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[securityLayerNode->GetId()] = securityLayerNode;
+
+    ancestorNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    ancestorNode->AddChild(parentNode);
+    parentNode->AddChild(securityLayerNode);
+    ancestorNode->SetIsOnTheTree(true);
+    securityLayerNode->SetSecurityLayer(true);
+
+    ASSERT_TRUE(!ancestorNode->GetSecurityLayer() && ancestorNode->GetHasSecurityLayer());
+}
+
+/**
+ * @tc.name: StoreMustRenewedInfo001
+ * @tc.desc: Test StoreMustRenewedInfo while has filter
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetHasFilter(true);
+    node->RSRenderNode::StoreMustRenewedInfo();
+    node->StoreMustRenewedInfo();
+    ASSERT_TRUE(node->HasMustRenewedInfo());
+}
+
+/**
+ * @tc.name: StoreMustRenewedInfo002
+ * @tc.desc: Test StoreMustRenewedInfo while has effect node
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo002, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetUseEffectNodes(true);
+    node->RSRenderNode::StoreMustRenewedInfo();
+    node->StoreMustRenewedInfo();
+    ASSERT_TRUE(node->HasMustRenewedInfo());
+}
+
+/**
+ * @tc.name: StoreMustRenewedInfo003
+ * @tc.desc: Test StoreMustRenewedInfo while has hardware node
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo003, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetHasHardwareNode(true);
+    node->RSRenderNode::StoreMustRenewedInfo();
+    node->StoreMustRenewedInfo();
+    ASSERT_TRUE(node->HasMustRenewedInfo());
+}
+
+/**
+ * @tc.name: StoreMustRenewedInfo004
+ * @tc.desc: Test StoreMustRenewedInfo while is skip layer
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo004, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSkipLayer(true);
+    node->RSRenderNode::StoreMustRenewedInfo();
+    node->StoreMustRenewedInfo();
+    ASSERT_TRUE(node->HasMustRenewedInfo());
+}
+
+/**
+ * @tc.name: StoreMustRenewedInfo005
+ * @tc.desc: Test StoreMustRenewedInfo while is security layer
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo005, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSecurityLayer(true);
+    node->RSRenderNode::StoreMustRenewedInfo();
+    node->StoreMustRenewedInfo();
+    ASSERT_TRUE(node->HasMustRenewedInfo());
+}
+
+/**
+ * @tc.name: GetFirstLevelNodeId001
+ * @tc.desc: Test GetFirstLevelNode for single app window node
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[node->GetId()] = node;
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    node->SetIsOnTheTree(true);
+    ASSERT_EQ(node->GetFirstLevelNodeId(), node->GetId());
+}
+
+/**
+ * @tc.name: GetFirstLevelNodeId002
+ * @tc.desc: Test GetFirstLevelNode for app window node which parent is leash window node
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(childNode, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNode->GetId()] = childNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    childNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    parentNode->AddChild(childNode);
+    parentNode->SetIsOnTheTree(true);
+    ASSERT_EQ(childNode->GetFirstLevelNodeId(), parentNode->GetId());
 }
 
 /**

@@ -659,6 +659,26 @@ bool RSLightUpEffectDrawable::Update(const RSRenderContent& content)
 }
 
 // ============================================================================
+//DynamicDim
+RSPropertyDrawable::DrawablePtr RSDynamicDimDrawable::Generate(const RSRenderContent& context)
+{
+    if (!context.GetRenderProperties().IsDynamicDimValid()) {
+        return nullptr;
+    }
+    return std::make_unique<RSDynamicDimDrawable>();
+}
+
+bool RSDynamicDimDrawable::Update(const RSRenderContent& context)
+{
+    return context.GetRenderProperties().IsDynamicDimValid();
+}
+
+void RSDynamicDimDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    RSPropertiesPainter::DrawDynamicDim(content.GetRenderProperties(), canvas);
+}
+
+// ============================================================================
 // Binarization
 void RSBinarizationDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
@@ -958,6 +978,8 @@ std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderCont
         // no blend
         return nullptr;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "BlendSaveDrawableGenerate::BlendMode, blendMode: %d, blendModeApplyType: %d", blendMode, blendModeApplyType);
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         return std::make_unique<RSBlendFastDrawable>(blendMode);
     }

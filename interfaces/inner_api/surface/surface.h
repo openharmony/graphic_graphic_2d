@@ -66,8 +66,8 @@ public:
     virtual int32_t GetDefaultWidth() = 0;
     virtual int32_t GetDefaultHeight() = 0;
 
-    virtual GSError SetDefaultUsage(uint32_t usage) = 0;
-    virtual uint32_t GetDefaultUsage() = 0;
+    virtual GSError SetDefaultUsage(uint64_t usage) = 0;
+    virtual uint64_t GetDefaultUsage() = 0;
 
     virtual GSError SetUserData(const std::string &key, const std::string &val) = 0;
     virtual std::string GetUserData(const std::string &key) = 0;

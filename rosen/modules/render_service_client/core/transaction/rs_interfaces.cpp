@@ -168,8 +168,8 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
     return renderServiceClient_->SetShowRefreshRateEnabled(enable);
 }
 
-bool RSInterfaces::TakeSurfaceCaptureForUI(
-    std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {
     if (!node) {
         ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
@@ -183,8 +183,11 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
         return false;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
+        if (isSync) {
+            node->SetTakeSurfaceForUIFlag();
+        }
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
-            SurfaceCaptureType::UICAPTURE);
+            SurfaceCaptureType::UICAPTURE, isSync);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }

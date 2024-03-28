@@ -407,7 +407,7 @@ HWTEST_F(BufferClientProducerRemoteTest, GetUniqueId001, Function | MediumTest |
 */
 HWTEST_F(BufferClientProducerRemoteTest, GetDefaultUsage001, Function | MediumTest | Level2)
 {
-    uint32_t usage = bp->GetDefaultUsage();
+    uint64_t usage = bp->GetDefaultUsage();
     ASSERT_EQ(usage, 0);
 }
 

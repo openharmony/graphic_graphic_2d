@@ -38,6 +38,7 @@
  */
 
 #include <stdint.h>
+#include "external_window.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -312,6 +313,40 @@ typedef struct {
 } OH_NativeBuffer_Config;
 
 /**
+ * @brief Holds info for a single image plane. \n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
+ * @since 12
+ * @version 1.0
+ */
+typedef struct {
+    /**
+     * Offset in bytes of plane.
+     */
+    uint64_t offset;
+    /**
+     * Distance in bytes from the first value of one row of the image to the first value of the next row.
+     */
+    uint32_t rowStride;
+    /**
+     * Distance in bytes from the first value of one column of the image to the first value of the next column.
+     */
+    uint32_t columnStride;
+} OH_NativeBuffer_Plane;
+
+/**
+ * @brief Holds all image plane. \n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
+ * @since 12
+ * @version 1.0
+ */
+typedef struct {
+    uint32_t planeCount;              ///< Number of distinct planes.
+    OH_NativeBuffer_Plane planes[4];  ///< Array of image planes.
+} OH_NativeBuffer_Planes;
+
+/**
  * @brief Alloc a <b>OH_NativeBuffer</b> that matches the passed BufferRequestConfig. \n
  * A new <b>OH_NativeBuffer</b> instance is created each time this function is called.
  *
@@ -405,6 +440,31 @@ uint32_t OH_NativeBuffer_GetSeqNum(OH_NativeBuffer *buffer);
  * @version 1.0
  */
 int32_t OH_NativeBuffer_SetColorSpace(OH_NativeBuffer *buffer, OH_NativeBuffer_ColorSpace colorSpace);
+
+/**
+ * @brief Provide direct cpu access to the potentially multi-plannar OH_NativeBuffer in the process's address space.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
+ * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
+ * @param virAddr Indicates the address of the <b>OH_NativeBuffer</b> in virtual memory.
+ * @param outPlanes Indicates all image planes that contain the pixel data.
+ * @return Returns an error code, 0 is sucess, otherwise, failed.
+ * @since 12
+ * @version 1.0
+ */
+int32_t OH_NativeBuffer_MapPlanes(OH_NativeBuffer *buffer, void **virAddr, OH_NativeBuffer_Planes *outPlanes);
+
+/**
+ * @brief Converts an <b>OHNativeWindowBuffer</b> instance to an <b>OH_NativeBuffer</b>.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
+ * @param nativeWindowBuffer Indicates the pointer to a <b>OHNativeWindowBuffer</b> instance.
+ * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> pointer.
+ * @return Returns an error code, 0 is sucess, otherwise, failed.
+ * @since 12
+ * @version 1.0
+ */
+int32_t OH_NativeBuffer_FromNativeWindowBuffer(OHNativeWindowBuffer *nativeWindowBuffer, OH_NativeBuffer **buffer);
 #ifdef __cplusplus
 }
 #endif
