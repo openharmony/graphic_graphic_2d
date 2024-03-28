@@ -29,7 +29,7 @@ RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
     canvasDrawingRenderNode->InitRenderContent();
-    canvasDrawingNodeRenderContent_ = std::make_unique();
+    canvasDrawingNodeRenderContent_ = std::make_unique<RSCanvasDrawingRenderNodeContent>();
 }
 
 RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
