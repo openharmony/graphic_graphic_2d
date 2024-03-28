@@ -138,13 +138,13 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr*, cons
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
  * @param familyName Indicates the family name of a font style set to be matched.
- * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates an <b>OH_Drawing_FontStyleStruct</b> object.
  * @return Returns the pointer to the <b>OH_Drawing_Typeface</b> object matched.
  * @since 12
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
-    const char* familyName, OH_Drawing_FontStyleStruct*);
+    const char* familyName, OH_Drawing_FontStyleStruct);
 
 /**
  * @brief Get the pointer to an <b>OH_Drawing_Typeface</b> object for the given character.
@@ -152,7 +152,7 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontMgr Indicates the pointer to an <b>OH_Drawing_FontMgr</b> object.
  * @param familyName Indicates the family name of a font style set to be matched.
- * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @param OH_Drawing_FontStyleStruct Indicates an <b>OH_Drawing_FontStyleStruct</b> object.
  * @param bcp47 Indicates an array of languages which indicate the language of character.
  * @param bcp47Count Indicates the array size of bcp47.
  * @param character Indicates a UTF8 value to be matched.
@@ -161,7 +161,7 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr*,
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr*, const char* familyName,
-    OH_Drawing_FontStyleStruct*, const char* bcp47[], int bcp47Count, int32_t character);
+    OH_Drawing_FontStyleStruct, const char* bcp47[], int bcp47Count, int32_t character);
 #ifdef __cplusplus
 }
 #endif

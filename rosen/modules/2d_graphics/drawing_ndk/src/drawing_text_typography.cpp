@@ -3180,9 +3180,6 @@ void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextSty
 void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle,
     OH_Drawing_FontStyleStruct fontStyle)
 {
-    if (drawingStyle == nullptr) {
-        return;
-    }
     TypographyStyle* style = ConvertToOriginalText<TypographyStyle>(drawingStyle);
     if (style == nullptr) {
         return;

@@ -268,8 +268,7 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
         return false;
     }
 
-    if (!sklineMetrics.fLineMetrics.empty() &&
-        sklineMetrics.fLineMetrics.find(sklineMetrics.fStartIndex) != sklineMetrics.fLineMetrics.end()) {
+    if (!sklineMetrics.fLineMetrics.empty()) {
         const auto &skFontMetrics = sklineMetrics.fLineMetrics.at(sklineMetrics.fStartIndex).font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         if (oneLine) {
@@ -313,8 +312,7 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
         auto metrics = paragraph_->GetLineMetrics();
         for (SPText::LineMetrics& spLineMetrics : metrics) {
             LineMetrics& line = lineMetrics.emplace_back();
-            if (!spLineMetrics.runMetrics.empty() &&
-                spLineMetrics.runMetrics.find(spLineMetrics.startIndex) != spLineMetrics.runMetrics.end()) {
+            if (!spLineMetrics.runMetrics.empty()) {
                 auto &spFontMetrics = spLineMetrics.runMetrics.at(spLineMetrics.startIndex).fontMetrics;
                 line.firstCharMetrics = spFontMetrics;
                 line.capHeight = spFontMetrics.fCapHeight;
@@ -349,8 +347,7 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
         return false;
     }
 
-    if (!skLineMetrics.fLineMetrics.empty() &&
-        skLineMetrics.fLineMetrics.find(skLineMetrics.fStartIndex) != skLineMetrics.fLineMetrics.end()) {
+    if (!skLineMetrics.fLineMetrics.empty()) {
         const auto &skFontMetrics = skLineMetrics.fLineMetrics.at(skLineMetrics.fStartIndex).font_metrics;
         lineMetrics->firstCharMetrics = skFontMetrics;
         lineMetrics->capHeight = skFontMetrics.fCapHeight;

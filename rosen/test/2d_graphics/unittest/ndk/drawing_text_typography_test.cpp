@@ -2194,5 +2194,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level
     EXPECT_EQ(style.weight, normalStyle.weight);
     EXPECT_EQ(style.width, normalStyle.width);
     EXPECT_EQ(style.slant, normalStyle.slant);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 }
