@@ -138,6 +138,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.styleId = style.styleId;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
+    textStyle.isPlaceholder = style.isPlaceholder;
 
     if (style.isSymbolGlyph) {
         textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
