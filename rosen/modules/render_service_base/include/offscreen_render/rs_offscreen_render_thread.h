@@ -31,7 +31,7 @@ public:
     static RSOffscreenRenderThread& Instance();
     void PostTask(const std::function<void()>& task);
     void InSertCaptureTask(NodeId nodeId, std::function<void()>& task);
-    const std::function<void()>& GetCaptureTask(NodeId nodeId);
+    const std::function<void()> GetCaptureTask(NodeId nodeId);
 #ifdef ROSEN_OHOS
     const std::shared_ptr<RenderContext>& GetRenderContext();
     void CleanGrResource();
