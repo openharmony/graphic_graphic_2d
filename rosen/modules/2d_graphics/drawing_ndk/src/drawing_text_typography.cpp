@@ -3050,20 +3050,35 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
     strutstyle->leading = typographyStyle->lineStyleSpacingScale;
     strutstyle->forceStrutHeight = typographyStyle->lineStyleOnly;
     strutstyle->familiesSize = typographyStyle->lineStyleFontFamilies.size();
-    if (strutstyle->families != 0) {
-        strutstyle->families = new char* [strutstyle->familiesSize];
-        for (size_t i = 0; i < strutstyle->familiesSize; i++) {
-            int size = typographyStyle->lineStyleFontFamilies[i].size() + 1;
-            strutstyle->families[i] = new char[size];
-            if (strcpy_s(strutstyle->families[i], size, typographyStyle->lineStyleFontFamilies[i].c_str()) != 0) {
-                if (strutstyle->families[i] != nullptr) {
-                    delete[] strutstyle->families[i];
-                }
-                return nullptr;
-            }
-        }
+    if (strutstyle->familiesSize == 0) {
+        strutstyle->families = nullptr;
+        return strutstyle;
     }
-
+    strutstyle->families = new char* [strutstyle->familiesSize];
+    if (strutstyle->families == nullptr) {
+        delete strutstyle;
+		return nullptr;
+    }
+    for (size_t i = 0; i < strutstyle->familiesSize; i++) {
+        int size = typographyStyle->lineStyleFontFamilies[i].size() + 1;
+        strutstyle->families[i] = new char[size];
+        if (!strutstyle->families[i]) {
+            for (size_t j = 0; j < i ; j++) {
+                delete[] strutstyle->families[j];
+            }
+            delete[] strutstyle->families;
+            delete strutstyle;
+		    return nullptr;
+        }
+	    if (strcpy_s(strutstyle->families[i], size, typographyStyle->lineStyleFontFamilies[i].c_str()) != 0) {
+		    for (size_t j = 0; j <= i ; j++) {
+			    delete[] strutstyle->families[j];
+		    }
+            delete[] strutstyle->families;
+            delete strutstyle;
+		    return nullptr;
+	    }
+    }
     return strutstyle;
 }
 
