@@ -2152,11 +2152,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest074
- * @tc.desc: test for getting strutstyle for text typography
+ * @tc.name: OH_Drawing_TypographyTest077
+ * @tc.desc: test for getting and setting strut style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_StrutStyle *strutstyle = new OH_Drawing_StrutStyle();
@@ -2187,11 +2187,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest075
- * @tc.desc: test for getting strutstyle for text typography
+ * @tc.name: OH_Drawing_TypographyTest078
+ * @tc.desc: test for strutstyle equals
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level1)
 {
     OH_Drawing_StrutStyle* from = new OH_Drawing_StrutStyle();
     OH_Drawing_StrutStyle* to = new OH_Drawing_StrutStyle();
@@ -2208,11 +2208,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest076
- * @tc.desc: test for turning the hinting off of text typography.
+ * @tc.name: OH_Drawing_TypographyTest079
+ * @tc.desc: test for setting the hinting of text typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest079, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TypographyStyleSetHintingEnable(typoStyle, true);
