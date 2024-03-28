@@ -114,6 +114,18 @@ public:
         }
     }
 
+    void SetRTTaskRunner(const std::function<void(const std::function<void()>&)>& taskRunner)
+    {
+        rttaskRunner_ = taskRunner;
+    }
+
+    void PostRTTask(const std::function<void()>& task) const
+    {
+        if (rttaskRunner_) {
+            rttaskRunner_(task);
+        }
+    }
+
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
 
@@ -132,6 +144,7 @@ private:
     uint64_t transactionTimestamp_ = 0;
     uint64_t currentTimestamp_ = 0;
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
+    std::function<void(const std::function<void()>&)> rttaskRunner_;
     std::function<void()> vsyncRequestFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;

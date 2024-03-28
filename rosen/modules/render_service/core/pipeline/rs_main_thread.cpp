@@ -333,6 +333,10 @@ void RSMainThread::Init()
         RSMainThread::Instance()->PostTask(task);
     };
     context_->SetTaskRunner(taskDispatchFunc);
+    auto rtTaskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
+        RSUniRenderThread::Instance().PostRTTask(task);
+    };
+    context_->SetRTTaskRunner(rtTaskDispatchFunc);
     context_->SetVsyncRequestFunc([]() {
         RSMainThread::Instance()->RequestNextVSync();
         RSMainThread::Instance()->SetDirtyFlag();

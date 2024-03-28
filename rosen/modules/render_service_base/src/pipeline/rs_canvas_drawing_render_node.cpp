@@ -225,7 +225,7 @@ void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_p
         }
         std::lock_guard<std::mutex> lock(node->imageMutex_);
         node->image_ = image;
-        ctx->PostTask([ctx, nodeId]() {
+        ctx->PostRTTask([ctx, nodeId]() {
             if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
                 node->SetDirty();
                 ctx->RequestVsync();

@@ -46,6 +46,7 @@ public:
     void RenderFrames();
     void Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams);
     void PostTask(const std::function<void()>& task);
+    void PostRTTask(const std::function<void()>& task);
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
     void PostSyncTask(const std::function<void()>& task);
@@ -114,6 +115,8 @@ private:
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     static thread_local CaptureParam captureParam_;
+
+    pid_t tid_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

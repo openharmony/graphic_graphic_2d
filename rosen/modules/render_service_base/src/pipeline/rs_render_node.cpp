@@ -998,6 +998,13 @@ RSRenderNode::~RSRenderNode()
             completedSurfaceThreadIndex_);
     }
     ClearCacheSurface();
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("Invalid context");
+        return;
+    }
+    auto holdforRT = this->renderContent_;
+    context->PostRTTask([holdforRT]() {});
 }
 
 void RSRenderNode::FallbackAnimationsToRoot()

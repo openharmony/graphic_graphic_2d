@@ -97,11 +97,10 @@ void RSUniRenderThread::Start()
         RS_LOGE("RSUniRenderThread Start runner null");
     }
     runner_->Run();
-    pid_t tid;
-    PostSyncTask([this, &tid] {
+    PostSyncTask([this] {
         RS_LOGE("RSUniRenderThread Started ...");
         InitGrContext();
-        tid = gettid();
+        tid_ = gettid();
 #ifdef RES_SCHED_ENABLE
         SubScribeSystemAbility();
 #endif
@@ -114,7 +113,7 @@ void RSUniRenderThread::Start()
             PostTask(task);
         }
     };
-    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid, taskDispatchFunc);
+    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid_, taskDispatchFunc);
 
     if (!rootNodeDrawable_) {
         const std::shared_ptr<RSBaseRenderNode> rootNode =
@@ -138,6 +137,16 @@ void RSUniRenderThread::PostTask(const std::function<void()>& task)
         return;
     }
     handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+}
+
+void RSUniRenderThread::PostRTTask(const std::function<void()>& task)
+{
+    auto tid = gettid();
+    if (tid == tid_) {
+        task();
+    } else {
+        PostTask(task);
+    }
 }
 
 void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
