@@ -366,8 +366,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     // NOTE: removal of transition node is moved to RSMainThread::Animate
     MergeRemovedChildDirtyRegion(node);
     // backup environment variables.
-    auto parentNode = std::move(logicParentNode_);
-    logicParentNode_ = node.weak_from_this();
     node.ResetChildrenRect();
 
     auto tempCornerRadius = curCornerRadius_;
@@ -417,7 +415,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     curCornerRadius_ = std::move(tempCornerRadius);
     curAlpha_ = alpha;
     // restore environment variables
-    logicParentNode_ = std::move(parentNode);
 }
 
 void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node)
@@ -2041,7 +2038,12 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
     } else {
         node.GetStagingRenderParams()->SetAlpha(node.GetRenderProperties().GetAlpha());
     }
-    node.PostPrepare();
+
+    // TODO: only do this if node is dirty
+    node.UpdateRenderParams();
+
+    // add if node is dirty
+    node.AddToPendingSyncList();
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(
@@ -2277,7 +2279,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.UpdateChildrenOutOfRectFlag(false);
     // [planning] ShouldPrepareSubnodes would be applied again if condition constraint ensures
     PrepareChildren(node);
-    node.UpdateParentChildrenRect(logicParentNode_.lock());
+    node.UpdateParentChildrenRect(rsParent);
 
     // restore flags
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
@@ -2374,7 +2376,7 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     if (!dirtyFlag_) {
         return;
     }
-    auto rsParent = (logicParentNode_.lock());
+    auto rsParent = (node.GetParent().lock());
     if (rsParent == nullptr) {
         return;
     }
@@ -2460,7 +2462,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     } else {
         node.UpdateChildrenOutOfRectFlag(false);
         PrepareChildren(node);
-        node.UpdateParentChildrenRect(logicParentNode_.lock());
+        node.UpdateParentChildrenRect(nodeParent);
     }
 
     curAlpha_ = prevAlpha;
@@ -2542,7 +2544,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 
     PrepareChildren(node);
     // attention: accumulate direct parent's childrenRect
-    node.UpdateParentChildrenRect(logicParentNode_.lock());
+    node.UpdateParentChildrenRect(nodeParent);
     if (property.GetUseEffect()) {
         if (auto directParent = node.GetParent().lock()) {
             directParent->SetChildHasVisibleEffect(true);
@@ -2617,7 +2619,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareChildren(node);
-    node.UpdateParentChildrenRect(logicParentNode_.lock());
+    node.UpdateParentChildrenRect(node.GetParent().lock());
     node.SetEffectRegion(effectRegion_);
 
     if (node.GetRenderProperties().NeedFilter()) {
@@ -4976,10 +4978,6 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
                 std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
                 cacheRenderNodeMap.erase(node.GetId());
             }
-            // {
-            //     std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
-            //     groupedTransitionNodes.erase(node.GetId());
-            // }
         }
         return false;
     }
@@ -4994,10 +4992,6 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
             std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
             cacheRenderNodeMap.erase(node.GetId());
         }
-        // {
-        //     std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
-        //     groupedTransitionNodes.erase(node.GetId());
-        // }
     }
     return true;
 }

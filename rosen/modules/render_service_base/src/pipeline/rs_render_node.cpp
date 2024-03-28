@@ -886,7 +886,10 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     ApplyModifiers();
     visitor->QuickPrepareChildren(*this);
-    PostPrepare();
+    
+    // fallback for global root node
+    UpdateRenderParams();
+    AddToPendingSyncList();
 }
 
 bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
@@ -1489,17 +1492,16 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     auto slot = isForeground ? RSDrawableSlot::FOREGROUND_FILTER : RSDrawableSlot::BACKGROUND_FILTER;
     auto& flag = isForeground ? foregroundFilterInteractWithDirty_ : backgroundFilterInteractWithDirty_;
 
-    if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
-        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
-        if (filterDrawable == nullptr) {
-            return;
-        }
-        if (!dirtyManager.GetCurrentFrameDirtyRegion().Intersect(filterDrawable->GetFilterCachedRegion())) {
-            return;
-        }
-        flag = true;
-        filterDrawable->MarkFilterRegionInteractWithDirty();
+    auto& drawable = drawableVec_[static_cast<uint32_t>(slot)];
+    if (drawable == nullptr) {
+        return;
     }
+    auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+    if (!dirtyManager.GetCurrentFrameDirtyRegion().Intersect(filterDrawable->GetFilterCachedRegion())) {
+        return;
+    }
+    filterDrawable->MarkFilterRegionInteractWithDirty();
+    flag = true;
 #endif
 }
 
@@ -1539,15 +1541,11 @@ bool RSRenderNode::IsBackgroundInAppOrNodeSelfDirty() const
 
 void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)
 {
-    if (dirtySlots_.find(slot) == dirtySlots_.end()) {
-        dirtySlots_.emplace(slot);
-    }
-    if (auto context = GetContext().lock()) {
-        context->AddPendingSyncNode(shared_from_this());
-    }
+    dirtySlots_.emplace(slot);
+    AddToPendingSyncList();
 }
 
-bool RSRenderNode::IsLargeArea(int width, int height)
+inline static bool IsLargeArea(int width, int height)
 {
     static const auto threshold = RSSystemProperties::GetFilterCacheSizeThreshold();
     return width > threshold && height > threshold;
@@ -1555,6 +1553,10 @@ bool RSRenderNode::IsLargeArea(int width, int height)
 
 void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare()
 {
+    if (!RSProperties::FilterCacheEnabled) {
+        ROSEN_LOGE("RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare filter cache is disabled.");
+        return;
+    }
     if (GetRenderProperties().GetBackgroundFilter()) {
        MarkFilterCacheFlagsAfterPrepare(false);
     }
@@ -1565,22 +1567,17 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare()
  
 void RSRenderNode::MarkFilterCacheFlagsAfterPrepare(bool isForeground)
 {
-    if (!RSProperties::FilterCacheEnabled) {
-        ROSEN_LOGE("RSRenderNode::MarkClearFilterCacheAfterPrepare filter cache is disabled.");
+    auto slot = isForeground ? RSDrawableSlot::FOREGROUND_FILTER : RSDrawableSlot::BACKGROUND_FILTER;
+    auto& drawable = drawableVec_[static_cast<uint32_t>(slot)];
+    if (drawable == nullptr) {
         return;
     }
-    auto slot = isForeground ? RSDrawableSlot::FOREGROUND_FILTER : RSDrawableSlot::BACKGROUND_FILTER;
-    if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
-        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
-        if (filterDrawable == nullptr) {
-            return;
-        }
-        if (IsLargeArea(oldDirty_.GetWidth(), oldDirty_.GetHeight())) {
-            filterDrawable->MarkFilterRegionIsLargeArea();
-        }
-        filterDrawable->MarkNeedClearFilterCache();
-        UpdateDirtySlotsAndPendingNodes(slot);
+    auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+    if (IsLargeArea(oldDirty_.GetWidth(), oldDirty_.GetHeight())) {
+        filterDrawable->MarkFilterRegionIsLargeArea();
     }
+    filterDrawable->MarkNeedClearFilterCache();
+    UpdateDirtySlotsAndPendingNodes(slot);
 }
 
 void RSRenderNode::RenderTraceDebug() const
@@ -1749,22 +1746,9 @@ void RSRenderNode::ApplyModifiers()
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
-
-// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-//     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
-//         manager != nullptr &&
-//         (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
-//         dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
-//         manager->InvalidateCache();
-//     }
-//     if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
-//         manager->InvalidateCache();
-//     }
-// #endif
-
     UpdateShouldPaint();
+
     // Temporary code, copy matrix into render params
-    // TODO: only run UpdateRenderParams on matrix change
     UpdateDrawableVec();
     UpdateDrawableVecV2();
 
@@ -1774,21 +1758,6 @@ void RSRenderNode::ApplyModifiers()
     // update rate decider scale reference size.
     animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
         GetRenderProperties().GetBoundsHeight());
-}
-
-void RSRenderNode::PostPrepare()
-{
-    UpdateRenderParams();
-
-    if (stagingRenderParams_->NeedSync() || drawCmdListNeedSync_ || !dirtySlots_.empty()) {
-        if (auto context = GetContext().lock()) {
-            context->AddPendingSyncNode(shared_from_this());
-        } else {
-            ROSEN_LOGE("RSRenderNode::ApplyModifiers context is null");
-            // Temporary code
-            OnSync();
-        }
-    }
 }
 
 void RSRenderNode::MarkParentNeedRegenerateChildren() const
@@ -3377,6 +3346,8 @@ bool RSRenderNode::UpdateLocalDrawRect()
 
 void RSRenderNode::OnSync()
 {
+    addedToPendingSyncList_ = false;
+
     if (drawCmdListNeedSync_) {
         std::swap(stagingDrawCmdList_, drawCmdList_ );
         stagingDrawCmdList_.clear();
@@ -3396,11 +3367,7 @@ void RSRenderNode::OnSync()
         }
         dirtySlots_.clear();
     }
-    ResetFilterCacheClearFlags();
-}
-
-void RSRenderNode::ResetFilterCacheClearFlags()
-{
+    // Reset FilterCache Flags
     backgroundFilterRegionChanged_ = false;
     backgroundFilterInteractWithDirty_ = false;
     foregroundFilterRegionChanged_ = false;
@@ -3421,7 +3388,22 @@ void RSRenderNode::ValidateLightResources()
 
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
-    dirtySlots_.emplace(RSDrawableSlot::POINT_LIGHT);
+    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
+}
+
+void RSRenderNode::AddToPendingSyncList()
+{
+    if (addedToPendingSyncList_) {
+        return;
+    }
+
+    if (auto context = GetContext().lock()) {
+        context->AddPendingSyncNode(shared_from_this());
+        addedToPendingSyncList_ = true;
+    } else {
+        ROSEN_LOGE("RSRenderNode::AddToPendingSyncList context is null");
+        OnSync();
+    }
 }
 
 SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)

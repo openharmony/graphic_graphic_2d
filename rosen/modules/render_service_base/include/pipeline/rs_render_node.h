@@ -474,7 +474,6 @@ public:
 
     void ApplyModifiers();
     void ApplyPositionZModifier();
-    void PostPrepare();
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren();
     void UpdateDrawingCacheInfoAfterChildren();
@@ -525,6 +524,7 @@ public:
     {
         OnSync();
     }
+    void AddToPendingSyncList();
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -760,6 +760,7 @@ private:
         int8_t foregroundBeginIndex_  = -1;
         int8_t endIndex_              = -1;
     };
+    bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
     DrawCmdIndex drawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
@@ -770,10 +771,6 @@ private:
     RSDrawable::Vec drawableVec_;
 
     // for blur cache
-    void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
-    void ResetFilterCacheClearFlags();
-    bool IsLargeArea(int width, int height);
-
     RectI lastFilterRegion_;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;

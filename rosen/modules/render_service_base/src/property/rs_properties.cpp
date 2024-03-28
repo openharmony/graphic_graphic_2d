@@ -390,10 +390,12 @@ bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& p
         auto instanceRootNode = parent ? parent->GetInstanceRootNode() : nullptr;
         parentGeo = instanceRootNode ? instanceRootNode->GetRenderProperties().GetBoundsGeometry() : nullptr;
         offset = Drawing::Point { sandbox_->position_->x_, sandbox_->position_->y_ };
-    } else if (parent && needParentOffset) {
+    } else if (parent) {
         auto& parentProperties = parent->GetRenderProperties();
         parentGeo = parentProperties.GetBoundsGeometry();
-        offset = Drawing::Point { parentProperties.GetFrameOffsetX(), parentProperties.GetFrameOffsetY() };
+        if (needParentOffset) {
+            offset = Drawing::Point { parentProperties.GetFrameOffsetX(), parentProperties.GetFrameOffsetY() };
+        }
     }
     auto prevAbsMatrix = prevAbsMatrix_;
     boundsGeo_->UpdateMatrix(parentGeo, offset, clipRect);

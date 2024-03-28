@@ -1098,12 +1098,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
     if (stagingRenderParams_->NeedSync()) {
-        if (auto context = GetContext().lock()) {
-            context->AddPendingSyncNode(shared_from_this());
-        } else {
-            RS_LOGE("RSSurfaceRenderNode::UpdateHwcNodeLayerInfo context is null");
-            OnSync();
-        }
+        AddToPendingSyncList();
     }
 }
 
@@ -2156,14 +2151,7 @@ void RSSurfaceRenderNode::SetOcclusionVisible(bool visible)
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetOcclusionVisible(visible);
-        // if (stagingRenderParams_->NeedSync()) {
-        //     if (auto context = GetContext().lock()) {
-        //         context->AddPendingSyncNode(shared_from_this());
-        //     } else {
-        //         RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible context is null");
-        //         OnSync();
-        //     }
-        // }
+        AddToPendingSyncList();
     } else {
         RS_LOGE("RSSurfaceRenderNode::SetOcclusionVisible stagingSurfaceParams is null");
     }
