@@ -25,7 +25,7 @@ template<typename Func = void*>
 Func GetEglApi(const char* procname)
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
-    static const char* libegl = "/system/lib64/libEGL.so";
+    static const char* libegl = "/system/lib64/platformsdk/libEGL.so";
 #else
     static const char* libegl = "/system/lib/platformsdk/libEGL.so";
 #endif
