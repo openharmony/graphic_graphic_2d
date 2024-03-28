@@ -3070,15 +3070,15 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
             }
             delete[] strutstyle->families;
             delete strutstyle;
-		    return nullptr;
+            return nullptr;
         }
-	    if (strcpy_s(strutstyle->families[i], size, typographyStyle->lineStyleFontFamilies[i].c_str()) != 0) {
-		    for (size_t j = 0; j <= i ; j++) {
-			    delete[] strutstyle->families[j];
+        if (strcpy_s(strutstyle->families[i], size, typographyStyle->lineStyleFontFamilies[i].c_str()) != 0) {
+            for (size_t j = 0; j <= i ; j++) {
+                delete[] strutstyle->families[j];
 		    }
             delete[] strutstyle->families;
             delete strutstyle;
-		    return nullptr;
+            return nullptr;
 	    }
     }
     return strutstyle;
