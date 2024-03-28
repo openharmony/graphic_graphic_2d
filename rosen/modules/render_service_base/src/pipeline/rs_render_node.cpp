@@ -350,6 +350,8 @@ void RSRenderNode::ResetChildRelevantFlags()
 {
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
+    visibleFilterChild_.clear();
+    visibleEffectChild_.clear();
     childrenRect_ = RectI();
     hasChildrenOutOfRect_ = false;
 }
@@ -793,14 +795,13 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
     return isOnlyBasicGeoTransform_;
 }
 
-void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool accumGeoDirty)
+void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty)
 {
-    if (accumGeoDirty && HasChildrenOutOfRect()) {
-        auto absChildRect = childrenRect_;
+    if (HasChildrenOutOfRect() && (isDirty || accumGeoDirty)) {
         if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
-            absChildRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
-            dirtymanager.MergeDirtyRect(absChildRect);
+            absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
         }
+        dirtymanager.MergeDirtyRect(absChildrenRect_);
     }
     SetGeoUpdateDelay(accumGeoDirty);
 }
@@ -1106,13 +1107,13 @@ void RSRenderNode::CollectAndUpdateLocalShadowRect()
             SetShadowValidLastFrame(true);
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
                 RRect absClipRRect = RRect(properties.GetBoundsRect(), properties.GetCornerRadius());
-                RSPropertiesPainter::GetShadowDirtyRect(localShadowRect_, properties, &absClipRRect, false);
+                RSPropertiesPainter::GetShadowDirtyRect(localShadowRect_, properties, &absClipRRect, false, true);
             } else {
-                RSPropertiesPainter::GetShadowDirtyRect(localShadowRect_, properties, nullptr, false);
+                RSPropertiesPainter::GetShadowDirtyRect(localShadowRect_, properties, nullptr, false, true);
             }
         }
     }
-    selfDrawRect_.JoinRect(localShadowRect_);
+    selfDrawRect_ = selfDrawRect_.JoinRect(localShadowRect_);
 }
 
 void RSRenderNode::CollectAndUpdateLocalOutlineRect()
@@ -1121,7 +1122,7 @@ void RSRenderNode::CollectAndUpdateLocalOutlineRect()
     if (dirtySlots_.find(RSDrawableSlot::OUTLINE) != dirtySlots_.end()) {
         RSPropertiesPainter::GetOutlineDirtyRect(localOutlineRect_, GetRenderProperties(), false);
     }
-    selfDrawRect_.JoinRect(localOutlineRect_);
+    selfDrawRect_ = selfDrawRect_.JoinRect(localOutlineRect_);
 }
 
 void RSRenderNode::CollectAndUpdateLocalPixelStretchRect()
@@ -1130,7 +1131,7 @@ void RSRenderNode::CollectAndUpdateLocalPixelStretchRect()
     if (dirtySlots_.find(RSDrawableSlot::PIXEL_STRETCH) != dirtySlots_.end()) {
         RSPropertiesPainter::GetPixelStretchDirtyRect(localPixelStretchRect_, GetRenderProperties(), false);
     }
-    selfDrawRect_.JoinRect(localPixelStretchRect_);
+    selfDrawRect_ = selfDrawRect_.JoinRect(localPixelStretchRect_);
 }
 
 void RSRenderNode::UpdateSelfDrawRect()
@@ -1139,7 +1140,7 @@ void RSRenderNode::UpdateSelfDrawRect()
     auto& properties = GetRenderProperties();
     selfDrawRect_ = properties.GetBoundsRect().ConvertTo<int>();
     if (auto drawRegion = properties.GetDrawRegion()) {
-        selfDrawRect_.JoinRect((*drawRegion).ConvertTo<int>());
+        selfDrawRect_ = selfDrawRect_.JoinRect((*drawRegion).ConvertTo<int>());
     }
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
@@ -1171,9 +1172,7 @@ bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geo
 
 void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect)
 {
-    if (!oldDirty_.IsEmpty()) {
-        dirtyManager.MergeDirtyRect(oldDirty_);
-    }
+    dirtyManager.MergeDirtyRect(oldDirty_);
     // easily merge oldDirty if switch to invisible
     if (!shouldPaint_ && isLastVisible_) {
         return;
@@ -1185,10 +1184,8 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std:
     lastFilterRegion_ = oldDirty_;
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
-    if (!dirtyRect.IsEmpty()) {
-        dirtyManager.MergeDirtyRect(dirtyRect);
-        isDirtyRegionUpdated_ = true;
-    }
+    dirtyManager.MergeDirtyRect(dirtyRect);
+    isDirtyRegionUpdated_ = true;
 }
 
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
@@ -2975,6 +2972,31 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 {
     childHasVisibleEffect_ = val;
     stagingRenderParams_->SetChildHasVisibleEffect(val);
+}
+const std::vector<NodeId>& RSRenderNode::GetVisibleFilterChild() const
+{
+    return visibleFilterChild_;
+}
+void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
+{
+    if (childNode.GetRenderProperties().NeedFilter()) {
+        visibleFilterChild_.emplace_back(childNode.GetId());
+    }
+    auto& childFilterNodes = childNode.GetVisibleFilterChild();
+    visibleFilterChild_.insert(visibleFilterChild_.end(),
+        childFilterNodes.begin(), childFilterNodes.end());
+}
+const std::unordered_set<NodeId>& RSRenderNode::GetVisibleEffectChild() const
+{
+    return visibleEffectChild_;
+}
+void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
+{
+    if (childNode.GetRenderProperties().GetUseEffect()) {
+        visibleEffectChild_.emplace(childNode.GetId());
+    }
+    auto& childEffectNodes = childNode.GetVisibleEffectChild();
+    visibleEffectChild_.insert(childEffectNodes.begin(), childEffectNodes.end());
 }
 NodeId RSRenderNode::GetInstanceRootNodeId() const
 {

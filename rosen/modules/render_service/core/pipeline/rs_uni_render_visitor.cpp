@@ -420,22 +420,33 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     // restore environment variables
 }
 
-void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node)
+void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool needMap)
 {
-    if (node.HasRemovedChild()) {
-        // [planning] merge removed child's rect instead
-        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
-        auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-        if (dirtyManager) {
-            dirtyManager->MergeDirtyRect(dirtyRect);
-            if (dirtyManager->IsTargetForDfx()) {
-                // since childRect includes multiple rects, defaultly marked as canvas_node
-                dirtyManager->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
-                    DirtyRegionType::REMOVE_CHILD_RECT, dirtyRect);
-            }
-        }
-        node.ResetHasRemovedChild();
+    if (!node.HasRemovedChild()) {
+        return;
     }
+    RectI dirtyRect = node.GetChildrenRect();
+    auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
+    if (dirtyManager == nullptr || dirtyRect.IsEmpty()) {
+        node.ResetHasRemovedChild();
+        return;
+    }
+
+    // [planning] merge removed child's rect instead
+    if (needMap && curSurfaceNode_) {
+        if (auto geoPtr = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()) {
+            dirtyRect = geoPtr->MapAbsRect(dirtyRect.ConvertTo<float>());
+        }
+    } else {
+        dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
+    }
+    dirtyManager->MergeDirtyRect(dirtyRect);
+    if (dirtyManager->IsTargetForDfx()) {
+        // since childRect includes multiple rects, defaultly marked as canvas_node
+        dirtyManager->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
+            DirtyRegionType::REMOVE_CHILD_RECT, dirtyRect);
+    }
+    node.ResetHasRemovedChild();
 }
 
 bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
@@ -1229,7 +1240,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
-        node.SubTreeSkipPrepare(*(node.GetDirtyManager()), dirtyFlag_);
+        node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_);
 
     node.SetGlobalAlpha(curAlpha_);
     PostPrepare(node);
@@ -1355,7 +1366,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     // 1. Recursively traverse child nodes
     bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
-        node.SubTreeSkipPrepare(*dirtyManager, dirtyFlag_);
+        node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_);
 
     PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
@@ -1385,7 +1396,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     bool IsSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
         ForcePrepareSubTree();
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
-        node.SubTreeSkipPrepare(*dirtyManager, dirtyFlag_);
+        node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_);
 
     PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
@@ -2065,9 +2076,11 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
     if (auto nodeParent = node.GetParent().lock()) {
         if (node.GetRenderProperties().NeedFilter() || node.ChildHasVisibleFilter()) {
             nodeParent->SetChildHasVisibleFilter(true);
+            nodeParent->UpdateVisibleFilterChild(node);
         }
-        if (node.GetRenderProperties().GetUseEffect()) {
+        if (node.GetRenderProperties().GetUseEffect() || node.ChildHasVisibleEffect()) {
             nodeParent->SetChildHasVisibleEffect(true);
+            nodeParent->UpdateVisibleEffectChild(node);
         }
     }
     node.MapAndUpdateChildrenRect();
@@ -2149,10 +2162,23 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
     }
 }
 
+RectI RSUniRenderVisitor::GetVisibleEffectDirty(RSRenderNode& node) const
+{
+    RectI childEffectRect = RectI();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    for (auto& nodeId : node.GetVisibleEffectChild()) {
+        if (auto& subnode = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+            childEffectRect = childEffectRect.JoinRect(subnode->GetOldDirtyInSurface());
+        }
+    }
+    return childEffectRect;
+}
+
 void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node)
 {
     auto curDirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-    auto globalFilterRect = node.GetOldDirtyInSurface();
+    auto globalFilterRect = node.IsInstanceOf<RSEffectRenderNode>() ?
+        GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
     bool isNodeAddedToTransparentCleanFilters = false;
     if (curSurfaceNode_) {
         bool isIntersect = curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
@@ -2502,7 +2528,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (RSSystemProperties::GetQuickPrepareEnabled()) {
         bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
         IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
-            node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, dirtyFlag_);
+            node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_);
         PostPrepare(node);
     } else {
         node.UpdateChildrenOutOfRectFlag(false);
