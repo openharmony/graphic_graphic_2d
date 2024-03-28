@@ -80,5 +80,11 @@ bool RSRenderParticleSystem::IsFinish(const std::vector<std::shared_ptr<RSRender
     return finish;
 }
 
+void RSRenderParticleSystem::UpdateEmitter(
+    const uint32_t& emitterIndex, const Vector2f& position, const Vector2f& emitSize, const int& emitRate)
+{
+    emitters_[emitterIndex]->UpdateEmitter(position, emitSize, emitRate);
+}
+
 } // namespace Rosen
 } // namespace OHOS

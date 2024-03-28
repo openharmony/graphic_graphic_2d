@@ -998,6 +998,13 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
     }
 }
 
+// Update Particle Emitter Position and Size
+void RSNode::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+{
+    SetProperty<RSEmitterUpdaterModifier, RSProperty<std::shared_ptr<EmitterUpdater>>>(
+        RSModifierType::PARTICLE_EMITTER_UPDATER, para);
+}
+
 // foreground
 void RSNode::SetForegroundColor(uint32_t colorValue)
 {

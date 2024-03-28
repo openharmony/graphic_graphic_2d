@@ -53,11 +53,17 @@ int32_t ParticleRenderParams::GetParticleCount() const
 
 int64_t ParticleRenderParams::GetLifeTimeStartValue() const
 {
+    if (emitterConfig_.lifeTime_.start_ > std::numeric_limits<uint64_t>::max() / NS_PER_MS) {
+        return std::numeric_limits<uint64_t>::max();
+    }
     return emitterConfig_.lifeTime_.start_ * NS_PER_MS;
 }
 
 int64_t ParticleRenderParams::GetLifeTimeEndValue() const
 {
+    if (emitterConfig_.lifeTime_.end_ > std::numeric_limits<uint64_t>::max() / NS_PER_MS) {
+        return std::numeric_limits<uint64_t>::max();
+    }
     return emitterConfig_.lifeTime_.end_ * NS_PER_MS;
 }
 

@@ -94,6 +94,8 @@ DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGRO
 
 DECLARE_NOANIMATABLE_MODIFIER(LinearGradientBlurPara, std::shared_ptr<RSLinearGradientBlurPara>, LINEAR_GRADIENT_BLUR_PARA, Foreground)
 
+DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::shared_ptr<EmitterUpdater>, PARTICLE_EMITTER_UPDATER, Foreground)
+
 DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, Appearance)
 
 DECLARE_ANIMATABLE_MODIFIER(ClipRRect, RRect, CLIP_RRECT, Replace, Appearance, MEDIUM)

@@ -108,18 +108,19 @@ enum class RSModifierType : int16_t {
     ILLUMINATED_BORDER_WIDTH,      // 81
     ILLUMINATED_TYPE,              // 82
     BLOOM,                         // 83
-    DYNAMIC_DIM_DEGREE,            // 84
-    CUSTOM,                        // 85
-    EXTENDED,                      // 86
-    TRANSITION,                    // 87
-    BACKGROUND_STYLE,              // 88
-    CONTENT_STYLE,                 // 89
-    FOREGROUND_STYLE,              // 90
-    OVERLAY_STYLE,                 // 91
-    NODE_MODIFIER,                 // 92
-    ENV_FOREGROUND_COLOR,          // 93
-    ENV_FOREGROUND_COLOR_STRATEGY, // 94
-    GEOMETRYTRANS,                 // 95
+    PARTICLE_EMITTER_UPDATER,      // 84
+    DYNAMIC_DIM_DEGREE,            // 85
+    CUSTOM,                        // 86
+    EXTENDED,                      // 87
+    TRANSITION,                    // 88
+    BACKGROUND_STYLE,              // 89
+    CONTENT_STYLE,                 // 90
+    FOREGROUND_STYLE,              // 91
+    OVERLAY_STYLE,                 // 92
+    NODE_MODIFIER,                 // 93
+    ENV_FOREGROUND_COLOR,          // 94
+    ENV_FOREGROUND_COLOR_STRATEGY, // 95
+    GEOMETRYTRANS,                 // 96
     MAX_RS_MODIFIER_TYPE,
 };
 

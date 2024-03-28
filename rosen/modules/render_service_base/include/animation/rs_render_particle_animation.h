@@ -44,6 +44,11 @@ public:
         return renderParticleVector_;
     }
     bool Animate(int64_t time) override;
+    void UpdateEmitter(const std::shared_ptr<EmitterUpdater>& emitterUpdater);
+    const std::shared_ptr<RSRenderParticleSystem>& GetParticleSystem()
+    {
+        return particleSystem_;
+    }
 
 protected:
     void OnAttach() override;
