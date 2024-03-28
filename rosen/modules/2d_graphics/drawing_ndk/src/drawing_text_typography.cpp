@@ -3019,6 +3019,8 @@ void OH_Drawing_TypographyStyleDestroyStrutStyle(OH_Drawing_StrutStyle* strutsty
         return;
     }
     if (strutstyle->familiesSize == 0 || strutstyle->families == nullptr) {
+        delete strutstyle;
+        strutstyle = nullptr;
         return;
     }
     for (size_t i = 0; i < strutstyle->familiesSize; i++) {
