@@ -31,7 +31,6 @@ typedef struct {
     int32_t format;       /**< the format of memory */
     uint64_t usage;        /**< the usage of memory */
     void *virAddr;        /**< Virtual address of memory  */
-    int32_t key;          /**< Shared memory key */
     uint64_t phyAddr;     /**< Physical address */
     uint32_t reserveFds;  /**< the number of reserved fd value */
     uint32_t reserveInts; /**< the number of reserved integer value */

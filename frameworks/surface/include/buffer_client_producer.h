@@ -82,6 +82,9 @@ public:
     GSError GetTransform(GraphicTransformType &transform) override;
     GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) override;
     GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) override;
+
+    GSError GetTransformHint(GraphicTransformType &transformHint) override;
+    GSError SetTransformHint(GraphicTransformType transformHint) override;
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";

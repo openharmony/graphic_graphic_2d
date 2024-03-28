@@ -154,6 +154,9 @@ public:
     GSError AttachBufferToQueue(sptr<SurfaceBuffer> &buffer, InvokerType invokerType);
     GSError DetachBufferFromQueue(sptr<SurfaceBuffer> &buffer, InvokerType invokerType);
 
+    GSError SetTransformHint(GraphicTransformType transformHint);
+    GraphicTransformType GetTransformHint() const;
+
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
     void DeleteBufferInCache(uint32_t sequence);
@@ -213,6 +216,7 @@ private:
     sptr<SyncFence> lastFlusedFence_;
     wptr<ConsumerSurfaceDelegator> wpCSurfaceDelegator_;
     bool isCpuAccessable_ = false;
+    GraphicTransformType transformHint_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 };
 }; // namespace OHOS
 
