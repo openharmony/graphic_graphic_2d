@@ -182,13 +182,13 @@ OH_Drawing_Typeface* OH_Drawing_FontStyleSetCreateTypeface(OH_Drawing_FontStyleS
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontStyleSet Indicates the pointer to an <b>OH_Drawing_FontStyleSet</b> object.
  * @param index Indicates the index of the typeface in this fontStyleSet.
- * @param fontStyleStruct Indicates <b>OH_Drawing_FontStyleStruct</b> object returned.
  * @param styleName Indicates the style name returned.
+ * @return Return the <b>OH_Drawing_FontStyleStruct<b> structure.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet*, int32_t index,
-    OH_Drawing_FontStyleStruct* fontStyleStruct, char** styleName);
+OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet*, int32_t index,
+    char** styleName);
 
  /**
  * @brief Releases the memory  styleName string.
@@ -205,13 +205,13 @@ void OH_Drawing_FontStyleSetFreeStyleName(char** styleName);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontStyleSet Indicates the pointer to an <b>OH_Drawing_FontStyleSet</b> object.
- * @param fontStyleStruct Indicates the <b>OH_Drawing_FontStyleStruct</b> object.
+ * @param fontStyleStruct Indicates the <b>OH_Drawing_FontStyleStruct</b> structure.
  * @return A pointer to matched <b>OH_Drawing_Typeface</b>.
  * @since 12
  * @version 1.0
  */
 OH_Drawing_Typeface* OH_Drawing_FontStyleSetMatchStyle(OH_Drawing_FontStyleSet*,
-    OH_Drawing_FontStyleStruct* fontStyleStruct);
+    OH_Drawing_FontStyleStruct fontStyleStruct);
 
 /**
  * @brief Get the count of typeface.

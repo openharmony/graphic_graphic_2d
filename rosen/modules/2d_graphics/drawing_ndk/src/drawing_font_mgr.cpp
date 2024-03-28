@@ -209,15 +209,13 @@ OH_Drawing_Typeface* OH_Drawing_FontStyleSetCreateTypeface(OH_Drawing_FontStyleS
     return reinterpret_cast<OH_Drawing_Typeface*>(drawingTypeface);
 }
 
-void OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet* fontStyleSet, int32_t index,
-    OH_Drawing_FontStyleStruct* fontStyleStruct, char** styleName)
+OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet* fontStyleSet, int32_t index,
+    char** styleName)
 {
-    if (fontStyleStruct == nullptr) {
-        return;
-    }
+    OH_Drawing_FontStyleStruct fontStyleStruct;
     FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
     if (converFontStyleSet == nullptr) {
-        return;
+        return fontStyleStruct;
     }
     FontStyle tempFontStyle;
     std::string tempStringPtr;
@@ -228,15 +226,15 @@ void OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet* fontStyleSet, int3
         auto retCopy = strcpy_s(allocatedMemoryForStyleName, len, tempStringPtr.c_str());
         if (retCopy != 0) {
             delete[] allocatedMemoryForStyleName;
-            return;
+            return fontStyleStruct;
         }
     } else {
-        return;
+        return fontStyleStruct;
     }
     *styleName = allocatedMemoryForStyleName;
-    fontStyleStruct->weight = static_cast<OH_Drawing_FontStyleWeight>(tempFontStyle.GetWeight());
-    fontStyleStruct->width = static_cast<OH_Drawing_FontStyleWidth>(tempFontStyle.GetWidth());
-    fontStyleStruct->slant = static_cast<OH_Drawing_FontStyleSlant>(tempFontStyle.GetSlant());
+    fontStyleStruct.weight = static_cast<OH_Drawing_FontWeight>(tempFontStyle.GetWeight());
+    fontStyleStruct.width = static_cast<OH_Drawing_FontWidth>(tempFontStyle.GetWidth());
+    fontStyleStruct.slant = static_cast<OH_Drawing_FontStyle>(tempFontStyle.GetSlant());
 }
 
 void OH_Drawing_FontStyleSetFreeStyleName(char** styleName)
@@ -249,11 +247,8 @@ void OH_Drawing_FontStyleSetFreeStyleName(char** styleName)
 }
 
 OH_Drawing_Typeface* OH_Drawing_FontStyleSetMatchStyle(OH_Drawing_FontStyleSet* fontStyleSet,
-    OH_Drawing_FontStyleStruct* fontStyleStruct)
+    OH_Drawing_FontStyleStruct fontStyleStruct)
 {
-    if (fontStyleStruct == nullptr) {
-        return nullptr;
-    }
     FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
     if (converFontStyleSet == nullptr) {
         return nullptr;
