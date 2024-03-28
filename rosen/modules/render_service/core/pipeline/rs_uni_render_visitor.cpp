@@ -1183,7 +1183,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     UpdateSurfaceDirtyAndGlobalDirty();
     SurfaceOcclusionCallbackToWMS();
     curDisplayNode_->UpdatePartialRenderParams();
-    curDisplayNode_->UpdateScreenRenderParams(screenInfo_);
+    curDisplayNode_->UpdateScreenRenderParams(screenInfo_, displayHasSecSurface_, displayHasSkipSurface_,
+        hasCaptureWindow_);
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
 }
@@ -1417,6 +1418,9 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
 {
     // 1 init curDisplay and curDisplayDirtyManager
     currentVisitDisplay_ = node.GetScreenId();
+    displayHasSecSurface_.emplace(currentVisitDisplay_, false);
+    displayHasSkipSurface_.emplace(currentVisitDisplay_, false);
+    hasCaptureWindow_.emplace(currentVisitDisplay_, false);
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
     if (!curDisplayDirtyManager_ || !curDisplayNode_) {
@@ -1478,6 +1482,13 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
 bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
 {
     // 1. init and record surface info
+    if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
+        hasCaptureWindow_[currentVisitDisplay_] = true;
+    }
+    // only need collect first level node's security & skip layer info
+    if (node.GetId() == node.GetFirstLevelNodeId()) {
+        UpdateSecurityAndSkipLayerRecord(node);
+    }
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         curSurfaceDirtyManager_ = node.GetDirtyManager();

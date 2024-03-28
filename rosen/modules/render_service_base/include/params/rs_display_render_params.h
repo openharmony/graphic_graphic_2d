@@ -50,7 +50,7 @@ public:
     {
         return mirroredId_;
     }
-    const ScreenInfo& GetrScreenInfo() const
+    const ScreenInfo& GetScreenInfo() const
     {
         return screenInfo_;
     }
@@ -70,13 +70,17 @@ public:
     {
         return nodeRotation_;
     }
-    bool GetDisplayHasSecSurface() const
+    std::map<ScreenId, bool>& GetDisplayHasSecSurface() const
     {
         return displayHasSecSurface_;
     }
-    bool GetDisplayHasSkipSurface() const
+    std::map<ScreenId, bool>& GetDisplayHasSkipSurface() const
     {
         return displayHasSkipSurface_;
+    }
+    std::map<ScreenId, bool>& GethasCaptureWindow() const
+    {
+        return hasCaptureWindow_;
     }
     std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledNodes()
     {
@@ -90,6 +94,9 @@ public:
     std::string ToString() const override;
 
 private:
+    std::map<ScreenId, bool> displayHasSecSurface_;
+    std::map<ScreenId, bool> displayHasSkipSurface_;
+    std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     int32_t offsetX_ = -1;
     int32_t offsetY_ = -1;

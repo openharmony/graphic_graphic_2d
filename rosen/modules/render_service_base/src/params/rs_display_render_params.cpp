@@ -38,6 +38,9 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         return;
     }
     targetDisplayParams->SetAllMainAndLeashSurfaces(allMainAndLeashSurfaces_);
+    targetDisplayParams->displayHasSecSurface_ = displayHasSecSurface_;
+    targetDisplayParams->displayHasSkipSurface_ = displayHasSkipSurface_;
+    targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;
     targetDisplayParams->offsetX_ = offsetX_;
     targetDisplayParams->offsetY_ = offsetY_;
     targetDisplayParams->nodeRotation_ = nodeRotation_;
