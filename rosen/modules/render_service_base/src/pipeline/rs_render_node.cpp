@@ -2111,6 +2111,12 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
     } else {
         cacheSurface_ = nullptr;
     }
+#ifdef RS_ENABLE_VK
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        cacheCleanupHelper_ = nullptr;
+    }
+#endif
     auto cacheType = GetCacheType();
     float width = 0.0f, height = 0.0f;
     Vector2f size = GetOptionalBufferSize();
@@ -2390,6 +2396,12 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         if (releaseAfterGet) {
+#ifdef RS_ENABLE_VK
+            if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+                OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+                cacheCompletedCleanupHelper_ = nullptr;
+            }
+#endif
             return std::move(cacheCompletedSurface_);
         }
         if (!needCheckThread || completedSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
@@ -2417,6 +2429,12 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCacheSurface(uint32_t threadI
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         if (releaseAfterGet) {
+#ifdef RS_ENABLE_VK
+            if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+                OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+                cacheCleanupHelper_ = nullptr;
+            }
+#endif
             return std::move(cacheSurface_);
         }
         if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
