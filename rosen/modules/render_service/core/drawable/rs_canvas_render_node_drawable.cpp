@@ -55,7 +55,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
         QuickReject(canvas, params->GetLocalDrawRect())) {
-        RS_LOGD("CanvasNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
         return;
     }
 
@@ -78,10 +77,12 @@ void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-    bool quickRejected = canvas.QuickReject(params->GetBounds());
-    if (quickRejected) {
-        RS_LOGD("this drawable has quickRejected");
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
+        QuickReject(canvas, params->GetLocalDrawRect())) {
+        return;
     }
+
     RSRenderNodeDrawable::DrawShadow(canvas);
 }
 
@@ -100,10 +101,12 @@ void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-    bool quickRejected = canvas.QuickReject(params->GetBounds());
-    if (quickRejected) {
-        RS_LOGD("this drawable has quickRejected");
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
+        QuickReject(canvas, params->GetLocalDrawRect())) {
+        return;
     }
+
     RSRenderNodeDrawable::DrawWithoutShadow(canvas);
 }
 
