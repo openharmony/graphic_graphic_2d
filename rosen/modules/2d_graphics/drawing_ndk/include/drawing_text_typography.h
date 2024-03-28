@@ -464,15 +464,15 @@ typedef enum {
  */
 enum OH_Drawing_FontConfigInfoErrorCode {
     /** The list of system font configuration information was successfully obtained */
-    OK = 0,
+    SUCCESS = 0,
     /** Unknown error */
-    UNKNOWN_ERROR = 1,
+    ERROR_UNKNOWN = 1,
     /** Parse system config file error */
-    PARSE_FILE_ERROR = 2,
+    ERROR_PARSE_FILE = 2,
     /** Alloc memory error */
-    ALLOC_MEMORY_ERROR = 3,
+    ERROR_ALLOC_MEMORY = 3,
     /** Copy string data error */
-    COPY_STRING_DATA_ERROR = 4,
+    ERROR_COPY_STRING_DATA = 4,
 };
 
 /**
