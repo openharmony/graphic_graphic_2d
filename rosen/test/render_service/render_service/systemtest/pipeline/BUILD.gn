@@ -101,7 +101,7 @@ if (graphic_2d_feature_rs_enable_uni_render) {
     module_out_path = module_output_path
     sources = [ "rs_uni_render_test.cpp" ]
     deps = [ ":rs_test_common" ]
-    external_deps = []
+    external_deps = [ "sensor:sensor_interface_native" ]
     defines = []
     defines += gpu_defines
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
