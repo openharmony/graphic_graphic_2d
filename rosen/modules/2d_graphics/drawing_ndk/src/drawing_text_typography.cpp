@@ -2342,7 +2342,7 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle* style)
     return result;
 }
 
-void OH_Drawing_TypographyStyleDestroyEllipsis(char* ellipsis)
+void OH_Drawing_TypographyDestroyEllipsis(char* ellipsis)
 {
     if (ellipsis == nullptr) {
         return;

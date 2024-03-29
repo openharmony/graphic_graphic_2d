@@ -2406,7 +2406,7 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TypographyStyleDestroyEllipsis(char* ellipsis);
+void OH_Drawing_TypographyDestroyEllipsis(char* ellipsis);
 
 /**
  * @brief Overriding the class ParagraphStyle equals operator.
