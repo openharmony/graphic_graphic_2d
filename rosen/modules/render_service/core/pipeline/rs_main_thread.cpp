@@ -2879,6 +2879,7 @@ SystemAnimatedScenes RSMainThread::GetSystemAnimatedScenes()
 
 bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot)
 {
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
     if (context_->activeNodesInRoot_.empty() || nodeId == INVALID_NODEID) {
         return false;
     }
@@ -2888,13 +2889,13 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
         return std::any_of(context_->activeNodesInRoot_.begin(), context_->activeNodesInRoot_.end(),
             [pid](const auto& iter) { return ExtractPid(iter.first) == pid; });
     } else {
-        std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
         return context_->activeNodesInRoot_.count(nodeId);
     }
 }
 
 bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
 {
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
     auto iter = context_->activeNodesInRoot_.find(cacheRootNode.GetInstanceRootNodeId());
     if (iter != context_->activeNodesInRoot_.end()) {
         const auto& activeNodeIds = iter->second;
@@ -2921,6 +2922,7 @@ void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSS
         RS_LOGE("CheckAndUpdateInstanceContentStaticStatus instanceNode invalid.");
         return ;
     }
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
     auto iter = context_->activeNodesInRoot_.find(instanceNode->GetId());
     if (iter != context_->activeNodesInRoot_.end()) {
         instanceNode->UpdateSurfaceCacheContentStatic(iter->second);
