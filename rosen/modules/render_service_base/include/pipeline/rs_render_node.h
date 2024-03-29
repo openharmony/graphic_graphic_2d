@@ -512,14 +512,42 @@ public:
 
     void MarkParentNeedRegenerateChildren() const;
 
+    void ResetChildUifirstSupportFlag()
+    {
+        isChildSupportUifirst_ = true;
+    }
+
+    void UpdateChildUifirstSupportFlag(bool b)
+    {
+        isChildSupportUifirst_ = isChildSupportUifirst_ && b;
+    }
+
+    virtual bool GetUifirstSupportFlag()
+    {
+        return isChildSupportUifirst_;
+    }
+
+    virtual void MergeOldDirtyRect()
+    {
+        return;
+    }
+
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
 
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
+
+    const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const;
 
     void UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     void SetNeedSyncFlag(bool needSync);
     void UpdatePointLightDirtySlot();
+    void SetUifirstSyncFlag(bool needSync);
+    void SetUifirstSkipPartialSync(bool skip)
+    {
+        uifirstSkipPartialSync_ = skip;
+    }
+
     void Sync()
     {
         OnSync();
@@ -558,6 +586,7 @@ protected:
 
     std::unique_ptr<RSRenderParams> renderParams_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
+    std::unique_ptr<RSRenderParams> uifirstRenderParams_;
 
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
@@ -583,6 +612,7 @@ protected:
     {
         renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
     }
+    bool isChildSupportUifirst_ = true;
 
 private:
     NodeId id_;
@@ -762,6 +792,10 @@ private:
     };
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
+    bool uifirstNeedSync_ = false; // both cmdlist&param
+    bool uifirstSkipPartialSync_ = false;
+    DrawCmdIndex uifirstDrawCmdIndex_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     DrawCmdIndex drawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
     DrawCmdIndex stagingDrawCmdIndex_;

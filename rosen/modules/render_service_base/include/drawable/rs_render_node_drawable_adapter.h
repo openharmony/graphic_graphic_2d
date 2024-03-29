@@ -50,11 +50,13 @@ public:
     virtual void OnDraw(Drawing::Canvas& canvas) = 0;
     virtual void OnCapture(Drawing::Canvas& canvas) = 0;
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
+    static SharedPtr GetDrawableById(NodeId id);
     virtual void DumpDrawableTree(int32_t depth, std::string& out) const = 0;
 
 protected:
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
     static std::unordered_map<RSRenderNodeType, Generator> GeneratorMap;
+    static std::unordered_map<NodeId, WeakPtr> RenderNodeDrawableCache;
 
     std::shared_ptr<const RSRenderNode> renderNode_;
 

@@ -17,7 +17,7 @@
 
 #include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
-RSDisplayRenderParams::RSDisplayRenderParams() {}
+RSDisplayRenderParams::RSDisplayRenderParams(NodeId id) : RSRenderParams(id) {}
 
 std::vector<RSBaseRenderNode::SharedPtr>& RSDisplayRenderParams::GetAllMainAndLeashSurfaces()
 {

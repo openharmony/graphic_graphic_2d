@@ -29,7 +29,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 #ifdef RS_PARALLEL
-#include "pipeline/rs_uifisrt_manager.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #endif
@@ -161,7 +161,9 @@ void RSSubThread::DestroyShareEglContext()
 
 void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask)
 {
+    RS_TRACE_NAME("RSSubThread::RenderCache");
     if (threadTask == nullptr || threadTask->GetTaskSize() == 0) {
+        RS_LOGE("RSSubThread::RenderCache threadTask == nullptr %p || threadTask->GetTaskSize() == 0 %d",threadTask.get(), int(threadTask->GetTaskSize()));
         return;
     }
     if (grContext_ == nullptr) {
@@ -251,7 +253,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         }
     }
 
-    auto& param = nodeDrawable->getRenderNode()->GetRenderParams();
+    auto& param = nodeDrawable->GetRenderNode()->GetRenderParams();
     if (!param) {
         return;
     }
@@ -277,11 +279,9 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         RS_LOGE("RSSubThread::DrawableCache canvas is nullptr");
         return;
     }
+    rscanvas->SetIsParallelCanvas(true);
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    // uifirst_debug color
-    auto debugColor = Drawing::Color(128, 0, 0, 50);
-    rscanvas->DrawColor(debugColor.CastToColorQuad());
     if (cacheSurface) {
         RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
         cacheSurface->FlushAndSubmit(true);
@@ -299,7 +299,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     RSMainThread::Instance()->RequestNextVSync();
 
     // mark nodedrawable can release
-    RSUifirstManager::Instance().UnrefChildrenDrawable(param->GetId());
+    RSUifirstManager::Instance().AddProcessDoneNode(param->GetId());
     doingCacheProcessNum--;
 
     // uifirst_debug dump img

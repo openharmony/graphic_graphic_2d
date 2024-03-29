@@ -29,6 +29,11 @@
 #include "src/core/SkCanvasPriv.h"
 
 namespace OHOS::Rosen::DrawableV2 {
+#ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSurface.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 
 namespace {
@@ -101,6 +106,19 @@ void RSRenderNodeDrawable::DrawChildren(Drawing::Canvas& canvas, const Drawing::
         return;
     }
     renderNode_->drawCmdList_[index](&canvas, &rect);
+}
+
+void RSRenderNodeDrawable::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    const auto& drawCmdList_ = renderNode_->uifirstDrawCmdList_;
+    auto contentIdx = renderNode_->uifirstDrawCmdIndex_.contentIndex_;
+    auto childrenIdx = renderNode_->uifirstDrawCmdIndex_.childrenIndex_;
+    if (contentIdx != -1) {
+        drawCmdList_[contentIdx](&canvas, &rect);
+    }
+    if (childrenIdx != -1) {
+        drawCmdList_[childrenIdx](&canvas, &rect);
+    }
 }
 
 void RSRenderNodeDrawable::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
@@ -264,7 +282,9 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (drawBlurForCache_ && !params.ChildHasVisibleFilter() && !params.ChildHasVisibleEffect()) {
+    auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (drawBlurForCache_ && !params.ChildHasVisibleFilter() && !params.ChildHasVisibleEffect() &&
+        !curCanvas->GetIsParallelCanvas()) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", renderNode_->GetId());
         Drawing::AutoCanvasRestore arc(canvas, true);
         DrawBackground(canvas, params.GetBounds());
@@ -272,7 +292,6 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 
     // RSPaintFilterCanvas::CacheType::OFFSCREEN case
-    auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         if (HasFilterOrEffect()) {
             // clip hole for filter/shadow

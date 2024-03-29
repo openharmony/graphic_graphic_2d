@@ -49,7 +49,7 @@ struct RSLayerInfo {
 };
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
-    explicit RSSurfaceRenderParams();
+    explicit RSSurfaceRenderParams(NodeId id);
     virtual ~RSSurfaceRenderParams() = default;
     bool IsMainWindowType() const
     {
@@ -101,6 +101,45 @@ public:
         return rrect_;
     }
 
+    void SetNeedSubmitSubThread(bool needSubmitSubThread)
+    {
+        processed = false;
+        needSubmitSubThread_ = needSubmitSubThread;
+    }
+
+    bool GetNeedSubmitSubThread()
+    {
+        return needSubmitSubThread_;
+    }
+    bool processed = false;
+
+    void SetUifirstNodeEnableParam(bool isUifirst)
+    {
+        if (uiFirstFlag_ == isUifirst) {
+            return;
+        }
+        uiFirstFlag_ = isUifirst;
+        needSync_ = true;
+    }
+
+    bool GetUifirstNodeEnableParam()
+    {
+        return uiFirstFlag_;
+    }
+
+    void SetIsParentUifirstNodeEnableParam(bool isUifirstParent)
+    {
+        if (uiFirstParentFlag_ == isUifirstParent) {
+            return;
+        }
+        uiFirstParentFlag_ = isUifirstParent;
+        needSync_ = true;
+    }
+
+    bool GetParentUifirstNodeEnableParam()
+    {
+        return uiFirstParentFlag_;
+    }
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const;
 
@@ -146,6 +185,10 @@ private:
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool needBilinearInterpolation_ = false;
+    bool needSubmitSubThread_ = false; // UI First
+    bool isMainThreadNode_ = false; //UI First
+    bool uiFirstFlag_ = false;
+    bool uiFirstParentFlag_ = false;
     Gravity frameGravity_ = Gravity::CENTER;
     Color backgroundColor_ = RgbPalette::Transparent();
 

@@ -26,6 +26,7 @@
 #include "scene_board_judgement.h"
 
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
@@ -364,6 +365,7 @@ Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& d
 bool RSUniRenderUtil::HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     if (node.IsMainThreadNode()) {
+        RS_LOGE("RSUniRenderUtil::HandleSubThreadNode node.IsMainThreadNode()");
         return false;
     } else if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
         !node.QueryIfAllHwcChildrenForceDisabledByFilter()) {
@@ -483,14 +485,12 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
     if (isPhoneType && node->IsLeashWindow()) {
         isNeedAssignToSubThread = (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) ||
             node->GetForceUIFirst()) && !node->HasFilter();
-        RS_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
-            " status:%d filter:%d isScale:%d forceUIFirst:%d isNeedAssign:%d",
-            node->GetName().c_str(), node->GetId(), node->GetCacheSurfaceProcessedStatus(),
-            node->HasFilter(), node->IsScale(), node->GetForceUIFirst(), isNeedAssignToSubThread);
     }
     std::string surfaceName = node->GetName();
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
         surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
+    RS_LOGE("RSUniRenderUtil::IsNodeAssignSubThread %s", surfaceName.c_str());
+
     if (needFilterSCB || node->IsSelfDrawingType()) {
         return false;
     }
@@ -524,13 +524,13 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
     } else {
         curAllSurfaces = *displayNode->GetSortedChildren();
     }
+   
     for (auto iter = curAllSurfaces.begin(); iter != curAllSurfaces.end(); iter++) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
         if (node == nullptr) {
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }
-
         // release color picker resource when thread-switching between RS and subthread
         bool lastIsNeedAssignToSubThread = node->GetLastIsNeedAssignToSubThread();
         bool isNodeAssignSubThread = IsNodeAssignSubThread(node, isRotation);
@@ -558,6 +558,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
     mainThreadNodes.emplace_back(node);
     bool changeThread = !node->IsMainThreadNode();
     node->SetIsMainThreadNode(true);
+    node->SetNeedSubmitSubThread(false);
     node->SetCacheType(CacheType::NONE);
     HandleHardwareNode(node);
     if (changeThread) {
@@ -567,6 +568,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
         node->SetIsMainThreadNode(true);
         node->SetTextureValidFlag(false);
     }
+
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
         RS_TRACE_NAME_FMT("AssignMainThread: name: %s, id: %lu, [HasTransparentSurface: %d, ChildHasVisibleFilter: %d,"
             "HasFilter: %d, HasAbilityComponent: %d, QueryIfAllHwcChildrenForceDisabledByFilter: %d]",

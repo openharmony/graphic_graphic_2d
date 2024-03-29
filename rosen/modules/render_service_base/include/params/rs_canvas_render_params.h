@@ -21,7 +21,7 @@
 namespace OHOS::Rosen {
 class RSCanvasRenderParams : public RSRenderParams {
 public:
-    explicit RSCanvasRenderParams();
+    explicit RSCanvasRenderParams(NodeId id);
     virtual ~RSCanvasRenderParams() = default;
 
 private:

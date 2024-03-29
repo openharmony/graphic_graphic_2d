@@ -288,10 +288,7 @@ public:
         return isNeedSubmitSubThread_;
     }
 
-    void SetNeedSubmitSubThread(bool needSubmitSubThread)
-    {
-        isNeedSubmitSubThread_ = needSubmitSubThread;
-    }
+    void SetNeedSubmitSubThread(bool needSubmitSubThread);
 
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
@@ -767,7 +764,6 @@ public:
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
     void SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
-
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
     // if surfacenode's buffer has been consumed, it should be set dirty
@@ -914,6 +910,18 @@ public:
 
     bool IsUIFirstCacheReusable(DeviceType deviceType);
 
+    bool GetUifirstSupportFlag() override
+    {
+        return !IsSelfDrawingType() && isChildSupportUifirst_;
+    }
+
+    void MergeOldDirtyRect() override
+    {
+        if (IsAppWindow()) {
+            this->GetDirtyManager()->MergeDirtyRect(this->GetOldDirtyInSurface());
+        }
+    }
+
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
     void SetSurfaceTexture(const std::shared_ptr<RSSurfaceTexture> &texture) { surfaceTexture_ = texture; }
@@ -945,6 +953,20 @@ public:
         ancestorDisplayNode_ = ancestorDisplayNode;
     }
 
+    void SetUifirstNodeEnableParam(bool b);
+
+    void SetIsParentUifirstNodeEnableParam(bool b);
+    
+    bool GetLastFrameUifirstFlag()
+    {
+        return lastFrameUifirstFlag_;
+    }
+
+    void SetLastFrameUifirstFlag(bool b)
+    {
+        lastFrameUifirstFlag_ = b;
+    }
+
     RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
@@ -964,6 +986,7 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
+
 protected:
     void OnSync() override;
 private:
@@ -1180,9 +1203,10 @@ private:
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
-    bool hasTransparentSurface_ = false;
-    bool forceUIFirst_ = false;
     bool forceUIFirstChanged_ = false;
+    bool forceUIFirst_ = false;
+    bool hasTransparentSurface_ = false;
+    bool lastFrameUifirstFlag_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

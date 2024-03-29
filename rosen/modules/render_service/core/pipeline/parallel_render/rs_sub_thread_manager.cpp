@@ -15,6 +15,7 @@
 
 #include "rs_sub_thread_manager.h"
 #include <chrono>
+#include "rs_trace.h"
 
 #include "common/rs_singleton.h"
 #include "common/rs_optional_trace.h"
@@ -168,19 +169,23 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
     auto cacheSkippedNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
     for (const auto& child : subThreadNodes) {
         if (!child) {
+            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask !child");
             continue;
         }
         if (!child->ShouldPaint()) {
             RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
+            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask child->ShouldPaint()");
             continue;
         }
         if (!child->GetNeedSubmitSubThread()) {
             RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", child->GetName().c_str());
+            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask !child->GetNeedSubmitSubThread()");
             continue;
         }
         if (cacheSkippedNodeMap.count(child->GetId()) != 0 && child->HasCachedTexture()) {
             RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask cacheCmdSkippedNode: [%s, %llu]",
                 child->GetName().c_str(), child->GetId());
+            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask cacheSkippedNodeMap.count(child->GetId()) != 0 && child->HasCachedTexture()");
             continue;
         }
         nodeTaskState_[child->GetId()] = 1;
@@ -247,6 +252,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
 
 void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)
 {
+    RS_TRACE_NAME_FMT("SSubThreadManager::WaitNodeTask for node %d", nodeId);
     std::unique_lock<std::mutex> lock(parallelRenderMutex_);
     cvParallelRender_.wait_for(lock, std::chrono::milliseconds(WAIT_NODE_TASK_TIMEOUT), [&]() {
         return !nodeTaskState_[nodeId];
@@ -274,6 +280,7 @@ void RSSubThreadManager::ResetSubThreadGrContext()
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
         auto subThread = threadList_[i];
         subThread->PostTask([subThread]() {
+            RS_TRACE_NAME("sub_clear_res");
             subThread->ResetGrContext();
         }, RELEASE_RESOURCE);
     }
@@ -367,5 +374,41 @@ std::vector<MemoryGraphic> RSSubThreadManager::CountSubMem(int pid)
 std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() const
 {
     return reThreadIndexMap_;
+}
+
+void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
+{
+    if (!nodeDrawable) {
+        return;
+    }
+    auto& param = nodeDrawable->GetRenderNode()->GetRenderParams();
+    if (!param) {
+        return;
+    }
+
+    auto minDoingCacheProcessNum = threadList_[0]->GetDoingCacheProcessNum();
+    minLoadThreadIndex_ = 0;
+    for (unsigned int j = 1; j < SUB_THREAD_NUM; j++)
+    {
+        if (minDoingCacheProcessNum > threadList_[j]->GetDoingCacheProcessNum())
+        {
+            minDoingCacheProcessNum = threadList_[j]->GetDoingCacheProcessNum();
+            minLoadThreadIndex_ = j;
+        }
+    }
+    auto nowIdx = minLoadThreadIndex_;
+    if (threadIndexMap_.count(nodeDrawable->GetLastFrameUsedThreadIndex()) != 0)
+    {
+        nowIdx = threadIndexMap_[nodeDrawable->GetLastFrameUsedThreadIndex()];
+    }
+
+    auto subThread = threadList_[nowIdx];
+    auto tid = reThreadIndexMap_[nowIdx];
+    nodeTaskState_[param->GetId()] = 1;
+    subThread->PostTask([subThread, nodeDrawable, tid]() {
+        nodeDrawable->SetLastFrameUsedThreadIndex(tid);
+        subThread->DrawableCache(nodeDrawable);
+    });
+    needResetContext_ = true;    
 }
 }

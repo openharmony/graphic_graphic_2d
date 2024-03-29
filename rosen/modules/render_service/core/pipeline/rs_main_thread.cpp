@@ -69,6 +69,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/sk_resource_manager.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -683,7 +684,7 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     cacheCmdSkippedNodes_.clear();
     if (subThreadNodes_.empty() &&
         (deviceType_ == DeviceType::PHONE || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
-        RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+        // RSSubThreadManager::Instance()->ResetSubThreadGrContext(); // TODO: move to prepare
         return false;
     }
     for (auto& node : subThreadNodes_) {
@@ -1494,7 +1495,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
-        if (IsUIFirstOn()) {
+        if (false) { // TODO: move to prepare
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
                 rootNode->GetFirstChild());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
@@ -1502,7 +1503,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderUtil::AssignWindowNodes(displayNode, mainThreadNodes, subThreadNodes);
             const auto& nodeMap = context_->GetNodeMap();
             RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_, deviceType_);
+#ifndef RS_PARALLEL
             uniVisitor->DrawSurfaceLayer(displayNode, subThreadNodes);
+#endif
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
         // set params used in render thread
@@ -2942,14 +2945,17 @@ void RSMainThread::UpdateUIFirstSwitch()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
+        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
     auto firstChildren = rootNode->GetFirstChild();
     if (!firstChildren) {
+        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
     auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
     if (!displayNode) {
+        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
     auto screenManager_ = CreateOrGetScreenManager();
@@ -2960,6 +2966,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         } else {
             isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
         }
+        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
     isUiFirstOn_ = false;
@@ -2968,6 +2975,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
         isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
     }
+    RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
 }
 
 bool RSMainThread::IsUIFirstOn() const

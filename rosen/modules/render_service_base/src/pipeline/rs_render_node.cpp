@@ -1091,6 +1091,11 @@ const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
     return renderParams_;
 }
 
+const std::unique_ptr<RSRenderParams>& RSRenderNode::GetUifirstRenderParams() const
+{
+    return uifirstRenderParams_;
+}
+
 void RSRenderNode::CollectAndUpdateLocalShadowRect()
 {
     // update shadow if shadow changes
@@ -1627,6 +1632,12 @@ void RSRenderNode::UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList
 void RSRenderNode::SetNeedSyncFlag(bool needSync)
 {
     drawCmdListNeedSync_ = needSync;
+}
+
+
+void RSRenderNode::SetUifirstSyncFlag(bool needSync)
+{
+    uifirstNeedSync_ = needSync;
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
@@ -3014,7 +3025,7 @@ void RSRenderNode::SetStaticCached(bool isStaticCached)
 }
 bool RSRenderNode::IsStaticCached() const
 {
-    return isStaticCached_;
+    return false;
 }
 void RSRenderNode::SetNodeName(const std::string& nodeName)
 {
@@ -3318,8 +3329,9 @@ void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThre
 
 void RSRenderNode::InitRenderParams()
 {
-    stagingRenderParams_ = std::make_unique<RSRenderParams>();
-    renderParams_ = std::make_unique<RSRenderParams>();
+    stagingRenderParams_ = std::make_unique<RSRenderParams>(GetId());
+    renderParams_ = std::make_unique<RSRenderParams>(GetId());
+    uifirstRenderParams_ = std::make_unique<RSRenderParams>(GetId());
 }
 
 void RSRenderNode::UpdateRenderParams()
@@ -3359,13 +3371,41 @@ void RSRenderNode::OnSync()
         stagingRenderParams_->OnSync(renderParams_);
     }
 
-    if (!dirtySlots_.empty()) {
-        for (const auto& slot : dirtySlots_) {
-            if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
-                drawable->OnSync();
+    // copy newest for uifirst root node, now force sync done nodes
+    if (uifirstNeedSync_ && !uifirstSkipPartialSync_) {
+        RS_TRACE_NAME_FMT("uifirst_sync %lx", GetId());
+        uifirstDrawCmdList_.assign(drawCmdList_.begin(), drawCmdList_.end());
+        uifirstDrawCmdIndex_ = drawCmdIndex_;
+        renderParams_->OnSync(uifirstRenderParams_);
+        uifirstNeedSync_ = false;
+    }
+
+    if (!uifirstSkipPartialSync_) {
+        if (!dirtySlots_.empty()) {
+            for (const auto& slot : dirtySlots_) {
+                if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
+                    drawable->OnSync();
+                }
+            }
+            dirtySlots_.clear();
+        }
+    } else {
+        RS_TRACE_NAME_FMT("partial_sync %lx", GetId());
+        std::vector<RSDrawableSlot> todele;
+        if (!dirtySlots_.empty()) {
+            for (const auto& slot : dirtySlots_) {
+                if (slot != RSDrawableSlot::CONTENT_STYLE && slot != RSDrawableSlot::CHILDREN) { // SAVE_FRAME
+                    if (auto& drawable = drawableVec_[static_cast<uint32_t>(slot)]) {
+                        drawable->OnSync();
+                    }
+                    todele.push_back(slot);
+                }
+            }
+            for (const auto& slot : todele) {
+                dirtySlots_.erase(slot);
             }
         }
-        dirtySlots_.clear();
+        uifirstSkipPartialSync_ = false;
     }
     // Reset FilterCache Flags
     backgroundFilterRegionChanged_ = false;

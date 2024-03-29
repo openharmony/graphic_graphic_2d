@@ -85,8 +85,8 @@ public:
     }
 
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread, bool releaseAfterGet = false);
-    bool NeedInitCacheSurface() const;
-    bool NeedInitCacheCompletedSurface() const;
+    bool NeedInitCacheSurface();
+    bool NeedInitCacheCompletedSurface() ;
     bool IsCacheSurfaceValid() const;
     std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
     std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,bool releaseAfterGet);
@@ -119,10 +119,9 @@ public:
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     void UpdateBackendTexture();
 #endif
-    Vector2f GetOptionalBufferSize() const;
 
-    void DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
+    bool DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isUIFirst = false);
     void DrawableCache(std::shared_ptr<Drawing::GPUContext> grContext_);
 
     void SetLastFrameUsedThreadIndex(pid_t tid)
@@ -156,7 +155,7 @@ private:
     std::string name_;
 
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas);
-
+    
 
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;

@@ -19,6 +19,7 @@
 #include "pipeline/rs_uni_render_thread.h"
 
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_uifirst_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -41,7 +42,9 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
 void RSDrawFrame::RenderFrame()
 {
     RS_TRACE_NAME_FMT("RenderFrame");
+    RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
+    RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
     Render();
     ReleaseSelfDrawingNodeBuffer();
@@ -73,6 +76,7 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostTask([this]() {
                 RenderFrame();
             });
+
             frameCV_.wait(frameLock, [this] {return canUnblockMainThread;});
         }
     }
@@ -86,7 +90,9 @@ void RSDrawFrame::Sync()
     auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
     for (auto& [id, weakPtr] : pendingSyncNodes) {
         if (auto node = weakPtr.lock()) {
-            node->Sync();
+            if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
+                node->Sync();
+            }
         }
     }
     pendingSyncNodes.clear();
