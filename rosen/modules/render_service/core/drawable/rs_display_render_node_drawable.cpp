@@ -363,6 +363,8 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
 
+        FindHardwareEnabledNodes();
+
         // displayNodeSp to get rsSurface witch only used in renderThread
         auto renderFrame = RequestFrame(displayNodeSp, *params, processor);
         if (!renderFrame) {
@@ -440,6 +442,37 @@ void RSDisplayRenderNodeDrawable::SetHighContrastIfEnabled(RSPaintFilterCanvas& 
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
 }
+
+void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes()
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(renderNode_->GetRenderParams().get());
+    if (!displayParams) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes displayParams is null!");
+        return;
+    }
+    auto& selfDrawingNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetSelfDrawingNodes();
+    for (const auto& surfaceNode : selfDrawingNodes) {
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (!surfaceParams->GetHardwareEnabled() || !surfaceParams->GetBuffer()) {
+            continue;
+        }
+        // To get dump image
+        // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
+        auto buffer = surfaceParams->GetBuffer();
+        RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer, surfaceParams->GetId());
+        if (surfaceNode->IsHardwareEnabledTopSurface()) {
+            // surfaceNode which should be drawn above displayNode like pointer window
+            displayParams->GetHardwareEnabledTopNodes().emplace_back(surfaceNode);
+        } else {
+            // surfaceNode which should be drawn below displayNode
+            displayParams->GetHardwareEnabledNodes().emplace_back(surfaceNode);
+        }
+    }
+}
+
 
 void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
     std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes, Drawing::Canvas& canvas) const

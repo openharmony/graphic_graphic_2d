@@ -256,6 +256,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
     rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
 
+    RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + surfaceNode->GetName() + "] " +
+        surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
+
     if (surfaceParams->IsSecurityLayer() || surfaceParams->IsSkipLayer()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
@@ -389,7 +392,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams)
 {
-    if (surfaceParams.GetHardwareEnabled()) {
+    if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) {
         if (!surfaceNode.IsHardwareEnabledTopSurface()) {
             RSAutoCanvasRestore arc(&canvas);
             canvas.ClipRect(surfaceParams.GetBounds());

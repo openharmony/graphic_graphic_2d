@@ -264,6 +264,11 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    if (!isDrawingCacheEnabled_){
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
+    
     if (drawBlurForCache_ && !params.ChildHasVisibleFilter() && !params.ChildHasVisibleEffect()) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", renderNode_->GetId());
         Drawing::AutoCanvasRestore arc(canvas, true);
