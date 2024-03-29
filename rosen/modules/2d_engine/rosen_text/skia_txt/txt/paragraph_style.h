@@ -37,6 +37,7 @@ public:
     TextAlign GetEquivalentAlign() const;
 
     FontWeight fontWeight = FontWeight::W400;
+    FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     WordBreakType wordBreakType = WordBreakType::NORMAL;
     std::string fontFamily;
@@ -46,6 +47,7 @@ public:
 
     bool strutEnabled = false;
     FontWeight strutFontWeight = FontWeight::W400;
+    FontWidth strutFontWidth = FontWidth::NORMAL;
     FontStyle strutFontStyle = FontStyle::NORMAL;
     std::vector<std::string> strutFontFamilies;
     double strutFontSize = 16;
@@ -65,6 +67,7 @@ public:
     TextStyle spTextStyle;
     bool customSpTextStyle = false;
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
+    bool hintingIsOn = false;
 };
 } // namespace SPText
 } // namespace Rosen

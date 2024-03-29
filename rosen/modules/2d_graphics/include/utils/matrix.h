@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+enum class ScaleToFit {
+    FILL_SCALETOFIT,
+    START_SCALETOFIT,
+    CENTER_SCALETOFIT,
+    END_SCALETOFIT,
+};
+
 class DRAWING_API Matrix {
 public:
     // Matrix is a 3x3 float type matrix.
@@ -186,6 +193,20 @@ public:
     bool operator==(const Matrix& other) const;
     void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2);
+
+    /**
+     * @brief Sets matrix to scale and translate src rect to dst rect.
+     *
+     * @param src Rect to map from
+     * @param dst Rect to map to
+     * @param stf Describes how matrix is constructed to map one rect to another
+     * @return Returns true if dst is empty, and sets matrix to:
+               | 0 0 0 |
+               | 0 0 0 |
+               | 0 0 1 |.
+     */
+    bool SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf);
+    
     void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const;
 
     /**

@@ -87,7 +87,8 @@
           "node",
           "vulkan-headers",
           "hiview",
-          "battery_manager"
+          "battery_manager",
+          "cJSON"
         ],
         "third_party": [
           "flutter",

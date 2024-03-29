@@ -131,6 +131,8 @@ public:
     GSError ClearUserDataChangeListener() override;
     GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) override;
     GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) override;
+    GraphicTransformType GetTransformHint() const override;
+    GSError SetTransformHint(GraphicTransformType transformHint) override;
 private:
     bool IsRemote();
     void CleanAllLocked();

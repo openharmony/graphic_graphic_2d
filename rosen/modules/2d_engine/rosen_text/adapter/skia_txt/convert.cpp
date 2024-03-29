@@ -56,6 +56,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
 {
     return {
         .fontWeight = static_cast<SPText::FontWeight>(style.fontWeight),
+        .fontWidth = static_cast<SPText::FontWidth>(style.fontWidth),
         .fontStyle = static_cast<SPText::FontStyle>(style.fontStyle),
         .wordBreakType = static_cast<SPText::WordBreakType>(style.wordBreakType),
         .fontFamily = style.fontFamily,
@@ -64,6 +65,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .heightOverride = style.heightOnly,
         .strutEnabled = style.useLineStyle,
         .strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight),
+        .strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth),
         .strutFontStyle = static_cast<SPText::FontStyle>(style.lineStyleFontStyle),
         .strutFontFamilies = style.lineStyleFontFamilies,
         .strutFontSize = style.lineStyleFontSize,
@@ -83,6 +85,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .spTextStyle = Convert(style.insideTextStyle),
         .customSpTextStyle = style.customTextStyle,
         .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
+        .hintingIsOn = style.hintingIsOn,
     };
 }
 
@@ -102,9 +105,9 @@ static std::string RemoveQuotes(const std::string& str)
     if (str.empty() || str.front() != '\"' || str.back() != '\"') {
         return str;
     }
-    auto first = str.find_first_of('\"');
-    auto end = str.find_last_of('\"');
-    return str.substr(first + 1, end - first - 1);
+    const int start = 1; // The starting position of string.
+    const int end = str.size() - 2; // End position of string.
+    return str.substr(start, end); // Remove quotation marks from both ends.
 }
 
 SPText::TextStyle Convert(const TextStyle& style)
@@ -118,6 +121,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.decorationStyle = static_cast<SPText::TextDecorationStyle>(style.decorationStyle);
     textStyle.decorationThicknessMultiplier = style.decorationThicknessScale;
     textStyle.fontWeight = static_cast<SPText::FontWeight>(style.fontWeight);
+    textStyle.fontWidth = static_cast<SPText::FontWidth>(style.fontWidth);
     textStyle.fontStyle = static_cast<SPText::FontStyle>(style.fontStyle);
     textStyle.baseline = static_cast<SPText::TextBaseline>(style.baseline);
     textStyle.halfLeading = style.halfLeading;
@@ -134,6 +138,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.styleId = style.styleId;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
+    textStyle.isPlaceholder = style.isPlaceholder;
 
     if (style.isSymbolGlyph) {
         textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());

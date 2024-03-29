@@ -22,6 +22,7 @@ group("systemtest") {
 }
 
 ohos_systemtest("vulkan_loader_system_test") {
+  defines = [ "VK_USE_PLATFORM_OHOS" ]
   module_out_path = module_out_path
   sources = [ "vulkan_loader_system_test.cpp" ]
   deps = [ ":vulkan_loader_test_common" ]

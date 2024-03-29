@@ -252,7 +252,7 @@ bool JsCanvas::DeclareFuncAndCreateConstructor(napi_env env)
     return true;
 }
 
-napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas, float width, float height)
+napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
 {
     napi_value constructor = nullptr;
     napi_value result = nullptr;
@@ -273,8 +273,6 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas, float width, f
         return nullptr;
     }
     g_drawingCanvas = canvas;
-    Rect rect(0, 0, width, height);
-    canvas->ClipRect(rect);
     status = napi_new_instance(env, constructor, 0, nullptr, &result);
     if (status != napi_ok) {
         ROSEN_LOGE("Drawing_napi: New instance could not be obtained");
@@ -750,6 +748,28 @@ void JsCanvas::ResetCanvas()
 {
     g_drawingCanvas = nullptr;
     m_canvas = nullptr;
+}
+
+void JsCanvas::ClipCanvas(float width, float height)
+{
+    if (m_canvas) {
+        Rect rect(0, 0, width, height);
+        m_canvas->ClipRect(rect);
+    }
+}
+
+void JsCanvas::SaveCanvas()
+{
+    if (m_canvas) {
+        m_canvas->Save();
+    }
+}
+
+void JsCanvas::RestoreCanvas()
+{
+    if (m_canvas) {
+        m_canvas->Restore();
+    }
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

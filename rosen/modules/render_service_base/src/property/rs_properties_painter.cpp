@@ -63,6 +63,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::greyAdjustEffect_ =
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::binarizationShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::lightUpEffectShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::dynamicLightUpBlenderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::dynamicDimShaderEffect_ = nullptr;
 
 Drawing::Rect RSPropertiesPainter::Rect2DrawingRect(const RectF& r)
 {
@@ -1724,6 +1725,85 @@ std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeDynamicLightUpBlender
     builder->SetUniform("dynamicLightUpRate", dynamicLightUpRate);
     builder->SetUniform("dynamicLightUpDeg", dynamicLightUpDeg);
     return builder->MakeBlender();
+}
+
+void RSPropertiesPainter::DrawDynamicDim(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    Drawing::Surface* surface = canvas.GetSurface();
+    if (surface == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawDynamicDim surface is null");
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    if (properties.GetClipBounds() != nullptr) {
+        canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
+    } else {
+        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
+    }
+
+    auto clipBounds = canvas.GetDeviceClipBounds();
+    auto image = surface->GetImageSnapshot(clipBounds);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicDim image is null");
+        return;
+    }
+    Drawing::Matrix scaleMat;
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
+    auto shader = MakeDynamicDimShader(properties.GetDynamicDimDegree().value(), imageShader);
+    if (shader == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicDim shader is null");
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetShaderEffect(shader);
+    canvas.ResetMatrix();
+    canvas.Translate(clipBounds.GetLeft(), clipBounds.GetTop());
+    canvas.DrawBackground(brush);
+}
+
+std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicDimShader(
+    float dynamicDimDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform half dynamicDimDeg;
+        uniform shader imageShader;
+
+        vec3 rgb2hsv(in vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        vec3 hsv2rgb(in vec3 c)
+        {
+            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+            return c.z * mix(vec3(1.0), rgb, c.y);
+        }
+        half4 main(float2 coord)
+        {
+            vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
+            hsv.y = hsv.y * 0.8;
+            hsv.z = min(hsv.z * dynamicDimDeg, 1.0);
+            return vec4(hsv2rgb(hsv), 1.0);
+        }
+    )";
+    if (dynamicDimShaderEffect_ == nullptr) {
+        dynamicDimShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
+        if (dynamicDimShaderEffect_ == nullptr) {
+            ROSEN_LOGE("MakeBinarizationShader::RuntimeShader effect error\n");
+            return nullptr;
+        }
+    }
+    std::shared_ptr<Drawing::ShaderEffect> children[] = {imageShader};
+    size_t childCount = 1;
+    auto data = std::make_shared<Drawing::Data>();
+    data->BuildWithCopy(&dynamicDimDeg, sizeof(dynamicDimDeg));
+    return dynamicDimShaderEffect_->MakeShader(data, children, childCount, nullptr, false);
 }
 
 void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas)

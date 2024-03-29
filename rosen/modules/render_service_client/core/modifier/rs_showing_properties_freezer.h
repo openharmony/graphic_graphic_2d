@@ -70,6 +70,7 @@ public:
 
     std::optional<float> GetSpherizeDegree() const;
     std::optional<float> GetLightUpEffectDegree() const;
+    std::optional<float> GetDynamicDimDegree() const;
 
 private:
     NodeId id_;

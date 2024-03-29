@@ -121,5 +121,60 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         shadows == rhs.shadows &&
         fontFeatures == rhs.fontFeatures;
 }
+
+bool TextStyle::EqualByFonts(const TextStyle &rhs) const
+{
+    return !isPlaceholder && !rhs.isPlaceholder &&
+        fontStyle == rhs.fontStyle &&
+        fontFamilies == rhs.fontFamilies &&
+        fontFeatures == rhs.fontFeatures &&
+        Drawing::IsScalarAlmostEqual(letterSpacing, rhs.letterSpacing) &&
+        Drawing::IsScalarAlmostEqual(wordSpacing, rhs.wordSpacing) &&
+        Drawing::IsScalarAlmostEqual(heightScale, rhs.heightScale) &&
+        Drawing::IsScalarAlmostEqual(baseLineShift, rhs.baseLineShift) &&
+        Drawing::IsScalarAlmostEqual(fontSize, rhs.fontSize) &&
+        locale == rhs.locale;
+}
+
+bool TextStyle::MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const
+{
+    switch (styleType) {
+        case FOREGROUND:
+            return (!foregroundBrush.has_value() && !rhs.foregroundBrush.has_value() &&
+                !foregroundPen.has_value() && !rhs.foregroundPen.has_value() && color == rhs.color) ||
+                (foregroundBrush == rhs.foregroundBrush &&
+                foregroundPen == rhs.foregroundPen);
+        case BACKGROUND:
+            return backgroundBrush == rhs.backgroundBrush &&
+                backgroundPen == rhs.backgroundPen;
+        case SHADOW:
+            return shadows == rhs.shadows;
+        case DECORATIONS:
+            return decoration == rhs.decoration &&
+                decorationColor == rhs.decorationColor &&
+                decorationStyle == rhs.decorationStyle &&
+                Drawing::IsScalarAlmostEqual(decorationThicknessScale,
+                    rhs.decorationThicknessScale);
+        case LETTER_SPACING:
+            return Drawing::IsScalarAlmostEqual(letterSpacing, rhs.letterSpacing);
+
+        case WORD_SPACING:
+            return Drawing::IsScalarAlmostEqual(wordSpacing, rhs.wordSpacing);
+
+        case ALL_ATTRIBUTES:
+            return *this == rhs;
+
+        case FONT:
+            return fontStyle == rhs.fontStyle &&
+                locale == rhs.locale &&
+                fontFamilies == rhs.fontFamilies &&
+                Drawing::IsScalarAlmostEqual(fontSize, rhs.fontSize) &&
+                Drawing::IsScalarAlmostEqual(heightScale, rhs.heightScale) &&
+                halfLeading == rhs.halfLeading &&
+                Drawing::IsScalarAlmostEqual(baseLineShift, rhs.baseLineShift);
+        default:
+            return false;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

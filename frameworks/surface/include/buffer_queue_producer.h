@@ -95,6 +95,9 @@ public:
     GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) override;
     GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) override;
 
+    GSError SetTransformHint(GraphicTransformType transformHint) override;
+    GSError GetTransformHint(GraphicTransformType &transformHint) override;
+
 private:
     GSError CheckConnectLocked();
     GSError SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle);
@@ -130,6 +133,8 @@ private:
     int32_t GetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t AttachBufferToQueueRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t DetachBufferFromQueueRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t SetTransformHintRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t GetTransformHintRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);

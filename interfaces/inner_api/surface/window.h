@@ -17,6 +17,7 @@
 #define NDK_INCLUDE_NATIVE_WINDOW_H_
 
 #include "external_window.h"
+#include "surface_type.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +67,9 @@ int32_t GetSurfaceId(OHNativeWindow *window, uint64_t *surfaceId);
 int32_t CreateNativeWindowFromSurfaceId(uint64_t surfaceId, OHNativeWindow **window);
 int32_t NativeWindowAttachBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
 int32_t NativeWindowDetachBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
+int32_t NativeWindowGetTransformHint(OHNativeWindow *window, OHOS::GraphicTransformType *transform);
+int32_t NativeWindowSetTransformHint(OHNativeWindow *window, OHOS::GraphicTransformType transform);
+int32_t NativeWindowGetDefaultWidthAndHeight(OHNativeWindow *window, int32_t *width, int32_t *height);
 
 #ifdef __cplusplus
 }

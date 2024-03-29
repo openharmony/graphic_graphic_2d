@@ -589,7 +589,7 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<R
     } else {
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
         if (node == nullptr || !node->GetCommandExcuted()) {
-            RSOffscreenRenderThread::Instance().InSertCaptureTask(node->GetId(), offscreenRenderTask);
+            RSOffscreenRenderThread::Instance().InSertCaptureTask(id, offscreenRenderTask);
             return;
         }
         RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
