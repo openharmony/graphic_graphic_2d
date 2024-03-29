@@ -127,7 +127,7 @@ bool RSProcessor::InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirror
     offsetY_ = params->GetDisplayOffsetY();
     mirroredId_ = mirroredId;
 
-    screenInfo_ = params->GetScreenInfo();
+    screenInfo_ = params->GetrScreenInfo();
     screenInfo_.rotation = params->GetNodeRotation();
 
     renderEngine_ = renderEngine;
@@ -145,7 +145,7 @@ bool RSProcessor::InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirror
         auto mirrorNodeParam = static_cast<RSDisplayRenderParams*>(mirrorNode->GetRenderParams().get());
         screenTransformMatrix_ = mirrorNodeParam->GetMatrix();
         if (mirroredId_ != INVALID_SCREEN_ID) {
-            auto mirroredScreenInfo = mirrorNodeParam->GetScreenInfo();
+            auto mirroredScreenInfo = mirrorNodeParam->GetrScreenInfo();
             CalculateMirrorAdaptiveCoefficient(
                 static_cast<float>(screenInfo_.width), static_cast<float>(screenInfo_.height),
                 static_cast<float>(mirroredScreenInfo.width), static_cast<float>(mirroredScreenInfo.height)
