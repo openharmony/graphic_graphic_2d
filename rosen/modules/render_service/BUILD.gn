@@ -37,7 +37,7 @@ ohos_shared_library("librender_service") {
   if (enhanced_opt) {
     configs = [ ":render_service_link_config" ]
   }
-  defines = []
+  defines = ["RS_PARALLEL"]
   if (graphic_2d_feature_color_gamut_enable) {
     defines += [ "PADDING_HEIGHT_32" ]
   } else {

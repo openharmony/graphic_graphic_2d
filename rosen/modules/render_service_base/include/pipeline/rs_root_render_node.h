@@ -66,6 +66,10 @@ public:
     {
         return enableRender_;
     }
+    bool GetUifirstSupportFlag() override
+    {
+        return isChildSupportUifirst_;
+    }
 
 private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;

@@ -1623,8 +1623,13 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
 void RSSurfaceRenderNode::OnSync()
 {
     dirtyManager_->OnSync(syncDirtyManager_);
-    if (IsMainWindowType() || IsLeashWindow()) {
-        stagingRenderParams_->SetNeedSync(true);
+    if (IsMainWindowType() || IsLeashWindow() || lastFrameUifirstFlag_) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        if (surfaceParams == nullptr) {
+            RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
+            return;
+        }
+        surfaceParams->SetNeedSync(true);
     }
     RSRenderNode::OnSync();
 }
@@ -2176,8 +2181,9 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
 
 void RSSurfaceRenderNode::InitRenderParams()
 {
-    stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>();
-    renderParams_ = std::make_unique<RSSurfaceRenderParams>();
+    stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
+    renderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
+    uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
 }
 
 void RSSurfaceRenderNode::UpdateRenderParams()
@@ -2198,6 +2204,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->frameGravity_ = properties.GetFrameGravity();
+    surfaceParams->isMainThreadNode_ = IsMainThreadNode();
 
     surfaceParams->SetNeedSync(true);
 
@@ -2214,5 +2221,62 @@ void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->SetNeedSync(true);
 }
+
+void RSSurfaceRenderNode::SetNeedSubmitSubThread(bool needSubmitSubThread)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetNeedSubmitSubThread(needSubmitSubThread);
+        if (stagingRenderParams_->NeedSync()) {
+            if (auto context = GetContext().lock()) {
+                context->AddPendingSyncNode(shared_from_this());
+            } else {
+                RS_LOGE("RSSurfaceRenderNode::SetNeedSubmitSubThread context is null");
+                OnSync();
+            }
+        }
+    } else {
+        RS_LOGE("RSSurfaceRenderNode::SetNeedSubmitSubThread stagingSurfaceParams is null");
+    }
+
+    isNeedSubmitSubThread_ = needSubmitSubThread;
+}
+
+void RSSurfaceRenderNode::SetUifirstNodeEnableParam(bool b)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetUifirstNodeEnableParam(b);
+        if (stagingRenderParams_->NeedSync()) {
+            if (auto context = GetContext().lock()) {
+                context->AddPendingSyncNode(shared_from_this());
+            } else {
+                RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag context is null");
+                OnSync();
+            }
+        }
+    } else {
+        RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag stagingSurfaceParams is null");
+    }
+}
+
+void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetIsParentUifirstNodeEnableParam(b);
+        if (stagingRenderParams_->NeedSync()) {
+            if (auto context = GetContext().lock()) {
+                context->AddPendingSyncNode(shared_from_this());
+            } else {
+                RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag context is null");
+                OnSync();
+            }
+        }
+    } else {
+        RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag stagingSurfaceParams is null");
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

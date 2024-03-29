@@ -17,10 +17,19 @@
 #define RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
 
 #include <memory>
+#include <vector>
 
 #include "draw/canvas.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "common/rs_rect.h"
+#include "draw/surface.h"
+#include "image/gpu_context.h"
+#include "common/rs_common_def.h"
+#include "modifier/rs_render_modifier.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/native_buffer_utils.h"
+#endif
+#include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
@@ -57,15 +66,28 @@ public:
     void DrawWithoutShadow(Drawing::Canvas& canvas) override;
     void DrawShadow(Drawing::Canvas& canvas) override;
     void DumpDrawableTree(int32_t depth, std::string& out) const override;
+    
+    std::shared_ptr<const RSRenderNode> GetRenderNode()
+    {
+        return renderNode_;
+    }
 
+    bool GetOpDropped() const
+    {
+        return isOpDropped_;
+    }
 protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 
+    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
+    float boundsWidth_ = 0.0f;
+    float boundsHeight_ = 0.0f;
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
@@ -75,7 +97,7 @@ protected:
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
     static inline std::vector<RectI> drawingCacheRects_;
-private:
+
     std::string DumpDrawableVec() const;
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
 
@@ -95,6 +117,7 @@ private:
     bool CheckIfNeedUpdateCache(RSRenderParams& params);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
 
+private:
     DrawableCacheType cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;

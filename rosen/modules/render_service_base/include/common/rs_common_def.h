@@ -121,6 +121,7 @@ enum class CacheProcessStatus : uint8_t {
     WAITING = 0, // waiting for process
     DOING, // processing
     DONE, // processed
+    UNKNOWN,
 };
 
 // the type of surfaceCapture

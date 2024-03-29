@@ -39,6 +39,9 @@
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
 #endif
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "common/rs_singleton.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -175,7 +178,6 @@ void RSUniRenderThread::Render()
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
-
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
     rootNodeDrawable_->OnDraw(canvas);

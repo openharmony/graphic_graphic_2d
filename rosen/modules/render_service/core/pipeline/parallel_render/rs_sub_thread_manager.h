@@ -23,7 +23,7 @@
 #include <map>
 #include <mutex>
 #include "EGL/egl.h"
-#include "pipeline/parallel_render/rs_render_task.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/rs_base_render_node.h"
 #include "render_context/render_context.h"
 #include "rs_filter_sub_thread.h"
@@ -53,6 +53,7 @@ public:
     void ReleaseSurface(uint32_t threadIndex) const;
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
     std::unordered_map<uint32_t, pid_t> GetReThreadIndexMap() const;
+    void ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable);
 private:
     RSSubThreadManager() = default;
     ~RSSubThreadManager() = default;

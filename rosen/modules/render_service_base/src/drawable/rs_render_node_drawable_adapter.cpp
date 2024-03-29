@@ -20,14 +20,24 @@
 
 namespace OHOS::Rosen::DrawableV2 {
 std::unordered_map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
+std::unordered_map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache;
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
     : renderNode_(std::move(node)) {};
 
+RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableById(NodeId id)
+{
+    if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
+        if (const auto ptr = cacheIt->second.lock()) {
+            return ptr;
+        }
+    }
+    return nullptr;
+}
+
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
-    static std::unordered_map<NodeId, WeakPtr> RenderNodeDrawableCache;
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
         RenderNodeDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
         delete ptr;

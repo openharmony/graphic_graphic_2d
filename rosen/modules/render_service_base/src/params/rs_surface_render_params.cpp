@@ -16,7 +16,7 @@
 #include "params/rs_surface_render_params.h"
 
 namespace OHOS::Rosen {
-RSSurfaceRenderParams::RSSurfaceRenderParams() {}
+RSSurfaceRenderParams::RSSurfaceRenderParams(NodeId id) : RSRenderParams(id) {}
 
 void RSSurfaceRenderParams::SetOcclusionVisible(bool visible)
 {
@@ -187,6 +187,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->layerInfo_ = layerInfo_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->needSubmitSubThread_ = needSubmitSubThread_;
+    targetSurfaceParams->processed = false;
+    targetSurfaceParams->isMainThreadNode_ = isMainThreadNode_;
+    targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
+    targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     RSRenderParams::OnSync(target);
 }

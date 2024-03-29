@@ -15,6 +15,8 @@
 
 #include "pipeline/rs_uni_render_visitor.h"
 #include <memory>
+#include "rs_trace.h"
+#include "screen_manager/rs_screen_manager.h"
 
 #ifdef RS_ENABLE_OLD_VK
 #include <vulkan_window.h>
@@ -49,6 +51,7 @@
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -1164,6 +1167,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         RS_LOGE("RSUniRenderVisitor::QuickPrepareDisplayRenderNode InitDisplayInfo fail");
         return;
     }
+    ancestorNodeHasAnimation_ = false;
 
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     prepareClipRect_ = screenRect_;
@@ -1192,9 +1196,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         "pid:[%{public}d] nodeType:[%{public}d] subTreeDirty[%{public}d]",
         node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
         static_cast<int>(node.GetSurfaceNodeType()), node.IsSubTreeDirty());
+
     // 0. init curSurface* info and check current node need to tranverse
     if (!BeforeUpdateSurfaceDirtyCalc(node)) {
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode BeforeUpdateSurfaceDirtyCalc fail");
+        RSUifirstManager::Instance().DisableUifirstNode(node);
         return;
     }
 
@@ -1205,6 +1211,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         dirtyFlag_, prepareClipRect_);
     if (!AfterUpdateSurfaceDirtyCalc(node)) {
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode AfterUpdateSurfaceDirtyCalc fail");
+        RSUifirstManager::Instance().DisableUifirstNode(node);
         return;
     }
     auto prevAlpha = curAlpha_;
@@ -1213,6 +1220,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     UpdateHwcNodeInfoForAppNode(node);
 
     // 2. Recursively traverse child nodes
+    bool firstlevelBackup = traversalFirstLevelSruface_;
+    traversalFirstLevelSruface_ = true;
     bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
     IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
@@ -1222,6 +1231,14 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     PostPrepare(node);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
+
+    if (!firstlevelBackup && node.GetUifirstSupportFlag()) {
+        RSUifirstManager::Instance().PrepareUifirstNode(node, ancestorNodeHasAnimation_);
+    } else {
+        RSUifirstManager::Instance().DisableUifirstNode(node);
+    }
+    traversalFirstLevelSruface_ = firstlevelBackup;
+
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curAlpha_ = prevAlpha;
 }
@@ -1398,7 +1415,10 @@ void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
     MergeRemovedChildDirtyRegion(node);
+    bool animationBackup = ancestorNodeHasAnimation_;
+    ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.HasAnimation();
     node.ResetChildRelevantFlags();
+    node.ResetChildUifirstSupportFlag();
     auto children = node.GetSortedChildren();
     // leashwindow should not include multi mainwindow
     if (curSurfaceNode_) {
@@ -1412,6 +1432,8 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             node->QuickPrepare(shared_from_this());
         });
     }
+    ancestorNodeHasAnimation_ = animationBackup;
+    node.ResetGeoUpdateDelay();
 }
 
 bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
@@ -2033,6 +2055,9 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
     node.UpdateLocalDrawRect();
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoAfterChildren();
+    }
+    if (auto nodeParent = node.GetParent().lock()) {
+        nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
     }
     if (node.GetSharedTransitionParam()) {
         node.GetStagingRenderParams()->SetAlpha(curAlpha_);
@@ -3662,9 +3687,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 }
 
+#ifndef RS_PARALLEL
 void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const
 {
+    RS_TRACE_NAME_FMT("RSUniRenderVisitor::DrawSurfaceLayer displayNode:%p subThreadNodes:%d", displayNode.get(), int(subThreadNodes.size()));
     auto subThreadManager = RSSubThreadManager::Instance();
     if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
@@ -3674,6 +3701,7 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif
 }
+#endif
 
 void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
 {
@@ -4667,6 +4695,7 @@ bool RSUniRenderVisitor::UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    return;
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (autoCacheEnable_) {
         node.GetAutoCache->OpIncStateInitWithSurface(nodeCacheType_, isDiscardSurface_, isSubThread_);

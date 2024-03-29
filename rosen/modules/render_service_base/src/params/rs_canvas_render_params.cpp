@@ -16,6 +16,6 @@
 #include "params/rs_canvas_render_params.h"
 
 namespace OHOS::Rosen {
-RSCanvasRenderParams::RSCanvasRenderParams() {}
+RSCanvasRenderParams::RSCanvasRenderParams(NodeId id) : RSRenderParams(id) {}
 
 } // namespace OHOS::Rosen

@@ -37,7 +37,7 @@ struct DirtyRegionInfoForDFX {
 
 class RSB_EXPORT RSRenderParams {
 public:
-    RSRenderParams() = default;
+    RSRenderParams(NodeId id) : id_(id) {}
     virtual ~RSRenderParams() = default;
 
     void SetAlpha(float alpha);

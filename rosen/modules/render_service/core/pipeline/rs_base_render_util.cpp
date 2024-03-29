@@ -1298,6 +1298,74 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
     return WriteToPng(filename, param);
 }
 
+
+bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo)
+{
+    if (!RSSystemProperties::GetDumpImgEnabled())
+    {
+        return false;
+    }
+    if (!surface) {
+        return false;
+    }
+
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec) ;
+    std::string filename = "/data/cachesurface/CacheRenderNode_Draw_" +
+        std::to_string(nowVal) + "_" +debugInfo +".png";
+    WriteToPngParam param;
+
+    auto image = surface->GetImageSnapshot();
+    if (!image) {
+        RS_LOGE("RSSubThread::DrawableCache no image to dump");
+        return false;
+    }
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(image->GetWidth(), image->GetHeight(), format);
+    image->ReadPixels(bitmap, 0, 0);
+    param.width = static_cast<uint32_t>(image->GetWidth());
+    param.height = static_cast<uint32_t>(image->GetHeight());
+    param.data = static_cast<uint8_t *>(bitmap.GetPixels());
+    param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
+bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo)
+{
+    if (!RSSystemProperties::GetDumpImgEnabled())
+    {
+        return false;
+    }
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec) ;
+    std::string filename = "/data/cachesurface/CacheRenderNode_Draw_" +
+        std::to_string(nowVal) + "_" +debugInfo +".png";
+    WriteToPngParam param;
+
+    if (!image) {
+        RS_LOGE("RSSubThread::DrawableCache no image to dump");
+        return false;
+    }
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(image->GetWidth(), image->GetHeight(), format);
+    image->ReadPixels(bitmap, 0, 0);
+    param.width = static_cast<uint32_t>(image->GetWidth());
+    param.height = static_cast<uint32_t>(image->GetHeight());
+    param.data = static_cast<uint8_t *>(bitmap.GetPixels());
+    param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
 bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
 {
     auto type = RSSystemProperties::GetDumpSurfaceType();

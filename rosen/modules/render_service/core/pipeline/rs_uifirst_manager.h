@@ -29,18 +29,8 @@ public:
     // TODO: move to display node
     static RSUifirstManager& Instance();
 
-    // record RSSurfaceRenderNodeDrawable ptr for postTask
-    void AddSurfaceDrawable(NodeId id, DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
-    void DeleSurfaceDrawable(NodeId id);
-    DrawableV2::RSSurfaceRenderNodeDrawable* GetSurfaceDrawableByID(NodeId id);
-
-    // ref RSChildrenDrawable to ref RSSurfaceRenderNodeDrawable in it
-    // ref in RT when post
-    void RefChildrenDrawable(NodeId id, Drawing::RecordingCanvas::DrawFunc& func);
-    // unref in sub when cache done
-    void UnrefChildrenDrawable(NodeId id);
-
-    void AddPendingPostNode(NodeId id);
+    void AddProcessDoneNode(NodeId id);
+    void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
     void AddPendingResetNode(NodeId id);
     void AddReuseNode(NodeId id);
 
@@ -69,6 +59,8 @@ private:
     void PostSubTask(NodeId id);
     void UpdateCompletedSurface(NodeId id);
 
+    DrawableV2::RSSurfaceRenderNodeDrawable* GetSurfaceDrawableByID(NodeId id);
+
     void ProcessResetNode();
     void ProcessDoneNode();
     void UpdateSkipSyncNode();
@@ -78,10 +70,9 @@ private:
     void UifirstStateChange(RSSurfaceRenderNode& node, bool currentFrameIsUifirstNode);
     void CheckIfParentUifirstNodeEnable(RSSurfaceRenderNode& node, bool parentUifirstNodeEnable);
     // only use in mainThread; keep ref by subthreadProcessingNode_
-    std::unordered_map<NodeId, DrawableV2::RSSurfaceRenderNodeDrawable*> curAllSurface_; //TODO: lock
 
     // only use in RT
-    std::unordered_map<NodeId, Drawing::RecordingCanvas::DrawFunc> subthreadProcessingNode_;
+    std::unordered_map<NodeId, std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> subthreadProcessingNode_;
     std::set<NodeId> processingNodeSkipSync_;
     std::set<NodeId> processingNodePartialSync_;
     std::unordered_map<NodeId, std::vector<std::shared_ptr<RSRenderNode>>> pendingSyncForSkipBefore_; // (instanceId, vector<needsync_node>)
@@ -91,7 +82,7 @@ private:
     std::vector<NodeId> subthreadProcessDoneNode_;
 
     // pending post node: collect in main, use&clear in RT
-    std::set<NodeId> pendingPostNodes_;
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::set<NodeId> pendingResetNodes_;
 
     std::set<NodeId> reuseNodes_;

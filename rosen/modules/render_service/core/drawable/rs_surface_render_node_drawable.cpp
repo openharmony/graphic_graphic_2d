@@ -39,7 +39,7 @@
 #include "utils/rect.h"
 #include "utils/region.h"
 
-#include "pipeline/rs_uifisrt_manager.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
 #ifdef RS_ENABLE_VK
@@ -53,18 +53,11 @@ namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
 
 RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSRenderNodeDrawable(std::move(node))
-{
-#ifdef RS_PARALLEL
-    RSUifirstManager::Instance().AddSurfaceDrawable(renderNode_->GetId(), this);
-#endif
-}
-
+    : RSRenderNodeDrawable(std::move(node)) {}
+ 
 RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
 {
-#ifdef RS_PARALLEL
-    RSUifirstManager::Instance().DeleSurfaceDrawable(renderNode_->GetId());
-#endif
+    ClearCacheSurfaceInThread();
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -108,15 +101,21 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
+    if (!rscanvas) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
+        return;
+    }
+
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
-
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
-    if (surfaceParams->GetOccludedByFilterCache()) {
+    bool isuifirstNode = rscanvas->GetIsParallelCanvas();
+    if (!isuifirstNode && surfaceParams->GetOccludedByFilterCache()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] Id:%" PRIu64 "",
             surfaceNode->GetName().c_str(), surfaceParams->GetId());
         return;
@@ -127,16 +126,19 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
         return;
     }
-    MergeDirtyRegionBelowCurSurface(uniParam, surfaceParams, surfaceNode, curSurfaceDrawRegion);
+    if (!isuifirstNode) {
+        MergeDirtyRegionBelowCurSurface(uniParam, surfaceParams, surfaceNode, curSurfaceDrawRegion);
+    }
 
-    if (uniParam->IsOpDropped() && surfaceParams->IsMainWindowType() && curSurfaceDrawRegion.IsEmpty()) {
+    if (!isuifirstNode && uniParam->IsOpDropped() &&
+        surfaceParams->IsMainWindowType() && curSurfaceDrawRegion.IsEmpty()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s NodeId:%" PRIu64 "",
             surfaceNode->GetName().c_str(), surfaceParams->GetId());
         return;
     }
 
 #ifdef RS_PARALLEL
-    if (surfaceParams->GetUifirstNodeEnableParam()) { // TODO: reuse cache type ?
+    if (surfaceParams->GetUifirstNodeEnableParam()) {
         RS_TRACE_NAME_FMT("DrawUIFirstCache %s %lx", surfaceNode->GetName().c_str(), surfaceParams->GetId());
         RSUifirstManager::Instance().AddReuseNode(surfaceParams->GetId());
         auto& renderParams = renderNode_->GetRenderParams();
@@ -145,7 +147,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
         rscanvas->ConcatMatrix(surfaceParams->GetMatrix());
         DrawBackground(*rscanvas, bounds);
-        DrawUIFirstCache(*rscanvas);
+        if (!DrawUIFirstCache(*rscanvas)) {
+            RS_LOGE("uifirst drawcache failed!");
+        }
         DrawForeground(*rscanvas, bounds);
         return;
     }
@@ -172,7 +176,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // TO-DO [Sub Thread] CheckFilterCache
 
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
 
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
@@ -242,7 +245,6 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
-
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");

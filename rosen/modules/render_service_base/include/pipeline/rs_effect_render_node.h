@@ -31,6 +31,11 @@ public:
         return Type;
     }
 
+    bool GetUifirstSupportFlag() override
+    {
+        return false;
+    }
+
     explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
     ~RSEffectRenderNode() override;

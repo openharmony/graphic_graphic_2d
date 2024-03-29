@@ -512,7 +512,7 @@ bool RSSystemProperties::GetUIFirstEnabled()
 #ifdef ROSEN_EMULATOR
     return false;
 #else
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -524,6 +524,13 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     static bool openDebugTrace =
         std::atoi((system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
     return openDebugTrace;
+}
+
+bool RSSystemProperties::GetDumpImgEnabled()
+{
+    static bool dumpImgEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0")).c_str()) != 0;
+    return dumpImgEnabled;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)

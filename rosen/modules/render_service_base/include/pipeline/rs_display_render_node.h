@@ -58,6 +58,11 @@ public:
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
 
+    bool GetUifirstSupportFlag() override
+    {
+        return isChildSupportUifirst_;
+    }
+
     void SetScreenId(uint64_t screenId)
     {
         screenId_ = screenId;

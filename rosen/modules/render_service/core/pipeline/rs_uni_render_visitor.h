@@ -120,9 +120,6 @@ public:
         threadIndex_ = threadIndex;
     }
 
-    void DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
-        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const;
-
     bool GetAnimateState() const
     {
         return doAnimate_;
@@ -478,6 +475,9 @@ private:
 
     bool isSubThread_ = false;
     bool isUIFirst_ = false;
+    bool traversalFirstLevelSruface_ = false;
+    bool hasSelfDraw_ = false;
+    bool ancestorNodeHasAnimation_ = false;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
     // check each surface could be reused per frame
     // currently available to uiFirst
