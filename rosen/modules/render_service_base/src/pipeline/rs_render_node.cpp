@@ -795,7 +795,7 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
 
 void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool accumGeoDirty)
 {
-    if (accumGeoDirty) {
+    if (accumGeoDirty && HasChildrenOutOfRect()) {
         auto absChildRect = childrenRect_;
         if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             absChildRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
@@ -887,7 +887,7 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     ApplyModifiers();
     visitor->QuickPrepareChildren(*this);
-    
+
     // fallback for global root node
     UpdateRenderParams();
     AddToPendingSyncList();
@@ -1575,7 +1575,7 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare()
         MarkFilterCacheFlagsAfterPrepare(true);
     }
 }
- 
+
 void RSRenderNode::MarkFilterCacheFlagsAfterPrepare(bool isForeground)
 {
     auto slot = isForeground ? RSDrawableSlot::FOREGROUND_FILTER : RSDrawableSlot::BACKGROUND_FILTER;
