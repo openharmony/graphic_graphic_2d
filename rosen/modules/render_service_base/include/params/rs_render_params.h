@@ -58,8 +58,8 @@ public:
     bool SetLocalDrawRect(const RectI& localDrawRect);
     const RectI& GetLocalDrawRect() const;
 
-    void SetHasSharedTransition(bool hasSharedTransition);
-    bool HasSharedTransition() const;
+    void SetHasSandBox(bool hasSandBox);
+    bool HasSandBox() const;
 
     bool GetShouldPaint() const;
     void SetShouldPaint(bool shouldPaint);
@@ -128,7 +128,7 @@ private:
 
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
-    bool hasSharedTransition_ = false;
+    bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     bool isSecurityLayer_ = false; // TODO
     bool isSkipLayer_ = false; // TODO

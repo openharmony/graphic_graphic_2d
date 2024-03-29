@@ -68,7 +68,7 @@ public:
 
     uint32_t GetTid() const;
 
-    void AddDirtyType(RSModifierType type) override;
+    void OnApplyModifiers() override;
     void ClearOp();
     void ResetSurface();
     bool IsNeedProcess() const

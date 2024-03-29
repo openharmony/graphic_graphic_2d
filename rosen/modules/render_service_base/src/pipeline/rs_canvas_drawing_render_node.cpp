@@ -439,14 +439,14 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface() const
     return false;
 }
 
-void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
+void RSCanvasDrawingRenderNode::OnApplyModifiers()
 {
-    dirtyTypes_.set(static_cast<int>(type), true);
-    for (auto& drawCmdModifier : GetDrawCmdModifiers()) {
-        if (drawCmdModifier.second.empty()) {
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+    for (auto& [type, list]: GetDrawCmdModifiers()) {
+        if (list.empty()) {
             continue;
         }
-        for (const auto& modifier : drawCmdModifier.second) {
+        for (const auto& modifier : list) {
             if (modifier == nullptr) {
                 continue;
             }
@@ -454,19 +454,19 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
             if (prop == nullptr) {
                 continue;
             }
-            if (auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get()) {
-                std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-                drawCmdLists_[drawCmdModifier.first].emplace_back(cmd);
-                isNeedProcess_ = true;
-                // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
-                // too many drawOp, so we need to add the limit of drawcmdlists.
-                while (GetOldDirtyInSurface().IsEmpty() &&
-                       drawCmdLists_[drawCmdModifier.first].size() > DRAWCMDLIST_COUNT_LIMIT) {
-                    RS_LOGI("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu",
-                        GetId(), drawCmdModifier.first, drawCmdLists_[drawCmdModifier.first].size());
-                    drawCmdLists_[drawCmdModifier.first].pop_front();
-                }
+            auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
+            if (cmd == nullptr) {
+                continue;
             }
+            drawCmdLists_[type].emplace_back(cmd);
+            isNeedProcess_ = true;
+        }
+        // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
+        // too many drawOp, so we need to add the limit of drawcmdlists.
+        while (GetOldDirtyInSurface().IsEmpty() && drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+            RS_LOGI("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
+                type, drawCmdLists_[type].size());
+            drawCmdLists_[type].pop_front();
         }
     }
 }

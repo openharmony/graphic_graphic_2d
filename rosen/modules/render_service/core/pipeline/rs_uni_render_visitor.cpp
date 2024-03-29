@@ -1185,6 +1185,9 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     curDisplayNode_->UpdateScreenRenderParams(screenInfo_);
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
+    if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
+        ProcessUnpairedSharedTransitionNode();
+    }
 }
 
 void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -2059,7 +2062,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
     }
-    if (node.GetSharedTransitionParam()) {
+    if (node.GetRenderProperties().GetSandBox()) {
         node.GetStagingRenderParams()->SetAlpha(curAlpha_);
     } else {
         node.GetStagingRenderParams()->SetAlpha(node.GetRenderProperties().GetAlpha());
@@ -5707,6 +5710,32 @@ void RSUniRenderVisitor::SetHasSharedTransitionNode(RSSurfaceRenderNode& surface
     if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         leashNode->SetHasSharedTransitionNode(hasSharedTransitionNode);
     }
+}
+
+void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
+{
+    static auto unpairNode = [](const std::weak_ptr<RSRenderNode>& wptr) {
+        auto sptr = wptr.lock();
+        if (sptr == nullptr) {
+            return;
+        }
+        sptr->SetSharedTransitionParam(nullptr);
+        // make sure parent regenerates ChildrenDrawable after unpairing
+        if (auto parent = sptr->GetParent().lock()) {
+            parent->ApplyModifiers();
+        }
+    };
+    for (auto& [id, wptr] : SharedTransitionParam::unpairedShareTransitions_) {
+        auto sharedTransitionParam = wptr.lock();
+        if (!sharedTransitionParam) {
+            continue;
+        }
+        ROSEN_LOGE("RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode: breaking up %s",
+            sharedTransitionParam->Dump().c_str());
+        unpairNode(sharedTransitionParam->inNode_);
+        unpairNode(sharedTransitionParam->outNode_);
+    }
+    SharedTransitionParam::unpairedShareTransitions_.clear();
 }
 
 NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node)

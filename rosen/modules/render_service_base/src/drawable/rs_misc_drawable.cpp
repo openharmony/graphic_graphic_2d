@@ -32,10 +32,8 @@ RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
 {
+    childrenHasSharedTransition_ = false;
     auto children = node.GetSortedChildren();
-    if (!children) {
-        return false;
-    }
     // Regenerate children drawables
     needSync_ = true;
     stagingChildrenDrawableVec_.clear();
@@ -70,12 +68,18 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
         pairedNode->SetSharedTransitionParam(nullptr);
         return false;
     }
-    if (!isLower) {
-        // for higher hierarchy node, we Draw paired node (lower in hierarchy) first, then Draw this node
+    if (isLower) {
+        // for lower hierarchy node, we skip it here, and add to unpaired share transitions
+        SharedTransitionParam::unpairedShareTransitions_.emplace(sharedTransitionParam->inNodeId_, sharedTransitionParam);
+    } else {
+        // for higher hierarchy node, we add paired node (lower in hierarchy) first, then add it
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
+        // remove successful paired node
+        SharedTransitionParam::unpairedShareTransitions_.erase(sharedTransitionParam->inNodeId_);
     }
+    childrenHasSharedTransition_ = true;
     return isLower;
 }
 

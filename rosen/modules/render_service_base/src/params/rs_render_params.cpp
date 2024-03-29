@@ -48,7 +48,7 @@ const Drawing::Matrix& RSRenderParams::GetMatrix() const
 
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const
 {
-    if (HasSharedTransition()) {
+    if (HasSandBox()) {
         canvas.SetMatrix(matrix_);
         canvas.SetAlpha(alpha_);
     } else {
@@ -101,18 +101,18 @@ const RectI& RSRenderParams::GetLocalDrawRect() const
     return localDrawRect_;
 }
 
-void RSRenderParams::SetHasSharedTransition(bool hasSharedTransition)
+void RSRenderParams::SetHasSandBox(bool hasSandbox)
 {
-    if (hasSharedTransition_ == hasSharedTransition) {
+    if (hasSandBox_ == hasSandbox) {
         return;
     }
-    hasSharedTransition_ = hasSharedTransition;
+    hasSandBox_ = hasSandbox;
     needSync_ = true;
 }
 
-bool RSRenderParams::HasSharedTransition() const
+bool RSRenderParams::HasSandBox() const
 {
-    return hasSharedTransition_;
+    return hasSandBox_;
 }
 
 void RSRenderParams::SetShouldPaint(bool shouldPaint)
@@ -246,7 +246,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->SetBoundsRect(boundsRect_);
     target->SetFrameRect(frameRect_);
     target->shouldPaint_ = shouldPaint_;
-    target->hasSharedTransition_ = hasSharedTransition_;
+    target->hasSandBox_ = hasSandBox_;
     target->SetLocalDrawRect(localDrawRect_);
     target->id_ = id_;
     target->cacheSize_ = cacheSize_;
@@ -267,8 +267,8 @@ std::string RSRenderParams::ToString() const
     if (alpha_ != 1.0f) {
         ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
     }
-    if (hasSharedTransition_) {
-        ret += RENDER_BASIC_PARAM_TO_STRING(hasSharedTransition_);
+    if (hasSandBox_) {
+        ret += RENDER_BASIC_PARAM_TO_STRING(hasSandBox_);
     }
     ret += RENDER_RECT_PARAM_TO_STRING(localDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);

@@ -47,6 +47,7 @@ public:
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
+    bool childrenHasSharedTransition_ = false;
 private:
     // Render properties
     bool useShadowBatch_ = false;
@@ -59,6 +60,7 @@ private:
 
     bool needSync_ = false;
     friend class RSRenderNodeDrawable;
+    friend class RSRenderNode;
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

@@ -33,7 +33,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "draw/surface.h"
-#include "drawable/rs_property_drawable.h"
+#include "drawable/rs_drawable.h"
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
@@ -44,9 +44,6 @@
 #include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
-
-#include "draw/surface.h"
-#include "image/gpu_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -215,7 +212,7 @@ public:
     void UpdateChildrenRect(const RectI& subRect);
     void SetDirty(bool forceAddToActiveList = false);
 
-    virtual void AddDirtyType(RSModifierType type)
+    inline void AddDirtyType(RSModifierType type)
     {
         dirtyTypes_.set(static_cast<int>(type), true);
     }
@@ -736,6 +733,8 @@ private:
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     float globalAlpha_ = 1.0f;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
+
+    bool childrenHasSharedTransition_ = false;
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
@@ -831,13 +830,15 @@ struct SharedTransitionParam {
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
-    std::string Dump() const;
+    RSB_EXPORT std::string Dump() const;
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;
     NodeId inNodeId_;
     NodeId outNodeId_;
 
+    RSB_EXPORT static std::map<NodeId, std::weak_ptr<SharedTransitionParam>> unpairedShareTransitions_;
+private:
     enum class NodeHierarchyRelation : uint8_t {
         UNKNOWN = -1,
         IN_NODE_BELOW_OUT_NODE = 0,

@@ -28,21 +28,22 @@
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
-#include "property/rs_point_light_manager.h"
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
 #include "rs_auto_cache.h"
@@ -1733,8 +1734,11 @@ void RSRenderNode::ApplyModifiers()
         UpdateFullChildrenListIfNeeded();
         AddDirtyType(RSModifierType::CHILDREN);
     }
-    // quick reject test
-    if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
+    if (childrenHasSharedTransition_) {
+        // if children has shared transition, force regenerate RSChildrenDrawable
+        AddDirtyType(RSModifierType::CHILDREN);
+    } else if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
+        // clean node, skip apply
         return;
     }
 
@@ -1765,6 +1769,7 @@ void RSRenderNode::ApplyModifiers()
 
     // update state
     dirtyTypes_.reset();
+    AddToPendingSyncList();
 
     // update rate decider scale reference size.
     animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
@@ -1818,6 +1823,11 @@ void RSRenderNode::UpdateDrawableVecV2()
 
         // Step 4: Generate drawCmdList from drawables
         UpdateDisplayList();
+    }
+
+    if (auto childrenDrawable = drawableVec_[static_cast<int>(RSDrawableSlot::CHILDREN)]) {
+        auto castedChildrenDrawable = std::static_pointer_cast<DrawableV2::RSChildrenDrawable>(childrenDrawable);
+        childrenHasSharedTransition_ = castedChildrenDrawable->childrenHasSharedTransition_;
     }
 
     // Merge dirty slots
@@ -3341,13 +3351,17 @@ void RSRenderNode::UpdateRenderParams()
         return;
     }
 
-    stagingRenderParams_->SetMatrix(
-        GetSharedTransitionParam() != nullptr ? boundGeo->GetAbsMatrix() : boundGeo->GetMatrix());
+    if (GetRenderProperties().GetSandBox()) {
+        stagingRenderParams_->SetMatrix(boundGeo->GetAbsMatrix());
+        stagingRenderParams_->SetHasSandBox(true);
+    } else {
+        stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
+        stagingRenderParams_->SetHasSandBox(false);
+    }
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
     stagingRenderParams_->SetFrameRect({ 0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight() });
     stagingRenderParams_->SetShouldPaint(shouldPaint_);
     stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
-    stagingRenderParams_->SetHasSharedTransition(GetSharedTransitionParam() != nullptr);
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
@@ -3445,6 +3459,8 @@ void RSRenderNode::AddToPendingSyncList()
         OnSync();
     }
 }
+
+std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;
 
 SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)
     : inNode_(inNode), outNode_(outNode), inNodeId_(inNode->GetId()), outNodeId_(outNode->GetId()),

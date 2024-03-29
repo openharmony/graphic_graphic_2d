@@ -510,6 +510,7 @@ private:
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;
+    static void ProcessUnpairedSharedTransitionNode();
     std::stack<RenderParam> curGroupedNodes_;
 
     // adapt to sceneboard, mark if the canvasNode within the scope of surfaceNode
