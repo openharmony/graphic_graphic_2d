@@ -214,9 +214,9 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
     if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
         auto& accumulatedDirtyRegion = uniParam->GetAccumulatedDirtyRegion();
         if (surfaceParams->GetIsTransparent()) {
-            auto OldDirtyInSurface = Occlusion::Region{
+            auto oldDirtyInSurface = Occlusion::Region{
                 Occlusion::Rect{ surfaceParams->GetOldDirtyInSurface() } };
-            auto dirtyRegion = OldDirtyInSurface.And(accumulatedDirtyRegion);
+            auto dirtyRegion = oldDirtyInSurface.And(accumulatedDirtyRegion);
             if (!dirtyRegion.IsEmpty()) {
                 for (auto& rect : dirtyRegion.GetRegionRects()) {
                     Drawing::Region tempRegion;
