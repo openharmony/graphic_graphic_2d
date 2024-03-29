@@ -1172,6 +1172,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     dirtyFlag_ = isDirty_ || node.IsRotationChanged();
     prepareClipRect_ = screenRect_;
     curAlpha_ = 1.0f;
+    node.UpdateRotation();
 
     if (node.IsSubTreeDirty()) {
         QuickPrepareChildren(node);
@@ -1568,13 +1569,13 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         }
     }
 }
- 
+
 void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
     const Drawing::Matrix& absMatrix, const RectI& absRect)
 {
     auto canvas = std::make_unique<Rosen::Drawing::Canvas>(screenInfo_.phyWidth, screenInfo_.phyHeight);
     canvas->ConcatMatrix(absMatrix);
- 
+
     auto dstRect = node.GetDstRect();
     Drawing::RectI dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(),
                            dstRect.GetBottom() };
@@ -1588,7 +1589,7 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
         RSUniRenderUtil::UpdateRealSrcRect(node, absRect);
     }
 }
- 
+
 void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
@@ -1609,7 +1610,7 @@ void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& a
     // Set the destination rectangle of the node
     node.SetDstRect(dstRect);
 }
- 
+
 void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
 {
     if (!node.GetBuffer()) {
@@ -1621,7 +1622,7 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     RSUniRenderUtil::LayerScaleDown(node);
     node.SetCalcRectInPrepare(true);
 }
- 
+
 void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node)
 {
     if (node.IsHardwareForcedDisabled()) {
@@ -1633,7 +1634,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
         node.SetHardwareForcedDisabledState(true);
     }
 }
- 
+
 void RSUniRenderVisitor::UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node)
 {
     if (node.IsHardwareForcedDisabled()) {
@@ -1666,7 +1667,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
     }
     hwcRects.emplace_back(dst);
 }
- 
+
 void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     Drawing::Matrix totalMatrix;
@@ -1696,7 +1697,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     }
     hwcNode->SetTotalMatrix(totalMatrix);
 }
- 
+
 void RSUniRenderVisitor::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     Drawing::Matrix& matrix, float& alpha)
 {
@@ -1717,7 +1718,7 @@ void RSUniRenderVisitor::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRende
     alpha *= parentProperty.GetAlpha();
     matrix.PostConcat(parentProperty.GetBoundsGeometry()->GetMatrix());
 }
- 
+
 void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (!node) {
@@ -1731,7 +1732,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSur
     }
     std::shared_ptr<RSSurfaceRenderNode> pointWindow;
     std::vector<RectI> hwcRects;
-    for(auto hwcNode : hwcNodes) {  
+    for(auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
@@ -1756,7 +1757,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSur
         pointWindow->UpdateHwcNodeLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     }
 }
- 
+
 void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
     std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
@@ -2094,7 +2095,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(
         }
     }
 }
- 
+
 void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     auto filterVecIter = transparentCleanFilter_.find(node->GetId());

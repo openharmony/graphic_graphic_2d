@@ -217,9 +217,9 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
     if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
         auto& accumulatedDirtyRegion = uniParam->GetAccumulatedDirtyRegion();
         if (surfaceParams->GetIsTransparent()) {
-            auto OldDirtyInSurface = Occlusion::Region{
+            auto oldDirtyInSurface = Occlusion::Region{
                 Occlusion::Rect{ surfaceParams->GetOldDirtyInSurface() } };
-            auto dirtyRegion = OldDirtyInSurface.And(accumulatedDirtyRegion);
+            auto dirtyRegion = oldDirtyInSurface.And(accumulatedDirtyRegion);
             if (!dirtyRegion.IsEmpty()) {
                 for (auto& rect : dirtyRegion.GetRegionRects()) {
                     Drawing::Region tempRegion;
@@ -257,6 +257,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
     rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
+
+    RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + surfaceNode->GetName() + "] " +
+        surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
 
     if (surfaceParams->IsSecurityLayer() || surfaceParams->IsSkipLayer()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
@@ -391,7 +394,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams)
 {
-    if (surfaceParams.GetHardwareEnabled()) {
+    if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) {
         if (!surfaceNode.IsHardwareEnabledTopSurface()) {
             RSAutoCanvasRestore arc(&canvas);
             canvas.ClipRect(surfaceParams.GetBounds());
