@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,7 +57,7 @@ typedef enum {
 } OH_Drawing_PathDirection;
 
 /**
- * @brief FillType of path
+ * @brief FillType of path.
  *
  * @since 12
  * @version 1.0
@@ -72,6 +72,19 @@ typedef enum {
     /** Same as EvenOdd, but draws outside of the path, rather than inside */
     PATH_FILL_TYPE_INVERSE_EVEN_ODD,
 } OH_Drawing_PathFillType;
+
+/**
+ * @brief Add mode of path.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /** Appended to destination unaltered */
+    PATH_ADD_MODE_APPEND,
+    /** Add line if prior contour is not closed */
+    PATH_ADD_MODE_EXTEND,
+} OH_Drawing_PathAddMode;
 
 /**
  * @brief Creates an <b>OH_Drawing_Path</b> object.
@@ -164,6 +177,21 @@ void OH_Drawing_PathArcTo(OH_Drawing_Path*, float x1, float y1, float x2, float 
 void OH_Drawing_PathQuadTo(OH_Drawing_Path*, float ctrlX, float ctrlY, float endX, float endY);
 
 /**
+ * @brief Draws a conic from the last point of a path to the target point.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param ctrlX Indicates the x coordinate of the control point.
+ * @param ctrlY Indicates the y coordinate of the control point.
+ * @param endX Indicates the x coordinate of the target point.
+ * @param endY Indicates the y coordinate of the target point.
+ * @param weight Indicates the weight of added conic.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathConicTo(OH_Drawing_Path*, float ctrlX, float ctrlY, float endX, float endY, float weight);
+
+/**
  * @brief Draws a cubic Bezier curve from the last point of a path to the target point.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -179,6 +207,76 @@ void OH_Drawing_PathQuadTo(OH_Drawing_Path*, float ctrlX, float ctrlY, float end
  */
 void OH_Drawing_PathCubicTo(
     OH_Drawing_Path*, float ctrlX1, float ctrlY1, float ctrlX2, float ctrlY2, float endX, float endY);
+
+/**
+ * @brief Sets the relative starting point of a path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param x Indicates the x coordinate of the relative starting point.
+ * @param y Indicates the y coordinate of the relative starting point.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathRMoveTo(OH_Drawing_Path*, float x, float y);
+
+/**
+ * @brief Draws a line segment from the last point of a path to the relative target point.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param x Indicates the x coordinate of the relative target point.
+ * @param y Indicates the y coordinate of the relative target point.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathRLineTo(OH_Drawing_Path*, float x, float y);
+
+/**
+ * @brief Draws a quadratic bezier curve from the last point of a path to the relative target point.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param ctrlX Indicates the x coordinate of the relative control point.
+ * @param ctrlY Indicates the y coordinate of the relative control point.
+ * @param endX Indicates the x coordinate of the relative target point.
+ * @param endY Indicates the y coordinate of the relative target point.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathRQuadTo(OH_Drawing_Path*, float ctrlX, float ctrlY, float endX, float endY);
+
+/**
+ * @brief Draws a conic from the last point of a path to the relative target point.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param ctrlX Indicates the x coordinate of the relative control point.
+ * @param ctrlY Indicates the y coordinate of the relative control point.
+ * @param endX Indicates the x coordinate of the relative target point.
+ * @param endY Indicates the y coordinate of the relative target point.
+ * @param weight Indicates the weight of added conic.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathRConicTo(OH_Drawing_Path*, float ctrlX, float ctrlY, float endX, float endY, float weight);
+
+/**
+ * @brief Draws a cubic bezier curve from the last point of a path to the relative target point.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param ctrlX1 Indicates the x coordinate of the first relative control point.
+ * @param ctrlY1 Indicates the y coordinate of the first relative control point.
+ * @param ctrlX2 Indicates the x coordinate of the second relative control point.
+ * @param ctrlY2 Indicates the y coordinate of the second relative control point.
+ * @param endX Indicates the x coordinate of the relative target point.
+ * @param endY Indicates the y coordinate of the relative target point.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathRCubicTo(OH_Drawing_Path*, float ctrlX1, float ctrlY1, float ctrlX2, float ctrlY2,
+    float endX, float endY);
 
 /**
  * @brief Adds a new contour to the path, defined by the rect, and wound in the specified direction.
@@ -197,6 +295,20 @@ void OH_Drawing_PathAddRect(OH_Drawing_Path*, float left, float top, float right
     OH_Drawing_PathDirection);
 
 /**
+ * @brief Adds a new contour to the path, defined by the rect, and wound in the specified direction.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param OH_Drawing_PathDirection Indicates the path direction.
+ * @param start Indicates initial corner of rect to add.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddRectWithInitialCorner(OH_Drawing_Path*, const OH_Drawing_Rect*,
+    OH_Drawing_PathDirection, uint32_t start);
+
+/**
  * @brief Adds a new contour to the path, defined by the round rect, and wound in the specified direction.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -207,6 +319,20 @@ void OH_Drawing_PathAddRect(OH_Drawing_Path*, float left, float top, float right
  * @version 1.0
  */
 void OH_Drawing_PathAddRoundRect(OH_Drawing_Path*, const OH_Drawing_RoundRect* roundRect, OH_Drawing_PathDirection);
+
+/**
+ * @brief Adds a oval to the path, defined by the rect, and wound in the specified direction.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param start Index of initial point of ellipse.
+ * @param OH_Drawing_PathDirection Indicates the path direction.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddOvalWithInitialPoint(OH_Drawing_Path*, const OH_Drawing_Rect*,
+    uint32_t start, OH_Drawing_PathDirection);
 
 /**
  * @brief Appends arc to path, as the start of new contour.Arc added is part of ellipse bounded by oval,
@@ -239,6 +365,50 @@ void OH_Drawing_PathAddArc(OH_Drawing_Path*, const OH_Drawing_Rect*, float start
 void OH_Drawing_PathAddPath(OH_Drawing_Path*, const OH_Drawing_Path* src, const OH_Drawing_Matrix*);
 
 /**
+ * @brief Appends src path to path, transformed by matrix and mode. Transformed curves may have different verbs,
+ * point, and conic weights.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param src Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param OH_Drawing_Matrix Indicates the length of the <b>OH_Drawing_Matrix</b> object.
+ * @param OH_Drawing_PathAddMode Indicates the add path's add mode.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddPathWithMatrixAndMode(OH_Drawing_Path* path, const OH_Drawing_Path* src,
+    const OH_Drawing_Matrix*, OH_Drawing_PathAddMode);
+
+/**
+ * @brief Appends src path to path, transformed by mode. Transformed curves may have different verbs,
+ * point, and conic weights.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param src Indicates the pointer to an <b>OH_Drawing_Path</b> object, which is Appends src path to path.
+ * @param OH_Drawing_PathAddMode Indicates the add path's add mode.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddPathWithMode(OH_Drawing_Path* path, const OH_Drawing_Path* src, OH_Drawing_PathAddMode);
+
+/**
+ * @brief Appends src path to path, transformed by offset and mode. Transformed curves may have different verbs,
+ * point, and conic weights.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param src Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param dx Indicates offset added to src path x-axis coordinates.
+ * @param dy Indicates offset added to src path y-axis coordinates.
+ * @param OH_Drawing_PathAddMode Indicates the add path's add mode.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddPathWithOffsetAndMode(OH_Drawing_Path* path, const OH_Drawing_Path* src, float dx, float dy,
+    OH_Drawing_PathAddMode);
+
+/**
  * @brief Return the status that point (x, y) is contained by path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -264,6 +434,21 @@ bool OH_Drawing_PathContains(OH_Drawing_Path*, float x, float y);
 void OH_Drawing_PathTransform(OH_Drawing_Path*, const OH_Drawing_Matrix*);
 
 /**
+ * @brief Transforms verb array, point array, and weight by matrix.
+ * Transform may change verbs and increase their number.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param src Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param dst Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param applyPerspectiveClip Indicates whether to apply perspective clip.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathTransformWithPerspectiveClip(OH_Drawing_Path* src, const OH_Drawing_Matrix*,
+    OH_Drawing_Path* dst, bool applyPerspectiveClip);
+
+/**
  * @brief Sets FillType, the rule used to fill path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -275,6 +460,18 @@ void OH_Drawing_PathTransform(OH_Drawing_Path*, const OH_Drawing_Matrix*);
 void OH_Drawing_PathSetFillType(OH_Drawing_Path*, OH_Drawing_PathFillType);
 
 /**
+ * @brief Gets the length of the current path object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param forceClosed Indicates whether free to modify/delete the path after this call.
+ * @return Returns the length of the current path object.
+ * @since 12
+ * @version 1.0
+ */
+float OH_Drawing_PathGetLength(OH_Drawing_Path*, bool forceClosed);
+
+/**
  * @brief Closes a path. A line segment from the start point to the last point of the path is added.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -283,6 +480,19 @@ void OH_Drawing_PathSetFillType(OH_Drawing_Path*, OH_Drawing_PathFillType);
  * @version 1.0
  */
 void OH_Drawing_PathClose(OH_Drawing_Path*);
+
+/**
+ * @brief Offset path replaces dst.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param dst Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param dx Indicates offset added to dst path x-axis coordinates.
+ * @param dy Indicates offset added to dst path y-axis coordinates.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathOffset(OH_Drawing_Path* path, OH_Drawing_Path* dst, float dx, float dy);
 
 /**
  * @brief Resets path data.

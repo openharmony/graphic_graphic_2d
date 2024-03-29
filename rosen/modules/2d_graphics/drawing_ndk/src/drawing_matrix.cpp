@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "drawing_matrix.h"
 
 #include "utils/matrix.h"
+#include "utils/rect.h"
 
 static constexpr int POLY_POINT_COUNT_MAX = 4;
 using namespace OHOS;
@@ -30,6 +31,11 @@ static Matrix* CastToMatrix(OH_Drawing_Matrix* cMatrix)
 static const Point* CastToPoint(const OH_Drawing_Point2D* cPoint)
 {
     return reinterpret_cast<const Point *>(cPoint);
+}
+
+static const Drawing::Rect& CastToRect(const OH_Drawing_Rect& cRect)
+{
+    return reinterpret_cast<const Drawing::Rect&>(cRect);
 }
 
 OH_Drawing_Matrix* OH_Drawing_MatrixCreate()
@@ -75,6 +81,81 @@ void OH_Drawing_MatrixSetMatrix(OH_Drawing_Matrix* cMatrix, float scaleX, float 
         return;
     }
     matrix->SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+}
+
+bool OH_Drawing_MatrixSetRectToRect(OH_Drawing_Matrix* cMatrix, const OH_Drawing_Rect* src,
+    const OH_Drawing_Rect* dst, OH_Drawing_ScaleToFit stf)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr || src == nullptr || dst == nullptr) {
+        return false;
+    }
+    return matrix->SetRectToRect(CastToRect(*src), CastToRect(*dst), static_cast<ScaleToFit>(stf));
+}
+
+
+void OH_Drawing_MatrixPreScale(OH_Drawing_Matrix* cMatrix, float sx, float sy, float px, float py)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    matrix->PreScale(sx, sy, px, py);
+}
+
+void OH_Drawing_MatrixPreTranslate(OH_Drawing_Matrix* cMatrix, float dx, float dy)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    matrix->PreTranslate(dx, dy);
+}
+
+
+void OH_Drawing_MatrixPreRotate(OH_Drawing_Matrix* cMatrix, float degree, float px, float py)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    matrix->PreRotate(degree, px, py);
+}
+
+void OH_Drawing_MatrixPostScale(OH_Drawing_Matrix* cMatrix, float sx, float sy, float px, float py)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    matrix->PostScale(sx, sy, px, py);
+}
+
+void OH_Drawing_MatrixPostTranslate(OH_Drawing_Matrix* cMatrix, float dx, float dy)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    matrix->PostTranslate(dx, dy);
+}
+
+void OH_Drawing_MatrixPostRotate(OH_Drawing_Matrix* cMatrix, float degree, float px, float py)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    matrix->PostRotate(degree, px, py);
+}
+
+void OH_Drawing_MatrixReset(OH_Drawing_Matrix* cMatrix)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return;
+    }
+    matrix->Reset();
 }
 
 void OH_Drawing_MatrixConcat(OH_Drawing_Matrix* cTotal, const OH_Drawing_Matrix* cA,

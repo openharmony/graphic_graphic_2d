@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,6 +74,17 @@ void OH_Drawing_FilterSetMaskFilter(OH_Drawing_Filter*, OH_Drawing_MaskFilter*);
  * @version 1.0
  */
 void OH_Drawing_FilterSetColorFilter(OH_Drawing_Filter*, OH_Drawing_ColorFilter*);
+
+/**
+ * @brief Gets an <b>OH_Drawing_ColorFilter</b> object from an <b>OH_Drawing_Filter</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Filter Indicates the pointer to an <b>OH_Drawing_Filter</b> object.
+ * @param OH_Drawing_ColorFilter Indicates the pointer to an <b>OH_Drawing_ColorFilter</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FilterGetColorFilter(OH_Drawing_Filter*, OH_Drawing_ColorFilter*);
 
 /**
  * @brief Destroys an <b>OH_Drawing_Filter</b> object and reclaims the memory occupied by the object.

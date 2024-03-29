@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,11 @@ static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
 {
     return reinterpret_cast<const Filter&>(cFilter);
+}
+
+static const Filter* CastToFilter(const OH_Drawing_Filter* cFilter)
+{
+    return reinterpret_cast<const Filter*>(cFilter);
 }
 
 OH_Drawing_Brush* OH_Drawing_BrushCreate()
@@ -125,6 +130,19 @@ void OH_Drawing_BrushSetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFil
     brush->SetFilter(CastToFilter(*cFilter));
 }
 
+void OH_Drawing_BrushGetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFilter)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    Filter* filter = const_cast<Filter*>(CastToFilter(cFilter));
+    if (filter == nullptr) {
+        return;
+    }
+    *filter = brush->GetFilter();
+}
+
 void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush* cBrush, OH_Drawing_BlendMode cBlendMode)
 {
     Brush* brush = CastToBrush(cBrush);
@@ -132,4 +150,13 @@ void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush* cBrush, OH_Drawing_BlendMode
         return;
     }
     brush->SetBlendMode(static_cast<BlendMode>(cBlendMode));
+}
+
+void OH_Drawing_BrushReset(OH_Drawing_Brush* cBrush)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->Reset();
 }

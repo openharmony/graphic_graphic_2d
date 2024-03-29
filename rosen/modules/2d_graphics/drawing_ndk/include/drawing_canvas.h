@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief Enumeration defines the constraint type.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Using sampling only inside bounds in a slower manner.
+     */
+    STRICT_SRC_RECT_CONSTRAINT,
+    /**
+     * Using sampling outside bounds in a faster manner.
+     */
+    FAST_SRC_RECT_CONSTRAINT,
+} OH_Drawing_SrcRectConstraint;
 
 /**
  * @brief Creates an <b>OH_Drawing_Canvas</b> object.
@@ -213,6 +230,64 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
  */
 void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas*, OH_Drawing_PixelMap*, const OH_Drawing_Rect* src,
     const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions*);
+
+/**
+ * @brief Fills clipped canvas area with brush.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawBackground(OH_Drawing_Canvas*, const OH_Drawing_Brush*);
+
+/**
+ * @brief Draws region using clip, matrix and paint.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawRegion(OH_Drawing_Canvas*, const OH_Drawing_Region*);
+
+/**
+ * @brief Enumerates of scale to fit flags, selects if an array of points are drawn as discrete points, as lines,
+ * or as an open polygon.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Draw each point separately.
+     */
+    POINT_MODE_POINTS,
+    /**
+     * Draw each pair of points as a line segment.
+     */
+    POINT_MODE_LINES,
+     /**
+     * Draw the array of points as a open polygon.
+     */
+    POINT_MODE_POLYGON,
+} OH_Drawing_PointMode;
+
+/**
+ * @brief Draws point array as separate point, line segment or open polygon according to given point mode.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param mode Draw points enum.
+ * @param count The point count.
+ * @param OH_Drawing_Point2D Point struct array.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas*, OH_Drawing_PointMode mode,
+    uint32_t count, const OH_Drawing_Point2D*);
 
 /**
  * @brief Draws a bitmap.
@@ -396,6 +471,18 @@ void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas*, float dx, float dy);
 void OH_Drawing_CanvasScale(OH_Drawing_Canvas*, float sx, float sy);
 
 /**
+ * @brief Skew by sx on the x-axis and sy on the y-axis.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param sx Indicates the amount to skew on x-axis.
+ * @param sy Indicates the amount to skew on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasSkew(OH_Drawing_Canvas*, float sx, float sy);
+
+/**
  * @brief Get the width of a canvas.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -517,6 +604,34 @@ void OH_Drawing_CanvasClear(OH_Drawing_Canvas*, uint32_t color);
 void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas*, OH_Drawing_Matrix*);
 
 /**
+ * @brief Reset matrix to the idenmtity matrix, any prior matrix state is overwritten.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasResetMatrix(OH_Drawing_Canvas*);
+
+/**
+ * @brief Draws the specified source rectangle of the image onto the canvas,
+ * scaled and translated to the destination rectangle.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Image Indicates the pointer to an <b>OH_Drawing_Image</b> object.
+ * @param src The area of source image.
+ * @param dst The area of destination canvas.
+ * @param OH_Drawing_SamplingOptions Indicates the pointer to an <b>OH_Drawing_SamplingOptions</b> object.
+ * @param OH_Drawing_SrcRectConstraint Constraint type.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawImageRectWithSrc(OH_Drawing_Canvas*, const OH_Drawing_Image*,
+    const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions*,
+    OH_Drawing_SrcRectConstraint);
+
+/**
  * @brief Draws the specified source rectangle of the image onto the canvas,
  * scaled and translated to the destination rectangle.
  *
@@ -530,6 +645,46 @@ void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas*, OH_Drawing_Matrix*);
  */
 void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas*, OH_Drawing_Image*,
     OH_Drawing_Rect* dst, OH_Drawing_SamplingOptions*);
+
+/**
+ * @brief Enumerates of vertices flags.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * The vertices are a triangle list.
+     */
+    VERTEX_MODE_TRIANGLES,
+    /**
+     * The vertices are a triangle strip.
+     */
+    VERTEX_MODE_TRIANGLES_STRIP,
+    /**
+     * The vertices are a triangle fan.
+     */
+    VERTEX_MODE_TRIANGLE_FAN,
+} OH_Drawing_VertexMode;
+
+/**
+ * @brief Draw a triangular mesh with vertex descriptions.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param vertexMmode Draw a set of vertices.
+ * @param vertexCount Vertex count.
+ * @param positions Positions data pointer.
+ * @param texs Texture coordinate data pointer.
+ * @param colors Color data pointer.
+ * @param indexCount Index count.
+ * @param indices Index data pointer.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas*, OH_Drawing_VertexMode vertexMmode,
+    int32_t vertexCount, const OH_Drawing_Point2D* positions, const OH_Drawing_Point2D* texs,
+    const uint32_t* colors, int32_t indexCount, const uint16_t* indices, OH_Drawing_BlendMode mode);
 
 /**
  * @brief Read pixels data from canvas.

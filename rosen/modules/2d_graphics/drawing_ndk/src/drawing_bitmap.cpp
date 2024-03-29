@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -225,4 +225,17 @@ void OH_Drawing_BitmapGetImageInfo(OH_Drawing_Bitmap* cBitmap, OH_Drawing_Image_
     cImageInfo->height = imageInfo.GetHeight();
     cImageInfo->colorType = static_cast<OH_Drawing_ColorFormat>(imageInfo.GetColorType());
     cImageInfo->alphaType = static_cast<OH_Drawing_AlphaFormat>(imageInfo.GetAlphaType());
+}
+
+bool OH_Drawing_BitmapReadPixels(OH_Drawing_Bitmap* cBitmap, const OH_Drawing_Image_Info* dstInfo,
+    void* dstPixels, size_t dstRowBytes, int32_t srcX, int32_t srcY)
+{
+    if (cBitmap == nullptr || dstInfo == nullptr || dstPixels == nullptr) {
+        return false;
+    }
+
+    ImageInfo imageInfo(dstInfo->width, dstInfo->height,
+        static_cast<ColorType>(dstInfo->colorType), static_cast<AlphaType>(dstInfo->alphaType));
+
+    return CastToBitmap(cBitmap)->ReadPixels(imageInfo, dstPixels, dstRowBytes, srcX, srcY);
 }

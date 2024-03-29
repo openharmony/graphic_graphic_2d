@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,15 +54,19 @@ public:
     void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) override;
     void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) override;
+    void ConicTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar w) override;
 
     void RMoveTo(scalar dx, scalar dy) override;
     void RLineTo(scalar dx, scalar dy) override;
     void RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy) override;
     void RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, scalar dy3) override;
+    void RConicTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY, scalar weight) override;
     void RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2) override;
 
     void AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) override;
+    void AddRect(const Rect& rect, unsigned start, PathDirection dir) override;
     void AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) override;
+    void AddOval(scalar left, scalar top, scalar right, scalar bottom, unsigned start, PathDirection dir) override;
     void AddArc(scalar left, scalar top, scalar right, scalar bottom, scalar startAngle, scalar sweepAngle) override;
     void AddPoly(const std::vector<Point>& points, int count, bool close) override;
     void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir) override;
@@ -70,10 +74,10 @@ public:
         PathDirection dir) override;
     void AddRoundRect(const RoundRect& rrect, PathDirection dir) override;
 
-    void AddPath(const Path& src, scalar dx, scalar dy) override;
-    void AddPath(const Path& src) override;
+    void AddPath(const Path& src, scalar dx, scalar dy, PathAddMode mode) override;
+    void AddPath(const Path& src, PathAddMode mode) override;
     bool Contains(scalar x, scalar y) const override;
-    void AddPathWithMatrix(const Path& src, const Matrix& matrix) override;
+    void AddPath(const Path& src, const Matrix& matrix, PathAddMode mode) override;
     void ReverseAddPath(const Path& src) override;
 
     Rect GetBounds() const override;
@@ -81,7 +85,9 @@ public:
 
     bool Interpolate(const Path& ending, scalar weight, Path& out) override;
     void Transform(const Matrix& matrix) override;
+    void TransformWithPerspectiveClip(const Matrix& matrix, Path* dst, bool applyPerspectiveClip) override;
     void Offset(scalar dx, scalar dy) override;
+    void Offset(Path* dst, scalar dx, scalar dy) override;
     bool OpWith(const Path& path1, const Path& path2, PathOp op) override;
 
     bool IsValid() const override;
