@@ -16,6 +16,8 @@
 #include "rs_dirty_rects_dfx.h"
 #include "rs_trace.h"
 
+#include "params/rs_display_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
@@ -205,8 +207,10 @@ void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX() const
 
 void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX() const
 {
-    for (auto& it : targetNode_->GetCurAllSurfaces()) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
+    auto params = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
+    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surfaceNode->IsMainWindowType()) {
             DrawSurfaceOpaqueRegionForDFX(*surfaceNode);
         }
@@ -244,14 +248,16 @@ void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
 
 void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX() const
 {
-    auto curAllSurfaces = targetNode_->GetCurAllSurfaces();
+    auto params = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
+    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
             continue;
         }
         if (CheckIfSurfaceTargetedForDFX(surfaceNode->GetName())) {
-            const auto& visibleRegions = surfaceNode->GetVisibleRegion().GetRegionRects();
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+            const auto visibleRegions = surfaceParams->GetVisibleRegion().GetRegionRects();
             std::vector<RectI> rects;
             for (auto& rect : visibleRegions) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
