@@ -2351,15 +2351,6 @@ void OH_Drawing_TypographyDestroyEllipsis(char* ellipsis)
     ellipsis = nullptr;
 }
 
-void OH_Drawing_TypographyStyleDestroyEllipsis(char* ellipsis)
-{
-    if (ellipsis == nullptr) {
-        return;
-    }
-    delete[] ellipsis;
-    ellipsis = nullptr;
-}
-
 bool OH_Drawing_TypographyStyleEquals(OH_Drawing_TypographyStyle* from, OH_Drawing_TypographyStyle* to)
 {
     if(from  == to ) {
