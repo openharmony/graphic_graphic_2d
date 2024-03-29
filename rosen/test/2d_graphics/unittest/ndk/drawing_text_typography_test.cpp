@@ -1896,7 +1896,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level
     EXPECT_TRUE(result != nullptr);
     result = OH_Drawing_TypographyTextlineStyleGetFontFamilies(nullptr, &fontNum);
     EXPECT_TRUE(result == nullptr);
-    OH_Drawing_DestroyFontFamilies(result, fontNum);
+    OH_Drawing_TypographyTextlineStyleDestroyFontFamilies(result, fontNum);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     typoStyle = nullptr;
     EXPECT_TRUE(typoStyle == nullptr);
@@ -2079,7 +2079,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest070, TestSize.Level
     EXPECT_TRUE(result != nullptr);
     result = OH_Drawing_TypographyGetTextEllipsis(nullptr);
     EXPECT_TRUE(result == nullptr);
-    OH_Drawing_TypographyStyleDestroyEllipsis(result);
+    OH_Drawing_TypographyDestroyEllipsis(result);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     typoStyle = nullptr;
     EXPECT_TRUE(typoStyle == nullptr);

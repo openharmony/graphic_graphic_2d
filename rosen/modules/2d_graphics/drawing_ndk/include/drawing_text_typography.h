@@ -2286,7 +2286,7 @@ char** OH_Drawing_TypographyTextlineStyleGetFontFamilies(OH_Drawing_TypographySt
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_DestroyFontFamilies(char** fontFamilies, size_t fontFamiliesNum);
+void OH_Drawing_TypographyTextlineStyleDestroyFontFamilies(char** fontFamilies, size_t fontFamiliesNum);
 
 /**
  * @brief Get the font size of font size for text typography.
@@ -2406,7 +2406,7 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle*);
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TypographyStyleDestroyEllipsis(char* ellipsis);
+void OH_Drawing_TypographyDestroyEllipsis(char* ellipsis);
 
 /**
  * @brief Overriding the class ParagraphStyle equals operator.
