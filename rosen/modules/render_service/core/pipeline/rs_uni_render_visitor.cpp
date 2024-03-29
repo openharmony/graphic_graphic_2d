@@ -1779,8 +1779,9 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
     // this is used to record mainAndLeash surface accumulatedDirtyRegion by Pre-order traversal
     Occlusion::Region accumulatedDirtyRegion;
+    bool hasMainAndLeashSurfaceDirty = false;
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
-        [this, &accumulatedDirtyRegion](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this, &accumulatedDirtyRegion, &hasMainAndLeashSurfaceDirty](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         auto dirtyManager = surfaceNode->GetDirtyManager();
@@ -1789,6 +1790,9 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         // 1. calculate abs dirtyrect and update partialRenderParams
         // currently only sync visible region info
         surfaceNode->UpdatePartialRenderParams();
+        if (dirtyManager->IsCurrentFrameDirty()) {
+            hasMainAndLeashSurfaceDirty = true;
+        }
         // 2. check surface node dirtyrect need merge into displayDirtyManager
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
         // 3. check surface node's transparent dirtyrect need merge into displayDirtyManager
@@ -1796,6 +1800,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         // 4. check filter node need merge into displayDirtyManager
         CheckMergeTransparentFilterForDisplay(surfaceNode, accumulatedDirtyRegion);
     });
+    curDisplayNode_->SetMainAndLeashSurfaceDirty(hasMainAndLeashSurfaceDirty);
     CheckAndUpdateFilterCacheOcclusion(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     curDisplayNode_->ClearCurrentSurfacePos();

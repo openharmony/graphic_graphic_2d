@@ -30,6 +30,20 @@ void RSDisplayRenderParams::SetAllMainAndLeashSurfaces(
     std::swap(allMainAndLeashSurfaces_, allMainAndLeashSurfaces);
 }
 
+void RSDisplayRenderParams::SetMainAndLeashSurfaceDirty(bool isDirty)
+{
+    if (isMainAndLeashSurfaceDirty_ == isDirty) {
+        return;
+    }
+    isMainAndLeashSurfaceDirty_ = isDirty;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::GetMainAndLeashSurfaceDirty() const
+{
+    return isMainAndLeashSurfaceDirty_;
+}
+
 void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
@@ -47,6 +61,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->compositeType_ = compositeType_;
     targetDisplayParams->mirrorSource_ = mirrorSource_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
+    targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     RSRenderParams::OnSync(target);
 }
 

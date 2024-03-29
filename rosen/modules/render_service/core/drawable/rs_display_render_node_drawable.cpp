@@ -26,12 +26,14 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "system/rs_system_parameters.h"
@@ -181,6 +183,53 @@ static inline void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region)
     }
 }
 
+bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode,
+    RSDisplayRenderParams* params, std::shared_ptr<RSProcessor> processor)
+{
+    if (!displayNode->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty() ||
+        params->GetMainAndLeashSurfaceDirty()) {
+        return false;
+    }
+
+    RS_LOGD("DisplayNode skip");
+    RS_TRACE_NAME("DisplayNode skip");
+    if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer()) {
+        return true;
+    }
+
+    if (!processor->Init(*displayNode, params->GetDisplayOffsetX(), params->GetDisplayOffsetY(), INVALID_SCREEN_ID,
+        RSUniRenderThread::Instance().GetRenderEngine(), true)) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip processor init failed");
+        return false;
+    }
+
+#ifdef OHOS_PLATFORM
+    RSJankStats::GetInstance().SetSkipDisplayNode();
+#endif
+    auto& selfDrawingNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetSelfDrawingNodes();
+    bool needCreateDisplayNodeLayer = false;
+    for (const auto& surfaceNode : selfDrawingNodes) {
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (params->GetHardwareEnabled() && params->GetBuffer()) {
+            needCreateDisplayNodeLayer = true;
+            processor->CreateLayer(*surfaceNode, *params);
+        }
+    }
+    if (!needCreateDisplayNodeLayer) {
+        return true;
+    }
+    if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
+        RS_LOGW("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip: hardwareThread task has too many to excute");
+    }
+    processor->ProcessDisplaySurface(*displayNode);
+    // TODO commit RCD layers
+    processor->PostProcess();
+    return true;
+}
+
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     // canvas will generate in every request frame
@@ -244,6 +293,15 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if (!uniParam) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw uniParam is null");
+        return;
+    }
+    if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(displayNodeSp, params, processor)) {
+        return;
+    }
+
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(displayNodeSp, *params, processor);
     if (!renderFrame) {
@@ -253,11 +311,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp);
     auto rects = MergeDirtyHistory(displayNodeSp, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx);
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if (!uniParam) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw uniParam is null");
-        return;
-    }
+
     uniParam->Reset();
     if (uniParam->IsPartialRenderEnabled() && !uniParam->IsRegionDebugEnabled()) {
         renderFrame->SetDamageRegion(rects);
@@ -280,7 +334,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     {
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-        if (!uniParam || uniParam->IsOpDropped()) {
+        if (uniParam->IsOpDropped()) {
             ClipRegion(*curCanvas_, region);
         }
         SetHighContrastIfEnabled(*curCanvas_);

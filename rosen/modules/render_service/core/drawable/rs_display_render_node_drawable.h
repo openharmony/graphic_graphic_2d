@@ -40,6 +40,8 @@ public:
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
 private:
+    bool CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode, RSDisplayRenderParams* params,
+        std::shared_ptr<RSProcessor> processor);
     std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,
         RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor) const;
     void FindHardwareEnabledNodes();

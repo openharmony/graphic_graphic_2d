@@ -309,5 +309,14 @@ void RSDisplayRenderNode::ClearCurrentSurfacePos()
     lastFrameSurfacePos_.swap(currentFrameSurfacePos_);
 }
 
+void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    displayParams->SetMainAndLeashSurfaceDirty(isDirty);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

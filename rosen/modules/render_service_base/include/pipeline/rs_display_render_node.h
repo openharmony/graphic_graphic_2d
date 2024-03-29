@@ -293,6 +293,8 @@ public:
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
 
+    void SetMainAndLeashSurfaceDirty(bool isDirty);
+
 protected:
     void OnSync() override;
 private:

@@ -106,6 +106,17 @@ public:
         watermarkFlag_ = watermarkFlag;
         watermarkImg_ = std::move(watermarkImg);
     }
+    
+    void SetForceCommitLayer(bool forceCommit)
+    {
+        isForceCommitLayer_ = forceCommit;
+    }
+
+    bool GetForceCommitLayer() const
+    {
+        return isForceCommitLayer_;
+    }
+    
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -122,6 +133,7 @@ private:
     bool isOpDropped_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    bool isForceCommitLayer_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;

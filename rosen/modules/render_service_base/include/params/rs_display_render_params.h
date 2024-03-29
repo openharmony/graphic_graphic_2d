@@ -86,6 +86,9 @@ public:
     {
         return hardwareEnabledTopNodes_;
     }
+    void SetMainAndLeashSurfaceDirty(bool isDirty);
+    bool GetMainAndLeashSurfaceDirty() const;
+
     // dfx
     std::string ToString() const override;
 
@@ -100,6 +103,8 @@ private:
     ScreenInfo screenInfo_;
     ScreenId mirroredId_;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    bool isMainAndLeashSurfaceDirty_ = false;
+    
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     bool displayHasSecSurface_ = true; // Enforce process children when doing snapshot
