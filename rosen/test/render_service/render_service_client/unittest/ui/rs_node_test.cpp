@@ -3656,4 +3656,31 @@ HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
     blendModeType = RSColorBlendMode::SRC_IN;
     rsNode->SetColorBlendMode(blendModeType);
 }
+
+/**
+ * @tc.name: SetTextureExport
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetTextureExport, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTextureExport(true);
+    ASSERT_TRUE(rsNode->IsTextureExportNode());
+    rsNode->SetTextureExport(false);
+    ASSERT_EQ(rsNode->IsTextureExportNode(), false);
+}
+
+/**
+ * @tc.name: SyncTextureExport
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SyncTextureExport, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create();
+    rsNode->AddChild(canvasNode, -1);
+    rsNode->SyncTextureExport(true);
+}
 } // namespace OHOS::Rosen

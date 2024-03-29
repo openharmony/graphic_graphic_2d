@@ -96,6 +96,19 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TakeSurfaceCapture Test nullptr
+ * @tc.desc: TakeSurfaceCapture Test nullptr
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->TakeSurfaceCapture(123, nullptr, 1.0f, 1.0f, SurfaceCaptureType::DEFAULT_CAPTURE, true);
+    ASSERT_NE(ret, true);
+}
+
+/**
  * @tc.name: RegisterBufferAvailableListener Test a notfound id True
  * @tc.desc: RegisterBufferAvailableListener Test a notfound id True
  * @tc.type:FUNC
