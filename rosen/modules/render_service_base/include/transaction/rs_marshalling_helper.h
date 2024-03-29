@@ -331,12 +331,14 @@ public:
         if (!Unmarshalling(parcel, size)) {
             return false;
         }
-        val.resize(size);
+        val.clear();
         for (uint32_t i = 0; i < size; ++i) {
             // in-place unmarshalling
-            if (!Unmarshalling(parcel, val[i])) {
+            T tmp;
+            if (!Unmarshalling(parcel, tmp)) {
                 return false;
             }
+            val.emplace_back(tmp);
         }
         return true;
     }
