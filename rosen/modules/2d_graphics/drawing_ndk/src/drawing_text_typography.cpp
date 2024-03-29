@@ -3108,13 +3108,13 @@ bool OH_Drawing_TypographyStyleStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_
     return false;
 }
 
-void OH_Drawing_TypographyStyleSetHintingEnable(OH_Drawing_TypographyStyle* style, bool hintingEnable)
+void OH_Drawing_TypographyStyleSetHintsEnabled(OH_Drawing_TypographyStyle* style, bool hintsEnabled)
 {
     TypographyStyle* typographyStyle = ConvertToOriginalText<TypographyStyle>(style);
     if (typographyStyle == nullptr) {
         return;
     }
-    typographyStyle->hintingIsOn = hintingEnable;
+    typographyStyle->hintingIsOn = hintsEnabled;
 }
 
 OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typography* typography,

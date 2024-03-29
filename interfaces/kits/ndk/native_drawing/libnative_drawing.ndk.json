@@ -355,7 +355,7 @@
     { "name": "OH_Drawing_TypographyStyleDestroyStrutStyle"},
     { "name": "OH_Drawing_TypographyStyleGetStrutStyle" },
     { "name": "OH_Drawing_TypographyStyleStrutStyleEquals" },
-    { "name": "OH_Drawing_TypographyStyleSetHintingEnable" },
+    { "name": "OH_Drawing_TypographyStyleSetHintsEnabled" },
     { "name": "OH_Drawing_TypographyGetLineFontMetrics" },
     { "name": "OH_Drawing_TypographyDestroyLineFontMetrics" },
     { "name": "OH_Drawing_SetTextStyleFontStyleStruct" },

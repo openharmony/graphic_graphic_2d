@@ -2465,11 +2465,11 @@ bool OH_Drawing_TypographyStyleStrutStyleEquals(OH_Drawing_StrutStyle* from, OH_
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @param hintingEnable Indicates the hinting of text typography..
+ * @param hintsEnabled Indicates the hinting of text typography..
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TypographyStyleSetHintingEnable(OH_Drawing_TypographyStyle* style, bool hintingEnable);
+void OH_Drawing_TypographyStyleSetHintsEnabled(OH_Drawing_TypographyStyle* style, bool hintsEnabled);
 
 /**
  * @brief Getting all font metrics from target row.
