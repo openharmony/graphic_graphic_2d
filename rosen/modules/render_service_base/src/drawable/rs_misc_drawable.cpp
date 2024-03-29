@@ -346,7 +346,7 @@ bool RSEnvFGColorStrategyDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& modifier = itr->second.back();
-    auto property = std::static_pointer_cast<RSRenderAnimatableProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
+    auto property = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
     stagingEnvFGColorStrategy_ = property->Get();
     const auto& renderProperties = node.GetRenderProperties();
     stagingBackgroundColor_ = renderProperties.GetBackgroundColor();

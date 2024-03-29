@@ -17,8 +17,8 @@
 #define RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
 
 #include "rs_trace.h"
+#ifndef ROSEN_TRACE_DISABLE
 #include "platform/common/rs_system_properties.h"
-
 #define RS_OPTIONAL_TRACE_BEGIN(name)                            \
     do {                                                         \
         if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) { \
@@ -102,4 +102,13 @@ private:
     bool debugTraceEnable_ = false;
     bool forceEnable_ = false;
 };
+#else
+#define RS_OPTIONAL_TRACE_BEGIN(name)
+#define RS_OPTIONAL_TRACE_END()
+#define RS_OPTIONAL_TRACE_NAME_FMT(fmt, ...)
+#define RS_APPOINTED_TRACE_BEGIN(node, name)
+#define RS_OPTIONAL_TRACE_NAME(name)
+#define RS_OPTIONAL_TRACE_FUNC()
+#define RS_PROCESS_TRACE(forceEnable, name)
+#endif //ROSEN_TRACE_DISABLE
 #endif // RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE

@@ -357,5 +357,10 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;
 }
+
+bool RSSystemProperties::GetRenderParallelEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

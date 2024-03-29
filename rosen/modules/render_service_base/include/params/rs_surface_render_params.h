@@ -21,12 +21,16 @@
 #include "common/rs_occlusion_region.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
+#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
-#include "surface_type.h"
 #include "sync_fence.h"
+#endif
+#include "surface_type.h"
+
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
 struct RSLayerInfo {
+#ifndef ROSEN_CROSS_PLATFORM
     GraphicIRect srcRect;
     GraphicIRect dstRect;
     GraphicIRect boundRect;
@@ -46,6 +50,7 @@ struct RSLayerInfo {
             (acquireFence == layerInfo.acquireFence) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType);
     }
+#endif
 };
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
@@ -162,12 +167,14 @@ public:
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const;
 
+#ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer);
     sptr<SurfaceBuffer> GetBuffer() const;
     void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer);
     sptr<SurfaceBuffer>& GetPreBuffer();
     void SetAcquireFence(const sptr<SyncFence>& acquireFence);
     sptr<SyncFence> GetAcquireFence() const;
+#endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 

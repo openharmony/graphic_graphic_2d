@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 
+#include <optional>
 #include "common/rs_vector2.h"
 #include "draw/brush.h"
 #include "draw/canvas.h"

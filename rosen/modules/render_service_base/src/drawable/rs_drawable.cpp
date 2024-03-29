@@ -15,6 +15,7 @@
 
 #include "drawable/rs_drawable.h"
 
+#include <limits.h>
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
