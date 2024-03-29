@@ -496,6 +496,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
     int32_t size = parcel.ReadInt32();
+    if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}d", size);
+        return false;
+    }
     bool isMalloc = false;
     auto data = static_cast<const Drawing::scalar*>(RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc));
     if (data == nullptr) {
@@ -1219,6 +1223,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     bool cachedHighContrast = parcel.ReadBool();
 
     uint32_t replacedOpListSize = parcel.ReadUint32();
+    uint32_t readableSize = parcel.GetReadableBytes() / (sizeof(uint32_t) * 2);    // 增加IPC异常保护，读取2个uint_32_t
+    if (replacedOpListSize > readableSize) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing readableSize %{public}d less than size %{public}d",
+            readableSize, replacedOpListSize);
+        val = nullptr;
+        return false;
+    }
     std::vector<std::pair<uint32_t, uint32_t>> replacedOpList;
     for (uint32_t i = 0; i < replacedOpListSize; ++i) {
         auto regionPos = parcel.ReadUint32();
