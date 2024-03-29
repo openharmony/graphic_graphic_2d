@@ -219,7 +219,8 @@ void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX() const
 
 void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
 {
-    auto curAllSurfaces = targetNode_->GetCurAllSurfaces();
+    auto params = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
+    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaces();
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {

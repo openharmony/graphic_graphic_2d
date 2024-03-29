@@ -1224,7 +1224,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     if ((IsDirty() || accumGeoDirty) && (shouldPaint_ || isLastVisible_)) {
         // update FrontgroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
-        UpdateDirtyRegionInfoForDFX();
+        UpdateDirtyRegionInfoForDFX(dirtyManager);
     }
     if (GetRenderProperties().GetBackgroundFilter()) {
         UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
@@ -1236,12 +1236,17 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     return accumGeoDirty;
 }
 
-void RSRenderNode::UpdateDirtyRegionInfoForDFX()
+void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager)
 {
-    DirtyRegionInfoForDFX dirtyRegionInfo;
-    dirtyRegionInfo.oldDirty = oldDirty_;
-    dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
-    stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
+    if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
+        dirtyManager.UpdateDirtyRegionInfoForDfx(GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, absDrawRect_);
+        dirtyManager.UpdateDirtyRegionInfoForDfx(
+            GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
+        DirtyRegionInfoForDFX dirtyRegionInfo;
+        dirtyRegionInfo.oldDirty = oldDirty_;
+        dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
+        stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
+    }
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager,

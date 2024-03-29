@@ -151,6 +151,10 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     targetManager->surfaceRect_ = surfaceRect_;
     targetManager->dirtyRegion_ = dirtyRegion_;
     targetManager->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
+    if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
+        targetManager->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
+        targetManager->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
+    }
 }
 
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
