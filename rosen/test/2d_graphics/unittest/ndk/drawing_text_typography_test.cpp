@@ -2260,7 +2260,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyStyleSetHintingEnable(typoStyle, true);
+    OH_Drawing_TypographyStyleSetHintsEnabled(typoStyle, true);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->hintingIsOn, true);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
