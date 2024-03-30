@@ -39,12 +39,6 @@ ohos_unittest("hdibackend_unit_test") {
   ]
 
   deps = [ ":hdibackend_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
 }
 
 ## UnitTest hdibackend_unit_test }}}
@@ -56,12 +50,6 @@ ohos_unittest("hdiframebuffersurface_unit_test") {
   sources = [ "hdiframebuffersurface_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
 }
 
 ## UnitTest hdiframebuffersurface_unit_test }}}
@@ -76,12 +64,6 @@ ohos_unittest("hdilayer_unit_test") {
   ]
 
   deps = [ ":hdibackend_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
 }
 
 ## UnitTest hdilayer_unit_test }}}
@@ -93,12 +75,6 @@ ohos_unittest("hdilayerinfo_unit_test") {
   sources = [ "hdilayerinfo_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
 }
 
 ## UnitTest hdilayerinfo_unit_test }}}
@@ -113,12 +89,6 @@ ohos_unittest("hdioutput_unit_test") {
   ]
 
   deps = [ ":hdibackend_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
 }
 
 ## UnitTest hdioutput_unit_test }}}
@@ -133,12 +103,6 @@ ohos_unittest("hdiscreen_unit_test") {
   ]
 
   deps = [ ":hdibackend_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
 }
 
 ## UnitTest hdiscreen_unit_test }}}
@@ -150,12 +114,6 @@ ohos_unittest("hdidevice_unit_test") {
   sources = [ "hdidevice_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
 }
 
 ## UnitTest hdidevice_unit_test }}}
@@ -165,8 +123,6 @@ config("hdibackend_test_common_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "$graphic_2d_root/frameworks/surface/include",
   ]
 
   cflags = [
@@ -185,10 +141,16 @@ ohos_static_library("hdibackend_test_common") {
   public_configs = [ ":hdibackend_test_common_public_config" ]
 
   public_deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
+  ]
+
+  public_external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 ## Build hdibackend_test_common.a }}}

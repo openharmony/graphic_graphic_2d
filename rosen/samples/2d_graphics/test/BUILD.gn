@@ -58,7 +58,6 @@ ohos_executable("drawing_sample") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
@@ -67,6 +66,7 @@ ohos_executable("drawing_sample") {
   deps += [ "//third_party/skia:skia_ohos" ]
   external_deps = [
     "eventhandler:libeventhandler",
+    "graphic_surface:surface",
     "hilog:libhilog",
   ]
 

@@ -28,19 +28,20 @@ ohos_executable("test_effect_chain") {
     include_dirs = [
       "$graphic_2d_root/rosen/modules/effect/effectChain/include",
       "$graphic_2d_root/rosen/modules/effect/egl/include",
-      "$graphic_2d_root/interfaces/inner_api/surface",
       "//third_party/EGL/api",
       "//third_party/openGLES/api",
     ]
 
     deps = [
       "$graphic_2d_root:libgl",
-      "$graphic_2d_root:libsurface",
       "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
       "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
     ]
 
-    external_deps = [ "c_utils:utils" ]
+    external_deps = [
+      "c_utils:utils",
+      "graphic_surface:surface",
+    ]
   }
 
   if (effect_enable_gpu) {

@@ -49,7 +49,6 @@ ohos_executable("hello_composer") {
   public_configs = [ ":hello_composer_public_config" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
@@ -57,6 +56,7 @@ ohos_executable("hello_composer") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "graphic_surface:surface",
     "hilog:libhilog",
   ]
 

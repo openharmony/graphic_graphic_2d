@@ -14,17 +14,16 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("HdiScreenFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test/fuzztest/hdiscreen_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/composer/hdi_backend/test/fuzztest/hdiscreen_fuzzer"
   module_out_path = module_output_path
 
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-  ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/composer/hdi_backend/include" ]
   cflags = [
     "-g",
     "-O0",
@@ -33,14 +32,15 @@ ohos_fuzztest("HdiScreenFuzzTest") {
   ]
   sources = [ "hdiscreen_fuzzer.cpp" ]
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/utils:socketpair",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 

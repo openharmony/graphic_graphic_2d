@@ -13,10 +13,12 @@
 
 import("//build/ohos.gni")
 import("//build/ohos/ndk/ndk.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_ndk_headers("native_buffer_header") {
   dest_dir = "$ndk_headers_out_dir/native_buffer"
-  sources = [ "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/native_buffer.h" ]
+  sources =
+      [ "$graphic_surface_root/interfaces/inner_api/surface/native_buffer.h" ]
 }
 
 ohos_ndk_library("libnative_buffer_ndk") {

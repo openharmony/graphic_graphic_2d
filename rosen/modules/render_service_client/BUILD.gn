@@ -21,13 +21,11 @@ config("render_service_client_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
 
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
@@ -171,10 +169,12 @@ template("render_service_client_source_set") {
     }
     if (rosen_is_ohos) {
       public_deps += [
-        "$graphic_2d_root:libsurface",
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
         "$graphic_2d_root/utils/color_manager:color_manager",
       ]
+
+      public_external_deps = [ "graphic_surface:surface" ]
+
       external_deps = [
         "c_utils:utils",
         "hisysevent:libhisysevent",
@@ -200,6 +200,9 @@ template("render_service_client_source_set") {
       external_deps += [ "hilog:libhilog" ]
     } else {
       external_deps = [ "hilog:libhilog" ]
+    }
+    if (!defined(public_external_deps)) {
+      public_external_deps = [ "graphic_surface:surface_headers" ]
     }
     if (rosen_cross_platform) {
       deps += [ "$rosen_root/modules/platform:hilog" ]
@@ -267,8 +270,11 @@ ohos_shared_library("librender_service_client") {
     debug = false
     blocklist = "./rs_client_blocklist.txt"
   }
+
   public_deps = [ ":render_service_client_src" ]
+
   external_deps = [ "hilog:libhilog" ]
+
   innerapi_tags = [ "platformsdk" ]
 
   if (enhanced_opt) {

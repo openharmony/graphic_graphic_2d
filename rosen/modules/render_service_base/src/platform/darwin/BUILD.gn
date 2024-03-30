@@ -38,10 +38,7 @@ ohos_source_set("darwin") {
     "rs_vsync_client_darwin.cpp",
   ]
 
-  include_dirs = [
-    "$rosen_root/modules/render_service_base/include",
-    "$graphic_2d_root/interfaces/inner_api/surface",
-  ]
+  include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
   defines += [ "MODULE_RSB" ]
   if (enable_glfw_window) {
@@ -69,7 +66,10 @@ ohos_source_set("darwin") {
     public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "graphic_surface:surface_headers",
+    "hilog:libhilog",
+  ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

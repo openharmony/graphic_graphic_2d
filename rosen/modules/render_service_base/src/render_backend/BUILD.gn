@@ -53,15 +53,14 @@ ohos_static_library("librender_backend") {
     "rs_surface_factory.cpp",
   ]
 
-  public_deps = [
-    "$graphic_2d_root:libsurface",
-    "$graphic_2d_root/utils:sync_fence",
+  public_external_deps = [
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
   ]
 
   if (rs_enable_gpu) {
     include_dirs += [
       "//third_party/openssl/include",
-      "$graphic_2d_root/frameworks/surface/include",
       "$graphic_2d_root/interfaces/inner_api/common",
     ]
 

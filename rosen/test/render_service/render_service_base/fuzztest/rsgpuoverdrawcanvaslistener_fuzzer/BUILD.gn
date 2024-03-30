@@ -32,7 +32,6 @@ ohos_fuzztest("RSGpuOverdrawCanvasListenerFuzzTest") {
   include_dirs += [ "//third_party/skia" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
