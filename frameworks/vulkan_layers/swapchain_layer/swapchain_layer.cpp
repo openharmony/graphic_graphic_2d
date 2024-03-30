@@ -427,6 +427,8 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
     }
 
     if (image.image != VK_NULL_HANDLE) {
+        NativeObjectUnreference(image.buffer);
+        image.buffer = nullptr;
         pDisp->DestroyImage(device, image.image, nullptr);
         image.image = VK_NULL_HANDLE;
     }
@@ -583,6 +585,7 @@ VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, cons
             SWLOGD("vkCreateImage native buffer failed: %{public}u", result);
             break;
         }
+        NativeObjectReference(buffer);
     }
 
     SWLOGD("swapchain init shared %{public}d", swapchain->shared);
