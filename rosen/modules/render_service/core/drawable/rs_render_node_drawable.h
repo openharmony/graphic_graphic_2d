@@ -117,6 +117,9 @@ protected:
     bool CheckIfNeedUpdateCache(RSRenderParams& params);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
 
+    static int GetProcessedNodeCount();
+    static void ProcessedNodeCountInc();
+    static void ClearProcessedNodeCount();
 private:
     DrawableCacheType cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
@@ -134,6 +137,7 @@ private:
 
     static inline bool isOpDropped_ = true;
     static inline bool drawBlurForCache_ = false;
+    static inline int processedNodeCount_ = 0;
     // used foe render group cache
 };
 } // namespace DrawableV2

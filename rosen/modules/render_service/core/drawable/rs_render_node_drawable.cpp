@@ -638,4 +638,18 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
 }
 
+int RSRenderNodeDrawable::GetProcessedNodeCount()
+{
+    return processedNodeCount_;
+}
+
+void RSRenderNodeDrawable::ProcessedNodeCountInc()
+{
+    ++processedNodeCount_;
+}
+
+void RSRenderNodeDrawable::ClearProcessedNodeCount()
+{
+    processedNodeCount_ = 0;
+}
 } // namespace OHOS::Rosen::DrawableV2

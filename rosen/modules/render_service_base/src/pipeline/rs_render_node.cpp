@@ -1238,15 +1238,28 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
 
 void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager)
 {
-    if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
-        dirtyManager.UpdateDirtyRegionInfoForDfx(GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, absDrawRect_);
-        dirtyManager.UpdateDirtyRegionInfoForDfx(
-            GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
-        DirtyRegionInfoForDFX dirtyRegionInfo;
-        dirtyRegionInfo.oldDirty = oldDirty_;
-        dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
-        stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        return;
     }
+    // update OVERLAY_RECT
+    auto& properties = GetRenderProperties();
+    if (auto drawRegion = properties.GetDrawRegion()) {
+        if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
+            dirtyManager.UpdateDirtyRegionInfoForDfx(
+                GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, geoPtr->MapAbsRect(*drawRegion));
+        }
+    }
+    else {
+        dirtyManager.UpdateDirtyRegionInfoForDfx(
+            GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, RectI());
+    }
+    // update UPDATE_DIRTY_REGION
+    dirtyManager.UpdateDirtyRegionInfoForDfx(
+        GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
+    DirtyRegionInfoForDFX dirtyRegionInfo;
+    dirtyRegionInfo.oldDirty = oldDirty_;
+    dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
+    stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager,
