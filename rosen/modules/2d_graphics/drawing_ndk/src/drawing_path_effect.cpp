@@ -27,6 +27,9 @@ static std::unordered_map<void*, std::shared_ptr<PathEffect>> g_pathEffectMap;
 
 OH_Drawing_PathEffect* OH_Drawing_CreateDashPathEffect(float* intervals, int count, float phase)
 {
+    if (intervals == nullptr || count <= 0) {
+        return nullptr;
+    }
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateDashPathEffect(intervals, count, phase);
     std::lock_guard<std::mutex> lock(g_pathEffectLockMutex);
     g_pathEffectMap.insert({pathEffect.get(), pathEffect});

@@ -51,6 +51,13 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_PathEffect001,
     OH_Drawing_PenSetPathEffect(nullptr, pathEffect);
     OH_Drawing_PenSetPathEffect(pen, pathEffect);
     OH_Drawing_PathEffectDestroy(pathEffect);
+    // 3 is the number of elements of the intervals array
+    pathEffect = OH_Drawing_CreateDashPathEffect(nullptr, 3, 0.0);
+    EXPECT_EQ(pathEffect, nullptr);
+    pathEffect = OH_Drawing_CreateDashPathEffect(intervals, 0, 0.0);
+    EXPECT_EQ(pathEffect, nullptr);
+    pathEffect = OH_Drawing_CreateDashPathEffect(intervals, -1, 0.0);
+    EXPECT_EQ(pathEffect, nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen
