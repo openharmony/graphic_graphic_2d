@@ -37,16 +37,30 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
     // Regenerate children drawables
     needSync_ = true;
     stagingChildrenDrawableVec_.clear();
+
+    auto shadowBatching = node.GetRenderProperties().GetUseShadowBatching();
+    if (shadowBatching) {
+        for (const auto& child : *children) {
+            if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
+                continue;
+            }
+            // Generate shadow only drawable
+            if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(child)) {
+                stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
+            }
+        }
+    }
     for (const auto& child : *children) {
         if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
             continue;
         }
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
+            childDrawable->SetSkipShadow(!shadowBatching);
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     }
-    stagingUseShadowBatch_ = node.GetRenderProperties().GetUseShadowBatching();
-    return true;
+
+    return !stagingChildrenDrawableVec_.empty();
 }
 
 bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
@@ -90,7 +104,6 @@ void RSChildrenDrawable::OnSync()
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
     stagingChildrenDrawableVec_.clear();
-    useShadowBatch_ = stagingUseShadowBatch_;
     needSync_ = false;
 }
 
@@ -98,17 +111,8 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (ptr->useShadowBatch_) {
-            for (const auto& drawable : ptr->childrenDrawableVec_) {
-                drawable->DrawShadow(*canvas);
-            }
-            for (const auto& drawable : ptr->childrenDrawableVec_) {
-                drawable->DrawWithoutShadow(*canvas);
-            }
-        } else {
-            for (const auto& drawable : ptr->childrenDrawableVec_) {
-                drawable->Draw(*canvas);
-            }
+        for (const auto& drawable : ptr->childrenDrawableVec_) {
+            drawable->Draw(*canvas);
         }
     };
 }
@@ -346,7 +350,7 @@ bool RSEnvFGColorStrategyDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& modifier = itr->second.back();
-    auto property = std::static_pointer_cast<RSRenderAnimatableProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
+    auto property = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
     stagingEnvFGColorStrategy_ = property->Get();
     const auto& renderProperties = node.GetRenderProperties();
     stagingBackgroundColor_ = renderProperties.GetBackgroundColor();

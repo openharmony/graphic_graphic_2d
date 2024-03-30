@@ -49,6 +49,7 @@ namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
 class RSRenderNodeDrawableAdapter;
+class RSRenderNodeShadowDrawable;
 }
 class RSContext;
 class RSNodeVisitor;
@@ -825,7 +826,8 @@ private:
     friend class RSRenderNodeMap;
     friend class RSRenderThread;
     friend class RSRenderTransition;
-    friend class DrawableV2::RSRenderNodeDrawable;
+    friend class DrawableV2::RSRenderNodeDrawableAdapter;
+    friend class DrawableV2::RSRenderNodeShadowDrawable;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

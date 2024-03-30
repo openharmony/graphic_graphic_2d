@@ -125,7 +125,8 @@ void RSUniRenderThread::Start()
             RS_LOGE("rootNode is nullptr");
             return;
         }
-        rootNodeDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
+        auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
+        rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     }
 }
 
@@ -180,7 +181,7 @@ void RSUniRenderThread::Render()
     }
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
-    rootNodeDrawable_->OnDraw(canvas);
+    rootNodeDrawable_->Draw(canvas);
 }
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()

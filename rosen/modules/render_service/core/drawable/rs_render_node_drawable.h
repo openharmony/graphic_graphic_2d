@@ -21,7 +21,6 @@
 
 #include "draw/canvas.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "common/rs_rect.h"
 #include "draw/surface.h"
 #include "image/gpu_context.h"
 #include "common/rs_common_def.h"
@@ -39,17 +38,6 @@ namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
 namespace DrawableV2 { 
-enum class ReplayType : uint8_t {
-    // Default
-    REPLAY_ALL,
-    // Shadow batching
-    REPLAY_ONLY_SHADOW,
-    REPLAY_ALL_EXCEPT_SHADOW,
-    // For surface render node
-    REPLAY_BG_ONLY,
-    REPLAY_FG_ONLY,
-    REPLAY_ONLY_CONTENT,
-};
 
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
@@ -58,15 +46,11 @@ public:
     ~RSRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
+
     void Draw(Drawing::Canvas& canvas) override;
+    virtual void OnDraw(Drawing::Canvas& canvas);
+    virtual void OnCapture(Drawing::Canvas& canvas);
 
-    void OnDraw(Drawing::Canvas& canvas) override;
-    void OnCapture(Drawing::Canvas& canvas) override;
-
-    void DrawWithoutShadow(Drawing::Canvas& canvas) override;
-    void DrawShadow(Drawing::Canvas& canvas) override;
-    void DumpDrawableTree(int32_t depth, std::string& out) const override;
-    
     std::shared_ptr<const RSRenderNode> GetRenderNode()
     {
         return renderNode_;
@@ -80,31 +64,20 @@ protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 
-    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
-    bool HasFilterOrEffect() const;
-    virtual bool QuickReject(Drawing::Canvas& canvas, RectI localDrawRect);
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
     static inline std::vector<RectI> drawingCacheRects_;
 
-    std::string DumpDrawableVec() const;
-    void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
-
     // used foe render group cache
     void SetCacheType(DrawableCacheType cacheType);
     DrawableCacheType GetCacheType() const;
-    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params) const;
     void DrawDfxForCache(Drawing::Canvas& canvas, const Drawing::Rect& rect);
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;

@@ -17,16 +17,12 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
-#include "drawable/rs_misc_drawable.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
-#include "pipeline/rs_uni_render_util.h"
+// #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
-#include "rs_trace.h"
-#include "skia_adapter/skia_canvas.h"
-#include "src/core/SkCanvasPriv.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -67,14 +63,10 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    const auto& drawCmdList_ = renderNode_->drawCmdList_;
-    if (drawCmdList_.empty()) {
-        return;
-    }
     auto& renderParams = renderNode_->GetRenderParams();
     Drawing::Rect bounds = renderParams ? renderParams->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
-    DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.endIndex_);
+    DrawAll(canvas, bounds);
 }
 
 /*
@@ -83,130 +75,6 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RSRenderNodeDrawable::OnDraw(canvas);
-}
-
-void RSRenderNodeDrawable::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
-{
-    DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.backgroundEndIndex_);
-}
-
-void RSRenderNodeDrawable::DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
-{
-    auto index = renderNode_->drawCmdIndex_.contentIndex_;
-    if (index == -1) {
-        return;
-    }
-    renderNode_->drawCmdList_[index](&canvas, &rect);
-}
-
-void RSRenderNodeDrawable::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
-{
-    auto index = renderNode_->drawCmdIndex_.childrenIndex_;
-    if (index == -1) {
-        return;
-    }
-    renderNode_->drawCmdList_[index](&canvas, &rect);
-}
-
-void RSRenderNodeDrawable::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
-{
-    const auto& drawCmdList_ = renderNode_->uifirstDrawCmdList_;
-    auto contentIdx = renderNode_->uifirstDrawCmdIndex_.contentIndex_;
-    auto childrenIdx = renderNode_->uifirstDrawCmdIndex_.childrenIndex_;
-    if (contentIdx != -1) {
-        drawCmdList_[contentIdx](&canvas, &rect);
-    }
-    if (childrenIdx != -1) {
-        drawCmdList_[childrenIdx](&canvas, &rect);
-    }
-}
-
-void RSRenderNodeDrawable::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
-{
-    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.foregroundBeginIndex_, renderNode_->drawCmdIndex_.endIndex_);
-}
-
-void RSRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
-{
-    auto index = renderNode_->drawCmdIndex_.shadowIndex_;
-    if (index == -1) {
-        return;
-    }
-    auto& renderParams = renderNode_->GetRenderParams();
-    Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
-    DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.shadowIndex_ + 1);
-}
-
-void RSRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas)
-{
-    auto& renderParams = renderNode_->GetRenderParams();
-    Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
-
-    auto index = renderNode_->drawCmdIndex_.shadowIndex_;
-    if (index == -1) { // no shadowindex, do the same as OnDraw
-        DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.endIndex_);
-        return;
-    }
-    DrawRangeImpl(canvas, bounds, 0, renderNode_->drawCmdIndex_.shadowIndex_);
-    DrawRangeImpl(canvas, bounds, renderNode_->drawCmdIndex_.shadowIndex_ + 1, renderNode_->drawCmdIndex_.endIndex_);
-}
-
-void RSRenderNodeDrawable::DrawRangeImpl(
-    Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
-{
-    const auto& drawCmdList_ = renderNode_->drawCmdList_;
-    for (auto i = start; i < end; i++) {
-        drawCmdList_[i](&canvas, &rect);
-    }
-}
-
-void RSRenderNodeDrawable::DumpDrawableTree(int32_t depth, std::string &out) const
-{
-    for (int32_t i = 0; i < depth; ++i) {
-        out += "  ";
-    }
-    renderNode_->DumpNodeType(out);
-    out += "[" + std::to_string(renderNode_->GetId()) + "]";
-    renderNode_->DumpSubClassNode(out);
-    out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-    out += ", " + renderNode_->GetRenderParams()->ToString();
-    out += "\n";
-
-    auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
-        renderNode_->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
-    if (childrenDrawable) {
-        for (const auto& renderNodeDrawable : childrenDrawable->childrenDrawableVec_) {
-            renderNodeDrawable->DumpDrawableTree(depth + 1, out);
-        }
-    }
-}
-
-std::string RSRenderNodeDrawable::DumpDrawableVec() const
-{
-    const auto & drawableVec = renderNode_->drawableVec_;
-    std::string str;
-    for (uint i = 0; i < drawableVec.size(); ++i) {
-        if (drawableVec[i]) {
-            str += std::to_string(i) + ", ";
-        }
-    }
-    if (str.length() > 2) {
-        str.pop_back();
-        str.pop_back();
-    }
-
-    return str;
-}
-
-bool RSRenderNodeDrawable::QuickReject(Drawing::Canvas& canvas, RectI localDrawRect)
-{
-    Drawing::Rect dst;
-    canvas.GetTotalMatrix().MapRect(dst, {localDrawRect.GetLeft(), localDrawRect.GetTop(),
-        localDrawRect.GetRight(), localDrawRect.GetBottom()});
-    auto deviceClipRegion = static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyRegion();
-    Drawing::Region dstRegion;
-    dstRegion.SetRect(dst.RoundOut());
-    return !(deviceClipRegion.IsIntersects(dstRegion));
 }
 
 void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params)
@@ -352,49 +220,7 @@ DrawableCacheType RSRenderNodeDrawable::GetCacheType() const
     return cacheType_;
 }
 
-void RSRenderNodeDrawable::DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas,
-    const RSRenderParams& params) const
-{
-    const auto& drawCmdList_ = renderNode_->drawCmdList_;
-    auto backgroundIndex = renderNode_->drawCmdIndex_.backgroundEndIndex_;
-    auto bounds = params.GetBounds();
-    auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    for (auto index = 0; index < backgroundIndex; ++index) {
-        if (index == renderNode_->drawCmdIndex_.shadowIndex_) {
-            if (!params.GetShadowRect().IsEmpty()) {
-                auto shadowRect = params.GetShadowRect();
-                RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]",
-                    shadowRect.GetLeft(), shadowRect.GetTop(), shadowRect.GetWidth(), shadowRect.GetHeight());
-                Drawing::AutoCanvasRestore arc(*curCanvas, true);
-                auto coreCanvas = curCanvas->GetCanvasData();
-                auto skiaCanvas = static_cast<Drawing::SkiaCanvas*>(coreCanvas.get());
-                SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
-                curCanvas->ClipRect(shadowRect);
-                curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-            } else {
-                drawCmdList_[index](&canvas, &bounds);
-            }
-            continue;
-        }
-        if (index != renderNode_->drawCmdIndex_.backgroundFilterIndex_ &&
-            index != renderNode_->drawCmdIndex_.useEffectIndex_) {
-            drawCmdList_[index](&canvas, &bounds);
-        } else {
-            RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur filterRect:[%.2f, %.2f]",
-                bounds.GetWidth(), bounds.GetHeight());
-            Drawing::AutoCanvasRestore arc(*curCanvas, true);
-            curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
-            curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-        }
-    }
-}
 
-bool RSRenderNodeDrawable::HasFilterOrEffect() const
-{
-    return renderNode_->drawCmdIndex_.shadowIndex_ != -1 ||
-        renderNode_->drawCmdIndex_.backgroundFilterIndex_ != -1 ||
-        renderNode_->drawCmdIndex_.useEffectIndex_ != -1;
-}
 
 std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t threadId) const
 {
