@@ -1184,8 +1184,10 @@ void RSScreenManager::DisplayDump(std::string& dumpString)
 {
     int32_t index = 0;
     for (const auto &[id, screen] : screens_) {
-        screen->DisplayDump(index, dumpString);
-        index++;
+        if (screen) {
+            screen->DisplayDump(index, dumpString);
+            index++;
+        }
     }
 }
 

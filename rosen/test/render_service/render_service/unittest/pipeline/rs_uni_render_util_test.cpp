@@ -424,7 +424,7 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread001, Function | SmallTest | L
     displayNode->AddChild(surfaceNode);
 
     auto mainThread = RSMainThread::Instance();
-    if (mainThread->GetDeviceType() != DeviceType::PHONE) {
+    if (mainThread->GetDeviceType() == DeviceType::PC) {
         ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()),
             surfaceNode->QuerySubAssignable(displayNode->IsRotationChanged()));
     }
@@ -450,7 +450,7 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread002, Function | SmallTest | L
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, surfaceNode->GetId());
-    if (mainThread->GetDeviceType() != DeviceType::PHONE) {
+    if (mainThread->GetDeviceType() == DeviceType::PC) {
         ASSERT_FALSE(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()));
     }
 }
@@ -475,7 +475,7 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread003, Function | SmallTest | L
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, surfaceNode->GetId());
-    if (mainThread->GetDeviceType() != DeviceType::PHONE) {
+    if (mainThread->GetDeviceType() == DeviceType::PC) {
         ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()),
             surfaceNode->QuerySubAssignable(displayNode->IsRotationChanged()));
     }
