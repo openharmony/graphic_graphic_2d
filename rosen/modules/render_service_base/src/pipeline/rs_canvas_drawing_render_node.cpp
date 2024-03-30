@@ -187,6 +187,11 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     canvas.DetachPaint();
 }
 
+void RSCanvasDrawingRenderNode::SetNeedProcess(bool needProcess)
+{
+    isNeedProcess_ = needProcess;
+}
+
 void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
 {
     auto nodeId = GetId();
@@ -207,6 +212,9 @@ void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
 
 void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds)
 {
+    // todo fix
+    RS_LOGE("RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread error.");
+    return;
     auto surface = surface_;
     auto nodeId = GetId();
     auto ctx = GetContext().lock();

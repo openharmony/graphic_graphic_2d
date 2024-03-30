@@ -42,6 +42,7 @@
 #include "rs_upload_resource_thread.h"
 #endif
 #include "delegate/rs_functional_delegate.h"
+#include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
 #include "common/rs_common_def.h"
@@ -1543,7 +1544,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         }
         if (canvasDrawingNode->IsNeedProcess()) {
-            canvasDrawingNode->PlaybackInCorrespondThread();
+            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasDrawingNode);
+            static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
+                PlaybackInCorrespondThread();
         }
     });
     isDirty_ = false;

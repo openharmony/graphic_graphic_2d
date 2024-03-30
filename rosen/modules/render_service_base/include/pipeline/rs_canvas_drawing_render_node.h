@@ -75,6 +75,7 @@ public:
     {
         return isNeedProcess_;
     }
+    void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
 
 private:

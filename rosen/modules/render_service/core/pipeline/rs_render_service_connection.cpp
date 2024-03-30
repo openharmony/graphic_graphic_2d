@@ -996,8 +996,7 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
         auto getDrawableBitmapTask = [&node, &bitmap, tid]() {
             auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
-            bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
-                GetRenderContent()->GetBitmap(tid); };
+            bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetBitmap(tid); };
         renderThread_.PostSyncTask(getDrawableBitmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
@@ -1035,7 +1034,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         auto getDrawablePixelmapTask = [&node, &pixelmap, rect, &result, tid, drawCmdList]() {
             auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
             result = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
-                GetRenderContent()->GetPixelmap(pixelmap, rect, tid, drawCmdList); };
+                GetPixelmap(pixelmap, rect, tid, drawCmdList); };
         renderThread_.PostSyncTask(getDrawablePixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(

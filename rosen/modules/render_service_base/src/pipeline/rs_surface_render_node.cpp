@@ -2203,7 +2203,6 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
-    surfaceParams->frameGravity_ = properties.GetFrameGravity();
     surfaceParams->isMainThreadNode_ = IsMainThreadNode();
 
     surfaceParams->SetNeedSync(true);

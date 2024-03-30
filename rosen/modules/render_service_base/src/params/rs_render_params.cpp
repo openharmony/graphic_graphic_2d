@@ -240,6 +240,15 @@ void RSRenderParams::SetNeedSync(bool needSync)
     needSync_ = needSync;
 }
 
+void RSRenderParams::SetFrameGravity(Gravity gravity)
+{
+    if (frameGravity_ == gravity) {
+        return;
+    }   
+    frameGravity_ = gravity;
+    needSync_ = true;
+}
+
 bool RSRenderParams::NeedSync() const
 {
     return needSync_;
@@ -255,6 +264,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->SetLocalDrawRect(localDrawRect_);
     target->id_ = id_;
     target->cacheSize_ = cacheSize_;
+    target->frameGravity_ = frameGravity_;
     target->childHasVisibleFilter_ = childHasVisibleFilter_;
     target->childHasVisibleEffect_ = childHasVisibleEffect_;
     target->isDrawingCacheChanged_ = isDrawingCacheChanged_;
@@ -277,6 +287,7 @@ std::string RSRenderParams::ToString() const
     }
     ret += RENDER_RECT_PARAM_TO_STRING(localDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
     return ret;
 }
 

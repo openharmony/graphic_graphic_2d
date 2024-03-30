@@ -176,7 +176,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
-    targetSurfaceParams->frameGravity_ = frameGravity_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
     targetSurfaceParams->absDrawRect_ = absDrawRect_;
     targetSurfaceParams->rrect_ = rrect_;
@@ -204,7 +203,6 @@ std::string RSSurfaceRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
     ret += RENDER_BASIC_PARAM_TO_STRING(isSpherizeValid_);
     ret += RENDER_BASIC_PARAM_TO_STRING(needBilinearInterpolation_);
-    ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
     ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
     ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(occlusionVisible_);

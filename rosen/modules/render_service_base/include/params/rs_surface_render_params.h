@@ -84,10 +84,6 @@ public:
     {
         return needBilinearInterpolation_;
     }
-    Gravity GetFrameGravity() const
-    {
-        return frameGravity_;
-    }
     const Color& GetBackgroundColor() const
     {
         return backgroundColor_;
@@ -189,7 +185,6 @@ private:
     bool isMainThreadNode_ = false; //UI First
     bool uiFirstFlag_ = false;
     bool uiFirstParentFlag_ = false;
-    Gravity frameGravity_ = Gravity::CENTER;
     Color backgroundColor_ = RgbPalette::Transparent();
 
     RectI oldDirtyInSurface_;

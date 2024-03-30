@@ -554,6 +554,10 @@ public:
         OnSync();
     }
     void AddToPendingSyncList();
+    const std::weak_ptr<RSContext> GetContext() const
+    {
+        return context_;
+    }
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -571,10 +575,6 @@ protected:
     void DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
         std::shared_ptr<RSRenderModifier>& modifier) const;
 
-    const std::weak_ptr<RSContext> GetContext() const
-    {
-        return context_;
-    }
     virtual void OnTreeStateChanged();
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent);

@@ -72,6 +72,13 @@ public:
         return id_;
     }
 
+    Gravity GetFrameGravity() const
+    {
+        return frameGravity_;
+    }
+
+    void SetFrameGravity(Gravity gravity);
+
     inline bool IsSecurityLayer() const
     {
         return isSecurityLayer_;
@@ -125,6 +132,7 @@ private:
     // this rect should map display coordination
     RectI localDrawRect_;
     Vector2f cacheSize_;
+    Gravity frameGravity_ = Gravity::CENTER;
 
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
