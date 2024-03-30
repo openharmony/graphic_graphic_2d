@@ -116,7 +116,7 @@ public:
     void SetContentDirty();
     void ResetIsOnlyBasicGeoTransform();
     bool IsOnlyBasicGeoTransform() const;
-    void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool accumGeoDirty);
+    void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty);
 
     WeakPtr GetParent() const;
 
@@ -200,6 +200,10 @@ public:
     void SetChildHasVisibleFilter(bool val);
     bool ChildHasVisibleEffect() const;
     void SetChildHasVisibleEffect(bool val);
+    const std::vector<NodeId>& GetVisibleFilterChild() const;
+    void UpdateVisibleFilterChild(RSRenderNode& childNode);
+    const std::unordered_set<NodeId>& GetVisibleEffectChild() const;
+    void UpdateVisibleEffectChild(RSRenderNode& childNode);
 
     NodeId GetInstanceRootNodeId() const;
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
@@ -653,8 +657,11 @@ private:
     bool hasRemovedChild_ = false;
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
+    RectI absChildrenRect_;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
+    std::vector<NodeId> visibleFilterChild_;
+    std::unordered_set<NodeId> visibleEffectChild_;
 
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();

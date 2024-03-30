@@ -218,6 +218,8 @@ private:
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node);
+    RectI GetVisibleEffectDirty(RSRenderNode& node) const;
+
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect);
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
@@ -283,7 +285,7 @@ private:
         std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
     // merge last childRect as dirty if any child has been removed
-    void MergeRemovedChildDirtyRegion(RSRenderNode& node);
+    void MergeRemovedChildDirtyRegion(RSRenderNode& node, bool needMap = false);
     // Reset curSurface info as upper surfaceParent in case surfaceParent has multi children
     void ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node);
 
