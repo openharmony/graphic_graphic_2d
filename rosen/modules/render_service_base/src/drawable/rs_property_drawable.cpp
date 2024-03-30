@@ -206,7 +206,7 @@ void RSFilterDrawable::MarkNeedClearFilterCache()
 {
     bool clearFilteredCacheAfterDrawing = IsClearFilteredSnapshotCacheAfterDrawing();
     stagingClearFilteredCache_ = clearFilteredCacheAfterDrawing;
- 
+
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache hashChanged:%d, regionChanged_:%d, "
         "belowDirty_:%d, isLastClearFilteredCache:%d, isCurrentClearFilteredCache:%d, "
         "cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d", filterHashChanged_, filterRegionChanged_,

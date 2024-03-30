@@ -79,11 +79,13 @@ bool RSSurfaceRenderParams::GetOccludedByFilterCache() const
 
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
 {
+#ifndef ROSEN_CROSS_PLATFORM
     if (layerInfo_ == layerInfo) {
         return;
     }
     layerInfo_ = layerInfo;
     needSync_ = true;
+#endif
 }
 
 RSLayerInfo& RSSurfaceRenderParams::GetLayerInfo()
@@ -119,6 +121,7 @@ bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
     return isLastFrameHardwareEnabled_;
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
 {
     if (layerInfo_.buffer == buffer) {
@@ -160,6 +163,7 @@ sptr<SyncFence> RSSurfaceRenderParams::GetAcquireFence() const
 {
     return layerInfo_.acquireFence;
 }
+#endif
 
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {

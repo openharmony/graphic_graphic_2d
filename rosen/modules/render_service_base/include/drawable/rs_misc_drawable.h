@@ -74,8 +74,8 @@ private:
     RSModifierType type_;
 
     bool needSync_ = false;
-    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
-    std::vector<const std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
+    std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
+    std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
     friend class RSCustomModifierDrawable;
 };
 

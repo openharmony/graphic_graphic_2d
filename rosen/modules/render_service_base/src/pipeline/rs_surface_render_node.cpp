@@ -159,6 +159,7 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
 
 void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
 {
+#ifndef ROSEN_CROSS_PLATFORM
     const auto& buffer = GetBuffer();
     isHardwareForcedDisabledBySrcRect_ = false;
     if (buffer == nullptr) {
@@ -172,6 +173,7 @@ void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
             srcRect_.width_ + 1 < width :
             srcRect_.height_ + 1 < height;
     }
+#endif
 }
 
 bool RSSurfaceRenderNode::IsHardwareDisabledBySrcRect() const
@@ -756,6 +758,7 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 #endif
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
     const sptr<SurfaceBuffer>& preBuffer)
 {
@@ -764,6 +767,7 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
     surfaceParams->SetAcquireFence(acquireFence);
     surfaceParams->SetPreBuffer(preBuffer);
 }
+#endif
 
 #ifndef ROSEN_CROSS_PLATFORM
 GraphicBlendType RSSurfaceRenderNode::GetBlendType()
@@ -1062,6 +1066,7 @@ bool RSSurfaceRenderNode::IsNeedSetVSync()
 
 void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
 {
+#ifndef ROSEN_CROSS_PLATFORM
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     auto layer = surfaceParams->GetLayerInfo();
     layer.srcRect = {srcRect_.left_, srcRect_.top_, srcRect_.width_, srcRect_.height_};
@@ -1100,6 +1105,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+#endif
 }
 
 

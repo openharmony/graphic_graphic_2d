@@ -36,9 +36,13 @@
 #include "platform/common/rs_surface_ext.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
+
+#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
-#include "surface_type.h"
 #include "sync_fence.h"
+#endif
+#include "surface_type.h"
+
 #include "transaction/rs_occlusion_data.h"
 
 
@@ -154,8 +158,10 @@ public:
         return hasSubNodeShouldPaint_;
     }
 
+#ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const sptr<SurfaceBuffer>& preBuffer);
+#endif
 
     bool IsLastFrameHardwareEnabled() const
     {
