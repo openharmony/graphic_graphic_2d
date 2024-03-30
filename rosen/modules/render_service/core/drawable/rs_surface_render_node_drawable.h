@@ -153,10 +153,7 @@ private:
     static Registrar instance_;
 #ifdef RS_PARALLEL
     std::string name_;
-
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas);
-    
-
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;

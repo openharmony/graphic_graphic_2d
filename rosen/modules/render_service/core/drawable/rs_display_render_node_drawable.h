@@ -48,6 +48,11 @@ private:
     void AdjustZOrderAndDrawSurfaceNode(
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes, Drawing::Canvas& canvas) const;
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
+    void ProcessVirtualScreen(RSDisplayRenderNode& displayNodeSp, RSDisplayRenderParams& params,
+        std::shared_ptr<RSProcessor> processor);
+    void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation,
+        std::shared_ptr<RSProcessor> processor);
+    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
