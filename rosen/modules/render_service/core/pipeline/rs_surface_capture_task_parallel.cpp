@@ -58,19 +58,21 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         return false;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr surfaceNodeDrawable = nullptr;
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr displayNodeDrawable = nullptr;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable = nullptr;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable = nullptr;
     visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(scaleX_, scaleY_, RSUniRenderJudgement::IsUniRender());
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
-        surfaceNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+        surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         visitor_->SetHasingSecurityOrSkipLayer(FindSecurityOrSkipLayer());
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(),
             visitor_->GetHasingSecurityOrSkipLayer());
         visitor_->IsDisplayNode(true);
-        displayNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode);
+        displayNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Run: Invalid RSRenderNodeType!");
         return false;
@@ -99,7 +101,8 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         visitor_->SetSurface(surface.get());
         node->Process(visitor_);
     } else {
-        auto rootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        auto rootNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
         RSPaintFilterCanvas canvas(surface.get());
         canvas.Scale(scaleX_, scaleY_);
         canvas.SetDisableFilterCache(true);

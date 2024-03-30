@@ -39,7 +39,6 @@ public:
     ~RSPropertyDrawable() override = default;
 
     void OnSync() override;
-    // RSDrawable::Ptr CreateDrawable() const override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 protected:
@@ -48,8 +47,6 @@ protected:
     std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
 
     friend class RSPropertyDrawCmdListUpdater;
-    friend class RSPropertyDrawableNG;
-    friend class RSShadowDrawable;
 };
 
 class RSPropertyDrawCmdListUpdater {

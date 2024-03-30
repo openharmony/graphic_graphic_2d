@@ -64,54 +64,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::ProcessedNodeCountInc();
 }
 
-void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
-{
-    if (RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) { // route to surface capture
-        RSCanvasRenderNodeDrawable::OnCapture(canvas);
-        return;
-    }
-
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        RS_LOGE("params is nullptr");
-        return;
-    }
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
-        QuickReject(canvas, params->GetLocalDrawRect())) {
-        return;
-    }
-
-    RSRenderNodeDrawable::DrawShadow(canvas);
-}
-
-void RSCanvasRenderNodeDrawable::DrawWithoutShadow(Drawing::Canvas& canvas)
-{
-    if (RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) { // route to surface capture
-        RSCanvasRenderNodeDrawable::OnCapture(canvas);
-        return;
-    }
-
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        RS_LOGE("params is nullptr");
-        return;
-    }
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) && static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyFlag() &&
-        QuickReject(canvas, params->GetLocalDrawRect())) {
-        return;
-    }
-
-    RSRenderNodeDrawable::DrawWithoutShadow(canvas);
-}
-
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */

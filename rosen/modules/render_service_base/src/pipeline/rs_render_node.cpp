@@ -1639,12 +1639,6 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
 }
 
-void RSRenderNode::UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-{
-    // stagingDrawCmdList_ = drawCmdList;
-    (void)drawCmdList;
-}
-
 void RSRenderNode::SetNeedSyncFlag(bool needSync)
 {
     drawCmdListNeedSync_ = needSync;

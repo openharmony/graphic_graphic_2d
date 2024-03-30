@@ -47,11 +47,9 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class DrawCmdList;
-}
 namespace DrawableV2 {
-class RSRenderNodeDrawable;
+class RSRenderNodeDrawableAdapter;
+class RSRenderNodeShadowDrawable;
 }
 class RSContext;
 class RSNodeVisitor;
@@ -534,12 +532,8 @@ public:
     }
 
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
-
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
-
     const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const;
-
-    void UpdateStagingDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     void SetNeedSyncFlag(bool needSync);
     void UpdatePointLightDirtySlot();
@@ -832,7 +826,8 @@ private:
     friend class RSRenderNodeMap;
     friend class RSRenderThread;
     friend class RSRenderTransition;
-    friend class DrawableV2::RSRenderNodeDrawable;
+    friend class DrawableV2::RSRenderNodeDrawableAdapter;
+    friend class DrawableV2::RSRenderNodeShadowDrawable;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

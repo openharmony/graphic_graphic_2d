@@ -138,7 +138,7 @@ public:
     // =================Generate & Update helper methods==================
     // Step 1, generate DirtySlots from dirty Modifiers
     static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(
-        ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
+        const ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
     // Step 2, for every DirtySlot, generate DrawableContent
     static bool UpdateDirtySlots(
         const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots);

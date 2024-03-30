@@ -95,7 +95,7 @@ private:
 
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSContext> context_;
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr rootNodeDrawable_;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawable> rootNodeDrawable_;
     std::vector<NodeId> curDrawStatusVec_;
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync from main thread
 #ifdef RES_SCHED_ENABLE

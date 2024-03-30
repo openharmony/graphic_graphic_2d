@@ -225,7 +225,7 @@ enum DrawableVecStatus : uint8_t {
 } // namespace
 
 std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlots(
-    const RSProperties& properties, std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes)
+    const RSProperties& properties, const ModifierDirtyTypes& dirtyTypes)
 {
     // Step 1.1: collect dirty slots
     std::unordered_set<RSPropertyDrawableSlot> dirtySlots;

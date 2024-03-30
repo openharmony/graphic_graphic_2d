@@ -37,16 +37,38 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
     // Regenerate children drawables
     needSync_ = true;
     stagingChildrenDrawableVec_.clear();
+
+    if (LIKELY(!node.GetRenderProperties().GetUseShadowBatching())) {
+        for (const auto& child : *children) {
+            if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
+                continue;
+            }
+            if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
+                childDrawable->SetSkipShadow(false);
+                stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
+            }
+        }
+        return !stagingChildrenDrawableVec_.empty();
+    }
+
+    // ShadowBatching mode, draw all shadows, then draw all children
+    decltype(stagingChildrenDrawableVec_) pendingChildren;
     for (const auto& child : *children) {
         if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
             continue;
         }
+        // Generate shadow only drawable
+        if (auto shadowDrawable = RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(child)) {
+            stagingChildrenDrawableVec_.push_back(std::move(shadowDrawable));
+        }
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-            stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
+            childDrawable->SetSkipShadow(true);
+            pendingChildren.push_back(std::move(childDrawable));
         }
     }
-    stagingUseShadowBatch_ = node.GetRenderProperties().GetUseShadowBatching();
-    return true;
+    // merge pendingChildren into stagingChildrenDrawableVec_
+    stagingChildrenDrawableVec_.insert(stagingChildrenDrawableVec_.end(), pendingChildren.begin(), pendingChildren.end());
+    return !stagingChildrenDrawableVec_.empty();
 }
 
 bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
@@ -74,6 +96,8 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
     } else {
         // for higher hierarchy node, we add paired node (lower in hierarchy) first, then add it
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
+            // NOTE: skip shared-transition shadow for now
+            childDrawable->SetSkipShadow(true);
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
         // remove successful paired node
@@ -90,7 +114,6 @@ void RSChildrenDrawable::OnSync()
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
     stagingChildrenDrawableVec_.clear();
-    useShadowBatch_ = stagingUseShadowBatch_;
     needSync_ = false;
 }
 
@@ -98,17 +121,8 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (ptr->useShadowBatch_) {
-            for (const auto& drawable : ptr->childrenDrawableVec_) {
-                drawable->DrawShadow(*canvas);
-            }
-            for (const auto& drawable : ptr->childrenDrawableVec_) {
-                drawable->DrawWithoutShadow(*canvas);
-            }
-        } else {
-            for (const auto& drawable : ptr->childrenDrawableVec_) {
-                drawable->Draw(*canvas);
-            }
+        for (const auto& drawable : ptr->childrenDrawableVec_) {
+            drawable->Draw(*canvas);
         }
     };
 }
@@ -346,7 +360,7 @@ bool RSEnvFGColorStrategyDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& modifier = itr->second.back();
-    auto property = std::static_pointer_cast<RSRenderAnimatableProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
+    auto property = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
     stagingEnvFGColorStrategy_ = property->Get();
     const auto& renderProperties = node.GetRenderProperties();
     stagingBackgroundColor_ = renderProperties.GetBackgroundColor();

@@ -21,9 +21,12 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "common/rs_rect.h"
+#include "utils/rect.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
+class RSRenderParams;
 namespace Drawing {
 class Canvas;
 }
@@ -45,21 +48,35 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
 
     virtual void Draw(Drawing::Canvas& canvas) = 0;
-    virtual void DrawWithoutShadow(Drawing::Canvas& canvas) = 0;
-    virtual void DrawShadow(Drawing::Canvas& canvas) = 0;
-    virtual void OnDraw(Drawing::Canvas& canvas) = 0;
-    virtual void OnCapture(Drawing::Canvas& canvas) = 0;
+    virtual void DumpDrawableTree(int32_t depth, std::string& out) const;
+
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
-    virtual void DumpDrawableTree(int32_t depth, std::string& out) const = 0;
+    static SharedPtr OnGenerateShadowDrawable(const std::shared_ptr<const RSRenderNode>& node);
+
+    void SetSkipShadow(bool skip)
+    {
+        skipShadow_ = skip;
+    }
 
 protected:
+    // Util functions
+    std::string DumpDrawableVec() const;
+    bool QuickReject(Drawing::Canvas& canvas, RectI localDrawRect);
+    bool HasFilterOrEffect() const;
+
+    // Draw functions
+    void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params) const;
+    void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
+
+    // Register utils
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
-    static std::unordered_map<RSRenderNodeType, Generator> GeneratorMap;
-    static std::unordered_map<NodeId, WeakPtr> RenderNodeDrawableCache;
-
-    std::shared_ptr<const RSRenderNode> renderNode_;
-
     template<RSRenderNodeType type, Generator generator>
     class RenderNodeDrawableRegistrar {
     public:
@@ -68,7 +85,26 @@ protected:
             RSRenderNodeDrawableAdapter::GeneratorMap.emplace(type, generator);
         }
     };
+
+    std::shared_ptr<const RSRenderNode> renderNode_;
+
+private:
+    static std::unordered_map<RSRenderNodeType, Generator> GeneratorMap;
+    static std::unordered_map<NodeId, WeakPtr> RenderNodeDrawableCache;
+    bool skipShadow_ = false;
 };
+
+class RSRenderNodeShadowDrawable : public RSRenderNodeDrawableAdapter {
+public:
+    explicit RSRenderNodeShadowDrawable(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {}
+    ~RSRenderNodeShadowDrawable() override = default;
+
+    void Draw(Drawing::Canvas& canvas) override;
+    void DumpDrawableTree(int32_t depth, std::string& out) const override;
+};
+
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_ADAPTER_H

@@ -1305,52 +1305,6 @@ RSVisibleLevel RSUniRenderVisitor::GetRegionVisibleLevel(const Occlusion::Region
     return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
 }
 
-void RSUniRenderVisitor::RecordDrawCmdList(RSRenderNode& node)
-{
-    auto extendRecodingCanvas = new ExtendRecordingCanvas(node.GetRenderProperties().GetBoundsWidth(),
-        node.GetRenderProperties().GetBoundsHeight(), true);
-    std::unique_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_unique<RSPaintFilterCanvas>(extendRecodingCanvas);
-    CacheType cacheType = node.GetCacheType();
-    node.ProcessTransitionBeforeChildren(*recordingCanvas);
-    switch (cacheType) {
-        case CacheType::NONE: {
-            auto preCache = recordingCanvas->GetCacheType();
-            if (node.HasCacheableAnim() && isDrawingCacheEnabled_) {
-                recordingCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
-            }
-            node.ProcessAnimatePropertyBeforeChildren(*recordingCanvas);
-            node.ProcessRenderContents(*recordingCanvas);
-            ProcessChildren(node);
-            node.ProcessAnimatePropertyAfterChildren(*recordingCanvas);
-            if (node.HasCacheableAnim() && isDrawingCacheEnabled_) {
-                recordingCanvas->SetCacheType(preCache);
-            }
-            break;
-        }
-        case CacheType::CONTENT: {
-            if (node.IsNodeGroupIncludeProperty()) {
-                node.ProcessAnimatePropertyBeforeChildren(*recordingCanvas, false);
-            } else {
-                node.ProcessAnimatePropertyBeforeChildren(*recordingCanvas);
-            }
-            node.DrawCacheSurface(*recordingCanvas, threadIndex_, false);
-            node.ProcessAnimatePropertyAfterChildren(*recordingCanvas);
-            cacheRenderNodeMapRects_.push_back(node.GetOldDirtyInSurface());
-            break;
-        }
-        case CacheType::ANIMATE_PROPERTY: {
-            node.DrawCacheSurface(*recordingCanvas, threadIndex_, false);
-            break;
-        }
-        default:
-            break;
-    }
-    node.ProcessTransitionAfterChildren(*recordingCanvas);
-    // node.UpdateStagingDrawCmdList(extendRecodingCanvas->GetDrawCmdList());
-    node.SetNeedSyncFlag(true);
-    recordingCanvas.reset();
-}
-
 void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
 {
     // 0. check current node need to tranverse
