@@ -85,9 +85,9 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
-    std::vector<LineMetrics>& GetLineMetrics() override;
+    std::vector<LineMetrics>& GetLineMetrics(std::vector<size_t>& startIndexs) override;
 
-    bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
+    bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics, size_t& startIndex) const override;
 
     void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc
