@@ -61,6 +61,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     GenerateCacheIfNeed(canvas, *params);
     CheckCacheTypeAndDraw(canvas, *params);
+    RSRenderNodeDrawable::ProcessedNodeCountInc();
 }
 
 void RSCanvasRenderNodeDrawable::DrawShadow(Drawing::Canvas& canvas)
