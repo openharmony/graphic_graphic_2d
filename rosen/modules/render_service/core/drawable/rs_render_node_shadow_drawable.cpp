@@ -13,35 +13,30 @@
  * limitations under the License.
  */
 
-#include "drawable/rs_canvas_render_node_drawable.h"
+#include "drawable/rs_render_node_shadow_drawable.h"
 
-#include "rs_trace.h"
-
-#include "common/rs_optional_trace.h"
-#include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "utils/rect.h"
-#include "utils/region.h"
 
 namespace OHOS::Rosen::DrawableV2 {
-RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
+RSRenderNodeShadowDrawable::Registrar RSRenderNodeShadowDrawable::instance_;
 
-RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSRenderNodeDrawable(std::move(node))
-{}
-
-RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
+RSRenderNodeShadowDrawable::Ptr RSRenderNodeShadowDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return new RSCanvasRenderNodeDrawable(std::move(node));
+    return new RSRenderNodeShadowDrawable(std::move(node));
 }
 
-/*
- * This function will be called recursively many times, and the logic should be as concise as possible.
- */
-void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
+void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
 {
+    // rect is not directly used, make a dummy rect
+    static Drawing::Rect rect;
+
+    auto shadowIndex = renderNode_->drawCmdIndex_.shadowIndex_;
+    if (shadowIndex == -1) {
+        return;
+    }
+
     auto& params = renderNode_->GetRenderParams();
     if (!params) {
         RS_LOGE("params is nullptr");
@@ -60,27 +55,16 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    GenerateCacheIfNeed(canvas, *params);
-    CheckCacheTypeAndDraw(canvas, *params);
-    RSRenderNodeDrawable::ProcessedNodeCountInc();
+    SetSkipShadow(false);
+    DrawRangeImpl(canvas, rect, 0, shadowIndex);
 }
 
-/*
- * This function will be called recursively many times, and the logic should be as concise as possible.
- */
-void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
+void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string& out) const
 {
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        return;
+    for (int32_t i = 0; i < depth; ++i) {
+        out += "  ";
     }
-    if (!params->GetShouldPaint()) {
-        return;
-    }
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-
-    CheckCacheTypeAndDraw(canvas, *params);
+    renderNode_->DumpNodeType(out);
+    out += "[" + std::to_string(renderNode_->GetId()) + "] Draw Shadow Only\n";
 }
 } // namespace OHOS::Rosen::DrawableV2

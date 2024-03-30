@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_ADAPTER_H
 
 #include <memory>
-#include <unordered_map>
+#include <map>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -85,24 +85,22 @@ protected:
             RSRenderNodeDrawableAdapter::GeneratorMap.emplace(type, generator);
         }
     };
+    template<Generator generator>
+    class RenderNodeShadowDrawableRegistrar {
+    public:
+        RenderNodeShadowDrawableRegistrar()
+        {
+            RSRenderNodeDrawableAdapter::shadowGenerator_ = generator;
+        }
+    };
 
     std::shared_ptr<const RSRenderNode> renderNode_;
 
 private:
-    static std::unordered_map<RSRenderNodeType, Generator> GeneratorMap;
-    static std::unordered_map<NodeId, WeakPtr> RenderNodeDrawableCache;
+    static std::map<RSRenderNodeType, Generator> GeneratorMap;
+    static Generator shadowGenerator_;
+    static std::map<NodeId, WeakPtr> RenderNodeDrawableCache;
     bool skipShadow_ = false;
-};
-
-class RSRenderNodeShadowDrawable : public RSRenderNodeDrawableAdapter {
-public:
-    explicit RSRenderNodeShadowDrawable(std::shared_ptr<const RSRenderNode> node)
-        : RSRenderNodeDrawableAdapter(std::move(node))
-    {}
-    ~RSRenderNodeShadowDrawable() override = default;
-
-    void Draw(Drawing::Canvas& canvas) override;
-    void DumpDrawableTree(int32_t depth, std::string& out) const override;
 };
 
 } // namespace DrawableV2

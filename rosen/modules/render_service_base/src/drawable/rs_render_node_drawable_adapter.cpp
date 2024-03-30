@@ -24,8 +24,9 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen::DrawableV2 {
-std::unordered_map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
-std::unordered_map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache;
+RSRenderNodeDrawableAdapter::Generator RSRenderNodeDrawableAdapter::shadowGenerator_ = nullptr;
+std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
+std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache;
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
     : renderNode_(std::move(node)) {};
@@ -77,13 +78,13 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
     const std::shared_ptr<const RSRenderNode>& node)
 {
-    static std::unordered_map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> shadowDrawableCache;
+    static std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> shadowDrawableCache;
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
         shadowDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
         delete ptr;
     };
 
-    if (node == nullptr) {
+    if (node == nullptr || shadowGenerator_ == nullptr) {
         return nullptr;
     }
     auto id = node->GetId();
@@ -97,7 +98,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
         }
     }
 
-    auto ptr = new RSRenderNodeShadowDrawable(node);
+    auto ptr = shadowGenerator_(node);
     auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
     shadowDrawableCache.emplace(id, sharedPtr);
     return sharedPtr;
@@ -265,31 +266,5 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return renderNode_->drawCmdIndex_.shadowIndex_ != -1 || renderNode_->drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            renderNode_->drawCmdIndex_.useEffectIndex_ != -1;
-}
-
-void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
-{
-    // rect is not directly used, make a dummy rect
-    static Drawing::Rect rect;
-
-    auto shadowIndex = renderNode_->drawCmdIndex_.shadowIndex_;
-    if (shadowIndex == -1) {
-        return;
-    }
-
-    // TODO: dirty region reject
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    SetSkipShadow(false);
-    DrawRangeImpl(canvas, rect, 0, shadowIndex);
-}
-
-void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string& out) const
-{
-    for (int32_t i = 0; i < depth; ++i) {
-        out += "  ";
-    }
-    renderNode_->DumpNodeType(out);
-    out += "[" + std::to_string(renderNode_->GetId()) + "] Draw Shadow Only\n";
 }
 } // namespace OHOS::Rosen::DrawableV2
