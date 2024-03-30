@@ -56,7 +56,17 @@ static uint64_t GetUniqueIdImpl()
 
 static bool IsLocalRender()
 {
-    return GetRealPid() == gettid();
+    std::ifstream procfile("/proc/self/cmdline");
+    if (!procfile.is_open()) {
+        BLOGE("BufferQueue: Error opening procfile!");
+        return false;
+    }
+    std::string processName;
+    std::getline(procfile, processName);
+    procfile.close();
+    std::string target = "/system/bin/render_service";
+    bool result = processName.substr(0, target.size()) == target;
+    return result;
 }
 
 BufferQueue::BufferQueue(const std::string &name, bool isShared)
