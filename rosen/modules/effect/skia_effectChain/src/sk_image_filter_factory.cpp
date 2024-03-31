@@ -31,10 +31,11 @@ sk_sp<SkImageFilter> SKImageFilterFactory::Blur(float radius)
 sk_sp<SkImageFilter> SKImageFilterFactory::Brightness(float degree)
 {
     float matrix[20] = {
-    1, 0, 0, 0, degree,
-    0, 1, 0, 0, degree,
-    0, 0, 1, 0, degree,
-    0, 0, 0, 1, 0      };
+        1, 0, 0, 0, degree,
+        0, 1, 0, 0, degree,
+        0, 0, 1, 0, degree,
+        0, 0, 0, 1, 0
+    };
 
     return SkImageFilters::ColorFilter(SkColorFilters::Matrix(matrix), nullptr);
 }
@@ -42,12 +43,31 @@ sk_sp<SkImageFilter> SKImageFilterFactory::Brightness(float degree)
 sk_sp<SkImageFilter> SKImageFilterFactory::Grayscale()
 {
     float matrix[20] = {
-    GRAYSCALE_PARAONE, GRAYSCALE_PARATWO, GRAYSCALE_PARATHREE, 0, 0,
-    GRAYSCALE_PARAONE, GRAYSCALE_PARATWO, GRAYSCALE_PARATHREE, 0, 0,
-    GRAYSCALE_PARAONE, GRAYSCALE_PARATWO, GRAYSCALE_PARATHREE, 0, 0,
-    0, 0, 0, 1, 0      };
+        GRAYSCALE_PARAONE, GRAYSCALE_PARATWO, GRAYSCALE_PARATHREE, 0, 0,
+        GRAYSCALE_PARAONE, GRAYSCALE_PARATWO, GRAYSCALE_PARATHREE, 0, 0,
+        GRAYSCALE_PARAONE, GRAYSCALE_PARATWO, GRAYSCALE_PARATHREE, 0, 0,
+        0, 0, 0, 1, 0
+    };
 
     return SkImageFilters::ColorFilter(SkColorFilters::Matrix(matrix), nullptr);
+}
+
+sk_sp<SkImageFilter> SKImageFilterFactory::Invert()
+{
+    /* invert matrix */
+    float matrix[20] = {
+        -1.0, 0, 0, 0, 1,
+        0, -1.0, 0, 0, 1,
+        0, 0, -1.0, 0, 1,
+        0, 0, 0, 1, 0
+    };
+
+    return SkImageFilters::ColorFilter(SkColorFilters::Matrix(matrix), nullptr);
+}
+
+sk_sp<SkImageFilter> SKImageFilterFactory::ApplyColorMatrix(const PixelColorMatrix &matrix)
+{
+    return SkImageFilters::ColorFilter(SkColorFilters::Matrix(matrix.val), nullptr);
 }
 } // namespcae Rosen
 } // namespace OHOS

@@ -144,6 +144,8 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("blur", Blur),
         DECLARE_NAPI_FUNCTION("brightness", Brightness),
         DECLARE_NAPI_FUNCTION("grayscale", Grayscale),
+        DECLARE_NAPI_FUNCTION("invert", Invert),
+        DECLARE_NAPI_FUNCTION("setColorMatrix", SetColorMatrix),
         DECLARE_NAPI_FUNCTION("getPixelMap", GetPixelMap),
         DECLARE_NAPI_FUNCTION("getPixelMapAsync", GetPixelMapAsync),
         DECLARE_NAPI_FUNCTION("getEffectPixelMap", GetPixelMapAsync),
@@ -493,6 +495,86 @@ napi_value FilterNapi::Grayscale(napi_env env, napi_callback_info info)
     }
     auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
     thisFilter->AddNextFilter(grayscale);
+    return _this;
+}
+
+napi_value FilterNapi::Invert(napi_env env, napi_callback_info info)
+{
+    napi_value _this;
+    napi_status status;
+    IMG_JS_NO_ARGS(env, info, status, _this);
+    FilterNapi* thisFilter = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
+    if (thisFilter == nullptr) {
+        EFFECT_LOG_I("FilterNapi napi_unwrap is Faild");
+        return nullptr;
+    }
+    auto invert = Rosen::SKImageFilterFactory::Invert();
+    thisFilter->AddNextFilter(invert);
+    return _this;
+}
+
+static uint32_t ParseColorMatrix(napi_env env, napi_value val, PixelColorMatrix &colorMatrix)
+{
+    bool isArray = false;
+    napi_is_array(env, val, &isArray);
+    if (!isArray) {
+        EFFECT_LOG_E("Parse color matrix is not an array");
+        return ERR_INVALID_PARAM;
+    }
+
+    uint32_t len = 0;
+    if (napi_get_array_length(env, val, &len) != napi_ok ||
+        len != PixelColorMatrix::MATRIX_SIZE) {
+        EFFECT_LOG_E("Parse color matrix napi_get_array_length failed %{public}u", len);
+        return ERR_INVALID_PARAM;
+    }
+    EFFECT_LOG_E("Parse color matrix len %{public}u", len);
+
+    for (size_t i = 0; i < len; i++) {
+        double itemVal;
+        napi_value item;
+        napi_get_element(env, val, i, &item);
+        if (napi_get_value_double(env, item, &itemVal) != napi_ok) {
+            EFFECT_LOG_E("Parse format in item failed %{public}zu", i);
+            return ERR_INVALID_PARAM;
+        }
+        colorMatrix.val[i] = static_cast<float>(itemVal);
+        EFFECT_LOG_D("FilterNapi color matrix [%{public}zu] = %{public}f.", i, colorMatrix.val[i]);
+    }
+    return SUCCESS;
+}
+
+napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
+{
+    size_t argc = NUM_1;
+    napi_value argv[NUM_1];
+    napi_value _this;
+    napi_status status;
+    uint32_t res = 0;
+    PixelColorMatrix colorMatrix;
+    IMG_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!IMG_IS_OK(status) || argc != NUM_1) {
+        EFFECT_LOG_E("FilterNapi parse input falid");
+        napi_throw_error(env, std::to_string(ERR_INVALID_PARAM).c_str(),
+            "FilterNapi parse input falid, Color matrix mismatch");
+        return nullptr;
+    }
+    res = ParseColorMatrix(env, argv[NUM_0], colorMatrix);
+    if (res != SUCCESS) {
+        EFFECT_LOG_E("Color matrix mismatch");
+        napi_throw_error(env, std::to_string(res).c_str(), "Color matrix mismatch");
+        return nullptr;
+    }
+
+    FilterNapi* thisFilter = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
+    if (thisFilter == nullptr) {
+        EFFECT_LOG_E("FilterNapi napi_unwrap is Faild");
+        return nullptr;
+    }
+    auto applyColorMatrix = Rosen::SKImageFilterFactory::ApplyColorMatrix(colorMatrix);
+    thisFilter->AddNextFilter(applyColorMatrix);
     return _this;
 }
 }
