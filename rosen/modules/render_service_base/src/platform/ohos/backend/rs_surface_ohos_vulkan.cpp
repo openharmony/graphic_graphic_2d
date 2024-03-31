@@ -31,18 +31,7 @@
 
 namespace OHOS {
 namespace Rosen {
-[[maybe_unused]] static void DestroySemaphore(void *context)
-{
-    if (context == nullptr) {
-        return;
-    }
-    DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
-    --info->mRefs;
-    if (!info->mRefs) {
-        info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
-        delete info;
-    }
-}
+
 
 RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {

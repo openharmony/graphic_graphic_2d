@@ -15,7 +15,7 @@
 
 #define EGL_EGLEXT_PROTOTYPES
 #include "rs_sub_thread.h"
-
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include <string>
 #include "GLES3/gl3.h"
 #include "include/core/SkCanvas.h"
@@ -312,7 +312,45 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     }
     if (cacheSurface) {
         RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto& vkContext = RsVulkanContext::GetSingleton();
+
+        VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
+        exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
+        exportSemaphoreCreateInfo.pNext = nullptr;
+        exportSemaphoreCreateInfo.handleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+
+        VkSemaphoreCreateInfo semaphoreInfo;
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
+        semaphoreInfo.flags = 0;
+        VkSemaphore semaphore;
+        vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+        RS_TRACE_NAME_FMT("VkSemaphore %p", semaphore);
+        GrBackendSemaphore backendSemaphore;
+        backendSemaphore.initVulkan(semaphore);
+
+        DestroySemaphoreInfo* destroyInfo =
+            new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+
+        Drawing::FlushInfo drawingFlushInfo;
+        drawingFlushInfo.backendSurfaceAccess = true;
+        drawingFlushInfo.numSemaphores = 1;
+        drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
+        drawingFlushInfo.finishedProc = DestroySemaphore;
+        drawingFlushInfo.finishedContext = destroyInfo;
+        cacheSurface->Flush(&drawingFlushInfo);
+        grContext_->Submit();
+        DestroySemaphore(destroyInfo);
+    } else {
         cacheSurface->FlushAndSubmit(true);
+    }
+#else
+    cacheSurface->FlushAndSubmit(true);
+#endif
+        
     }
     
     nodeDrawable->UpdateBackendTexture();

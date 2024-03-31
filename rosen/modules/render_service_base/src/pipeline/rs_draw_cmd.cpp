@@ -213,9 +213,8 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
         RS_LOGE("GetDrawingImageFromSurfaceBuffer gpu context is nullptr");
         return false;
     }
-    if (!image_) {
-        image_ = std::make_shared<Drawing::Image>();
-    }
+
+    image_ = std::make_shared<Drawing::Image>();
 #ifndef ROSEN_EMULATOR
     auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
 #else
@@ -261,9 +260,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         }
         tid_ = gettid();
     }
-    if (!image_) {
-        image_ = std::make_shared<Drawing::Image>();
-    }
+    image_ = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
