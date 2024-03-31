@@ -907,7 +907,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     // stop visit invisible or clean without filter subtree
     if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
-        RS_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
+        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
             GetId(), shouldPaint_, isOccluded);
         return false;
     }
@@ -921,7 +921,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         return true;
     }
     if (ChildHasVisibleFilter()) {
-        RS_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
+        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
     // if clean without filter skip subtree
