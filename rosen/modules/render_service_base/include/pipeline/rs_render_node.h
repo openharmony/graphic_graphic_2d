@@ -100,6 +100,8 @@ public:
                                 bool onlyFirstLevel);
     virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
+    void PrepareSelfNodeForApplyModifiers();
+    void PrepareChildrenForApplyModifiers();
     // if subtree dirty or child filter need prepare
     virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
