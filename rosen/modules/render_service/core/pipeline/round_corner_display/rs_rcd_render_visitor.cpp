@@ -63,16 +63,17 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     return true;
 }
 
-void RSRcdRenderVisitor::PrepareRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node,
-    rs_rcd::RoundCornerLayer* layerInfo, bool resourceChanged)
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
+    bool resourceChanged)
 {
-    if (node.IsInvalidSurface()) {
-        RS_LOGE("RSRcdRenderVisitor node invalid!");
+    if (uniProcessor_ == nullptr || node.IsInvalidSurface()) {
+        RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid!");
         return;
     }
 
     sptr<SurfaceBuffer> buffer = node.GetBuffer();
     if (!resourceChanged && buffer != nullptr) {
+        uniProcessor_->ProcessRcdSurface(node);
         return;
     }
 
@@ -114,10 +115,7 @@ void RSRcdRenderVisitor::PrepareRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
     }
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     node.GetConsumer()->SetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode);
-}
 
-void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node)
-{
     uniProcessor_->ProcessRcdSurface(node);
 }
 

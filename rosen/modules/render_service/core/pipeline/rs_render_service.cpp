@@ -34,10 +34,9 @@
 #include <platform/common/rs_log.h>
 #include <system_ability_definition.h>
 #include "parameter.h"
-
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "common/rs_singleton.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
 
 namespace OHOS {
 namespace Rosen {

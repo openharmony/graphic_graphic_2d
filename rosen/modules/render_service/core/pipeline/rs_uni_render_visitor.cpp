@@ -151,38 +151,20 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 }
 }
 
-void DoScreenRcdPrepareTask(std::unique_ptr<RcdInfo>& rcdInfo, ScreenInfo& screenInfo)
+void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+    ScreenInfo& screenInfo_)
 {
-    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
-        RS_LOGD("DoScreenRcdPrepareTask is not at HDI_OUPUT mode");
-        return;
-    }
-    if (rcdInfo == nullptr) {
-        RS_LOGD("DoScreenRcdPrepareTask rcdInfo is nullptr");
+    if (screenInfo_.state != ScreenState::HDI_OUTPUT_ENABLE) {
+        RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
     if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [&rcdInfo]() {
+            [&processor, &rcdInfo]() {
                 auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
-                rcdInfo->processInfo = {nullptr, hardInfo.topLayer, hardInfo.bottomLayer,
-                     hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoPrepareRenderTask(rcdInfo->processInfo);
-            }
-        );
-    }
-}
-
-void DoScreenRcdProcessTask(std::shared_ptr<RSProcessor>& processor, ScreenInfo& screenInfo)
-{
-    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
-        RS_LOGD("DoScreenRcdProcessTask is not at HDI_OUPUT mode");
-        return;
-    }
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [&processor]() {
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(processor);
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo->processInfo);
             }
         );
     }
@@ -836,6 +818,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 
     HandleColorGamuts(node, screenManager);
     HandlePixelFormat(node, screenManager);
+    RSRcdRenderManager::GetInstance().DoPrepareRenderTask(rcdInfo_->prepareInfo);
 }
 
 bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node)
@@ -1199,7 +1182,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         QuickPrepareChildren(node);
     }
     PostPrepare(node);
-    DoScreenRcdPrepareTask(rcdInfo_, screenInfo_);
     UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
     SurfaceOcclusionCallbackToWMS();
@@ -3438,7 +3420,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
-                DoScreenRcdProcessTask(processor_, screenInfo_);
+                DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
                 processor_->PostProcess();
             }
             return;
@@ -3713,7 +3695,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         processor_->ProcessDisplaySurface(node);
         AssignGlobalZOrderAndCreateLayer(hardwareEnabledTopNodes_);
     }
-    DoScreenRcdProcessTask(processor_, screenInfo_);
+    DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
@@ -5595,7 +5577,7 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
             processor_->ProcessSurface(*node);
         }
     }
-    DoScreenRcdProcessTask(processor_, screenInfo_);
+    DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
     processor_->PostProcess();
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;
