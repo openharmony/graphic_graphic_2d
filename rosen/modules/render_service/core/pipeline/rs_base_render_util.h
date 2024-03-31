@@ -136,6 +136,7 @@ public:
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
     static bool IsForceClient();
+    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
 
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
