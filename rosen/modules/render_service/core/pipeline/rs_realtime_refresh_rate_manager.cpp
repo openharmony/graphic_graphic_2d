@@ -19,6 +19,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "hgm_core.h"
+#include "hgm_frame_rate_manager.h"
 #include "rs_trace.h"
 #include "rs_main_thread.h"
 
@@ -38,41 +40,37 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
         static_cast<bool>(enableState_), enable);
     enableState_ = enable;
 
-    static constexpr uint8_t IDLE_FPS_THRESHOLD = 8;
-    static auto NS_PER_S = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count();
-    static auto NS_FPS_SHOW_INTERVAL =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(250));
-
-    static std::mutex threadMutex;
-    static std::condition_variable threadCondVar;
-    static std::thread updateFpsThread;
-
     if (enableState_) {
-        updateFpsThread = std::thread([&]() {
+        updateFpsThread_ = std::thread([&]() {
+            auto &hgmCore = HgmCore::Instance();
+            uint32_t lastRefreshRate = 0;
             uint32_t lastRealtimeRefreshRate = 0;
             currRealtimeRefreshRate_ = 1;
             while (enableState_) {
-                std::unique_lock<std::mutex> lock(threadMutex);
+                std::unique_lock<std::mutex> lock(threadMutex_);
 
                 auto st = std::chrono::steady_clock::now();
                 realtimeFrameCount_ = 0;
-                threadCondVar.wait_for(lock, NS_FPS_SHOW_INTERVAL);
+                threadCondVar_.wait_for(lock, NS_FPS_SHOW_INTERVAL_);
                 uint32_t realtimeFrameCount = realtimeFrameCount_;
                 auto et = std::chrono::steady_clock::now();
 
                 RS_TRACE_BEGIN("RSRealtimeRefreshRateManager:Cal draw fps");
 
                 auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(et - st);
-                uint32_t fps = std::round(realtimeFrameCount * static_cast<float>(NS_PER_S) / diff.count());
+                uint32_t fps = std::round(realtimeFrameCount * static_cast<float>(NS_PER_S_) / diff.count());
                 fps = std::max(1u, fps);
-                if (fps <= IDLE_FPS_THRESHOLD) {
+                if (fps <= IDLE_FPS_THRESHOLD_) {
                     fps = 1;
                 }
 
                 currRealtimeRefreshRate_ = fps;
 
+                auto screenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
+                auto refreshRate = hgmCore.GetScreenCurrentRefreshRate(screenId);
                 // draw
-                if (lastRealtimeRefreshRate != currRealtimeRefreshRate_) {
+                if (lastRealtimeRefreshRate != currRealtimeRefreshRate_ || lastRefreshRate != refreshRate) {
+                    lastRefreshRate = refreshRate;
                     lastRealtimeRefreshRate = currRealtimeRefreshRate_;
                     RSMainThread::Instance()->SetDirtyFlag();
                     RSMainThread::Instance()->RequestNextVSync();
@@ -84,9 +82,9 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
         });
         RS_LOGD("RSRealtimeRefreshRateManager: enable");
     } else {
-        threadCondVar.notify_all();
-        if (updateFpsThread.joinable()) {
-            updateFpsThread.join();
+        threadCondVar_.notify_all();
+        if (updateFpsThread_.joinable()) {
+            updateFpsThread_.join();
         }
         RS_LOGD("RSRealtimeRefreshRateManager: disable");
     }
