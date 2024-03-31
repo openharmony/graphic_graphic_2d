@@ -121,7 +121,11 @@ public:
     void MarkFilterRegionChanged();
     void MarkFilterRegionInteractWithDirty();
     void MarkFilterRegionIsLargeArea();
-    void MarkNeedClearFilterCache();
+    void MarkFilterForceUseCache();
+    void MarkFilterForceClearCache();
+    void MarkRotationChanged();
+    void MarkHasEffectChildren();
+    void CheckClearFilterCache();
 
     virtual bool IsFilterCacheValid() const;
  
@@ -131,27 +135,31 @@ public:
 
 private:
     void ClearFilterCache();
-    bool IsClearFilteredSnapshotCacheAfterDrawing();
+    void UpdateFlags(FilterCacheType type, bool cacheValid);
  
 protected:
+    void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
+
     bool needSync_ = false;
     std::shared_ptr<RSFilter> filter_;
     std::shared_ptr<RSFilter> stagingFilter_;
 
-    void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
-
     // flags for clearing filter cache
+    bool forceUseCache_ = false;
+    bool forceClearCache_ = false;
+    uint32_t cachedFilterHash_ = 0;
     bool filterHashChanged_ = false;
     bool filterRegionChanged_ = false;
     bool filterInteractWithDirty_ = false;
+    bool rotationChanged_ = false;
+    bool hasEffectChildren_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing 
-    bool stagingClearFilteredCache_ = false;
-    bool clearFilteredCache_ = false;
-    bool lastClearIsFilteredCache_ = false;
+    bool stagingForceUseCache_ = false;
+    bool stagingHasEffectChildren_ = false;
  
     // the type cache needed clear before drawing
-    FilterCacheType clearType_ = CACHE_TYPE_BOTH;
+    FilterCacheType clearType_ = FilterCacheType::NONE;
  
     // force cache with cacheUpdateInterval_
     bool isLargeArea_ = false;

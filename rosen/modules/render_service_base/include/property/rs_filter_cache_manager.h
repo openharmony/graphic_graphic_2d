@@ -56,6 +56,8 @@ public:
         const RSDirtyRegionManager& dirtyManager); // call when dirty region intersects with cached region.
     void UpdateCacheStateWithDirtyRegion();
     const RectI& GetCachedImageRegion() const;
+    FilterCacheType GetCachedType() const;
+    void SetForceCache(bool forceCache);
 
     // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
     // regenerate the cache or reuse the existing cache.
@@ -84,8 +86,7 @@ public:
     void ReleaseCacheOffTree();
     void StopFilterPartialRender();
 
-    void InvalidateFilterCache(FilterCacheType clearType = FilterCacheType::CACHE_TYPE_BOTH);
-    void CompactFilterCache(bool shouldClearFilteredCache);
+    void InvalidateFilterCache(FilterCacheType clearType = FilterCacheType::BOTH);
 
     inline bool IsCacheValid() const
     {
@@ -93,12 +94,6 @@ public:
     }
 
 private:
-    // TODO delete after EffectRenderNode enable filter cache. 
-    void TakeSnapshotV2(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
-    void GenerateFilteredSnapshotV2(
-        RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
-
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
@@ -113,7 +108,7 @@ private:
     // environment, we don't need to attempt to reattach SkImages.
     void CheckCachedImages(RSPaintFilterCanvas& canvas);
     // To reduce memory usage, clear one of the cached images.
-    inline void CompactCache(bool shouldClearFilteredCache);
+    inline void CompactFilterCache(bool shouldClearFilteredCache);
 
     const char* GetCacheState() const;
 
@@ -130,6 +125,7 @@ private:
     bool pendingPurge_ = false;
     // Region of the cached image, used to determine if we need to invalidate the cache.
     RectI snapshotRegion_; // Note: in device coordinate.
+    bool needForceCache_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

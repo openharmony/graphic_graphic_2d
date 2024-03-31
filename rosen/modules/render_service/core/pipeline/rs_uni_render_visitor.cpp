@@ -344,13 +344,7 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
         return;
     }
     // set rotationChanged true when screen is rotating or folding/expanding screen.
-    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
-        effectNode->SetRotationChanged(true);
-        int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
-        effectNode->SetInvalidateTimesForRotation(invalidateTimes);
-    } else {
-        effectNode->SetRotationChanged(false);
-    }
+    UpdateRotationStatusForEffectNode(*effectNode);
     effectNode->SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     UpdateSubTreeInCache(effectNode, *effectNode->GetSortedChildren());
@@ -1230,13 +1224,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     // 2. Recursively traverse child nodes
     bool firstlevelBackup = traversalFirstLevelSruface_;
     traversalFirstLevelSruface_ = true;
-    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
+    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
-    IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
+    isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_);
 
     node.SetGlobalAlpha(curAlpha_);
-    PostPrepare(node);
+    PostPrepare(node, !isSubTreeNeedPrepare);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
 
@@ -1306,16 +1300,16 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     auto dirtyFlag = dirtyFlag_;
     auto prevAlpha = curAlpha_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
-
+    UpdateRotationStatusForEffectNode(node);
     RectI prepareClipRect = prepareClipRect_;
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
 
     // 1. Recursively traverse child nodes
-    bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
-    IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
+    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
+    isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_);
 
-    PostPrepare(node);
+    PostPrepare(node, !isSubTreeNeedPrepare);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
@@ -1340,15 +1334,24 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdatePrepareClip(node);
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
-    bool IsSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
+    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
         ForcePrepareSubTree();
-    IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
+    isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_);
 
-    PostPrepare(node);
+    PostPrepare(node, !isSubTreeNeedPrepare);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
+}
+
+void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& node)
+{
+     // folding/expanding screen force invalidate cache.
+    node.SetFoldStatusChanged(doAnimate_ &&
+        curDisplayNode_->GetScreenId() != node.GetCurrentAttachedScreenId());
+    node.SetCurrentAttachedScreenId(curDisplayNode_->GetScreenId());
+    node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
 }
 
 void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
@@ -2035,8 +2038,11 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
     }
 }
 
-void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
+void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 {
+    if (subTreeSkipped) {
+        CheckSubFilterNodeNeedClearCache(node);
+    }
     if (node.GetRenderProperties().NeedFilter()) {
         UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, node.GetOldDirtyInSurface());
         CollectFilterInfoAndUpdateDirty(node);
@@ -2071,6 +2077,24 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node)
 
     // add if node is dirty
     node.AddToPendingSyncList();
+}
+
+void RSUniRenderVisitor::CheckSubFilterNodeNeedClearCache(RSRenderNode& node)
+{
+    auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    for (auto& child : node.GetVisibleFilterChild()) {
+        auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
+        if (filterNode == nullptr) {
+            continue;
+        }
+        if (auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode)) {
+            UpdateRotationStatusForEffectNode(*effectNode);
+        }
+        filterNode->UpdateFilterCacheWithDirty(*dirtyManager);
+        // TODO merge dirty region
+        filterNode->MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
+    }
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(
@@ -2507,8 +2531,8 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
 
     if (RSSystemProperties::GetQuickPrepareEnabled()) {
-        bool IsSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
-        IsSubTreeNeedPrepare ? QuickPrepareChildren(node) :
+        bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
+        isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
             node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_);
         PostPrepare(node);
     } else {
@@ -2657,14 +2681,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     auto effectRegion = effectRegion_;
     effectRegion_ = node.InitializeEffectRegion();
 
-    // set rotationChanged true when screen is rotating or folding/expanding screen.
-    if (curDisplayNode_->IsRotationChanged() || (!curDisplayNode_->IsRotationChanged() && doAnimate_)) {
-        node.SetRotationChanged(true);
-        int invalidateTimes = 2; // node call invalidate cache 3 times in one frame.
-        node.SetInvalidateTimesForRotation(invalidateTimes);
-    } else {
-        node.SetRotationChanged(false);
-    }
+    UpdateRotationStatusForEffectNode(node);
     auto parentNode = node.GetParent().lock();
     node.SetVisitedFilterCacheStatus(curSurfaceDirtyManager_->IsCacheableFilterRectEmpty());
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);

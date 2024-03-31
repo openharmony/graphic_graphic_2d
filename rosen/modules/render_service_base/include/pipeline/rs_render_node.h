@@ -34,6 +34,7 @@
 #include "common/rs_rect.h"
 #include "draw/surface.h"
 #include "drawable/rs_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
@@ -279,7 +280,7 @@ public:
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
 
     void SetStaticCached(bool isStaticCached);
-    bool IsStaticCached() const;
+    virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
     // store prev surface subtree's must-renewed info that need prepare
@@ -419,7 +420,6 @@ public:
         const std::optional<RectI>& clipRect = std::nullopt, bool isForeground = false);
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
-    void MarkFilterCacheFlagsAfterPrepare(bool isForeground = false);
     bool IsBackgroundFilterCacheValid() const;
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
@@ -614,6 +614,12 @@ protected:
     bool isChildSupportUifirst_ = true;
     bool lastFrameSynced_ = true;
 
+    void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
+    std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
+    const RectI GetFilterCachedRegion(bool isForeground) const;
+    virtual void MarkFilterCacheFlagsAfterPrepare(bool isForeground = false);
+    std::atomic<bool> isStaticCached_ = false;
+
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -706,7 +712,6 @@ private:
     bool isTextureValid_ = false;
 #endif
     std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
-    std::atomic<bool> isStaticCached_ = false;
     std::string nodeName_ = "";
     CacheType cacheType_ = CacheType::NONE;
     // drawing group cache

@@ -63,7 +63,7 @@ public:
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     // restore node's flag and filter dirty collection
-    void PostPrepare(RSRenderNode& node);
+    void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
     void CalculateOcclusion(RSSurfaceRenderNode& node);
 
     void PrepareChildren(RSRenderNode& node) override;
@@ -386,6 +386,8 @@ private:
     {
         return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
     }
+    void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
+    void CheckSubFilterNodeNeedClearCache(RSRenderNode& node);
 
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render

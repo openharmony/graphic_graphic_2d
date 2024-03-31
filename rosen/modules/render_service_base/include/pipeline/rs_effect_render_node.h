@@ -18,6 +18,7 @@
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,23 +61,34 @@ public:
 
     void SetRotationChanged(bool isRotationChanged);
     bool GetRotationChanged() const;
-    void SetInvalidateTimesForRotation(int times);
+
+    void SetCurrentAttachedScreenId(uint64_t screenId);
+    uint64_t GetCurrentAttachedScreenId() const;
+    void SetFoldStatusChanged(bool foldStatusChanged);
+
+    bool CheckFilterCacheNeedForceClear();
+    bool CheckFilterCacheNeedForceSave();
+
+    // TODO delte when freeze enabled for all nodes.
+    bool IsStaticCached() const override
+    {
+        return isStaticCached_;
+    }
 
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
         const std::optional<RectI>& clipRect, bool isForeground = false) override;
-    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false) override;
+    void MarkFilterCacheFlagsAfterPrepare(bool isForeground = false) override;
 
 private:
-    bool NeedForceCache();
-
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;
     bool preRotationStatus_ = false;
     bool preStaticStatus_ = false;
-    int invalidateTimes_ = 0;
-    int cacheUpdateInterval_ = 1;
+
+    uint64_t currentAttachedScreenId_ = INVALID_SCREEN_ID; // the current screen this node attached.
+    bool foldStatusChanged_ = false; // fold or expand screen.
 };
 } // namespace Rosen
 } // namespace OHOS

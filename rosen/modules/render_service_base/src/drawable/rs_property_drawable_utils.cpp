@@ -189,8 +189,7 @@ void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
 }
 
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-    const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isClearFilteredCache,
-    const bool isForegroundFilter)
+    const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isForegroundFilter, const bool forceCache)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -235,8 +234,8 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas, const std::sha
         //     filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
         //     filter->SetCanvasChange(*paintFilterCanvas);
         // }
+        cacheManager->SetForceCache(forceCache);
         cacheManager->DrawFilter(*paintFilterCanvas, filter, needSnapshotOutset);
-        cacheManager->CompactFilterCache(isClearFilteredCache);
         return;
     }
 #endif
@@ -272,7 +271,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas, const std::sha
 }
 
 void RSPropertyDrawableUtils::DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-    const std::unique_ptr<RSFilterCacheManager>& cacheManager)
+    const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool forceCache)
 {
     if (rsFilter == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");
@@ -288,19 +287,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(RSPaintFilterCanvas* canvas, 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
      // Optional use cacheManager to draw filter
      if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
-         /* TODO adapte freeze and ratation flag
-         auto node = properties.backref_.lock();
-         if (node == nullptr) {
-             ROSEN_LOGE("DrawBackgroundEffect::node is null");
-             return;
-         }
-         auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>();
-         if (effectNode == nullptr) {
-             ROSEN_LOGE("DrawBackgroundEffect::node reinterpret cast failed.");
-         }
-         // node is freeze or screen rotating, force cache filterred snapshot.
-         auto forceCacheFlags = std::make_tuple(effectNode->IsStaticCached(), effectNode->GetRotationChanged());
-         */
+         cacheManager->SetForceCache(forceCache);
          auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
          canvas->SetEffectData(data);
          return;
@@ -613,7 +600,7 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     if (effectData == nullptr || effectData->cachedImage_ == nullptr || !RSSystemProperties::GetEffectMergeEnabled()) {
         return;
     }
-
+    RS_TRACE_FUNC();
     Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     auto visibleRect = canvas->GetVisibleRect();
