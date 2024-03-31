@@ -70,7 +70,6 @@ public:
         std::string res="pid_";
         res.append("_name_");
         res.append(std::static_pointer_cast<const RSSurfaceRenderNode>(renderNode_)->GetName());
-
         return res;
     }
 
@@ -133,6 +132,16 @@ public:
     {
         return lastFrameUsedThreadIndex_;
     }
+
+    void SetRenderCachePriority(NodePriorityType type)
+    {
+        priority_ = type;
+    }
+
+    NodePriorityType GetRenderCachePriority() const
+    {
+        return priority_;
+    }
 #endif
 private:
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
@@ -154,6 +163,8 @@ private:
 #ifdef RS_PARALLEL
     std::string name_;
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas);
+
+    // UIFIRST
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
@@ -172,7 +183,9 @@ private:
 #endif
     bool isTextureValid_ = false;
     pid_t lastFrameUsedThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 #endif
+
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

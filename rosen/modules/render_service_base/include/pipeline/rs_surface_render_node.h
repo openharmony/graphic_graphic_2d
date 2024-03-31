@@ -365,6 +365,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsNeedSetVSync();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void SetHwcChildrenDisabledStateByUifirst();
 
     void SetContextBounds(const Vector4f bounds);
     bool CheckParticipateInOcclusion() const;
@@ -918,7 +919,7 @@ public:
 
     bool GetUifirstSupportFlag() override
     {
-        return !IsSelfDrawingType() && RSRenderNode::GetUifirstSupportFlag();
+        return RSRenderNode::GetUifirstSupportFlag();
     }
 
     void MergeOldDirtyRect() override

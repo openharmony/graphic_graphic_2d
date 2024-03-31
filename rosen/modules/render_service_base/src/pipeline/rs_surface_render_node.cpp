@@ -1844,6 +1844,32 @@ void RSSurfaceRenderNode::SetGlobalDirtyRegion(const RectI& rect, bool renderPar
     globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
 }
 
+void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
+{
+    if (IsAppWindow()) {
+        auto hwcNodes = GetChildHardwareEnabledNodes();
+        if (hwcNodes.empty()) {
+            return;
+        }
+        for (auto hwcNode : hwcNodes) {
+            auto hwcNodePtr = hwcNode.lock();
+            if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+                continue;
+            }
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+        }
+    } else if (IsLeashWindow()) {
+        for (auto& child : *GetChildren()) {
+            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceNode == nullptr) {
+                continue;
+            }
+            surfaceNode->SetHwcChildrenDisabledStateByUifirst();
+        }
+    }
+    
+}
+
 void RSSurfaceRenderNode::SetLocalZOrder(float localZOrder)
 {
     localZOrder_ = localZOrder;

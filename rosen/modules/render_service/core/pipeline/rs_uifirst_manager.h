@@ -66,6 +66,8 @@ private:
     void UpdateSkipSyncNode();
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
+    void PurgePendingPostNodes();
+    void SortSubThreadNodesPriority();
 
     void UifirstStateChange(RSSurfaceRenderNode& node, bool currentFrameIsUifirstNode);
     void CheckIfParentUifirstNodeEnable(RSSurfaceRenderNode& node, bool parentUifirstNodeEnable);
@@ -85,6 +87,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::set<NodeId> pendingResetNodes_;
     bool isUiFirstOn_ = false;
+    std::list<NodeId> sortedSubThreadNodeIds_;
 
     std::set<NodeId> reuseNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource

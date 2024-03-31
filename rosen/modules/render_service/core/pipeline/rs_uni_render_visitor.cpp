@@ -1221,9 +1221,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     UpdateHwcNodeInfoForAppNode(node);
 
-    // 2. Recursively traverse child nodes
-    bool firstlevelBackup = traversalFirstLevelSruface_;
-    traversalFirstLevelSruface_ = true;
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
@@ -1234,15 +1231,22 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
 
-    if (!firstlevelBackup && node.GetUifirstSupportFlag()) {
+    
+
+    ResetCurSurfaceInfoAsUpperSurfaceParent(node);
+    curAlpha_ = prevAlpha;
+}
+
+void RSUniRenderVisitor::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
+{
+    RS_TRACE_NAME_FMT("RSUniRender UpdateUifirstNodes: node[%llu] name[%s] FirstLevelNodeId[%llu] ",
+        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId());
+    // UIFirst Enable state is signed only when node's firstLevelNode is itself
+    if (node.GetFirstLevelNodeId() == node.GetId() && node.GetUifirstSupportFlag()) {
         RSUifirstManager::Instance().PrepareUifirstNode(node, ancestorNodeHasAnimation_);
     } else {
         RSUifirstManager::Instance().DisableUifirstNode(node);
     }
-    traversalFirstLevelSruface_ = firstlevelBackup;
-
-    ResetCurSurfaceInfoAsUpperSurfaceParent(node);
-    curAlpha_ = prevAlpha;
 }
 
 void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)

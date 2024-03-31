@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 #ifdef RS_PARALLEL
+
 RSUifirstManager& RSUifirstManager::Instance()
 {
     static RSUifirstManager instance; // store in mainthread instance ?
@@ -93,6 +94,29 @@ void RSUifirstManager::ProcessDoneNode()
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end(); it++) {
         pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
     }
+    //PurgePendingPostNodes();
+}
+
+void RSUifirstManager::PurgePendingPostNodes()
+{
+    auto deviceType = RSMainThread::Instance()->GetDeviceType();
+    for (auto it = pendingPostNodes_.begin(); it != pendingPostNodes_.end();) {
+        auto id = it->first;
+        auto surfaceNode = it->second;
+        DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+        if (drawable && surfaceNode) {
+            if (drawable->HasCachedTexture() && surfaceNode->IsUIFirstSelfDrawCheck() &&
+                (surfaceNode->IsCurFrameStatic(deviceType) || surfaceNode->IsVisibleDirtyEmpty(deviceType))) {
+                RS_TRACE_NAME_FMT("Purge node name %s", surfaceNode->GetName().c_str());
+                it = pendingPostNodes_.erase(it);
+            } else {
+                ++it;
+            }
+        } else {
+            ++it;
+        }
+    }
+    RS_TRACE_NAME_FMT("PurgePendingPostNodes leftNode num %d", pendingPostNodes_.size());
 }
 
 void RSUifirstManager::PostSubTask(NodeId id)
@@ -208,10 +232,54 @@ void RSUifirstManager::ClearSubthreadRes()
     reuseNodes_.clear();
 }
 
+void RSUifirstManager::SortSubThreadNodesPriority()
+{
+    bool isFocusNodeFound = false;
+    sortedSubThreadNodeIds_.clear();
+    for (auto& item : pendingPostNodes_) {
+        auto const& [id, value] = item;
+        auto surfaceNode = value;
+        DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
+        if (!drawable || !surfaceNode) {
+            continue;
+        }
+        if (!isFocusNodeFound) {
+            bool isFocus = surfaceNode->IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
+            surfaceNode->IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
+            if (isFocus) {
+                drawable->SetRenderCachePriority(NodePriorityType::SUB_FOCUSNODE_PRIORITY); // for resolving response latency
+                isFocusNodeFound = true;
+            }
+        }
+        if (drawable->HasCachedTexture()) {
+            drawable->SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
+        } else {
+            drawable->SetRenderCachePriority(NodePriorityType::SUB_HIGH_PRIORITY);
+        }
+        sortedSubThreadNodeIds_.emplace_back(id);
+    }
+    sortedSubThreadNodeIds_.sort([this](const auto& first, const auto& second) -> bool {
+        auto drawable1 = GetSurfaceDrawableByID(first);
+        auto drawable2 = GetSurfaceDrawableByID(second);
+        if (drawable1 == nullptr || drawable2 == nullptr) {
+            ROSEN_LOGE(
+                "RSUifirstManager::SortSubThreadNodesPriority sort nullptr found in pendingPostNodes_, this should not happen");
+            return false;
+        }
+        if (drawable1->GetRenderCachePriority() == drawable2->GetRenderCachePriority()) {
+            return drawable2->GetRenderNode()->GetRenderProperties().GetPositionZ() <
+                drawable1->GetRenderNode()->GetRenderProperties().GetPositionZ();
+        } else {
+            return drawable1->GetRenderCachePriority() < drawable2->GetRenderCachePriority();
+        }
+    });
+}
+
 // post in drawframe sync time
 void RSUifirstManager::PostUifistSubTasks()
 {
-    RS_TRACE_NAME_FMT("PostUifistSubTasks num%d", pendingPostNodes_.size());
+    // SortSubThreadNodesPriority()
+    //RS_TRACE_NAME_FMT("PostUifistSubTasks num%d", sortedSubThreadNodeIds_.size());
     if (pendingPostNodes_.size() > 0) {
         for (auto& item : pendingPostNodes_) {
             PostSubTask(item.first);
@@ -277,6 +345,10 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
         isNeedAssignToSubThread = (node.IsScale() || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
             node.GetForceUIFirst()) && !node.HasFilter();
     }
+    RS_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
+        " filter:%d isScale:%d forceUIFirst:%d isNeedAssign:%d",
+        node.GetName().c_str(), node.GetId(),
+        node.HasFilter(), node.IsScale(), node.GetForceUIFirst(), isNeedAssignToSubThread);
     std::string surfaceName = node.GetName();
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
         surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
