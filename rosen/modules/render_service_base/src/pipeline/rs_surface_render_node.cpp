@@ -2210,6 +2210,11 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isMainThreadNode_ = IsMainThreadNode();
+    surfaceParams->isSecurityLayer_ = isSecurityLayer_;
+    surfaceParams->isSkipLayer_ = isSkipLayer_;
+    surfaceParams->skipLayerIds_= skipLayerIds_;
+    surfaceParams->securityLayerIds_= securityLayerIds_;
+    surfaceParams->name_= name_;
 
     surfaceParams->SetNeedSync(true);
 

@@ -196,6 +196,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
+    targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
+    targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
+    targetSurfaceParams->skipLayerIds_= skipLayerIds_;
+    targetSurfaceParams->securityLayerIds_= securityLayerIds_;
+    targetSurfaceParams->name_= name_;
     RSRenderParams::OnSync(target);
 }
 

@@ -102,6 +102,26 @@ public:
         return rrect_;
     }
 
+    bool GetIsSecurityLayer() const
+    {
+        return isSecurityLayer_;
+    }
+    bool GetIsSkipLayer() const
+    {
+        return isSkipLayer_;
+    }
+    const std::set<NodeId>& GetSkipLayerIds() const
+    {
+        return skipLayerIds_;
+    }
+    const std::set<NodeId>& GetSecurityLayerIds() const
+    {
+        return securityLayerIds_;
+    }
+    std::string GetName() const
+    {
+        return name_;
+    }
     void SetNeedSubmitSubThread(bool needSubmitSubThread)
     {
         processed = false;
@@ -204,6 +224,11 @@ private:
     RSLayerInfo layerInfo_;
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool isSecurityLayer_ = false;
+    bool isSkipLayer_ = false;
+    std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> securityLayerIds_= {};
+    std::string name_= "";
 
     friend class RSSurfaceRenderNode;
 };

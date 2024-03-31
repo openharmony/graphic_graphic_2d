@@ -280,9 +280,11 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + surfaceNode->GetName() + "] " +
         surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
 
-    if (surfaceParams->IsSecurityLayer() || surfaceParams->IsSkipLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
+    bool hasSpecialLayer = (surfaceParams->GetIsSecurityLayer() || surfaceParams->GetIsSkipLayer() ||
+        surfaceParams->GetName() == "CapsuleWindow");
+    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && hasSpecialLayer) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::OnCapture: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) Mirror screen not draw special layer.",
             surfaceParams->GetId());
         return;
     }

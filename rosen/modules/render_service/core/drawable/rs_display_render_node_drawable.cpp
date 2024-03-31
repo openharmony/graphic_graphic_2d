@@ -327,11 +327,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     RSDirtyRectsDfx rsDirtyRectsDfx(displayNodeSp);
-    auto rects = MergeDirtyHistory(displayNodeSp, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx);
-
-    uniParam->Reset();
-    if (uniParam->IsPartialRenderEnabled() && !uniParam->IsRegionDebugEnabled()) {
-        renderFrame->SetDamageRegion(rects);
+    std::vector<RectI> damageRegionrects;
+    if (uniParam->IsPartialRenderEnabled()) {
+        damageRegionrects = MergeDirtyHistory(displayNodeSp, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx);
+        uniParam->Reset();
+        if (!uniParam->IsRegionDebugEnabled()) {
+            renderFrame->SetDamageRegion(damageRegionrects);
+        }
     }
 
     auto drSurface = renderFrame->GetFrame()->GetSurface();
@@ -346,13 +348,15 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    auto region = GetFilpedRegion(rects, screenInfo);
     // canvas draw
     {
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
         if (uniParam->IsOpDropped()) {
+            auto region = GetFilpedRegion(damageRegionrects, screenInfo);
             ClipRegion(*curCanvas_, region);
+        } else {
+            curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
         SetHighContrastIfEnabled(*curCanvas_);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
@@ -436,7 +440,8 @@ void RSDisplayRenderNodeDrawable::ProcessVirtualScreen(RSDisplayRenderNode& disp
         ScaleMirrorIfNeed(displayNodeSp, canvasRotation, processor);
         RotateMirrorCanvasIfNeed(displayNodeSp, canvasRotation);
         auto mirroredNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(std::move(mirroredNode));
-        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, 0, 0));
+        // set mirror screen capture param
+        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, true, 0, 0));
         mirroredNodeDrawable->OnCapture(*curCanvas_);
         RSUniRenderThread::ResetCaptureParam();
         curCanvas_->RestoreToCount(saveCount);
@@ -558,7 +563,9 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             params->ToString().c_str(), params->GetId());
 
         // Adding matrix affine transformation logic
-        rscanvas->ConcatMatrix(params->GetMatrix());
+        if (!UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
+            rscanvas->ConcatMatrix(params->GetMatrix());
+        }
 
         RSRenderNodeDrawable::OnCapture(canvas);
         DrawWatermarkIfNeed(*displayNodeSp, *rscanvas);
