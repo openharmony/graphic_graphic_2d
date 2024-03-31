@@ -904,15 +904,12 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     if (checkType == SubTreePrepareCheckType::DISABLED) {
         return true;
     }
-    bool isSubTreeDirty = IsSubTreeDirty();
     // stop visit invisible or clean without filter subtree
     if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
         // when subTreeOccluded, need to applymodifiers to node's children
         // [planning] this can be optimized not need to prepareChildren
-        if (isSubTreeDirty) {
-            PrepareChildrenForApplyModifiers();
-        }
+        PrepareChildrenForApplyModifiers();
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
             GetId(), shouldPaint_, isOccluded);
         return false;
@@ -920,7 +917,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     if (checkType == SubTreePrepareCheckType::DISABLE_SUBTREE_DIRTY_CHECK) {
         return true;
     }
-    if (isSubTreeDirty) {
+    if (IsSubTreeDirty()) {
         // reset iff traverses dirty subtree
         SetSubTreeDirty(false);
         UpdateChildrenOutOfRectFlag(false); // collect again
@@ -936,11 +933,13 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
 
 void RSRenderNode::PrepareChildrenForApplyModifiers()
 {
-    auto children = GetSortedChildren();
-    std::for_each((*children).begin(), (*children).end(),
-        [this](const std::shared_ptr<RSRenderNode>& node) {
-        node->PrepareSelfNodeForApplyModifiers();
-    });
+    if (IsSubTreeDirty()) {
+        auto children = GetSortedChildren();
+        std::for_each((*children).begin(), (*children).end(),
+            [this](const std::shared_ptr<RSRenderNode>& node) {
+            node->PrepareSelfNodeForApplyModifiers();
+        });
+    }
 }
 
 void RSRenderNode::PrepareSelfNodeForApplyModifiers()
@@ -948,7 +947,6 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
     ApplyModifiers();
     PrepareChildrenForApplyModifiers();
 
-    // fallback for global root node
     UpdateRenderParams();
     AddToPendingSyncList();
 }
