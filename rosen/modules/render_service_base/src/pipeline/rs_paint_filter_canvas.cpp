@@ -1235,6 +1235,7 @@ void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
     }
     isParallelCanvas_ = other.isParallelCanvas_;
     disableFilterCache_ = other.disableFilterCache_;
+    threadIndex_ = other.threadIndex_;
 }
 
 void RSPaintFilterCanvas::SetHighContrast(bool enabled)
@@ -1322,6 +1323,17 @@ void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 bool RSPaintFilterCanvas::GetIsParallelCanvas() const
 {
     return isParallelCanvas_;
+}
+
+// UNI_MAIN_THREAD_INDEX, UNI_RENDER_THREAD_INDEX, subthread 0 1 2.
+void RSPaintFilterCanvas::SetParallelThreadIdx(uint32_t idx)
+{
+    threadIndex_ = idx;
+}
+
+uint32_t RSPaintFilterCanvas::GetParallelThreadIdx() const
+{
+    return threadIndex_;
 }
 
 void RSPaintFilterCanvas::SetDisableFilterCache(bool disable)

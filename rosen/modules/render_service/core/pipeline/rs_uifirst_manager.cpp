@@ -86,8 +86,6 @@ void RSUifirstManager::ProcessDoneNode()
             // reset uifirst
             drawable->ResetUifirst();
             pendingResetNodes_.erase(id);
-            lastFrameDoingNum_ = -1;
-            currentFrameDoingNum_ = -1;
         }
         subthreadProcessingNode_.erase(id);
     }
@@ -198,17 +196,14 @@ void RSUifirstManager::RestoreSkipSyncNode()
 
 void RSUifirstManager::ClearSubthreadRes()
 {
-    int lastFrameBackup = lastFrameDoingNum_;
-    lastFrameDoingNum_ = currentFrameDoingNum_;
-    currentFrameDoingNum_ = subthreadProcessingNode_.size();
-    if (lastFrameBackup > 0 && lastFrameDoingNum_ == 0 && currentFrameDoingNum_ == 0 &&
+    if (noUifirstNodeFrameCount_ < CLEAR_RES_THRESHOLD && subthreadProcessingNode_.size() == 0 &&
         pendingSyncForSkipBefore_.size() == 0 && reuseNodes_.size() == 0) {
-        // clear res
-        RS_TRACE_NAME_FMT(" postclear last_last%d last%d current%d now%d pendsync %d reuse%d pendpost%d", lastFrameBackup, lastFrameDoingNum_,
-            currentFrameDoingNum_, (int)subthreadProcessingNode_.size(), (int)pendingSyncForSkipBefore_.size(),
-        (int)reuseNodes_.size(),
-        (int)pendingPostNodes_.size());
-        RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+        ++noUifirstNodeFrameCount_;
+        if (noUifirstNodeFrameCount_ == CLEAR_RES_THRESHOLD) {
+            RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+        }
+    } else {
+        noUifirstNodeFrameCount_ = 0;
     }
     reuseNodes_.clear();
 }
@@ -223,6 +218,7 @@ void RSUifirstManager::PostUifistSubTasks()
         }
         pendingPostNodes_.clear();
     } else {
+        RS_TRACE_NAME_FMT("ClearSubthreadRes");
         ClearSubthreadRes();
     }
 }

@@ -50,8 +50,14 @@ public:
     MemoryGraphic CountSubMem(int pid);
     float GetAppGpuMemoryInMB();
 #ifdef RS_PARALLEL
-    uint32_t getThreadIndex() {return threadIndex_;}
-    unsigned int GetDoingCacheProcessNum() {return doingCacheProcessNum.load();};
+    uint32_t getThreadIndex()
+    {
+        return threadIndex_;
+    }
+    unsigned int GetDoingCacheProcessNum()
+    {
+        return doingCacheProcessNum.load();
+    };
 #endif
 private:
     void CreateShareEglContext();
@@ -60,7 +66,7 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-    uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
+    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
     RenderContext *renderContext_ = nullptr;
 #ifdef RS_ENABLE_GL
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;

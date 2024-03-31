@@ -216,6 +216,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     }
 #endif
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
+    isUIFirstDebugEnable_ = RSSystemProperties::GetUIFirstDebugEnabled();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     isPc_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
 }
@@ -5494,6 +5495,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
     renderThreadParams->dirtyRegionDebugType_ = dirtyRegionDebugType_;
     renderThreadParams->isOpDropped_ = isOpDropped_;
+    renderThreadParams->isUIFirstDebugEnable_ = isUIFirstDebugEnable_;
     renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);
 }
 

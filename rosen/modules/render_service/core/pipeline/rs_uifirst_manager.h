@@ -84,11 +84,11 @@ private:
     // pending post node: collect in main, use&clear in RT
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::set<NodeId> pendingResetNodes_;
+    bool isUiFirstOn_ = false;
 
     std::set<NodeId> reuseNodes_;
-    int lastFrameDoingNum_ = -1;
-    int currentFrameDoingNum_ = -1;
-    bool isUiFirstOn_ = false;
+    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
+    int noUifirstNodeFrameCount_ = 0;
 };
 #endif
 }

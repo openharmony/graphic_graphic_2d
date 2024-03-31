@@ -214,6 +214,9 @@ public:
     CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
+
+    void SetParallelThreadIdx(uint32_t idx);
+    uint32_t GetParallelThreadIdx() const;
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
 
@@ -286,6 +289,7 @@ private:
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     Drawing::Rect visibleRect_ = Drawing::Rect();
 
+    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     bool isParallelCanvas_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;

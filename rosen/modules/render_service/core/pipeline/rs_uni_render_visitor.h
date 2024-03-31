@@ -478,6 +478,7 @@ private:
 
     bool isSubThread_ = false;
     bool isUIFirst_ = false;
+    bool isUIFirstDebugEnable_ = false;
     bool traversalFirstLevelSruface_ = false;
     bool hasSelfDraw_ = false;
     bool ancestorNodeHasAnimation_ = false;

@@ -266,16 +266,14 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
 
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
-    if(!cacheSurface || nodeDrawable->NeedInitCacheSurface())
-    {
+    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
             std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
         nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_);
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     }
 
-    if(!cacheSurface)
-    {
+    if (!cacheSurface) {
         RS_LOGE("RSSubThread::DrawableCache cacheSurface is nullptr");
         return;
     }
@@ -285,9 +283,33 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         RS_LOGE("RSSubThread::DrawableCache canvas is nullptr");
         return;
     }
+
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if (!uniParam) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
+        return;
+    }
+    bool uifirstDebug = uniParam->GetUIFirstDebugEnabled();
+
     rscanvas->SetIsParallelCanvas(true);
+    rscanvas->SetDisableFilterCache(true);
+    rscanvas->SetParallelThreadIdx(threadIndex_);
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    if (uifirstDebug) {
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
+        rscanvas->AttachBrush(rectBrush);
+        rscanvas->DrawRect(Drawing::Rect(800, 500, 1000, 700));
+        rscanvas->DetachBrush();
+    }
     nodeDrawable->SubDraw(*rscanvas);
+    if (uifirstDebug) {
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
+        rscanvas->AttachBrush(rectBrush);
+        rscanvas->DrawRect(Drawing::Rect(300, 500, 500, 700));
+        rscanvas->DetachBrush();
+    }
     if (cacheSurface) {
         RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
         cacheSurface->FlushAndSubmit(true);
@@ -355,7 +377,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 
 void RSSubThread::ResetGrContext()
 {
-    RS_TRACE_NAME("ResetGrContext release resource");
+    RS_TRACE_NAME_FMT("subthread ResetGrContext release resource");
     if (grContext_ == nullptr) {
         return;
     }

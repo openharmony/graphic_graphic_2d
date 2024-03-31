@@ -25,7 +25,7 @@ using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawin
 class RSCanvasDrawingRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
-    ~RSCanvasDrawingRenderNodeDrawable() override = default;
+    ~RSCanvasDrawingRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
@@ -39,8 +39,8 @@ public:
     }
     bool InitSurface(int width, int height, RSPaintFilterCanvas& canvas);
     std::shared_ptr<RSPaintFilterCanvas> GetCanvas();
-    void Flush(float width, float height, std::shared_ptr<RSContext> context, NodeId nodeId);
-
+    void Flush(float width, float height, std::shared_ptr<RSContext> context,
+        NodeId nodeId, RSPaintFilterCanvas& rscanvas);
     Drawing::Bitmap GetBitmap(const uint64_t tid = UINT32_MAX);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
@@ -61,6 +61,7 @@ private:
     bool IsNeedResetSurface() const;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
+    void ClearPreSurface(std::shared_ptr<Drawing::Surface>& surface);
 #endif
     static Registrar instance_;
     std::mutex taskMutex_;
@@ -70,10 +71,11 @@ private:
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
+    Drawing::BackendTexture backendTexture_;
 #endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     pid_t threadId_ = 0;
-    
+
     ThreadInfo curThreadInfo_ = { UNI_RENDER_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_RENDER_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
 };

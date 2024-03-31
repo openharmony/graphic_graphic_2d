@@ -513,10 +513,13 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurface(bool isClearCompletedCacheSu
 
 void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
 {
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::SubDraw [%s]", surfaceNode->GetName().c_str());
 
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw, rscanvas us nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::SubDraw, rscanvas us nullptr");
         return;
     }
     auto& renderParams = renderNode_->GetUifirstRenderParams();
@@ -525,7 +528,7 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas)
-{   
+{
     auto& params = GetRenderNode()->GetRenderParams();
     if (!params) {
         RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");

@@ -184,6 +184,7 @@ public:
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
+    static bool GetUIFirstDebugEnabled();
     static bool GetDebugTraceEnabled();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();

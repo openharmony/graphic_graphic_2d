@@ -693,6 +693,10 @@ void RSRenderNode::DumpNodeType(std::string& out) const
             out += "CANVAS_DRAWING_NODE";
             break;
         }
+        case RSRenderNodeType::EFFECT_NODE: {
+            out += "EFFECT_NODE";
+            break;
+        }
         default: {
             out += "UNKNOWN_NODE";
             break;

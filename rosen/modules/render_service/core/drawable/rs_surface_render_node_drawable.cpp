@@ -136,28 +136,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             surfaceNode->GetName().c_str(), surfaceParams->GetId());
         return;
     }
-
-#ifdef RS_PARALLEL
-    if (surfaceParams->GetUifirstNodeEnableParam()) {
-        RS_TRACE_NAME_FMT("DrawUIFirstCache %s %lx", surfaceNode->GetName().c_str(), surfaceParams->GetId());
-        RSUifirstManager::Instance().AddReuseNode(surfaceParams->GetId());
-        auto& renderParams = renderNode_->GetRenderParams();
-        Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
-        RSAutoCanvasRestore acr(rscanvas);
-        rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
-        rscanvas->ConcatMatrix(surfaceParams->GetMatrix());
-        DrawBackground(*rscanvas, bounds);
-        if (!DrawUIFirstCache(*rscanvas)) {
-            RS_LOGE("uifirst drawcache failed!");
-        }
-        DrawForeground(*rscanvas, bounds);
-        return;
-    }
-#endif
-
-
-    // TO-DO [UI First] Check UpdateCacheSurface
-    // TO-DO [DFX] Draw Context ClipRect
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnDraw:[" + surfaceNode->GetName() + "] " +
                   surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
 
@@ -165,6 +143,42 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             "name:%{public}s,OcclusionVisible:%{public}d",
         surfaceParams->GetId(), surfaceNode->GetChildrenCount(), surfaceNode->GetName().c_str(),
         surfaceParams->GetOcclusionVisible());
+
+#ifdef RS_PARALLEL
+    if (surfaceParams->GetUifirstNodeEnableParam()) {
+        RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lx", surfaceNode->GetName().c_str(), surfaceParams->GetId());
+        RSUifirstManager::Instance().AddReuseNode(surfaceParams->GetId());
+        auto& renderParams = renderNode_->GetRenderParams();
+        Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+        RSAutoCanvasRestore acr(rscanvas);
+        rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
+        rscanvas->ConcatMatrix(surfaceParams->GetMatrix());
+        DrawBackground(*rscanvas, bounds);
+        bool drawCacheSuccess = true;
+        if (!DrawUIFirstCache(*rscanvas)) {
+            RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] failed!", surfaceNode->GetName().c_str());
+            RS_LOGE("DrawUIFirstCache failed!");
+            drawCacheSuccess = false;
+        }
+        DrawForeground(*rscanvas, bounds);
+        if (uniParam->GetUIFirstDebugEnabled()) { // DFX for uifirst
+            if (drawCacheSuccess) {
+                Drawing::Brush rectBrush;
+                rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
+                rscanvas->AttachBrush(rectBrush);
+                rscanvas->DrawRect(Drawing::Rect(300, 0, 500, 200));
+                rscanvas->DetachBrush();
+            } else {
+                Drawing::Brush rectBrush;
+                rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
+                rscanvas->AttachBrush(rectBrush);
+                rscanvas->DrawRect(Drawing::Rect(800, 0, 1000, 200));
+                rscanvas->DetachBrush();
+            }
+        }
+        return;
+    }
+#endif
 
     auto renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 

@@ -49,10 +49,6 @@ public:
         return Type;
     }
 
-    bool GetUifirstSupportFlag() override
-    {
-        return false;
-    }
 
     Drawing::Bitmap GetBitmap();
     Drawing::Bitmap GetBitmap(const uint64_t tid);

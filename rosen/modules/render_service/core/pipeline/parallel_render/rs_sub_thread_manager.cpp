@@ -280,7 +280,6 @@ void RSSubThreadManager::ResetSubThreadGrContext()
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
         auto subThread = threadList_[i];
         subThread->PostTask([subThread]() {
-            RS_TRACE_NAME("sub_clear_res");
             subThread->ResetGrContext();
         }, RELEASE_RESOURCE);
     }

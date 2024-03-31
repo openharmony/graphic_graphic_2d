@@ -519,6 +519,12 @@ bool RSSystemProperties::GetUIFirstEnabled()
 #endif
 }
 
+bool RSSystemProperties::GetUIFirstDebugEnabled()
+{
+    static bool debugEnable = system::GetParameter("persist.sys.graphic.uifirstDebugEnabled", "0") != "0";
+    return debugEnable;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     static bool openDebugTrace =

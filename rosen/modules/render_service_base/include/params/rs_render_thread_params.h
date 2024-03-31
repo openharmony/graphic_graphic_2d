@@ -55,6 +55,11 @@ public:
         return isOpDropped_;
     }
 
+    bool GetUIFirstDebugEnabled() const
+    {
+        return isUIFirstDebugEnable_;
+    }
+
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_ = timestamp;
@@ -116,7 +121,7 @@ public:
     {
         return isForceCommitLayer_;
     }
-    
+
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -131,6 +136,7 @@ private:
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isUIFirstDebugEnable_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     bool isForceCommitLayer_ = false;

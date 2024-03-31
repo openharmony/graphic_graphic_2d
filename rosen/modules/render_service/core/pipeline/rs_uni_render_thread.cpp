@@ -90,9 +90,11 @@ void RSUniRenderThread::InitGrContext()
         RS_LOGE("uniRenderEngine_ is nullptr");
     }
     uniRenderEngine_->Init();
+#ifdef RS_ENABLE_VK
     uniRenderEngine_->GetSkContext()->RegisterPostFunc([](const std::function<void()>& task) {
         RSUniRenderThread::Instance().PostRTTask(task);
     });
+#endif
 }
 
 void RSUniRenderThread::Start()
