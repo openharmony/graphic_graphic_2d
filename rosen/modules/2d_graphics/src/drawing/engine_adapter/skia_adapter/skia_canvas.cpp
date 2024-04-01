@@ -536,14 +536,6 @@ void SkiaCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
     }
 }
 
-void SkiaCanvas::SetGrContextToSkiaImage(SkiaImage* skiaImage)
-{
-    if (skCanvas_  && skCanvas_->recordingContext()) {
-        auto grContext = GrAsDirectContext(skCanvas_->recordingContext());
-        skiaImage->SetGrContext(sk_ref_sp(grContext));
-    }
-}
-
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
@@ -555,7 +547,6 @@ void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
             LOGD("img is null, return on line %{public}d", __LINE__);
             return;
         }
-        SetGrContextToSkiaImage(skImageImpl);
     }
 
     SkIRect skCenter = SkIRect::MakeLTRB(center.GetLeft(), center.GetTop(),
@@ -583,7 +574,6 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
             LOGD("img is null, return on line %{public}d", __LINE__);
             return;
         }
-        SetGrContextToSkiaImage(skImageImpl);
     }
     const SkCanvas::Lattice::RectType skRectType =
         static_cast<const SkCanvas::Lattice::RectType>(lattice.fRectTypes);
@@ -744,7 +734,6 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
             skiaPaint_.Reset();
             return;
         }
-        SetGrContextToSkiaImage(skImageImpl);
     }
 
     SortedPaints& paints = skiaPaint_.GetSortedPaints();
@@ -783,7 +772,6 @@ void SkiaCanvas::DrawImageRect(
             skiaPaint_.Reset();
             return;
         }
-        SetGrContextToSkiaImage(skImageImpl);
     }
 
     SkRect srcRect = SkRect::MakeLTRB(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
@@ -826,7 +814,6 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst, const Sampli
             skiaPaint_.Reset();
             return;
         }
-        SetGrContextToSkiaImage(skImageImpl);
     }
 
     SkRect dstRect = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
