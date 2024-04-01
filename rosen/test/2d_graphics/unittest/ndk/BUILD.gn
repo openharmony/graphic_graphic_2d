@@ -27,12 +27,14 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_font_collection_test.cpp",
     "drawing_font_mgr_test.cpp",
     "drawing_font_test.cpp",
+    "drawing_gpu_context_test.cpp",
     "drawing_image_test.cpp",
     "drawing_matrix_test.cpp",
     "drawing_path_effect_test.cpp",
     "drawing_path_test.cpp",
     "drawing_pen_test.cpp",
     "drawing_register_font_test.cpp",
+    "drawing_surface_test.cpp",
     "drawing_text_typography_test.cpp",
   ]
 
@@ -54,6 +56,7 @@ ohos_unittest("2d_graphics_ndk_test") {
   }
 
   deps = [
+    "$graphic_2d_root:libgl",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "//third_party/googletest:gtest_main",
@@ -63,6 +66,7 @@ ohos_unittest("2d_graphics_ndk_test") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "openssl:libcrypto_shared",
   ]
 }
 
