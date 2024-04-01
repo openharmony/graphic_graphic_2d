@@ -89,9 +89,7 @@ ohos_executable("drawing_engine_sample") {
     "benchmarks/benchmark_dcl",
   ]
 
-  deps = [
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
 
   deps += [ "//third_party/skia:skia_ohos" ]
 

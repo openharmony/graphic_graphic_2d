@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build hello_composer {{{
 config("hello_composer_config") {
@@ -26,11 +27,11 @@ config("hello_composer_config") {
 
 config("hello_composer_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/rosen/include/common",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/interfaces/inner_api/composer",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 }
@@ -49,7 +50,7 @@ ohos_executable("hello_composer") {
   public_configs = [ ":hello_composer_public_config" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
 
   external_deps = [
