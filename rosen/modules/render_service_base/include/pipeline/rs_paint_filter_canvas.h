@@ -163,16 +163,9 @@ public:
     void RestoreEnvToCount(int count);
 
     // blendmode related
-    // int SaveBlendMode();
-    // void RestoreBlendMode();
+    void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
-    // void AddBlendOffscreenLayer(bool isExtra);
-    // void MinusBlendOffscreenLayer();
-    // bool IsBlendOffscreenExtraLayer() const;
-    int GetBlendOffscreenLayerCnt() const
-    {
-        return 0;
-    };
+    bool HasOffscreenLayer() const;
 
     // save/restore utils
     struct SaveStatus {
@@ -254,9 +247,8 @@ protected:
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
         std::optional<int> blendMode_;
+        bool hasOffscreenLayer_;
     };
-    const std::stack<float>& GetAlphaStack();
-    const std::stack<Env>& GetEnvStack();
 
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
