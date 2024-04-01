@@ -60,7 +60,6 @@ ohos_executable("drawing_sample") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
 
   deps += [ "//third_party/skia:skia_ohos" ]

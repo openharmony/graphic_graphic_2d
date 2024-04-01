@@ -50,7 +50,6 @@ ohos_executable("hello_composer") {
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
 
   external_deps = [

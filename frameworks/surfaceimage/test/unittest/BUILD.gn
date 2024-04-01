@@ -51,9 +51,7 @@ ohos_static_library("surface_test_common") {
 
   public_deps = [
     "$graphic_2d_root:libnative_image",
-    "$graphic_2d_root/utils:buffer_handle",
     "$graphic_2d_root/utils:libgraphic_utils",
-    "$graphic_2d_root/utils:sync_fence",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -62,6 +60,7 @@ ohos_static_library("surface_test_common") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "c_utils:utils",
+    "graphic_surface:buffer_handle",
     "graphic_surface:surface",
     "graphic_surface:sync_fence",
     "hilog:libhilog",

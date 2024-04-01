@@ -32,13 +32,11 @@ ohos_fuzztest("RSAnimationBaseFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rsanimationbase_fuzzer.cpp" ]
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
-  ]
+  deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:sync_fence",
     "hilog:libhilog",
   ]
 }

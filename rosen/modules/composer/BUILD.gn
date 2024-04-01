@@ -64,10 +64,13 @@ ohos_shared_library("libcomposer") {
   ]
 
   public_deps = [
-    "$graphic_2d_root/utils:buffer_handle",
     "$graphic_2d_root/utils:scoped_bytrace",
-    "$graphic_2d_root/utils:sync_fence",
     "vsync:libvsync",
+  ]
+
+  public_external_deps = [
+    "graphic_surface:buffer_handle",
+    "graphic_surface:sync_fence",
   ]
 
   external_deps = [

@@ -51,16 +51,14 @@ ohos_shared_library("libnative_image") {
 
   public_configs = [ ":libnative_image_public_config" ]
 
-  deps = [
-    "$graphic_2d_root:libgl",
-    "$graphic_2d_root/utils:sync_fence",
-  ]
+  deps = [ "$graphic_2d_root:libgl" ]
 
   output_extension = "so"
 
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
+    "graphic_surface:sync_fence",
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_single",

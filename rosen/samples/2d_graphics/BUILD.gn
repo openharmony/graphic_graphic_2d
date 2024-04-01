@@ -91,7 +91,6 @@ ohos_executable("drawing_engine_sample") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
-    "$graphic_2d_root/utils:sync_fence",
   ]
 
   deps += [ "//third_party/skia:skia_ohos" ]
@@ -175,7 +174,6 @@ ohos_executable("drawing_sample_canvaskit0310") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/utils:libgraphic_utils",
-    "$graphic_2d_root/utils:sync_fence",
   ]
 
   external_deps = [
