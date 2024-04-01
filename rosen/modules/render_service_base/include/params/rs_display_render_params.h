@@ -92,6 +92,8 @@ public:
     }
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
+    bool HasSecurityLayer();
+    bool HasSkipLayer();
 
     // dfx
     std::string ToString() const override;

@@ -43,6 +43,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "params/rs_surface_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -64,8 +65,16 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
-        surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        // Determine whether cache can be used
+        auto firstLevelNode = surfaceNode->GetFirstLevelNode();
+        auto firstLevelNodeParams = static_cast<RSSurfaceRenderParams*>(firstLevelNode->GetRenderParams().get());
+        if (firstLevelNodeParams && firstLevelNodeParams->GetUifirstNodeEnableParam()) {
+            surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+                DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(firstLevelNode));
+        } else {
+            surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+                DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        }
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         visitor_->SetHasingSecurityOrSkipLayer(FindSecurityOrSkipLayer());
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(),
@@ -101,8 +110,6 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         visitor_->SetSurface(surface.get());
         node->Process(visitor_);
     } else {
-        auto rootNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
         RSPaintFilterCanvas canvas(surface.get());
         canvas.Scale(scaleX_, scaleY_);
         canvas.SetDisableFilterCache(true);

@@ -85,4 +85,24 @@ std::string RSDisplayRenderParams::ToString() const
     return ret;
 }
 
+bool RSDisplayRenderParams::HasSecurityLayer()
+{
+    bool hasSecLayerFlag = false;
+    auto iter = displayHasSecSurface_.find(screenId_);
+    if (iter != displayHasSecSurface_.end()) {
+        hasSecLayerFlag = iter->second;
+    }
+    return hasSecLayerFlag;
+}
+
+bool RSDisplayRenderParams::HasSkipLayer()
+{
+    bool hasSkipLayerFlag = false;
+    auto iter = displayHasSkipSurface_.find(screenId_);
+    if (iter != displayHasSkipSurface_.end()) {
+        hasSkipLayerFlag = iter->second;
+    }
+    return hasSkipLayerFlag;
+}
+
 } // namespace OHOS::Rosen
