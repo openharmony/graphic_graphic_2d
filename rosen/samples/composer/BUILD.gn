@@ -49,9 +49,7 @@ ohos_executable("hello_composer") {
 
   public_configs = [ ":hello_composer_public_config" ]
 
-  deps = [
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
 
   external_deps = [
     "c_utils:utils",
