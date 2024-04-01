@@ -83,8 +83,8 @@ protected:
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
     bool NeedInitCachedSurface(const Vector2f& newSize);
-    std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas, pid_t threadId);
-    void DrawCachedSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize, pid_t threadId);
+    std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
+    void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize);
     void ClearCachedSurface();
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params);
@@ -97,12 +97,14 @@ private:
     DrawableCacheType cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
+    std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cachedBackendTexture_;
 #ifdef RS_ENABLE_VK
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif
 #endif
+    // surface thread id, cachedImage_ will update context when image can be reused.
     std::atomic<pid_t> cacheThreadId_;
 
     static inline std::mutex drawingCacheMapMutex_;

@@ -186,9 +186,9 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
             break;
         }
         case DrawableCacheType::CONTENT: {
-            RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedSurface id:%llu", renderNode_->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", renderNode_->GetId());
              DrawBackground(canvas, params.GetBounds());
-             DrawCachedSurface(*curCanvas, params.GetCacheSize(), gettid());
+             DrawCachedImage(*curCanvas, params.GetCacheSize());
              DrawForeground(canvas, params.GetBounds());
              DrawDfxForCache(canvas, params.GetBounds());
             break;
@@ -285,51 +285,43 @@ bool RSRenderNodeDrawable::NeedInitCachedSurface(const Vector2f& newSize)
     return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
 }
 
-std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilterCanvas& canvas, pid_t threadId)
+std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilterCanvas& canvas)
 {
     std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
-    if (!cachedSurface_) {
-        RS_LOGE("RSRenderNodeDrawabl::GetCachedImage invalid cachedSurface_");
+    if (!cachedSurface_ || !cachedImage_) {
+        RS_LOGE("RSRenderNodeDrawable::GetCachedImage invalid cachedSurface_");
         return nullptr;
     }
-    auto image = cachedSurface_->GetImageSnapshot();
-    if (!image) {
-        RS_LOGE("RSRenderNodeDrawable::GetCachedImage GetImageSnapshot failed");
-        return nullptr;
+
+    // do not use threadId to judge image grcontext change
+    if (cachedImage_->IsValid(canvas.GetGPUContext().get())) {
+        return cachedImage_;
     }
-    if (threadId == cacheThreadId_) {
-        return image;
-    }
+
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    auto backendTexture = image->GetBackendTexture(false, &origin);
-    if (!backendTexture.IsValid()) {
-        RS_LOGE("RSRenderNodeDrawable::GetCachedImage get backendTexture failed");
-        return nullptr;
-    }
-    auto cacheImage = std::make_shared<Drawing::Image>();
-    Drawing::BitmapFormat info = Drawing::BitmapFormat{ image->GetColorType(), image->GetAlphaType() };
-    bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
+    Drawing::BitmapFormat info = Drawing::BitmapFormat{ cachedImage_->GetColorType(), cachedImage_->GetAlphaType() };
+    cachedImage_ = std::make_shared<Drawing::Image>();
+    bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
         origin, info, nullptr);
     if (!ret) {
         RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
         return nullptr;
     }
-    return cacheImage;
-#else
-    return image;
 #endif
+    return cachedImage_;
 }
 
-void RSRenderNodeDrawable::DrawCachedSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize, pid_t threadId)
+void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize)
 {
-    auto cacheImage = GetCachedImage(canvas, threadId);
+    auto cacheImage = GetCachedImage(canvas);
     if (cacheImage == nullptr) {
+        RS_LOGE("RSRenderNodeDrawable::DrawCachedImage image null");
         return;
     }
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (cacheImage->IsTextureBacked()) {
-            RS_LOGI("RSRenderNodeDrawable::DrawCachedSurface convert cacheImage from texture to raster image");
+            RS_LOGI("RSRenderNodeDrawable::DrawCachedImage convert cacheImage from texture to raster image");
             cacheImage = cacheImage->MakeRasterImage();
         }
     }
@@ -441,22 +433,21 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     // [PLANNNING] disable it in sub-thread.
     // cacheCanvas->SetDisableFilterCache(isSubThread_);
 
-    auto cacheCanvasPtr = cacheCanvas.get();
     // When drawing CacheSurface, all child node should be drawn.
     // So set isOpDropped_ = false here.
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
     cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
-    std::swap(cacheCanvasPtr, curCanvas);
     // draw content + children
     auto bounds = params.GetBounds();
-    DrawContent(*curCanvas, params.GetFrameRect());
-    DrawChildren(*curCanvas, bounds);
+    DrawContent(*cacheCanvas, params.GetFrameRect());
+    DrawChildren(*cacheCanvas, bounds);
 
-    std::swap(cacheCanvasPtr, curCanvas);
     isOpDropped_ = isOpDropped;
 
+    // get image & backend
+    cachedImage_ = surface->GetImageSnapshot();
     // update cache updateTimes
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
