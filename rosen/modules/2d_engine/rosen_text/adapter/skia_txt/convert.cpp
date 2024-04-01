@@ -110,6 +110,19 @@ static std::string RemoveQuotes(const std::string& str)
     return str.substr(start, end); // Remove quotation marks from both ends.
 }
 
+void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
+{
+    textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
+    textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
+    textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+    textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
+    textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
+    textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
+    for (auto [tag, value] : style.symbol.GetVisualMap()) {
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
+    }
+}
+
 SPText::TextStyle Convert(const TextStyle& style)
 {
     SPText::TextStyle textStyle;
@@ -141,12 +154,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.isPlaceholder = style.isPlaceholder;
 
     if (style.isSymbolGlyph) {
-        textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
-        textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
-        textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
-        textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
-        textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
-        textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
+        CopyTextStyleSymbol(style, textStyle);
     }
     if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
         textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);
