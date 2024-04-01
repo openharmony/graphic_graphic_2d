@@ -22,6 +22,7 @@
 #include "benchmarks/rs_recording_thread.h"
 #include "rs_trace.h"
 
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -44,9 +45,77 @@
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
-#include "drawable/rs_surface_render_node_drawable.h"
-
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
 namespace OHOS::Rosen::DrawableV2 {
+class RSOverDrawDfx {
+public:
+    RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
+    {
+        enable_ = RSOverdrawController::GetInstance().IsEnabled() && curCanvas != nullptr;
+        curCanvas_ = curCanvas;
+        StartOverDraw();
+    }
+    ~RSOverDrawDfx()
+    {
+        FinishOverDraw();
+    }
+private:
+    void StartOverDraw()
+    {
+        if (!enable_) {
+            return;
+        }
+        auto gpuContext = curCanvas_->GetGPUContext();
+        if (gpuContext == nullptr) {
+            RS_LOGE("RSOverDrawDfx::StartOverDraw failed: need gpu canvas");
+            return;
+        }
+
+        auto width = curCanvas_->GetWidth();
+        auto height = curCanvas_->GetHeight();
+        Drawing::ImageInfo info =
+            Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+        overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+        if (!overdrawSurface_) {
+            RS_LOGE("RSOverDrawDfx::StartOverDraw failed: surface is nullptr");
+            return;
+        }
+        overdrawCanvas_ = std::make_shared<Drawing::OverDrawCanvas>(overdrawSurface_->GetCanvas());
+        curCanvas_->AddCanvas(overdrawCanvas_.get());
+    }
+    void FinishOverDraw()
+    {
+        if (!enable_) {
+            return;
+        }
+        if (!overdrawSurface_) {
+            RS_LOGE("RSOverDrawDfx::FinishOverDraw overdrawSurface is nullptr");
+            return;
+        }
+        auto image = overdrawSurface_->GetImageSnapshot();
+        if (image == nullptr) {
+            RS_LOGE("RSOverDrawDfx::FinishOverDraw image is nullptr");
+            return;
+        }
+        Drawing::Brush brush;
+        auto overdrawColors = RSOverdrawController::GetInstance().GetColorArray();
+        auto colorFilter = Drawing::ColorFilter::CreateOverDrawColorFilter(overdrawColors.data());
+        Drawing::Filter filter;
+        filter.SetColorFilter(colorFilter);
+        brush.SetFilter(filter);
+        curCanvas_->AttachBrush(brush);
+        curCanvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+        curCanvas_->DetachBrush();
+        overdrawSurface_ = nullptr;
+        overdrawCanvas_ = nullptr;
+    }
+
+    bool enable_;
+    mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
+    std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
+};
+
 void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
     ScreenInfo& screenInfo_)
 {
@@ -354,6 +423,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // canvas draw
     {
+        RSOverDrawDfx rsOverDrawDfx(curCanvas_);
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
         if (uniParam->IsOpDropped()) {
