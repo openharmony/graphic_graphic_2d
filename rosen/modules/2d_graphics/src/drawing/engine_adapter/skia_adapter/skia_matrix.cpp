@@ -191,8 +191,8 @@ void SkiaMatrix::SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar sk
 
 bool SkiaMatrix::SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf)
 {
-    SkRect skSrc = SkRect::MakeLTRB(src.GetLeft(), src.GetTop(), src.GetWidth(), src.GetHeight());
-    SkRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetWidth(), dst.GetHeight());
+    SkRect skSrc = SkRect::MakeLTRB(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
+    SkRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
     bool ret = skMatrix_.setRectToRect(skSrc, skDst, static_cast<SkMatrix::ScaleToFit>(stf));
     return ret;
 }
