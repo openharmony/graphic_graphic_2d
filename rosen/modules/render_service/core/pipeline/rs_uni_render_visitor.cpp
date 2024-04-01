@@ -1960,7 +1960,7 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
             if (!filterDirtyRegion.IsEmpty()) {
                 if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
                     // backgroundfilter affected by below dirty
-                    filterNode->UpdateFilterCacheWithDirty(*(curDisplayNode_->GetDirtyManager()));
+                    filterNode->MarkFilterStatusChanged(false, true);
                 }
                 RS_LOGD("RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay merge "
                     "filterRegion %{public}s region %{public}s",
@@ -1968,7 +1968,7 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
                 curDisplayNode_->GetDirtyManager()->MergeDirtyRect(it->second);
                 if (filterNode->GetRenderProperties().GetFilter()) {
                     // foregroundfilter affected by below dirty
-                    filterNode->UpdateFilterCacheWithDirty(*(curDisplayNode_->GetDirtyManager()), true);
+                    filterNode->MarkFilterStatusChanged(true, true);
                 }
             } else {
                 globalFilter_.insert(it->second);

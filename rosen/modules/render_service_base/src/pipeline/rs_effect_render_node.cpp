@@ -172,8 +172,8 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceClear foldStatusChanged_:%d,"
         " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d,"
-        " haveEffectRegion:%d", GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_,
-        preStaticStatus_, IsStaticCached(), GetRenderProperties().GetHaveEffectRegion());
+        " hasVisibleEffect:%d", GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_,
+        preStaticStatus_, IsStaticCached(), ChildHasVisibleEffect());
     return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
         (preStaticStatus_ != IsStaticCached()) || !ChildHasVisibleEffect();
 }
