@@ -629,7 +629,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     Drawing::AutoCanvasRestore acr(canvas, true);
 
-    if (params->HasSecurityLayer() || params->HasSkipLayer()) {
+    if (params->HasSecurityLayer() || params->HasSkipLayer() || params->HasCaptureWindow()) {
         RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: params %{public}s \
             process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
             params->ToString().c_str(), params->GetId());

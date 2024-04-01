@@ -105,4 +105,14 @@ bool RSDisplayRenderParams::HasSkipLayer()
     return hasSkipLayerFlag;
 }
 
+bool RSDisplayRenderParams::HasCaptureWindow()
+{
+    bool hasCaptureWindow = false;
+    auto iter = hasCaptureWindow_.find(screenId_);
+    if (iter != hasCaptureWindow_.end()) {
+        hasCaptureWindow = iter->second;
+    }
+    return hasCaptureWindow;
+}
+
 } // namespace OHOS::Rosen

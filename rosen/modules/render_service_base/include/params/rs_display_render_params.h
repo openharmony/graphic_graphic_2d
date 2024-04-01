@@ -94,6 +94,7 @@ public:
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasSecurityLayer();
     bool HasSkipLayer();
+    bool HasCaptureWindow();
 
     // dfx
     std::string ToString() const override;
