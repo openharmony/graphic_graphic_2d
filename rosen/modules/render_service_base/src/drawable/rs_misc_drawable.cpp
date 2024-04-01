@@ -131,6 +131,9 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, RSModifierType type)
 {
     if (auto ret = std::make_shared<RSCustomModifierDrawable>(type); ret->OnUpdate(node)) {
+        if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+            ret->needClearOp_ = true;
+        }
         return std::move(ret);
     }
     return nullptr;
@@ -174,6 +177,9 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (const auto& drawCmdList : ptr->drawCmdListVec_) {
             drawCmdList->Playback(*canvas, rect);
+            if (ptr->needClearOp_) {
+                drawCmdList->ClearOp();
+            }
         }
     };
 }

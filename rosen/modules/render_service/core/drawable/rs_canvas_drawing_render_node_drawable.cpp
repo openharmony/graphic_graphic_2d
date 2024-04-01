@@ -77,7 +77,8 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         // The second param is null, 0 is an invalid value.
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, idx, 0);
     };
-    auto threadId = RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx];
+    auto threadId = paintFilterCanvas->GetIsParallelCanvas() ?
+        RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx] : 0;
     SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
 
     auto& bounds = params->GetBounds();
@@ -402,7 +403,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurface(int width, int height, RSPa
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGD("RSCanvasDrawingRenderNodeContent::ResetSurface: gpuContext is nullptr");
+        RS_LOGD("RSCanvasDrawingRenderNodeDrawable::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -423,7 +424,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurface(int width, int height, RSPa
     surface_ = Drawing::Surface::MakeRaster(info);
 #endif
     if (!surface_) {
-        RS_LOGE("RSCanvasDrawingRenderNodeContent::ResetSurface surface is nullptr");
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface surface is nullptr");
         return false;
     }
     canvas_ = std::make_shared<RSPaintFilterCanvas>(surface_.get());
