@@ -639,6 +639,7 @@ EGLBoolean EglWrapperDisplay::SwapBuffers(EGLSurface surf)
 {
     WLOGD("");
     std::lock_guard<std::mutex> lock(refLockMutex_);
+    
 #if USE_APS_FUNC
     OHOS::Rosen::ApsGameFpsController::GetInstance().PowerCtrllofEglswapbuffer();
 #endif // USE_APS_FUNC
