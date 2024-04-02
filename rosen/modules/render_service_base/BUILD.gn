@@ -62,6 +62,11 @@ ohos_source_set("render_service_base_src") {
     cfi_cross_dso = false
     debug = false
     blocklist = "./rs_base_blocklist.txt"
+    if (rosen_is_ohos) {
+      boundary_sanitize = true
+      integer_overflow = true
+      ubsan = true
+    }
   }
   defines = []
   defines += gpu_defines

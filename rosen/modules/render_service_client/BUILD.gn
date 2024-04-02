@@ -41,6 +41,11 @@ template("render_service_client_source_set") {
       cfi_cross_dso = false
       debug = false
       blocklist = "./rs_client_blocklist.txt"
+      if (rosen_is_ohos) {
+        boundary_sanitize = true
+        integer_overflow = true
+        ubsan = true
+      }
     }
     defines = []
     defines += gpu_defines
