@@ -103,7 +103,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
-    if (RSSystemProperties::GetUniRenderEnabled()) {
+    if (RSUniRenderJudgement::IsUniRender()) {
         syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ? std::make_shared<RSDirtyRegionManager>() : dirtyManager_;
     }
 }
@@ -384,7 +384,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 surfaceNode->UpdateAbilityNodeIds(GetId(), IsOnTheTree());
             }
         }
-    } else if (IsHardwareEnabledType() && RSSystemProperties::GetUniRenderEnabled()) {
+    } else if (IsHardwareEnabledType() && RSUniRenderJudgement::IsUniRender()) {
         if (auto instanceRootNode = GetInstanceRootNode()) {
             if (auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>()) {
                 surfaceNode->UpdateChildHardwareEnabledNode(GetId(), IsOnTheTree());
@@ -1312,7 +1312,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
     }
     prevVisible_ = visible;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSSystemProperties::GetUniRenderEnabled() && !visible && !filterNodes_.empty()
+    if (!RSUniRenderJudgement::IsUniRender() && !visible && !filterNodes_.empty()
         && !isOcclusionVisibleWithoutFilter_) {
         for (auto& node : filterNodes_) {
             node->GetMutableRenderProperties().ClearFilterCache();
