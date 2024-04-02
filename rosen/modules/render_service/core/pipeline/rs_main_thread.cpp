@@ -299,6 +299,10 @@ void RSMainThread::Init()
         Render();
         RS_PROFILER_ON_RENDER_END();
 
+        if (!hasMark_) {
+            SetFrameIsRender(true);
+        }
+        hasMark_ = false;
         // move rnv after mark rsnotrendering
         if (needRequestNextVsyncAnimate_ || rsVSyncDistributor_->HasPendingUIRNV()) {
             rsVSyncDistributor_->MarkRSAnimate();
@@ -1480,11 +1484,25 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
             idleTimerExpiredFlag_, rsVSyncDistributor_->IsDVsyncOn());
     }
+
+    if (rsVSyncDistributor_->isDVsyncOn()) {
+        auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
+        if (pendingRefreshRate != nullptr) {
+            hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
+            frameRateMgr_->ResetPendingRefreshRate();
+        }
+    }
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
 {
     return doParallelComposition_;
+}
+
+void RSMainThread::SetFrameIsRender(bool isRender)
+{
+    hasMark_ = true;
+    rsVSyncDistributor_->SetFrameIsRender(isRender);
 }
 
 void RSMainThread::ColorPickerRequestVsyncIfNeed()
@@ -1549,6 +1567,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         } else {
             RS_LOGD("RSMainThread::Render nothing to update");
+            RSMainThread::Instance()->SetFrameIsRender(false);
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
                     node->MarkCurrentFrameHardwareEnabled();
