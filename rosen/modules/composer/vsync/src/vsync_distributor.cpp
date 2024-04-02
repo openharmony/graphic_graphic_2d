@@ -682,7 +682,6 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         if (!lockExecute_) {
             con_.notify_all();
         } else {
-            ScopedBytrace func("set pendingRNVInDVsync_ true");
             pendingRNVInDVsync_ = true;
             dvsync_->RNVNotify();
         }
@@ -847,6 +846,7 @@ void VSyncDistributor::SetFrameIsRender(bool isRender)
     }
     lockExecute_ = false;
     if (IsDVsyncOn() && pendingRNVInDVsync_) {
+        ScopedBytrace func("pendingRNVInDVsync_ is true, notify");
         con_.notify_all();
     }
 #endif

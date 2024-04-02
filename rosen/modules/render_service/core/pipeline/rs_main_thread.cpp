@@ -1485,7 +1485,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
             idleTimerExpiredFlag_, rsVSyncDistributor_->IsDVsyncOn());
     }
 
-    if (rsVSyncDistributor_->isDVsyncOn()) {
+    if (rsVSyncDistributor_->IsDVsyncOn()) {
         auto pendingRefreshRate = frameRateMgr_->GetPendingRefreshRate();
         if (pendingRefreshRate != nullptr) {
             hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
