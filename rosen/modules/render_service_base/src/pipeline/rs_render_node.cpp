@@ -1756,9 +1756,14 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         return;
     }
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
-        modifiers.remove_if([id](const auto& modifier) -> bool {
-            return modifier ? modifier->GetPropertyId() == id : true;
-        });
+        auto it = std::find_if(modifiers.begin(), modifiers.end(),
+            [id](const auto& modifier) -> bool { return modifier->GetPropertyId() == id; });
+        if (it == modifiers.end()) {
+            continue;
+        }
+        AddDirtyType(type);
+        modifiers.erase(it);
+        return;
     }
 }
 
