@@ -150,7 +150,7 @@ using GraphicLayerInfo = struct {
     GraphicPixelFormat pixFormat; /**< Pixel format of the layer */
 };
 
-typedef struct GraphicIRect {
+using GraphicIRect = struct GraphicIRect {
     int32_t x;      /**< Start X coordinate of the rectangle */
     int32_t y;      /**< Start Y coordinate of the rectangle */
     int32_t w;      /**< Width of the rectangle */
@@ -160,9 +160,9 @@ typedef struct GraphicIRect {
     {
         return (x == rect.x) && (y == rect.y) && (w == rect.w) && (h == rect.h);
     }
-} GraphicIRect;
+};
 
-typedef struct GraphicMatrix {
+using GraphicMatrix = struct GraphicMatrix {
     float scaleX;   /* horizontal scale factor */
     float skewX;    /* horizontal skew factor */
     float transX;   /* horizontal translation */
@@ -173,13 +173,18 @@ typedef struct GraphicMatrix {
     float pers1;    /* input y-axis perspective factor */
     float pers2;    /* perspective scale factor */
 
+    inline static bool floatEqual(float x, float y) {
+        return (std::abs((x) - (y)) <= (std::numeric_limits<float>::epsilon()));
+    }
+
     bool operator==(const GraphicMatrix& matrix) const
     {
-        return (scaleX == matrix.scaleX) && (skewX == matrix.skewX) && (transX == matrix.transX) &&
-               (skewY == matrix.skewY) && (scaleY == matrix.scaleY) && (transY == matrix.transY) &&
-               (pers0 == matrix.pers0) && (pers1 == matrix.pers1) && (pers2 == matrix.pers2);
+        return floatEqual(scaleX, matrix.scaleX) && floatEqual(skewX, matrix.skewX) &&
+               floatEqual(transX, matrix.transX) && floatEqual(skewY, matrix.skewY) &&
+               floatEqual(scaleY, matrix.scaleY) && floatEqual(transY, matrix.transY) &&
+               floatEqual(pers0, matrix.pers0) && floatEqual(pers1, matrix.pers1) && floatEqual(pers2, matrix.pers2);
     }
-} GraphicMatrix;
+};
 
 using BufferAllocInfo = struct {
     uint32_t width;                 /**< Width of the requested memory */

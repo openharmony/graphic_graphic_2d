@@ -201,7 +201,7 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec() const
 {
     const auto& drawableVec = renderNode_->drawableVec_;
     std::string str;
-    for (uint i = 0; i < drawableVec.size(); ++i) {
+    for (uint8_t i = 0; i < drawableVec.size(); ++i) {
         if (drawableVec[i]) {
             str += std::to_string(i) + ", ";
         }

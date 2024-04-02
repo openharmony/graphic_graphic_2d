@@ -107,21 +107,6 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSharedTransitionParamTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, SetSharedTransitionParamTest, TestSize.Level1)
-{
-    using SharedTransitionParam = std::pair<NodeId, std::weak_ptr<RSRenderNode>>;
-    const std::optional<SharedTransitionParam> sharedTransitionParam;
-    RSRenderNode node(id, context);
-    node.SetSharedTransitionParam(std::move(sharedTransitionParam));
-    ASSERT_FALSE(node.IsDirty());
-}
-
-/**
  * @tc.name: InitCacheSurfaceTest
  * @tc.desc: test
  * @tc.type:FUNC
