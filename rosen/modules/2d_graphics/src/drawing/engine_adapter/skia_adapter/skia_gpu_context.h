@@ -16,16 +16,19 @@
 #ifndef SKIA_GPUCONTEXT_H
 #define SKIA_GPUCONTEXT_H
 
+#include <unordered_map>
+
+#include "include/core/SkExecutor.h"
+#include "include/gpu/GrContextOptions.h"
+
+#include "image/gpu_context.h"
+#include "impl_interface/gpu_context_impl.h"
+
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
 #endif
-#include "include/gpu/GrContextOptions.h"
-
-#include "impl_interface/gpu_context_impl.h"
-#include "image/gpu_context.h"
-#include "include/core/SkExecutor.h"
 
 namespace OHOS {
 namespace Rosen {
