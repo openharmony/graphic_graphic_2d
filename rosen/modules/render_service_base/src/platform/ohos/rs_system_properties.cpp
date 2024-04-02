@@ -31,6 +31,7 @@ constexpr int DEFAULT_CACHE_HEIGHT = 2710;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
+constexpr int DEFAULT_SCALE_MODE = 2;
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = Drawing::SystemProperties::GetGpuApiType();
@@ -785,6 +786,13 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     bool dumpUIPixelmapEnabled =
         std::atoi((system::GetParameter("rosen.dumpUIPixelmapEnabled.enabled", "0")).c_str()) != 0;
     return dumpUIPixelmapEnabled;
+}
+
+uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
+{
+    static uint32_t scaleModeDFX =
+        std::atoi((system::GetParameter("persist.rosen.virtualScreenScaleMode.debugType", "2")).c_str());
+    return (scaleModeDFX > DEFAULT_SCALE_MODE) ? DEFAULT_SCALE_MODE : scaleModeDFX;
 }
 } // namespace Rosen
 } // namespace OHOS

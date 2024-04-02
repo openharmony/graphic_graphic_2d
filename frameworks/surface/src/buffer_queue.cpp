@@ -1237,6 +1237,17 @@ GraphicTransformType BufferQueue::GetTransform() const
     return transform_;
 }
 
+GSError BufferQueue::SetTransformHint(GraphicTransformType transformHint)
+{
+    transformHint_ = transformHint;
+    return GSERROR_OK;
+}
+
+GraphicTransformType BufferQueue::GetTransformHint() const
+{
+    return transformHint_;
+}
+
 GSError BufferQueue::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                       std::vector<bool> &supporteds) const
 {

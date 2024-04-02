@@ -113,7 +113,11 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
     if (errorCode == CacheData::ErrorCode::VALUE_SIZE_TOO_SAMLL) {
         free(valueBuffer);
         valueBuffer = nullptr;
-        void* newValueBuffer = realloc(valueBuffer, valueSize);
+        if (valueSize <= 0) {
+            LOGD("valueSize size error");
+            return nullptr;
+        }
+        void* newValueBuffer = malloc(valueSize);
         if (!newValueBuffer) {
             LOGD("load: failed to reallocate valueSize:%zu", valueSize);
             return nullptr;

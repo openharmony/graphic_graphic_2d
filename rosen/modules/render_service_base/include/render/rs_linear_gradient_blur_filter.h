@@ -34,12 +34,6 @@ public:
     void PostProcess(RSPaintFilterCanvas& canvas) override {};
     std::string GetDescription() override;
     std::string GetDetailedDescription() override;
-    void SetBoundsGeometry(float geoWidth, float geoHeight) override
-    {
-        geoWidth_ = geoWidth;
-        geoHeight_ = geoHeight;
-    }
-
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
@@ -47,11 +41,18 @@ public:
     {
         return nullptr;
     }
-    void SetCanvasChange(Drawing::Matrix& mat, float surfaceWidth, float surfaceHeight) override
+    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight) override
     {
-        mat_ = mat;
-        surfaceWidth_ = surfaceWidth;
-        surfaceHeight_ = surfaceHeight;
+        auto dst = canvas.GetDeviceClipBounds();
+        tranX_ = dst.GetLeft();
+        tranY_ = dst.GetTop();
+        mat_ = canvas.GetTotalMatrix();
+        geoWidth_ = std::ceil(geoWidth);
+        geoHeight_ = std::ceil(geoHeight);
+    }
+    void IsOffscreenCanvas(bool isOffscreenCanvas) override
+    {
+        isOffscreenCanvas_ = isOffscreenCanvas;
     }
 
 private:
@@ -65,10 +66,10 @@ private:
     inline static float imageScale_ = 1.f;
     inline static float geoWidth_ = 0.f;
     inline static float geoHeight_ = 0.f;
-    inline static float surfaceWidth_ = 0.f;
-    inline static float surfaceHeight_ = 0.f;
+    inline static float tranX_ = 0.f;
+    inline static float tranY_ = 0.f;
+    inline static bool isOffscreenCanvas_ = true;
 
-    static Drawing::Rect ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst);
     static uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
     static bool GetGradientDirectionPoints(
         Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GradientDirection direction);
@@ -78,8 +79,7 @@ private:
         std::shared_ptr<RSDrawingFilter>& blurFilter, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
         const Drawing::Rect& dst);
     static std::shared_ptr<Drawing::ShaderEffect> MakeMaskLinearGradientBlurShader(
-        std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
-        std::shared_ptr<Drawing::ShaderEffect> gradientShader);
+        std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> gradientShader);
     static void DrawMeanLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image, Drawing::Canvas& canvas,
         float radius, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::Rect& dst);
 

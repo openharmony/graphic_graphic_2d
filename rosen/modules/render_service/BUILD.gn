@@ -312,6 +312,7 @@ ohos_shared_library("librender_service") {
 
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
     defines += accessibility_defines
   }
 

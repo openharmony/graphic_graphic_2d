@@ -196,7 +196,9 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setEllipsis(txt.ellipsis);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
 
-    skStyle.turnHintingOff();
+    if (!txt.hintingIsOn) {
+        skStyle.turnHintingOff();
+    }
     skStyle.setReplaceTabCharacters(true);
     skStyle.setTextSplitRatio(txt.textSplitRatio);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
@@ -254,6 +256,10 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.resetShadows();
     for (const TextShadow& txtShadow : txt.textShadows) {
         skStyle.addShadow(MakeTextShadow(txtShadow));
+    }
+
+    if (txt.isPlaceholder) {
+        skStyle.setPlaceholder();
     }
 
     return skStyle;

@@ -47,6 +47,8 @@ namespace {
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
+        "VOTER_GAMES",
+        "VOTER_VIDEO",
         "VOTER_VIRTUALDISPLAY",
         "VOTER_MULTI_APP",
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -303,6 +303,17 @@ void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen*, OH_Drawing_PathEffect*);
 void OH_Drawing_PenSetFilter(OH_Drawing_Pen*, OH_Drawing_Filter*);
 
 /**
+ * @brief Gets the filter from a pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param OH_Drawing_Filter Indicates the pointer to an <b>OH_Drawing_Filter</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PenGetFilter(OH_Drawing_Pen*, OH_Drawing_Filter*);
+
+/**
  * @brief Sets a blender that implements the specified blendmode enum for a pen.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -312,6 +323,16 @@ void OH_Drawing_PenSetFilter(OH_Drawing_Pen*, OH_Drawing_Filter*);
  * @version 1.0
  */
 void OH_Drawing_PenSetBlendMode(OH_Drawing_Pen*, OH_Drawing_BlendMode);
+
+/**
+ * @brief Resets all pen contents to their initial values.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PenReset(OH_Drawing_Pen*);
 
 #ifdef __cplusplus
 }

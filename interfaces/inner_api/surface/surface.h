@@ -132,6 +132,9 @@ public:
     virtual GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) = 0;
     virtual GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) = 0;
 
+    virtual GraphicTransformType GetTransformHint() const = 0;
+    virtual GSError SetTransformHint(GraphicTransformType transformHint) = 0;
+
 protected:
     Surface() = default;
 };

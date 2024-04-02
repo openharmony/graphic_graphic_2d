@@ -373,7 +373,7 @@ void SampleBitMap::DrawText()
     double maxWidth = width_;
     OH_Drawing_TypographyLayout(typography, maxWidth);
     // 设置文本在画布上绘制的起始位置
-    double position[2] = {width_ / 5.0, height_ / 2.0};
+    double position[2] = {width_ / 5.0, height_ / 5.0};
     // 将文本绘制到画布上
     OH_Drawing_TypographyPaint(typography, cCanvas_, position[0], position[1]);
 }

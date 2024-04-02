@@ -91,9 +91,6 @@ void RSFilterCacheManager::PostPartialFilterRenderInit(RSPaintFilterCanvas& canv
     auto width = surface->Width();
     auto height = surface->Height();
     Drawing::Matrix mat = canvas.GetTotalMatrix();
-    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        filter->SetCanvasChange(mat, width, height);
-    }
     auto directionBias = CalcDirectionBias(mat);
     auto previousSurfaceFlag = task_->surfaceFlag;
     task_->surfaceFlag = directionBias;

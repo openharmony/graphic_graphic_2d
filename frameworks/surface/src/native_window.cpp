@@ -523,6 +523,36 @@ int32_t CreateNativeWindowFromSurfaceId(uint64_t surfaceId, OHNativeWindow **win
     return OHOS::GSERROR_OK;
 }
 
+int32_t NativeWindowGetTransformHint(OHNativeWindow *window, GraphicTransformType *transform)
+{
+    if (window == nullptr || window->surface == nullptr || transform == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    *transform = window->surface->GetTransformHint();
+    return OHOS::GSERROR_OK;
+}
+
+int32_t NativeWindowSetTransformHint(OHNativeWindow *window, GraphicTransformType transform)
+{
+    if (window == nullptr || window->surface == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    return window->surface->SetTransformHint(transform);
+}
+
+int32_t NativeWindowGetDefaultWidthAndHeight(OHNativeWindow *window, int32_t *width, int32_t *height)
+{
+    if (window == nullptr || window->surface == nullptr || width == nullptr || height == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    *width = window->surface->GetDefaultWidth();
+    *height = window->surface->GetDefaultHeight();
+    return OHOS::GSERROR_OK;
+}
+
 NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), surface(nullptr)
 {
 }

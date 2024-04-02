@@ -25,6 +25,7 @@
 #include "draw/brush.h"
 #include "draw/color.h"
 #include "utils/point.h"
+#include "utils/scalar.h"
 
 #include "common/rs_macros.h"
 #include "typography_types.h"
@@ -97,11 +98,13 @@ struct TextStyle {
     int styleId = 0;
 
     bool operator ==(const TextStyle &rhs) const;
-
+    bool EqualByFonts(const TextStyle &rhs) const;
+    bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph
     bool isSymbolGlyph = false;
     HMSymbolTxt symbol;
     double baseLineShift = 0.0;
+    bool isPlaceholder = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -353,6 +353,11 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
+uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
+{
+    return {};
+}
+
 bool RSSystemProperties::GetHwcRegionDfxEnabled()
 {
     return false;

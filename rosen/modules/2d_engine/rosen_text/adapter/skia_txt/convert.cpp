@@ -85,6 +85,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .spTextStyle = Convert(style.insideTextStyle),
         .customSpTextStyle = style.customTextStyle,
         .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
+        .hintingIsOn = style.hintingIsOn,
     };
 }
 
@@ -107,6 +108,19 @@ static std::string RemoveQuotes(const std::string& str)
     const int start = 1; // The starting position of string.
     const int end = str.size() - 2; // End position of string.
     return str.substr(start, end); // Remove quotation marks from both ends.
+}
+
+void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
+{
+    textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
+    textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
+    textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+    textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
+    textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
+    textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
+    for (auto [tag, value] : style.symbol.GetVisualMap()) {
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
+    }
 }
 
 SPText::TextStyle Convert(const TextStyle& style)
@@ -137,14 +151,10 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.styleId = style.styleId;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
+    textStyle.isPlaceholder = style.isPlaceholder;
 
     if (style.isSymbolGlyph) {
-        textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
-        textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
-        textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
-        textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
-        textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
-        textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
+        CopyTextStyleSymbol(style, textStyle);
     }
     if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
         textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);

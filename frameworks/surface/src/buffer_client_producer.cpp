@@ -587,4 +587,34 @@ GSError BufferClientProducer::GetTransform(GraphicTransformType &transform)
     transform = static_cast<GraphicTransformType>(reply.ReadUint32());
     return GSERROR_OK;
 }
+
+GSError BufferClientProducer::GetTransformHint(GraphicTransformType &transformHint)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    SEND_REQUEST(BUFFER_PRODUCER_GET_TRANSFORMHINT, arguments, reply, option);
+
+    auto ret = static_cast<GSError>(reply.ReadInt32());
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", static_cast<int>(ret));
+        return ret;
+    }
+    transformHint = static_cast<GraphicTransformType>(reply.ReadUint32());
+    return GSERROR_OK;
+}
+
+GSError BufferClientProducer::SetTransformHint(GraphicTransformType transformHint)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    arguments.WriteUint32(static_cast<uint32_t>(transformHint));
+
+    SEND_REQUEST(BUFFER_PRODUCER_SET_TRANSFORMHINT, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+
+    return GSERROR_OK;
+}
 }; // namespace OHOS

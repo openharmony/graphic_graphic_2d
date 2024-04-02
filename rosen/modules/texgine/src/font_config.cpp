@@ -94,9 +94,9 @@ cJSON* FontConfig::CheckConfigFile(const char* fname) const
         LOGSO_FUNC_LINE(ERROR) << "data is NULL";
         return nullptr;
     }
-    std::string JParamsString;
-    JParamsString.assign(data, size);
-    return cJSON_Parse(JParamsString.c_str());
+    std::string pramsString;
+    pramsString.assign(data, size);
+    return cJSON_Parse(pramsString.c_str());
 }
 
 int FontConfig::ParseFont(const cJSON* root)

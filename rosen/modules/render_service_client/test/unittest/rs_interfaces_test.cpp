@@ -1279,9 +1279,13 @@ HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level2)
  */
 HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Level2)
 {
+    constexpr int32_t maxFps = 1000;
+    constexpr int32_t minFps = 1;
     ASSERT_NE(rsInterfaces, nullptr);
-    EventInfo eventInfo = { "VOTER_IDLE", true, 1, 1000 };
-    rsInterfaces->NotifyRefreshRateEvent(eventInfo);
+    EventInfo addVote = { "VOTER_VIDEO", true, minFps, maxFps };
+    EventInfo delVote = { "VOTER_VIDEO", false};
+    rsInterfaces->NotifyRefreshRateEvent(addVote);
+    rsInterfaces->NotifyRefreshRateEvent(delVote);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 

@@ -110,7 +110,10 @@ RSRenderThread::RSRenderThread()
         ApplyModifiers();
         Render();
         SendCommands();
-        context_->activeNodesInRoot_.clear();
+        {
+            std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+            context_->activeNodesInRoot_.clear();
+        }
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
 #endif

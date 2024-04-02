@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -172,6 +172,23 @@ void* OH_Drawing_BitmapGetPixels(OH_Drawing_Bitmap*);
  */
 void OH_Drawing_BitmapGetImageInfo(OH_Drawing_Bitmap*, OH_Drawing_Image_Info*);
 
+/**
+ * @brief Copies a rect of pixels from bitmap to dstPixels. Copy starts at (srcX, srcY),
+ * and does not exceed bitmap width and height.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @param dstInfo Indicates the pointer to an <b>OH_Drawing_Image_Info</b> object.
+ * @param dstPixels Destination pixel storage.
+ * @param dstRowBytes Destination row length.
+ * @param srcX Column index whose absolute value is less than width.
+ * @param srcY Row index whose absolute value is less than height.
+ * @return Returns true if pixels are copied to dstPixels.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_BitmapReadPixels(OH_Drawing_Bitmap*, const OH_Drawing_Image_Info* dstInfo,
+    void* dstPixels, size_t dstRowBytes, int32_t srcX, int32_t srcY);
 #ifdef __cplusplus
 }
 #endif

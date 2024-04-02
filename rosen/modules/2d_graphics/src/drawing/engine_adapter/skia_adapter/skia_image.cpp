@@ -166,7 +166,7 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     if (SystemProperties::IsUseVulkan()) {
         const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
         if (!backendTexture.isValid()) {
-            LOGD("SkiaImage BuildFromTexture backend texture is not valid!!!!");
+            LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");
             return false;
         }
 
@@ -185,8 +185,13 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
         SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
         SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
 #endif
-
-    return (skiaImage_ != nullptr) ? true : false;
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::MakeFromTexture skiaImage_ is nullptr!!!! "
+            "TextureInfo format:%u, w:%d, h:%d , bitmapFormat.colorType is %d",
+            info.GetFormat(), info.GetWidth(), info.GetHeight(), static_cast<int>(bitmapFormat.colorType));
+        return false;
+    }
+    return true;
 }
 
 bool SkiaImage::BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,

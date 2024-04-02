@@ -2353,9 +2353,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mirrorAutoRotate_ = true;
         }
         canvas_->Save();
-        bool canvasRotation = screenManager->GetCanvasRotation(node.GetScreenId());
-        ScaleMirrorIfNeed(node, canvasRotation);
-        RotateMirrorCanvasIfNeed(node, canvasRotation);
+        ScaleMirrorIfNeedForWiredScreen(node);
+        RotateMirrorCanvasIfNeedForWiredScreen(node);
         bool forceCPU = false;
         auto params = RSUniRenderUtil::CreateBufferDrawParam(*mirrorNode, forceCPU);
         params.isMirror = true;
@@ -5010,11 +5009,92 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canva
     if (mainWidth != mirrorWidth || mainHeight != mirrorHeight) {
         canvas_->Clear(SK_ColorBLACK);
         auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
+        if (!processor) {
+            RS_LOGE("RSUniRenderVisitor::ScaleMirrorIfNeed processor is nullptr!");
+            return;
+        }
         if (scaleMode == ScreenScaleMode::FILL_MODE) {
             processor->Fill(*canvas_, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
         } else if (scaleMode == ScreenScaleMode::UNISCALE_MODE) {
             processor->UniScale(*canvas_, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
         }
+    }
+}
+
+void RSUniRenderVisitor::RotateMirrorCanvasIfNeedForWiredScreen(RSDisplayRenderNode& node)
+{
+    auto mirrorNode = node.GetMirrorSource().lock();
+    auto rotation = mirrorNode->GetScreenRotation();
+    if (RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) {
+        if (rotation == ScreenRotation::ROTATION_270) {
+            rotation = ScreenRotation::ROTATION_0;
+        } else {
+            rotation = static_cast<ScreenRotation>(static_cast<int>(rotation) + 1);
+        }
+    }
+    if (rotation != ScreenRotation::ROTATION_0) {
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
+        if (rotation == ScreenRotation::ROTATION_90) {
+            canvas_->Rotate(ROTATION_90, 0, 0);
+            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.height)));
+        } else if (rotation == ScreenRotation::ROTATION_180) {
+            float ratio = 0.5f;
+            canvas_->Rotate(ROTATION_180, static_cast<float>(mainScreenInfo.width) * ratio,
+                static_cast<float>(mainScreenInfo.height) * ratio);
+        } else if (rotation == ScreenRotation::ROTATION_270) {
+            canvas_->Rotate(ROTATION_270, 0, 0);
+            canvas_->Translate(-(static_cast<float>(mainScreenInfo.width)), 0);
+        }
+    }
+}
+
+void RSUniRenderVisitor::ScaleMirrorIfNeedForWiredScreen(RSDisplayRenderNode& node, bool canvasRotation)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto mirrorNode = node.GetMirrorSource().lock();
+    auto mainScreenInfo = screenManager->QueryScreenInfo(mirrorNode->GetScreenId());
+    float mainWidth = static_cast<float>(mainScreenInfo.width);
+    float mainHeight = static_cast<float>(mainScreenInfo.height);
+    if (canvasRotation) {
+        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) ||
+            mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_90 ||
+            mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_270) {
+            std::swap(mainWidth, mainHeight);
+        }
+    } else {
+        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0) ||
+            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_90 ||
+            node.GetOriginScreenRotation() == ScreenRotation::ROTATION_270) {
+            std::swap(mainWidth, mainHeight);
+        }
+        if ((RSSystemProperties::IsFoldScreenFlag() && mirrorNode->GetScreenId() == 0 &&
+            (mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_90 ||
+            mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_270)) || mirrorAutoRotate_) {
+            std::swap(mainWidth, mainHeight);
+        }
+    }
+    float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
+    float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
+    // If the width and height not match the main screen, calculate the dstRect.
+    if ((mainWidth != boundsWidth || mainHeight != boundsHeight) &&
+        (mainWidth > 0 && mainHeight > 0)) {
+        canvas_->Clear(SK_ColorBLACK);
+        float mirrorScale = 1.0f; // 1 for init scale
+        float startX = 0.0f;
+        float startY = 0.0f;
+        float mirrorScaleX = boundsWidth / mainWidth;
+        float mirrorScaleY = boundsHeight / mainHeight;
+        float ratio = 0.5f;
+        if (mirrorScaleX < mirrorScaleY) {
+            mirrorScale = mirrorScaleY;
+            startX = (boundsWidth - (mirrorScale * mainWidth)) * ratio;
+        } else {
+            mirrorScale = mirrorScaleX;
+            startY = (boundsHeight - (mirrorScale * mainHeight)) * ratio;
+        }
+        canvas_->Translate(startX, startY);
+        canvas_->Scale(mirrorScale, mirrorScale);
     }
 }
 

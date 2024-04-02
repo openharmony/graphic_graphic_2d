@@ -39,7 +39,7 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
         return;
     }
     auto rootNodeId = node->GetInstanceRootNodeId();
-    std::unique_lock<std::mutex> lock(activeNodesInRootMutex_);
+    std::lock_guard<std::mutex> lock(activeNodesInRootMutex_);
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
 }
 
@@ -49,7 +49,7 @@ bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)
         return false;
     }
     auto rootNodeId = node->GetInstanceRootNodeId();
-    std::unique_lock<std::mutex> lock(activeNodesInRootMutex_);
+    std::lock_guard<std::mutex> lock(activeNodesInRootMutex_);
     return activeNodesInRoot_[rootNodeId].count(node->GetId()) > 0;
 }
 

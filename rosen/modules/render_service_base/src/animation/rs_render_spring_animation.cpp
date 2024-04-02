@@ -255,7 +255,8 @@ void RSRenderSpringAnimation::OnDetach()
 void RSRenderSpringAnimation::OnInitialize(int64_t time)
 {
     if (springValueEstimator_ == nullptr) {
-        ROSEN_LOGE("RSRenderSpringAnimation::OnInitialize failed, springValueEstimator is null");
+        ROSEN_LOGD("RSRenderSpringAnimation::OnInitialize failed, springValueEstimator is null");
+        RSRenderPropertyAnimation::OnInitialize(time);
         return;
     }
 

@@ -125,7 +125,7 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
 #endif
     } else {
         if (pixelmap && pixelmap->IsAstc()) {
-            const void* data = pixelmap->GetWritablePixels();
+            const void* data = pixelmap->GetPixels();
             std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
             const int seekSize = 16;
             if (pixelmap->GetCapacity() > seekSize) {

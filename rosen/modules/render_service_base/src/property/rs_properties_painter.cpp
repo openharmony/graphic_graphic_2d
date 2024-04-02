@@ -649,13 +649,20 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
         if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-            filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
+            filter->IsOffscreenCanvas(true);
+            filter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
+            needSnapshotOutset = false;
         }
         cacheManager->DrawFilter(canvas, filter, needSnapshotOutset);
         return;
     }
 #endif
 
+    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+        filter->IsOffscreenCanvas(false);
+        filter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
+        needSnapshotOutset = false;
+    }
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
     if (needSnapshotOutset) {
@@ -673,12 +680,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     filter->PreProcess(imageSnapshot);
-    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        Drawing::Matrix mat = canvas.GetTotalMatrix();
-        filter->SetCanvasChange(mat, surface->Width(), surface->Height());
-        filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
-    }
-
     canvas.ResetMatrix();
     auto visibleRect = canvas.GetVisibleRect();
     visibleRect.Round();

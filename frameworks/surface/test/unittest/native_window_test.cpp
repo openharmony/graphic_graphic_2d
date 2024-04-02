@@ -1311,4 +1311,42 @@ HWTEST_F(NativeWindowTest, SetTunnelHandle004, Function | MediumTest | Level1)
     ASSERT_EQ(OH_NativeWindow_NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_NO_ENTRY);
     FreeOHExtDataHandle(handle);
 }
+
+/*
+* Function: NativeWindowGetTransformHint
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowGetTransformHint with normal parameters and check ret
+* @tc.require: issueI5GMZN issueI5IWHW
+ */
+HWTEST_F(NativeWindowTest, NativeWindowGetTransformHint001, Function | MediumTest | Level1)
+{
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_180;
+    ASSERT_EQ(NativeWindowGetTransformHint(nullptr, &transform), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetTransformHint(nullptr, transform), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetTransformHint(nativeWindow, transform), OHOS::GSERROR_OK);
+    transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    ASSERT_EQ(NativeWindowGetTransformHint(nativeWindow, &transform), OHOS::GSERROR_OK);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_180);
+}
+
+/*
+* Function: NativeWindowGetDefaultWidthAndHeight
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowGetDefaultWidthAndHeight with normal parameters and check ret
+* @tc.require: issueI5GMZN issueI5IWHW
+ */
+HWTEST_F(NativeWindowTest, NativeWindowGetDefaultWidthAndHeight001, Function | MediumTest | Level1)
+{
+    ASSERT_EQ(NativeWindowGetDefaultWidthAndHeight(nullptr, nullptr, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    cSurface->SetDefaultWidthAndHeight(300, 400);
+    int32_t width;
+    int32_t height;
+    ASSERT_EQ(NativeWindowGetDefaultWidthAndHeight(nativeWindow, &width, &height), OHOS::GSERROR_OK);
+    ASSERT_EQ(width, 300);
+    ASSERT_EQ(height, 400);
+}
 }

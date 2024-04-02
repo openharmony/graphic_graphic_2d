@@ -70,6 +70,8 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue> bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_ATTACH_BUFFER_TO_QUEUE] = &BufferQueueProducer::AttachBufferToQueueRemote;
     memberFuncMap_[BUFFER_PRODUCER_DETACH_BUFFER_FROM_QUEUE] = &BufferQueueProducer::DetachBufferFromQueueRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_DEFAULT_USAGE] = &BufferQueueProducer::SetDefaultUsageRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_TRANSFORMHINT] = &BufferQueueProducer::GetTransformHintRemote;
+    memberFuncMap_[BUFFER_PRODUCER_SET_TRANSFORMHINT] = &BufferQueueProducer::SetTransformHintRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -507,6 +509,31 @@ int32_t BufferQueueProducer::GetTransformRemote(
     return 0;
 }
 
+int32_t BufferQueueProducer::SetTransformHintRemote(MessageParcel &arguments,
+    MessageParcel &reply, MessageOption &option)
+{
+    GraphicTransformType transformHint = static_cast<GraphicTransformType>(arguments.ReadUint32());
+    GSError sret = SetTransformHint(transformHint);
+    reply.WriteInt32(sret);
+    return 0;
+}
+
+int32_t BufferQueueProducer::GetTransformHintRemote(
+    MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    GraphicTransformType transformHint = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    auto ret = GetTransformHint(transformHint);
+    if (ret != GSERROR_OK) {
+        reply.WriteInt32(static_cast<int32_t>(ret));
+        return -1;
+    }
+
+    reply.WriteInt32(GSERROR_OK);
+    reply.WriteUint32(static_cast<uint32_t>(transformHint));
+
+    return 0;
+}
+
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -721,6 +748,25 @@ GSError BufferQueueProducer::GetTransform(GraphicTransformType &transform)
         return GSERROR_INVALID_ARGUMENTS;
     }
     transform = bufferQueue_->GetTransform();
+    return GSERROR_OK;
+}
+
+GSError BufferQueueProducer::SetTransformHint(GraphicTransformType transformHint)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->SetTransformHint(transformHint);
+}
+
+GSError BufferQueueProducer::GetTransformHint(GraphicTransformType &transformHint)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (bufferQueue_ == nullptr) {
+        transformHint = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    transformHint = bufferQueue_->GetTransformHint();
     return GSERROR_OK;
 }
 

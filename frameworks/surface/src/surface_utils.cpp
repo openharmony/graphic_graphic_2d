@@ -71,7 +71,7 @@ SurfaceError SurfaceUtils::Remove(uint64_t uniqueId)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (surfaceCache_.count(uniqueId) == 0) {
-        BLOGW("Delete failed without surface by uniqueId %" PRIu64, uniqueId);
+        BLOGD("Delete failed without surface by uniqueId %" PRIu64, uniqueId);
         return GSERROR_INVALID_OPERATING;
     }
     surfaceCache_.erase(uniqueId);

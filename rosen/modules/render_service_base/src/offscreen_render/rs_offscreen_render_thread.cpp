@@ -81,7 +81,7 @@ void RSOffscreenRenderThread::InSertCaptureTask(NodeId nodeId, std::function<voi
     taskMap_[nodeId] = task;
 }
 
-const std::function<void()>& RSOffscreenRenderThread::GetCaptureTask(NodeId nodeId)
+const std::function<void()> RSOffscreenRenderThread::GetCaptureTask(NodeId nodeId)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (!taskMap_.empty()) {

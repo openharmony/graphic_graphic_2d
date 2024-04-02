@@ -22,6 +22,7 @@
 #include "buffer_producer_listener.h"
 #include "sync_fence.h"
 #include "native_window.h"
+#include "surface_utils.h"
 
 namespace OHOS {
 namespace {
@@ -358,6 +359,21 @@ int32_t ProducerSurface::GetDefaultWidth()
 int32_t ProducerSurface::GetDefaultHeight()
 {
     return producer_->GetDefaultHeight();
+}
+
+GraphicTransformType ProducerSurface::GetTransformHint() const
+{
+    GraphicTransformType transformHint = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    if (producer_->GetTransformHint(transformHint) != GSERROR_OK) {
+        BLOGNE("Warning ProducerSurface GetTransformHint failed.");
+        return GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    }
+    return transformHint;
+}
+
+GSError ProducerSurface::SetTransformHint(GraphicTransformType transformHint)
+{
+    return producer_->SetTransformHint(transformHint);
 }
 
 GSError ProducerSurface::SetDefaultUsage(uint64_t usage)

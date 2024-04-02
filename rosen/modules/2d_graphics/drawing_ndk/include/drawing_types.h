@@ -62,6 +62,14 @@ typedef struct OH_Drawing_Canvas OH_Drawing_Canvas;
 typedef struct OH_Drawing_Pen OH_Drawing_Pen;
 
 /**
+ * @brief Defines a region, which is used to represent an enclosed area on the canvas layer.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_Region OH_Drawing_Region;
+
+/**
  * @brief Defines as a brush, which is used to describe the style and color to fill in a shape.
  *
  * @since 8
@@ -100,6 +108,14 @@ typedef struct OH_Drawing_Point OH_Drawing_Point;
  * @version 1.0
  */
 typedef struct OH_Drawing_PixelMap OH_Drawing_PixelMap;
+
+/**
+ * @brief Define color space to determine color information.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_ColorSpace OH_Drawing_ColorSpace;
 
 /**
  * @brief Defines a point of 2d.
@@ -244,6 +260,22 @@ typedef struct OH_Drawing_SamplingOptions OH_Drawing_SamplingOptions;
  * @version 1.0
  */
 typedef struct OH_Drawing_TextBlobBuilder OH_Drawing_TextBlobBuilder;
+
+/**
+ * @brief Defines a GPU context, which is used to describe the GPU backend context.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_GpuContext OH_Drawing_GpuContext;
+
+/**
+ * @brief Defines a surface, which is used to manage the pixels that a canvas draws into.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_Surface OH_Drawing_Surface;
 
 /**
  * @brief Enumerates storage formats of bitmap pixels.

@@ -486,14 +486,16 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
 #ifndef ROSEN_CROSS_PLATFORM
         sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
         if (surface == nullptr) {
-            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu cannot find surface by surfaceId %llu",
+            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %{public}" PRIu64
+                       " cannot find surface by surfaceId %{public}" PRIu64 "",
                 GetId(), surfaceId);
             return false;
         }
         surface_ = std::static_pointer_cast<RSRenderServiceClient>(
             RSIRenderClient::CreateRenderServiceClient())->CreateRSSurface(surface);
         if (surface_ == nullptr) {
-            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu creat RSSurface fail", GetId());
+            ROSEN_LOGE(
+                "RSSurfaceNode::CreateNodeAndSurface nodeId is %{public}" PRIu64 " creat RSSurface fail", GetId());
             return false;
         }
 #endif

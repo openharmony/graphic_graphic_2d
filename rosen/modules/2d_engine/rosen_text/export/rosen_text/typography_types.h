@@ -107,6 +107,18 @@ enum TextHeightBehavior {
     DISABLE_ALL = 0x1 | 0x2,
 };
 
+enum StyleType {
+    NONE_ATTRIBUTES,
+    ALL_ATTRIBUTES,
+    FONT,
+    FOREGROUND,
+    BACKGROUND,
+    SHADOW,
+    DECORATIONS,
+    LETTER_SPACING,
+    WORD_SPACING
+};
+
 } // namespace Rosen
 } // namespace OHOS
 
