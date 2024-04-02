@@ -25,14 +25,14 @@
 namespace OHOS::Rosen {
 struct CaptureParam {
     bool isInCaptureFlag_ = false;
-    bool isCaptureDisplay_ = false;
+    bool isSingleSurface_ = false;
     bool isMirror_ = false;
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     CaptureParam() {}
-    CaptureParam(bool isInCaptureFlag, bool isCaptureDisplay, bool isMirror, float scaleX, float scaleY)
+    CaptureParam(bool isInCaptureFlag, bool isSingleSurface, bool isMirror, float scaleX, float scaleY)
         : isInCaptureFlag_(isInCaptureFlag)
-        , isCaptureDisplay_(isCaptureDisplay)
+        , isSingleSurface_(isSingleSurface)
         , isMirror_(isMirror)
         , scaleX_(scaleX)
         , scaleY_(scaleY) {}

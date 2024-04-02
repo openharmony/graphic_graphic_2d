@@ -516,7 +516,7 @@ void RSDisplayRenderNodeDrawable::ProcessVirtualScreen(RSDisplayRenderNode& disp
         RotateMirrorCanvasIfNeed(displayNodeSp, canvasRotation);
         auto mirroredNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(std::move(mirroredNode));
         // set mirror screen capture param
-        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, true, 0, 0));
+        RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, true, 0, 0));
         mirroredNodeDrawable->OnCapture(*curCanvas_);
         RSUniRenderThread::ResetCaptureParam();
         curCanvas_->RestoreToCount(saveCount);

@@ -110,14 +110,23 @@ public:
     {
         return isSkipLayer_;
     }
-    const std::set<NodeId>& GetSkipLayerIds() const
-    {
-        return skipLayerIds_;
-    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
     }
+    const std::set<NodeId>& GetSkipLayerIds() const
+    {
+        return skipLayerIds_;
+    }
+    bool HasSecurityLayer()
+    {
+        return securityLayerIds_.size() != 0; 
+    }
+    bool HasSkipLayer()
+    {
+        return skipLayerIds_.size() != 0; 
+    }
+
     std::string GetName() const
     {
         return name_;
