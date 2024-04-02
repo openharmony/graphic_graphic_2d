@@ -20,29 +20,14 @@
 #include "render_context/render_context.h"
 #endif
 
-namespace OHOS::Rosen {
-#ifndef ROSEN_CROSS_PLATFORM
-namespace {
-    constexpr int32_t SCHED_PRIORITY = 2;
-    void SetThreadPriority()
-    {
-        struct sched_param param = {0};
-        param.sched_priority = SCHED_PRIORITY;
-        if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
-            RS_LOGE("RSOffscreenRender Couldn't set SCHED_FIFO.");
-        } else {
-            RS_LOGI("RSOffscreenRender set SCHED_FIFO succeed.");
-        }
-        return;
-    }
-}
+#ifdef RES_BASE_SCHED_ENABLE
+#include "qos.h"
 #endif
+
+namespace OHOS::Rosen {
 
 RSOffscreenRenderThread& RSOffscreenRenderThread::Instance()
 {
-#ifndef ROSEN_CROSS_PLATFORM
-    SetThreadPriority();
-#endif
     static RSOffscreenRenderThread instance;
     return instance;
 }
@@ -64,6 +49,13 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
 #endif
 
         renderContext_->SetUpGpuContext(nullptr);
+    });
+#endif
+
+#ifdef RES_BASE_SCHED_ENABLE
+    PostTask([this]() {
+        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+        RS_LOGI("RSOffscreenRenderThread: SetThreadQos retcode = %{public}d", ret);
     });
 #endif
 }

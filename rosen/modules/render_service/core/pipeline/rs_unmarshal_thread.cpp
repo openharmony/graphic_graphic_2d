@@ -22,6 +22,10 @@
 #include "transaction/rs_transaction_data.h"
 #include "rs_profiler.h"
 
+#ifdef RES_SCHED_ENABLE
+#include "qos.h"
+#endif
+
 namespace OHOS::Rosen {
 namespace {
     constexpr int REQUEST_FRAME_AWARE_ID = 100001;
@@ -39,6 +43,12 @@ void RSUnmarshalThread::Start()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSUnmarshalThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+#ifdef RES_SCHED_ENABLE
+    PostTask([this]() {
+        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+        RS_LOGI("RSUnmarshalThread: SetThreadQos retcode = %{public}d", ret);
+    });
+#endif
 }
 
 void RSUnmarshalThread::PostTask(const std::function<void()>& task)
