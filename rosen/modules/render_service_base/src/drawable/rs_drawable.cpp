@@ -84,6 +84,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::MASK,                          // MASK
     RSDrawableSlot::INVALID,                       // SPHERIZE
     RSDrawableSlot::LIGHT_UP_EFFECT,               // LIGHT_UP_EFFECT
+    RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_PERCENT
     RSDrawableSlot::USE_EFFECT,                    // USE_EFFECT
@@ -175,6 +176,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSBinarizationDrawable::OnGenerate,     // BINARIZATION,
     RSColorFilterDrawable::OnGenerate,      // COLOR_FILTER,
     RSLightUpEffectDrawable::OnGenerate,    // LIGHT_UP_EFFECT,
+    RSDynamicDimDrawable::OnGenerate,       // DYNAMIC_DIM,
     RSForegroundFilterDrawable::OnGenerate, // FOREGROUND_FILTER,
     RSForegroundColorDrawable::OnGenerate,  // FOREGROUND_COLOR,
     nullptr,                                // FG_RESTORE_BOUNDS,

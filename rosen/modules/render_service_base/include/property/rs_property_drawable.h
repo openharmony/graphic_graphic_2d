@@ -71,6 +71,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     FG_CLIP_TO_BOUNDS,
     BINARIZATION,
     COLOR_FILTER,
+    DYNAMIC_DIM,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     FOREGROUND_COLOR,

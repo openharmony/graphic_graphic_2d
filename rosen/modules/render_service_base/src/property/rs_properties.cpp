@@ -136,6 +136,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
+    [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
 };
 } // namespace
 
@@ -1120,6 +1121,22 @@ void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
     contentDirty_ = true;
 }
 
+void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
+{
+    dynamicDimDegree_ = DimDegree;
+    if (DimDegree.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetDynamicDimDegree() const
+{
+    return dynamicDimDegree_;
+}
+
 void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
     filter_ = filter;
@@ -1166,6 +1183,11 @@ const std::optional<Vector2f>& RSProperties::GetGreyCoef() const
     return greyCoef_;
 }
 
+bool RSProperties::IsDynamicDimValid() const
+{
+    return dynamicDimDegree_.has_value() &&
+           ROSEN_GE(*dynamicDimDegree_, 0.0) && ROSEN_LE(*dynamicDimDegree_, 1.0);
+}
 
 const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
 {
@@ -2814,7 +2836,7 @@ void RSProperties::OnApplyModifiers()
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
-                      GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+                      IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         // CreateFilterCacheManagerIfNeed();
 #endif

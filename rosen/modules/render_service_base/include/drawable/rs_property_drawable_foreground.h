@@ -80,6 +80,22 @@ private:
     float stagingLightUpEffectDegree_ = 1.0f;
 };
 
+class RSDynamicDimDrawable : public RSDrawable {
+public:
+    RSDynamicDimDrawable() = default;
+    ~RSDynamicDimDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    float dynamicDimDegree_ = 1.0f;
+    float stagingDynamicDimDegree_ = 1.0f;
+};
+
 class RSForegroundFilterDrawable : public RSFilterDrawable {
 public:
     RSForegroundFilterDrawable() = default;
