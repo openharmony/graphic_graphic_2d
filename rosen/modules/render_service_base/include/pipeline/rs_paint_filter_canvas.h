@@ -135,8 +135,8 @@ protected:
 // color.
 class RSB_EXPORT RSPaintFilterCanvas : public RSPaintFilterCanvasBase {
 public:
-    RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f);
-    RSPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f);
+    RSPaintFilterCanvas(Drawing::Canvas* canvas);
+    RSPaintFilterCanvas(Drawing::Surface* surface);
     ~RSPaintFilterCanvas() override {};
 
     void CopyConfiguration(const RSPaintFilterCanvas& other);
@@ -163,16 +163,9 @@ public:
     void RestoreEnvToCount(int count);
 
     // blendmode related
-    // int SaveBlendMode();
-    // void RestoreBlendMode();
+    void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
-    // void AddBlendOffscreenLayer(bool isExtra);
-    // void MinusBlendOffscreenLayer();
-    // bool IsBlendOffscreenExtraLayer() const;
-    int GetBlendOffscreenLayerCnt() const
-    {
-        return 0;
-    };
+    bool HasOffscreenLayer() const;
 
     // save/restore utils
     struct SaveStatus {
@@ -254,9 +247,8 @@ protected:
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
         std::optional<int> blendMode_;
+        bool hasOffscreenLayer_;
     };
-    const std::stack<float>& GetAlphaStack();
-    const std::stack<Env>& GetEnvStack();
 
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override

@@ -159,6 +159,7 @@ Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSMaskShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        Drawing::AutoCanvasRestore rst(*canvas, true);
         RSPropertyDrawableUtils::CeilMatrixTrans(canvas);
         ptr->drawCmdList_->Playback(*canvas);
     };

@@ -24,8 +24,8 @@ class RSCanvasListener;
 
 class RSB_EXPORT RSListenedCanvas : public RSPaintFilterCanvas {
 public:
-    RSListenedCanvas(Drawing::Canvas& canvas, float alpha = 1.0f);
-    RSListenedCanvas(Drawing::Surface& surface, float alpha = 1.0f);
+    RSListenedCanvas(Drawing::Canvas& canvas);
+    RSListenedCanvas(Drawing::Surface& surface);
 
     void SetListener(const std::shared_ptr<RSCanvasListener>& listener);
     // shapes
