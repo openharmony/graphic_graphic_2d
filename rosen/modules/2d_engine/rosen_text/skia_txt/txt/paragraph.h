@@ -187,7 +187,8 @@ public:
 
     virtual std::vector<LineMetrics>& GetLineMetrics(std::vector<size_t>& startIndexs) = 0;
 
-    virtual bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics, size_t& startIndex) const = 0;
+    virtual bool GetLineMetricsAt(
+        int lineNumber, skia::textlayout::LineMetrics* lineMetrics, size_t& startIndex) const = 0;
 
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) = 0;
