@@ -64,6 +64,8 @@ DECLARE_NOANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, BACKG
 
 DECLARE_NOANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, BG_IMAGE, Background)
 
+DECLARE_ANIMATABLE_MODIFIER(BgImageInnerRect, Vector4f, BG_IMAGE_INNER_RECT, Add, Background, LAYOUT)
+
 DECLARE_ANIMATABLE_MODIFIER(BgImageWidth, float, BG_IMAGE_WIDTH, Add, Background, LAYOUT)
 
 DECLARE_ANIMATABLE_MODIFIER(BgImageHeight, float, BG_IMAGE_HEIGHT, Add, Background, LAYOUT)

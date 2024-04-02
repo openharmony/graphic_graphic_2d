@@ -230,6 +230,7 @@ public:
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
 
     void SetBgImage(const std::shared_ptr<RSImage>& image);
+    void SetBgImageInnerRect(const Vector4f& innerRect);
     void SetBgImageSize(float width, float height);
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);

@@ -1024,6 +1024,12 @@ void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
     SetProperty<RSBgImageModifier, RSProperty<std::shared_ptr<RSImage>>>(RSModifierType::BG_IMAGE, image);
 }
 
+void RSNode::SetBgImageInnerRect(const Vector4f& rect)
+{
+    SetProperty<RSBgImageInnerRectModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::BG_IMAGE_INNER_RECT, rect);
+}
+
 void RSNode::SetBgImageSize(float width, float height)
 {
     SetBgImageWidth(width);
