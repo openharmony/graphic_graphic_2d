@@ -190,11 +190,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->layerInfo_ = layerInfo_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
-    targetSurfaceParams->needSubmitSubThread_ = needSubmitSubThread_;
-    targetSurfaceParams->processed = false;
-    targetSurfaceParams->isMainThreadNode_ = isMainThreadNode_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
+    targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;

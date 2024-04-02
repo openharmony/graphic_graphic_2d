@@ -122,17 +122,6 @@ public:
     {
         return name_;
     }
-    void SetNeedSubmitSubThread(bool needSubmitSubThread)
-    {
-        processed = false;
-        needSubmitSubThread_ = needSubmitSubThread;
-    }
-
-    bool GetNeedSubmitSubThread()
-    {
-        return needSubmitSubThread_;
-    }
-    bool processed = false;
 
     void SetUifirstNodeEnableParam(bool isUifirst)
     {
@@ -155,6 +144,17 @@ public:
         }
         uiFirstParentFlag_ = isUifirstParent;
         needSync_ = true;
+    }
+
+    void SetUifirstChildrenDirtyRectParam(const RectI& rect)
+    {
+        childrenDirtyRect_ = rect;
+        needSync_ = true;
+    }
+
+    RectI& GetUifirstChildrenDirtyRectParam()
+    {
+        return childrenDirtyRect_;
     }
 
     bool GetParentUifirstNodeEnableParam()
@@ -208,13 +208,12 @@ private:
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool needBilinearInterpolation_ = false;
-    bool needSubmitSubThread_ = false; // UI First
-    bool isMainThreadNode_ = false; //UI First
     bool uiFirstFlag_ = false;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
 
     RectI oldDirtyInSurface_;
+    RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
 

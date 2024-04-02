@@ -448,6 +448,13 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 
     // get image & backend
     cachedImage_ = surface->GetImageSnapshot();
+#if RS_ENABLE_GL
+    // vk backend has been created when surface init.
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
+        cachedBackendTexture_ = surface->GetBackendTexture();
+    }
+#endif
     // update cache updateTimes
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);

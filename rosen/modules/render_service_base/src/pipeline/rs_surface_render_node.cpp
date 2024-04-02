@@ -2235,7 +2235,6 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
-    surfaceParams->isMainThreadNode_ = IsMainThreadNode();
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
@@ -2258,24 +2257,22 @@ void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
     surfaceParams->SetNeedSync(true);
 }
 
-void RSSurfaceRenderNode::SetNeedSubmitSubThread(bool needSubmitSubThread)
+void RSSurfaceRenderNode::SetUifirstChildrenDirtyRectParam(RectI rect)
 {
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetNeedSubmitSubThread(needSubmitSubThread);
+        stagingSurfaceParams->SetUifirstChildrenDirtyRectParam(rect);
         if (stagingRenderParams_->NeedSync()) {
             if (auto context = GetContext().lock()) {
                 context->AddPendingSyncNode(shared_from_this());
             } else {
-                RS_LOGE("RSSurfaceRenderNode::SetNeedSubmitSubThread context is null");
+                RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag context is null");
                 OnSync();
             }
         }
     } else {
-        RS_LOGE("RSSurfaceRenderNode::SetNeedSubmitSubThread stagingSurfaceParams is null");
+        RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag stagingSurfaceParams is null");
     }
-
-    isNeedSubmitSubThread_ = needSubmitSubThread;
 }
 
 void RSSurfaceRenderNode::SetUifirstNodeEnableParam(bool b)

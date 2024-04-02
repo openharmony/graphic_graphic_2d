@@ -48,6 +48,26 @@ DrawableV2::RSSurfaceRenderNodeDrawable* RSUifirstManager::GetSurfaceDrawableByI
     return nullptr;
 }
 
+static inline void SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, bool enable)
+{
+    node.SetUifirstNodeEnableParam(enable); // update drawable param
+    if (node.IsLeashWindow()) {
+        for (auto& child : *(node.GetChildren())) {
+            if (!child) {
+                continue;
+            }
+            auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (!surfaceChild) {
+                continue;
+            }
+            if (surfaceChild->IsMainWindowType()) {
+                surfaceChild->SetIsParentUifirstNodeEnableParam(enable);
+                continue;
+            }
+        }
+    }
+}
+
 // unref in sub when cache done
 void RSUifirstManager::AddProcessDoneNode(NodeId id)
 {
@@ -85,6 +105,8 @@ void RSUifirstManager::ProcessDoneNode()
 
         if (pendingResetNodes_.count(id) > 0) { // reset node
             // reset uifirst
+            SetUifirstNodeEnableParam(*pendingResetNodes_[id], false);
+            RSMainThread::Instance()->GetContext().AddPendingSyncNode(pendingResetNodes_[id]);
             drawable->ResetUifirst();
             pendingResetNodes_.erase(id);
         }
@@ -297,14 +319,17 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
         return;
     }
     pendingPostNodes_[id] = node;
+    if (pendingResetNodes_.count(id)) {
+        pendingResetNodes_.erase(id); // enable uifirst when waiting for reset
+    }
 }
 
-void RSUifirstManager::AddPendingResetNode(NodeId id)
+void RSUifirstManager::AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (id == INVALID_NODEID) {
         return;
     }
-    pendingResetNodes_.insert(id);
+    pendingResetNodes_[id] = node;
 }
 
 CacheProcessStatus RSUifirstManager::GetNodeStatus(NodeId id)
@@ -376,9 +401,10 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, bool curren
     if (!lastFrameIsUifirstNode) { // likely branch: last is disable
         if (currentFrameIsUifirstNode) { // switch: disable -> enable
             RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %lx", node.GetId());
-            node.SetUifirstNodeEnableParam(true); // update drawable param
-            CheckIfParentUifirstNodeEnable(node, true);
-            AddPendingPostNode(node.GetId(), surfaceNode);
+            SetUifirstNodeEnableParam(node, true);
+            UpdateChildrenDirtyRect(*surfaceNode);
+            node.SetHwcChildrenDisabledStateByUifirst();
+            AddPendingPostNode(node.GetId(), surfaceNode); // clear pending reset status
             RSMainThread::Instance()->GetContext().AddPendingSyncNode(surfaceNode);
         } else { // keep disable
            RS_TRACE_NAME_FMT("UIFirst_keep disable  %lx", node.GetId());
@@ -386,20 +412,20 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, bool curren
     } else { // last is enable
         if (currentFrameIsUifirstNode) { // keep enable
             RS_TRACE_NAME_FMT("UIFirst_keep enable  %lx", node.GetId());
+            UpdateChildrenDirtyRect(*surfaceNode);
+            node.SetHwcChildrenDisabledStateByUifirst();
             AddPendingPostNode(node.GetId(), surfaceNode);
         } else { // switch: enable -> disable
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lx", node.GetId());
-            node.SetUifirstNodeEnableParam(false); // update drawable param
-            AddPendingResetNode(node.GetId());
-            RSMainThread::Instance()->GetContext().AddPendingSyncNode(node.shared_from_this());
-            CheckIfParentUifirstNodeEnable(node, false);
+            AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
         }
     }
     node.SetLastFrameUifirstFlag(currentFrameIsUifirstNode);
 }
 
-void RSUifirstManager::CheckIfParentUifirstNodeEnable(RSSurfaceRenderNode& node, bool parentUifirstNodeEnable)
+void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
 {
+    RectI rect(0, 0, 0, 0);
     if (node.IsLeashWindow()) {
         for (auto& child : *(node.GetChildren())) {
             if (!child) {
@@ -410,11 +436,12 @@ void RSUifirstManager::CheckIfParentUifirstNodeEnable(RSSurfaceRenderNode& node,
                 continue;
             }
             if (surfaceChild->IsMainWindowType()) {
-                surfaceChild->SetIsParentUifirstNodeEnableParam(parentUifirstNodeEnable);
+                rect = rect.JoinRect(surfaceChild->GetOldDirtyInSurface());
                 continue;
             }
         }
     }
+    node.SetUifirstChildrenDirtyRectParam(rect);
 }
 
 void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)

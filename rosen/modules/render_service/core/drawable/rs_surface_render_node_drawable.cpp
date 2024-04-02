@@ -67,10 +67,17 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 }
 
 Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
-   std::shared_ptr<RSSurfaceRenderNode> surfaceNode) const
+   std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const
 {
     Drawing::Region resultRegion;
     if (!surfaceParams->IsMainWindowType()) {
+        return resultRegion;
+    }
+
+    // FUTURE: return real region
+    if (isOffscreen) {
+        resultRegion.SetRect(Drawing::RectI(0, 0,
+        DRAWING_MAX_S32_FITS_IN_FLOAT, DRAWING_MAX_S32_FITS_IN_FLOAT));
         return resultRegion;
     }
 
@@ -120,7 +127,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             surfaceNode->GetName().c_str(), surfaceParams->GetId());
         return;
     }
-    Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(surfaceParams, surfaceNode);
+    Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(surfaceParams, surfaceNode, isuifirstNode);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if (!uniParam) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
@@ -191,7 +198,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     rscanvas->SetDirtyFlag(false);
     if (surfaceParams->IsMainWindowType()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw SurfaceNode: [%s], NodeId: %llu, ProcessedNodes: %d",
-            surfaceNode->GetNodeName().c_str(), surfaceNode->GetId(), RSRenderNodeDrawable::GetProcessedNodeCount());
+            surfaceNode->GetName().c_str(), surfaceNode->GetId(), RSRenderNodeDrawable::GetProcessedNodeCount());
     }
 }
 
@@ -219,9 +226,15 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
             }
         }
         // [planing] surfaceDirtyRegion can be optimized by visibleDirtyRegion in some case.
-        auto surfaceDirtyRegion = Occlusion::Region{
+        auto surfaceDirtyRegion = Occlusion::Region {
             Occlusion::Rect{ surfaceNode->GetSyncDirtyManager()->GetDirtyRegion() } };
         accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
+        // add children window dirty here for uifirst leasf window will not traverse cached children
+        if (surfaceParams->GetUifirstNodeEnableParam()) {
+            auto childrenDirtyRegion = Occlusion::Region {
+                Occlusion::Rect{ surfaceParams->GetUifirstChildrenDirtyRectParam() } };
+            accumulatedDirtyRegion.OrSelf(childrenDirtyRegion);
+        }
     }
 }
 

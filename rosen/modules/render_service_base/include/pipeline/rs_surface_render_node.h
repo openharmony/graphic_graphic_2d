@@ -309,7 +309,10 @@ public:
         return isNeedSubmitSubThread_;
     }
 
-    void SetNeedSubmitSubThread(bool needSubmitSubThread);
+    void SetNeedSubmitSubThread(bool needSubmitSubThread)
+    {
+        isNeedSubmitSubThread_ = needSubmitSubThread;
+    }
 
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
@@ -988,6 +991,8 @@ public:
     {
         lastFrameUifirstFlag_ = b;
     }
+
+    void SetUifirstChildrenDirtyRectParam(RectI rect);
 
     RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
