@@ -339,9 +339,10 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
 std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
     const std::string& name,
     uint64_t id,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
+    NodeId windowNodeId)
 {
-    return renderServiceClient_->CreateVSyncReceiver(name, looper, id);
+    return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId);
 }
 
 int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)

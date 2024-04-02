@@ -44,7 +44,8 @@ public:
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token,
-                                                         uint64_t id = 0) override;
+                                                         uint64_t id = 0,
+                                                         NodeId windowNodeId = 0) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
