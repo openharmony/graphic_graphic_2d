@@ -216,6 +216,7 @@ private:
 
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
+    void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
