@@ -84,7 +84,6 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::MASK,                          // MASK
     RSDrawableSlot::INVALID,                       // SPHERIZE
     RSDrawableSlot::LIGHT_UP_EFFECT,               // LIGHT_UP_EFFECT
-    RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_PERCENT
     RSDrawableSlot::USE_EFFECT,                    // USE_EFFECT
@@ -114,6 +113,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_BORDER_WIDTH
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_TYPE
     RSDrawableSlot::POINT_LIGHT,                   // BLOOM
+    RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED
     RSDrawableSlot::TRANSITION,                    // TRANSITION

@@ -162,7 +162,6 @@ void RSDynamicDimDrawable::OnSync()
         return;
     }
     dynamicDimDegree_ = stagingDynamicDimDegree_;
-    stagingDynamicDimDegree_ = 1.0f;
     needSync_ = false;
 }
 
