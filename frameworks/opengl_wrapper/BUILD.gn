@@ -87,7 +87,7 @@ if (current_os != "ohos") {
       "init:libbeget_proxy",
       "init:libbegetutil",
     ]
-    
+
     if (graphic_2d_feature_use_aps_extend_func) {
       external_deps += aps_client_external_deps
     }
