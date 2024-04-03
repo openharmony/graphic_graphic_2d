@@ -62,9 +62,8 @@ float RSRenderParticleEffector::UpdateCurveValue(
 #ifdef ENABLE_RUST
         value = generate_value(startValue, endValue, startTime, endTime, activeTime);
 #else
-        float t = 0.f;
         if (endTime - startTime != 0) {
-            t = static_cast<float>(activeTime - startTime) / static_cast<float>(endTime - startTime);
+            float t = static_cast<float>(activeTime - startTime) / static_cast<float>(endTime - startTime);
             auto& interpolator = valChangeOverLife[i]->interpolator_;
             t = (interpolator != nullptr) ? interpolator->Interpolate(t) : t;
             value = startValue * (1.0f - t) + endValue * t;
@@ -88,10 +87,9 @@ Color RSRenderParticleEffector::UpdateColorCurveValue(
             continue;
         }
         Color startValue = valChangeOverLife[i]->fromValue_;
-        float t = 0.f;
         if (endTime - startTime != 0) {
             Color endValue = valChangeOverLife[i]->toValue_;
-            t = static_cast<float>(activeTime - startTime) / static_cast<float>(endTime - startTime);
+            float t = static_cast<float>(activeTime - startTime) / static_cast<float>(endTime - startTime);
             auto& interpolator = valChangeOverLife[i]->interpolator_;
             t = (interpolator != nullptr) ? interpolator->Interpolate(t) : t;
             startValue *= (1.0f - t);

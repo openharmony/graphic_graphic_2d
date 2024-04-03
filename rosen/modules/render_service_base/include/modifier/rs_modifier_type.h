@@ -110,19 +110,20 @@ enum class RSModifierType : int16_t {
     ILLUMINATED_BORDER_WIDTH,      // 80
     ILLUMINATED_TYPE,              // 81
     BLOOM,                         // 82
-    DYNAMIC_DIM_DEGREE,            // 83
-    CUSTOM,                        // 84
-    EXTENDED,                      // 85
-    TRANSITION,                    // 86
-    BACKGROUND_STYLE,              // 87
-    CONTENT_STYLE,                 // 88
-    FOREGROUND_STYLE,              // 89
-    OVERLAY_STYLE,                 // 90
-    NODE_MODIFIER,                 // 91
-    ENV_FOREGROUND_COLOR,          // 92
-    ENV_FOREGROUND_COLOR_STRATEGY, // 93
-    GEOMETRYTRANS,                 // 94
-    CHILDREN,                      // 95, PLACEHOLDER, no such modifier, but we need a dirty flag
+    PARTICLE_EMITTER_UPDATER,      // 83
+    DYNAMIC_DIM_DEGREE,            // 84
+    CUSTOM,                        // 85
+    EXTENDED,                      // 86
+    TRANSITION,                    // 87
+    BACKGROUND_STYLE,              // 88
+    CONTENT_STYLE,                 // 89
+    FOREGROUND_STYLE,              // 90
+    OVERLAY_STYLE,                 // 91
+    NODE_MODIFIER,                 // 92
+    ENV_FOREGROUND_COLOR,          // 93
+    ENV_FOREGROUND_COLOR_STRATEGY, // 94
+    GEOMETRYTRANS,                 // 95
+    CHILDREN,                      // 96, PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;

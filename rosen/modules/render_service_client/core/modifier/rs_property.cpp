@@ -235,6 +235,12 @@ void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyLinearGradientBlurPara, value, type);
 }
 template<>
+void RSProperty<std::shared_ptr<EmitterUpdater>>::UpdateToRender(
+    const std::shared_ptr<EmitterUpdater>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyEmitterUpdater, value, type);
+}
+template<>
 void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
     const std::shared_ptr<RSShader>& value, PropertyUpdateType type) const
 {

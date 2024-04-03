@@ -149,6 +149,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::NODE_MODIFIER, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::ENV_FOREGROUND_COLOR, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR },
     { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY },
+    { RSModifierType::PARTICLE_EMITTER_UPDATER, RSPropertyDrawableSlot::PARTICLE_EFFECT },
     { RSModifierType::DYNAMIC_DIM_DEGREE, RSPropertyDrawableSlot::DYNAMIC_DIM },
     { RSModifierType::GEOMETRYTRANS, RSPropertyDrawableSlot::INVALID },
 };

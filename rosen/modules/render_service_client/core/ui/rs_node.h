@@ -229,7 +229,7 @@ public:
     void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
     void SetParticleParams(
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
-    void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
+    void SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
@@ -435,6 +435,7 @@ private:
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
     void UpdateImplicitAnimator();
+    void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();

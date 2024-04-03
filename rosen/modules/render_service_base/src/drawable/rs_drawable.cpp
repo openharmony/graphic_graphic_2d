@@ -113,6 +113,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_BORDER_WIDTH
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_TYPE
     RSDrawableSlot::POINT_LIGHT,                   // BLOOM
+    RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_EMITTER_UPDATER
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED

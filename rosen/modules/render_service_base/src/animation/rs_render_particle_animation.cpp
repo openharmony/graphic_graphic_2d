@@ -39,6 +39,19 @@ void RSRenderParticleAnimation::DumpAnimationType(std::string& out) const
 bool RSRenderParticleAnimation::Animate(int64_t time)
 {
     RS_OPTIONAL_TRACE_NAME("RSRenderParticleAnimation::Animate");
+    auto target = GetTarget();
+    if (!target) {
+        return true;
+    } else if (!target->IsOnTheTree() || !target->GetRenderProperties().GetVisible()) {
+        target->RemoveModifier(property_->GetId());
+        return true;
+    }
+
+    auto emitterUpdater = target->GetRenderProperties().GetEmitterUpdater();
+    if (emitterUpdater) {
+        UpdateEmitter(emitterUpdater);
+    }
+
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
     if (particleSystem_ != nullptr) {
@@ -49,13 +62,7 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     if (property) {
         property->Set(renderParticleVector_);
     }
-    auto target = GetTarget();
-    if (!target) {
-        return true;
-    } else if (!target->IsOnTheTree() || !target->GetRenderProperties().GetVisible()) {
-        target->RemoveModifier(property_->GetId());
-        return true;
-    }
+
     if (particleSystem_ == nullptr || particleSystem_->IsFinish(renderParticleVector_.renderParticleVector_)) {
         if (target) {
             target->RemoveModifier(property_->GetId());
@@ -63,6 +70,30 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
         return true;
     }
     return false;
+}
+
+void RSRenderParticleAnimation::UpdateEmitter(const std::shared_ptr<EmitterUpdater>& emitterUpdater)
+{
+    uint32_t index = emitterUpdater->emitterIndex_;
+    if (index > particlesRenderParams_.size()) {
+        return;
+    }
+    const auto& emitterConfig = particlesRenderParams_[index]->emitterConfig_;
+    if (!ROSEN_EQ(emitterConfig.position_.x_, emitterUpdater->position_.x_) ||
+        !ROSEN_EQ(emitterConfig.position_.y_, emitterUpdater->position_.y_) ||
+        !ROSEN_EQ(emitterConfig.emitSize_.x_, emitterUpdater->emitSize_.x_) ||
+        !ROSEN_EQ(emitterConfig.emitSize_.y_, emitterUpdater->emitSize_.y_) ||
+        !ROSEN_EQ(emitterConfig.emitRate_, emitterUpdater->emitRate_)) {
+        particlesRenderParams_[index]->emitterConfig_.position_ = emitterUpdater->position_;
+        particlesRenderParams_[index]->emitterConfig_.emitSize_ = emitterUpdater->emitSize_;
+        particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_;
+        if (particleSystem_) {
+            particleSystem_->UpdateEmitter(
+                index, emitterUpdater->position_, emitterUpdater->emitSize_, emitterUpdater->emitRate_);
+        } else {
+            particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
+        }
+    }
 }
 
 void RSRenderParticleAnimation::OnAttach()

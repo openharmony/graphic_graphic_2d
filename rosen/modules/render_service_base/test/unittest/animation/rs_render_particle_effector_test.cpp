@@ -249,7 +249,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateColorCurve001, TestSize.Level1)
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int particleCount = 20;
-    Range<int64_t> lifeTime = Range<int64_t>(3000, 3000); // 3000 is lifeTime.
+    Range<int64_t> lifeTime = Range<int64_t>(1000, 3000); //  1000 is lifeTime range start, 3000 is lifeTime.
     ParticleType type = ParticleType::POINTS;
     float radius = 1;
     std::shared_ptr<RSImage> image;

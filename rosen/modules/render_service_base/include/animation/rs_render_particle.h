@@ -107,7 +107,7 @@ public:
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
         const int32_t& particleCount, const Range<int64_t>& lifeTime, const ParticleType& type, const float& radius,
-        std::shared_ptr<RSImage> image, Vector2f imageSize)
+        const std::shared_ptr<RSImage>& image, const Vector2f& imageSize)
         : emitRate_(emitRate), emitShape_(emitShape), position_(position), emitSize_(emitSize),
           particleCount_(particleCount), lifeTime_(lifeTime), type_(type), radius_(radius), image_(std::move(image)),
           imageSize_(imageSize)
@@ -122,6 +122,22 @@ public:
     EmitterConfig(const EmitterConfig& config) = default;
     EmitterConfig& operator=(const EmitterConfig& config) = default;
     ~EmitterConfig() = default;
+};
+
+class RSB_EXPORT EmitterUpdater {
+public:
+    uint32_t emitterIndex_;
+    Vector2f position_;
+    Vector2f emitSize_;
+    int emitRate_;
+
+    explicit EmitterUpdater(
+        const uint32_t& emitterIndex, const Vector2f& position, const Vector2f& emitSize, const int& emitRate)
+        : emitterIndex_(emitterIndex), position_(position), emitSize_(emitSize), emitRate_(emitRate)
+    {}
+    EmitterUpdater(const EmitterUpdater& config) = default;
+    EmitterUpdater& operator=(const EmitterUpdater& config) = default;
+    ~EmitterUpdater() = default;
 };
 
 class RSB_EXPORT ParticleVelocity {
