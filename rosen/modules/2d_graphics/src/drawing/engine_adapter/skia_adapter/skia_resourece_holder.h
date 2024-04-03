@@ -37,10 +37,7 @@ public:
 
     void HoldResource(const std::shared_ptr<Image>& img) override
     {
-        if (!img) {
-            return;
-        }
-        uint32_t id = img->GetUniqueID();
+        uintptr_t id = uintptr_t(img.get());
         if (images_.find(id) != images_.end()) {
             return;
         }
@@ -51,7 +48,7 @@ public:
     {
         auto iter = images_.begin();
         while (iter != images_.end()) {
-            if (iter->second->GetUniqueID()) {
+            if (iter->second.use_count() == 1) {
                 auto tmp = iter++;
                 images_.erase(tmp);
             } else {
@@ -66,7 +63,7 @@ public:
     }
 
 private:
-    std::unordered_map<uint32_t, const std::shared_ptr<Image>> images_;
+    std::unordered_map<uintptr_t, const std::shared_ptr<Image>> images_;
 };
 } // namespace Drawing
 } // namespace Rosen
