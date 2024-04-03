@@ -164,12 +164,8 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     int64_t data[3];
     data[0] = now;
     // 1, 2: index of array data.
-    data[1] = now + period;
+    data[1] = period;
     data[2] = vsyncCount;
-    if ((CreateVSyncGenerator()->GetVSyncMode() == VSYNC_MODE_LTPS) && info_.name_ == "rs") {
-        // 5000000 is the vsync offset.
-        data[1] += period - 5000000;
-    }
     int32_t ret = socketPair->SendData(data, sizeof(data));
     if (ret > -1) {
         ScopedDebugTrace successful("successful");

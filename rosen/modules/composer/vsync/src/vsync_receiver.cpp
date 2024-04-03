@@ -62,15 +62,20 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         cb = vsyncCallbacks_;
     }
     now = data[0];
-    period_ = data[1] - data[0];
-    periodShared_ = data[1] - data[0];
+    period_ = data[1];
+    periodShared_ = data[1];
     timeStamp_ = data[0];
     timeStampShared_ = data[0];
+
+    int64_t expectedEnd = now + period_;
+    if (name_ == "rs") {
+        expectedEnd += period_ - 5000000; // rs vsync offset is 5000000ns
+    }
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
     ScopedBytrace func("ReceiveVsync dataCount:" + std::to_string(dataCount) + "bytes now:" + std::to_string(now) +
-        " expectedEnd:" + std::to_string(data[1]) + " vsyncId:" + std::to_string(data[2]));
+        " expectedEnd:" + std::to_string(expectedEnd) + " vsyncId:" + std::to_string(data[2])); // data[2] is vsyncId
     if (dataCount > 0 && cb != nullptr) {
         cb(now, userData_);
     }
@@ -107,6 +112,8 @@ VsyncError VSyncReceiver::Init()
     if (retVal != 0) {
         VLOGW("%{public}s fcntl set fd_ NonBlock failed", __func__);
     }
+
+    listener_->SetName(name_);
 
     if (looper_ == nullptr) {
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(true);
