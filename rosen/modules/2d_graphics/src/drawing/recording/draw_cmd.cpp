@@ -992,10 +992,9 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     TextBlob::Context ctx {nullptr, false};
     auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(cmdList, textBlob_.get(), &ctx);
-    uint32_t typefaceId = 0;
     uint64_t globalUniqueId = 0;
     if (ctx.GetTypeface() != nullptr) {
-        typefaceId = ctx.GetTypeface()->GetUniqueID();
+        uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
 

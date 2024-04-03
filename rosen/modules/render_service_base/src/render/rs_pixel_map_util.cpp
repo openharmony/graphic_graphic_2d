@@ -191,7 +191,8 @@ void RSPixelMapUtil::DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixe
         ColorSpaceToDrawingColorSpace(pixelMap.InnerGetGrColorSpace().GetColorSpaceName()) };
     Drawing::Bitmap pixelBitmap;
     pixelBitmap.InstallPixels(
-        drawingImageInfo, (void*)pixelMap.GetWritablePixels(), static_cast<uint32_t>(pixelMap.GetRowBytes()));
+        drawingImageInfo, reinterpret_cast<void*>(pixelMap.GetWritablePixels()),
+        static_cast<uint32_t>(pixelMap.GetRowBytes()));
     canvas.DrawBitmap(pixelBitmap, px, py);
 }
 } // namespace Rosen
