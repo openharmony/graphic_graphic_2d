@@ -50,7 +50,38 @@ constexpr const char* RS_BUNDLE_NAME = "render_service";
 RSFilterSubThread::~RSFilterSubThread()
 {
     RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
+    RSFilter::postTask = nullptr;
     PostTask([this]() { DestroyShareEglContext(); });
+}
+
+void RSFilterSubThread::Start()
+{
+    RS_LOGI("RSFilterSubThread::Start():%{public}d", threadIndex_);
+    std::string name = "RSFilterSubThread" + std::to_string(threadIndex_);
+    runner_ = AppExecFwk::EventRunner::Create(name);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    PostTask([this]() {
+#ifdef RES_SCHED_ENABLE
+        std::string strBundleName = RS_BUNDLE_NAME;
+        std::string strPid = std::to_string(getpid());
+        std::string strTid = std::to_string(gettid());
+        std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
+        std::unordered_map<std::string, std::string> mapPayload;
+        mapPayload["pid"] = strPid;
+        mapPayload[strTid] = strQos;
+        mapPayload["bundleName"] = strBundleName;
+        uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
+        int64_t value = 0;
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+#endif
+        grContext_ = CreateShareGrContext();
+    });
+    RSFilter::postTask = [this](std::weak_ptr<RSFilter::RSFilterTask> task) {
+        filterTaskList_.emplace_back(task);
+        RS_TRACE_NAME_FMT("postTask:%zu", filterTaskList_.size());
+    };
+
+    RSFilter::clearGpuContext = [this]() { ResetGrContext(); };
 }
 
 void RSFilterSubThread::StartColorPicker()
@@ -273,6 +304,90 @@ void RSFilterSubThread::DestroyShareEglContext()
         eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     }
 #endif
+}
+
+void RSFilterSubThread::RenderCache(std::vector<std::weak_ptr<RSFilter::RSFilterTask>>& filterTaskList)
+{
+    RS_TRACE_NAME_FMT("RSFilterSubThread::RenderCache:%zu", filterTaskList.size());
+    if (grContext_ == nullptr) {
+        grContext_ = CreateShareGrContext();
+    }
+    if (fence_->Wait(SYNC_TIME_OUT) < 0) {
+        RS_LOGE("RSFilterSubThread::RenderCache: fence time out");
+        filterTaskList.clear();
+        isWorking_.store(false);
+        return;
+    }
+    if (grContext_ == nullptr) {
+        RS_LOGE("RSFilterSubThread::RenderCache: grContext is null");
+        filterTaskList.clear();
+        isWorking_.store(false);
+        return;
+    }
+    for (auto& task : filterTaskList) {
+        auto workTask = task.lock();
+        if (!workTask) {
+            RS_LOGE("RSFilterSubThread::RenderCache: Render task is null");
+            continue;
+        }
+        if (!workTask->InitSurface(grContext_.get())) {
+            RS_LOGE("RSFilterSubThread::RenderCache: InitSurface failed");
+            continue;
+        }
+        if (!workTask->Render()) {
+            RS_LOGE("RSFilterSubThread::RenderCache: Render failed");
+            continue;
+        }
+    }
+    grContext_->FlushAndSubmit(true);
+    for (auto& task : filterTaskList) {
+        auto workTask = task.lock();
+        if (!workTask) {
+            RS_LOGE("RSFilterSubThread::RenderCache, SaveFilteredImage task is null");
+            continue;
+        }
+        if (!workTask->SaveFilteredImage()) {
+            RS_LOGE("RSFilterSubThread::RenderCache, SaveFilteredImage failed");
+            continue;
+        }
+        if (!workTask->SetDone()) {
+            RS_LOGE("RSFilterSubThread::RenderCache, SetDone failed");
+            continue;
+        }
+    }
+    filterTaskList.clear();
+    isWorking_.store(false);
+}
+
+void RSFilterSubThread::FlushAndSubmit()
+{
+    RS_TRACE_NAME_FMT("RSFilterSubThread::FlushAndSubmit():isWorking_:%d TaskList size:%zu",
+        isWorking_.load(), filterReadyTaskList_.size());
+
+    if (filterTaskList_.empty()) {
+        return;
+    }
+
+    if (isWorking_.load()) {
+        return;
+    }
+
+    filterTaskList_.swap(filterReadyTaskList_);
+    for (auto& task : filterReadyTaskList_) {
+        auto initTask = task.lock();
+        if (!initTask) {
+            RS_LOGE("RSFilterSubThread::FlushAndSubmit:SwapInit task is null");
+            continue;
+        }
+        initTask->SwapInit();
+    }
+    isWorking_.store(true);
+    PostTask([this]() { RenderCache(filterReadyTaskList_); });
+}
+
+void RSFilterSubThread::SetFence(sptr<SyncFence> fence)
+{
+    fence_ = fence;
 }
 
 void RSFilterSubThread::ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheTask> colorPickerTask)

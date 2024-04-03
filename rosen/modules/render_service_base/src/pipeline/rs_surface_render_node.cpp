@@ -103,7 +103,9 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
-    syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ? std::make_shared<RSDirtyRegionManager>() : dirtyManager_;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ? std::make_shared<RSDirtyRegionManager>() : dirtyManager_;
+    }
 }
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -382,7 +384,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 surfaceNode->UpdateAbilityNodeIds(GetId(), IsOnTheTree());
             }
         }
-    } else if (IsHardwareEnabledType()) {
+    } else if (IsHardwareEnabledType() && RSUniRenderJudgement::IsUniRender()) {
         if (auto instanceRootNode = GetInstanceRootNode()) {
             if (auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>()) {
                 surfaceNode->UpdateChildHardwareEnabledNode(GetId(), IsOnTheTree());
@@ -1309,13 +1311,14 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
         return;
     }
     prevVisible_ = visible;
-// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-//     if (!visible && !filterNodes_.empty() && !isOcclusionVisibleWithoutFilter_) {
-//         for (auto& node : filterNodes_) {
-//             node->GetMutableRenderProperties().ClearFilterCache();
-//         }
-//     }
-// #endif
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!RSUniRenderJudgement::IsUniRender() && !visible && !filterNodes_.empty()
+        && !isOcclusionVisibleWithoutFilter_) {
+        for (auto& node : filterNodes_) {
+            node->GetMutableRenderProperties().ClearFilterCache();
+        }
+    }
+#endif
 }
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged)
