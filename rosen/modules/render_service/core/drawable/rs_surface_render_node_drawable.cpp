@@ -270,10 +270,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + surfaceNode->GetName() + "] " +
         surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
-    if (RSUniRenderThread::GetCaptureParam().isCaptureDisplay_) {
-        CaptureSurfaceInDisplay(*surfaceNode, *rscanvas, *surfaceParams);
-    } else {
+    if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
         CaptureSingleSurfaceNode(*surfaceNode, *rscanvas, *surfaceParams);
+    } else {
+        CaptureSurfaceInDisplay(*surfaceNode, *rscanvas, *surfaceParams);
     }
 }
 
@@ -315,11 +315,12 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay uniParams is nullptr");
         return;
     }
-    // TODO: has SecurityLayer or Skiplayer
-    if (DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
+
+    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer()) &&
+        DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
         return;
     }
-    
+
     RSRenderNodeDrawable::OnCapture(canvas);
 }
 
@@ -340,8 +341,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay uniParams is nullptr");
         return;
     }
-    // TODO: has SecurityLayer or Skiplayer
-    if (DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
+
+    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer()) &&
+        DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
         return;
     }
 
@@ -430,7 +432,9 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surf
         Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
         RSAutoCanvasRestore acr(&canvas);
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
-        canvas.ConcatMatrix(surfaceParams.GetMatrix());
+        if (!RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+            canvas.ConcatMatrix(surfaceParams.GetMatrix());
+        }
         DrawBackground(canvas, bounds);
         bool drawCacheSuccess = true;
         if (!DrawUIFirstCache(canvas)) {
