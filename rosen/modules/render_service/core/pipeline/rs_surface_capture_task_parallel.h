@@ -26,9 +26,9 @@ namespace Rosen {
 class RSSurfaceCaptureTaskParallel {
 public:
     explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread)
-        , rsSurfaceCaptureType_(RSSystemParameters::GetRsSurfaceCaptureType())
-        , rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread),
+        rsSurfaceCaptureType_(RSSystemParameters::GetRsSurfaceCaptureType()),
+        rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTaskParallel() = default;
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback);

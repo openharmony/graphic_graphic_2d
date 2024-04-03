@@ -640,7 +640,8 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
     }
     bool isDrawingCacheChanged = isDrawingCacheChanged_.empty() ? true : isDrawingCacheChanged_.top();
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
-        "staticCache %d, cacheChange %d, childHasVisibleFilter|effect: %d|%d, outofparent: %d, visitedCacheNodeIds num: %lu",
+        "staticCache %d, cacheChange %d, childHasVisibleFilter|effect: %d|%d, outofparent: %d, "
+        "visitedCacheNodeIds num: %lu",
         node.GetId(), static_cast<int>(node.GetDrawingCacheType()), node.IsStaticCached(),
         static_cast<int>(isDrawingCacheChanged), node.ChildHasVisibleFilter(), node.ChildHasVisibleEffect(),
         static_cast<int>(node.HasChildrenOutOfRect()), visitedCacheNodeIds_.size());
@@ -1156,9 +1157,9 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
     if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
         if (surfaceNode.IsMainWindowType()) {
-            RS_TRACE_NAME_FMT("RSUniRenderVisitor::IsSubTreeOccluded node[%s]"
-            "name:[%s] visibleRegionIsEmpty[%d]", std::to_string(node.GetId()).c_str(),
-            surfaceNode.GetName().c_str(), surfaceNode.GetVisibleRegion().IsEmpty());
+            RS_TRACE_NAME_FMT("RSUniRenderVisitor::IsSubTreeOccluded node[%s]" "name:[%s] visibleRegionIsEmpty[%d]",
+                std::to_string(node.GetId()).c_str(), surfaceNode.GetName().c_str(),
+                surfaceNode.GetVisibleRegion().IsEmpty());
             return surfaceNode.GetVisibleRegion().IsEmpty();
         }
     }
@@ -1241,9 +1242,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     PostPrepare(node, !isSubTreeNeedPrepare);
     prepareClipRect_ = prepareClipRect;
     dirtyFlag_ = dirtyFlag;
-
-
-
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curAlpha_ = prevAlpha;
 }
@@ -1729,7 +1727,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             return;
         }
         std::vector<RectI> hwcRects;
-        for(auto hwcNode : hwcNodes) {
+        for (auto hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
             if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
                 continue;
@@ -1748,7 +1746,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSur
         return;
     }
     std::shared_ptr<RSSurfaceRenderNode> pointWindow;
-    for(auto hwcNode : hwcNodes) {
+    for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
@@ -1764,7 +1762,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSur
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
     }
     if (pointWindow) {
-        // globalZOrder_ + 1 is displayNode layer, point window must be at the top.
+        // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
         pointWindow->SetGlobalZOrder(globalZOrder_ + 2);
         pointWindow->SetHardwareForcedDisabledState(!IsHardwareComposerEnabled());
         pointWindow->UpdateHwcNodeLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE);
@@ -1897,7 +1895,8 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
     // 5 handle last and curframe surfaces which appear or disappear case
     std::vector<RectI> surfaceChangedRects = curDisplayNode_->GetSurfaceChangedRects();
     for (auto& surfaceChangedRect : surfaceChangedRects) {
-        RS_LOGD("CheckMergeSurfaceDirtysForDisplay merge Surface closed %{public}s", surfaceChangedRect.ToString().c_str());
+        RS_LOGD("CheckMergeSurfaceDirtysForDisplay merge Surface closed %{public}s",
+            surfaceChangedRect.ToString().c_str());
         if (!surfaceChangedRect.IsEmpty()) {
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(surfaceChangedRect);
         }
@@ -2148,7 +2147,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
     auto cleanFilter = transparentCleanFilter_.find(node->GetId());
     auto dirtyFilter = transparentDirtyFilter_.find(node->GetId());
     auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
-    for(auto it = curMainAndLeashSurfaces.rbegin(); it != curMainAndLeashSurfaces.rend(); ++it) {
+    for (auto it = curMainAndLeashSurfaces.rbegin(); it != curMainAndLeashSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surfaceNode == nullptr) {
             continue;
@@ -2160,7 +2159,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
         if (hwcNodes.empty()) {
             continue;
         }
-        for(auto hwcNode : hwcNodes) {
+        for (auto hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
             if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
                 continue;
@@ -3533,7 +3532,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_OPTIONAL_TRACE_END();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge, isDirtyRegionAlignedEnable_);
             Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
-                displayNodePtr->GetCurAllSurfaces(), RSMainThread::Instance()->GetDrawStatusVec(), isDirtyRegionAlignedEnable_);
+                displayNodePtr->GetCurAllSurfaces(), RSMainThread::Instance()->GetDrawStatusVec(),
+                isDirtyRegionAlignedEnable_);
             dirtyRegionTest = dirtyRegion;
             if (isDirtyRegionAlignedEnable_) {
                 SetSurfaceGlobalAlignedDirtyRegion(displayNodePtr, dirtyRegion);
@@ -3756,7 +3756,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const
 {
-    RS_TRACE_NAME_FMT("RSUniRenderVisitor::DrawSurfaceLayer displayNode:%p subThreadNodes:%d", displayNode.get(), int(subThreadNodes.size()));
+    RS_TRACE_NAME_FMT("RSUniRenderVisitor::DrawSurfaceLayer displayNode:%p subThreadNodes:%d",
+        displayNode.get(), int(subThreadNodes.size()));
     auto subThreadManager = RSSubThreadManager::Instance();
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     subThreadManager->StartColorPickerThread(renderEngine_->GetRenderContext().get());

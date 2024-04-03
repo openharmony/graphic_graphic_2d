@@ -54,7 +54,8 @@ public:
     }
 
 protected:
-    bool InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirroredId, std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    bool InitForRenderThread(RSDisplayRenderNode& node, ScreenId mirroredId,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine);
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
     void CalculateScreenTransformMatrix(const RSDisplayRenderNode& node);

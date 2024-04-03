@@ -72,7 +72,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 
     GraphicLayerAlpha alpha;
     alpha.enGlobalAlpha = true;
-    alpha.gAlpha = 255;
+    alpha.gAlpha = 255; // Alpha of 255 indicates opacity
     layer->SetAlpha(alpha);
     layer->SetLayerSize(layerInfo.dstRect);
     layer->SetBoundSize(layerInfo.boundRect);

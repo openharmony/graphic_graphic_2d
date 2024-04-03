@@ -49,7 +49,7 @@
 namespace OHOS::Rosen::DrawableV2 {
 class RSOverDrawDfx {
 public:
-    RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
+    explicit RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
     {
         enable_ = RSOverdrawController::GetInstance().IsEnabled() && curCanvas != nullptr;
         curCanvas_ = curCanvas;
@@ -187,7 +187,7 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
     }
 
     if (!processor->Init(*displayNodeSp, params.GetDisplayOffsetX(), params.GetDisplayOffsetY(), INVALID_SCREEN_ID,
-            renderEngine, true)) {
+        renderEngine, true)) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame processor init failed!");
         return nullptr;
     }
@@ -209,7 +209,7 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
 
 #if 0 // TO-DO wait buffer
     if (!RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(
-            std::static_pointer_cast<RSSurfaceHandler>(displayNodeSp))) {
+        std::static_pointer_cast<RSSurfaceHandler>(displayNodeSp))) {
         RS_TRACE_NAME("RSDisplayRenderNodeDrawable::RequestFrame no released buffer");
     }
 #endif
@@ -498,7 +498,8 @@ void RSDisplayRenderNodeDrawable::ProcessVirtualScreen(RSDisplayRenderNode& disp
         if (hasSecSurface[mirroredNode->GetScreenId()]) {
             curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
             processor->PostProcess();
-            RS_LOGI("RSDisplayRenderNodeDrawable::ProcessVirtualScreen, set canvas to black because of security layer.");
+            RS_LOGI("RSDisplayRenderNodeDrawable::ProcessVirtualScreen, "
+                "set canvas to black because of security layer.");
             curCanvas_->SetDisableFilterCache(false);
             return;
         }
@@ -594,12 +595,13 @@ void RSDisplayRenderNodeDrawable::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& 
     }
     if (rotation != ScreenRotation::ROTATION_0) {
         if (rotation == ScreenRotation::ROTATION_90) {
-            curCanvas_->Rotate(90, 0, 0);
+            curCanvas_->Rotate(90, 0, 0); // 90 is the rotate angle
             curCanvas_->Translate(0, -mainHeight);
         } else if (rotation == ScreenRotation::ROTATION_180) {
+            // 180 is the rotate angle, calculate half width and half height requires divide by 2
             curCanvas_->Rotate(180, mainWidth / 2, mainHeight / 2);
         } else if (rotation == ScreenRotation::ROTATION_270) {
-            curCanvas_->Rotate(270, 0, 0);
+            curCanvas_->Rotate(270, 0, 0); // 270 is the rotate angle
             curCanvas_->Translate(-mainWidth, 0);
         }
     }
@@ -695,7 +697,7 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas)
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     ColorFilterMode colorFilterMode = renderEngine->GetColorFilterMode();
     if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
-        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE){
+        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
         return;
     }
 

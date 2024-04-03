@@ -86,7 +86,6 @@ enum class RSDrawableSlot : int8_t {
     RESTORE_BLEND_MODE,
     RESTORE_ALL,
 
-
     // Annotations: Please remember to update this when new slots are added.
     // NOTE: MAX and *_END enums are using the one-past-the-end style.
     BG_PROPERTIES_BEGIN      = BLEND_MODE,

@@ -104,7 +104,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
     if (RSUniRenderJudgement::IsUniRender()) {
-        syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ? std::make_shared<RSDirtyRegionManager>() : dirtyManager_;
+        syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ?
+            std::make_shared<RSDirtyRegionManager>() : dirtyManager_;
     }
 }
 
@@ -1658,10 +1659,7 @@ bool RSSurfaceRenderNode::CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNo
 
 bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
 {
-    // TODO
-   return GetZorderChanged() ||
-        GetDstRectChanged() ||
-        IsOpaqueRegionChanged();
+    return GetZorderChanged() || GetDstRectChanged() || IsOpaqueRegionChanged();
 }
 
 bool RSSurfaceRenderNode::CheckParticipateInOcclusion() const
@@ -1693,7 +1691,6 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
-
     if (!ret) {
         // TODO: default process focus window
         ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, true, cornerRadius);
@@ -1870,7 +1867,6 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
             surfaceNode->SetHwcChildrenDisabledStateByUifirst();
         }
     }
-
 }
 
 void RSSurfaceRenderNode::SetLocalZOrder(float localZOrder)

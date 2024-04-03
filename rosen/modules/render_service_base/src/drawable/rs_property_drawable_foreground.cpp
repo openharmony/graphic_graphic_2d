@@ -368,9 +368,10 @@ void RSPointLightDrawable::OnSync()
     if (illuminatedType_ == IlluminatedType::BORDER_CONTENT || illuminatedType_ == IlluminatedType::BORDER) {
         auto borderRect = rrect.rect_;
         float borderRadius = rrect.radius_[0].x_;
+        // half width and half height requires divide by 2.0f
         auto borderRRect = RRect(RectF(borderRect.left_ + borderWidth_ / 2.0f, borderRect.top_ + borderWidth_ / 2.0f,
-                                     borderRect.width_ - borderWidth_, borderRect.height_ - borderWidth_),
-                                     borderRadius - borderWidth_ / 2.0f, borderRadius - borderWidth_ / 2.0f);
+            borderRect.width_ - borderWidth_, borderRect.height_ - borderWidth_),
+            borderRadius - borderWidth_ / 2.0f, borderRadius - borderWidth_ / 2.0f);
         borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
     }
     if (illuminatedType_ == IlluminatedType::BORDER_CONTENT || illuminatedType_ == IlluminatedType::CONTENT) {

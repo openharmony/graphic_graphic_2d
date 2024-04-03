@@ -31,11 +31,11 @@ struct CaptureParam {
     float scaleY_ = 0.0f;
     CaptureParam() {}
     CaptureParam(bool isInCaptureFlag, bool isSingleSurface, bool isMirror, float scaleX, float scaleY)
-        : isInCaptureFlag_(isInCaptureFlag)
-        , isSingleSurface_(isSingleSurface)
-        , isMirror_(isMirror)
-        , scaleX_(scaleX)
-        , scaleY_(scaleY) {}
+        : isInCaptureFlag_(isInCaptureFlag),
+        isSingleSurface_(isSingleSurface),
+        isMirror_(isMirror),
+        scaleX_(scaleX),
+        scaleY_(scaleY) {}
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:

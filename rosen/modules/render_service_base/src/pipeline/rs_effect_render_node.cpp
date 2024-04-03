@@ -128,7 +128,7 @@ void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
 {
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
-         return;
+        return;
     }
     if (GetFilterRect() != GetFilterCachedRegion(isForeground)) {
         MarkFilterStatusChanged(isForeground, true);
@@ -197,7 +197,7 @@ uint64_t RSEffectRenderNode::GetCurrentAttachedScreenId() const
 
 void RSEffectRenderNode::SetFoldStatusChanged(bool foldStatusChanged)
 {
-    foldStatusChanged_ = foldStatusChanged; 
+    foldStatusChanged_ = foldStatusChanged;
 }
 } // namespace Rosen
 } // namespace OHOS

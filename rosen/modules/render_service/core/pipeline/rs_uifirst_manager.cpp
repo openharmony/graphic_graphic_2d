@@ -21,8 +21,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 
-// use in mainthread, post subthread, not affect renderthread 
-
+// use in mainthread, post subthread, not affect renderthread
 namespace OHOS {
 namespace Rosen {
 #ifdef RS_PARALLEL
@@ -149,12 +148,12 @@ void RSUifirstManager::PostSubTask(NodeId id)
         RS_TRACE_NAME_FMT("node %lx is doning", id);
         return;
     }
-    
-    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id); // TODO: 1.find in cache list(done to dele) 2.find in global list
+
+    // 1.find in cache list(done to dele) 2.find in global list
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
     if (drawable) {
         // ref drawable
         subthreadProcessingNode_[id] = drawable;
-
         // post task
         RS_TRACE_NAME_FMT("Post_SubTask_s %lx", id);
         RSSubThreadManager::Instance()->ScheduleRenderNodeDrawable(
@@ -269,7 +268,8 @@ void RSUifirstManager::SortSubThreadNodesPriority()
             bool isFocus = surfaceNode->IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
             surfaceNode->IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
             if (isFocus) {
-                drawable->SetRenderCachePriority(NodePriorityType::SUB_FOCUSNODE_PRIORITY); // for resolving response latency
+                // for resolving response latency
+                drawable->SetRenderCachePriority(NodePriorityType::SUB_FOCUSNODE_PRIORITY);
                 isFocusNodeFound = true;
             }
         }
@@ -284,8 +284,8 @@ void RSUifirstManager::SortSubThreadNodesPriority()
         auto drawable1 = GetSurfaceDrawableByID(first);
         auto drawable2 = GetSurfaceDrawableByID(second);
         if (drawable1 == nullptr || drawable2 == nullptr) {
-            ROSEN_LOGE(
-                "RSUifirstManager::SortSubThreadNodesPriority sort nullptr found in pendingPostNodes_, this should not happen");
+            ROSEN_LOGE("RSUifirstManager::SortSubThreadNodesPriority sort nullptr found in pendingPostNodes_, "
+                "this should not happen");
             return false;
         }
         if (drawable1->GetRenderCachePriority() == drawable2->GetRenderCachePriority()) {
@@ -377,11 +377,9 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
     std::string surfaceName = node.GetName();
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
         surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
-
     if (needFilterSCB || node.IsSelfDrawingType()) {
         return false;
     }
-
     if (isPhoneType) {
         return isNeedAssignToSubThread;
     } else { // PC or TABLET
@@ -407,7 +405,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, bool curren
             AddPendingPostNode(node.GetId(), surfaceNode); // clear pending reset status
             RSMainThread::Instance()->GetContext().AddPendingSyncNode(surfaceNode);
         } else { // keep disable
-           RS_TRACE_NAME_FMT("UIFirst_keep disable  %lx", node.GetId());
+            RS_TRACE_NAME_FMT("UIFirst_keep disable  %lx", node.GetId());
         }
     } else { // last is enable
         if (currentFrameIsUifirstNode) { // keep enable
@@ -453,7 +451,7 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
 void RSUifirstManager::PrepareUifirstNode(RSSurfaceRenderNode& node, bool animation)
 {
     RS_TRACE_NAME_FMT("PrepareUifirstNode");
-    if (isUiFirstOn_){
+    if (isUiFirstOn_) {
         UifirstStateChange(node, IsUifirstNode(node, animation));
     } else {
         DisableUifirstNode(node);

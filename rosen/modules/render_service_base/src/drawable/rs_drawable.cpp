@@ -15,7 +15,7 @@
 
 #include "drawable/rs_drawable.h"
 
-#include <limits.h>
+#include <limits>
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
@@ -225,11 +225,11 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     }
 
     if (HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::BG_PROPERTIES_BEGIN, RSDrawableSlot::BG_PROPERTIES_END)) {
+        drawableVec, RSDrawableSlot::BG_PROPERTIES_BEGIN, RSDrawableSlot::BG_PROPERTIES_END)) {
         result |= DrawableVecStatus::BG_BOUNDS_PROPERTY;
     }
     if (HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::FG_PROPERTIES_BEGIN, RSDrawableSlot::FG_PROPERTIES_END)) {
+        drawableVec, RSDrawableSlot::FG_PROPERTIES_BEGIN, RSDrawableSlot::FG_PROPERTIES_END)) {
         result |= DrawableVecStatus::FG_BOUNDS_PROPERTY;
     }
 

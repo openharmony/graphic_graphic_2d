@@ -48,12 +48,10 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         RenderNodeDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
         delete ptr;
     };
-
     if (node == nullptr) {
         return nullptr;
     }
     auto id = node->GetId();
-
     // Try to get a cached drawable if it exists.
     if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
         if (const auto ptr = cacheIt->second.lock()) {
@@ -62,7 +60,6 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
             RenderNodeDrawableCache.erase(cacheIt);
         }
     }
-
     // If we don't have a cached drawable, try to generate a new one and cache it.
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
@@ -88,7 +85,6 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
         return nullptr;
     }
     auto id = node->GetId();
-
     // Try to get a cached drawable if it exists.
     if (const auto cacheIt = shadowDrawableCache.find(id); cacheIt != shadowDrawableCache.end()) {
         if (const auto ptr = cacheIt->second.lock()) {
@@ -206,6 +202,7 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec() const
             str += std::to_string(i) + ", ";
         }
     }
+    // str has more than 2 chars
     if (str.length() > 2) {
         str.pop_back();
         str.pop_back();

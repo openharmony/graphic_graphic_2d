@@ -116,8 +116,8 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
 class RSSurfaceCaptureTask {
 public:
     explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY, bool isProcOnBgThread = false)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread)
-        , rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), isProcOnBgThread_(isProcOnBgThread),
+        rsParallelType_(RSSystemParameters::GetRsParallelType()) {}
     ~RSSurfaceCaptureTask() = default;
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback);

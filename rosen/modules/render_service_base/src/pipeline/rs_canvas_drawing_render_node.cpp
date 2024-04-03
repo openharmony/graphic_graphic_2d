@@ -83,8 +83,8 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
 
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
-    if (!sharedTexture->BuildFromTexture(
-            *canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(), origin, bitmapFormat, nullptr)) {
+    if (!sharedTexture->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
+        origin, bitmapFormat, nullptr)) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture is nullptr");
         return false;
     }

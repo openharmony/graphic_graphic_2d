@@ -49,7 +49,7 @@ RSPropertyDrawCmdListUpdater::RSPropertyDrawCmdListUpdater(int width, int height
     : target_(target)
 {
     // PLANNING: use RSRenderNode to determine the correct recording canvas size
-    recordingCanvas_ = ExtendRecordingCanvas::Obtain(10, 10, false);
+    recordingCanvas_ = ExtendRecordingCanvas::Obtain(10, 10, false); // width 10, height 10
 }
 
 RSPropertyDrawCmdListUpdater::~RSPropertyDrawCmdListUpdater()

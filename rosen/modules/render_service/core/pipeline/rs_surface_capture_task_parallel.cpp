@@ -208,7 +208,8 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
                 } else if (rotation == ScreenRotation::ROTATION_270) {
                     pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
                 }
-                RS_LOGI("RSSurfaceCaptureTaskParallel::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
+                RS_LOGI("RSSurfaceCaptureTaskParallel::Run: PixelmapRotation: %{public}d",
+                    static_cast<int32_t>(rotation));
             }
             // To get dump image
             // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
@@ -344,7 +345,8 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     return Media::PixelMap::Create(opts);
 }
 
-std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap)
+std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
+    const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
     if (pixelmap == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: pixelmap == nullptr");

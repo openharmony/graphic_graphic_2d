@@ -37,8 +37,7 @@ class RSPaintFilterCanvas;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
-namespace DrawableV2 { 
-
+namespace DrawableV2 {
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
 public:

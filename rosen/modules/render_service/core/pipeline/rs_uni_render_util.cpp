@@ -1082,7 +1082,8 @@ void RSUniRenderUtil::LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& s
             break;
         }
         case ScreenRotation::ROTATION_180: {
-            node.SetDstRect({screenWidth - rect.left_ - rect.width_, screenHeight - rect.top_ - rect.height_, rect.width_, rect.height_});
+            node.SetDstRect({screenWidth - rect.left_ - rect.width_, screenHeight - rect.top_ - rect.height_,
+                rect.width_, rect.height_});
             break;
         }
         case ScreenRotation::ROTATION_270: {
