@@ -127,7 +127,8 @@ public:
     void MarkHasEffectChildren();
     void CheckClearFilterCache();
 
-    virtual bool IsFilterCacheValid() const;
+    bool IsFilterCacheValid() const;
+    bool GetFilterForceClearCache() const;
  
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
@@ -135,7 +136,7 @@ public:
 
 private:
     void ClearFilterCache();
-    void UpdateFlags(FilterCacheType type, bool cacheValid);
+    void UpdateFlags(FilterCacheType type, bool cacheValid, bool forceResetInterval = true);
  
 protected:
     void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);

@@ -1571,7 +1571,7 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
 
     auto filterDrawable = GetFilterDrawable(isForeground);
     if (filterDrawable == nullptr) {
-         return;
+        return;
     }
     if (!dirtyManager.GetCurrentFrameDirtyRegion().Intersect(filterDrawable->GetFilterCachedRegion())) {
         return;
@@ -1620,23 +1620,37 @@ inline static bool IsLargeArea(int width, int height)
     return width > threshold && height > threshold;
 }
 
-void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare()
+void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelowContainsFilterNode)
 {
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare filter cache is disabled.");
         return;
     }
     if (GetRenderProperties().GetBackgroundFilter()) {
-       MarkFilterCacheFlagsAfterPrepare(false);
+        auto filterDrawable = GetFilterDrawable(false);
+        if (filterDrawable == nullptr) {
+            return;
+        }
+        if (dirtyBelowContainsFilterNode) {
+            filterDrawable->MarkFilterForceClearCache();
+        }
+        MarkFilterCacheFlagsAfterPrepare(filterDrawable, false);
     }
     if (GetRenderProperties().GetFilter()) {
-        MarkFilterCacheFlagsAfterPrepare(true);
+        auto filterDrawable = GetFilterDrawable(true);
+        if (filterDrawable == nullptr) {
+            return;
+        }
+        if (dirtyBelowContainsFilterNode) {
+            filterDrawable->MarkFilterForceClearCache();
+        }
+        MarkFilterCacheFlagsAfterPrepare(filterDrawable, true);
     }
 }
 
-void RSRenderNode::MarkFilterCacheFlagsAfterPrepare(bool isForeground)
+void RSRenderNode::MarkFilterCacheFlagsAfterPrepare(
+    std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground)
 {
-    auto filterDrawable = GetFilterDrawable(isForeground);
     if (filterDrawable == nullptr) {
         return;
     }

@@ -135,28 +135,24 @@ void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
     }
 }
 
-void RSEffectRenderNode::MarkFilterCacheFlagsAfterPrepare(bool isForeground)
+void RSEffectRenderNode::MarkFilterCacheFlagsAfterPrepare(
+    std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground)
 {
-    if (!RSProperties::FilterCacheEnabled) {
-        ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
-        return;
-    }
-    auto filterDrawable = GetFilterDrawable(isForeground);
     if (filterDrawable == nullptr) {
         return;
     }
-    if (CheckFilterCacheNeedForceSave()) {
-        filterDrawable->MarkFilterForceUseCache();
-    } else if (CheckFilterCacheNeedForceClear()) {
+    if (!(filterDrawable->GetFilterForceClearCache()) && CheckFilterCacheNeedForceClear()) {
         filterDrawable->MarkFilterForceClearCache();
-    }
+    } else if (CheckFilterCacheNeedForceSave()) {
+        filterDrawable->MarkFilterForceUseCache();
+     }
     if (isRotationChanged_) {
         filterDrawable->MarkRotationChanged();
     }
     if (ChildHasVisibleEffect()) {
         filterDrawable->MarkHasEffectChildren();
     }
-    RSRenderNode::MarkFilterCacheFlagsAfterPrepare(isForeground);
+    RSRenderNode::MarkFilterCacheFlagsAfterPrepare(filterDrawable, isForeground);
     preStaticStatus_ = IsStaticCached();
 }
 

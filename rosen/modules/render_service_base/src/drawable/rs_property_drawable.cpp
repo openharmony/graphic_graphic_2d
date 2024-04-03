@@ -264,22 +264,22 @@ void RSFilterDrawable::CheckClearFilterCache()
 
     // background changed and last frame when skip-frame enabled
     if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ <= 0) {
-        cacheUpdateInterval_ = rotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL :
-            (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL :
-            (isLargeArea_ && canSkipFrame_ ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0));
-        UpdateFlags(FilterCacheType::BOTH, false);
+        UpdateFlags(FilterCacheType::BOTH, false, false);
         return;
     }
-
     // when blur filter changes, we need to clear filtered cache if it valid.
     UpdateFlags(filterHashChanged_ ?
-        FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true);
-    cacheUpdateInterval_--;
+        FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true, false);
 }
 
 bool RSFilterDrawable::IsFilterCacheValid() const
 {
     return isFilterCacheValid_;
+}
+
+bool RSFilterDrawable::GetFilterForceClearCache() const
+{
+    return forceClearCache_;
 }
 
 void RSFilterDrawable::RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter)
@@ -308,10 +308,21 @@ void RSFilterDrawable::ClearFilterCache()
     cacheManager_->InvalidateFilterCache(clearType_);
 }
 
-void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
+void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid, bool forceResetInterval)
 {
     clearType_ = type;
     isFilterCacheValid_ = cacheValid;
+    if (forceResetInterval) {
+        cacheUpdateInterval_ = 0;
+        return;
+    }
+    if (cacheValid) {
+        cacheUpdateInterval_--;
+        return;
+    }
+    cacheUpdateInterval_ = rotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL :
+        (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL :
+        (isLargeArea_ && canSkipFrame_ ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0));
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
