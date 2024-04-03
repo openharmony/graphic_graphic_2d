@@ -72,11 +72,12 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue> bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_SET_DEFAULT_USAGE] = &BufferQueueProducer::SetDefaultUsageRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_TRANSFORMHINT] = &BufferQueueProducer::GetTransformHintRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_TRANSFORMHINT] = &BufferQueueProducer::SetTransformHintRemote;
+    memberFuncMap_[BUFFER_PRODUCER_UNREGISTER_DEATH_RECIPIENT] = &BufferQueueProducer::UnregisterDeathRecipient;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
 {
-    if (token_ && producerSurfaceDeathRecipient_) {
+    if (token_ && producerSurfaceDeathRecipient_ && isAddDeathRecipient_) {
         token_->RemoveDeathRecipient(producerSurfaceDeathRecipient_);
     }
 }
@@ -486,6 +487,28 @@ int32_t BufferQueueProducer::RegisterDeathRecipient(MessageParcel &arguments, Me
     }
     bool result = token_->AddDeathRecipient(producerSurfaceDeathRecipient_);
     if (result) {
+        isAddDeathRecipient_ = true;
+        reply.WriteInt32(GSERROR_OK);
+    } else {
+        reply.WriteInt32(GSERROR_NO_ENTRY);
+    }
+    return 0;
+}
+
+int32_t BufferQueueProducer::UnregisterDeathRecipient(MessageParcel &arguments, MessageParcel &reply,
+                                                      MessageOption &option)
+{
+    token_ = arguments.ReadRemoteObject();
+    if (token_ == nullptr) {
+        reply.WriteInt32(GSERROR_INVALID_ARGUMENTS);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    bool result = true;
+    if (isAddDeathRecipient_) {
+        result = token_->RemoveDeathRecipient(producerSurfaceDeathRecipient_);
+    }
+    if (result) {
+        isAddDeathRecipient_ = false;
         reply.WriteInt32(GSERROR_OK);
     } else {
         reply.WriteInt32(GSERROR_NO_ENTRY);
@@ -882,7 +905,12 @@ sptr<NativeSurface> BufferQueueProducer::GetNativeSurface()
     return nullptr;
 }
 
-GSError BufferQueueProducer::SendDeathRecipientObject()
+GSError BufferQueueProducer::SendAddDeathRecipientObject()
+{
+    return GSERROR_OK;
+}
+
+GSError BufferQueueProducer::SendRemoveDeathRecipientObject()
 {
     return GSERROR_OK;
 }
