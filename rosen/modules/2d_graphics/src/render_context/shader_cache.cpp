@@ -87,7 +87,11 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
 {
     RS_TRACE_NAME("Load shader");
     size_t keySize = key.GetSize();
-    std::lock_guard<std::mutex> lock(mutex_);
+    OptionalLockGuard lock(mutex_);
+    if (!lock.status) {
+        LOGD("load: locked_ failed");
+        return nullptr;
+    }
     if (!initialized_) {
         LOGD("load: failed because ShaderCache is not initialized");
         return nullptr;
