@@ -41,9 +41,12 @@ enum class RsParallelType {
 };
 
 enum class RsSurfaceCaptureType {
-    RS_SURFACE_CAPTURE_TYPE_RENDER_THREAD = 0,         // 0, Run SurfaceCapture in render thread, default type
-    RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD = 1,           // 1, Run SurfaceCapture in main thread
-    RS_SURFACE_CAPTURE_TYPE_RENDER_THREAD_VISITOR = 2, // 2, Run SurfaceCapture in render thread using RSSurfaceCaptureVisitor
+    // 0, Run SurfaceCapture in render thread, default type
+    RS_SURFACE_CAPTURE_TYPE_RENDER_THREAD = 0,
+    // 1, Run SurfaceCapture in main thread
+    RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD = 1,
+    // 2, Run SurfaceCapture in render thread using RSSurfaceCaptureVisitor
+    RS_SURFACE_CAPTURE_TYPE_RENDER_THREAD_VISITOR = 2,
 };
 
 class RSB_EXPORT RSSystemParameters final {

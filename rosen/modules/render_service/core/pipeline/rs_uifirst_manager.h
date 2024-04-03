@@ -79,7 +79,8 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> subthreadProcessingNode_;
     std::set<NodeId> processingNodeSkipSync_;
     std::set<NodeId> processingNodePartialSync_;
-    std::unordered_map<NodeId, std::vector<std::shared_ptr<RSRenderNode>>> pendingSyncForSkipBefore_; // (instanceId, vector<needsync_node>)
+    // (instanceId, vector<needsync_node>)
+    std::unordered_map<NodeId, std::vector<std::shared_ptr<RSRenderNode>>> pendingSyncForSkipBefore_;
 
     // use in RT & subThread
     std::mutex childernDrawableMutex_;

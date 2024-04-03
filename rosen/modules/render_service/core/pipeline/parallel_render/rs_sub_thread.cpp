@@ -175,7 +175,8 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 {
     RS_TRACE_NAME("RSSubThread::RenderCache");
     if (threadTask == nullptr || threadTask->GetTaskSize() == 0) {
-        RS_LOGE("RSSubThread::RenderCache threadTask == nullptr %p || threadTask->GetTaskSize() == 0 %d",threadTask.get(), int(threadTask->GetTaskSize()));
+        RS_LOGE("RSSubThread::RenderCache threadTask == nullptr %p || threadTask->GetTaskSize() == 0 %d",
+            threadTask.get(), int(threadTask->GetTaskSize()));
         return;
     }
     if (grContext_ == nullptr) {
@@ -272,8 +273,9 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
 
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
-        DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
-            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+        DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(
+            &RSUniRenderUtil::ClearNodeCacheSurface, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3, std::placeholders::_4);
         nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_);
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     }
@@ -302,16 +304,20 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     if (uifirstDebug) {
         Drawing::Brush rectBrush;
+        // Alpha 128, blue 255
         rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
         rscanvas->AttachBrush(rectBrush);
+        // Left 800, top 500, width 1000, height 700
         rscanvas->DrawRect(Drawing::Rect(800, 500, 1000, 700));
         rscanvas->DetachBrush();
     }
     nodeDrawable->SubDraw(*rscanvas);
     if (uifirstDebug) {
         Drawing::Brush rectBrush;
+        // Alpha 128, blue 255
         rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
         rscanvas->AttachBrush(rectBrush);
+        // Left 300, top 500, width 500, height 700
         rscanvas->DrawRect(Drawing::Rect(300, 500, 500, 700));
         rscanvas->DetachBrush();
     }
@@ -355,9 +361,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
 #else
     cacheSurface->FlushAndSubmit(true);
 #endif
-        
     }
-    
     nodeDrawable->UpdateBackendTexture();
     RSMainThread::Instance()->PostTask([]() {
         RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);

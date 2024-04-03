@@ -150,7 +150,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (!isDrawingCacheEnabled_){
+    if (!isDrawingCacheEnabled_) {
         RSRenderNodeDrawable::OnDraw(canvas);
         return;
     }
@@ -187,10 +187,10 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         }
         case DrawableCacheType::CONTENT: {
             RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", renderNode_->GetId());
-             DrawBackground(canvas, params.GetBounds());
-             DrawCachedImage(*curCanvas, params.GetCacheSize());
-             DrawForeground(canvas, params.GetBounds());
-             DrawDfxForCache(canvas, params.GetBounds());
+            DrawBackground(canvas, params.GetBounds());
+            DrawCachedImage(*curCanvas, params.GetCacheSize());
+            DrawForeground(canvas, params.GetBounds());
+            DrawDfxForCache(canvas, params.GetBounds());
             break;
         }
         default:
@@ -206,7 +206,7 @@ void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawin
     Drawing::Rect dst;
     canvas.GetTotalMatrix().MapRect(dst, rect);
     RectI dfxRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
-        static_cast<int>(dst.GetWidth()),static_cast<int>(dst.GetHeight()));
+        static_cast<int>(dst.GetWidth()), static_cast<int>(dst.GetHeight()));
     drawingCacheRects_.emplace_back(dfxRect);
 }
 
@@ -219,8 +219,6 @@ DrawableCacheType RSRenderNodeDrawable::GetCacheType() const
 {
     return cacheType_;
 }
-
-
 
 std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t threadId) const
 {

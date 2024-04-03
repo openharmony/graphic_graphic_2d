@@ -29,7 +29,7 @@ namespace OHOS::Rosen {
 
 class RSDirtyRectsDfx {
 public:
-    RSDirtyRectsDfx(std::shared_ptr<RSDisplayRenderNode> targetNode) : targetNode_(targetNode) {}
+    explicit RSDirtyRectsDfx(std::shared_ptr<RSDisplayRenderNode> targetNode) : targetNode_(targetNode) {}
     ~RSDirtyRectsDfx() = default;
 
     enum class RSPaintStyle { FILL, STROKE };

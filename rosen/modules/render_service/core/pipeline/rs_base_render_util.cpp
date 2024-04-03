@@ -1301,8 +1301,7 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
 
 bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo)
 {
-    if (!RSSystemProperties::GetDumpImgEnabled())
-    {
+    if (!RSSystemProperties::GetDumpImgEnabled()) {
         return false;
     }
     if (!surface) {
@@ -1337,8 +1336,7 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::S
 
 bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo)
 {
-    if (!RSSystemProperties::GetDumpImgEnabled())
-    {
+    if (!RSSystemProperties::GetDumpImgEnabled()) {
         return false;
     }
     struct timeval now;

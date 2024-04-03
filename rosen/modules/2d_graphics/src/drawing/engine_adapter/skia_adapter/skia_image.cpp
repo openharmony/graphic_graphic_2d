@@ -50,7 +50,8 @@ SkiaImage::SkiaImage(sk_sp<SkImage> skImg) noexcept
     skiaImage_ = skImg;
 }
 
-SkiaImage::~SkiaImage() {
+SkiaImage::~SkiaImage()
+{
     PostSkImgToTargetThread();
 }
 

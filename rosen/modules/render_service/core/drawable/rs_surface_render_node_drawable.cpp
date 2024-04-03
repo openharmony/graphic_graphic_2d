@@ -66,8 +66,8 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
     return new RSSurfaceRenderNodeDrawable(std::move(node));
 }
 
-Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
-   std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRenderParams *surfaceParams,
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const
 {
     Drawing::Region resultRegion;
     if (!surfaceParams->IsMainWindowType()) {
@@ -446,14 +446,18 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surf
         if (uniParams.GetUIFirstDebugEnabled()) { // DFX for uifirst
             if (drawCacheSuccess) {
                 Drawing::Brush rectBrush;
+                // Alpha 128, blue 255
                 rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
                 canvas.AttachBrush(rectBrush);
+                // Left 300, width 500, height 200
                 canvas.DrawRect(Drawing::Rect(300, 0, 500, 200));
                 canvas.DetachBrush();
             } else {
                 Drawing::Brush rectBrush;
+                // Alpha 128, blue 255
                 rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
                 canvas.AttachBrush(rectBrush);
+                // Left 800, width 1000, height 200
                 canvas.DrawRect(Drawing::Rect(800, 0, 1000, 200));
                 canvas.DetachBrush();
             }

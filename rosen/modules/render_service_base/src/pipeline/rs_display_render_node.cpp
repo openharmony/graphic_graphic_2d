@@ -32,7 +32,8 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
-    syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ? std::make_shared<RSDirtyRegionManager>(true) : dirtyManager_;
+    syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ?
+        std::make_shared<RSDirtyRegionManager>(true) : dirtyManager_;
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
@@ -182,7 +183,7 @@ void RSDisplayRenderNode::OnSync()
 
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
 {
-   curMainAndLeashSurfaceNodes_.push_back(surface);
+    curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
 void RSDisplayRenderNode::UpdateRenderParams()
@@ -200,8 +201,9 @@ void RSDisplayRenderNode::UpdateRenderParams()
     RSRenderNode::UpdateRenderParams();
 }
 
-void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
-        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& hasCaptureWindow)
+void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
+    std::map<ScreenId, bool>& displayHasSecSurface, std::map<ScreenId, bool>& displayHasSkipSurface,
+    std::map<ScreenId, bool>& hasCaptureWindow)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {

@@ -1180,7 +1180,8 @@ void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, Drawing
     Vector4f lightIntensityV4;
     constexpr int MAX_LIGHT_SOUCES = 4;
     while (iter != lightSources.end() && cnt < MAX_LIGHT_SOUCES) {
-        auto lightPos = RSPointLightManager::Instance()->CalculateLightPosForIlluminated(*(*iter), geoPtr->GetAbsRect());
+        auto lightPos = RSPointLightManager::Instance()->CalculateLightPosForIlluminated(*(*iter),
+            geoPtr->GetAbsRect());
         auto lightIntensity = (*iter)->GetLightIntensity();
         lightIntensityV4[cnt] = lightIntensity;
         lightPositionMatrix.SetCol(cnt, lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_);

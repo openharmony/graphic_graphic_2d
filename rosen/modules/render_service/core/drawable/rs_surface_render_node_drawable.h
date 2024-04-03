@@ -67,7 +67,7 @@ public:
 
     std::string GetDebugInfo()
     {
-        std::string res="pid_";
+        std::string res = "pid_";
         res.append("_name_");
         res.append(std::static_pointer_cast<const RSSurfaceRenderNode>(renderNode_)->GetName());
         return res;
@@ -83,13 +83,15 @@ public:
         return cacheSurface_;
     }
 
-    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread, bool releaseAfterGet = false);
+    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
+        bool releaseAfterGet = false);
     bool NeedInitCacheSurface();
     bool NeedInitCacheCompletedSurface() ;
     bool IsCacheSurfaceValid() const;
-    std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
-    std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,bool releaseAfterGet);
-
+    std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
+        bool isUIFirst);
+    std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,
+        bool releaseAfterGet);
 
     using ClearCacheSurfaceFunc =
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
@@ -189,7 +191,6 @@ private:
     pid_t lastFrameUsedThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 #endif
-
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

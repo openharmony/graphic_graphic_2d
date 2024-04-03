@@ -281,7 +281,7 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
 RSDrawable::Ptr RSBackgroundColorDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (node.IsInstanceOf<RSSurfaceRenderNode>()) {
-        return nullptr; 
+        return nullptr;
     }
     if (auto ret = std::make_shared<RSBackgroundColorDrawable>(); ret->OnUpdate(node)) {
         return std::move(ret);
@@ -399,7 +399,7 @@ RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
     if (filterDrawable->OnUpdate(node)) {
         return filterDrawable;
     }
-    return nullptr; 
+    return nullptr;
 }
 
 bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)

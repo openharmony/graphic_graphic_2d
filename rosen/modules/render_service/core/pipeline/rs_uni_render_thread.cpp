@@ -76,9 +76,7 @@ RSUniRenderThread& RSUniRenderThread::Instance()
 }
 
 RSUniRenderThread::RSUniRenderThread()
-{
-
-}
+{}
 
 RSUniRenderThread::~RSUniRenderThread() noexcept {}
 

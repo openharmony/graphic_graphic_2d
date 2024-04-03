@@ -106,8 +106,7 @@ public:
 private:
 };
 
-class RSFilterDrawable : public RSDrawable
-{
+class RSFilterDrawable : public RSDrawable {
 public:
     RSFilterDrawable();
     ~RSFilterDrawable() override = default;
@@ -155,7 +154,7 @@ protected:
     bool rotationChanged_ = false;
     bool hasEffectChildren_ = false;
  
-    // clear one of snapshot cache and filtered cache after drawing 
+    // clear one of snapshot cache and filtered cache after drawing
     bool stagingForceUseCache_ = false;
     bool stagingHasEffectChildren_ = false;
  

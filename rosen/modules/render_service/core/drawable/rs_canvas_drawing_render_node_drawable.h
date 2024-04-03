@@ -45,8 +45,6 @@ public:
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
 
-    
-
     uint32_t GetTid() const
     {
         return curThreadInfo_.first;

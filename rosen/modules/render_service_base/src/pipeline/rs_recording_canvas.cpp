@@ -24,7 +24,7 @@ namespace Rosen {
 ExtendRecordingCanvas::ExtendRecordingCanvas(int32_t width, int32_t height, bool addDrawOpImmediate)
     : Drawing::RecordingCanvas(width, height, addDrawOpImmediate) {}
 
-std::unique_ptr<ExtendRecordingCanvas> ExtendRecordingCanvas::Obtain(int32_t width, int32_t height, 
+std::unique_ptr<ExtendRecordingCanvas> ExtendRecordingCanvas::Obtain(int32_t width, int32_t height,
     bool addDrawOpImmediate)
 {
     std::unique_ptr<ExtendRecordingCanvas> canvas = nullptr;

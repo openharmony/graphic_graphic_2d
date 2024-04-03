@@ -225,7 +225,7 @@ void RSRenderParams::SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionI
 {
     if (dirtyRegionInfoForDFX_ == dirtyRegionInfo) {
         return;
-    }   
+    }
     dirtyRegionInfoForDFX_ = dirtyRegionInfo;
     needSync_ = true;
 }
@@ -244,7 +244,7 @@ void RSRenderParams::SetFrameGravity(Gravity gravity)
 {
     if (frameGravity_ == gravity) {
         return;
-    }   
+    }
     frameGravity_ = gravity;
     needSync_ = true;
 }

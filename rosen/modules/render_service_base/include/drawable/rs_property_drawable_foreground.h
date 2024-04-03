@@ -124,10 +124,10 @@ private:
     float borderWidth_ = 0.0f;
     void DrawLight(Drawing::Canvas* canvas) const;
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
-    void DrawContentLight(Drawing::Canvas& canvas,
-        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity) const;
-    void DrawBorderLight(Drawing::Canvas& canvas,
-        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity) const;
+    void DrawContentLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
+        Drawing::Brush& brush,Vector4f& lightIntensity) const;
+    void DrawBorderLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
+        Drawing::Pen& pen, Vector4f& lightIntensity) const;
 };
 
 // ============================================================================

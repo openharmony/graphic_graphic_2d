@@ -156,8 +156,8 @@ void RSSurfaceRenderNodeDrawable::SetCacheSurfaceProcessedStatus(CacheProcessSta
     uiFirstParams.cacheProcessStatus_.store(cacheProcessStatus);
 }
 
-std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
-    bool releaseAfterGet)
+std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(uint32_t threadIndex,
+    bool needCheckThread, bool releaseAfterGet)
 {
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
@@ -174,8 +174,8 @@ std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(u
     return nullptr;
 }
 
-std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,
-    bool releaseAfterGet)
+std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCompletedCacheSurface(uint32_t threadIndex,
+    bool needCheckThread, bool releaseAfterGet)
 {
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
@@ -236,7 +236,8 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
             OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
             if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
-                RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage !cacheCompletedSurface_ %p || !cacheCompletedCleanupHelper_ %p",cacheCompletedSurface_.get(), cacheCompletedSurface_.get());
+                RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage surface %p cleanupHelper %p",
+                    cacheCompletedSurface_.get(), cacheCompletedSurface_.get());
                 return nullptr;
             }
         }
@@ -336,7 +337,8 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     return true;
 }
 
-void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
+void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func,
+    uint32_t threadIndex)
 {
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
@@ -353,7 +355,8 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
         cacheSurface_ = nullptr;
     }
 
-    float width = 0.0f, height = 0.0f;
+    float width = 0.0f;
+    float height = 0.0f;
     if (auto& params = GetRenderNode()->GetRenderParams()) {
         auto size = params->GetCacheSize();
         boundsWidth_ = size.x_;

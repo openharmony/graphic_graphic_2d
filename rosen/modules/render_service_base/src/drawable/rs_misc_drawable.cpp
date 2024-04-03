@@ -67,7 +67,8 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
         }
     }
     // merge pendingChildren into stagingChildrenDrawableVec_
-    stagingChildrenDrawableVec_.insert(stagingChildrenDrawableVec_.end(), pendingChildren.begin(), pendingChildren.end());
+    stagingChildrenDrawableVec_.insert(stagingChildrenDrawableVec_.end(), pendingChildren.begin(),
+        pendingChildren.end());
     return !stagingChildrenDrawableVec_.empty();
 }
 
@@ -92,7 +93,8 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
     }
     if (isLower) {
         // for lower hierarchy node, we skip it here, and add to unpaired share transitions
-        SharedTransitionParam::unpairedShareTransitions_.emplace(sharedTransitionParam->inNodeId_, sharedTransitionParam);
+        SharedTransitionParam::unpairedShareTransitions_.emplace(sharedTransitionParam->inNodeId_,
+            sharedTransitionParam);
     } else {
         // for higher hierarchy node, we add paired node (lower in hierarchy) first, then add it
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {

@@ -270,8 +270,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas, const std::sha
     filter->PostProcess(*canvas);
 }
 
-void RSPropertyDrawableUtils::DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-    const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool forceCache)
+void RSPropertyDrawableUtils::DrawBackgroundEffect(RSPaintFilterCanvas* canvas,
+    const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
+    const bool forceCache)
 {
     if (rsFilter == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");
@@ -285,12 +286,12 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(RSPaintFilterCanvas* canvas, 
     auto clipIBounds = canvas->GetDeviceClipBounds();
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-     // Optional use cacheManager to draw filter
-     if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
-         cacheManager->SetForceCache(forceCache);
-         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
-         canvas->SetEffectData(data);
-         return;
+    // Optional use cacheManager to draw filter
+    if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
+        cacheManager->SetForceCache(forceCache);
+        auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
+        canvas->SetEffectData(data);
+        return;
      }
 #endif
     auto imageRect = clipIBounds;
@@ -619,7 +620,7 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     Drawing::Rect srcRect = dstRect;
     srcRect.Offset(-effectData->cachedRect_.GetLeft(), -effectData->cachedRect_.GetTop());
     canvas->DrawImageRect(*effectData->cachedImage_, srcRect, dstRect,
-                         Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas->DetachBrush();
 }
 
