@@ -2593,16 +2593,15 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
-    auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-    if (gpuContext != nullptr) {
-        if (pid != 0) {
-            MemoryManager::DumpPidMemory(log, pid, gpuContext);
-        } else {
-            MemoryManager::DumpMemoryUsage(log, gpuContext, type);
-        }
-    }
-    if (type.empty() || type == MEM_GPU_TYPE) {
-        RSUniRenderThread::Instance().DumpMem(log);
+    if (pid != 0) {
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    RSUniRenderThread::Instance().PostSyncTask([&log, pid] {
+        MemoryManager::DumpPidMemory(log, pid,
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    });
+#endif
+    } else {
+        MemoryManager::DumpMemoryUsage(log, type);
     }
     if (type.empty() || type == MEM_GPU_TYPE) {
         auto subThreadManager = RSSubThreadManager::Instance();

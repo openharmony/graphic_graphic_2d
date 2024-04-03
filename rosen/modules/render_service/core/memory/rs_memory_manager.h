@@ -26,7 +26,7 @@ namespace OHOS::Rosen {
 
 class MemoryManager {
 public:
-    static void DumpMemoryUsage(DfxString& log, const Drawing::GPUContext* gpuContext, std::string& type);
+    static void DumpMemoryUsage(DfxString& log, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
     static MemoryGraphic CountSubMemory(int pid, const Drawing::GPUContext* gpuContext);
     static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext);
