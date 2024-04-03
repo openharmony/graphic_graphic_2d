@@ -703,6 +703,7 @@ void RSSurfaceNode::MarkUiFrameAvailable(bool available)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, false);
+        transactionProxy->FlushImplicitTransaction();
     }
 }
 
