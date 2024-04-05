@@ -17,6 +17,7 @@
 
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
@@ -152,11 +153,23 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     needSync_ = true;
     stagingDrawCmdListVec_.clear();
-    for (const auto& modifier : itr->second) {
-        auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
-        if (const auto& drawCmdList = property->GetRef()) {
-            if (drawCmdList->GetWidth() > 0 && drawCmdList->GetHeight() > 0) {
-                stagingDrawCmdListVec_.push_back(drawCmdList);
+    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto& drawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
+        auto& cmdLists = drawingNode.GetDrawCmdLists();
+        auto itr = cmdLists.find(type_);
+        if (itr == cmdLists.end() || itr->second.empty()) {
+            return false;
+        }
+        for(auto& cmd : itr->second) {
+            stagingDrawCmdListVec_.emplace_back(cmd);
+        }
+    } else {
+        for (const auto& modifier : itr->second) {
+            auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
+            if (const auto& drawCmdList = property->GetRef()) {
+                if (drawCmdList->GetWidth() > 0 && drawCmdList->GetHeight() > 0) {
+                    stagingDrawCmdListVec_.push_back(drawCmdList);
+                }
             }
         }
     }

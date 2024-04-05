@@ -64,7 +64,7 @@ public:
 
     uint32_t GetTid() const;
 
-    void OnApplyModifiers() override;
+    void AddDirtyType(RSModifierType type) override;
     void ClearOp();
     void ResetSurface();
     bool IsNeedProcess() const
@@ -73,7 +73,7 @@ public:
     }
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
-
+    const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
