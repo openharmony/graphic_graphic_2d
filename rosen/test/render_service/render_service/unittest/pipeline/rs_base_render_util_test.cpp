@@ -23,6 +23,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr Rect RECT_ONE = {0, 0, 100, 100};
+constexpr Rect RECT_TWO = {100, 100, 100, 100};
+constexpr Rect RECT_RESULT = {0, 0, 200, 200};
 class RSBaseRenderUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -180,6 +183,23 @@ HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level2)
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
     ASSERT_EQ(OHOS::GSERROR_NO_CONSUMER, RSBaseRenderUtil::DropFrameProcess(surfaceHandler));
+}
+
+/*
+ * @tc.name: MergeBufferDamages_001
+ * @tc.desc: check MergeBufferDamages result
+ * @tc.type: FUNC
+ * @tc.require: #I9E60C
+ */
+HWTEST_F(RSBaseRenderUtilTest, MergeBufferDamages_001, TestSize.Level2)
+{
+    std::vector<Rect> damages;
+    damages.push_back(RECT_ONE);
+    damages.push_back(RECT_TWO);
+    Rect damageAfterMerge = RSBaseRenderUtil::MergeBufferDamages(damages);
+    bool compareResult = (damageAfterMerge.x == RECT_RESULT.x) && (damageAfterMerge.y == RECT_RESULT.y) &&
+        (damageAfterMerge.w == RECT_RESULT.w) && (damageAfterMerge.h == RECT_RESULT.h);
+    ASSERT_EQ(true, compareResult);
 }
 
 /*
