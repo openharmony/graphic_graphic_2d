@@ -2044,13 +2044,6 @@ void RSRenderNode::UpdateShouldPaint()
     // alpha is not zero
     shouldPaint_ = (GetRenderProperties().GetAlpha() > 0.0f) &&
         (GetRenderProperties().GetVisible() || HasDisappearingTransition(false));
-// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-//     if (!shouldPaint_) {
-//         // clear filter cache when node is not visible
-//         GetMutableRenderProperties().ClearFilterCache();
-//         GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
-//     }
-// #endif
 }
 
 void RSRenderNode::SetSharedTransitionParam(const std::shared_ptr<SharedTransitionParam>& sharedTransitionParam)
@@ -2759,63 +2752,7 @@ RectI RSRenderNode::GetFilterRect() const
 void RSRenderNode::UpdateFullScreenFilterCacheRect(
     RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
-// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-//     auto& renderProperties = GetRenderProperties();
-//     auto& manager = renderProperties.GetFilterCacheManager(isForeground);
-//     // Record node's cache area if it has valid filter cache
-//     // If there are any invalid caches under full screen cache filter, the occlusion should be invalidated
-//     if (!manager->IsCacheValid() && dirtyManager.IsCacheableFilterRectEmpty()) {
-//         dirtyManager.InvalidateFilterCacheRect();
-//     } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(renderProperties.GetCornerRadius().x_, 0.0f) &&
-//         manager->GetCachedImageRegion() == dirtyManager.GetSurfaceRect() && !IsInstanceOf<RSEffectRenderNode>()) {
-//         // Only record full screen filter cache for occlusion calculation
-//         dirtyManager.UpdateCacheableFilterRect(manager->GetCachedImageRegion());
-//     }
-// #endif
 }
-
-// void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-//     RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect)
-// {
-// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-//     if (!RSProperties::FilterCacheEnabled) {
-//         return;
-//     }
-//     auto& renderProperties = GetRenderProperties();
-//     if (!renderProperties.NeedFilter()) {
-//         return;
-//     }
-//     auto filterRect = GetFilterRect();
-//     if (clipRect.has_value()) {
-//         filterRect.IntersectRect(*clipRect);
-//     }
-
-//     // background filter
-//     if (auto& manager = renderProperties.GetFilterCacheManager(false)) {
-//         // invalidate cache if filter region is not inside of cached image region
-//         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
-//             manager->UpdateCacheStateWithFilterRegion();
-//             if (auto context = GetContext().lock()) {
-//                 RS_TRACE_NAME_FMT("background filter of node Id:%" PRIu64 " is invalid", GetId());
-//                 context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
-//             }
-//         }
-//         UpdateFullScreenFilterCacheRect(dirtyManager, false);
-//     }
-//     // foreground filter
-//     if (auto& manager = renderProperties.GetFilterCacheManager(true)) {
-//         // invalidate cache if filter region is not inside of cached image region
-//         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
-//             manager->UpdateCacheStateWithFilterRegion();
-//             if (auto context = GetContext().lock()) {
-//                 RS_TRACE_NAME_FMT("foreground filter of node Id:%" PRIu64 " is invalid", GetId());
-//                 context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
-//             }
-//         }
-//         UpdateFullScreenFilterCacheRect(dirtyManager, true);
-//     }
-// #endif
-// }
 
 void RSRenderNode::OnTreeStateChanged()
 {
@@ -2830,13 +2767,6 @@ void RSRenderNode::OnTreeStateChanged()
         }
         SetSharedTransitionParam(nullptr);
     }
-// #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-//     if (!isOnTheTree_) {
-//         // clear filter cache when node is removed from tree
-//         GetMutableRenderProperties().ClearFilterCache();
-//         GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
-//     }
-// #endif
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const

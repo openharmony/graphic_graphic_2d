@@ -173,7 +173,8 @@ using GraphicMatrix = struct GraphicMatrix {
     float pers1;    /* input y-axis perspective factor */
     float pers2;    /* perspective scale factor */
 
-    inline static bool floatEqual(float x, float y) {
+    inline static bool floatEqual(float x, float y)
+    {
         return (std::abs((x) - (y)) <= (std::numeric_limits<float>::epsilon()));
     }
 

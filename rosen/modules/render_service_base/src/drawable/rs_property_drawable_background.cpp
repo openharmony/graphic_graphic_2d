@@ -127,12 +127,6 @@ bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
     RSColor colorPicked;
     if (properties.GetColorPickerCacheTaskShadow() != nullptr &&
         properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        // if (RSPropertyDrawableUtils::PickColor(canvas, properties.GetColorPickerCacheTaskShadow(), path, matrix,
-        //     colorPicked)) {
-        //     RSPropertyDrawableUtils::GetDarkColor(colorPicked);
-        // } else {
-        //     shadowAlpha = 0;
-        // }
         if (!properties.GetColorPickerCacheTaskShadow()->GetFirstGetColorFinished()) {
             shadowAlpha = 0;
         }
@@ -196,10 +190,6 @@ bool RSColorfulShadowDrawable::OnUpdate(const RSRenderNode& node)
     canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, false);
     // draw node content as shadow
     // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
-    // TODO
-    // if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(properties.backref_.lock())) {
-    //     node->InternalDrawContent(canvas);
-    // }
     return true;
 }
 

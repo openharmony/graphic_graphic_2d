@@ -162,13 +162,7 @@ public:
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
 
-    // blendmode related
-    // int SaveBlendMode();
-    // void RestoreBlendMode();
     void SetBlendMode(std::optional<int> blendMode);
-    // void AddBlendOffscreenLayer(bool isExtra);
-    // void MinusBlendOffscreenLayer();
-    // bool IsBlendOffscreenExtraLayer() const;
     int GetBlendOffscreenLayerCnt() const
     {
         return 0;

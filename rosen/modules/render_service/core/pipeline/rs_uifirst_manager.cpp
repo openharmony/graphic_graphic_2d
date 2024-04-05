@@ -116,7 +116,6 @@ void RSUifirstManager::ProcessDoneNode()
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end(); it++) {
         pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
     }
-    //PurgePendingPostNodes();
 }
 
 void RSUifirstManager::PurgePendingPostNodes()
@@ -330,7 +329,6 @@ void RSUifirstManager::PostUifistSubTasks()
 {
     PurgePendingPostNodes();
     SortSubThreadNodesPriority();
-    //RS_TRACE_NAME_FMT("PostUifistSubTasks num%d", sortedSubThreadNodeIds_.size());
     if (sortedSubThreadNodeIds_.size() > 0) {
         for (auto& id : sortedSubThreadNodeIds_) {
             PostSubTask(id);

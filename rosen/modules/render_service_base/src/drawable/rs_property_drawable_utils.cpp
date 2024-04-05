@@ -218,22 +218,10 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas, const std::sha
         return;
     }
 
-    // for foreground filter, when do online opacity, rendering result already applied opacity,
-    // so drawImage should not apply opacity again
-    // RSAutoCanvasRestore autoCanvasRestore(canvas,
-    //     isForegroundFilter ? RSPaintFilterCanvas::kAlpha : RSPaintFilterCanvas::kNone);
-    // if (isForegroundFilter) {
-    //     canvas->SetAlpha(1.0);
-    // }
-
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         !paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
-        // if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        //     filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
-        //     filter->SetCanvasChange(*paintFilterCanvas);
-        // }
         cacheManager->SetForceCache(forceCache);
         cacheManager->DrawFilter(*paintFilterCanvas, filter, needSnapshotOutset);
         return;
@@ -257,11 +245,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas, const std::sha
     }
 
     filter->PreProcess(imageSnapshot);
-    // if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-    //     filter->SetCanvasChange(*canvas);
-    //     filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
-    // }
-
     Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());

@@ -1855,8 +1855,6 @@ void RSSurfaceRenderNode::UpdateChildHardwareEnabledNode(NodeId id, bool isOnTre
     if (isOnTree) {
         needCollectHwcNode_ = true;
     } else {
-        // EraseIf(childHardwareEnabledNodes_, [&id](const auto& iter)
-        //     { return iter.lock() && iter.lock()->GetId() == id; });
     }
 }
 

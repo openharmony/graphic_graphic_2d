@@ -79,7 +79,6 @@ std::string RSDisplayRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(mirroredId_);
     ret += RENDER_BASIC_PARAM_TO_STRING(compositeType_);
     ret += RENDER_BASIC_PARAM_TO_STRING(allMainAndLeashSurfaces_.size());
-    // ret += RENDER_BASIC_PARAM_TO_STRING(mirrorSource_);
     ret += RENDER_PARAM_TO_STRING(screenInfo_);
     ret += "}";
     return ret;

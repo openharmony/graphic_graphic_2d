@@ -170,10 +170,6 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         if (!surface_ || !canvas_) {
             return;
         }
-        // todo clear op
-        // DrawContent(*canvas_, rect);
-        // DrawForeground(*canvas_, rect);
-        // node->SetNeedProcess(false);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }

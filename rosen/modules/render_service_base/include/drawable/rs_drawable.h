@@ -116,8 +116,6 @@ public:
     using Generator = std::function<Ptr(const RSRenderNode&)>;
 
     // =================virtual functions==================
-    // Call on first create, return nullptr if no need to create
-    // static Ptr OnGenerate(const RSRenderNode& content) { return nullptr; };
 
     // Call on property change, return true if update succeed, false if need destroy
     virtual bool OnUpdate(const RSRenderNode& content)

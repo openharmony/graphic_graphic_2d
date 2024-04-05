@@ -1095,34 +1095,6 @@ void RSPaintFilterCanvas::SetBlendMode(std::optional<int> blendMode)
     envStack_.top().blendMode_ = blendMode;
 }
 
-// std::optional<int> RSPaintFilterCanvas::GetBlendMode()
-// {
-//     return blendModeStack_.empty() ? std::nullopt : blendModeStack_.top();
-// }
-
-// void RSPaintFilterCanvas::AddBlendOffscreenLayer(bool isExtra)
-// {
-//     blendOffscreenStack_.push(isExtra);
-// }
-
-// void RSPaintFilterCanvas::MinusBlendOffscreenLayer()
-// {
-//     if (blendOffscreenStack_.empty()) {
-//         return;
-//     }
-//     blendOffscreenStack_.pop();
-// }
-
-// bool RSPaintFilterCanvas::IsBlendOffscreenExtraLayer() const
-// {
-//     return blendOffscreenStack_.empty() ? false : blendOffscreenStack_.top();
-// }
-
-// int RSPaintFilterCanvas::GetBlendOffscreenLayerCnt() const
-// {
-//     return blendOffscreenStack_.size();
-// }
-
 int RSPaintFilterCanvas::SaveEnv()
 {
     // make a copy of top of stack
