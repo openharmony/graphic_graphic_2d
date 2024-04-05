@@ -382,6 +382,12 @@ public:
 
     // key: symbolSpanID, value:symbol animation node list
     std::unordered_map<uint64_t, std::list<SharedPtr>> canvasNodesListMap;
+
+    void SetInstanceId(int32_t instanceId);
+    int32_t GetInstanceId() const
+    {
+        return instanceId_;
+    }
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -414,6 +420,7 @@ private:
     static void InitUniRenderEnabled();
     NodeId id_;
     NodeId parent_ = 0;
+    int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
     std::string nodeName_ = "";

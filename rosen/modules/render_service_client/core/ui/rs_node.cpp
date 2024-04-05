@@ -2186,5 +2186,11 @@ template bool RSNode::IsInstanceOf<RSCanvasNode>() const;
 template bool RSNode::IsInstanceOf<RSRootNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
 
+void RSNode::SetInstanceId(int32_t instanceId)
+{
+    instanceId_ = instanceId;
+    RSNodeMap::MutableInstance().RegisterNodeInstanceId(id_, instanceId_);
+}
+
 } // namespace Rosen
 } // namespace OHOS

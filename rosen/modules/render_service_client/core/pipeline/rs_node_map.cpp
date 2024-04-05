@@ -70,6 +70,13 @@ bool RSNodeMap::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
     return true;
 }
 
+bool RSNodeMap::RegisterNodeInstanceId(NodeId id, int32_t instanceId)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    nodeIdMap_.emplace(id, instanceId);
+    return true;
+}
+
 void RSNodeMap::UnregisterNode(NodeId id)
 {
     if (!g_instance_valid.load()) {
@@ -78,6 +85,7 @@ void RSNodeMap::UnregisterNode(NodeId id)
     std::unique_lock<std::mutex> lock(mutex_);
     auto itr = nodeMap_.find(id);
     if (itr != nodeMap_.end()) {
+        nodeIdMap_.erase(id);
         nodeMap_.erase(itr);
     } else {
         ROSEN_LOGW("RSNodeMap::UnregisterNode: node id %{public}" PRIu64 " not found", id);
@@ -96,6 +104,19 @@ const std::shared_ptr<RSBaseNode> RSNodeMap::GetNode<RSBaseNode>(NodeId id) cons
         return nullptr;
     }
     return itr->second.lock();
+}
+
+int32_t RSNodeMap::GetNodeInstanceId(NodeId id) const
+{
+    if (!g_instance_valid.load()) {
+        return INSTANCE_ID_UNDEFINED;
+    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto itr = nodeIdMap_.find(id);
+    if (itr == nodeIdMap_.end()) {
+        return INSTANCE_ID_UNDEFINED;
+    }
+    return itr->second;
 }
 
 const std::shared_ptr<RSNode> RSNodeMap::GetAnimationFallbackNode() const
