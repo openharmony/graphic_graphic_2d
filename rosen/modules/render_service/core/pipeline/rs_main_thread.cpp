@@ -702,7 +702,8 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
             RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
             continue;
         }
-        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING ||
+            node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::WAITING) {
             RS_TRACE_NAME("node:[ " + node->GetName() + "]");
             pid_t pid = 0;
             if (node->IsAppWindow()) {
