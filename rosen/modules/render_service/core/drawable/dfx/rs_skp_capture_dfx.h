@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef RENDER_SERVICE_DRAWABLE_DFX_RS_SKP_CAPTURE_DFX_H
+#define RENDER_SERVICE_DRAWABLE_DFX_RS_SKP_CAPTURE_DFX_H
+
 #pragma once
 
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -41,3 +44,4 @@ private:
 };
 
 } // namespace OHOS::Rosen
+#endif // RENDER_SERVICE_DRAWABLE_DFX_RS_SKP_CAPTURE_DFX_H
