@@ -16,6 +16,7 @@
 
 #include "pipeline/rs_uifirst_manager.h"
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -74,7 +75,7 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id)
     if (id == INVALID_NODEID) {
         return;
     }
-    RS_TRACE_NAME_FMT("sub done %lx", id);
+    RS_OPTIONAL_TRACE_NAME_FMT("sub done %lx", id);
     std::lock_guard<std::mutex> lock(childernDrawableMutex_);
     subthreadProcessDoneNode_.push_back(id);
 }
@@ -85,7 +86,7 @@ void RSUifirstManager::ProcessDoneNode()
     {
         std::lock_guard<std::mutex> lock(childernDrawableMutex_);
         if (subthreadProcessDoneNode_.size() == 0) {
-            RS_TRACE_NAME_FMT("ProcessDoneNode no done");
+            RS_OPTIONAL_TRACE_NAME_FMT("ProcessDoneNode no done");
             return;
         }
         std::swap(tmp, subthreadProcessDoneNode_);
@@ -93,7 +94,7 @@ void RSUifirstManager::ProcessDoneNode()
     }
     RS_TRACE_NAME_FMT("ProcessDoneNode num%d", tmp.size());
     for (auto& id : tmp) {
-        RS_TRACE_NAME_FMT("Done %lx", id);
+        RS_OPTIONAL_TRACE_NAME_FMT("Done %lx", id);
         DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
         if (!drawable) {
             continue;
@@ -120,7 +121,7 @@ void RSUifirstManager::ProcessDoneNode()
 
 void RSUifirstManager::PurgePendingPostNodes()
 {
-    RS_TRACE_NAME_FMT("PurgePendingPostNodes");
+    RS_OPTIONAL_TRACE_NAME_FMT("PurgePendingPostNodes");
     auto deviceType = RSMainThread::Instance()->GetDeviceType();
     for (auto it = pendingPostNodes_.begin(); it != pendingPostNodes_.end();)
     {
@@ -134,7 +135,7 @@ void RSUifirstManager::PurgePendingPostNodes()
                     ++it;
                     continue;
                 }
-                RS_TRACE_NAME_FMT("Purge node name %s", surfaceParams->GetName().c_str());
+                RS_OPTIONAL_TRACE_NAME_FMT("Purge node name %s", surfaceParams->GetName().c_str());
                 AddProcessDoneNode(id);
                 it = pendingPostNodes_.erase(it);
             } else {
@@ -148,7 +149,7 @@ void RSUifirstManager::PurgePendingPostNodes()
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: node[%llu] name[%s] FirstLevelNodeId[%llu] ",
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateUifirstNodes: node[%llu] name[%s] FirstLevelNodeId[%llu] ",
         node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId());
     // UIFirst Enable state is signed only when node's firstLevelNode is itself 
     if (node.GetFirstLevelNodeId() == node.GetId() && node.GetUifirstSupportFlag()) {
@@ -173,7 +174,7 @@ void RSUifirstManager::PostSubTask(NodeId id)
         // ref drawable
         subthreadProcessingNode_[id] = drawable;
         // post task
-        RS_TRACE_NAME_FMT("Post_SubTask_s %lx", id);
+        RS_OPTIONAL_TRACE_NAME_FMT("Post_SubTask_s %lx", id);
         RSSubThreadManager::Instance()->ScheduleRenderNodeDrawable(
             static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable.get()));
     }
@@ -183,7 +184,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
 {
     processingNodeSkipSync_.clear();
     processingNodePartialSync_.clear();
-    RS_TRACE_NAME_FMT("UpdateSkipSyncNode doning%d", subthreadProcessingNode_.size());
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSkipSyncNode doning%d", subthreadProcessingNode_.size());
     if (subthreadProcessingNode_.size() == 0) {
         return;
     }
@@ -210,7 +211,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
 
 void RSUifirstManager::ProcessSubDoneNode()
 {
-    RS_TRACE_NAME_FMT("ProcessSubDoneNode");
+    RS_OPTIONAL_TRACE_NAME_FMT("ProcessSubDoneNode");
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
@@ -244,7 +245,7 @@ void RSUifirstManager::RestoreSkipSyncNode()
     for (auto& it : pendingSyncForSkipBefore_) {
         if (processingNodeSkipSync_.count(it.first) == 0 && processingNodePartialSync_.count(it.first) == 0) {
             todele.push_back(it.first);
-            RS_TRACE_NAME_FMT("RestoreSkipSyncNode %lx num%d", it.first, it.second.size());
+            RS_OPTIONAL_TRACE_NAME_FMT("RestoreSkipSyncNode %lx num%d", it.first, it.second.size());
             for (auto& node : it.second) {
                 node->SetUifirstSkipPartialSync(false);
                 node->SetUifirstSyncFlag(true); // child sync but child will not use, TODO, only sync root
@@ -259,6 +260,7 @@ void RSUifirstManager::RestoreSkipSyncNode()
 
 void RSUifirstManager::ClearSubthreadRes()
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("ClearSubthreadRes");
     if (noUifirstNodeFrameCount_ < CLEAR_RES_THRESHOLD && subthreadProcessingNode_.size() == 0 &&
         pendingSyncForSkipBefore_.size() == 0 && reuseNodes_.size() == 0) {
         ++noUifirstNodeFrameCount_;
@@ -335,7 +337,6 @@ void RSUifirstManager::PostUifistSubTasks()
         }
         pendingPostNodes_.clear();
     } else {
-        RS_TRACE_NAME_FMT("ClearSubthreadRes");
         ClearSubthreadRes();
     }
 }
