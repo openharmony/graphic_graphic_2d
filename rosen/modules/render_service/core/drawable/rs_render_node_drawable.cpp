@@ -132,20 +132,6 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         UpdateCacheSurface(canvas, params);
         curCanvas->SetCacheType(canvasType);
     }
-
-    // 2. traverse children to draw filter/shadow/effect
-    Drawing::AutoCanvasRestore arc(*curCanvas, true);
-    bool isOpDropped = isOpDropped_;
-    isOpDropped_ = false;
-    drawBlurForCache_ = true;
-    auto drawableCacheType = GetCacheType();
-    SetCacheType(DrawableCacheType::NONE);
-    RS_TRACE_NAME_FMT("DrawBlurForCache id:%llu", renderNode_->GetId());
-
-    RSRenderNodeDrawable::OnDraw(canvas);
-    SetCacheType(drawableCacheType);
-    isOpDropped_ = isOpDropped;
-    drawBlurForCache_ = false;
 }
 
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
@@ -153,6 +139,23 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     if (!isDrawingCacheEnabled_) {
         RSRenderNodeDrawable::OnDraw(canvas);
         return;
+    }
+    
+    bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
+    if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE)
+        // traverse children to draw filter/shadow/effect
+        Drawing::AutoCanvasRestore arc(canvas, true);
+        bool isOpDropped = isOpDropped_;
+        isOpDropped_ = false;
+        drawBlurForCache_ = true;
+        auto drawableCacheType = GetCacheType();
+        SetCacheType(DrawableCacheType::NONE);
+        RS_TRACE_NAME_FMT("DrawBlurForCache id:%llu", renderNode_->GetId());
+
+        RSRenderNodeDrawable::OnDraw(canvas);
+        SetCacheType(drawableCacheType);
+        isOpDropped_ = isOpDropped;
+        drawBlurForCache_ = false;
     }
 
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
