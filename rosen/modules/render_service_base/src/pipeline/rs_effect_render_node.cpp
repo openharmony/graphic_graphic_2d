@@ -145,7 +145,7 @@ void RSEffectRenderNode::MarkFilterCacheFlagsAfterPrepare(
         filterDrawable->MarkFilterForceClearCache();
     } else if (CheckFilterCacheNeedForceSave()) {
         filterDrawable->MarkFilterForceUseCache();
-     }
+    }
     if (isRotationChanged_) {
         filterDrawable->MarkRotationChanged();
     }

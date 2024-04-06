@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef RENDER_SERVICE_BASE_SCREEN_MANAGER_RS_SCREEN_INFO_H
+#define RENDER_SERVICE_BASE_SCREEN_MANAGER_RS_SCREEN_INFO_H
+
 #pragma once
 
 #include <string>
@@ -90,3 +93,4 @@ struct ScreenInfo {
     }
 };
 } // namespace OHOS::Rosen
+#endif // RENDER_SERVICE_BASE_SCREEN_MANAGER_RS_SCREEN_INFO_H

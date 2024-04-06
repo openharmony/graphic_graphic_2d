@@ -92,7 +92,7 @@ enum class HgmRefreshRateModes {
 };
 
 enum class SubTreePrepareCheckType {
-    DISABLED = 0,                       // 0, Disable the IsSubTreeNeedPrepare check, prepare the whole subtree 
+    DISABLED = 0,                       // 0, Disable the IsSubTreeNeedPrepare check, prepare the whole subtree
     DISABLE_SUBTREE_DIRTY_CHECK = 1,    // 1, Disable the IsSubTreeDirty check
     ENABLED = 2,                        // 2, Enable the IsSubTreeNeedPrepare check
 };
