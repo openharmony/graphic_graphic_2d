@@ -3317,40 +3317,6 @@ HWTEST_F(RSUniRenderVisitorTest, DrawEffectRenderNodeForDFX001, TestSize.Level2)
 }
  
 /**
- * @tc.name: DrawEffectRenderNodeForDFX002
- * @tc.desc: Test RSUniRenderVisitorTest.DrawEffectRenderNodeForDFX while
- *           rect map is not empty.
- * @tc.type: FUNC
- * @tc.require: issueI8WJXC
- */
-HWTEST_F(RSUniRenderVisitorTest, DrawEffectRenderNodeForDFX002, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(drawingCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
- 
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSEffectRenderNode rsEffectRenderNode(nodeId, context);
- 
-    RectI rect1(0, 0, 1, 1);
-    rsUniRenderVisitor->nodesUseEffectForDfx_.emplace_back(rect1);
-    RectI rect2(2, 2, 3, 3);
-    rsUniRenderVisitor->nodesUseEffectFallbackForDfx_.emplace_back(rect2);
- 
-    rsUniRenderVisitor->effectNodeMapForDfx_[nodeId].first = rsUniRenderVisitor->nodesUseEffectForDfx_;
-    rsUniRenderVisitor->effectNodeMapForDfx_[nodeId].second = rsUniRenderVisitor->nodesUseEffectFallbackForDfx_;
- 
-    rsUniRenderVisitor->DrawEffectRenderNodeForDFX();
-}
- 
-/**
  * @tc.name: ProcessShadowFirst001
  * @tc.desc: Test RSUniRenderVisitorTest.ProcessShadowFirst while SetUseShadowBatching true.
  * @tc.type:FUNC

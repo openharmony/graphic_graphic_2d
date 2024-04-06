@@ -1580,7 +1580,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
             return;
         }
         auto deleteType = modifier->GetModifierType();
-        modifiers_.erase(iter);
         bool isExist = false;
         for (auto [id, value] : modifiers_) {
             if (value && value->GetModifierType() == deleteType) {
@@ -1589,6 +1588,7 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
                 break;
             }
         }
+        modifiers_.erase(iter);
         if (isExist) {
             modifiersTypeMap_[(int16_t)deleteType] = nullptr;
         }

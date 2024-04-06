@@ -45,6 +45,7 @@ HWTEST_F(RsSubThreadManagerTest, StartTest, TestSize.Level1)
     rsSubThreadManager->Start(nullptr);
     auto renderContext = new RenderContext();
     rsSubThreadManager->Start(renderContext);
+    renderContext->InitializeEglContext();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     rsSubThreadManager->threadList_.push_back(curThread);
     ASSERT_FALSE(rsSubThreadManager->threadList_.empty());
@@ -64,6 +65,7 @@ HWTEST_F(RsSubThreadManagerTest, PostTaskTest, TestSize.Level1)
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     rsSubThreadManager->PostTask([]{}, 5);
     auto renderContext = new RenderContext();
+    renderContext->InitializeEglContext();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     rsSubThreadManager->threadList_.push_back(curThread);
     rsSubThreadManager->PostTask([]{}, 1);
