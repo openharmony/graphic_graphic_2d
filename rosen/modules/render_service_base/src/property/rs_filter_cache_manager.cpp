@@ -145,6 +145,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         // snapshot, else we need to clear the filtered snapshot.
         shouldClearFilteredCache = previousFilterHash != cachedFilterHash_ || !isEqualRect(dst, snapshotRegion_);
     }
+    DrawCachedFilteredSnapshot(canvas, dst);
     CompactFilterCache(shouldClearFilteredCache);
     needForceCache_ =false;
 }
