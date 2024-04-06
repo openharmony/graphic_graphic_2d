@@ -1207,11 +1207,15 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std:
     if (clipRect.has_value()) {
         dirtyRect = dirtyRect.IntersectRect(*clipRect);
     }
-    lastFilterRegion_ = oldDirty_;
+    if (GetRenderProperties().NeedFilter()) {
+        lastFilterRegion_ = oldDirty_;
+    }
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
-    dirtyManager.MergeDirtyRect(dirtyRect);
-    isDirtyRegionUpdated_ = true;
+    if (!dirtyRect.IsEmpty()) {
+        dirtyManager.MergeDirtyRect(dirtyRect);
+        isDirtyRegionUpdated_ = true;
+    }
 }
 
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
@@ -1238,17 +1242,19 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             }
         }
     }
-    ValidateLightResources();
     // 3. update dirtyRegion if needed
     if (GetRenderProperties().GetBackgroundFilter()) {
         UpdateFilterCacheWithDirty(dirtyManager);
     }
+    ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     if ((IsDirty() || accumGeoDirty) && (shouldPaint_ || isLastVisible_)) {
         // update FrontgroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
         UpdateDirtyRegionInfoForDFX(dirtyManager);
     }
+
+    // compare self with cache after update node geo
     if (GetRenderProperties().GetBackgroundFilter()) {
         UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
     }

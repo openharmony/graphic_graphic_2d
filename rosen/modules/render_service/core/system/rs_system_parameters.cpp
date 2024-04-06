@@ -98,10 +98,10 @@ RsSurfaceCaptureType RSSystemParameters::GetRsSurfaceCaptureType()
         return RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD;
     }
     static CachedHandle g_Handle =
-        CachedParameterCreate("persist.sys.graphic.surface_capture.type", "0"); // TODO, change 1 -> 0
+        CachedParameterCreate("persist.sys.graphic.surface_capture.type", "0");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<RsSurfaceCaptureType>(ConvertToInt(type, 0)); // TODO, change 1 -> 0
+    return static_cast<RsSurfaceCaptureType>(ConvertToInt(type, 0));
 }
 
 bool RSSystemParameters::GetVSyncControlEnabled()

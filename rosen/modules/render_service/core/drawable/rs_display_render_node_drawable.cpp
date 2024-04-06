@@ -426,6 +426,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
         RSSkpCaptureDfx capture(curCanvas_);
         Drawing::AutoCanvasRestore acr(*curCanvas_, true);
+        curCanvas_->ConcatMatrix(params->GetMatrix());
         if (uniParam->IsOpDropped()) {
             auto region = GetFilpedRegion(damageRegionrects, screenInfo);
             ClipRegion(*curCanvas_, region);
