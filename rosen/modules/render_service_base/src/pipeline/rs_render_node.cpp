@@ -1980,7 +1980,6 @@ void RSRenderNode::UpdateDisplayList()
     stagingDrawCmdIndex_.contentIndex_ =
         drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] != nullptr ? stagingDrawCmdList_.size() : -1;
 
-
     UpdateDrawableRange(RSDrawableSlot::CONTENT_STYLE, RSDrawableSlot::FOREGROUND_STYLE);
     stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.childrenIndex_ =

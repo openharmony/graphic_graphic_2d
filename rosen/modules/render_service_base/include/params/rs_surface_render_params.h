@@ -120,11 +120,11 @@ public:
     }
     bool HasSecurityLayer()
     {
-        return securityLayerIds_.size() != 0; 
+        return securityLayerIds_.size() != 0;
     }
     bool HasSkipLayer()
     {
-        return skipLayerIds_.size() != 0; 
+        return skipLayerIds_.size() != 0;
     }
 
     std::string GetName() const

@@ -30,7 +30,7 @@ class RSB_EXPORT ExtendRecordingCanvas : public Drawing::RecordingCanvas {
 public:
     ExtendRecordingCanvas(int32_t width, int32_t weight, bool addDrawOpImmediate = true);
     ~ExtendRecordingCanvas() override = default;
-    static std::unique_ptr<ExtendRecordingCanvas> Obtain(int32_t width, int32_t height, 
+    static std::unique_ptr<ExtendRecordingCanvas> Obtain(int32_t width, int32_t height,
         bool addDrawOpImmediate = true);
     static void Recycle(std::unique_ptr<ExtendRecordingCanvas>& canvas);
     void DrawImageWithParm(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
