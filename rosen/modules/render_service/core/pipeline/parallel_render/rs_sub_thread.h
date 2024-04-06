@@ -58,7 +58,7 @@ public:
     {
         return doingCacheProcessNum.load();
     }
-    void IncreaseDoingCacheProcessNum()
+    inline void DoingCacheProcessNumInc()
     {
         doingCacheProcessNum++;
     }

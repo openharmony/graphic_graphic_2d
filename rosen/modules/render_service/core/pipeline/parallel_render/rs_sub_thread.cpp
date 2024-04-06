@@ -256,7 +256,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
 {
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache");
-
     if (grContext_ == nullptr) {
         grContext_ = CreateShareGrContext();
         if (grContext_ == nullptr) {

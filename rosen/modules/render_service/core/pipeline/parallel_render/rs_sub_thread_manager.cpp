@@ -409,11 +409,11 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderN
     auto subThread = threadList_[nowIdx];
     auto tid = reThreadIndexMap_[nowIdx];
     nodeTaskState_[param->GetId()] = 1;
+    subThread->DoingCacheProcessNumInc();
     subThread->PostTask([subThread, nodeDrawable, tid]() {
         nodeDrawable->SetLastFrameUsedThreadIndex(tid);
         subThread->DrawableCache(nodeDrawable);
     });
-    subThread->IncreaseDoingCacheProcessNum();
     needResetContext_ = true;    
 }
 }

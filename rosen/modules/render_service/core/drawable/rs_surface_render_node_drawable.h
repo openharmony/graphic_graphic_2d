@@ -77,22 +77,11 @@ public:
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
 
-    std::shared_ptr<Drawing::Surface> GetCacheSurface() const
-    {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        return cacheSurface_;
-    }
-
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
         bool releaseAfterGet = false);
     bool NeedInitCacheSurface();
-    bool NeedInitCacheCompletedSurface() ;
-    bool IsCacheSurfaceValid() const;
     std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
         bool isUIFirst);
-    std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,
-        bool releaseAfterGet);
-
     using ClearCacheSurfaceFunc =
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
@@ -175,7 +164,7 @@ private:
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
-    mutable std::recursive_mutex surfaceMutex_;
+    mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -187,7 +176,7 @@ private:
 #endif
     std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
 #endif
-    bool isTextureValid_ = false;
+    std::atomic<bool> isTextureValid_ = false;
     pid_t lastFrameUsedThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 #endif
