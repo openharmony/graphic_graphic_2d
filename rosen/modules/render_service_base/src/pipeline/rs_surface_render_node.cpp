@@ -1273,7 +1273,9 @@ void RSSurfaceRenderNode::CheckValidFilterCacheFullyCoverTarget(const RSRenderNo
     if (isFilterCacheFullyCovered_ || !filterNode.IsBackgroundFilterCacheValid()) {
         return;
     }
-    isFilterCacheFullyCovered_ = targetRect.IsInsideOf(filterNode.GetOldDirtyInSurface());
+    // [planning] need to replace absRect with filterRect
+    isFilterCacheFullyCovered_ = targetRect.IsInsideOf(
+        filterNode.GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
 }
 
 void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)

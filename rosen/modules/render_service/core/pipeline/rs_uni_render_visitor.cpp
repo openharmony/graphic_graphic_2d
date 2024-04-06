@@ -1987,7 +1987,9 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
                 dirtyBelowContainsFilterNode = true;
             }
             // [attention] make sure filter valid check useful
-            surfaceNode->CheckValidFilterCacheFullyCoverTarget(*filterNode, screenRect_);
+            if (ROSEN_EQ(filterNode->GetRenderProperties().GetAlpha(), 1.f)) {
+                surfaceNode->CheckValidFilterCacheFullyCoverTarget(*filterNode, screenRect_);
+            }
         }
     }
     auto surfaceDirtyRegion = Occlusion::Region{
