@@ -58,24 +58,24 @@ struct FrameRateVoteInfo {
     std::string ltpoType = "";
     uint64_t timestamp = 0;
 
-    void SetTimestamp(uint64_t timestamp_)
+    void SetTimestamp(uint64_t curTimestamp)
     {
-        timestamp = timestamp_;
+        timestamp = curTimestamp;
     }
 
-    void SetVoteInfo(std::string voterName_, uint32_t preferred_)
+    void SetVoteInfo(const std::string& curVoterName, uint32_t curPreferred)
     {
-        voterName = voterName_;
-        preferred = preferred_;
+        voterName = curVoterName;
+        preferred = curPreferred;
     }
 
-    void SetLtpoInfo(FrameRateLinkerId pid_, std::string ltpoType_)
+    void SetLtpoInfo(FrameRateLinkerId curPid, const std::string& curLtpoType)
     {
-        pid = pid_;
-        ltpoType = ltpoType_;
+        pid = curPid;
+        ltpoType = curLtpoType;
     }
 
-    std::string ToString()
+    std::string ToString() const
     {
         std::stringstream str;
         str << "VOTER_NAME:" << voterName << ";";
