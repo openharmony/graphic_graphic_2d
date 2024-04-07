@@ -431,6 +431,7 @@ private:
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
+    std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);

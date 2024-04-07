@@ -485,6 +485,18 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
+std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
+{
+    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::vector<AnimationId> animations;
+    for (auto& [animateId, animation] : animations_) {
+        if (animation->GetPropertyId() == id) {
+            animations.push_back(animateId);
+        }
+    }
+    return animations;
+}
+
 template<typename ModifierName, typename PropertyName, typename T>
 void RSNode::SetProperty(RSModifierType modifierType, T value)
 {

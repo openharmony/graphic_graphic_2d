@@ -69,7 +69,8 @@ class RSB_EXPORT RSNodeGetShowingPropertiesAndCancelAnimation : public RSSyncTas
     constexpr static uint16_t commandSubType = GET_RENDER_PROPERTIES;
 
 public:
-    using PropertiesMap = std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSRenderPropertyBase>>;
+    using PropertiesMap = std::map<std::pair<NodeId, PropertyId>,
+        std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>;
     explicit RSNodeGetShowingPropertiesAndCancelAnimation(uint64_t timeoutNS, PropertiesMap&& map)
         : RSSyncTask(timeoutNS), propertiesMap_(std::move(map))
     {}
