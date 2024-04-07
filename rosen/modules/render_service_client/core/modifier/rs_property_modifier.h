@@ -265,6 +265,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSBgImageInnerRectModifier : public RSBackgroundModifier {
+public:
+    explicit RSBgImageInnerRectModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBgImageInnerRectModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSBgImageWidthModifier : public RSBackgroundModifier {
 public:
     explicit RSBgImageWidthModifier(const std::shared_ptr<RSPropertyBase>& property);

@@ -631,7 +631,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->Save();
     }
 
-    if (node.IsAppWindow()) {
+    if (node.IsAppWindow() || node.IsLeashWindow()) {
         // When CaptureSingleSurfaceNodeWithUni, we should consider scale factor of canvas_ and
         // child nodes (self-drawing surfaceNode) of AppWindow should use relative coordinates
         // which is the node relative to the upper-left corner of the window.

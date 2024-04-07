@@ -769,7 +769,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     if (surface != nullptr) {
         uint64_t surfaceId = surface->GetUniqueId();
         for (auto &[_, screen] : screens_) {
-            if (screen != nullptr && !screen->IsVirtual()) {
+            if (screen == nullptr || !screen->IsVirtual()) {
                 continue;
             }
             auto screenSurface = screen->GetProducerSurface();
@@ -1190,6 +1190,9 @@ void RSScreenManager::DisplayDump(std::string& dumpString)
 {
     int32_t index = 0;
     for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            return;
+        }
         screen->DisplayDump(index, dumpString);
         index++;
     }

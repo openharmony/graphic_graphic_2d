@@ -180,6 +180,8 @@ public:
     std::shared_ptr<RSShader> GetBackgroundShader() const;
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     std::shared_ptr<RSImage> GetBgImage() const;
+    void SetBgImageInnerRect(const Vector4f& rect);
+    Vector4f GetBgImageInnerRect() const;
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
     void SetBgImagePositionX(float positionX);

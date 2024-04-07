@@ -32,6 +32,7 @@ public:
     static RSNodeMap& MutableInstance();
 
     bool RegisterNode(const std::shared_ptr<RSBaseNode>& nodePtr);
+    bool RegisterNodeInstanceId(NodeId id, int32_t instanceId);
     void UnregisterNode(NodeId id);
 
     // Get RSNode with type T, return nullptr if not found or type mismatch
@@ -42,6 +43,7 @@ public:
     }
     template<>
     const std::shared_ptr<RSBaseNode> GetNode(NodeId id) const;
+    int32_t GetNodeInstanceId(NodeId id) const;
 
     const std::shared_ptr<RSNode> GetAnimationFallbackNode() const;
 
@@ -56,6 +58,7 @@ private:
 private:
     mutable std::mutex mutex_;
     std::unordered_map<NodeId, std::weak_ptr<RSBaseNode>> nodeMap_;
+    std::unordered_map<NodeId, int32_t> nodeIdMap_;
     std::shared_ptr<RSNode> animationFallbackNode_;
 };
 } // namespace Rosen

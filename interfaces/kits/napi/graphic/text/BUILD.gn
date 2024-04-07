@@ -52,6 +52,7 @@ ohos_shared_library("text_napi") {
 
 ohos_shared_library("text_napi_impl") {
   sources = [
+    "enum_napi/text_enum_napi.cpp",
     "fontcollection_napi/js_fontcollection.cpp",
     "js_text_init.cpp",
     "js_text_utils.cpp",

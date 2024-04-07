@@ -190,6 +190,15 @@ if (enable_text_gine) {
     ]
 
     external_deps = [ "hilog:libhilog" ]
+
+    is_cross_platform =
+        current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
+        current_os == "android" || current_os == "ios"
+
+    if (!is_cross_platform) {
+      external_deps += [ "hitrace:hitrace_meter" ]
+    }
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

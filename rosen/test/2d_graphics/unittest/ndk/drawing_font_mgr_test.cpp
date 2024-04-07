@@ -106,7 +106,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest005, TestSize.Level1)
     normalStyle.weight = FONT_WEIGHT_400;
     normalStyle.width = FONT_WIDTH_NORMAL;
     normalStyle.slant = FONT_STYLE_NORMAL;
-    OH_Drawing_Typeface *typeface = OH_Drawing_FontMgrMatchFamilyStyle(mgr, matchFamilyName, &normalStyle);
+    OH_Drawing_Typeface *typeface = OH_Drawing_FontMgrMatchFamilyStyle(mgr, matchFamilyName, normalStyle);
     EXPECT_NE(typeface, nullptr);
     OH_Drawing_TypefaceDestroy(typeface);
 
@@ -131,7 +131,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest006, TestSize.Level1)
 
     const char *bcp47[] = {"zh-Hans", "zh-CN"};
     OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(mgr, matchFamilyName,
-                                                                                    &normalStyle, bcp47, 1, ' ');
+                                                                                    normalStyle, bcp47, 1, ' ');
     EXPECT_NE(CharTypeface, nullptr);
     OH_Drawing_TypefaceDestroy(CharTypeface);
 

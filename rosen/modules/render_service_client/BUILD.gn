@@ -184,6 +184,7 @@ template("render_service_client_source_set") {
 
       if (accessibility_enable) {
         external_deps += [ "accessibility:accessibilityconfig" ]
+        external_deps += [ "accessibility:accessibility_common" ]
         defines += accessibility_defines
       }
     } else if (rosen_preview) {

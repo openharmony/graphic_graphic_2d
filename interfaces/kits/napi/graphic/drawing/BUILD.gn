@@ -49,8 +49,8 @@ ohos_shared_library("drawing_napi") {
   external_deps = [ "napi:ace_napi" ]
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
-    cflags = [ "-fstack-protector-strong" ]
-    cflags_cc = [ "-fstack-protector-strong" ]
+    cflags = [ "-fstack-protector-all" ]
+    cflags_cc = [ "-fstack-protector-all" ]
   }
 
   relative_install_dir = "module/graphics"

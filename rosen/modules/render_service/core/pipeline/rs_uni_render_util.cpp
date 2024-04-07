@@ -352,28 +352,30 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilt
 bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     auto surfaceNodePtr = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNodePtr == nullptr) {
+    if (surfaceNodePtr == nullptr ||
+        (!surfaceNodePtr->IsAppWindow() && !surfaceNodePtr->IsLeashWindow())) {
         return false;
     }
+
+    auto curNode = surfaceNodePtr;
     if (surfaceNodePtr->IsAppWindow()) {
         auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr->GetParent().lock());
-        auto curNode = surfaceNodePtr;
         if (rsParent && rsParent->IsLeashWindow()) {
             curNode = rsParent;
         }
-        if (!curNode->ShouldPaint()) {
-            return false;
-        }
-        if (curNode->IsOnTheTree()) {
-            return HandleSubThreadNode(*curNode, canvas);
-        } else {
+    }
+    if (!curNode->ShouldPaint()) {
+        return false;
+    }
+    if (curNode->IsOnTheTree()) {
+        return HandleSubThreadNode(*curNode, canvas);
+    } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-            if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
-                RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
-            }
-#endif
-            return false;
+        if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
         }
+#endif
+        return false;
     }
     return false;
 }

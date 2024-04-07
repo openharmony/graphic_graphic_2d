@@ -497,6 +497,7 @@ ohos_unittest("RSUniUiCaptureTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
     external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
   }
   defines = []
   defines += gpu_defines
@@ -562,6 +563,7 @@ ohos_unittest("RSMainThreadTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
     external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
     defines += [ "ACCESSIBILITY_ENABLE" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {

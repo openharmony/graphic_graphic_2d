@@ -187,7 +187,7 @@ public:
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
         float mirrorAdaptiveCoefficient = 1.0f) = 0;
 
-    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
     static void SetColorFilterMode(ColorFilterMode mode);

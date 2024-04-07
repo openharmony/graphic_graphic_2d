@@ -756,7 +756,7 @@ bool RSSystemProperties::GetViewOcclusionCullingEnabled()
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     static bool subSurfaceEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "0")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "1")).c_str());
     return subSurfaceEnabled;
 }
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()

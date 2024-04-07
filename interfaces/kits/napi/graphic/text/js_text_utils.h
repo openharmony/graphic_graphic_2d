@@ -20,6 +20,12 @@
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 
+#include "utils/log.h"
+#include "draw/color.h"
+#include "text_style.h"
+#include "typography_style.h"
+#include <codecvt>
+
 namespace OHOS::Rosen {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
@@ -222,5 +228,39 @@ void BindNativeFunction(napi_env env, napi_value object, const char* name, const
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
+
+inline std::u16string Str8ToStr16(const std::string &str)
+{
+    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
+}
+
+inline void SetTextStyleDoubleValueFromJS(napi_env env, napi_value argValue, const std::string str, double& cValue)
+{
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, str.c_str(), &tempValue);
+    if (tempValue == nullptr) {
+        return;
+    }
+    ConvertFromJsValue(env, tempValue, cValue);
+}
+
+inline void SetTextStyleBooleValueFromJS(napi_env env, napi_value argValue, const std::string str, bool& cValue)
+{
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, str.c_str(), &tempValue);
+    if (tempValue == nullptr) {
+        return;
+    }
+    ConvertFromJsValue(env, tempValue, cValue);
+}
+
+bool OnMakeFontFamilies(napi_env& env, napi_value jsValue, std::vector<std::string> &fontFamilies);
+
+bool SetTextStyleColor(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc);
+
+bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
+
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

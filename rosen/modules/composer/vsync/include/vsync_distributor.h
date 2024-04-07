@@ -48,9 +48,9 @@ struct ConnectionInfo {
 
 class VSyncConnection : public VSyncConnectionStub {
 public:
-
+    // id for LTPO, windowNodeId for vsync rate control
     VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name,
-                    const sptr<IRemoteObject>& token = nullptr, uint64_t id = 0);
+                    const sptr<IRemoteObject>& token = nullptr, uint64_t id = 0, uint64_t windowNodeId = 0);
     ~VSyncConnection();
 
     virtual VsyncError RequestNextVSync() override;
@@ -68,6 +68,7 @@ public:
     int32_t proxyPid_;
     bool triggerThisTime_ = false; // used for LTPO
     uint64_t id_ = 0;
+    uint64_t windowNodeId_ = 0;
     uint32_t vsyncPulseFreq_ = 1;
     int64_t referencePulseCount_ = 0;
     uint32_t refreshRate_ = 0;
@@ -101,7 +102,7 @@ public:
     VSyncDistributor(const VSyncDistributor &) = delete;
     VSyncDistributor &operator=(const VSyncDistributor &) = delete;
 
-    VsyncError AddConnection(const sptr<VSyncConnection>& connection);
+    VsyncError AddConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId = 0);
     VsyncError RemoveConnection(const sptr<VSyncConnection> &connection);
 
     // fromWhom indicates whether the source is animate or non-animate
@@ -112,7 +113,7 @@ public:
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos);
     VsyncError GetQosVSyncRateInfos(std::vector<std::pair<uint32_t, int32_t>>& vsyncRateInfos);
-    VsyncError SetQosVSyncRate(uint32_t pid, int32_t rate);
+    VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate);
 
     // used by DVSync
     bool IsDVsyncOn();
@@ -139,6 +140,7 @@ private:
     void CollectConnections(bool &waitForVSync, int64_t timestamp,
                             std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
+    constexpr pid_t ExtractPid(uint64_t id);
     void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp);
     void ChangeConnsRateLocked();
     void CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
@@ -146,6 +148,7 @@ private:
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
+    VsyncError SetQosVSyncRateByPid(uint32_t pid, int32_t rate);
 
 #ifdef COMPOSER_SCHED_ENABLE
     void SubScribeSystemAbility(const std::string& threadName);
@@ -157,7 +160,7 @@ private:
     std::mutex mutex_;
     std::condition_variable con_;
     std::vector<sptr<VSyncConnection> > connections_;
-    std::map<uint32_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
+    std::map<uint64_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
     VSyncEvent event_;
     bool vsyncEnabled_;
     std::string name_;
