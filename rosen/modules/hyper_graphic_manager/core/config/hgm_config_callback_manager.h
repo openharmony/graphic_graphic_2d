@@ -35,8 +35,10 @@ public:
 
     void RegisterHgmConfigChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void RegisterHgmRefreshRateModeChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
+    void RegisterHgmRefreshRateUpdateCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void SyncHgmConfigChangeCallback();
     void SyncRefreshRateModeChangeCallback(int32_t refreshRateMode);
+    void SyncRefreshRateUpdateCallback(int32_t refreshRate);
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
 
 private:
@@ -47,6 +49,7 @@ private:
     static sptr<HgmConfigCallbackManager> instance_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
     PidToRefreshRateModeCallback refreshRateModeCallbacks_;
+    std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> refreshRateUpdateCallbacks_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CONFIG_CALLBACK_MANAGER_H
