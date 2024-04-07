@@ -798,13 +798,14 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
     return isOnlyBasicGeoTransform_;
 }
 
-void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty)
+void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
+    std::optional<RectI> clipRect)
 {
     if (HasChildrenOutOfRect() && (isDirty || accumGeoDirty)) {
         if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
         }
-        dirtymanager.MergeDirtyRect(absChildrenRect_);
+        dirtymanager.MergeDirtyRect(clipRect->IntersectRect(absChildrenRect_));
     }
     SetGeoUpdateDelay(accumGeoDirty);
 }
