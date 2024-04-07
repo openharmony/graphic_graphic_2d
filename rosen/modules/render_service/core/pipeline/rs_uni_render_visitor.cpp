@@ -3749,19 +3749,17 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 }
 
-#ifndef RS_PARALLEL
 void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const
 {
+#if !defined(RS_PARALLEL) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     RS_TRACE_NAME_FMT("RSUniRenderVisitor::DrawSurfaceLayer displayNode:%p subThreadNodes:%d",
         displayNode.get(), int(subThreadNodes.size()));
     auto subThreadManager = RSSubThreadManager::Instance();
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     subThreadManager->StartColorPickerThread(renderEngine_->GetRenderContext().get());
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif
 }
-#endif
 
 void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
 {
