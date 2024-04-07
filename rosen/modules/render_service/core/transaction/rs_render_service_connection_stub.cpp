@@ -1340,21 +1340,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK) : {
-            sptr<RSIHgmConfigChangeCallback> callback = nullptr;
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIRenderServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject != nullptr) {
-                callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
-            }
-            int32_t status = RegisterHgmRefreshRateUpdateCallback(callback);
-            reply.WriteInt32(status);
-            break;
-        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED) : {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

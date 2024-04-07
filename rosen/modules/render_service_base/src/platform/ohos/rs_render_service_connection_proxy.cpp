@@ -1732,30 +1732,6 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback
     return result;
 }
 
-int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
-    sptr<RSIHgmConfigChangeCallback> callback)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (callback)
-        data.WriteRemoteObject(callback->AsObject());
-    else
-        data.WriteRemoteObject(nullptr);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback: Send Request err.");
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result = reply.ReadInt32();
-    return result;
-}
-
 void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
 {
     MessageParcel data;
