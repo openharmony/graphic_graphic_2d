@@ -950,9 +950,9 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
     AddToPendingSyncList();
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren()
+void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 {
-    if (!ShouldPaint()) {
+    if (!ShouldPaint() || isScreenRotation) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return;
     }

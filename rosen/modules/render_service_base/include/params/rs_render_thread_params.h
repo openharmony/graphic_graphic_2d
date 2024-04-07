@@ -77,6 +77,11 @@ public:
         return selfDrawingNodes_;
     }
 
+    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledTypeNodes() const
+    {
+        return hardwareEnabledTypeNodes_;
+    }
+
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
         pendingScreenRefreshRate_ = rate;
@@ -141,6 +146,7 @@ private:
     bool isUIFirstDebugEnable_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;
     bool isForceCommitLayer_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
     Occlusion::Region accumulatedDirtyRegion_;

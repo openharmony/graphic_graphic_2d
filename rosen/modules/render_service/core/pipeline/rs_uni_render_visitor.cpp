@@ -1329,7 +1329,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
 
     if (isDrawingCacheEnabled_) {
-        node.UpdateDrawingCacheInfoBeforeChildren();
+        node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
     }
 
     RectI prepareClipRect = prepareClipRect_;

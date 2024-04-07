@@ -299,14 +299,14 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
 #ifdef OHOS_PLATFORM
     RSJankStats::GetInstance().SetSkipDisplayNode();
 #endif
-    auto& selfDrawingNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetSelfDrawingNodes();
+    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
     bool needCreateDisplayNodeLayer = false;
-    for (const auto& surfaceNode : selfDrawingNodes) {
+    for (const auto& surfaceNode : hardwareNodes) {
         if (surfaceNode == nullptr) {
             continue;
         }
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        if (params->GetHardwareEnabled() && params->GetBuffer()) {
+        if (params->GetHardwareEnabled()) {
             needCreateDisplayNodeLayer = true;
             processor->CreateLayer(*surfaceNode, *params);
         }
@@ -459,14 +459,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DoScreenRcdTask(processor, rcdInfo, screenInfo);
 
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable CommitLayer");
-    auto& selfDrawingNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetSelfDrawingNodes();
+    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
     float globalZOrder = 0.f;
-    for (const auto& surfaceNode : selfDrawingNodes) {
+    for (const auto& surfaceNode : hardwareNodes) {
         if (surfaceNode == nullptr) {
             continue;
         }
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        if (params->GetHardwareEnabled() && params->GetBuffer()) {
+        if (params->GetHardwareEnabled()) {
             processor->CreateLayer(*surfaceNode, *params);
             globalZOrder++;
         }
@@ -736,13 +736,13 @@ void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes()
         RS_LOGE("RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes displayParams is null!");
         return;
     }
-    auto& selfDrawingNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetSelfDrawingNodes();
-    for (const auto& surfaceNode : selfDrawingNodes) {
+    auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
+    for (const auto& surfaceNode : hardwareNodes) {
         if (surfaceNode == nullptr) {
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        if (!surfaceParams->GetHardwareEnabled() || !surfaceParams->GetBuffer()) {
+        if (!surfaceParams->GetHardwareEnabled()) {
             continue;
         }
         // To get dump image
