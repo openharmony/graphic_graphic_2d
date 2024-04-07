@@ -15,8 +15,10 @@
 
 #include <map>
 #include <vector>
-#include "utils/log.h"
 #include "text_enum_napi.h"
+
+#include "utils/log.h"
+
 namespace OHOS::Rosen {
 struct JsEnumInt {
     std::string_view enumName;

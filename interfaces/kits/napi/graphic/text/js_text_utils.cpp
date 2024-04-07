@@ -68,7 +68,7 @@ bool SetTextStyleColor(napi_env env, napi_value argValue, const std::string& str
     napi_value tempValue = nullptr;
     napi_value tempValueChild = nullptr;
     napi_get_named_property(env, argValue, str.c_str(), &tempValue);
-    if (tempValue != nullptr) {
+    if (tempValue == nullptr) {
         return false;
     }
     int32_t alpha = 0;
@@ -91,6 +91,35 @@ bool SetTextStyleColor(napi_env env, napi_value argValue, const std::string& str
     return false;
 }
 
+bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& str, TextStyle& textStyle)
+{
+    if (argValue == nullptr) {
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, str.c_str(), &tempValue);
+    if (tempValue == nullptr) {
+        return false;
+    }
+
+    napi_value tempValueChild = nullptr;
+    napi_get_named_property(env, tempValue, "textDecoration", &tempValueChild);
+    uint32_t textDecoration = 0;
+    if (tempValueChild != nullptr && napi_get_value_uint32(env, tempValueChild, &textDecoration) == napi_ok) {
+        textStyle.decoration = TextDecoration(textDecoration);
+    }
+
+    SetTextStyleColor(env, tempValue, "color", textStyle.decorationColor);
+
+    napi_get_named_property(env, tempValue, "decorationStyle", &tempValueChild);
+    uint32_t decorationStyle = 0;
+    if (tempValueChild != nullptr && napi_get_value_uint32(env, tempValueChild, &decorationStyle) == napi_ok) {
+        textStyle.decorationStyle = TextDecorationStyle(decorationStyle);
+    }
+    SetTextStyleDoubleValueFromJS(env, tempValue, "decorationThicknessScale", textStyle.decorationThicknessScale);
+    return true;
+}
+
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
     if (argValue == nullptr) {
@@ -101,22 +130,22 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     napi_value tempValue = nullptr;
     napi_get_named_property(env, argValue, "fontWeight", &tempValue);
     uint32_t fontWeight = 0;
-    if (napi_get_value_uint32(env, tempValue, &fontWeight)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
         textStyle.fontWeight = FontWeight(fontWeight);
     }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
-    if (napi_get_value_uint32(env, tempValue, &baseline)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
         textStyle.baseline = TextBaseline(baseline);
     }
     SetTextStyleDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
 
     std::vector<std::string> fontFamilies;
     napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
-    if (OnMakeFontFamilies(env, tempValue, fontFamilies)== napi_ok) {
+    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies) == napi_ok) {
         textStyle.fontFamilies = fontFamilies;
     }
-
+    GetDecorationFromJS(env, argValue, "decoration", textStyle);
     SetTextStyleDoubleValueFromJS(env, argValue, "letterSpacing", textStyle.letterSpacing);
     SetTextStyleDoubleValueFromJS(env, argValue, "wordSpacing", textStyle.wordSpacing);
     SetTextStyleDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
@@ -125,17 +154,17 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     napi_get_named_property(env, argValue, "ellipsis", &tempValue);
 
     std::string text = "";
-    if (ConvertFromJsValue(env, tempValue, text)) {
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
         textStyle.ellipsis = Str8ToStr16(text);
     }
     napi_get_named_property(env, argValue, "ellipsisModal", &tempValue);
     uint32_t ellipsisModal = 0;
-    if (napi_get_value_uint32(env, tempValue, &ellipsisModal)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &ellipsisModal)== napi_ok) {
         textStyle.ellipsisModal = EllipsisModal(ellipsisModal);
     }
     napi_get_named_property(env, argValue, "locale", &tempValue);
     std::string textLocale = "";
-    if (ConvertFromJsValue(env, tempValue, textLocale)) {
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textLocale)) {
         textStyle.locale = textLocale;
     }
     return true;
@@ -149,37 +178,37 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     napi_value tempValue = nullptr;
     napi_get_named_property(env, argValue, "textStyle", &tempValue);
     TextStyle textStyle;
-    if (GetTextStyleFromJS(env, tempValue, textStyle)) {
-        pographyStyle.insideTextStyle = textStyle;
+    if (tempValue != nullptr && GetTextStyleFromJS(env, tempValue, textStyle)) {
+        pographyStyle.SetTextStyle(textStyle);
     }
 
     napi_get_named_property(env, argValue, "textDirection", &tempValue);
     uint32_t textDirection = 0;
-    if (napi_get_value_uint32(env, tempValue, &textDirection)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &textDirection) == napi_ok) {
         pographyStyle.textDirection = TextDirection(textDirection);
     }
 
     napi_get_named_property(env, argValue, "align", &tempValue);
     uint32_t align = 0;
-    if (napi_get_value_uint32(env, tempValue, &align)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &align) == napi_ok) {
         pographyStyle.textAlign = TextAlign(align);
     }
 
     napi_get_named_property(env, argValue, "wordBreak", &tempValue);
     uint32_t wordBreak = 0;
-    if (napi_get_value_uint32(env, tempValue, &wordBreak)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &wordBreak) == napi_ok) {
         pographyStyle.wordBreakType = WordBreakType(wordBreak);
     }
 
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
     uint32_t maxLines = 0;
-    if (napi_get_value_uint32(env, tempValue, &maxLines)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &maxLines) == napi_ok) {
         pographyStyle.maxLines = maxLines;
     }
 
     napi_get_named_property(env, argValue, "breakStrategy", &tempValue);
     uint32_t breakStrategy = 0;
-    if (napi_get_value_uint32(env, tempValue, &breakStrategy)== napi_ok) {
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &breakStrategy) == napi_ok) {
         pographyStyle.breakStrategy = BreakStrategy(breakStrategy);
     }
     return true;
