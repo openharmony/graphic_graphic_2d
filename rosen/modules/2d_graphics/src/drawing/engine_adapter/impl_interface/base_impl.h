@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class BaseImpl : public std::enable_shared_from_this<BaseImpl> {
+class BaseImpl {
 public:
     BaseImpl() noexcept {}
     virtual ~BaseImpl() {}
