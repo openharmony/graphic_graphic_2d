@@ -96,11 +96,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
     });
-
-    hgmCore.RegisterRefreshRateUpdateCallback([](int32_t refreshRate) {
-        HgmConfigCallbackManager::GetInstance()->SyncRefreshRateUpdateCallback(refreshRate);
-    });
-
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 }
 
