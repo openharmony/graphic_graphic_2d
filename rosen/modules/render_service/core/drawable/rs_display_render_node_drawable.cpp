@@ -312,6 +312,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
         }
     }
     if (!needCreateDisplayNodeLayer) {
+        RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
@@ -790,6 +791,7 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(
     RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const
 {
     if (RSUniRenderThread::Instance().GetWatermarkFlag()) {
+        RS_TRACE_FUNC();
         sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
         auto screenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
         auto image = RSUniRenderThread::Instance().GetWatermarkImg();
@@ -813,6 +815,7 @@ void RSDisplayRenderNodeDrawable::DrawCurtainScreen(
     if (!RSMainThread::Instance()->IsCurtainScreenOn()) {
         return;
     }
+    RS_TRACE_FUNC();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     auto screenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
     float screenWidth = static_cast<float>(screenInfo.width);
