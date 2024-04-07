@@ -92,6 +92,15 @@ static const std::vector<struct JsEnumInt> g_textDecoration = {
     { "LINE_THROUGH", static_cast<size_t>(TextDecoration::LINE_THROUGH) },
 };
 
+static const std::vector<struct JsEnumInt> g_placeholderVerticalAlignment = {
+    { "OFFSET_AT_BASELINE", static_cast<size_t>(PlaceholderVerticalAlignment::OFFSET_AT_BASELINE) },
+    { "ABOVE_BASELINE", static_cast<size_t>(PlaceholderVerticalAlignment::ABOVE_BASELINE) },
+    { "BELOW_BASELINE", static_cast<size_t>(PlaceholderVerticalAlignment::BELOW_BASELINE) },
+    { "TOP_OF_ROW_BOX", static_cast<size_t>(PlaceholderVerticalAlignment::TOP_OF_ROW_BOX) },
+    { "BOTTOM_OF_ROW_BOX", static_cast<size_t>(PlaceholderVerticalAlignment::BOTTOM_OF_ROW_BOX) },
+    { "CENTER_OF_ROW_BOX", static_cast<size_t>(PlaceholderVerticalAlignment::CENTER_OF_ROW_BOX) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "TextAlign", g_textAlign },
     { "TextDecorationStyle", g_textDecorationStyle },
@@ -103,6 +112,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "BreakStrategy", g_breakStrategy },
     { "EllipsisModal", g_ellipsisModal },
     { "TextDecoration", g_textDecoration },
+    { "PlaceholderAlignment", g_placeholderVerticalAlignment },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
