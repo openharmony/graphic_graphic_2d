@@ -14,35 +14,36 @@
  */
 
 #include "drawable/rs_display_render_node_drawable.h"
-#include "pipeline/rs_uni_render_virtual_processor.h"
 
 #include <memory>
 #include <string>
 
 #include "benchmarks/rs_recording_thread.h"
 #include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 
+#include "common/rs_optional_trace.h"
+#include "common/rs_singleton.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "system/rs_system_parameters.h"
-#include "common/rs_singleton.h"
-#include "common/rs_optional_trace.h"
-#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
@@ -280,7 +281,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
     RSDisplayRenderParams* params, std::shared_ptr<RSProcessor> processor)
 {
     if (!displayNode->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty() ||
-        params->GetMainAndLeashSurfaceDirty()) {
+        (params->GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode())) {
         return false;
     }
 

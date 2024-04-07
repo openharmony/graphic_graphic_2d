@@ -13,32 +13,29 @@
  * limitations under the License.
  */
 
-#include "drawable/rs_surface_render_node_drawable.h"
-
+#ifdef RS_PARALLEL
 #include <memory>
+
+#include "impl_interface/region_impl.h"
 #include "rs_trace.h"
 
-#include "common/rs_obj_abs_geometry.h"
-#include "impl_interface/region_impl.h"
-#include "memory/rs_tag_tracker.h"
-#include "params/rs_display_render_params.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uni_render_thread.h"
-#include "pipeline/rs_uni_render_util.h"
-
-#ifdef RS_PARALLEL
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "draw/brush.h"
-
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "memory/rs_tag_tracker.h"
+#include "params/rs_display_render_params.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uifirst_manager.h"
+#include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "utils/rect.h"
 #include "utils/region.h"
-
-#include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/rs_main_thread.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
@@ -142,10 +139,8 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
     return backendTexture;
 }
 } // un-named
-#endif //RS_ENABLE_VK
-#endif //RS_PARALLEL
+#endif // RS_ENABLE_VK
 namespace OHOS::Rosen::DrawableV2 {
-#ifdef RS_PARALLEL
 CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus() const
 {
     return uiFirstParams.cacheProcessStatus_.load();
