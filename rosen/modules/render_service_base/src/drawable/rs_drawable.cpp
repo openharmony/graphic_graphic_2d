@@ -258,7 +258,7 @@ inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlo
         return;
     }
     if (type == RSPaintFilterCanvas::kCanvas) {
-        auto count = std::make_shared<uint32_t>(UINT_MAX);
+        auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
         drawableVec[static_cast<size_t>(slot1)] = std::make_unique<RSSaveDrawable>(count);
         drawableVec[static_cast<size_t>(slot2)] = std::make_unique<RSRestoreDrawable>(count);
     } else {
