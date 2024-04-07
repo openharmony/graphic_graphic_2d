@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,48 @@ OH_Drawing_RoundRect* OH_Drawing_RoundRectCreate(const OH_Drawing_Rect* cRect, f
         return nullptr;
     }
     return (OH_Drawing_RoundRect*)new RoundRect(CastToRect(*cRect), xRad, yRad);
+}
+
+static RoundRect::CornerPos CCornerPosCastToCornerPos(OH_Drawing_CornerPos pos)
+{
+    RoundRect::CornerPos roundPos = RoundRect::CornerPos::TOP_LEFT_POS;
+    switch (pos) {
+        case CORNER_POS_TOP_LEFT:
+            roundPos = RoundRect::CornerPos::TOP_LEFT_POS;
+            break;
+        case CORNER_POS_TOP_RIGHT:
+            roundPos = RoundRect::CornerPos::TOP_RIGHT_POS;
+            break;
+        case CORNER_POS_BOTTOM_RIGHT:
+            roundPos = RoundRect::CornerPos::BOTTOM_RIGHT_POS;
+            break;
+        case CORNER_POS_BOTTOM_LEFT:
+            roundPos = RoundRect::CornerPos::BOTTOM_LEFT_POS;
+            break;
+        default:
+            break;
+    }
+    return roundPos;
+}
+
+void OH_Drawing_RoundRectSetCorner(OH_Drawing_RoundRect* cRoundRect, OH_Drawing_CornerPos pos,
+    OH_Drawing_Corner_Radii radiusXY)
+{
+    RoundRect* rounRect = CastToRoundRect(cRoundRect);
+    if (rounRect == nullptr) {
+        return;
+    }
+    rounRect->SetCornerRadius(CCornerPosCastToCornerPos(pos), radiusXY.x, radiusXY.y);
+}
+
+OH_Drawing_Corner_Radii OH_Drawing_RoundRectGetCorner(OH_Drawing_RoundRect* cRoundRect, OH_Drawing_CornerPos pos)
+{
+    RoundRect* rounRect = CastToRoundRect(cRoundRect);
+    if (rounRect == nullptr) {
+        return {0, 0};
+    }
+    Point radiusXY = rounRect->GetCornerRadius(CCornerPosCastToCornerPos(pos));
+    return {radiusXY.GetX(), radiusXY.GetY()};
 }
 
 void OH_Drawing_RoundRectDestroy(OH_Drawing_RoundRect* cRoundRect)

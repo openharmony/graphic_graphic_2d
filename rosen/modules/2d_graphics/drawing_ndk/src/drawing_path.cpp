@@ -293,6 +293,18 @@ void OH_Drawing_PathAddPathWithOffsetAndMode(OH_Drawing_Path* cPath,
     path->AddPath(*srcPath, dx, dy, static_cast<PathAddMode>(mode));
 }
 
+void OH_Drawing_PathAddOval(OH_Drawing_Path* cPath, const OH_Drawing_Rect* oval, OH_Drawing_PathDirection dir)
+{
+    if (oval == nullptr) {
+        return;
+    }
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->AddOval(CastToRect(*oval), static_cast<PathDirection>(dir));
+}
+
 bool OH_Drawing_PathContains(OH_Drawing_Path* cPath, float x, float y)
 {
     Path* path = CastToPath(cPath);

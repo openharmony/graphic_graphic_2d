@@ -512,6 +512,19 @@ void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect
     canvas->ClipRect(CastToRect(*cRect), CClipOpCastToClipOp(cClipOp), doAntiAlias);
 }
 
+void OH_Drawing_CanvasClipRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_RoundRect* cRoundRect,
+    OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
+{
+    if (cRoundRect == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->ClipRoundRect(CastToRoundRect(*cRoundRect), CClipOpCastToClipOp(cClipOp), doAntiAlias);
+}
+
 void OH_Drawing_CanvasClipPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path* cPath,
     OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
 {

@@ -129,6 +129,14 @@ typedef struct {
 } OH_Drawing_Point2D;
 
 /**
+ * @brief Defines a corner radii, which is on x-axis and y-axis.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef OH_Drawing_Point2D OH_Drawing_Corner_Radii;
+
+/**
  * @brief Defines a point of 3d, which is used to describe the coordinate point.
  *
  * @since 12

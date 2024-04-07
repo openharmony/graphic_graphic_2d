@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,31 @@ extern "C" {
 #endif
 
 /**
+ * @brief Enumerates of corner radii position.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Index of top-left corner radii.
+     */
+    CORNER_POS_TOP_LEFT,
+    /**
+     * Index of top-right corner radii.
+     */
+    CORNER_POS_TOP_RIGHT,
+    /**
+     * Index of bottom-right corner radii.
+     */
+    CORNER_POS_BOTTOM_RIGHT,
+    /**
+     * Index of bottom-left corner radii.
+     */
+    CORNER_POS_BOTTOM_LEFT,
+} OH_Drawing_CornerPos;
+
+/**
  * @brief Creates an <b>OH_Drawing_RoundRect</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -55,6 +80,30 @@ extern "C" {
  * @version 1.0
  */
 OH_Drawing_RoundRect* OH_Drawing_RoundRectCreate(const OH_Drawing_Rect*, float xRad, float yRad);
+
+/**
+ * @brief Sets the radiusX and radiusY for a specific corner position.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_RoundRect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param pos Indicates the corner radii position.
+ * @param OH_Drawing_Corner_Radii Indicates the corner radii on x-axis and y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_RoundRectSetCorner(OH_Drawing_RoundRect*, OH_Drawing_CornerPos pos, OH_Drawing_Corner_Radii radiusXY);
+
+/**
+ * @brief Gets an <b>OH_Drawing_Corner_Radii</b> struct, the point is round corner radiusX and radiusY.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_RoundRect Indicates the pointer to an <b>OH_Drawing_RoundRect</b> object.
+ * @param pos Indicates the corner radii position.
+ * @return Returns the corner radii of <b>OH_Drawing_Corner_Radii</b> struct.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_Corner_Radii OH_Drawing_RoundRectGetCorner(OH_Drawing_RoundRect*, OH_Drawing_CornerPos pos);
 
 /**
  * @brief Destroys an <b>OH_Drawing_RoundRect</b> object and reclaims the memory occupied by the object.
