@@ -117,7 +117,8 @@ public:
     void SetContentDirty();
     void ResetIsOnlyBasicGeoTransform();
     bool IsOnlyBasicGeoTransform() const;
-    void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty);
+    void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
+        std::optional<RectI> clipRect = std::nullopt);
 
     WeakPtr GetParent() const;
 
