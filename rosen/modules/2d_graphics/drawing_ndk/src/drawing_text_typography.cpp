@@ -1061,6 +1061,14 @@ void OH_Drawing_SetTypographyTextEllipsisModal(OH_Drawing_TypographyStyle* style
     #else
         ConvertToOriginalText<TypographyStyle>(style)->ellipsisModal = rosenEllipsisModal;
     #endif
+    if (!ConvertToOriginalText<TypographyStyle>(style)->ellipsizedForNDK) {
+        #ifndef USE_GRAPHIC_TEXT_GINE
+            ConvertToOriginalText<TypographyStyle>(style)->ellipsis_ = TypographyStyle::ELLIPSIS;
+        #else
+            ConvertToOriginalText<TypographyStyle>(style)->ellipsis = TypographyStyle::ELLIPSIS;
+        #endif
+        ConvertToOriginalText<TypographyStyle>(style)->ellipsizedForNDK = true;
+    }
 }
 
 double OH_Drawing_TypographyGetLineHeight(OH_Drawing_Typography* typography, int lineNumber)
@@ -1813,6 +1821,7 @@ void OH_Drawing_SetTypographyTextEllipsis(OH_Drawing_TypographyStyle* style, con
 #else
     ConvertToOriginalText<TypographyStyle>(style)->ellipsis = u16Ellipsis;
 #endif
+    ConvertToOriginalText<TypographyStyle>(style)->ellipsizedForNDK = true;
 }
 
 void OH_Drawing_TextStyleSetBackgroundRect(OH_Drawing_TextStyle* style, const OH_Drawing_RectStyle_Info* rectStyleInfo,
