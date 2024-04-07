@@ -205,6 +205,10 @@ public:
     {
         idleTimerExpiredFlag_ = flag;
     }
+    void SetRSIdleTimerExpiredFlag(bool flag)
+    {
+        rsIdleTimerExpiredFlag_ = flag;
+    }
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
     uint64_t GetFrameCount() const
@@ -519,6 +523,7 @@ private:
     std::string currentBundleName_ = "";
     bool forceUpdateUniRenderFlag_ = false;
     bool idleTimerExpiredFlag_ = false;
+    bool rsIdleTimerExpiredFlag_ = false;
     // for ui first
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;

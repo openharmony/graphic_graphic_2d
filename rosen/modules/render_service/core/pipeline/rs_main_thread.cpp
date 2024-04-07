@@ -459,6 +459,14 @@ void RSMainThread::Init()
             }
         });
     });
+    frameRateMgr_->touchMgr_->SetRSIdleUpdateCallback([](bool rsIdleTimerExpired) {
+        RSMainThread::Instance()->PostTask([rsIdleTimerExpired]() {
+            RS_TRACE_NAME_FMT("RSMainThread::RSTimerExpiredCallback Run rsIdleTimerExpiredFlag: %s",
+                rsIdleTimerExpired? "True":"False");
+            RSMainThread::Instance()->SetRSIdleTimerExpiredFlag(rsIdleTimerExpired);
+            RSMainThread::Instance()->RequestNextVSync();
+        });
+    });
     frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     SubscribeAppState();
     PrintCurrentStatus();
@@ -1479,6 +1487,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
             idleTimerExpiredFlag_, rsVSyncDistributor_->IsDVsyncOn());
     }
+
+    // if RS get here means it has frame coming in
+    frameRateMgr_->touchMgr_->ResetRSTimer(frameRateMgr_->GetCurScreenId());
+    frameRateMgr_->touchMgr_->HandleRSFrameUpdate(rsIdleTimerExpiredFlag_);
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
