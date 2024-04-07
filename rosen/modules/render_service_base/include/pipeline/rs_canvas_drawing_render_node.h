@@ -74,6 +74,7 @@ public:
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
     const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
+    void ClearResource() override;
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);

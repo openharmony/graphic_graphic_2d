@@ -500,5 +500,11 @@ const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDraw
 {
     return drawCmdLists_;
 }
+
+void RSCanvasDrawingRenderNode::ClearResource()
+{
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+    drawCmdLists_.clear();
+}
 } // namespace Rosen
 } // namespace OHOS
