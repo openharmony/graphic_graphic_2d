@@ -72,7 +72,7 @@ protected:
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
-    static inline std::vector<RectI> drawingCacheRects_;
+    static inline std::vector<std::pair<RectI, int32_t>> drawingCacheInfos_; // (rect, updateTimes)
 
     // used foe render group cache
     void SetCacheType(DrawableCacheType cacheType);

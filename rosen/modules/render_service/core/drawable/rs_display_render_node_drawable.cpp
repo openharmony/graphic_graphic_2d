@@ -343,7 +343,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
-    drawingCacheRects_.clear();
+    drawingCacheInfos_.clear();
 
     // check rotation for point light
     constexpr int ROTATION_NUM = 4;
@@ -446,8 +446,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     SwitchColorFilter(*curCanvas_);
 
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
-        for (const auto& rect : drawingCacheRects_) {
-            RSUniRenderUtil::DrawRectForDfx(*curCanvas_, rect, Drawing::Color::COLOR_GREEN, 0.2f);
+        for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
+            std::string extraInfo = ", updateTimes:" + std::to_string(updateTimes);
+            RSUniRenderUtil::DrawRectForDfx(*curCanvas_, rect, Drawing::Color::COLOR_GREEN, 0.2f, extraInfo);
         }
     }
 
