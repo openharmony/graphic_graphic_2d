@@ -97,8 +97,16 @@ void RSCanvasRenderNode::OnTreeStateChanged()
             ClearCacheSurfaceInThread();
             SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
+        if (clearSurfaceTask_) {
+            clearSurfaceTask_();
+        }
     }
     RSRenderNode::OnTreeStateChanged();
+}
+
+void RSRenderNode::RegisterClearSurfaceFunc(ClearSurfaceTask task)
+{
+    clearSurfaceTask_ = task;
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)

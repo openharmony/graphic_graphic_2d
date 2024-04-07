@@ -64,6 +64,7 @@ class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
+    using ClearSurfaceTask = std::function<void()>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
     virtual RSRenderNodeType GetType() const
     {
@@ -121,6 +122,7 @@ public:
         std::optional<RectI> clipRect = std::nullopt);
 
     WeakPtr GetParent() const;
+    void RegisterClearSurfaceFunc(ClearSurfaceTask task);
 
     inline NodeId GetId() const
     {
@@ -605,6 +607,7 @@ protected:
 
     ModifierDirtyTypes dirtyTypes_;
     bool isBootAnimation_ = false;
+    ClearSurfaceTask clearSurfaceTask_;
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {

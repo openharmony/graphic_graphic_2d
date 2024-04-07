@@ -38,7 +38,10 @@ constexpr int32_t DRAWING_CACHE_MAX_UPDATE_TIME = 3;
 }
 RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawableAdapter(std::move(node))
-{}
+{
+    auto task = std::bind(&RSRenderNodeDrawable::ClearCachedSurface, this);
+    std::const_pointer_cast<RSRenderNode>(renderNode_)->RegisterClearSurfaceFunc(task);
+}
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
 {
@@ -359,6 +362,7 @@ void RSRenderNodeDrawable::ClearCachedSurface()
 
     auto clearTask = [surface = cachedSurface_]() mutable { surface = nullptr; };
     cachedSurface_ = nullptr;
+    cachedImage_ = nullptr;
     RSTaskDispatcher::GetInstance().PostTask(cacheThreadId_.load(), clearTask);
 
 #ifdef RS_ENABLE_VK
