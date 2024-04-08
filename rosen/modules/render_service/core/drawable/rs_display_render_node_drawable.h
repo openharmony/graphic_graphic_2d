@@ -46,7 +46,8 @@ private:
         RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor) const;
     void FindHardwareEnabledNodes();
     void AdjustZOrderAndDrawSurfaceNode(
-        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes, Drawing::Canvas& canvas) const;
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes,
+        Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
     void ProcessVirtualScreen(RSDisplayRenderNode& displayNodeSp, RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);

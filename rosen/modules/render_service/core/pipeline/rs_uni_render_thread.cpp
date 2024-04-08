@@ -59,7 +59,7 @@ void RSUniRenderThread::SetCaptureParam(const CaptureParam& param)
     captureParam_ = param;
 }
 
-const CaptureParam& RSUniRenderThread::GetCaptureParam()
+CaptureParam& RSUniRenderThread::GetCaptureParam()
 {
     return captureParam_;
 }

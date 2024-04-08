@@ -287,7 +287,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         canvas.Save();
     }
 
-    surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
+    // First node don't need to cancat matrix for application
+    if (RSUniRenderThread::GetCaptureParam().isFirstNode_) {
+        // TODO: If node is a sandbox.
+        canvas.MultiplyAlpha(surfaceParams.GetAlpha());
+        RSUniRenderThread::GetCaptureParam().isFirstNode_ = false;
+    } else {
+        surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
+    }
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
@@ -357,10 +364,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
-    }
-
-    if (isSelfDrawingSurface) {
-        canvas.Restore();
     }
 
     if (surfaceParams.GetBuffer() != nullptr) {

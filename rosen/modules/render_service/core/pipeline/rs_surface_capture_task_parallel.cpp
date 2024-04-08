@@ -118,7 +118,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         canvas.Scale(scaleX_, scaleY_);
         canvas.SetDisableFilterCache(true);
         if (surfaceNodeDrawable) {
-            RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, scaleX_, scaleY_));
+            RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, scaleX_, scaleY_, true));
             surfaceNodeDrawable->OnCapture(canvas);
         } else if (displayNodeDrawable) {
             RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false, scaleX_, scaleY_));

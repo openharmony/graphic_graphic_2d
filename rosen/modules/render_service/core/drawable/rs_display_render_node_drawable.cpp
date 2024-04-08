@@ -683,7 +683,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             std::to_string(params->GetScreenId()) + "] using UniRender buffer.");
 
         if (params->GetHardwareEnabledNodes().size() != 0) {
-            AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledNodes(), canvas);
+            AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledNodes(), canvas, *params);
         }
 
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -704,7 +704,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         renderEngine->DrawDisplayNodeWithParams(*rscanvas, *displayNodeSp, drawParams);
 
         if (params->GetHardwareEnabledTopNodes().size() != 0) {
-            AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledTopNodes(), canvas);
+            AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledTopNodes(), canvas, *params);
         }
     }
 }
@@ -776,7 +776,8 @@ void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes()
 
 
 void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes, Drawing::Canvas& canvas) const
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes,
+    Drawing::Canvas& canvas, RSDisplayRenderParams& params) const
 {
     if (!RSSystemProperties::GetHardwareComposerEnabled()) {
         RS_LOGW("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode: \
@@ -790,14 +791,14 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
             return first->GetGlobalZOrder() < second->GetGlobalZOrder();
         });
 
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ConcatMatrix(params.GetMatrix());
     // draw hardware-composition nodes
     for (auto& surfaceNode : nodes) {
-        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
             Drawing::AutoCanvasRestore acr(canvas, true);
             std::unique_ptr<RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
                 std::make_unique<RSSurfaceRenderNodeDrawable>(surfaceNode);
             surfaceNodeDrawable->OnCapture(canvas);
-        }
     }
 }
 

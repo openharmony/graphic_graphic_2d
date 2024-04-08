@@ -72,7 +72,7 @@ public:
     bool GetWatermarkFlag();
     
     static void SetCaptureParam(const CaptureParam& param);
-    static const CaptureParam& GetCaptureParam();
+    static CaptureParam& GetCaptureParam();
     static void ResetCaptureParam();
     std::vector<NodeId>& GetDrawStatusVec()
     {
