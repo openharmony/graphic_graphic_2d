@@ -331,6 +331,11 @@ float RSModifierExtractor::GetLightIntensity() const
     GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_INTENSITY, 0.f, =);
 }
 
+Color RSModifierExtractor::GetLightColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, LIGHT_COLOR, RgbPalette::White(), =);
+}
+
 Vector4f RSModifierExtractor::GetLightPosition() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Vector4f, LIGHT_POSITION, Vector4f(0.f), =);

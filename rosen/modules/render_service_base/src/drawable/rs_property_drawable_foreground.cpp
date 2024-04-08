@@ -26,7 +26,7 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
 constexpr int PARAM_TWO = 2;
-constexpr int MAX_LIGHT_SOURCES = 4;
+constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
 // ====================================
@@ -389,13 +389,19 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSPointLightDrawable::OnSync()
 {
-    lightSourceList_.clear();
-    auto& lightSources = properties_.GetIlluminated()->GetLightSources();
-    for (auto &lightSource : lightSources) {
-        lightSourceList_.push_back(*lightSource);
+    lightSourcesAndPosVec_.clear();
+    const auto& lightSourcesAndPosMap  = properties_.GetIlluminated()->GetLightSourcesAndPosMap();
+    for (auto &pair : lightSourcesAndPosMap) {
+        lightSourcesAndPosVec_.push_back(pair);
     }
-    if (lightSourceList_.empty()) {
+    if (lightSourcesAndPosVec_.empty()) {
         return;
+    }
+    if (lightSourcesAndPosVec_.size() > MAX_LIGHT_SOURCES) {
+        std::sort(lightSourcesAndPosVec_.begin(), lightSourcesAndPosVec_.end(), [](const auto& x, const auto& y) {
+            return x.second.x_ * x.second.x_ + x.second.y_ * x.second.y_ <
+                   y.second.x_ * y.second.x_ + y.second.y_ * y.second.y_;
+        });
     }
     illuminatedType_ = properties_.GetIlluminated()->GetIlluminatedType();
     borderWidth_ = std::ceil(properties_.GetIlluminatedBorderWidth());
@@ -419,41 +425,51 @@ void RSPointLightDrawable::OnSync()
 
 void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
 {
-    if (lightSourceList_.empty()) {
+    if (lightSourcesAndPosVec_.empty()) {
         return;
     }
     auto phongShaderBuilder = GetPhongShaderBuilder();
     if (!phongShaderBuilder) {
         return;
     }
-    auto iter = lightSourceList_.begin();
+    constexpr int vectorLen = 4;
+    float lightPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
+    float viewPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
+    float lightColorArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
+    float lightIntensityArray[MAX_LIGHT_SOURCES] = { 0 };
+
+    auto iter = lightSourcesAndPosVec_.begin();
     auto cnt = 0;
-    Drawing::Matrix44 lightPositionMatrix;
-    Drawing::Matrix44 viewPosMatrix;
-    Vector4f lightIntensityV4;
-    while (iter != lightSourceList_.end() && cnt < MAX_LIGHT_SOURCES) {
-        auto lightPos = RSPointLightManager::Instance()->CalculateLightPosForIlluminated((*iter), rect_);
-        auto lightIntensity = (*iter).GetLightIntensity();
-        lightIntensityV4[cnt] = lightIntensity;
-        lightPositionMatrix.SetCol(cnt, lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_);
-        viewPosMatrix.SetCol(cnt, lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_);
+    while (iter != lightSourcesAndPosVec.end() && cnt < MAX_LIGHT_SOURCES) {
+        auto lightPos = iter->second;
+        auto lightIntensity = iter->first->GetLightIntensity();
+        auto lightColor = iter->first->GetLightColor();
+        Vector4f lightColorVec =
+            Vector4f(lightColor.GetRed(), lightColor.GetGreen(), lightColor.GetBlue(), lightColor.GetAlpha());
+        for (int i = 0; i < vectorLen; i++) {
+            lightPosArray[cnt * vectorLen + i] = lightPos[i];
+            viewPosArray[cnt * vectorLen + i] = lightPos[i];
+            lightColorArray[cnt * vectorLen + i] = lightColorVec[i] / UINT8_MAX;
+        }
+        lightIntensityArray[cnt] = lightIntensity;
         iter++;
         cnt++;
     }
-    phongShaderBuilder->SetUniform("lightPos", lightPositionMatrix);
-    phongShaderBuilder->SetUniform("viewPos", viewPosMatrix);
+    phongShaderBuilder->SetUniform("lightPos", lightPosArray, vectorLen * MAX_LIGHT_SOURCES);
+    phongShaderBuilder->SetUniform("viewPos", viewPosArray, vectorLen * MAX_LIGHT_SOURCES);
+    phongShaderBuilder->SetUniform("specularLightColor", lightColorArray, vectorLen * MAX_LIGHT_SOURCES);
     Drawing::Pen pen;
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
     ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d", illuminatedType_);
     if (illuminatedType_ == IlluminatedType::BORDER_CONTENT) {
-        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityV4);
-        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityV4);
+        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityArray);
+        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityArray);
     } else if (illuminatedType_ == IlluminatedType::CONTENT) {
-        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityV4);
+        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityArray);
     } else if (illuminatedType_ == IlluminatedType::BORDER) {
-        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityV4);
+        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityArray);
     }
 }
 
@@ -465,16 +481,17 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
     }
     std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
     std::string lightString(R"(
-        uniform mat4 lightPos;
-        uniform mat4 viewPos;
-        uniform vec4 specularStrength;
+        uniform vec4 lightPos[12];
+        uniform vec4 viewPos[12];
+        uniform vec4 specularLightColor[12];
+        uniform float specularStrength[12];
+
 
         mediump vec4 main(vec2 drawing_coord) {
             vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
             float ambientStrength = 0.0;
             vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
             float diffuseStrength = 0.0;
-            vec4 specularColor = vec4(1.0, 1.0, 1.0, 1.0);
             float shininess = 8.0;
             mediump vec4 fragColor;
             vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
@@ -482,7 +499,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
             vec4 ambient = lightColor * ambientStrength;
             vec3 norm = normalize(NormalMap.rgb);
 
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 12; i++) {
                 if (abs(specularStrength[i]) > 0.01) {
                     vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
                     float diff = max(dot(norm, lightDir), 0.0);
@@ -492,6 +509,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
                     float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
                     vec4 specular = lightColor * spec; // multiply color of incident light
                     vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
+                    vec4 specularColor = specularLightColor[i];
                     fragColor = fragColor + o + specular * specularStrength[i] * specularColor;
                 }
             }
@@ -509,11 +527,15 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
 }
 
 void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
-    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity) const
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
+    const float lightIntensityArray[]) const
 {
-    auto contentStrength = lightIntensity * 0.3f;
-    lightBuilder->SetUniformVec4(
-        "specularStrength", contentStrength.x_, contentStrength.y_, contentStrength.z_, contentStrength.w_);
+    constexpr float contentIntensityCoefficient = 0.3f;
+    float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
+    for (int i = 0; i < MAX_LIGHT_SOURCES; i++) {
+        specularStrengthArr[i] = lightIntensityArray[i] * contentIntensityCoefficient;
+    }
+    lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     brush.SetShaderEffect(shader);
     canvas.AttachBrush(brush);
@@ -522,10 +544,10 @@ void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
 }
 
 void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
-    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity) const
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
+    const float lightIntensityArray[]) const
 {
-    lightBuilder->SetUniformVec4(
-        "specularStrength", lightIntensity.x_, lightIntensity.y_, lightIntensity.z_, lightIntensity.w_);
+    lightBuilder->SetUniform("specularStrength", lightIntensityArray, MAX_LIGHT_SOURCES);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(borderWidth_);

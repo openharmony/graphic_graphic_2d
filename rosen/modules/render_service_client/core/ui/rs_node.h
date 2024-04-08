@@ -336,6 +336,8 @@ public:
 
     void SetLightIntensity(float lightIntensity);
 
+    void SetLightColor(uint32_t lightColorValue);
+
     void SetLightPosition(const Vector4f& lightPosition);
 
     void SetLightPosition(float positionX, float positionY, float positionZ);

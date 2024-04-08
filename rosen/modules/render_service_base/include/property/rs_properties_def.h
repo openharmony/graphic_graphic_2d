@@ -158,6 +158,10 @@ public:
         }
         intensity_ = lightIntensity;
     }
+    void SetLightColor(Color lightColor)
+    {
+        lightColor_ = lightColor;
+    }
     void SetAbsLightPosition(const Vector4f& absLightPosition)
     {
         absLightPosition_ = absLightPosition;
@@ -174,6 +178,10 @@ public:
     float GetLightIntensity() const
     {
         return intensity_;
+    }
+    Color GetLightColor() const
+    {
+        return lightColor_;
     }
 
     bool IsLightSourceValid() const
@@ -200,6 +208,7 @@ private:
     }
     Vector4f lightPosition_ = Vector4f();
     Vector4f absLightPosition_ = Vector4f(); // absolute light Position;
+    Color lightColor_ = RgbPalette::White();
     float intensity_ = 0.f;
     float preIntensity_ = 0.f;
     float radius_ = 0.f;
@@ -236,7 +245,7 @@ public:
     }
     bool IsIlluminated() const
     {
-        return !lightSources_.empty();
+        return !lightSourcesAndPosMap_.empty();
     }
     bool IsIlluminatedValid() const
     {
@@ -246,17 +255,17 @@ public:
     {
         return preIlluminatedType_;
     }
-    void AddLightSource(const std::shared_ptr<RSLightSource>& lightSourcePtr)
+    void AddLightSourcesAndPos(const std::shared_ptr<RSLightSource>& lightSourcePtr, const Vector4f& lightPos)
     {
-        lightSources_.emplace(lightSourcePtr);
+        lightSourcesAndPosMap_.insert(std::make_pair(lightSourcePtr, lightPos));
     }
-    void ClearLightSource()
+    void ClearLightSourcesAndPosMap()
     {
-        lightSources_.clear();
+        lightSourcesAndPosMap_.clear();
     }
-    std::unordered_set<std::shared_ptr<RSLightSource>>& GetLightSources()
+    std::unordered_map<std::shared_ptr<RSLightSource>, Vector4f>& GetLightSourcesAndPosMap()
     {
-        return lightSources_;
+        return lightSourcesAndPosMap_;
     }
 
 private:
@@ -264,8 +273,9 @@ private:
     float bloomIntensity_ = 0.f;
     float illuminatedBorderWidth_ = 0.f;
     IlluminatedType preIlluminatedType_ = IlluminatedType::NONE;
-    // record the light sources that the node is illuminated by.
-    std::unordered_set<std::shared_ptr<RSLightSource>> lightSources_;
+    // saves the mapping between the light source that illuminates the node and the position of lightSource relative to
+    // the node.
+    std::unordered_map<std::shared_ptr<RSLightSource>, Vector4f> lightSourcesAndPosMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

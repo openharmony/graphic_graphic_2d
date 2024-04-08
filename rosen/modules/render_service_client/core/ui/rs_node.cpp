@@ -1683,6 +1683,12 @@ void RSNode::SetLightIntensity(float lightIntensity)
     SetProperty<RSLightIntensityModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_INTENSITY, lightIntensity);
 }
 
+void RSNode::SetLightColor(uint32_t lightColorValue)
+{
+    auto lightColor = Color::FromArgbInt(lightColorValue);
+    SetProperty<RSLightColorModifier, RSAnimatableProperty<Color>>(RSModifierType::LIGHT_COLOR, lightColor);
+}
+
 void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
 {
     SetLightPosition(Vector4f(positionX, positionY, positionZ, 0.f));

@@ -136,6 +136,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::OUTLINE_RADIUS, RSPropertyDrawableSlot::OUTLINE },
     { RSModifierType::USE_SHADOW_BATCHING, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::LIGHT_INTENSITY, RSPropertyDrawableSlot::POINT_LIGHT },
+    { RSModifierType::LIGHT_COLOR, RSPropertyDrawableSlot::POINT_LIGHT },
     { RSModifierType::LIGHT_POSITION, RSPropertyDrawableSlot::POINT_LIGHT },
     { RSModifierType::ILLUMINATED_TYPE, RSPropertyDrawableSlot::POINT_LIGHT },
     { RSModifierType::BLOOM, RSPropertyDrawableSlot::POINT_LIGHT },
