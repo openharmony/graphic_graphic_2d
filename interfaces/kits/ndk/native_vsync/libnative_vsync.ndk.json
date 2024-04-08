@@ -1,6 +1,0 @@
-[
-    { "name": "OH_NativeVSync_Create" },
-    { "name": "OH_NativeVSync_Destroy" },
-    { "name": "OH_NativeVSync_RequestFrame" },
-    { "name": "OH_NativeVSync_GetPeriod" }
-]
