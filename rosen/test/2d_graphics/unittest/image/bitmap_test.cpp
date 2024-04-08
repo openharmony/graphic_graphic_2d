@@ -64,22 +64,22 @@ HWTEST_F(BitmapTest, BitmapBuildTest001, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(100, 200, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(100, 200, bitmapFormat));
 
     bitmapFormat = { COLORTYPE_RGB_565, ALPHATYPE_PREMUL };
-    bitmap->Build(100, 200, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(100, 200, bitmapFormat));
 
     bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_UNPREMUL };
-    bitmap->Build(100, 200, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(100, 200, bitmapFormat));
 
     bitmapFormat.colorType = COLORTYPE_RGBA_8888;
-    bitmap->Build(100, 200, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(100, 200, bitmapFormat));
 
     bitmapFormat.colorType = COLORTYPE_BGRA_8888;
-    bitmap->Build(100, 200, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(100, 200, bitmapFormat));
 
     bitmapFormat.colorType = COLORTYPE_N32;
-    bitmap->Build(100, 200, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(100, 200, bitmapFormat));
 }
 
 /**
@@ -95,7 +95,13 @@ HWTEST_F(BitmapTest, BitmapBuildTest002, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(150, 99, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(150, 99, bitmapFormat));
+
+    bitmapFormat = { COLORTYPE_UNKNOWN, ALPHATYPE_OPAQUE };
+    EXPECT_FALSE(bitmap->Build(100, 200, bitmapFormat));
+
+    bitmapFormat = { COLORTYPE_ALPHA_8, ALPHATYPE_UNKNOWN };
+    EXPECT_FALSE(bitmap->Build(100, 200, bitmapFormat));
 }
 
 /**
@@ -110,8 +116,14 @@ HWTEST_F(BitmapTest, BitmapBuildTest003, TestSize.Level1)
     // The best way to Build Bitmap.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(111, 450, bitmapFormat);
+    ImageInfo imageInfo = {111, 450, ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE};
+    EXPECT_TRUE(bitmap->Build(imageInfo));
+
+    imageInfo = {111, 450, ColorType::COLORTYPE_UNKNOWN, AlphaType::ALPHATYPE_OPAQUE};
+    EXPECT_FALSE(bitmap->Build(imageInfo));
+
+    imageInfo = {111, 450, ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_UNKNOWN};
+    EXPECT_FALSE(bitmap->Build(imageInfo));
 }
 
 /**
@@ -127,7 +139,7 @@ HWTEST_F(BitmapTest, BitmapGetWidthTest001, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(111, 450, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(111, 450, bitmapFormat));
     ASSERT_EQ(111, bitmap->GetWidth());
 }
 
@@ -144,7 +156,7 @@ HWTEST_F(BitmapTest, BitmapGetWidthTest002, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(151, 150, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(151, 150, bitmapFormat));
     ASSERT_EQ(151, bitmap->GetWidth());
 }
 
@@ -161,7 +173,7 @@ HWTEST_F(BitmapTest, BitmapGetHeightTest001, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(111, 450, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(111, 450, bitmapFormat));
     ASSERT_EQ(450, bitmap->GetHeight());
 }
 
@@ -178,7 +190,7 @@ HWTEST_F(BitmapTest, BitmapGetHeightTest002, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(151, 150, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(151, 150, bitmapFormat));
     ASSERT_EQ(150, bitmap->GetHeight());
 }
 
@@ -340,7 +352,7 @@ HWTEST_F(BitmapTest, BitmapGetFormatTest001, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(111, 450, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(111, 450, bitmapFormat));
     ASSERT_EQ(ColorType::COLORTYPE_ALPHA_8, bitmap->GetFormat().colorType);
     ASSERT_EQ(AlphaType::ALPHATYPE_OPAQUE, bitmap->GetFormat().alphaType);
     bitmap->Free();
@@ -358,7 +370,7 @@ HWTEST_F(BitmapTest, BitmapGetFormatTest002, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
-    bitmap->Build(151, 150, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(151, 150, bitmapFormat));
     ASSERT_EQ(ColorType::COLORTYPE_ALPHA_8, bitmap->GetFormat().colorType);
     ASSERT_EQ(AlphaType::ALPHATYPE_OPAQUE, bitmap->GetFormat().alphaType);
     bitmap->Free();
@@ -377,12 +389,32 @@ HWTEST_F(BitmapTest, BitmapGetImageInfoTest001, TestSize.Level1)
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     const unsigned int width = 500;
     const unsigned int height = 500;
-    bitmap->Build(width, height, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(width, height, bitmapFormat));
 
     auto imageInfo = bitmap->GetImageInfo();
     EXPECT_EQ(width, imageInfo.GetWidth());
     EXPECT_EQ(height, imageInfo.GetHeight());
     bitmap->Free();
+}
+
+/*
+ * @tc.name: BitmapTryAllocPixelsTest001
+ * @tc.desc: test for bitmap TryAllocPixels.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(BitmapTest, BitmapTryAllocPixelsTest001, TestSize.Level1)
+{
+    std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
+    ASSERT_TRUE(bitmap != nullptr);
+    ImageInfo imageInfo = {500, 500, ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE};
+    EXPECT_TRUE(bitmap->TryAllocPixels(imageInfo));
+
+    imageInfo = {500, 500, ColorType::COLORTYPE_UNKNOWN, AlphaType::ALPHATYPE_OPAQUE};
+    EXPECT_FALSE(bitmap->TryAllocPixels(imageInfo));
+
+    imageInfo = {500, 500, ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_UNKNOWN};
+    EXPECT_FALSE(bitmap->TryAllocPixels(imageInfo));
 }
 } // namespace Drawing
 } // namespace Rosen

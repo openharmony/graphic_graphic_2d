@@ -28,6 +28,8 @@
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #include "utils/data.h"
+#include "utils/log.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -41,18 +43,26 @@ static inline SkImageInfo MakeSkImageInfo(const int width, const int height, con
     return imageInfo;
 }
 
-void SkiaBitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
+bool SkiaBitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
 {
     auto imageInfo = MakeSkImageInfo(width, height, format);
-    skiaBitmap_.setInfo(imageInfo, stride);
-    skiaBitmap_.allocPixels();
+    bool isBuildSuccess = skiaBitmap_.setInfo(imageInfo, stride) && skiaBitmap_.tryAllocPixels();
+    if (!isBuildSuccess) {
+        LOGE("SkiaBitmap::Build failed, the format is incorrect");
+        return false;
+    }
+    return true;
 }
 
-void SkiaBitmap::Build(const ImageInfo& imageInfo, int32_t stride)
+bool SkiaBitmap::Build(const ImageInfo& imageInfo, int32_t stride)
 {
     auto skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
-    skiaBitmap_.setInfo(skImageInfo, stride);
-    skiaBitmap_.allocPixels();
+    bool isBuildSuccess = skiaBitmap_.setInfo(skImageInfo, stride) && skiaBitmap_.tryAllocPixels();
+    if (!isBuildSuccess) {
+        LOGE("SkiaBitmap::Build failed, the format is incorrect");
+        return false;
+    }
+    return true;
 }
 
 int SkiaBitmap::GetWidth() const

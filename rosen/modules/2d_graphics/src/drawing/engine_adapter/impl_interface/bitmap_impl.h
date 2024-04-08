@@ -34,8 +34,8 @@ public:
     BitmapImpl() {}
     ~BitmapImpl() override {}
 
-    virtual void Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0) = 0;
-    virtual void Build(const ImageInfo& imageInfo, int32_t stride = 0) = 0;
+    virtual bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0) = 0;
+    virtual bool Build(const ImageInfo& imageInfo, int32_t stride = 0) = 0;
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
     virtual int GetRowBytes() const = 0;

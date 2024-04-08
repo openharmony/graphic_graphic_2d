@@ -31,8 +31,8 @@ class DRAWING_API Bitmap {
 public:
     Bitmap();
     virtual ~Bitmap();
-    void Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0);
-    void Build(const ImageInfo& imageInfo, int32_t stride = 0);
+    bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0);
+    bool Build(const ImageInfo& imageInfo, int32_t stride = 0);
 
     /**
      * @brief Gets the width of Bitmap.
