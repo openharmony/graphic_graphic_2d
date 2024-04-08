@@ -349,11 +349,13 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         drawingFlushInfo.backendSurfaceAccess = true;
         drawingFlushInfo.numSemaphores = 1;
         drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
-        drawingFlushInfo.finishedProc = DestroySemaphore;
+        drawingFlushInfo.finishedProc = [](void *context) {
+            DestroySemaphoreInfo::DestroySemaphore(context);
+        };
         drawingFlushInfo.finishedContext = destroyInfo;
         cacheSurface->Flush(&drawingFlushInfo);
         grContext_->Submit();
-        DestroySemaphore(destroyInfo);
+        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
     } else {
         cacheSurface->FlushAndSubmit(true);
     }
