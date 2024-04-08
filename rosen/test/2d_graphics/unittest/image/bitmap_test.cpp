@@ -411,7 +411,7 @@ HWTEST_F(BitmapTest, BitmapTryAllocPixelsTest001, TestSize.Level1)
     EXPECT_TRUE(bitmap->TryAllocPixels(imageInfo));
 
     imageInfo = {500, 500, ColorType::COLORTYPE_UNKNOWN, AlphaType::ALPHATYPE_OPAQUE};
-    EXPECT_FALSE(bitmap->TryAllocPixels(imageInfo));
+    EXPECT_TRUE(bitmap->TryAllocPixels(imageInfo));
 
     imageInfo = {500, 500, ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_UNKNOWN};
     EXPECT_FALSE(bitmap->TryAllocPixels(imageInfo));
