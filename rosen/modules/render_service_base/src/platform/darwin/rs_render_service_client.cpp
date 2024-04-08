@@ -400,7 +400,7 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
     return {};
 }
 
-int32_t RSRenderServiceClient::RegisterHgmRefreshUpdateCallback(
+int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     const HgmRefreshRateUpdateCallback& callback)
 {
     return {};
