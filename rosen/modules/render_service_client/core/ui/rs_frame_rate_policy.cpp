@@ -82,10 +82,10 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     }
 }
 
-void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateModeName)
+void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode)
 {
-    RSUIDirector::PostFrameRateTask([this, refreshRateModeName]() {
-        currentRefreshRateModeName_ = refreshRateModeName;
+    RSUIDirector::PostFrameRateTask([this, refreshRateMode]() {
+        currentRefreshRateModeName_ = refreshRateMode;
     });
 }
 
