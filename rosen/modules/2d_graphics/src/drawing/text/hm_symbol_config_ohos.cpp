@@ -20,15 +20,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-std::shared_ptr<DrawingSymbolLayersGroups> HmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
+DrawingSymbolLayersGroups HmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
 {
     return StaticFactory::GetSymbolLayersGroups(glyphId);
 }
 
-std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> HmSymbolConfigOhos::GetGroupParameters(
-    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode)
+std::vector<std::vector<DrawingPiecewiseParameter>> HmSymbolConfigOhos::GetGroupParameters(
+    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
-    return StaticFactory::GetGroupParameters(type, groupSum, animationMode);
+    return StaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
 }
 
 } // namespace Drawing

@@ -282,6 +282,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetAnimationMode(txt.symbol.GetAnimationMode());
         paint.symbol.SetRepeatCount(txt.symbol.GetRepeatCount());
         paint.symbol.SetAminationStart(txt.symbol.GetAminationStart());
+        paint.symbol.SetCommonSubType(txt.symbol.GetCommonSubType());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 }

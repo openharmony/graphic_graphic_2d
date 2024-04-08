@@ -27,10 +27,11 @@ class HmSymbolConfigOhosImpl;
 
 class DRAWING_API HmSymbolConfigOhos {
 public:
-    static std::shared_ptr<DrawingSymbolLayersGroups> GetSymbolLayersGroups(uint32_t glyphId);
+    static DrawingSymbolLayersGroups GetSymbolLayersGroups(uint32_t glyphId);
 
-    static std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> GetGroupParameters(
-        DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode);
+    static std::vector<std::vector<DrawingPiecewiseParameter>> GetGroupParameters(
+        DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
+        DrawingCommonSubType commonSubType = DrawingCommonSubType::UP);
 };
 
 } // namespace Drawing

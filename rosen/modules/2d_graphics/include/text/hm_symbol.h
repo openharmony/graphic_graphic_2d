@@ -34,13 +34,23 @@ enum DrawingAnimationType {
     VARIABLE_COLOR_TYPE = 2,
     APPEAR_TYPE = 3,
     DISAPPEAR_TYPE = 4,
-    BOUNCE_TYPE = 5
+    BOUNCE_TYPE = 5,
+    PULSE_TYPE = 6,
+    REPLACE_APPEAR_TYPE = 7,
+    REPLACE_DISAPPEAR_TYPE
 };
 
 enum DrawingCurveType {
     INVALID_CURVE_TYPE = 0,
     SPRING = 1,
     LINEAR = 2,
+    FRICTION = 3,
+    SHARP = 4,
+};
+
+enum DrawingCommonSubType {
+    UP = 0,
+    DOWN = 1,
 };
 
 struct DrawingPiecewiseParameter {
@@ -52,7 +62,8 @@ struct DrawingPiecewiseParameter {
 };
 
 struct DrawingAnimationPara {
-    uint32_t animationMode;
+    uint32_t animationMode = 0; // 0 is default value, is byLayer effect
+    DrawingCommonSubType commonSubType = DrawingCommonSubType::UP;
     std::vector<std::vector<DrawingPiecewiseParameter>> groupParameters;
 };
 
@@ -75,7 +86,7 @@ struct DrawingGroupInfo {
 
 struct DrawingGroupSetting {
     std::vector<DrawingGroupInfo> groupInfos;
-    int animationIndex;
+    int animationIndex = -1; // -1 is default value, the level has no effecet
 };
 
 struct DrawingAnimationSetting {
@@ -94,7 +105,10 @@ enum DrawingEffectStrategy {
     VARIABLE_COLOR = 2,
     APPEAR = 3,
     DISAPPEAR = 4,
-    BOUNCE = 5
+    BOUNCE = 5,
+    PULSE = 6,
+    REPLACE_APPEAR = 7,
+    REPLACE_DISAPPEAR
 };
 
 struct DrawingSymbolLayers {

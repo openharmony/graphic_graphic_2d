@@ -74,9 +74,10 @@ public:
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
     static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
-    static std::shared_ptr<DrawingSymbolLayersGroups> GetSymbolLayersGroups(uint32_t glyphId);
-    static std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> GetGroupParameters(
-        DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode);
+    static DrawingSymbolLayersGroups GetSymbolLayersGroups(uint32_t glyphId);
+    static std::vector<std::vector<DrawingPiecewiseParameter>> GetGroupParameters(
+        DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
+        DrawingCommonSubType commonSubType = DrawingCommonSubType::UP);
     static FontStyleSet* CreateEmpty();
 };
 } // namespace Drawing

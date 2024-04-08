@@ -71,6 +71,11 @@ public:
         aminationStart_ = aminationStart;
     }
 
+    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
+    {
+        commonSubType_ = commonSubType;
+    }
+
 private:
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
@@ -80,6 +85,7 @@ private:
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool aminationStart_ = false;
+    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::UP;
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
