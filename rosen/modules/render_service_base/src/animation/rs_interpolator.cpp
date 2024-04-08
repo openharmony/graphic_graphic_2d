@@ -80,7 +80,9 @@ std::shared_ptr<RSInterpolator> RSInterpolator::Unmarshalling(Parcel& parcel)
         default:
             break;
     }
-    if (ret == nullptr) { return nullptr; }
+    if (ret == nullptr) {
+        return nullptr;
+    }
 
     static std::mutex cachedInterpolatorsMutex_;
     static std::unordered_map<uint32_t, std::weak_ptr<RSInterpolator>> cachedInterpolators_;
