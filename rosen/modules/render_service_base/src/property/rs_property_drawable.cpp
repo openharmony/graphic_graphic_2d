@@ -199,7 +199,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     RSColorFilterDrawable::Generate,              // COLOR_FILTER
     RSDynamicDimDrawable::Generate,               // DYNAMIC_DIM
     RSLightUpEffectDrawable::Generate,            // LIGHT_UP_EFFECT
-    RSCompositingFilterDrawable::Generate,        // FOREGROUND_FILTER
+    RSCompositingFilterDrawable::Generate,        // COMPOSITING_FILTER
     RSForegroundColorDrawable::Generate,          // FOREGROUND_COLOR
     nullptr,                                      // FG_RESTORE_BOUNDS
 
