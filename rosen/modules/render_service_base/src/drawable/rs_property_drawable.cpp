@@ -322,7 +322,8 @@ void RSFilterDrawable::ClearFilterCache()
             cacheManager_ != nullptr, filter_ == nullptr);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache clearType:%d, isOccluded_:%d", clearType_, isOccluded_);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache clearType:%d, isOccluded_:%d",
+        clearType_, isOccluded_);
     cacheManager_->InvalidateFilterCache(clearType_);
     lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (stagingClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);

@@ -325,7 +325,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
         if (func) {
-             std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
+            std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
             func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
                 cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
@@ -466,7 +466,7 @@ bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic(DeviceType deviceType)
         return false;
     }
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::GetSurfaceCacheContentStatic: [%d] name [%s] Id:%" PRIu64 "",
-        surfaceParams->GetSurfaceCacheContentStatic(),surfaceParams->GetName().c_str(), surfaceParams->GetId());
+        surfaceParams->GetSurfaceCacheContentStatic(), surfaceParams->GetName().c_str(), surfaceParams->GetId());
     return surfaceParams->GetSurfaceCacheContentStatic();
 }
 

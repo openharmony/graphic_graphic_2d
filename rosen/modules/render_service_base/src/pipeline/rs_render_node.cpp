@@ -970,8 +970,7 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
 {
     if (hasChildrenOutOfRect_ && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
-        // [PLANNING] disable cache in this case
-        // SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+        // [PLANNING] disable cache in this case: SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE)
     }
     stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
     if (GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {

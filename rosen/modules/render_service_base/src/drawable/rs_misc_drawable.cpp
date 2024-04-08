@@ -160,12 +160,13 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
         if (itr == cmdLists.end() || itr->second.empty()) {
             return false;
         }
-        for(auto& cmd : itr->second) {
+        for (auto& cmd : itr->second) {
             stagingDrawCmdListVec_.emplace_back(cmd);
         }
     } else {
         for (const auto& modifier : itr->second) {
-            auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
+            auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
+                modifier->GetProperty());
             if (const auto& drawCmdList = property->GetRef()) {
                 if (drawCmdList->GetWidth() > 0 && drawCmdList->GetHeight() > 0) {
                     stagingDrawCmdListVec_.push_back(drawCmdList);

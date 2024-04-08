@@ -211,14 +211,6 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         return nullptr;
     }
     auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(params.GetScreenInfo(), true);
-
-#if 0 // TO-DO wait buffer
-    if (!RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(
-        std::static_pointer_cast<RSSurfaceHandler>(displayNodeSp))) {
-        RS_TRACE_NAME("RSDisplayRenderNodeDrawable::RequestFrame no released buffer");
-    }
-#endif
-
     auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig);
     if (!renderFrame) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame renderEngine requestFrame is null");
@@ -244,10 +236,9 @@ static inline Drawing::Region GetFilpedRegion(std::vector<RectI>& rects, ScreenI
 #endif
         Drawing::Region tmpRegion;
         tmpRegion.SetRect(Drawing::RectI(r.left_, topAfterFilp, r.left_ + r.width_, topAfterFilp + r.height_));
-        RS_OPTIONAL_TRACE_NAME_FMT("GetFilpedRegion orig ltrb[%d %d %d %d] to fliped rect ltrb[%d %d %d %d]", r.left_, r.top_,
-            r.left_ + r.width_, r.top_ + r.height_, r.left_, topAfterFilp, r.left_ + r.width_,
+        RS_OPTIONAL_TRACE_NAME_FMT("GetFilpedRegion orig ltrb[%d %d %d %d] to fliped rect ltrb[%d %d %d %d]",
+            r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_, r.left_, topAfterFilp, r.left_ + r.width_,
             topAfterFilp + r.height_);
-
         region.Op(tmpRegion, Drawing::RegionOp::UNION);
     }
     return region;

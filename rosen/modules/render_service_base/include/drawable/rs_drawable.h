@@ -127,10 +127,8 @@ public:
     // Call on thread sync
     virtual void OnSync() = 0;
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Important Note:
+    // !!!!!!!!!!!!!!!!!!!!!!!!!! Important Note:
     // DrawFunc can only access the RT members variables, accessing staging members will cause a crash
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!
     virtual Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const = 0;
 
     // =================Generate & Update helper methods==================

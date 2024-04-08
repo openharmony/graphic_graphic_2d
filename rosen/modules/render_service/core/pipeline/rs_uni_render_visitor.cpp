@@ -2011,8 +2011,9 @@ void RSUniRenderVisitor::UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSu
             }
             RS_TRACE_NAME_FMT("sunyang UpdateOccludedStatusWithFilterNode "
                 "surfaceNode:node: name %s,filterNode:[%lld],, IsOccludedByFilterCache:%d",
-                 surfaceNode->GetName().c_str(), filterNode->GetId(), surfaceNode->IsOccludedByFilterCache());
-            if (filterNode->GetRenderProperties().GetBackgroundFilter() || filterNode->GetRenderProperties().GetFilter()) {
+                surfaceNode->GetName().c_str(), filterNode->GetId(), surfaceNode->IsOccludedByFilterCache());
+            if (filterNode->GetRenderProperties().GetBackgroundFilter() ||
+                filterNode->GetRenderProperties().GetFilter()) {
                 filterNode->SetOccludedStatus(surfaceNode->IsOccludedByFilterCache());
             }
         }
