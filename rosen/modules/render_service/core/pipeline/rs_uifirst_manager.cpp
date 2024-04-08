@@ -80,8 +80,27 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id)
     subthreadProcessDoneNode_.push_back(id);
 }
 
+void RSUifirstManager::MergeOldDirty(DrawableV2::RSSurfaceRenderNodeDrawable* drawable)
+{
+    auto node = static_cast<const RSSurfaceRenderNode*>(drawable->GetRenderNode().get());
+    if (node == nullptr) {
+        return;
+    }
+    if (node->IsAppWindow() && !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
+        node->GetDirtyManager()->MergeDirtyRect(node->GetOldDirty());
+        return;
+    }
+    for (auto& child : *node->GetSortedChildren()) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (surfaceNode && surfaceNode->IsAppWindow()) {
+            surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+            break;
+        }
+    }
+}
 void RSUifirstManager::ProcessDoneNode()
 {
+    SetHasDoneNodeFlag(false);
     std::vector<NodeId> tmp;
     {
         std::lock_guard<std::mutex> lock(childernDrawableMutex_);
@@ -100,7 +119,9 @@ void RSUifirstManager::ProcessDoneNode()
             continue;
         }
         if (drawable->GetCacheSurfaceNeedUpdated() && drawable->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false)) {
+            SetHasDoneNodeFlag(true);
             drawable->UpdateCompletedCacheSurface();
+            MergeOldDirty(drawable);
         }
 
         if (pendingResetNodes_.count(id) > 0) { // reset node

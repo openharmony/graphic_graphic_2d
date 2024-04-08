@@ -50,6 +50,19 @@ public:
     {
         isUiFirstOn_ = uiFirstSwitch;
     }
+
+    void SetHasDoneNodeFlag(bool flag)
+    {
+        hasDoneNode_ = flag;
+    }
+
+    bool HasDoneNode()
+    {
+        return hasDoneNode_;
+    }
+
+    void MergeOldDirty(DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
+
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -95,6 +108,7 @@ private:
     std::set<NodeId> reuseNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     int noUifirstNodeFrameCount_ = 0;
+    bool hasDoneNode_ = false;
 };
 #endif
 }
