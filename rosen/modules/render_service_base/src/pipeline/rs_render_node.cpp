@@ -804,8 +804,8 @@ bool RSRenderNode::IsOnlyBasicGeoTransform() const
     return isOnlyBasicGeoTransform_;
 }
 
-void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
-    const RectI& clipRect)
+void RSRenderNode::SubTreeSkipPrepare(
+    RSDirtyRegionManager& dirtyManager, bool isDirty, bool accumGeoDirty, const RectI& clipRect)
 {
     // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
     if (HasChildrenOutOfRect() && (isDirty || clipAbsDrawRectChange_)) {
@@ -814,7 +814,7 @@ void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool i
             absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
             dirtyRect = dirtyRect.JoinRect(absChildrenRect_);
         }
-        dirtymanager.MergeDirtyRect(clipRect.IntersectRect(dirtyRect));
+        dirtyManager.MergeDirtyRect(clipRect.IntersectRect(dirtyRect));
     }
     SetGeoUpdateDelay(accumGeoDirty);
 }
@@ -916,7 +916,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     // stop visit invisible or clean without filter subtree
     if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
-        // when subTreeOccluded, need to applymodifiers to node's children
+        // when subTreeOccluded, need to applyModifiers to node's children
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
             GetId(), shouldPaint_, isOccluded);
         return false;
@@ -1038,8 +1038,8 @@ RSRenderNode::~RSRenderNode()
         ROSEN_LOGE("Invalid context");
         return;
     }
-    auto holdforRT = this->renderContent_;
-    context->PostRTTask([holdforRT]() {});
+    // post task to destroy renderContent_ in RenderThread
+    context->PostRTTask([context = std::move(renderContent_)]() {});
 }
 
 void RSRenderNode::FallbackAnimationsToRoot()
@@ -1232,7 +1232,7 @@ bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geo
     return true;
 }
 
-void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect)
+void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
 {
     dirtyManager.MergeDirtyRect(oldDirty_);
     // easily merge oldDirty if switch to invisible
@@ -1240,9 +1240,7 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std:
         return;
     }
     auto dirtyRect = absDrawRect_;
-    if (clipRect.has_value()) {
-        dirtyRect = dirtyRect.IntersectRect(*clipRect);
-    }
+    dirtyRect = dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
     if (!dirtyRect.IsEmpty()) {
@@ -1251,8 +1249,8 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std:
     }
 }
 
-bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
-    const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty, const RectI& clipRect)
+bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
+    RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect)
 {
     // 1. update self drawrect if dirty
     if (IsDirty()) {
@@ -1260,16 +1258,31 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     }
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
+    auto parent = GetParent().lock();
     if (!accumGeoDirty && parent && parent->GetGeoUpdateDelay()) {
         accumGeoDirty = true;
     }
-    if (accumGeoDirty || GetRenderProperties().NeedClip() ||
-        GetRenderProperties().geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
-        accumGeoDirty = GetMutableRenderProperties().UpdateGeometryByParent(parent,
-            !IsInstanceOf<RSSurfaceRenderNode>(), GetContextClipRegion()) || accumGeoDirty;
+    auto& properties = GetMutableRenderProperties();
+    if (accumGeoDirty || properties.NeedClip() ||
+        properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
+
+        const Drawing::Matrix* parentMatrix = nullptr;
+        std::optional<Drawing::Point> offset;
+        if (sharedTransitionParam_ && properties.GetSandBox()) {
+            auto parent = GetInstanceRootNode();
+            parentMatrix = parent ? &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) : nullptr;
+            offset = Drawing::Point { properties.GetSandBox()->x_, properties.GetSandBox()->y_ };
+        } else {
+            parentMatrix = parent ? &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) : nullptr;
+            if (parent && !IsInstanceOf<RSSurfaceRenderNode>()) {
+                offset = Drawing::Point { parent->GetRenderProperties().GetFrameOffsetX(),
+                    parent->GetRenderProperties().GetFrameOffsetY() };
+            }
+        }
+        accumGeoDirty = properties.UpdateGeometryByParent(parentMatrix, offset) || accumGeoDirty;
         // planning: double check if it would be covered by updateself without geo update
         // currently CheckAndUpdateGeoTrans without dirty check
-        if (auto geoPtr = GetRenderProperties().boundsGeo_) {
+        if (auto geoPtr = properties.boundsGeo_) {
             if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty) {
                 absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_);
                 UpdateClipAbsDrawRectChangeState(clipRect);
@@ -1277,24 +1290,24 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         }
     }
     // 3. update dirtyRegion if needed
-    if (GetRenderProperties().GetBackgroundFilter()) {
+    if (properties.GetBackgroundFilter()) {
         UpdateFilterCacheWithDirty(dirtyManager);
     }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     if ((IsDirty() || clipAbsDrawRectChange_) && (shouldPaint_ || isLastVisible_)) {
-        // update FrontgroundFilterCache
+        // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
         UpdateDirtyRegionInfoForDFX(dirtyManager);
     }
 
     // compare self with cache after update node geo
-    if (GetRenderProperties().GetBackgroundFilter()) {
+    if (properties.GetBackgroundFilter()) {
         UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
     }
     // 4. reset dirty status
     SetClean();
-    GetMutableRenderProperties().ResetDirty();
+    properties.ResetDirty();
     isLastVisible_ = shouldPaint_;
     return accumGeoDirty;
 }
@@ -1324,8 +1337,8 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
     stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
 }
 
-bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager,
-    const std::shared_ptr<RSRenderNode>& parent, bool parentDirty, std::optional<RectI> clipRect)
+bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
+    bool parentDirty, std::optional<RectI> clipRect)
 {
     // no need to update invisible nodes
     if (!ShouldPaint() && !isLastVisible_) {
@@ -1343,8 +1356,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager,
     // [planing] using drawcmdModifierDirty from dirtyType_
     parentDirty = parentDirty || (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
-    bool dirty = GetMutableRenderProperties().UpdateGeometry(parentProperties, parentDirty, offset,
-        GetContextClipRegion());
+    bool dirty = GetMutableRenderProperties().UpdateGeometry(parentProperties, parentDirty, offset);
     if ((IsDirty() || dirty) && renderContent_->drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
         RSModifierContext context = { GetMutableRenderProperties() };
         for (auto& modifier : renderContent_->drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
@@ -1381,7 +1393,7 @@ const RSProperties& RSRenderNode::GetRenderProperties() const
 }
 
 void RSRenderNode::UpdateDirtyRegion(
-    RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect)
+    RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect)
 {
     if (!IsDirty() && !geoDirty) {
         return;

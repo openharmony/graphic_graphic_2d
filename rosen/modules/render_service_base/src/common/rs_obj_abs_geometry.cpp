@@ -50,17 +50,16 @@ void RSObjAbsGeometry::ConcatMatrix(const Drawing::Matrix& matrix)
  * @param offset The offset of the current view with respect to its parent.
  * @param clipRect The optional clipping rectangle of the current view.
  */
-void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent,
-    const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
+void RSObjAbsGeometry::UpdateMatrix(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset)
 {
     // Initialize the absolute matrix with the absolute matrix of the parent view if the parent view exists
-    if (parent == nullptr) {
+    if (parentMatrix == nullptr) {
         absMatrix_.reset();
     } else {
-        absMatrix_ = parent->GetAbsMatrix();
-    }
-    if (absMatrix_.has_value() && offset.has_value() && !offset.value().IsZero()) {
-        absMatrix_->PreTranslate(offset->GetX(), offset->GetY());
+        absMatrix_ = *parentMatrix;
+        if (offset.has_value()) {
+            absMatrix_->PreTranslate(offset->GetX(), offset->GetY());
+        }
     }
     // Reset the matrix of the current view
     matrix_.Reset();
@@ -83,28 +82,6 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
             absMatrix_->PreConcat(*contextMatrix_);
         }
         absMatrix_->PreConcat(matrix_);
-    }
-    // if clipRect is valid, update rect with clipRect
-    if (clipRect.has_value() && !clipRect.value().IsEmpty()) {
-        auto mappedClipRect = clipRect.value();
-        if (!matrix_.IsIdentity()) {
-            Drawing::Matrix invertMatrix;
-            if (matrix_.Invert(invertMatrix)) {
-                invertMatrix.MapRect(mappedClipRect, mappedClipRect);
-            }
-            // matrix_ already includes bounds offset, we need to revert it
-            mappedClipRect.Offset(GetX(), GetY());
-        }
-
-        if (!mappedClipRect.Intersect({ x_, y_, x_ + width_, y_ + height_ })) {
-            // No visible area
-            x_ = y_ = width_ = height_ = 0.0f;
-            return;
-        }
-        x_ = mappedClipRect.GetLeft();
-        y_ = mappedClipRect.GetTop();
-        width_ = mappedClipRect.GetWidth();
-        height_ = mappedClipRect.GetHeight();
     }
     // If the context matrix of the current view exists, update the current matrix with it
     if (contextMatrix_.has_value()) {

@@ -378,62 +378,36 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
-bool RSProperties::UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& parent,
-    bool needParentOffset, const std::optional<Drawing::Rect>& clipRect)
+bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset)
 {
-    if (boundsGeo_ == nullptr) {
-        return false;
-    }
-    std::optional<Drawing::Point> offset;
-    std::shared_ptr<RSObjAbsGeometry> parentGeo;
-
-    // [planning] surfaceNode use frame instead
-    if (sandbox_) {
-        auto instanceRootNode = parent ? parent->GetInstanceRootNode() : nullptr;
-        parentGeo = instanceRootNode ? instanceRootNode->GetRenderProperties().GetBoundsGeometry() : nullptr;
-        offset = Drawing::Point { sandbox_->position_->x_, sandbox_->position_->y_ };
-    } else if (parent) {
-        auto& parentProperties = parent->GetRenderProperties();
-        parentGeo = parentProperties.GetBoundsGeometry();
-        if (needParentOffset) {
-            offset = Drawing::Point { parentProperties.GetFrameOffsetX(), parentProperties.GetFrameOffsetY() };
-        }
-    }
     auto prevAbsMatrix = prevAbsMatrix_;
-    boundsGeo_->UpdateMatrix(parentGeo, offset, clipRect);
+    boundsGeo_->UpdateMatrix(parentMatrix, offset);
     prevAbsMatrix_ = boundsGeo_->GetAbsMatrix();
-    if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
-        auto rect = boundsGeo_->GetAbsRect();
-        if (!lastRect_.has_value()) {
-            lastRect_ = rect;
-            return true;
-        }
-        auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
-        lastRect_ = rect;
-        return dirtyFlag;
-    } else {
+    if (!RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         return true;
     }
+    const auto& rect = boundsGeo_->GetAbsRect();
+    if (!lastRect_.has_value()) {
+        lastRect_ = rect;
+        return true;
+    }
+    auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
+    lastRect_ = rect;
+    return dirtyFlag;
 }
 
-bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
-    const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
+bool RSProperties::UpdateGeometry(
+    const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset)
 {
-    if (boundsGeo_ == nullptr) {
-        return false;
-    }
-    auto boundsGeoPtr = (boundsGeo_);
-
     if (!dirtyFlag && !geoDirty_) {
         return false;
     }
-    auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
-    if (parentGeo && sandbox_ && sandbox_->matrix_) {
-        parentGeo = std::make_shared<RSObjAbsGeometry>();
-        parentGeo->ConcatMatrix(*(sandbox_->matrix_));
+    auto parentMatrix = parent == nullptr ? nullptr : &(parent->GetBoundsGeometry()->GetAbsMatrix());
+    if (parentMatrix && sandbox_ && sandbox_->matrix_) {
+        parentMatrix = &(sandbox_->matrix_.value());
     }
     CheckEmptyBounds();
-    boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+    boundsGeo_->UpdateMatrix(parentMatrix, offset);
     if (lightSourcePtr_ && lightSourcePtr_->IsLightSourceValid()) {
         CalculateAbsLightPosition();
         RSPointLightManager::Instance()->AddDirtyLightSource(backref_);
@@ -442,7 +416,7 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
         RSPointLightManager::Instance()->AddDirtyIlluminated(backref_);
     }
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
-        auto rect = boundsGeoPtr->GetAbsRect();
+        auto rect = boundsGeo_->GetAbsRect();
         if (!lastRect_.has_value()) {
             lastRect_ = rect;
             return true;
