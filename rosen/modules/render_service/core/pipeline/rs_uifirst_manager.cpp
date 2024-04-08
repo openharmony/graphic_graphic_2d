@@ -143,13 +143,13 @@ void RSUifirstManager::PurgePendingPostNodes()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("PurgePendingPostNodes");
     auto deviceType = RSMainThread::Instance()->GetDeviceType();
-    for (auto it = pendingPostNodes_.begin(); it != pendingPostNodes_.end();)
-    {
+    for (auto it = pendingPostNodes_.begin(); it != pendingPostNodes_.end();) {
         auto id = it->first;
         DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
         if (drawable) {
-            if (drawable->HasCachedTexture() && drawable->IsCurFrameStatic(deviceType) ) {
-                auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderNode()->GetRenderParams().get());
+            if (drawable->HasCachedTexture() && drawable->IsCurFrameStatic(deviceType)) {
+                auto surfaceParams = static_cast<RSSurfaceRenderParams*>(
+                    drawable->GetRenderNode()->GetRenderParams().get());
                 if (!surfaceParams) {
                     RS_LOGE("PurgePendingPostNodes params is nullptr");
                     ++it;
@@ -171,7 +171,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
 {
     RS_OPTIONAL_TRACE_NAME_FMT("UpdateUifirstNodes: node[%llu] name[%s] FirstLevelNodeId[%llu] ",
         node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId());
-    // UIFirst Enable state is signed only when node's firstLevelNode is itself 
+    // UIFirst Enable state is signed only when node's firstLevelNode is itself
     if (node.GetFirstLevelNodeId() == node.GetId() && node.GetUifirstSupportFlag()) {
         RSUifirstManager::Instance().PrepareUifirstNode(node, ancestorNodeHasAnimation);
     } else {
@@ -304,7 +304,7 @@ void RSUifirstManager::SortSubThreadNodesPriority()
             continue;
         }
         if (!isFocusNodeFound) {
-            bool isFocus = ( (id == RSMainThread::Instance()->GetFocusNodeId()) ||
+            bool isFocus = ((id == RSMainThread::Instance()->GetFocusNodeId()) ||
                 (id == RSMainThread::Instance()->GetFocusLeashWindowId()));
             if (isFocus) {
                 // for resolving response latency

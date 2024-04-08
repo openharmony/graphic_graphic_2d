@@ -85,7 +85,7 @@ public:
 
     void RenderServiceTreeDump(std::string& dumpString) const;
     void ReleaseSurface();
-    void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
+    void AddToReleaseQueue(std::shared_ptr<Drawing::Surface> &&surface);
 
 private:
     RSUniRenderThread();

@@ -21,7 +21,7 @@
 namespace OHOS::Rosen::DrawableV2 {
 class RSCanvasRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
+    explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode> &&node);
     ~RSCanvasRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);

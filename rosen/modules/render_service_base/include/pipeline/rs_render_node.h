@@ -304,8 +304,8 @@ public:
     }
 
     using ClearCacheSurfaceFunc =
-        std::function<void(std::shared_ptr<Drawing::Surface>&&,
-        std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
+        std::function<void(std::shared_ptr<Drawing::Surface> &&cacheSurface,
+        std::shared_ptr<Drawing::Surface> &&cacheCompletedSurface, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 

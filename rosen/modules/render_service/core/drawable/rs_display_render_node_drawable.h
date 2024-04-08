@@ -30,7 +30,7 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
+    explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode> &&node);
     ~RSDisplayRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);

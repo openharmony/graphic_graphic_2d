@@ -41,7 +41,7 @@ namespace DrawableV2 {
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
 public:
-    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
+    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode> &&node);
     ~RSRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);

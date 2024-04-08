@@ -1300,8 +1300,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: [%d] name [%s] Id:%" PRIu64 "",
-        contentStatic, GetName().c_str(), GetId());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: "
+        "[%d] name [%s] Id:%" PRIu64 "", contentStatic, GetName().c_str(), GetId());
 }
 
 bool RSSurfaceRenderNode::IsOccludedByFilterCache() const

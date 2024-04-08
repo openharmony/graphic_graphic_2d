@@ -24,7 +24,7 @@ class RSEffectRenderNode;
 namespace DrawableV2 {
 class RSEffectRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
+    explicit RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode> &&node);
     ~RSEffectRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);

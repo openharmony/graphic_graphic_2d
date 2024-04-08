@@ -24,7 +24,7 @@ namespace OHOS::Rosen::DrawableV2 {
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 class RSCanvasDrawingRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
+    explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode> &&node);
     ~RSCanvasDrawingRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);

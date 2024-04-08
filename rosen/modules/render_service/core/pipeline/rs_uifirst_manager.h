@@ -66,10 +66,10 @@ public:
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
-    RSUifirstManager(const RSUifirstManager&);
-    RSUifirstManager(const RSUifirstManager&&);
-    RSUifirstManager& operator=(const RSUifirstManager&);
-    RSUifirstManager& operator=(const RSUifirstManager&&);
+    RSUifirstManager(const RSUifirstManager &uiFirstMgr);
+    RSUifirstManager(const RSUifirstManager &&uiFirstMgr);
+    RSUifirstManager& operator=(const RSUifirstManager &uiFirstMgr);
+    RSUifirstManager& operator=(const RSUifirstManager &&uiFirstMgr);
 
     void PostSubTask(NodeId id);
     void UpdateCompletedSurface(NodeId id);

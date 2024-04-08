@@ -24,7 +24,7 @@ class RSRootRenderNode;
 namespace DrawableV2 {
 class RSRootRenderNodeDrawable : public RSCanvasRenderNodeDrawable {
 public:
-    explicit RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
+    explicit RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode> &&node);
     ~RSRootRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
