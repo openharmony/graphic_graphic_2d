@@ -172,6 +172,20 @@ public:
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
 
+    bool GetBufferSizeChanged()
+    {
+        return bufferSizeChanged_;
+    }
+
+    void SetBufferSizeChanged(const sptr<SurfaceBuffer>& buffer)
+    {
+        if (preBuffer_.buffer == nullptr) {
+            return;
+        }
+        bufferSizeChanged_ = buffer->GetWidth() != preBuffer_.buffer->GetWidth() ||
+                             buffer->GetHeight() != preBuffer_.buffer->GetHeight();
+    }
+
     bool HasConsumer() const
     {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -215,6 +229,7 @@ private:
     SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
+    bool bufferSizeChanged_ = false;
 };
 }
 }

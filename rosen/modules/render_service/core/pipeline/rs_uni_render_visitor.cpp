@@ -1673,7 +1673,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
         return;
     }
     if (!hwcNode->GetCalcRectInPrepare() &&
-        !(hwcNode->GetTotalMatrix() == totalMatrix)) {
+        (!(hwcNode->GetTotalMatrix() == totalMatrix) ||
+        hwcNode->GetBufferSizeChanged())) {
         const auto& properties = hwcNode->GetRenderProperties();
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
