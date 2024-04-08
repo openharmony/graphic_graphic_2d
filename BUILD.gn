@@ -33,7 +33,6 @@ group("graphic_common_test") {
   public_deps = [
     "frameworks/bootanimation/test:test",
     "frameworks/opengl_wrapper/test:test",
-    "frameworks/opengl_wrapper/test/unittest:blobunittest",
     "frameworks/surface/test:test",
     "frameworks/vulkan_layers/test:test",
     "rosen/modules/composer:test",

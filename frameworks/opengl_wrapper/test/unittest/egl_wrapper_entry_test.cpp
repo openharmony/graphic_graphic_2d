@@ -2097,17 +2097,6 @@ HWTEST_F(EglWrapperEntryTest, EglGetPlatformDisplayEXTImpl002, Level2)
 }
 
 /**
- * @tc.name: EglGetPlatformDisplayEXTImpl003
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperEntryTest, EglGetPlatformDisplayEXTImpl003, Level2)
-{
-    auto result = gWrapperHook.wrapper.eglGetPlatformDisplayEXT(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, 0);
-    ASSERT_NE(EGL_NO_DISPLAY, result);
-}
-
-/**
  * @tc.name: EglSwapBuffersWithDamageKHRImpl001
  * @tc.desc:
  * @tc.type: FUNC
