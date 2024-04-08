@@ -68,6 +68,7 @@ public:
     Vector4<uint32_t> GetOutlineStyle() const;
     Vector4f GetOutlineRadius() const;
 
+    float GetForegroundEffectRadius() const;
     std::shared_ptr<RSFilter> GetBackgroundFilter() const;
     std::shared_ptr<RSFilter> GetFilter() const;
 

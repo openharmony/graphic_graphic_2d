@@ -729,26 +729,26 @@ void RSBackgroundFilterDrawable::Draw(const RSRenderContent& content, RSPaintFil
     RSPropertiesPainter::DrawFilter(content.GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
 }
 
-// foreground filter
-RSPropertyDrawable::DrawablePtr RSForegroundFilterDrawable::Generate(const RSRenderContent& content)
+// compositing filter
+RSPropertyDrawable::DrawablePtr RSCompositingFilterDrawable::Generate(const RSRenderContent& content)
 {
     if (!RSPropertiesPainter::BLUR_ENABLED) {
-        ROSEN_LOGD("RSForegroundFilterDrawable::Generate close blur.");
+        ROSEN_LOGD("RSCompositingFilterDrawable::Generate close blur.");
         return nullptr;
     }
     auto& filter = content.GetRenderProperties().GetFilter();
     if (filter == nullptr) {
         return nullptr;
     }
-    return std::make_unique<RSForegroundFilterDrawable>();
+    return std::make_unique<RSCompositingFilterDrawable>();
 }
 
-bool RSForegroundFilterDrawable::Update(const RSRenderContent& content)
+bool RSCompositingFilterDrawable::Update(const RSRenderContent& content)
 {
     return content.GetRenderProperties().GetFilter() != nullptr;
 }
 
-void RSForegroundFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+void RSCompositingFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     RSPropertiesPainter::DrawFilter(content.GetRenderProperties(), canvas, FilterType::FOREGROUND_FILTER);
 }

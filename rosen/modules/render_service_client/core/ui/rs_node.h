@@ -256,6 +256,7 @@ public:
     void SetOutlineStyle(const Vector4<BorderStyle>& style);
     void SetOutlineRadius(const Vector4f& radius);
 
+    void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
