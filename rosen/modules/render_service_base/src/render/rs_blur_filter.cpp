@@ -60,7 +60,8 @@ std::string RSBlurFilter::GetDescription()
 std::string RSBlurFilter::GetDetailedDescription()
 {
     return "RSBlurFilterBlur, radius: " + std::to_string(blurRadiusX_) + " sigma" +
-        ", greyCoef1: " + std::to_string(greyCoef_->x_) + ", greyCoef2: " + std::to_string(greyCoef_->y_);
+        ", greyCoef1: " + std::to_string(greyCoef_ == std::nullopt ? 0.0f : greyCoef_->x_) +
+        ", greyCoef2: " + std::to_string(greyCoef_ == std::nullopt ? 0.0f : greyCoef_->y_);
 }
 
 bool RSBlurFilter::IsValid() const
