@@ -82,7 +82,6 @@ public:
 
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);
-    bool GetContainBootAnimation() const;
 
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;

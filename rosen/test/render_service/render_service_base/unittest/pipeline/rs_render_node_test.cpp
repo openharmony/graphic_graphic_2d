@@ -329,21 +329,6 @@ HWTEST_F(RSRenderNodeTest,  ResetGeoUpdateDelay01, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetContainBootAnimation
- * @tc.desc: test SetContainBootAnimation and GetContainBootAnimation
- * @tc.type: FUNC
- * @tc.require:SR000HSUII
- */
-HWTEST_F(RSRenderNodeTest,  SetContainBootAnimation001, TestSize.Level2)
-{
-    RSRenderNode node(id, context);
-    node.SetContainBootAnimation(true);
-    ASSERT_EQ(node.GetContainBootAnimation(), true);
-    node.SetContainBootAnimation(false);
-    ASSERT_EQ(node.GetContainBootAnimation(), false);
-}
-
-/**
  * @tc.name: SetBootAnimationTest
  * @tc.desc: SetBootAnimation and GetBootAnimation
  * @tc.type:FUNC

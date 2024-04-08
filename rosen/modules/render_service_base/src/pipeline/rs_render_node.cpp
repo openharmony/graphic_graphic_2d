@@ -257,11 +257,6 @@ void RSRenderNode::ResetClearSurfaeFunc()
     clearSurfaceTask_ = nullptr;
 }
 
-bool RSRenderNode::GetContainBootAnimation() const
-{
-    return isContainBootAnimation_;
-}
-
 void RSRenderNode::MoveChild(SharedPtr child, int index)
 {
     if (child == nullptr || child->GetParent().lock().get() != this) {
