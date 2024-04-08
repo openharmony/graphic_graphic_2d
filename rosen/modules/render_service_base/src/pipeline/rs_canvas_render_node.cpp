@@ -98,7 +98,8 @@ void RSCanvasRenderNode::OnTreeStateChanged()
             SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
         if (clearSurfaceTask_) {
-            clearSurfaceTask_();
+            needClearSurface_ = true;
+            AddToPendingSyncList();
         }
     }
     RSRenderNode::OnTreeStateChanged();

@@ -46,6 +46,7 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
 {
     ClearCachedSurface();
+    std::const_pointer_cast<RSRenderNode>(renderNode_)->ResetClearSurfaeFunc();
 }
 
 RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

@@ -26,6 +26,7 @@
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
@@ -249,6 +250,11 @@ void RSRenderNode::SetContainBootAnimation(bool isContainBootAnimation)
 {
     isContainBootAnimation_ = isContainBootAnimation;
     isFullChildrenListValid_ = false;
+}
+
+void RSRenderNode::ResetClearSurfaeFunc()
+{
+    clearSurfaceTask_ = nullptr;
 }
 
 bool RSRenderNode::GetContainBootAnimation() const
@@ -3481,6 +3487,10 @@ void RSRenderNode::OnSync()
             }
         }
         uifirstSkipPartialSync_ = false;
+    }
+    if (GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && clearSurfaceTask_ && needClearSurface_) {
+        clearSurfaceTask_();
+        needClearSurface_ = false;
     }
     // Reset FilterCache Flags
     backgroundFilterRegionChanged_ = false;

@@ -123,6 +123,7 @@ public:
 
     WeakPtr GetParent() const;
     void RegisterClearSurfaceFunc(ClearSurfaceTask task);
+    void ResetClearSurfaeFunc();
 
     inline NodeId GetId() const
     {
@@ -609,10 +610,11 @@ protected:
     bool isOnTheTree_ = false;
     NodeId drawingCacheRootId_ = INVALID_NODEID;
     bool mustRenewedInfo_ = false;
+    bool needClearSurface_ = false;
 
     ModifierDirtyTypes dirtyTypes_;
     bool isBootAnimation_ = false;
-    ClearSurfaceTask clearSurfaceTask_;
+    ClearSurfaceTask clearSurfaceTask_ = nullptr;
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
