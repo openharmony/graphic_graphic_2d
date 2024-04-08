@@ -24,7 +24,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
 #include "utils/log.h"
-#include "wm/window.h"
+#include "window.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,7 +43,7 @@ class DrawingDemo {
 public:
     DrawingDemo(int argc, char* argv[]);
     ~DrawingDemo();
-    int Test();
+    int Test(TestDisplayCanvas* canvas);
     enum {
         FUNCTION_CPU = 0,
         FUNCTION_GPU_UPSCREEN,
@@ -55,9 +55,9 @@ protected:
     int InitWindow();
     int CreateWindow();
     int GetFunctionalParam(std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map);
-    int TestFunction(std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map, int type);
-    int GetPerformanceParam();
-    int TestPerformance(std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map, int type);
+    int TestFunction(int type);
+    int GetPerformanceParam(std::shared_ptr<TestBase>& testCase);
+    int TestPerformance(TestDisplayCanvas* canvasExt, int type);
 
     int argc_ = 0;
     std::vector<std::string> argv_;

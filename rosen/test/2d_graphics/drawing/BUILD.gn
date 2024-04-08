@@ -14,17 +14,19 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-ohos_systemtest("drawing_demo") {
-  module_out_path = "graphic_2d/drawing"
-  defines = []
-  include_dirs =
-      [ "../../../../../../window/window_manager/interfaces/innerkits" ]
+ohos_source_set("demo_set") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 
   sources = [
     "drawing_demo.cpp",
     "test_base.cpp",
     "test_case/draw_path.cpp",
     "test_case/draw_rect.cpp",
+    "test_case_factory.cpp",
     "test_common.cpp",
   ]
 
@@ -34,11 +36,30 @@ ohos_systemtest("drawing_demo") {
     "../../../../rosen/modules/render_service_client:librender_service_client",
   ]
 
+  public_external_deps = [ "window_manager:libwm" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_systemtest("drawing_demo") {
+  module_out_path = "graphic_2d/drawing"
+  deps = [ ":demo_set" ]
+}
+
+ohos_shared_library("libdrawing_demo") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  deps = [ ":demo_set" ]
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }

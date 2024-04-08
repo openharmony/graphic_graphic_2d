@@ -32,7 +32,7 @@ public:
     virtual ~TestBase() = default;
     void SetCanvas(TestDisplayCanvas* canvas);
     void SetFileName(std::string fileName);
-    void SetTestCount(uint32_t copunt);
+    void SetTestCount(uint32_t count);
     void TestFunctionCpu();
     void TestPerformanceCpu();
     void TestFunctionGpuUpScreen();
