@@ -91,8 +91,16 @@ HWTEST_F(SkiaRuntimeShaderBuilderTest, SetUniformVec4001, TestSize.Level1)
  */
 HWTEST_F(SkiaRuntimeShaderBuilderTest, SetUniformVec4002, TestSize.Level1)
 {
-    auto re = RuntimeEffect::CreateForShader("shader");
-    SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder{re};
+    std::string shaderString(R"(
+        uniform shader imageInput;
+
+        half4 main(float2 xy) {
+            half4 c = imageInput.eval(xy);
+            return half4(c.rgb, 1.0);
+        }
+    )");
+    std::shared_ptr<RuntimeEffect> effect = RuntimeEffect::CreateForShader(shaderString);
+    SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder{effect};
     skiaRuntimeShaderBuilder.SetUniformVec4("lightPos", 1.0f, 1.0f, 1.0f, 1.0f);
 }
 } // namespace Drawing
