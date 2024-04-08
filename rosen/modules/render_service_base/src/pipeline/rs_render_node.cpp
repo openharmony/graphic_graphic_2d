@@ -1591,7 +1591,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         cacheBackendTexture_ = MakeBackendTexture(width, height);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
-        if (!cacheBackendTexture_.isValid() || !vkTextureInfo) {
+        if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
             if (func) {
                 func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
                     cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
