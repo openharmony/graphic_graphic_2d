@@ -286,11 +286,11 @@ public:
     bool Update(const RSRenderContent& content) override;
 };
 
-// ForegroundFilter
-class RSForegroundFilterDrawable : public RSPropertyDrawable {
+// CompositingFilter
+class RSCompositingFilterDrawable : public RSPropertyDrawable {
 public:
-    explicit RSForegroundFilterDrawable() = default;
-    ~RSForegroundFilterDrawable() override = default;
+    explicit RSCompositingFilterDrawable() = default;
+    ~RSCompositingFilterDrawable() override = default;
     static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& content);
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
     bool Update(const RSRenderContent& content) override;

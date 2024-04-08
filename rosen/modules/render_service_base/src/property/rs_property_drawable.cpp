@@ -90,9 +90,9 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::BORDER_COLOR, RSPropertyDrawableSlot::BORDER },
     { RSModifierType::BORDER_WIDTH, RSPropertyDrawableSlot::BORDER },
     { RSModifierType::BORDER_STYLE, RSPropertyDrawableSlot::BORDER },
-    { RSModifierType::FILTER, RSPropertyDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::FILTER, RSPropertyDrawableSlot::COMPOSITING_FILTER },
     { RSModifierType::BACKGROUND_FILTER, RSPropertyDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, RSPropertyDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, RSPropertyDrawableSlot::COMPOSITING_FILTER },
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::FRAME_GRAVITY, RSPropertyDrawableSlot::FRAME_OFFSET },
@@ -199,7 +199,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     RSColorFilterDrawable::Generate,              // COLOR_FILTER
     RSDynamicDimDrawable::Generate,               // DYNAMIC_DIM
     RSLightUpEffectDrawable::Generate,            // LIGHT_UP_EFFECT
-    RSForegroundFilterDrawable::Generate,         // FOREGROUND_FILTER
+    RSCompositingFilterDrawable::Generate,        // COMPOSITING_FILTER
     RSForegroundColorDrawable::Generate,          // FOREGROUND_COLOR
     nullptr,                                      // FG_RESTORE_BOUNDS
 

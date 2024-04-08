@@ -373,6 +373,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSForegroundEffectRadiusModifier : public RSForegroundModifier {
+public:
+    explicit RSForegroundEffectRadiusModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSForegroundEffectRadiusModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSFilterModifier : public RSForegroundModifier {
 public:
     explicit RSFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
