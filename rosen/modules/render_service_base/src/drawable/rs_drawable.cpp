@@ -113,6 +113,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_BORDER_WIDTH
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_TYPE
     RSDrawableSlot::POINT_LIGHT,                   // BLOOM
+    RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED
     RSDrawableSlot::TRANSITION,                    // TRANSITION
@@ -175,6 +176,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSBinarizationDrawable::OnGenerate,     // BINARIZATION,
     RSColorFilterDrawable::OnGenerate,      // COLOR_FILTER,
     RSLightUpEffectDrawable::OnGenerate,    // LIGHT_UP_EFFECT,
+    RSDynamicDimDrawable::OnGenerate,       // DYNAMIC_DIM,
     RSForegroundFilterDrawable::OnGenerate, // FOREGROUND_FILTER,
     RSForegroundColorDrawable::OnGenerate,  // FOREGROUND_COLOR,
     nullptr,                                // FG_RESTORE_BOUNDS,

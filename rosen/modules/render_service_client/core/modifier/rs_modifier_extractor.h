@@ -92,6 +92,7 @@ public:
     std::shared_ptr<RSMask> GetMask() const;
     float GetSpherizeDegree() const;
     float GetLightUpEffectDegree() const;
+    float GetDynamicDimDegree() const;
 
     float GetLightIntensity() const;
     Vector4f GetLightPosition() const;

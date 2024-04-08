@@ -138,6 +138,41 @@ Drawing::RecordingCanvas::DrawFunc RSLightUpEffectDrawable::CreateDrawFunc() con
     };
 }
 
+RSDrawable::Ptr RSDynamicDimDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSDynamicDimDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSDynamicDimDrawable::OnUpdate(const RSRenderNode& node)
+{
+    if (!node.GetRenderProperties().IsDynamicDimValid()) {
+        return false;
+    }
+    needSync_ = true;
+    stagingDynamicDimDegree_ = node.GetRenderProperties().GetDynamicDimDegree().value();
+    return true;
+}
+
+void RSDynamicDimDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    dynamicDimDegree_ = stagingDynamicDimDegree_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSDynamicDimDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSDynamicDimDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        RSPropertyDrawableUtils::DrawDynamicDim(canvas, ptr->dynamicDimDegree_);
+    };
+}
+
 RSDrawable::Ptr RSForegroundColorDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSForegroundColorDrawable>(); ret->OnUpdate(node)) {
