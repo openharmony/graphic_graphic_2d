@@ -381,6 +381,7 @@ void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int sur
     std::lock_guard<std::mutex> lock(resourceMut_);
     if (canvas == nullptr) {
         RS_LOGE("[%{public}s] Canvas is null \n", __func__);
+        RS_TRACE_END();
         return;
     }
     UpdateParameter(updateFlag_);

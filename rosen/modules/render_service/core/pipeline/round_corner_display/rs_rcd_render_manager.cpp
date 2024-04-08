@@ -65,6 +65,7 @@ void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
     RS_TRACE_BEGIN("RSUniRender:DoRCDProcessTask");
     if (!IsRcdProcessInfoValid(info)) {
         RS_LOGE("RCD: RcdProcessInfo is incorrect");
+        RS_TRACE_END();
         return;
     }
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
