@@ -362,6 +362,7 @@ void RSSurfaceRenderNode::ClearChildrenCache()
 
 void RSSurfaceRenderNode::OnTreeStateChanged()
 {
+    NotifyTreeStateChange();
     RSRenderNode::OnTreeStateChanged();
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (grContext_ && !IsOnTheTree()) {
@@ -733,6 +734,18 @@ void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
 bool RSSurfaceRenderNode::GetForceUIFirstChanged()
 {
     return forceUIFirstChanged_;
+}
+
+void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
+{
+    treeStateChangeCallback_ = callback;
+}
+
+void RSSurfaceRenderNode::NotifyTreeStateChange()
+{
+    if (treeStateChangeCallback_) {
+        treeStateChangeCallback_(*this);
+    }
 }
 
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)

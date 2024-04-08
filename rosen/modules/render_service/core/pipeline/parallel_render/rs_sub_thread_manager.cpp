@@ -341,6 +341,11 @@ void RSSubThreadManager::CancelReleaseTextureTask()
     needCancelReleaseTextureTask_ = false;
 }
 
+void RSSubThreadManager::ForceReleaseResource()
+{
+    needResetContext_ = true;
+}
+
 void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex) const
 {
     if (threadList_.size() <= threadIndex) {

@@ -48,6 +48,7 @@ public:
     void CancelReleaseResourceTask();
     void ReleaseTexture();
     void CancelReleaseTextureTask();
+    void ForceReleaseResource();
     void DumpMem(DfxString& log);
     float GetAppGpuMemoryInMB();
     std::vector<MemoryGraphic> CountSubMem(int pid);

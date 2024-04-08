@@ -40,9 +40,11 @@ public:
     void PostUifistSubTasks();
     void ProcessSubDoneNode();
     bool CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node);
+    void ForceClearSubthreadRes();
 
     void PrepareUifirstNode(RSSurfaceRenderNode& node, bool animation);
     void DisableUifirstNode(RSSurfaceRenderNode& node);
+    static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
 
     static bool IsUifirstNode(RSSurfaceRenderNode& node, bool animation);
     

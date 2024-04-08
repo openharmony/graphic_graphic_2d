@@ -54,6 +54,7 @@ class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHand
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
+    using TreeStateChangeCallback = std::function<void(RSSurfaceRenderNode&)>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::SURFACE_NODE;
     RSRenderNodeType GetType() const override
     {
@@ -854,6 +855,9 @@ public:
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
 
+    void RegisterTreeStateChangeCallback(TreeStateChangeCallback callback);
+    void NotifyTreeStateChange();
+
     /* For filter cache occlusion calculation */
     bool GetFilterCacheFullyCovered() const
     {
@@ -1228,6 +1232,7 @@ private:
 #endif
     bool isForeground_ = false;
 
+    TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
     bool hasSharedTransitionNode_ = false;
     size_t lastFrameChildrenCnt_ = 0;
