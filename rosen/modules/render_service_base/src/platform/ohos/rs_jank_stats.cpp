@@ -137,7 +137,7 @@ void RSJankStats::SetRSJankStats()
         return;
     }
     if (missedVsync >= VSYNC_JANK_LOG_THRESHOLED) {
-        ROSEN_LOGI("RSJankStats::SetJankStats jank frames %{public}lld", missedVsync);
+        ROSEN_LOGI("RSJankStats::SetJankStats jank frames %{public} " PRId64 "", missedVsync);
     }
     size_t type = JANK_FRAME_INVALID;
     if (missedVsync < 6) {                                       // JANK_FRAME_6_FREQ   : (0,6)

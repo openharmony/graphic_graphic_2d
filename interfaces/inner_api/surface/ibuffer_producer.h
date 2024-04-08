@@ -90,7 +90,7 @@ public:
     virtual GSError UnRegisterReleaseListener() = 0;
     virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
         sptr<SyncFence>& fence, float matrix[16]) = 0;
-    virtual GSError SendDeathRecipientObject() = 0;
+    virtual GSError SendAddDeathRecipientObject() = 0;
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) = 0;
 
     virtual GSError GetTransform(GraphicTransformType &transform) = 0;
@@ -99,6 +99,7 @@ public:
     virtual GSError DetachBufferFromQueue(sptr<SurfaceBuffer>& buffer) = 0;
     virtual GSError GetTransformHint(GraphicTransformType &transformHint) = 0;
     virtual GSError SetTransformHint(GraphicTransformType transformHint) = 0;
+    virtual GSError SendRemoveDeathRecipientObject() = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
 protected:
@@ -136,6 +137,7 @@ protected:
         BUFFER_PRODUCER_SET_DEFAULT_USAGE = 30,
         BUFFER_PRODUCER_GET_TRANSFORMHINT = 31,
         BUFFER_PRODUCER_SET_TRANSFORMHINT = 32,
+        BUFFER_PRODUCER_UNREGISTER_DEATH_RECIPIENT = 33,
     };
 };
 } // namespace OHOS

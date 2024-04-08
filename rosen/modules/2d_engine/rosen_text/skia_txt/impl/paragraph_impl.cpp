@@ -220,11 +220,11 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
-std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
+std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics(std::vector<size_t>& startIndexs)
 {
     if (!lineMetrics_) {
         std::vector<skt::LineMetrics> metrics;
-        paragraph_->getLineMetrics(metrics);
+        paragraph_->getLineMetrics(metrics, startIndexs);
 
         lineMetrics_.emplace();
         lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
@@ -258,9 +258,9 @@ std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
     return lineMetrics_.value();
 }
 
-bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
+bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics, size_t& startIndex) const
 {
-    return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
+    return paragraph_->getLineMetricsAt(lineNumber, lineMetrics, startIndex);
 }
 
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)

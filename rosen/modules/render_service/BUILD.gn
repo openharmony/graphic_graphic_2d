@@ -274,6 +274,7 @@ ohos_shared_library("librender_service") {
     "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
@@ -312,6 +313,7 @@ ohos_shared_library("librender_service") {
 
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
     defines += accessibility_defines
   }
 

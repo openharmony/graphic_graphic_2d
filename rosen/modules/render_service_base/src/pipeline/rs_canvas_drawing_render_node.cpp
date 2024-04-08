@@ -71,7 +71,6 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
         return false;
     }
 
-    SKResourceManager::Instance().HoldResource(image);
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
     if (!sharedTexture->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),

@@ -309,6 +309,12 @@ void RSSurfaceNode::CreateTextureExportRenderNodeInRT()
         return;
     }
     transactionProxy->AddCommand(command, false);
+    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+    transactionProxy->AddCommand(command, false);
+
+    RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+    command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
+    transactionProxy->AddCommand(command, false);
 }
 
 void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
@@ -321,6 +327,7 @@ void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
     }
     transactionProxy->AddCommand(command, false);
     // need to reset isTextureExport sign in renderService
+    command = std::make_unique<RSSurfaceNodeSetIsTextureExportNode>(GetId(), isTextureExportNode);
     transactionProxy->AddCommand(command, true);
 }
 
@@ -703,6 +710,7 @@ void RSSurfaceNode::MarkUiFrameAvailable(bool available)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, false);
+        transactionProxy->FlushImplicitTransaction();
     }
 }
 

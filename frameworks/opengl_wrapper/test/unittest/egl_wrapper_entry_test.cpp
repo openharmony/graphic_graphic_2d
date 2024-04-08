@@ -2103,7 +2103,7 @@ HWTEST_F(EglWrapperEntryTest, EglGetPlatformDisplayEXTImpl002, Level2)
  */
 HWTEST_F(EglWrapperEntryTest, EglGetPlatformDisplayEXTImpl003, Level2)
 {
-    auto result = gWrapperHook.wrapper.eglGetPlatformDisplayEXT(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, nullptr);
+    auto result = gWrapperHook.wrapper.eglGetPlatformDisplayEXT(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, 0);
     ASSERT_NE(EGL_NO_DISPLAY, result);
 }
 

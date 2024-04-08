@@ -37,6 +37,12 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
     {4, Drawing::DrawingEffectStrategy::DISAPPEAR},
     {5, Drawing::DrawingEffectStrategy::BOUNCE}};
 
+enum VisualMode {
+    VISUAL_MEDIUM = 0,
+    VISUAL_SMALL = 1,
+    VISUAL_LARGER = 2
+};
+
 class RS_EXPORT HMSymbolTxt {
 public:
     HMSymbolTxt() {}
@@ -109,7 +115,7 @@ public:
 
     void SetAnimationMode(const uint16_t animationMode)
     {
-        animationMode_ = animationMode > 0 ? 1: 0; // 1 is whole or add, 0 is hierarchical or iterate
+        animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
     }
 
     void SetRepeatCount(const int repeatCount)
@@ -137,13 +143,35 @@ public:
         return aminationStart_;
     }
 
+    void SetVisualMode(const VisualMode visual)
+    {
+        visualMap_.clear();
+        if (visual == VisualMode::VISUAL_SMALL) {
+            visualMap_["ss01"] = 1;
+        }
+
+        if (visual == VisualMode::VISUAL_LARGER) {
+            visualMap_["ss02"] = 1;
+        }
+    }
+
+    std::map<std::string, int> GetVisualMap() const
+    {
+        return visualMap_;
+    }
+
 private:
     std::vector<Drawing::DrawingSColor> colorList_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
     Drawing::DrawingEffectStrategy effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
+
+    // animationMode_ is the implementation mode of the animation effect:
+    // common_animations: the 0 is the wholeSymbol effect and 1 is the byLayer effect;
+    // variable_color : the 0 is the cumulative  effect and 1 is the iteratuve effect.
     uint16_t animationMode_ = 1;
     int repeatCount_ = 1;
     bool aminationStart_ = true;
+    std::map<std::string, int> visualMap_;
 };
 }
 }

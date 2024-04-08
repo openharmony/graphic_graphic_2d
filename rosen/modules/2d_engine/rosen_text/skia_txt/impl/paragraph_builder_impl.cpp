@@ -32,13 +32,34 @@ int ConvertToSkFontWeight(FontWeight fontWeight)
     return static_cast<int>(fontWeight) * weightBase + weightBase;
 }
 
+RSFontStyle::Slant ConvertToRSFontSlant(FontStyle fontStyle)
+{
+    RSFontStyle::Slant slant;
+    switch (fontStyle) {
+        case FontStyle::NORMAL: {
+            slant = RSFontStyle::Slant::UPRIGHT_SLANT;
+            break;
+        }
+        case FontStyle::ITALIC: {
+            slant = RSFontStyle::Slant::ITALIC_SLANT;
+            break;
+        }
+        case FontStyle::OBLIQUE: {
+            slant = RSFontStyle::Slant::OBLIQUE_SLANT;
+            break;
+        }
+        default: {
+            slant = RSFontStyle::Slant::UPRIGHT_SLANT;
+        }
+    }
+    return slant;
+}
+
 RSFontStyle MakeFontStyle(FontWeight fontWeight, FontWidth fontWidth, FontStyle fontStyle)
 {
     auto weight = ConvertToSkFontWeight(fontWeight);
     auto width = static_cast<RSFontStyle::Width>(fontWidth);
-    auto slant = fontStyle == FontStyle::NORMAL ? RSFontStyle::Slant::UPRIGHT_SLANT :
-        fontStyle == FontStyle::ITALIC ? RSFontStyle::Slant::ITALIC_SLANT :
-        RSFontStyle::Slant::OBLIQUE_SLANT;
+    auto slant = ConvertToRSFontSlant(fontStyle);
     return RSFontStyle(weight, width, slant);
 }
 

@@ -183,7 +183,8 @@ public:
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         uint64_t id,
-        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
+        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
+        NodeId windowNodeId = 0);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 

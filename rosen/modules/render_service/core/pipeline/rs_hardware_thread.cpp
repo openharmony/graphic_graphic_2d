@@ -400,7 +400,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
         canvas->ConcatMatrix(params.matrix);
 #ifndef RS_ENABLE_EGLIMAGE
-        uniRenderEngine_->DrawBuffer(*canvas, params);
+        RSBaseRenderEngine::DrawBuffer(*canvas, params);
 #else
         if (!params.useCPU) {
             if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
@@ -524,7 +524,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
             canvas->DetachBrush();
         } else {
-            uniRenderEngine_->DrawBuffer(*canvas, params);
+            RSBaseRenderEngine::DrawBuffer(*canvas, params);
         }
 #endif
         // Dfx for redraw region

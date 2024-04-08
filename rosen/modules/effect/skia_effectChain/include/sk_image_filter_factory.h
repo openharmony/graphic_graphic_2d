@@ -20,11 +20,21 @@
 
 namespace OHOS {
 namespace Rosen {
+
+struct PixelColorMatrix {
+    static constexpr uint8_t MATRIX_SIZE = 20;
+    static constexpr uint8_t ROW_SIZE = 4;
+    static constexpr uint8_t COL_SIZE = 5;
+    float val[MATRIX_SIZE] = {0};
+};
+
 class SKImageFilterFactory {
 public:
     static sk_sp<SkImageFilter> Blur(float radius);
     static sk_sp<SkImageFilter> Brightness(float degree);
     static sk_sp<SkImageFilter> Grayscale();
+    static sk_sp<SkImageFilter> Invert();
+    static sk_sp<SkImageFilter> ApplyColorMatrix(const PixelColorMatrix &matrix);
 };
 } // namespace Rosen
 } // namespace OHOS

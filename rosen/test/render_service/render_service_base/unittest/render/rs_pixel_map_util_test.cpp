@@ -65,11 +65,11 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
 }
 
 /**
- * @tc.name: ExtractSkImage
+ * @tc.name: ExtractDrawingImage
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(RSPixelMapUtilTest, ExtractSkImage, TestSize.Level1)
+HWTEST_F(RSPixelMapUtilTest, ExtractDrawingImage, TestSize.Level1)
 {
     std::shared_ptr<Media::PixelMap> pixelmap;
     int width = 200;
@@ -77,6 +77,24 @@ HWTEST_F(RSPixelMapUtilTest, ExtractSkImage, TestSize.Level1)
     pixelmap = CreatePixelMap(width, height);
 
     EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelmap));
+}
+
+/**
+ * @tc.name: DrawPixelMap
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, DrawPixelMap, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    EXPECT_NE(nullptr, canvas);
+
+    RSPixelMapUtil::DrawPixelMap(*canvas, *pixelmap, 0.0f, 0.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

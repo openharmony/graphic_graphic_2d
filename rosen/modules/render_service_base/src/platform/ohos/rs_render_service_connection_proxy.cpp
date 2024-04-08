@@ -211,7 +211,8 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
 
 sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(const std::string& name,
                                                                              const sptr<VSyncIConnectionToken>& token,
-                                                                             uint64_t id)
+                                                                             uint64_t id,
+                                                                             NodeId windowNodeId)
 {
     if (token == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateVSyncConnection: token is nullptr.");
@@ -224,6 +225,7 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     data.WriteString(name);
     data.WriteRemoteObject(token->AsObject());
     data.WriteUint64(id);
+    data.WriteUint64(windowNodeId);
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

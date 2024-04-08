@@ -120,6 +120,7 @@ public:
     std::shared_ptr<RSShader> bgShader_ = nullptr;
     std::shared_ptr<RSImage> bgImage_ = nullptr;
     RectF bgImageRect_ = RectF();
+    Vector4f bgImageInnerRect_ = Vector4f();
     Color backgroundColor_ = RgbPalette::Transparent();
     Color foregroundColor_ = RgbPalette::Transparent();
 };

@@ -80,6 +80,14 @@ template("skia_libtxt") {
       defines += [ "HM_SYMBOL_TXT_ENABLE" ]
     }
 
+    is_cross_platform =
+        current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
+        current_os == "android" || current_os == "ios"
+
+    if (is_cross_platform) {
+      defines += [ "TXT_TRACE_DISABLE" ]
+    }
+
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [
         "USE_ROSEN_DRAWING",
@@ -99,6 +107,10 @@ template("skia_libtxt") {
     ]
 
     external_deps += [ "hilog:libhilog" ]
+
+    if (!is_cross_platform) {
+      external_deps += [ "hitrace:hitrace_meter" ]
+    }
   }
 }
 

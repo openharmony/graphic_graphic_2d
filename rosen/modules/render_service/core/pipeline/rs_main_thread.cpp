@@ -147,7 +147,6 @@ constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
-constexpr int32_t MAX_MULTI_INSTANCE_PID_COUNT = 1;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
@@ -382,7 +381,7 @@ void RSMainThread::Init()
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
     conn->id_ = rsFrameRateLinker_->GetId();
     rsVSyncDistributor_->AddConnection(conn);
-    receiver_ = std::make_shared<VSyncReceiver>(conn, token->AsObject(), handler_);
+    receiver_ = std::make_shared<VSyncReceiver>(conn, token->AsObject(), handler_, "rs");
     receiver_->Init();
     if (isUniRender_) {
         uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
@@ -458,6 +457,14 @@ void RSMainThread::Init()
             if (!this->rsVSyncDistributor_->IsDVsyncOn()) {
                 RSMainThread::Instance()->RequestNextVSync();
             }
+        });
+    });
+    frameRateMgr_->touchMgr_->SetRSIdleUpdateCallback([](bool rsIdleTimerExpired) {
+        RSMainThread::Instance()->PostTask([rsIdleTimerExpired]() {
+            RS_TRACE_NAME_FMT("RSMainThread::RSTimerExpiredCallback Run rsIdleTimerExpiredFlag: %s",
+                rsIdleTimerExpired? "True":"False");
+            RSMainThread::Instance()->SetRSIdleTimerExpiredFlag(rsIdleTimerExpired);
+            RSMainThread::Instance()->RequestNextVSync();
         });
     });
     frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
@@ -1480,6 +1487,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
             idleTimerExpiredFlag_, rsVSyncDistributor_->IsDVsyncOn());
     }
+
+    // if RS get here means it has frame coming in
+    frameRateMgr_->touchMgr_->ResetRSTimer(frameRateMgr_->GetCurScreenId());
+    frameRateMgr_->touchMgr_->HandleRSFrameUpdate(rsIdleTimerExpiredFlag_);
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
@@ -1770,12 +1781,12 @@ RSVisibleLevel RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curR
 }
 
 void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces,
-    VisibleData& dstCurVisVec, std::map<uint32_t, RSVisibleLevel>& dstPidVisMap)
+    VisibleData& dstCurVisVec, std::map<NodeId, RSVisibleLevel>& dstVisMapForVsyncRate)
 {
     Occlusion::Region accumulatedRegion;
     VisibleData curVisVec;
     OcclusionRectISet occlusionSurfaces;
-    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
     bool hasFilterCacheOcclusion = false;
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -1792,12 +1803,12 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
             RSVisibleLevel visibleLevel = GetRegionVisibleLevel(curRegion, subResult);
             RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] visibleLevel[%{public}d]",
                 __func__, curSurface->GetId(), visibleLevel);
-            curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, true, visibleLevel,
+            curSurface->SetVisibleRegionRecursive(subResult, curVisVec, visMapForVsyncRate, true, visibleLevel,
                 !systemAnimatedScenesList_.empty());
             curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_,
                 filterCacheOcclusionEnabled);
         } else {
-            curSurface->SetVisibleRegionRecursive({}, curVisVec, pidVisMap);
+            curSurface->SetVisibleRegionRecursive({}, curVisVec, visMapForVsyncRate);
             RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] visibleLevel[%{public}d]",
                 __func__, curSurface->GetId(), RSVisibleLevel::RS_INVISIBLE);
         }
@@ -1806,7 +1817,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
     // if there are valid filter cache occlusion, recalculate surfacenode visibleregionforcallback for WMS/QOS callback
     if (hasFilterCacheOcclusion && isUniRender_) {
         curVisVec.clear();
-        pidVisMap.clear();
+        visMapForVsyncRate.clear();
         occlusionSurfaces.clear();
         accumulatedRegion = {};
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -1820,18 +1831,18 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
                 Occlusion::Region curRegion { occlusionRect };
                 Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
                 RSVisibleLevel visibleLevel = GetRegionVisibleLevel(curRegion, subResult);
-                curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, false, visibleLevel,
+                curSurface->SetVisibleRegionRecursive(subResult, curVisVec, visMapForVsyncRate, false, visibleLevel,
                     !systemAnimatedScenesList_.empty());
                 curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion,
                     isUniRender_, false);
             } else {
-                curSurface->SetVisibleRegionRecursive({}, curVisVec, pidVisMap, false);
+                curSurface->SetVisibleRegionRecursive({}, curVisVec, visMapForVsyncRate, false);
             }
         }
     }
 
     dstCurVisVec.insert(dstCurVisVec.end(), curVisVec.begin(), curVisVec.end());
-    dstPidVisMap.insert(pidVisMap.begin(), pidVisMap.end());
+    dstVisMapForVsyncRate.insert(visMapForVsyncRate.begin(), visMapForVsyncRate.end());
 }
 
 void RSMainThread::CalcOcclusion()
@@ -1911,59 +1922,37 @@ void RSMainThread::CalcOcclusion()
     }
     isReduceVSyncBySystemAnimatedScenes_ = false;
     VisibleData dstCurVisVec;
-    std::map<uint32_t, RSVisibleLevel> dstPidVisMap;
+    std::map<NodeId, RSVisibleLevel> dstVisMapForVsyncRate;
     for (auto& surfaces : curAllSurfacesInDisplay) {
-        CalcOcclusionImplementation(surfaces.second, dstCurVisVec, dstPidVisMap);
+        CalcOcclusionImplementation(surfaces.second, dstCurVisVec, dstVisMapForVsyncRate);
     }
 
     // Callback to WMS and QOS
     CallbackToWMS(dstCurVisVec);
-    SetVSyncRateByVisibleLevel(dstPidVisMap, curAllSurfaces);
+    SetVSyncRateByVisibleLevel(dstVisMapForVsyncRate, curAllSurfaces);
     // Callback for registered self drawing surfacenode
     SurfaceOcclusionCallback();
 }
 
-void RSMainThread::SetMultiInstancePidVSyncRate(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
-    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
-{
-    std::map<uint32_t, int> multiInstancePidMap;
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
-            continue;
-        }
-        uint32_t tmpPid = ExtractPid(curSurface->GetId());
-        multiInstancePidMap[tmpPid]++;
-    }
-    for (auto& iter : multiInstancePidMap) {
-        if (iter.second > MAX_MULTI_INSTANCE_PID_COUNT) {
-            pidVisMap[iter.first] = RSVisibleLevel::RS_ALL_VISIBLE;
-        }
-    }
-}
-
-bool RSMainThread::CheckSurfaceVisChanged(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+bool RSMainThread::CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
     if (!systemAnimatedScenesList_.empty()) {
-        pidVisMap.clear();
+        visMapForVsyncRate.clear();
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
             auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
             if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
                 continue;
             }
-            uint32_t tmpPid = ExtractPid(curSurface->GetId());
-            pidVisMap[tmpPid] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
+            visMapForVsyncRate[curSurface->GetId()] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
         }
         isReduceVSyncBySystemAnimatedScenes_ = true;
-    } else {
-        SetMultiInstancePidVSyncRate(pidVisMap, curAllSurfaces);
     }
-    bool isVisibleChanged = pidVisMap.size() != lastPidVisMap_.size();
+    bool isVisibleChanged = visMapForVsyncRate.size() != visMapForVsyncRate.size();
     if (!isVisibleChanged) {
-        auto iterCur = pidVisMap.begin();
-        auto iterLast = lastPidVisMap_.begin();
-        for (; iterCur != pidVisMap.end(); iterCur++, iterLast++) {
+        auto iterCur = visMapForVsyncRate.begin();
+        auto iterLast = lastVisMapForVsyncRate_.begin();
+        for (; iterCur != visMapForVsyncRate.end(); iterCur++, iterLast++) {
             if (iterCur->first != iterLast->first ||
                 iterCur->second != iterLast->second) {
                 isVisibleChanged = true;
@@ -1973,20 +1962,20 @@ bool RSMainThread::CheckSurfaceVisChanged(std::map<uint32_t, RSVisibleLevel>& pi
     }
 
     if (isVisibleChanged) {
-        lastPidVisMap_ = pidVisMap;
+        lastVisMapForVsyncRate_ = visMapForVsyncRate;
     }
     return isVisibleChanged;
 }
 
-void RSMainThread::SetVSyncRateByVisibleLevel(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+void RSMainThread::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
-    if (!vsyncControlEnabled_ || !CheckSurfaceVisChanged(pidVisMap, curAllSurfaces) ||
+    if (!vsyncControlEnabled_ || !CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces) ||
         appVSyncDistributor_ == nullptr) {
         return;
     }
-    RS_TRACE_NAME_FMT("%s pidVisMapSize[%lu]", __func__, pidVisMap.size());
-    for (auto iter:pidVisMap) {
+    RS_TRACE_NAME_FMT("%s visMapForVsyncRateSize[%lu]", __func__, visMapForVsyncRate.size());
+    for (auto iter:visMapForVsyncRate) {
         if (iter.second == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
             appVSyncDistributor_->SetQosVSyncRate(iter.first, SIMI_VISIBLE_RATE);
         } else if (iter.second == RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE) {
@@ -2227,7 +2216,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     });
     if (needPrintAnimationDFX && needRequestNextVsync && animationPids.size() > 0) {
         std::string pidList;
-        for (auto& pid : animationPids) {
+        for (const auto& pid : animationPids) {
             pidList += "[" + std::to_string(pid) + "]";
         }
         RS_TRACE_NAME_FMT("Animate from pid %s", pidList.c_str());

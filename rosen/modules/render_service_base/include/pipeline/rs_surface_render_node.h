@@ -465,7 +465,7 @@ public:
     void SetVisibleRegionRecursive(
         const Occlusion::Region& region,
         VisibleData& visibleVec,
-        std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+        std::map<NodeId, RSVisibleLevel>& pidVisMap,
         bool needSetVisibleRegion = true,
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);

@@ -41,5 +41,4 @@ void OH_Drawing_ColorSpaceDestroy(OH_Drawing_ColorSpace* colorSpace)
         return;
     }
     delete CastToColorSpace(colorSpace);
-    colorSpace = nullptr;
 }

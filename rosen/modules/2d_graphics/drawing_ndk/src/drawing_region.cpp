@@ -57,5 +57,4 @@ void OH_Drawing_RegionDestroy(OH_Drawing_Region* cRegion)
         return;
     }
     delete CastToRegion(cRegion);
-    cRegion = nullptr;
 }

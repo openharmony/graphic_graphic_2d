@@ -175,9 +175,9 @@ HWTEST_F(RSRenderModifierTest, RSParticlesRenderModifier002, TestSize.Level1)
  */
 HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorRenderModifier002, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderProperty<RSRenderParticleVector>>();
+    auto prop = std::make_shared<RSRenderAnimatableProperty<Color>>();
     bool isDelta = false;
-    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<Color>>();
     auto RSEFC = std::make_shared<RSEnvForegroundColorRenderModifier>(property);
     RSEFC->Update(prop, isDelta);
     ASSERT_NE(nullptr, RSEFC->property_);
@@ -190,9 +190,9 @@ HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorRenderModifier002, TestSize.L
  */
 HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorStrategyRenderModifier001, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderProperty<RSRenderParticleVector>>();
+    auto prop = std::make_shared<RSRenderAnimatableProperty<Color>>();
     bool isDelta = false;
-    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<Color>>();
     auto RSEFCS = std::make_shared<RSEnvForegroundColorRenderModifier>(property);
     RSEFCS->Update(prop, isDelta);
     ASSERT_NE(nullptr, RSEFCS->property_);

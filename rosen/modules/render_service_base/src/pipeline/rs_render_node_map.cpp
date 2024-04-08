@@ -28,6 +28,7 @@ constexpr const char* ENTRY_VIEW = "SCBDesktop";
 constexpr const char* WALLPAPER_VIEW = "SCBWallpaper";
 constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock";
 constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
+constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
 RSRenderNodeMap::RSRenderNodeMap()
 {
@@ -86,6 +87,16 @@ static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surface
            surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos;
 }
 
+void RSRenderNodeMap::CalCulateAbilityComponentNumsInProcess(NodeId id)
+{
+    if (abilityComponentNumsInProcess_[ExtractPid(id)] > ABILITY_COMPONENT_LIMIT) {
+        renderNodeMap_.erase(id);
+        surfaceNodeMap_.erase(id);
+        return;
+    }
+    abilityComponentNumsInProcess_[ExtractPid(id)]++;
+}
+
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
 {
     auto nodePid = ExtractPid(id);
@@ -128,8 +139,26 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
     return true;
 }
 
+void RSRenderNodeMap::EraseAbilityComponentNumsInProcess(NodeId id)
+{
+    auto surfaceNodeIter = surfaceNodeMap_.find(id);
+    if (surfaceNodeIter != surfaceNodeMap_.end()) {
+        auto surfaceNode = GetRenderNode<RSSurfaceRenderNode>(id);
+        if (surfaceNode->IsAbilityComponent()) {
+            auto pid = ExtractPid(id);
+            auto iter = abilityComponentNumsInProcess_.find(pid);
+            if (iter != abilityComponentNumsInProcess_.end()) {
+                if (--abilityComponentNumsInProcess_[pid] == 0) {
+                    abilityComponentNumsInProcess_.erase(pid);
+                }
+            }
+        }
+    }
+}
+
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
+    EraseAbilityComponentNumsInProcess(id);
     renderNodeMap_.erase(id);
     surfaceNodeMap_.erase(id);
     drivenRenderNodeMap_.erase(id);
@@ -190,6 +219,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 
     EraseIf(canvasDrawingNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
+    });
+
+    EraseIf(abilityComponentNumsInProcess_, [pid](const auto& pair) -> bool {
+        return pair.first == pid;
     });
 
     EraseIf(displayNodeMap_, [pid](const auto& pair) -> bool {

@@ -559,7 +559,7 @@ sptr<NativeSurface> BufferClientProducer::GetNativeSurface()
     return nullptr;
 }
 
-GSError BufferClientProducer::SendDeathRecipientObject()
+GSError BufferClientProducer::SendAddDeathRecipientObject()
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
     token_ = new IRemoteStub<IBufferProducerToken>();
@@ -570,6 +570,22 @@ GSError BufferClientProducer::SendDeathRecipientObject()
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE("Remote return %{public}d", ret);
         return static_cast<GSError>(ret);
+    }
+    return GSERROR_OK;
+}
+
+GSError BufferClientProducer::SendRemoveDeathRecipientObject()
+{
+    if (token_ != nullptr) {
+        DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+        arguments.WriteRemoteObject(token_->AsObject());
+        SEND_REQUEST(BUFFER_PRODUCER_UNREGISTER_DEATH_RECIPIENT, arguments, reply, option);
+
+        int32_t ret = reply.ReadInt32();
+        if (ret != GSERROR_OK) {
+            BLOGN_FAILURE("Remote return %{public}d", ret);
+            return static_cast<GSError>(ret);
+        }
     }
     return GSERROR_OK;
 }

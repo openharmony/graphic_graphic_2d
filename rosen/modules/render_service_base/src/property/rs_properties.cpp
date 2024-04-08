@@ -76,6 +76,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetBackgroundColor({}); },            // BACKGROUND_COLOR
     [](RSProperties* prop) { prop->SetBackgroundShader({}); },           // BACKGROUND_SHADER
     [](RSProperties* prop) { prop->SetBgImage({}); },                    // BG_IMAGE
+    [](RSProperties* prop) { prop->SetBgImageInnerRect({}); },           // Bg_Image_Inner_Rect
     [](RSProperties* prop) { prop->SetBgImageWidth(0.f); },              // BG_IMAGE_WIDTH
     [](RSProperties* prop) { prop->SetBgImageHeight(0.f); },             // BG_IMAGE_HEIGHT
     [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); },          // BG_IMAGE_POSITION_X
@@ -841,6 +842,21 @@ void RSProperties::SetBgImage(const std::shared_ptr<RSImage>& image)
 std::shared_ptr<RSImage> RSProperties::GetBgImage() const
 {
     return decoration_ ? decoration_->bgImage_ : nullptr;
+}
+
+void RSProperties::SetBgImageInnerRect(const Vector4f& rect)
+{
+    if (!decoration_) {
+        decoration_ = std::make_optional<Decoration>();
+    }
+    decoration_->bgImageInnerRect_ = rect;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+Vector4f RSProperties::GetBgImageInnerRect() const
+{
+    return decoration_ ? decoration_->bgImageInnerRect_ : Vector4f();
 }
 
 void RSProperties::SetBgImageWidth(float width)

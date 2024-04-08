@@ -54,7 +54,7 @@ public:
     void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) override;
     void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) override;
-    void ConicTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar w) override;
+    void ConicTo(scalar ctrlX, scalar ctrlY, scalar endX, scalar endY, scalar weight) override;
 
     void RMoveTo(scalar dx, scalar dy) override;
     void RLineTo(scalar dx, scalar dy) override;

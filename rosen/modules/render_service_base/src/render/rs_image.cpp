@@ -72,8 +72,12 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             if (!isBackground) {
                 ApplyCanvasClip(canvas);
             }
-            canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            if (innerRect_.has_value()) {
+                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+            } else {
+                canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
+                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            }
         }
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
             canvas.Restore();
@@ -282,8 +286,12 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
                     // In case of perspective transformation, make dstRect 1px outset to anti-alias
                     dst_.MakeOutset(1, 1);
                 }
-                canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+                if (innerRect_.has_value()) {
+                    canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+                } else {
+                    canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
+                        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+                }
             }
             if (isAstc) {
                 canvas.Restore();

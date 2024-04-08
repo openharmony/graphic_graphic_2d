@@ -27,6 +27,8 @@ namespace Rosen {
 #undef LOG_TAG
 #define LOG_TAG "EffectNapi"
 
+#define EFFECT_LOG_D(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
+
 #define EFFECT_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 
 #define EFFECT_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)

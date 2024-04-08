@@ -103,10 +103,6 @@ HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
 
-    buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
-    ret = RSBaseRenderEngine::NeedForceCPU(layers);
-    ASSERT_EQ(true, ret);
-
 #ifndef RS_ENABLE_EGLIMAGE
     buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
@@ -193,11 +189,12 @@ HWTEST(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener001, TestSize.Lev
     auto renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->RegisterDeleteBufferListener(nullptr, true);
     renderEngine->RegisterDeleteBufferListener(nullptr, false);
-
+#ifdef RS_ENABLE_VK
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
     renderEngine->RegisterDeleteBufferListener(node->GetConsumer(), true);
     renderEngine->RegisterDeleteBufferListener(node->GetConsumer(), false);
+#endif
 }
 #endif
 

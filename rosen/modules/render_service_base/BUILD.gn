@@ -468,6 +468,13 @@ ohos_source_set("render_service_base_src") {
     sources += graphic_2d_ext_configs.librender_service_base_ext_sources
   }
 
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_BASE_SCHED_ENABLE" ]
+    external_deps += [ "qos_manager:qos" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

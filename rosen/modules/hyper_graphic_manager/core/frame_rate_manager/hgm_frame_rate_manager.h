@@ -32,6 +32,7 @@
 #include "hgm_command.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
+#include "hgm_touch_manager.h"
 #include "hgm_vsync_generator_controller.h"
 
 namespace OHOS {
@@ -48,7 +49,9 @@ enum TouchStatus : uint32_t {
     TOUCH_CANCEL = 1,
     TOUCH_DOWN = 2,
     TOUCH_MOVE = 3,
-    TOUCH_UP = 4
+    TOUCH_UP = 4,
+    TOUCH_PULL_DOWN = 12,
+    TOUCH_PULL_UP = 14,
 };
 
 struct FrameRateVoteInfo {
@@ -58,24 +61,24 @@ struct FrameRateVoteInfo {
     std::string ltpoType = "";
     uint64_t timestamp = 0;
 
-    void SetTimestamp(uint64_t timestamp_)
+    void SetTimestamp(uint64_t curTimestamp)
     {
-        timestamp = timestamp_;
+        timestamp = curTimestamp;
     }
 
-    void SetVoteInfo(std::string voterName_, uint32_t preferred_)
+    void SetVoteInfo(const std::string& curVoterName, uint32_t curPreferred)
     {
-        voterName = voterName_;
-        preferred = preferred_;
+        voterName = curVoterName;
+        preferred = curPreferred;
     }
 
-    void SetLtpoInfo(FrameRateLinkerId pid_, std::string ltpoType_)
+    void SetLtpoInfo(FrameRateLinkerId curPid, const std::string& curLtpoType)
     {
-        pid = pid_;
-        ltpoType = ltpoType_;
+        pid = curPid;
+        ltpoType = curLtpoType;
     }
 
-    std::string ToString()
+    std::string ToString() const
     {
         std::stringstream str;
         str << "VOTER_NAME:" << voterName << ";";
@@ -124,6 +127,7 @@ public:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
+    std::shared_ptr<HgmTouchManager> touchMgr_ = std::make_unique<HgmTouchManager>();
 private:
     void Reset();
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -179,6 +183,7 @@ private:
     bool isTouchEnable_ = true;
     int32_t touchFps_ = 120;
     int32_t idleFps_ = 60;
+    int32_t touchCnt_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

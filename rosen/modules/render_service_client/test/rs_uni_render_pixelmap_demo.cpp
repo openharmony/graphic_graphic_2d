@@ -14,25 +14,20 @@
  */
 
 #include <iostream>
-#include <message_parcel.h>
-#include <sstream>
-#include <string>
 #include <surface.h>
+
+#include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
 
 #include "image_source.h"
 
 
 #include "pixel_map.h"
-#include "wm/window.h"
 
-#include "pipeline/rs_recording_canvas.h"
-#include "platform/common/rs_system_properties.h"
-#include "render/rs_pixel_map_util.h"
-#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_transaction.h"
-#include "ui/rs_display_node.h"
 #include "ui/rs_root_node.h"
+#include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
+#include "ui/rs_surface_extractor.h"
 #include "ui/rs_ui_director.h"
 
 using namespace OHOS;
@@ -53,7 +48,11 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 
     rsUiDirector->SetRoot(rootNode->GetId());
     canvasNode = RSCanvasNode::Create();
-    canvasNode->SetFrame(0, 0, 600, 800);
+    canvasNode->SetBounds(50, 50, width - 100, height - 100);
+    canvasNode->SetFrame(50, 50, width - 100, height - 100);
+    canvasNode->SetBorderColor(0xaaff0000);
+    canvasNode->SetBorderWidth(20);
+    canvasNode->SetBorderStyle(BorderStyle::SOLID);
     rootNode->AddChild(canvasNode, -1);
 }
 
@@ -90,14 +89,15 @@ int main()
 {
     cout << "rs pixelmap demo start!" << endl;
     sptr<WindowOption> option = new WindowOption();
-    option->SetWindowType(WindowType::WINDOW_TYPE_STATUS_BAR);
+    option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
-    option->SetWindowRect({ 20, 40, 680, 1500 });
+    option->SetWindowRect({0, 0, 1260, 2720});
     string demoName = "pixelmap_demo";
     RSSystemProperties::GetUniRenderEnabled();
     auto window = Window::Create(demoName, option);
 
     window->Show();
+    sleep(2);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         cout << "rs demo create window failed: " << rect.width_ << " " << rect.height_ << endl;
@@ -124,34 +124,13 @@ int main()
 
     cout << "rs pixelmap demo stage 2: decode pixelmap" << endl;
     auto allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
-    shared_ptr<Media::PixelMap> pixelmap = DecodePixelMap("/data/local/tmp/test.jpg", allocatorType);
     shared_ptr<Media::PixelMap> bgpixelmap = DecodePixelMap("/data/local/tmp/test_bg.jpg", allocatorType);
     shared_ptr<Media::PixelMap> maskPixelmap = DecodePixelMap("/data/local/tmp/mask.jpg", allocatorType);
-    if (pixelmap == nullptr || bgpixelmap == nullptr || maskPixelmap == nullptr) {
+    if (bgpixelmap == nullptr) {
         return -1;
     }
 
-    cout << "rs pixelmap demo stage 3: canvas draw" << endl;
-    Drawing::Brush brush;
-    auto canvas = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
-    cout << "DrawPixelMap" << endl;
-    canvas->AttachBrush(brush);
-    canvas->DrawPixelMapRect(pixelmap, Drawing::Rect(10, 10, 210, 210), Drawing::Rect(20, 300, 420, 900));
-    canvas->DetachBrush();
-
-    std::vector<Drawing::Point> radii_ = { { 10, 10 }, { 10, 10 }, { 10, 10 }, { 10, 10 } };
-    RsImageInfo rsImageInfo(5, 1, radii_, 0, 0, 0, 0);
-    cout << "DrawPixelMapWithParm" << endl;
-    canvas->AttachBrush(brush);
-    canvas->DrawPixelMapWithParm(pixelmap, rsImageInfo);
-    canvas->DetachBrush();
-    cout << "FinishRecording" << endl;
-    canvasNode->FinishRecording();
-    cout << "SendMessages" << endl;
-    rsUiDirector->SendMessages();
-    sleep(2);
-
-    cout << "rs pixelmap demo stage 4: bgImage" << endl;
+    cout << "rs pixelmap demo stage 3: bgImage" << endl;
     canvasNode->SetBgImageWidth(500);
     canvasNode->SetBgImageHeight(600);
     canvasNode->SetBgImagePositionX(10);
@@ -159,43 +138,25 @@ int main()
 
     auto rosenImage = make_shared<Rosen::RSImage>();
     rosenImage->SetPixelMap(bgpixelmap);
-    rosenImage->SetImageRepeat(2);
+    rosenImage->SetImageRepeat(3);
+    rosenImage->SetImageFit((int)ImageFit::NONE);
     cout << "SetBgImage" << endl;
     canvasNode->SetBgImage(rosenImage);
 
     rsUiDirector->SendMessages();
     sleep(2);
 
+    cout << "rs pixelmap demo stage 4: bgImage SetBgImageInnerRect" << endl;
+    canvasNode->SetBgImageInnerRect({ 100, 100, 25, 25});
+
+    rsUiDirector->SendMessages();
+    sleep(3);
+
     cout << "rs pixelmap demo stage 5: mask" << endl;
     auto mask = RSMask::CreatePixelMapMask(maskPixelmap);
     surfaceNode->SetMask(mask);
     rsUiDirector->SendMessages();
     sleep(10);
-
-    cout << "rs pixelmap demo stage 4: repeated drawing skImage" << endl;
-    auto skimg = RSPixelMapUtil::ExtractSkImage(pixelmap);
-    if (!skimg) {
-        return -1;
-    }
-    for (int i = 0; i < 120; i++) {
-        auto cvs = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
-        cvs->translate(i * 10, i * 10);
-        cvs->DrawImageWithParm(skimg, nullptr, rsImageInfo, paint);
-        canvasNode->FinishRecording();
-        rsUiDirector->SendMessages();
-        usleep(150000);
-    }
-
-    cout << "rs pixelmap demo stage 5: repeated drawing pixelMap" << endl;
-    for (int i = 0; i < 120; i++) {
-        auto cvs = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
-        cvs->translate(i * 10, i * 10);
-        cvs->DrawPixelMapWithParm(pixelmap, rsImageInfo, paint);
-        canvasNode->FinishRecording();
-        rsUiDirector->SendMessages();
-        usleep(150000);
-    }
-    sleep(200);
 
     cout << "rs pixelmap demo end!" << endl;
     window->Hide();

@@ -464,15 +464,15 @@ typedef enum {
  */
 enum OH_Drawing_FontConfigInfoErrorCode {
     /** The list of system font configuration information was successfully obtained */
-    SUCCESS = 0,
+    SUCCESS_FONT_CONFIG_INFO = 0,
     /** Unknown error */
-    ERROR_UNKNOWN = 1,
+    ERROR_FONT_CONFIG_INFO_UNKNOWN = 1,
     /** Parse system config file error */
-    ERROR_PARSE_FILE = 2,
+    ERROR_FONT_CONFIG_INFO_PARSE_FILE = 2,
     /** Alloc memory error */
-    ERROR_ALLOC_MEMORY = 3,
+    ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY = 3,
     /** Copy string data error */
-    ERROR_COPY_STRING_DATA = 4,
+    ERROR_FONT_CONFIG_INFO_COPY_STRING_DATA = 4,
 };
 
 /**
@@ -2539,12 +2539,11 @@ void OH_Drawing_SetTextStyleFontStyleStruct(OH_Drawing_TextStyle* drawingTextSty
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
- * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @return Returns the <b>OH_Drawing_FontStyleStruct</b> object getted.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle,
-    OH_Drawing_FontStyleStruct* fontStyle);
+OH_Drawing_FontStyleStruct OH_Drawing_TextStyleGetFontStyleStruct(OH_Drawing_TextStyle* drawingTextStyle);
 
 /**
  * @brief Sets the typography style, including font weight, font width and font slant.
@@ -2563,12 +2562,11 @@ void OH_Drawing_SetTypographyStyleFontStyleStruct(OH_Drawing_TypographyStyle* dr
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
- * @param OH_Drawing_FontStyleStruct Indicates the pointer to an <b>OH_Drawing_FontStyleStruct</b> object.
+ * @return Returns the <b>OH_Drawing_FontStyleStruct</b> object getted.
  * @since 12
  * @version 1.0
  */
-void OH_Drawing_TypographyStyleGetFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle,
-    OH_Drawing_FontStyleStruct* fontStyle);
+OH_Drawing_FontStyleStruct OH_Drawing_TypographyStyleGetFontStyleStruct(OH_Drawing_TypographyStyle* drawingStyle);
 
 /**
  * @brief Gets whether the two TextStyle objects are equal.

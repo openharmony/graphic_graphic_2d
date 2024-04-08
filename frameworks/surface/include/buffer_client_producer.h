@@ -77,7 +77,7 @@ public:
 
     sptr<NativeSurface> GetNativeSurface() override;
 
-    GSError SendDeathRecipientObject() override;
+    GSError SendAddDeathRecipientObject() override;
 
     GSError GetTransform(GraphicTransformType &transform) override;
     GSError AttachBufferToQueue(sptr<SurfaceBuffer>& buffer) override;
@@ -85,6 +85,7 @@ public:
 
     GSError GetTransformHint(GraphicTransformType &transformHint) override;
     GSError SetTransformHint(GraphicTransformType transformHint) override;
+    GSError SendRemoveDeathRecipientObject() override;
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";

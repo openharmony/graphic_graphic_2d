@@ -37,10 +37,10 @@ namespace {
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
     constexpr float DIVISOR_TWO = 2.0f;
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
-    constexpr int32_t IDLE_AFTER_TOUCH_UP = 3000; // ms
     constexpr float ONE_MS_IN_NANO = 1000000.0f;
     constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 10;
+    constexpr int32_t LAST_TOUCH_DOWN_CNT = 1;
 
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
@@ -53,8 +53,8 @@ namespace {
         "VOTER_MULTI_APP",
 
         "VOTER_XML",
-        "VOTER_LTPO",
         "VOTER_TOUCH",
+        "VOTER_LTPO",
         "VOTER_SCENE",
         "VOTER_TEMP",
         "VOTER_IDLE"
@@ -97,6 +97,11 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         }
     });
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+
+    touchMgr_->touchMachine_.RegisterIdleEventCallback([this] () {
+        DeliverRefreshRateVote(0, "VOTER_TOUCH", REMOVE_VOTE);
+        touchMgr_->StopRSTimer(curScreenId_);
+    });
 }
 
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
@@ -149,6 +154,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
             forceUpdateCallback_(false, true);
+            touchMgr_->rsIdleUpdateCallback_(false);
             FrameRateReport();
         }
     }
@@ -187,6 +193,10 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     if (idleTimerExpired) {
         // idle in ltps
         HandleIdleEvent(ADD_VOTE);
+    } else {
+        StartScreenTimer(curScreenId_, IDLE_TIMER_EXPIRED, nullptr, [this]() {
+            forceUpdateCallback_(true, false);
+        });
     }
 
     FrameRateRange finalRange;
@@ -206,6 +216,7 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
         forceUpdateCallback_(false, true);
+        touchMgr_->rsIdleUpdateCallback_(false);
         FrameRateReport();
     }
     ReportHiSysEvent(frameRateVoteInfo);
@@ -263,6 +274,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != HgmCore::Instance().GetPendingScreenRefreshRate()) {
             forceUpdateCallback_(false, true);
+            touchMgr_->rsIdleUpdateCallback_(false);
             FrameRateReport();
         }
     };
@@ -531,14 +543,34 @@ void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
         return;
     }
 
-    if (touchStatus == TOUCH_DOWN) {
-        DeliverRefreshRateVote(0, "VOTER_TOUCH", ADD_VOTE, touchFps_, touchFps_);
-        StopScreenTimer(curScreenId_);
+    static std::mutex hgmTouchEventMutex;
+    if (touchCnt_ < 0) {
+        touchCnt_ = 0;
+    }
+    std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
+    if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
+        touchCnt_++;
+        if (touchCnt_ == LAST_TOUCH_DOWN_CNT) {
+            DeliverRefreshRateVote(0, "VOTER_TOUCH", ADD_VOTE, touchFps_, touchFps_);
+            HGM_LOGI("[touch manager] update to target %{public}d fps", touchFps_);
+            StopScreenTimer(curScreenId_);
+            touchMgr_->StopRSTimer(curScreenId_);
+            touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::DOWN);
+        }
+    } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
+        touchCnt_--;
+        if (touchCnt_ == 0) {
+            HGM_LOGI("[touch manager] touch up detect");
+            StartScreenTimer(curScreenId_, TOUCH_UP_TIMEOUT_TIMER_EXPIRED, nullptr, [this]() {
+                forceUpdateCallback_(true, false);
+            });
+            touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::UP);
+            touchMgr_->StartRSTimer(curScreenId_, TOUCH_RS_IDLE_TIMER_EXPIRED, nullptr, [this]() {
+                touchMgr_->rsIdleUpdateCallback_(true);
+            });
+        }
     } else {
-        // idle detect used in ltps
-        StartScreenTimer(curScreenId_, IDLE_AFTER_TOUCH_UP, nullptr, [this]() {
-            forceUpdateCallback_(true, false);
-        });
+        HGM_LOGD("[touch manager] other touch status not support");
     }
 }
 
@@ -546,8 +578,10 @@ void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
 {
     if (isIdle) {
         HGM_LOGI("HandleIdleEvent status:%{public}u", isIdle);
-        DeliverRefreshRateVote(0, "VOTER_TOUCH", REMOVE_VOTE);
-        DeliverRefreshRateVote(0, "VOTER_IDLE", ADD_VOTE, idleFps_, idleFps_);
+        // fix for down event but not refreshing frames condition
+        if (touchMgr_->touchMachine_.GetState() != TouchState::DOWN) {
+            DeliverRefreshRateVote(0, "VOTER_IDLE", ADD_VOTE, idleFps_, idleFps_);
+        }
     } else {
         DeliverRefreshRateVote(0, "VOTER_IDLE", REMOVE_VOTE);
     }
@@ -573,6 +607,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HGM_LOGI("HandleScreenPowerStatus curScreen:%{public}d status:%{public}d",
         static_cast<int>(curScreenId_), static_cast<int>(status));
     if (status != ScreenPowerStatus::POWER_STATUS_ON) {
+        touchCnt_ = 0;
         return;
     }
     if (curScreenId_ == id) {
@@ -674,6 +709,7 @@ void HgmFrameRateManager::MarkVoteChange()
     isRefreshNeed_ = true;
     if (forceUpdateCallback_ != nullptr) {
         forceUpdateCallback_(false, true);
+        touchMgr_->rsIdleUpdateCallback_(false);
     }
 }
 
@@ -876,7 +912,6 @@ void HgmFrameRateManager::HandleTempEvent(
 {
     RS_TRACE_NAME_FMT("HandleTempEvent TempEvent:%s, status:%u, value:[%d-%d]",
         tempEventName.c_str(), eventStatus, min, max);
-    DeliverRefreshRateVote(0, "VOTER_TEMP", eventStatus, min, max);
 }
 
 } // namespace Rosen

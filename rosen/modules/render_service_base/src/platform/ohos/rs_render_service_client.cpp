@@ -154,7 +154,8 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
-    uint64_t id)
+    uint64_t id,
+    NodeId windowNodeId)
 {
     ROSEN_LOGD("RSRenderServiceClient::CreateVSyncReceiver Start");
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -162,7 +163,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token, id);
+    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token, id, windowNodeId);
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::CreateVSyncReceiver Failed");
         return nullptr;

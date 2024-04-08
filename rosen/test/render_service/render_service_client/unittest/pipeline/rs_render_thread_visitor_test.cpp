@@ -243,11 +243,11 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto surfaceRenderNode1 = std::make_shared<RSSurfaceRenderNode>(config);
 
     config.id = 1;
     auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config);
-    rsSurfaceRenderNode.AddChild(surfaceRenderNode2, -1);
+    surfaceRenderNode1->AddChild(surfaceRenderNode2, -1);
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.PrepareSurfaceRenderNode(*surfaceRenderNode2);
 }
@@ -261,28 +261,17 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
-}
+    auto surfaceRenderNode1 = std::make_shared<RSSurfaceRenderNode>(config);
 
-/**
- * @tc.name: PrepareSurfaceRenderNode003
- * @tc.desc: test results of PrepareSurfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsSurfaceRenderNode.NotifyRTBufferAvailable();
+    config.id = 1;
+    auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceRenderNode1->AddChild(surfaceRenderNode2, -1);
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
-    rsSurfaceRenderNode.GetMutableRenderProperties().SetClipToBounds(true);
-    rsSurfaceRenderNode.GetMutableRenderProperties().SetBoundsWidth(10);
-    rsSurfaceRenderNode.GetMutableRenderProperties().SetBoundsHeight(10);
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*surfaceRenderNode2);
+    surfaceRenderNode2->GetMutableRenderProperties().SetClipToBounds(true);
+    surfaceRenderNode2->GetMutableRenderProperties().SetBoundsWidth(10);
+    surfaceRenderNode2->GetMutableRenderProperties().SetBoundsHeight(10);
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*surfaceRenderNode2);
 }
 
 /**

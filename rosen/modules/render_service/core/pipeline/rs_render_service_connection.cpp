@@ -308,6 +308,8 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         "id:%{public}" PRIu64 " name:%{public}s bundleName:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
         node->GetId(), node->GetName().c_str(), node->GetBundleName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
+    auto defaultUsage = surface->GetDefaultUsage();
+    surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->SetConsumer(surface);
     std::function<void()> registerNode = [node, this]() -> void {
         this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
@@ -332,9 +334,10 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
 
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
                                                                         const sptr<VSyncIConnectionToken>& token,
-                                                                        uint64_t id)
+                                                                        uint64_t id,
+                                                                        NodeId windowNodeId)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject());
+    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), windowNodeId);
     if (ExtractPid(id) == remotePid_) {
         auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
         auto& context = mainThread_->GetContext();
@@ -342,7 +345,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
         frameRateLikerMap.RegisterFrameRateLinker(linker);
         conn->id_ = id;
     }
-    auto ret = appVSyncDistributor_->AddConnection(conn);
+    auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
         return nullptr;
     }
