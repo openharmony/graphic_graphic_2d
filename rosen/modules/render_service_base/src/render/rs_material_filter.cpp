@@ -126,11 +126,6 @@ std::string RSMaterialFilter::GetDescription()
 
 std::string RSMaterialFilter::GetDetailedDescription()
 {
-    std::optional<Vector2f> greyCoef = greyCoef_;
-    if (greyCoef == std::nullopt) {
-        greyCoef->x_ = 0.0;
-        greyCoef->y_ = 0.0;
-    }
     char maskColorStr[UINT8_MAX] = { 0 };
     auto ret = memset_s(maskColorStr, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
@@ -139,7 +134,8 @@ std::string RSMaterialFilter::GetDetailedDescription()
     if (sprintf_s(maskColorStr, UINT8_MAX, "%08X", maskColor_.AsArgbInt()) != -1) {
         return "RSMaterialFilterBlur, radius: " + std::to_string(radius_) + " sigma" +
             ", saturation: " + std::to_string(saturation_) + ", brightness: " + std::to_string(brightness_) +
-            ", greyCoef1: " + std::to_string(greyCoef->x_) + ", greyCoef2: " + std::to_string(greyCoef->y_) +
+            ", greyCoef1: " + std::to_string(greyCoef_ == std::nullopt ? 0.0f : greyCoef_->x_) +
+            ", greyCoef2: " + std::to_string(greyCoef_ == std::nullopt ? 0.0f : greyCoef_->y_) +
             ", color: " + maskColorStr + ", colorMode: " + std::to_string(colorMode_);
     };
     return "RSMaterialFilterBlur, maskColorStr failed";
