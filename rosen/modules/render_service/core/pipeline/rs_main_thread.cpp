@@ -2613,12 +2613,10 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
     if (pid != 0) {
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    RSUniRenderThread::Instance().PostSyncTask([&log, pid] {
-        MemoryManager::DumpPidMemory(log, pid,
-            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
-    });
-#endif
+        RSUniRenderThread::Instance().PostSyncTask([&log, pid] {
+            MemoryManager::DumpPidMemory(log, pid,
+                RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        });
     } else {
         MemoryManager::DumpMemoryUsage(log, type);
     }

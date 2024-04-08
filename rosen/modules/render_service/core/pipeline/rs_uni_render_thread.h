@@ -46,6 +46,7 @@ public:
     void RenderFrames();
     void Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams);
     void PostTask(const std::function<void()>& task);
+    void RemoveTask(const std::string& name);
     void PostRTTask(const std::function<void()>& task);
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
@@ -89,6 +90,7 @@ public:
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
+    void Inittcache();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

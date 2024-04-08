@@ -48,6 +48,9 @@
 #include "drawable/dfx/rs_skp_capture_dfx.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 namespace OHOS::Rosen::DrawableV2 {
+namespace {
+constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+}
 class RSOverDrawDfx {
 public:
     explicit RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
@@ -324,6 +327,22 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
     return true;
 }
 
+void RSDisplayRenderNodeDrawable::RemoveClearMemoryTask() const
+{
+    auto& unirenderThread = RSUniRenderThread::Instance();
+    if (!unirenderThread.GetClearMemoryFinished()) {
+        unirenderThread.RemoveTask(CLEAR_GPU_CACHE);
+    }
+}
+
+void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
+{
+    auto& unirenderThread = RSUniRenderThread::Instance();
+    if (!unirenderThread.GetClearMemoryFinished()) {
+        unirenderThread.ClearMemoryCache(unirenderThread.GetClearMoment(), unirenderThread.GetClearMemDeeply());
+    }
+}
+
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     // canvas will generate in every request frame
@@ -423,6 +442,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    RemoveClearMemoryTask();
     // canvas draw
     {
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
@@ -440,6 +460,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         DrawWatermarkIfNeed(*displayNodeSp, *curCanvas_);
         DrawCurtainScreen(*displayNodeSp, *curCanvas_);
     }
+    PostClearMemoryTask();
     rsDirtyRectsDfx.OnDraw(curCanvas_);
 
     // switch color filtering

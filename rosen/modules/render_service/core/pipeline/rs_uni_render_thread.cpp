@@ -98,6 +98,12 @@ void RSUniRenderThread::InitGrContext()
 #endif
 }
 
+void RSUniRenderThread::Inittcache()
+{
+    // enable cache
+    mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
+}
+
 void RSUniRenderThread::Start()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
@@ -108,6 +114,7 @@ void RSUniRenderThread::Start()
     runner_->Run();
     PostSyncTask([this] {
         RS_LOGE("RSUniRenderThread Started ...");
+        Inittcache();
         InitGrContext();
         tid_ = gettid();
 #ifdef RES_SCHED_ENABLE
@@ -164,6 +171,13 @@ void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& 
 {
     if (handler_) {
         handler_->PostTask(task, name, delayTime, priority);
+    }
+}
+
+void RSUniRenderThread::RemoveTask(const std::string& name)
+{
+    if (handler_) {
+        handler_->RemoveTask(name);
     }
 }
 
