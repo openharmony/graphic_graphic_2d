@@ -269,27 +269,27 @@ HWTEST_F(VSyncDistributorTest, GetVSyncConnectionInfos001, Function | MediumTest
 }
 
 /*
-* Function: MarkRSNotRendering001
+* Function: SetFrameIsRender001
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call MarkRSNotRendering
+* CaseDescription: 1. call SetFrameIsRender with render is true
  */
-HWTEST_F(VSyncDistributorTest, MarkRSNotRendering001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level3)
 {
-    VSyncDistributorTest::vsyncDistributor->MarkRSNotRendering();
+    VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(true);
 }
 
 /*
-* Function: UnmarkRSNotRendering001
+* Function: SetFrameIsRender002
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call UnmarkRSNotRendering
+* CaseDescription: 1. call SetFrameIsRender with render is false
  */
-HWTEST_F(VSyncDistributorTest, UnmarkRSNotRendering001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level3)
 {
-    VSyncDistributorTest::vsyncDistributor->UnmarkRSNotRendering();
+    VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(false);
 }
 } // namespace
 } // namespace Rosen

@@ -117,8 +117,7 @@ public:
 
     // used by DVSync
     bool IsDVsyncOn();
-    void MarkRSNotRendering();
-    void UnmarkRSNotRendering();
+    void SetFrameIsRender(bool isRender);
     void MarkRSAnimate();
     void UnmarkRSAnimate();
     bool HasPendingUIRNV();
@@ -174,6 +173,8 @@ private:
     sptr<DVsync> dvsync_ = nullptr;
     bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync
     std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
+    bool pendingRNVInDVsync_ = false;
+    bool lockExecute_ = false;
 #endif
     bool isRs_ = false;
 };
