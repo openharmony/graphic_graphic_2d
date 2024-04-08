@@ -17,14 +17,15 @@
 #include <chrono>
 #include <iostream>
 #include <string>
-#include <surface.h>
-#include "test_base.h"
+
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
 #include "utils/log.h"
 #include "window.h"
+
+#include "test_case/test_base.h"
 
 namespace OHOS {
 namespace Rosen {

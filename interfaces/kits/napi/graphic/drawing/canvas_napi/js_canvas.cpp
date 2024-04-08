@@ -13,26 +13,29 @@
  * limitations under the License.
  */
 
-#include <mutex>
 #include "js_canvas.h"
-#include "../brush_napi/js_brush.h"
-#include "../pen_napi/js_pen.h"
-#include "../path_napi/js_path.h"
-#include "../text_blob_napi/js_text_blob.h"
-#include "../js_drawing_utils.h"
-#include "native_value.h"
+
+#include <mutex>
+
 #ifdef ROSEN_OHOS
 #include "pixel_map.h"
 #include "pixel_map_napi.h"
 #endif
+#include "native_value.h"
 #include "draw/canvas.h"
-#include "image/image.h"
 #include "draw/path.h"
+#include "image/image.h"
 #include "text/text.h"
 #include "text/text_blob.h"
 #include "utils/point.h"
-#include "utils/sampling_options.h"
 #include "utils/rect.h"
+#include "utils/sampling_options.h"
+
+#include "brush_napi/js_brush.h"
+#include "pen_napi/js_pen.h"
+#include "path_napi/js_path.h"
+#include "text_blob_napi/js_text_blob.h"
+#include "js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 #ifdef ROSEN_OHOS

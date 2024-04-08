@@ -78,8 +78,9 @@ ohos_static_library("librender_backend") {
       "$graphic_2d_root:libgl",
       "$graphic_2d_root:libvulkan",
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-      "//third_party/openssl:libcrypto_shared",
     ]
+
+    public_external_deps = [ "openssl:libcrypto_shared" ]
   }
 
   public_deps += [ "//third_party/skia:skia_ohos" ]

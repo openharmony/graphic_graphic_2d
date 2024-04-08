@@ -211,7 +211,6 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/engine_adapter",
       "$ace_root/frameworks",
       "$rosen_root/modules/render_service_base/include",
-      "//third_party/bounds_checking_function/include",
       "//third_party/skia/include/core",
       "//third_party/skia/include/private",
       "//third_party/skia/src/core",
@@ -221,7 +220,7 @@ template("graphics2d_source_set") {
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
     ]
 
-    configs = [ "//third_party/jsoncpp:jsoncpp_public_config" ]
+    external_deps += [ "jsoncpp:jsoncpp" ]
 
     defines += [ "USE_ACE_SKIA" ]
 
@@ -243,7 +242,6 @@ template("graphics2d_source_set") {
         "$rosen_root/modules/2d_engine/rosen_text",
         "$rosen_root/modules/2d_engine/rosen_text/adapter",
         "$rosen_root/modules/2d_engine/rosen_text/export",
-        "//third_party/bounds_checking_function/include",
         "$platform_dir/image_native",
       ]
       if (defined(use_new_skia) && use_new_skia) {
@@ -274,13 +272,11 @@ template("graphics2d_source_set") {
     }
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [
+        "bounds_checking_function:libsec_static",
         "hilog:libhilog",
         "hitrace:hitrace_meter",
       ]
-      deps = [
-        "//third_party/bounds_checking_function:libsec_static",
-        "//third_party/skia:skia_$platform",
-      ]
+      deps = [ "//third_party/skia:skia_$platform" ]
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       deps += [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
       include_dirs += [ "$flutter_root/engine" ]
@@ -312,7 +308,7 @@ template("graphics2d_source_set") {
         deps += [ "$rosen_root/modules/platform:hilog" ]
       }
 
-      deps += [ "//third_party/bounds_checking_function:libsec_static" ]
+      external_deps += [ "bounds_checking_function:libsec_static" ]
       deps += [ "$graphic_2d_root/utils:sandbox_utils" ]
       defines += [ "MODULE_DRAWING" ]
 
@@ -403,7 +399,7 @@ if (enable_text_gine) {
       "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing",
     ]
     external_deps = [ "hilog:libhilog" ]
-    public_deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+    public_external_deps = [ "bounds_checking_function:libsec_static" ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     public_configs = [ ":2d_graphics_config" ]
     innerapi_tags = [ "platformsdk_indirect" ]

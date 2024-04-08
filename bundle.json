@@ -88,20 +88,19 @@
           "vulkan-headers",
           "hiview",
           "battery_manager",
-          "cJSON"
+          "cJSON",
+          "jsoncpp",
+          "openssl"
         ],
         "third_party": [
           "flutter",
           "libuv",
-          "openssl",
           "libxml2",
-          "bounds_checking_function",
           "icu",
           "libpng",
           "zlib",
           "skia",
           "cJSON",
-          "jsoncpp",
           "egl",
           "opengles",
           "vulkan-headers",

@@ -17,8 +17,8 @@
 
 #include <cstdint>
 
-#include "../js_drawing_utils.h"
-#include "../color_filter_napi/js_color_filter.h"
+#include "js_drawing_utils.h"
+#include "color_filter_napi/js_color_filter.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {

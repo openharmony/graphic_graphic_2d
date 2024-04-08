@@ -14,9 +14,11 @@
  */
 
 #include "js_font.h"
-#include "js_typeface.h"
-#include "../js_drawing_utils.h"
+
 #include "native_value.h"
+
+#include "js_drawing_utils.h"
+#include "js_typeface.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {

@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DRAWING_DEMO_DRAW_RECT_H
-#define DRAWING_DEMO_DRAW_RECT_H
-#include "../test_base.h"
+#ifndef DRAWING_DEMO_DRAW_RECT_TEST_H
+#define DRAWING_DEMO_DRAW_RECT_TEST_H
+#include "test_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,4 +28,4 @@ protected:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // DRAWING_DEMO_DRAW_RECT_H
+#endif // DRAWING_DEMO_DRAW_RECT_TEST_H

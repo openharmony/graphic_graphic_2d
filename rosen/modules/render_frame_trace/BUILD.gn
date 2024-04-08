@@ -27,9 +27,9 @@ ohos_source_set("render_frame_trace") {
       cflags += [ "-fwhole-program-vtables" ]
     }
   }
-  deps = [ "//third_party/jsoncpp:jsoncpp" ]
+  external_deps = [ "jsoncpp:jsoncpp" ]
   if (!build_ohos_sdk) {
-    external_deps = [
+    external_deps += [
       "ipc:ipc_single",
       "qos_manager:concurrent_task_client",
     ]

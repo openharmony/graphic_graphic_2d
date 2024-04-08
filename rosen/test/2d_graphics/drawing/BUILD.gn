@@ -23,11 +23,11 @@ ohos_source_set("demo_set") {
 
   sources = [
     "drawing_demo.cpp",
-    "test_base.cpp",
-    "test_case/draw_path.cpp",
-    "test_case/draw_rect.cpp",
+    "test_case/draw_path_test.cpp",
+    "test_case/draw_rect_test.cpp",
+    "test_case/test_base.cpp",
+    "test_case/test_common.cpp",
     "test_case_factory.cpp",
-    "test_common.cpp",
   ]
 
   deps = [

@@ -14,8 +14,10 @@
  */
 
 #include "js_path.h"
-#include "../js_drawing_utils.h"
+
 #include "native_value.h"
+
+#include "js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {

@@ -30,7 +30,6 @@ config("local_drawing_config") {
 
   include_dirs = [
     "../drawing",
-    "../../../../../../../multimedia/image_framework/interfaces/innerkits/include/",
     "../../../../../rosen/modules/2d_graphics/include",
     "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]

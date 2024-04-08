@@ -123,8 +123,10 @@ ohos_source_set("libtexgine_source") {
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
-    deps = [ "//third_party/bounds_checking_function:libsec_static" ]
-    include_dirs = [ "//third_party/bounds_checking_function/include" ]
+    external_deps = [
+      "bounds_checking_function:libsec_static",
+      "cJSON:cjson_static",
+    ]
 
     if (platform == "ohos") {
       defines += [ "BUILD_NON_SDK_VER" ]
@@ -137,8 +139,7 @@ ohos_source_set("libtexgine_source") {
         defines += [ "TEXGINE_ENABLE_DEBUGLOG" ]
       }
 
-      external_deps = [
-        "cJSON:cjson_static",
+      external_deps += [
         "c_utils:utils",
         "hilog:libhilog",
         "hitrace:hitrace_meter",
@@ -157,8 +158,6 @@ ohos_source_set("libtexgine_source") {
         public_deps +=
             [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
       }
-      include_dirs += [ "//third_party/cJSON" ]
-      deps += [ "//third_party/cJSON:cjson_static" ]
     }
   }
 

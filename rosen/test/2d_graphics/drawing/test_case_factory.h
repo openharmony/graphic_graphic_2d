@@ -14,7 +14,7 @@
  */
 #ifndef TEST_CASE_FACTORY_H
 #define TEST_CASE_FACTORY_H
-#include "test_base.h"
+#include "test_case/test_base.h"
 
 namespace OHOS {
 namespace Rosen {

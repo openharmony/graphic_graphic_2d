@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 #include "test_case_factory.h"
-#include "test_case/draw_path.h"
-#include "test_case/draw_rect.h"
+#include "test_case/draw_path_test.h"
+#include "test_case/draw_rect_test.h"
 
 using namespace OHOS::Rosen;
 namespace {

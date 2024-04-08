@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "draw_rect.h"
+#include "draw_rect_test.h"
 
 namespace OHOS {
 namespace Rosen {

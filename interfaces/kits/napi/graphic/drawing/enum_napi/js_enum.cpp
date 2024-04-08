@@ -13,15 +13,16 @@
  * limitations under the License.
  */
 
+#include "js_enum.h"
+
 #include <map>
 #include <vector>
 
+#include "native_value.h"
 #include "draw/blend_mode.h"
 #include "text/font_types.h"
 
-#include "js_enum.h"
-#include "../js_drawing_utils.h"
-#include "native_value.h"
+#include "js_drawing_utils.h"
 
 #ifdef WINDOWS_PLATFORM
 #ifdef DIFFERENCE
