@@ -57,25 +57,21 @@ void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr
         ROSEN_LOGE("RSAIBarFilter::DrawImageRect invertedImage is null");
         return;
     }
+    // apply blur effect on invertedImage
     KawaseParameter param = KawaseParameter(src, dst, radius, nullptr, 1.0);
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR &&
+    static bool DDGR_ENABLED = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
+    if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED &&
         KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, invertedImage, param)) {
         return;
     }
-    // if kawase blur failed, use gauss blur
     Drawing::Brush brush;
-    brush.SetShaderEffect(builder->MakeShader(nullptr, false));
     Drawing::Filter filter;
-    if (KAWASE_BLUR_ENABLED) {
-        filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP,
-            nullptr, Drawing::ImageBlurType::KAWASE));
-    } else {
-        filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP,
-            nullptr));
-    }
+    auto blurType = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
+    filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP,
+        nullptr, blurType));
     brush.SetFilter(filter);
     canvas.AttachBrush(brush);
-    canvas.DrawRect(dst);
+    canvas.DrawImageRect(*invertedImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
 }
 
