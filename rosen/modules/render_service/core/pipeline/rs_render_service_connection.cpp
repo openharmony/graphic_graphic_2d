@@ -1117,6 +1117,15 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateModeChangeCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
+    sptr<RSIHgmConfigChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
 void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     auto task = [this, num]() -> void {

@@ -109,6 +109,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_CURTAIN_SCREEN_USING_STATUS,
     REGISTER_TYPEFACE,
     UNREGISTER_TYPEFACE,
+    REFRESH_RATE_UPDATE_CALLBACK,
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -172,6 +172,16 @@ int32_t HgmCore::SetCustomRateMode(int32_t mode)
     return EXEC_SUCCESS;
 }
 
+void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback)
+{
+    ScreenId screenId = HgmCore::Instance().GetActiveScreenId();
+    int32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+    refreshRateUpdateCallback_ = callback;
+    if (refreshRateUpdateCallback_ != nullptr) {
+        refreshRateUpdateCallback_(refreshRate);
+    }
+}
+
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
     // set the screen to the desired refreshrate
@@ -202,6 +212,11 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     }
     auto modeList = modeListToApply_.get();
     (*modeList)[id] = modeToSwitch;
+
+    if (refreshRateUpdateCallback_) {
+        refreshRateUpdateCallback_(rate);
+        HGM_LOGD("refresh rate changed, notify to app");
+    }
     return modeToSwitch;
 }
 

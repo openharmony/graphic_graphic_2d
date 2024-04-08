@@ -1227,6 +1227,33 @@ HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: RegisterHgmRefreshRateUpdateCallback Test
+ * @tc.desc: RegisterHgmRefreshRateUpdateCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    HgmRefreshRateUpdateCallback cb = [](int32_t refreshRate){};
+    int32_t ret = rsInterfaces->RegisterHgmRefreshRateUpdateCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterHgmRefreshRateUpdateCallback Test
+ * @tc.desc: UnRegisterHgmRefreshRateUpdateCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t ret = rsInterfaces->UnRegisterHgmRefreshRateUpdateCallback();
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterHgmConfigChangeCallback Test
  * @tc.desc: RegisterHgmConfigChangeCallback Test
  * @tc.type: FUNC

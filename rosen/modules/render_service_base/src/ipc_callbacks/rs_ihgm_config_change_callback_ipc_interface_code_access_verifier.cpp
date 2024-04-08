@@ -34,6 +34,10 @@ bool RSIHgmConfigChangeCallbackInterfaceCodeAccessVerifier::IsExclusiveVerificat
             /* to implement access interception */
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_HGM_REFRESH_RATE_CHANGED): {
+            /* to implement access interception */
+            break;
+        }
         default: {
             break;
         }
