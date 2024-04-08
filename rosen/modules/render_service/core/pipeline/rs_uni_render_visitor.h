@@ -120,6 +120,9 @@ public:
         threadIndex_ = threadIndex;
     }
 
+    void DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const;
+
     bool GetAnimateState() const
     {
         return doAnimate_;

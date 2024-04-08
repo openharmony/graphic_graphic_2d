@@ -777,7 +777,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable003, TestSize.Level2)
     childNode->SetParent(parentNode);
     const uint8_t opacity = 255;
     parentNode->SetAbilityBGAlpha(opacity);
-    parentNode->SetChildHasFilter(true);
+    parentNode->SetChildHasVisibleFilter(true);
     
     ASSERT_EQ(parentNode->QuerySubAssignable(false), true);
 }
@@ -797,7 +797,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable004, TestSize.Level2)
 
     childNode->SetHasFilter(true);
     childNode->SetParent(parentNode);
-    parentNode->SetChildHasFilter(true);
+    parentNode->SetChildHasVisibleFilter(true);
     
     ASSERT_EQ(parentNode->QuerySubAssignable(false), false);
 }

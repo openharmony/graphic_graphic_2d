@@ -60,8 +60,7 @@ public:
     static void DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
-    static void BeginBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties);
-    static void EndBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties);
+    // BlendMode
     static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
 
     static void Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias = true);
