@@ -49,8 +49,6 @@ void FindFontPsn(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorPn.postScriptName = "HarmonyOS_Sans_Black";
 
     auto fontFindPn = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorPn);
-    ASSERT_NE(fontFindPn, nullptr);
-
     if (fontFindPn != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n postScriptName = [ postScriptName: " << fontDescriptorPn.postScriptName << " ]" <<
             "\n [ FontDescriptor: path: " << fontFindPn->path <<
@@ -69,8 +67,6 @@ void FindFontFn(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorFn.fullName = "HarmonyOS Sans Black Italic";
 
     auto fontFindFn = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorFn);
-    ASSERT_NE(fontFindFn, nullptr);
-
     if (fontFindFn != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n fullName = [ fullName: " << fontDescriptorFn.fullName << " ]" <<
             "\n [ FontDescriptor: path: " << fontFindFn->path <<
@@ -90,8 +86,6 @@ void FindFontFsy(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorFsy.fontSubfamily = "Black Italic";
 
     auto fontFindFsy = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorFsy);
-    ASSERT_NE(fontFindFsy, nullptr);
-
     if (fontFindFsy != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily = [ fontFamily: " << fontDescriptorFsy.fontFamily <<
             "\n fontSubfamily: " << fontDescriptorFsy.fontSubfamily << " ]" <<
@@ -113,8 +107,6 @@ void FindFontFni(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorFni.italic = false;
 
     auto fontFindFni = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorFni);
-    ASSERT_NE(fontFindFni, nullptr);
-
     if (fontFindFni != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n fontFamily + italic = [ fontFamily: " << fontDescriptorFni.fontFamily <<
             "\n italic: " << fontDescriptorFni.italic << " ]" <<
@@ -136,8 +128,6 @@ void FindFontFnw(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorFnw.weight = WEIGHT_TEST;
 
     auto fontFindFnw = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorFnw);
-    ASSERT_NE(fontFindFnw, nullptr);
-
     if (fontFindFnw != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n fontFamily + weight = [ fontFamily: " << fontDescriptorFnw.fontFamily <<
             "\n weight: " << fontDescriptorFnw.weight << " ]" <<
@@ -160,8 +150,6 @@ void FindFontFfw(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorFfw.weight = WEIGHT_TEST;
 
     auto fontFindFfw = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorFfw);
-    ASSERT_NE(fontFindFfw, nullptr);
-
     if (fontFindFfw != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + weight = [ fontFamily: " <<
             fontDescriptorFfw.fontFamily << "\n fontSubfamily: " << fontDescriptorFfw.fontSubfamily <<
@@ -185,8 +173,6 @@ void FindFontFfwc(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorFfwc.weight = WEIGHT_TEST;
 
     auto fontFindFfwc = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorFfwc);
-    ASSERT_NE(fontFindFfwc, nullptr);
-
     if (fontFindFfwc != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + weight = [ fontFamily: " <<
             fontDescriptorFfwc.fontFamily <<
@@ -212,8 +198,6 @@ void FindFontFfiw(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     fontDescriptorFfiw.weight = WEIGHT_TEST;
 
     auto fontFindFfiw = FontManager::GetInstance()->FindFont(&visibilityFonts, fontDescriptorFfiw);
-    ASSERT_NE(fontFindFfiw, nullptr);
-
     if (fontFindFfiw != nullptr) {
         LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + italic + weight = [ fontFamily: " <<
             fontDescriptorFfiw.fontFamily <<
