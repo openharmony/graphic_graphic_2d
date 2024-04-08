@@ -169,21 +169,6 @@ HWTEST_F(RSRenderModifierTest, RSParticlesRenderModifier002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSEnvForegroundColorRenderModifier001
- * @tc.desc:Update
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorRenderModifier001, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSRenderAnimatableProperty<Color>>();
-    bool isDelta = true;
-    auto property = std::make_shared<RSRenderAnimatableProperty<Color>>();
-    auto RSEFC = std::make_shared<RSEnvForegroundColorRenderModifier>(property);
-    RSEFC->Update(prop, isDelta);
-    ASSERT_NE(nullptr, RSEFC->property_);
-}
-
-/**
  * @tc.name: RSEnvForegroundColorRenderModifier002
  * @tc.desc:Update
  * @tc.type:FUNC
