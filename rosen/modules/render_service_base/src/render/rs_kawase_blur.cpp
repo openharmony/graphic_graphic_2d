@@ -343,8 +343,7 @@ bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<
 
 void KawaseBlurFilter::ComputeRadiusAndScale(int radius)
 {
-    static constexpr int noiseFactor = 3; // 3 : smooth the radius change
-    blurRadius_ = radius * 4 / noiseFactor * noiseFactor; // 4 : scale between gauss radius and kawase
+    blurRadius_ = radius * 4; // 4 : scale between gauss radius and kawase
     AdjustRadiusAndScale();
 }
 
