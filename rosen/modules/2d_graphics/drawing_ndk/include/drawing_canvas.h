@@ -420,6 +420,20 @@ void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas*, const OH_Drawing_Rect*,
     OH_Drawing_CanvasClipOp clipOp, bool doAntiAlias);
 
 /**
+ * @brief Clip a round rect.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_RoundRect Indicates the pointer to an <b>OH_Drawing_RoundRect</b> object.
+ * @param clipOp Indicates the operation to apply to clip.
+ * @param doAntiAlias Indicates whether clip operation requires anti-aliased.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasClipRoundRect(OH_Drawing_Canvas*, const OH_Drawing_RoundRect*,
+    OH_Drawing_CanvasClipOp clipOp, bool doAntiAlias);
+
+/**
  * @brief Clip a path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

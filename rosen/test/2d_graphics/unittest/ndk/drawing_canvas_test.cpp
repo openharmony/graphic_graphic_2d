@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -892,6 +892,65 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_SaveLayer, TestSize.Le
     OH_Drawing_CanvasRestore(canvas_);
     OH_Drawing_RectDestroy(rect);
 }
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ClipRoundRect
+ * @tc.desc: test for OH_Drawing_ClipRoundRect.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ClipRoundRect, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(10, 100, 200, 300);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 10, 10);
+    for (auto alias : {false, true}) {
+        OH_Drawing_CanvasClipRoundRect(nullptr, roundRect, OH_Drawing_CanvasClipOp::INTERSECT, alias);
+        OH_Drawing_CanvasClipRoundRect(canvas_, nullptr, OH_Drawing_CanvasClipOp::INTERSECT, alias);
+        OH_Drawing_CanvasClipRoundRect(canvas_, roundRect, OH_Drawing_CanvasClipOp::INTERSECT, alias);
+    }
+    OH_Drawing_CanvasDrawRect(canvas_, rect);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RoundRectDestroy(roundRect);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_RoundRectGetCorner
+ * @tc.desc: test for OH_Drawing_RoundRectGetCorner.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_RoundRectGetCorner, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(10, 100, 200, 300);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 0, 0);
+    OH_Drawing_RoundRectSetCorner(nullptr, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT, {10, 10});
+    OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT, {10, 10});
+    OH_Drawing_Corner_Radii radiusPoint =
+        OH_Drawing_RoundRectGetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT);
+    EXPECT_EQ(10.0f, radiusPoint.x);
+    EXPECT_EQ(10.0f, radiusPoint.y);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RoundRectDestroy(roundRect);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_RoundRectSetCorner
+ * @tc.desc: test for OH_Drawing_RoundRectSetCorner.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_RoundRectSetCorner, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(10, 100, 200, 300);
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 0, 0);
+    OH_Drawing_RoundRectSetCorner(nullptr, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT, {10, 10});
+    OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT, {10, 10});
+    OH_Drawing_CanvasClipRoundRect(canvas_, roundRect, OH_Drawing_CanvasClipOp::INTERSECT, true);
+    OH_Drawing_CanvasDrawRect(canvas_, rect);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RoundRectDestroy(roundRect);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

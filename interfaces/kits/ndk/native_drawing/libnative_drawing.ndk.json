@@ -84,6 +84,10 @@
         "name": "OH_Drawing_CanvasDrawImageRectWithSrc"
     },
     { "name": "OH_Drawing_CanvasClipRect" },
+    {
+        "first_introduced": "12",
+        "name": "OH_Drawing_CanvasClipRoundRect"
+    },
     { "name": "OH_Drawing_CanvasClipPath" },
     { "name": "OH_Drawing_CanvasRotate" },
     { "name": "OH_Drawing_CanvasTranslate" },
@@ -230,6 +234,10 @@
         "first_introduced": "12",
         "name": "OH_Drawing_PathConicTo"
     },
+    {
+        "first_introduced": "12",
+        "name": "OH_Drawing_PathAddOval"
+    },
     { "name": "OH_Drawing_PathContains" },
     {
         "first_introduced": "12",
@@ -370,6 +378,14 @@
         "name": "OH_Drawing_RectSetBottom"
     },
     { "name": "OH_Drawing_RoundRectCreate" },
+    {
+        "first_introduced": "12",
+        "name": "OH_Drawing_RoundRectGetCorner"
+    },
+    {
+        "first_introduced": "12",
+        "name": "OH_Drawing_RoundRectSetCorner"
+    },
     { "name": "OH_Drawing_RoundRectDestroy" },
     { "name": "OH_Drawing_SetTextStyleColor" },
     { "name": "OH_Drawing_SetTextStyleFontSize" },

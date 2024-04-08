@@ -409,6 +409,18 @@ void OH_Drawing_PathAddPathWithOffsetAndMode(OH_Drawing_Path* path, const OH_Dra
     OH_Drawing_PathAddMode);
 
 /**
+ * @brief Adds a oval to the path, defined by the rect, and wound in the specified direction.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param OH_Drawing_PathDirection Indicates the path direction.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_PathAddOval(OH_Drawing_Path*, const OH_Drawing_Rect*, OH_Drawing_PathDirection);
+
+/**
  * @brief Return the status that point (x, y) is contained by path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
