@@ -462,6 +462,7 @@ GSError ProducerSurface::RegisterReleaseListener(OnReleaseFuncWithFence funcWith
 
 GSError ProducerSurface::UnRegisterReleaseListener()
 {
+    wpPSurfaceDelegator_ = nullptr;
     if (producer_ == nullptr) {
         BLOGE("The producer in ProducerSurface is nullptr, UnRegisterReleaseListener failed");
         return GSERROR_INVALID_ARGUMENTS;
