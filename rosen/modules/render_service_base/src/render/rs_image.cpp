@@ -128,6 +128,13 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
                 imageParameter.dstH = std::min(imageParameter.frameH, imageParameter.frameW / imageParameter.ratio);
             }
             break;
+        case ImageFit::SNAPSHOT:
+            imageParameter.dstH = imageParameter.frameW / imageParameter.ratio;
+            if (imageParameter.frameH < imageParameter.dstH) {
+                tempRectF.SetAll(0, 0, std::ceil(imageParameter.dstW), std::ceil(imageParameter.dstH));
+                return tempRectF;
+            }
+            break;
         case ImageFit::CONTAIN:
         default:
             imageParameter.dstW = std::min(imageParameter.frameW, imageParameter.frameH * imageParameter.ratio);
@@ -138,8 +145,7 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
     constexpr float verticalAlignmentFactor = 2.f;
     tempRectF.SetAll(std::floor((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor),
                      std::floor((imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor),
-                     std::ceil(imageParameter.dstW),
-                     std::ceil(imageParameter.dstH));
+                     std::ceil(imageParameter.dstW), std::ceil(imageParameter.dstH));
     return tempRectF;
 }
 
