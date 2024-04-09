@@ -208,6 +208,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
     }
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + rsFilter->GetDescription());
+    g_blurCnt++;
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     auto surface = canvas->GetSurface();
@@ -255,6 +256,13 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     filter->PostProcess(*canvas);
 }
 
+int RSPropertyDrawableUtils::GetAndResetBlurCnt()
+{
+    auto blurCnt = g_blurCnt;
+    g_blurCnt = 0;
+    return blurCnt;
+}
+
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
     RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
     const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache)
@@ -268,6 +276,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect surface null");
         return;
     }
+    g_blurCnt++;
     auto clipIBounds = canvas->GetDeviceClipBounds();
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

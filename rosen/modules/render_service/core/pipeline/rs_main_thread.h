@@ -280,6 +280,7 @@ public:
     
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     bool IsCurtainScreenOn() const;
+    void PerfForBlurIfNeeded();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -339,7 +340,6 @@ private:
 
     void ClearDisplayBuffer();
     void PerfAfterAnim(bool needRequestNextVsync);
-    void PerfForBlurIfNeeded();
     void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
     void ResetHardwareEnabledState();

@@ -59,10 +59,12 @@ public:
     static Color CalculateInvertColor(const Color& backgroundColor);
     static Color GetInvertBackgroundColor(RSPaintFilterCanvas& canvas, bool needClipToBounds,
         const Vector4f& boundsRect, const Color& backgroundColor);
+    RSB_EXPORT static int GetAndResetBlurCnt();
 
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
+    inline static int g_blurCnt = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
