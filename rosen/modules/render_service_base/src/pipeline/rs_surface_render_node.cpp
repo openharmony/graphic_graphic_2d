@@ -785,6 +785,7 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
     surfaceParams->SetBuffer(buffer);
     surfaceParams->SetAcquireFence(acquireFence);
     surfaceParams->SetPreBuffer(preBuffer);
+    AddToPendingSyncList();
 }
 #endif
 
