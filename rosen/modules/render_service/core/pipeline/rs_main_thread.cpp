@@ -1050,6 +1050,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (isUniRender_ && surfaceNode->IsCurrentFrameBufferConsumed()) {
                 surfaceNode->UpdateBufferInfo(surfaceNode->GetBuffer(), surfaceNode->GetAcquireFence(),
                     surfaceNode->GetPreBuffer().buffer);
+                if (surfaceNode->GetBufferSizeChanged()) {
+                    doDirectComposition_ = false;
+                }
             }
             if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceNode->IsCurrentFrameBufferConsumed()
                 && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
@@ -1198,7 +1201,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
     isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ || isMultiDisplay || hasColorFilter;
-    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
+    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
         "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
         isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
 }
