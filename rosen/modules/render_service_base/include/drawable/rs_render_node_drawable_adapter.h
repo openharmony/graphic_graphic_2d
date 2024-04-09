@@ -100,6 +100,7 @@ private:
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static Generator shadowGenerator_;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache;
+    static inline std::mutex cacheMapMutex_;
     bool skipShadow_ = false;
 };
 

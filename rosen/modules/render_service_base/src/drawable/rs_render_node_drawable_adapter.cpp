@@ -33,6 +33,7 @@ RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const R
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableById(NodeId id)
 {
+    std::lock_guard<std::mutex> lock(cacheMapMutex_);
     if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
         if (const auto ptr = cacheIt->second.lock()) {
             return ptr;
@@ -45,7 +46,10 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
-        RenderNodeDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
+        {
+            std::lock_guard<std::mutex> lock(cacheMapMutex_);
+            RenderNodeDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
+        }
         delete ptr;
     };
     if (node == nullptr) {
@@ -53,11 +57,14 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     }
     auto id = node->GetId();
     // Try to get a cached drawable if it exists.
-    if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
-        if (const auto ptr = cacheIt->second.lock()) {
-            return ptr;
-        } else {
-            RenderNodeDrawableCache.erase(cacheIt);
+    {
+        std::lock_guard<std::mutex> lock(cacheMapMutex_);
+        if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
+            if (const auto ptr = cacheIt->second.lock()) {
+                return ptr;
+            } else {
+                RenderNodeDrawableCache.erase(cacheIt);
+            }
         }
     }
     // If we don't have a cached drawable, try to generate a new one and cache it.
@@ -68,7 +75,10 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     }
     auto ptr = it->second(node);
     auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
-    RenderNodeDrawableCache.emplace(id, sharedPtr);
+    {
+        std::lock_guard<std::mutex> lock(cacheMapMutex_);
+        RenderNodeDrawableCache.emplace(id, sharedPtr);
+    }
     return sharedPtr;
 }
 
@@ -76,8 +86,12 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     const std::shared_ptr<const RSRenderNode>& node)
 {
     static std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> shadowDrawableCache;
+    static std::mutex cacheMapMutex;
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
-        shadowDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
+        {
+            std::lock_guard<std::mutex> lock(cacheMapMutex);
+            shadowDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
+        }
         delete ptr;
     };
 
@@ -86,17 +100,23 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     }
     auto id = node->GetId();
     // Try to get a cached drawable if it exists.
-    if (const auto cacheIt = shadowDrawableCache.find(id); cacheIt != shadowDrawableCache.end()) {
-        if (const auto ptr = cacheIt->second.lock()) {
-            return ptr;
-        } else {
-            shadowDrawableCache.erase(cacheIt);
+    {
+        std::lock_guard<std::mutex> lock(cacheMapMutex);
+        if (const auto cacheIt = shadowDrawableCache.find(id); cacheIt != shadowDrawableCache.end()) {
+            if (const auto ptr = cacheIt->second.lock()) {
+                return ptr;
+            } else {
+                shadowDrawableCache.erase(cacheIt);
+            }
         }
     }
 
     auto ptr = shadowGenerator_(node);
     auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
-    shadowDrawableCache.emplace(id, sharedPtr);
+    {
+        std::lock_guard<std::mutex> lock(cacheMapMutex);
+        shadowDrawableCache.emplace(id, sharedPtr);
+    }
     return sharedPtr;
 }
 
