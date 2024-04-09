@@ -48,7 +48,7 @@ struct Palette {
 };
 
 FontArguments(): fontCollectionIndex_(0), variationDesignPosition_{nullptr, 0}, palette_{0, nullptr, 0}
-{  
+{
 }
 
 /** Specify the index of the desired font.
@@ -93,7 +93,7 @@ FontArguments& SetPalette(Palette palette)
 
 Palette GetPalette() const
 {
-    return palette_; 
+    return palette_;
 }
 
 private:
