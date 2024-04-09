@@ -30,6 +30,7 @@
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
@@ -238,8 +239,9 @@ private:
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
-    void UpdateHwcNodeEnableAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnable();
+    void PrevalidateHwcNode();
     void AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node, Drawing::Matrix& matrix, float& alpha);
 
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
@@ -497,6 +499,7 @@ private:
     bool isSurfaceDirtyNodeLimited_ = false;
 
     bool isDirtyRegionAlignedEnable_ = false;
+    bool isPrevalidateHwcNodeEnable_ = false;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
 

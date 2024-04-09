@@ -99,6 +99,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_visitor.cpp",
     "core/pipeline/rs_surface_capture_task.cpp",
     "core/pipeline/rs_surface_capture_task_parallel.cpp",
+    "core/pipeline/rs_uni_hwc_prevalidate_util.cpp",
     "core/pipeline/rs_uni_render_composer_adapter.cpp",
     "core/pipeline/rs_uni_render_engine.cpp",
     "core/pipeline/rs_draw_frame.cpp",
