@@ -1544,6 +1544,8 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         }
         node.SetHardwareForcedDisabledState(false);
         if (!IsHardwareComposerEnabled() || curSurfaceNode_->GetVisibleRegion().IsEmpty() || !node.GetBuffer()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by param/invisible/no buffer",
+                node.GetName().c_str(), node.GetId());
             node.SetHardwareForcedDisabledState(true);
             return;
         }
@@ -1619,6 +1621,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
     bool bgTransport =
         static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX;
     if (bgTransport) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by background color alpha < 1",
+            node.GetName().c_str(), node.GetId());
         node.SetHardwareForcedDisabledState(true);
     }
 }
@@ -1649,6 +1653,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
     auto dst = hwcNode->GetDstRect();
     for (auto rect : hwcRects) {
         if (dst.Intersect(rect)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by hwc node above",
+                hwcNode->GetName().c_str(), hwcNode->GetId());
             hwcNode->SetHardwareForcedDisabledState(true);
             return;
         }
@@ -1662,13 +1668,17 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     float alpha = 1.f;
     AccumulateMatrixAndAlpha(hwcNode, totalMatrix, alpha);
     if (!ROSEN_EQ(alpha, 1.f)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by accumulated alpha:%.2f",
+            hwcNode->GetName().c_str(), hwcNode->GetId(), alpha);
         hwcNode->SetHardwareForcedDisabledState(true);
         return;
     }
     // [planning] degree only multiples of 90 now
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(totalMatrix);
     bool hasRotate = degree % ROTATION_90 != 0;
-    if (hasRotate) {
+    if (hasRotate || IsRosenWebHardwareDisabled(*hwcNode, degree)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by rotation:%d",
+            hwcNode->GetName().c_str(), hwcNode->GetId(), degree);
         hwcNode->SetHardwareForcedDisabledState(true);
         return;
     }
@@ -2161,6 +2171,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(
         auto dstRect = hwcNodePtr->GetDstRect();
         bool isIntersect = dstRect.Intersect(filterRect);
         if (isIntersect) {
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by filter rect",
+                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
         }
     }
@@ -2191,6 +2203,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
             if (cleanFilter != transparentCleanFilter_.end()) {
                 for (auto filter = cleanFilter->second.begin(); filter != cleanFilter->second.end(); ++filter) {
                     if (hwcNodePtr->GetDstRect().Intersect(filter->second)) {
+                        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by transparentCleanFilter",
+                            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
                         hwcNodePtr->SetHardwareForcedDisabledState(true);
                         break;
                     }
@@ -2202,6 +2216,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSur
             if (dirtyFilter != transparentDirtyFilter_.end()) {
                 for (auto filter = dirtyFilter->second.begin(); filter != dirtyFilter->second.end(); ++filter) {
                     if (hwcNodePtr->GetDstRect().Intersect(filter->second)) {
+                        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by transparentDirtyFilter",
+                            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
                         hwcNodePtr->SetHardwareForcedDisabledState(true);
                         break;
                     }
