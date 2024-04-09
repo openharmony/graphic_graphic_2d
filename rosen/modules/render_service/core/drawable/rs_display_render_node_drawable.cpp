@@ -282,6 +282,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer()) {
+        RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
 
