@@ -73,7 +73,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
 
     public_deps += [ "$graphic_2d_root:libgl" ]
 
-    public_external_deps = [ "openssl:libcrypto_shared" ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
   external_deps = [
