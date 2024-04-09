@@ -124,6 +124,7 @@ INTERACTION_RENDER_JANK:
   MAX_SEQ_MISSED_FRAMES: {type: INT32, desc: max successive missed frames during the scene}
   IS_FOLD_DISP: {type: BOOL, desc: 'default false, set true if fold screen in expand state'}
   BUNDLE_NAME_EX: {type: STRING, desc: real package name when sceneboard start app}
+  MAX_HITCH_TIME: {type: UINT64, desc: max single frame hitch time during the scene}
 
 INTERACTION_HITCH_TIME_RATIO:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction hitch time ratio statistics}

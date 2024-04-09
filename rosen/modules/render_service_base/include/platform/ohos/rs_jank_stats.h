@@ -67,6 +67,8 @@ struct JankFrames {
     int64_t lastTotalFrameTimeSteadyForHTR_ = 0;
     float totalHitchTimeSteady_ = 0;
     float lastTotalHitchTimeSteady_ = 0;
+    float maxHitchTime_ = 0;
+    float lastMaxHitchTime_ = 0;
     Rosen::DataBaseRs info_;
 };
 
@@ -94,6 +96,7 @@ struct TraceIdRemainderStats {
 class RSJankStats {
 public:
     static RSJankStats& GetInstance();
+    void SetOnVsyncStartTime(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady);
     void SetStartTime();
     void SetEndTime(bool discardJankFrames = false, uint32_t dynamicRefreshRate = STANDARD_REFRESH_RATE);
     void ReportJankStats();
@@ -130,6 +133,7 @@ private:
     std::pair<int64_t, std::string> GetAnimationId(const DataBaseRs& info) const;
     int32_t GetTraceIdInit(const DataBaseRs& info, int64_t setTimeSteady);
     int64_t ConvertTimeToSystime(int64_t time) const;
+    int64_t GetEffectiveFrameTime(bool isConsiderRsStartTime) const;
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
 
@@ -145,12 +149,14 @@ private:
     bool isFirstSetEnd_ = true;
     bool isNeedReportJankStats_ = false;
     bool isSkipDisplayNode_ = false;
-    int64_t startTime_ = TIMESTAMP_INITIAL;
-    int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
-    int64_t endTime_ = TIMESTAMP_INITIAL;
-    int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
-    int64_t lastEndTime_ = TIMESTAMP_INITIAL;
-    int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t rsStartTime_ = TIMESTAMP_INITIAL;
+    int64_t rsStartTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t rtStartTime_ = TIMESTAMP_INITIAL;
+    int64_t rtStartTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t rtEndTime_ = TIMESTAMP_INITIAL;
+    int64_t rtEndTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t rtLastEndTime_ = TIMESTAMP_INITIAL;
+    int64_t rtLastEndTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastReportTime_ = TIMESTAMP_INITIAL;
     int64_t lastReportTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;

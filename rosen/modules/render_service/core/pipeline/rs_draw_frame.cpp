@@ -42,12 +42,20 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
 void RSDrawFrame::RenderFrame()
 {
     RS_TRACE_NAME_FMT("RenderFrame");
+    RSJankStats::GetInstance().SetStartTime();
+    unirenderInstance_.SetDiscardJankFrames(false);
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
     RSUifirstManager::Instance().PostUifistSubTasks();
+    unirenderInstance_.UpdateDisplayNodeScreenId();
     UnblockMainThread();
     Render();
     ReleaseSelfDrawingNodeBuffer();
+    RSJankStats::GetInstance().SetOnVsyncStartTime(
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTime(),
+        unirenderInstance_.GetRSRenderThreadParams()->GetOnVsyncStartTimeSteady());
+    RSJankStats::GetInstance().SetEndTime(
+        unirenderInstance_.GetDiscardJankFrames(), unirenderInstance_.GetDynamicRefreshRate());
 }
 
 void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
@@ -61,7 +69,9 @@ void RSDrawFrame::PostAndWait()
     switch (rsParallelType_) {
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
             unirenderInstance_.PostSyncTask([this]() {
+                unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.SetMainLooping(false);
             });
             break;
         }
@@ -74,7 +84,9 @@ void RSDrawFrame::PostAndWait()
             std::unique_lock<std::mutex> frameLock(frameMutex_);
             canUnblockMainThread = false;
             unirenderInstance_.PostTask([this]() {
+                unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.SetMainLooping(false);
             });
 
             frameCV_.wait(frameLock, [this] {return canUnblockMainThread;});

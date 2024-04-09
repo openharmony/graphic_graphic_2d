@@ -87,6 +87,25 @@ public:
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 
+    bool IsMainLooping() const
+    {
+        return mainLooping_.load();
+    }
+    void SetMainLooping(bool isMainLooping)
+    {
+        mainLooping_.store(isMainLooping);
+    }
+    bool GetDiscardJankFrames() const
+    {
+        return discardJankFrames_.load();
+    }
+    void SetDiscardJankFrames(bool discardJankFrames)
+    {
+        discardJankFrames_.store(discardJankFrames);
+    }
+    void UpdateDisplayNodeScreenId();
+    uint32_t GetDynamicRefreshRate() const;
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -119,6 +138,11 @@ private:
     static thread_local CaptureParam captureParam_;
 
     pid_t tid_ = 0;
+
+    // for statistic of jank frames
+    std::atomic_bool mainLooping_ = false;
+    std::atomic_bool discardJankFrames_ = false;
+    ScreenId displayNodeScreenId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

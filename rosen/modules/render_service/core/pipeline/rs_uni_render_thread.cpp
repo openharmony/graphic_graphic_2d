@@ -25,6 +25,7 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "memory/rs_memory_manager.h"
+#include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
@@ -34,6 +35,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_jank_stats.h"
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
@@ -448,5 +450,36 @@ void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
     rootNodeDrawable_->DumpDrawableTree(0, dumpString);
 }
 
+void RSUniRenderThread::UpdateDisplayNodeScreenId()
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode =
+        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    if (!rootNode) {
+        RS_LOGE("RSUniRenderThread::UpdateDisplayNodeScreenId rootNode is nullptr");
+        return;
+    }
+    auto child = rootNode->GetFirstChild();
+    if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
+        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (displayNode) {
+            auto params = static_cast<RSDisplayRenderParams*>(displayNode->GetRenderParams().get());
+            if (!params) {
+                RS_LOGE("RSUniRenderThread::UpdateDisplayNodeScreenId params is nullptr");
+                return;
+            }
+            displayNodeScreenId_ = params->GetScreenId();
+        }
+    }
+}
+
+uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
+{
+    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
+    if (refreshRate == 0) {
+        RS_LOGE("RSUniRenderThread::GetDynamicRefreshRate refreshRate is invalid");
+        return STANDARD_REFRESH_RATE;
+    }
+    return refreshRate;
+}
 } // namespace Rosen
 } // namespace OHOS
