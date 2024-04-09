@@ -99,8 +99,8 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
     std::lock_guard<std::mutex> lock(mtx_);
     if (callback == nullptr) {
         if (refreshRateUpdateCallbacks_.find(pid) != refreshRateUpdateCallbacks_.end()) {
-                refreshRateUpdateCallbacks_.erase(pid);
-                HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", pid);
+            refreshRateUpdateCallbacks_.erase(pid);
+            HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", pid);
         }
         return;
     }
