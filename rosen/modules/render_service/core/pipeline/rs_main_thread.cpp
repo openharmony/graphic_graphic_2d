@@ -51,6 +51,7 @@
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
@@ -2742,10 +2743,11 @@ void RSMainThread::PerfForBlurIfNeeded()
     static int preBlurCnt = 0;
     auto timestamp = timestamp_;
     if (isUniRender_) {
-        if (!renderThreadParams_) {
+        auto params = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+        if (!params) {
             return;
         }
-        timestamp = renderThreadParams_->GetCurrentTimestamp();
+        timestamp = params->GetCurrentTimestamp();
     }
     auto task = [this, timestamp]() {
         if (timestamp - prePerfTimestamp > PERF_PERIOD_BLUR_TIMEOUT && preBlurCnt != 0) {
