@@ -1105,6 +1105,7 @@ int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, 
         return RENDER_SERVICE_NULL;
     }
 
+    ROSEN_LOGI("RSRenderServiceClient::ResizeVirtualScreen, width:%{public}u, height:%{public}u", width, height);
     return renderService->ResizeVirtualScreen(id, width, height);
 }
 
