@@ -198,6 +198,7 @@ private:
     uint32_t height_ = 0;
     uint32_t phyWidth_ = 0;
     uint32_t phyHeight_ = 0;
+    int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
 
     bool isVirtual_ = true;
     std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical

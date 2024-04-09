@@ -130,7 +130,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
     }
-    
+
     if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetHDRCapabilityInfos.",
             __func__, id_);
@@ -174,6 +174,7 @@ void RSScreen::PhysicalScreenInit() noexcept
             ++index;
         }
     }
+    screenBacklightLevel_ = GetScreenBacklight();
 }
 
 void RSScreen::ScreenCapabilityInit() noexcept
@@ -627,6 +628,7 @@ void RSScreen::SetScreenBacklight(uint32_t level)
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         return;
     }
+    screenBacklightLevel_ = level;
 }
 
 int32_t RSScreen::GetScreenBacklight() const
@@ -636,6 +638,9 @@ int32_t RSScreen::GetScreenBacklight() const
         return INVALID_BACKLIGHT_VALUE;
     }
     uint32_t level = 0;
+    if (screenBacklightLevel_ != INVALID_BACKLIGHT_VALUE) {
+        return screenBacklightLevel_;
+    }
     if (hdiScreen_->GetScreenBacklight(level) < 0) {
         return INVALID_BACKLIGHT_VALUE;
     }

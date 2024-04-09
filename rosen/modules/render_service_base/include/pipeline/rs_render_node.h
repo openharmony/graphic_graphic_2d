@@ -232,7 +232,7 @@ public:
     const RectI& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
 
-    void ResetClipAbsDrawRectChangeState();
+    void ResetChangeState();
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
         const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty, const RectI& clipRect);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
