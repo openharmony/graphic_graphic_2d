@@ -153,7 +153,7 @@ ohos_source_set("rosen_ohos_sources") {
       "$graphic_2d_root:libvulkan",
     ]
 
-    public_external_deps = [ "openssl:libcrypto_shared" ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
   if (graphic_2d_feature_enable_opinc) {
