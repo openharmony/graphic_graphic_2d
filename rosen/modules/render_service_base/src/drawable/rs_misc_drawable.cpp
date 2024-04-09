@@ -92,10 +92,17 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
         pairedNode->SetSharedTransitionParam(nullptr);
         return false;
     }
+    auto& unpairedShareTransitions = SharedTransitionParam::unpairedShareTransitions_;
+    if (auto it = unpairedShareTransitions.find(sharedTransitionParam->inNodeId_);
+        it != unpairedShareTransitions.end()) {
+        // remove successfully paired share transition
+        unpairedShareTransitions.erase(it);
+    } else {
+        // add unpaired share transition
+        unpairedShareTransitions.emplace(sharedTransitionParam->inNodeId_, sharedTransitionParam);
+    }
     if (isLower) {
         // for lower hierarchy node, we skip it here, and add to unpaired share transitions
-        SharedTransitionParam::unpairedShareTransitions_.emplace(sharedTransitionParam->inNodeId_,
-            sharedTransitionParam);
     } else {
         // for higher hierarchy node, we add paired node (lower in hierarchy) first, then add it
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
@@ -103,8 +110,6 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
             childDrawable->SetSkipShadow(true);
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
-        // remove successful paired node
-        SharedTransitionParam::unpairedShareTransitions_.erase(sharedTransitionParam->inNodeId_);
     }
     childrenHasSharedTransition_ = true;
     return isLower;
