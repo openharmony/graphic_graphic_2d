@@ -2114,7 +2114,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     }
     node.MapAndUpdateChildrenRect();
     node.UpdateLocalDrawRect();
-    node.ResetClipAbsDrawRectChangeState();
+    node.ResetChangeState();
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoAfterChildren();
     }
