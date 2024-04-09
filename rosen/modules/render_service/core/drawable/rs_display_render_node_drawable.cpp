@@ -281,6 +281,9 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
 
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
+#ifdef OHOS_PLATFORM
+    RSJankStats::GetInstance().SetSkipDisplayNode();
+#endif
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer()) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
@@ -292,9 +295,6 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
         return false;
     }
 
-#ifdef OHOS_PLATFORM
-    RSJankStats::GetInstance().SetSkipDisplayNode();
-#endif
     auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
     bool needCreateDisplayNodeLayer = false;
     for (const auto& surfaceNode : hardwareNodes) {

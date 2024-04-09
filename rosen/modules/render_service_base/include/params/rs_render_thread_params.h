@@ -20,6 +20,7 @@
 #include <vector>
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
@@ -132,6 +133,26 @@ public:
         return isForceCommitLayer_;
     }
 
+    void SetOnVsyncStartTime(int64_t time)
+    {
+        onVsyncStartTime_ = time;
+    }
+
+    int64_t GetOnVsyncStartTime() const
+    {
+        return onVsyncStartTime_;
+    }
+
+    void SetOnVsyncStartTimeSteady(int64_t timeSteady)
+    {
+        onVsyncStartTimeSteady_ = timeSteady;
+    }
+
+    int64_t GetOnVsyncStartTimeSteady() const
+    {
+        return onVsyncStartTimeSteady_;
+    }
+
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -155,6 +176,8 @@ private:
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+    int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
+    int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
