@@ -2069,7 +2069,7 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
                 dirtyBelowContainsFilterNode = true;
             }
             // [attention] make sure filter valid check useful
-            if (ROSEN_EQ(filterNode->GetRenderProperties().GetAlpha(), 1.f)) {
+            if (ROSEN_EQ(filterNode->GetGlobalAlpha(), 1.f)) {
                 surfaceNode->CheckValidFilterCacheFullyCoverTarget(*filterNode, screenRect_);
             }
         }
@@ -2169,6 +2169,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
         UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, node.GetOldDirtyInSurface());
         CollectFilterInfoAndUpdateDirty(node);
         node.UpdateLastFilterCacheRegion(prepareClipRect_);
+        node.SetGlobalAlpha(curAlpha_);
     }
 
     if (auto nodeParent = node.GetParent().lock()) {
