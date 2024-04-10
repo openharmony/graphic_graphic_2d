@@ -46,10 +46,15 @@ const Drawing::Matrix& RSRenderParams::GetMatrix() const
     return matrix_;
 }
 
-void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const
+void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool isMirror, float mirrorScaleX,
+    float mirrorScaleY) const
 {
     if (HasSandBox()) {
-        canvas.SetMatrix(matrix_);
+        Drawing::Matrix matrix = matrix_;
+        if (isMirror) {
+            matrix.PostScale(mirrorScaleX, mirrorScaleY);
+        }
+        canvas.SetMatrix(matrix);
         canvas.SetAlpha(alpha_);
     } else {
         canvas.ConcatMatrix(matrix_);
