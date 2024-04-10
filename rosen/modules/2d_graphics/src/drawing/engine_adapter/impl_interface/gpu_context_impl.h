@@ -17,7 +17,7 @@
 #define GPU_CONTEXT_IMPL_H
 
 #include <chrono>
-
+#include <set>
 #include "base_impl.h"
 #include "image/trace_memory_dump.h"
 #ifdef RS_ENABLE_VK
@@ -59,6 +59,8 @@ public:
     virtual void PurgeUnlockedResources(bool scratchResourcesOnly) = 0;
 
     virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) = 0;
+
+    virtual void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) = 0;
 
     virtual void PurgeUnlockAndSafeCacheGpuResources() = 0;
 

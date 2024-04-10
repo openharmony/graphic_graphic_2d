@@ -312,18 +312,12 @@ bool RSUniRenderThread::GetClearMemDeeply() const
 
 void RSUniRenderThread::SetClearMoment(ClearMemoryMoment moment)
 {
-    if (UNLIKELY(!context_)) {
-        return;
-    }
-    context_->SetClearMoment(moment);
+    clearMoment_ = moment;
 }
 
 ClearMemoryMoment RSUniRenderThread::GetClearMoment() const
 {
-    if (UNLIKELY(!context_)) {
-        return ClearMemoryMoment::NO_CLEAR;
-    }
-    return context_->GetClearMoment();
+    return clearMoment_;
 }
 
 uint32_t RSUniRenderThread::GetRefreshRate() const
@@ -407,7 +401,7 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
-void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
+void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
@@ -415,6 +409,7 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
     this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
+    this->exitedPidSet_.emplace(pid);
     auto task =
         [this, moment, deeply]() {
             auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
@@ -426,13 +421,19 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
             SKResourceManager::Instance().ReleaseResource();
             grContext->Flush();
             SkGraphics::PurgeAllCaches(); // clear cpu cache
-            if (deeply || this->deviceType_ != DeviceType::PHONE) {
-                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+            auto pid = *(this->exitedPidSet_.begin());
+            if (this->exitedPidSet_.size() == 1 && pid == -1) {         // no exited app, just clear scratch resource
+                if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                    MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+                } else {
+                    MemoryManager::ReleaseUnlockGpuResource(grContext);
+                }
             } else {
-                MemoryManager::ReleaseUnlockGpuResource(grContext);
+                MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
             }
             grContext->FlushAndSubmit(true);
             this->clearMemoryFinished_ = true;
+            this->exitedPidSet_.clear();
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         };
