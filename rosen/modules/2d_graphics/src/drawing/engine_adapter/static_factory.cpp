@@ -196,7 +196,7 @@ std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, s
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::DeserializeTextBlob(data, size);
+        return DDGRStaticFactory::DeserializeTextBlob(data, size, ctx);
     }
 #endif
     return EngineStaticFactory::DeserializeTextBlob(data, size, ctx);
