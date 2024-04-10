@@ -104,10 +104,6 @@ void RSUifirstManager::ProcessDoneNode()
     std::vector<NodeId> tmp;
     {
         std::lock_guard<std::mutex> lock(childernDrawableMutex_);
-        if (subthreadProcessDoneNode_.size() == 0) {
-            RS_OPTIONAL_TRACE_NAME_FMT("ProcessDoneNode no done");
-            return;
-        }
         std::swap(tmp, subthreadProcessDoneNode_);
         subthreadProcessDoneNode_.clear();
     }
@@ -153,7 +149,8 @@ void RSUifirstManager::PurgePendingPostNodes()
         auto id = it->first;
         DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
         if (drawable) {
-            if (drawable->HasCachedTexture() && drawable->IsCurFrameStatic(deviceType)) {
+            if (drawable->HasCachedTexture() && drawable->IsCurFrameStatic(deviceType) &&
+                (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end())) {
                 auto surfaceParams = static_cast<RSSurfaceRenderParams*>(
                     drawable->GetRenderNode()->GetRenderParams().get());
                 if (!surfaceParams) {
@@ -162,7 +159,6 @@ void RSUifirstManager::PurgePendingPostNodes()
                     continue;
                 }
                 RS_OPTIONAL_TRACE_NAME_FMT("Purge node name %s", surfaceParams->GetName().c_str());
-                AddProcessDoneNode(id);
                 it = pendingPostNodes_.erase(it);
             } else {
                 ++it;
@@ -191,6 +187,7 @@ void RSUifirstManager::PostSubTask(NodeId id)
 
     if (subthreadProcessingNode_.find(id) != subthreadProcessingNode_.end()) { // drawable is doing, do not send
         RS_TRACE_NAME_FMT("node %lx is doning", id);
+        RS_LOGE("RSUifirstManager ERROR: post task twice");
         return;
     }
 
@@ -253,9 +250,14 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     }
     if (processingNodePartialSync_.count(node->GetInstanceRootNodeId()) > 0) {
         pendingSyncForSkipBefore_[node->GetInstanceRootNodeId()].push_back(node);
-        RS_TRACE_NAME_FMT("set partial_sync %lx root%lx", node->GetId(), node->GetInstanceRootNodeId());
-        node->SetUifirstSkipPartialSync(true);
-        return false;
+        if (node->GetInstanceRootNodeId() == node->GetId()) {
+            RS_TRACE_NAME_FMT("set partial_sync %lx root%lx", node->GetId(), node->GetInstanceRootNodeId());
+            node->SetUifirstSkipPartialSync(true);
+            return false;
+        } else {
+            RS_TRACE_NAME_FMT("CollectSkipSyncNode root %lx, node %lx", node->GetInstanceRootNodeId(), node->GetId());
+            return true;
+        }
     } else if (processingNodeSkipSync_.count(node->GetInstanceRootNodeId()) > 0) {
         RS_TRACE_NAME_FMT("CollectSkipSyncNode root %lx, node %lx", node->GetInstanceRootNodeId(), node->GetId());
         pendingSyncForSkipBefore_[node->GetInstanceRootNodeId()].push_back(node);
