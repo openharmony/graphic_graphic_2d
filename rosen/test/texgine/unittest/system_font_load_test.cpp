@@ -70,7 +70,7 @@ HWTEST_F(SystemFontLoadTest, SystemFontLoad1, TestSize.Level1)
 HWTEST_F(SystemFontLoadTest, SystemFontLoad2, TestSize.Level1)
 {
     InitSystemFontMockVars({});
-    auto typeface = Typeface::MakeFromFile("/system/fonts/NotoSansSymbols[wght].ttf");
+    auto typeface = Typeface::MakeFromFile("/system/fonts/NotoSansSymbols2-Regular.ttf");
     EXPECT_TRUE(typeface != nullptr);
 }
 
