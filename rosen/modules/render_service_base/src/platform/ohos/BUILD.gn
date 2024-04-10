@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -56,7 +56,6 @@ ohos_source_set("rosen_ohos_sources") {
     "overdraw/rs_overdraw_controller.cpp",
     "rs_event_detector.cpp",
     "rs_event_manager.cpp",
-    "rs_frame_report.cpp",
     "rs_innovation.cpp",
     "rs_jank_stats.cpp",
     "rs_log.cpp",

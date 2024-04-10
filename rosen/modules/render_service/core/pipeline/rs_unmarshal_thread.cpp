@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,10 @@
 #include "pipeline/rs_unmarshal_thread.h"
 
 #include "pipeline/rs_base_render_util.h"
-#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
+#include "rs_frame_report.h"
 #include "rs_profiler.h"
 
 #ifdef RES_SCHED_ENABLE
