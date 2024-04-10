@@ -40,6 +40,14 @@ public:
     {
         return std::move(canvas_);
     }
+    float GetMirrorScaleX() const
+    {
+        return mirrorScaleX_;
+    }
+    float GetMirrorScaleY() const
+    {
+        return mirrorScaleY_;
+    }
 private:
     void CanvasRotation(ScreenRotation screenRotation, float width, float height);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node);
@@ -60,6 +68,8 @@ private:
     bool canvasRotation_ = false;
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation mainScreenRotation_ = ScreenRotation::ROTATION_0;
+    float mirrorScaleX_ = 1.0f;
+    float mirrorScaleY_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -259,20 +259,19 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
     float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight)
 {
     if (mainWidth > 0 && mainHeight > 0) {
-        float mirrorScale = 1.0f; // 1 for init scale
         float startX = 0.0f;
         float startY = 0.0f;
-        float mirrorScaleX = mirrorWidth / mainWidth;
-        float mirrorScaleY = mirrorHeight / mainHeight;
-        if (mirrorScaleY < mirrorScaleX) {
-            mirrorScale = mirrorScaleY;
-            startX = (mirrorWidth - (mirrorScale * mainWidth)) / 2; // 2 for calc X
+        mirrorScaleX_ = mirrorWidth / mainWidth;
+        mirrorScaleY_ = mirrorHeight / mainHeight;
+        if (mirrorScaleY_ < mirrorScaleX_) {
+            mirrorScaleX_ = mirrorScaleY_;
+            startX = (mirrorWidth - (mirrorScaleX_ * mainWidth)) / 2; // 2 for calc X
         } else {
-            mirrorScale = mirrorScaleX;
-            startY = (mirrorHeight - (mirrorScale * mainHeight)) / 2; // 2 for calc Y
+            mirrorScaleY_ = mirrorScaleX_;
+            startY = (mirrorHeight - (mirrorScaleY_ * mainHeight)) / 2; // 2 for calc Y
         }
         canvas.Translate(startX, startY);
-        canvas.Scale(mirrorScale, mirrorScale);
+        canvas.Scale(mirrorScaleX_, mirrorScaleY_);
     }
 }
 

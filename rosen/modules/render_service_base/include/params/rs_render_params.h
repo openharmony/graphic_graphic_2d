@@ -46,7 +46,8 @@ public:
     void SetMatrix(const Drawing::Matrix& matrix);
     const Drawing::Matrix& GetMatrix() const;
 
-    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
+    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool isMirror = false, float mirrorScaleX = 1.0f,
+        float mirrorScaleY = 1.0f) const;
 
     void SetBoundsRect(const Drawing::RectF& boundsRect);
     const Drawing::Rect& GetBounds() const;
