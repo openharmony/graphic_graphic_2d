@@ -299,7 +299,8 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
             static_cast<int>(id), refreshRate);
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
         if (status < EXEC_SUCCESS) {
-            RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}llu", refreshRate, id);
+	    RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64,
+                refreshRate, id);
         }
     }
 }

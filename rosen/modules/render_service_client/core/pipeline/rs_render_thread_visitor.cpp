@@ -795,8 +795,8 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     const auto& property = node.GetRenderProperties();
     sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(node.GetSurfaceId());
     if (surface == nullptr) {
-        RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %llu cannot find surface by surfaceId %llu",
-            node.GetId(), node.GetSurfaceId());
+        RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %" PRIu64" cannot find "
+            "RSSurface by surfaceId %" PRIu64, node.GetId(), node.GetSurfaceId());
         return;
     }
     sptr<SurfaceBuffer> surfaceBuffer;
