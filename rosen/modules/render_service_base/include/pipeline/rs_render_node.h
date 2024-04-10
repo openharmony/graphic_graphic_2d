@@ -229,7 +229,7 @@ public:
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
-    const RectI& GetSelfDrawRect() const;
+    const RectF& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
 
     void ResetChangeState();
@@ -781,7 +781,7 @@ private:
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
     // including enlarged draw region
-    RectI selfDrawRect_;
+    RectF selfDrawRect_;
     RectI localShadowRect_;
     RectI localOutlineRect_;
     RectI localPixelStretchRect_;

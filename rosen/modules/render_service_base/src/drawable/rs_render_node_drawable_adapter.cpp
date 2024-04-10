@@ -231,7 +231,7 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec() const
     return str;
 }
 
-bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectI localDrawRect)
+bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectF localDrawRect)
 {
     Drawing::Rect dst;
     canvas.GetTotalMatrix().MapRect(

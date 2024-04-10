@@ -86,9 +86,9 @@ const Drawing::Rect& RSRenderParams::GetFrameRect() const
     return frameRect_;
 }
 
-bool RSRenderParams::SetLocalDrawRect(const RectI& localDrawRect)
+bool RSRenderParams::SetLocalDrawRect(const RectF& localDrawRect)
 {
-    if (localDrawRect_ == localDrawRect) {
+    if (localDrawRect_.IsNearEqual(localDrawRect)) {
         return false;
     }
     localDrawRect_ = localDrawRect;
@@ -96,7 +96,7 @@ bool RSRenderParams::SetLocalDrawRect(const RectI& localDrawRect)
     return true;
 }
 
-const RectI& RSRenderParams::GetLocalDrawRect() const
+const RectF& RSRenderParams::GetLocalDrawRect() const
 {
     return localDrawRect_;
 }

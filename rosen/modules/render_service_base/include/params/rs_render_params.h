@@ -55,8 +55,8 @@ public:
     const Drawing::Rect& GetFrameRect() const;
 
     // return to add some dirtynode does not mark pending
-    bool SetLocalDrawRect(const RectI& localDrawRect);
-    const RectI& GetLocalDrawRect() const;
+    bool SetLocalDrawRect(const RectF& localDrawRect);
+    const RectF& GetLocalDrawRect() const;
 
     void SetHasSandBox(bool hasSandBox);
     bool HasSandBox() const;
@@ -130,7 +130,7 @@ private:
     Drawing::RectF frameRect_;
     float alpha_ = 1.0f;
     // this rect should map display coordination
-    RectI localDrawRect_;
+    RectF localDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
 
