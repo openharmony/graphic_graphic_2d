@@ -289,7 +289,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
 
     // First node don't need to cancat matrix for application
     if (RSUniRenderThread::GetCaptureParam().isFirstNode_) {
-        // TODO: If node is a sandbox.
+        // Planning: If node is a sandbox.
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         RSUniRenderThread::GetCaptureParam().isFirstNode_ = false;
     } else {

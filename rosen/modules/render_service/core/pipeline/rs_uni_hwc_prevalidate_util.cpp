@@ -92,12 +92,8 @@ RequestLayerInfo RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(
         return info;
     }
     info.id = node->GetId();
-    info.srcRect = {0, 0, 
-        node->GetBuffer()->GetSurfaceBufferWidth(),
-        node->GetBuffer()->GetSurfaceBufferHeight()};
-    info.dstRect = {0, 0, 
-        screenInfo.GetRotatedPhyWidth(),
-        screenInfo.GetRotatedPhyHeight()};
+    info.srcRect = {0, 0, node->GetBuffer()->GetSurfaceBufferWidth(), node->GetBuffer()->GetSurfaceBufferHeight()};
+    info.dstRect = {0, 0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight()};
     info.zOrder = zorder;
     info.usage = node->GetBuffer()->GetUsage() | USAGE_UNI_LAYER;
     info.format = node->GetBuffer()->GetFormat();

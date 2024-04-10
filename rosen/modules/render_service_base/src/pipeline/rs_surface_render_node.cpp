@@ -2324,7 +2324,6 @@ void RSSurfaceRenderNode::SetUifirstChildrenDirtyRectParam(RectI rect)
     } else {
         RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag stagingSurfaceParams is null");
     }
-
 }
 
 void RSSurfaceRenderNode::SetUifirstNodeEnableParam(bool b)
