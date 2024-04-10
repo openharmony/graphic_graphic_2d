@@ -233,10 +233,15 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec() const
 
 bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectI localDrawRect)
 {
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (paintFilterCanvas->IsDirtyRegionStackEmpty() || paintFilterCanvas->GetIsParallelCanvas()) {
+        return false;
+    }
+
     Drawing::Rect dst;
     canvas.GetTotalMatrix().MapRect(
         dst, { localDrawRect.GetLeft(), localDrawRect.GetTop(), localDrawRect.GetRight(), localDrawRect.GetBottom() });
-    auto deviceClipRegion = static_cast<RSPaintFilterCanvas*>(&canvas)->GetDirtyRegion();
+    auto deviceClipRegion = paintFilterCanvas->GetCurDirtyRegion();
     Drawing::Region dstRegion;
     dstRegion.SetRect(dst.RoundOut());
     return !(deviceClipRegion.IsIntersects(dstRegion));

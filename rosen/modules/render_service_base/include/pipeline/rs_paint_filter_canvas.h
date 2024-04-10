@@ -140,10 +140,10 @@ public:
     ~RSPaintFilterCanvas() override {};
 
     void CopyConfiguration(const RSPaintFilterCanvas& other);
-    void UpdateDirtyRegion(Drawing::Region& resultRegion);
-    Drawing::Region& GetDirtyRegion();
-    void SetDirtyFlag(bool flag);
-    bool GetDirtyFlag();
+    void PushDirtyRegion(Drawing::Region& resultRegion);
+    void PopDirtyRegion();
+    bool IsDirtyRegionStackEmpty();
+    Drawing::Region& GetCurDirtyRegion();
 
     // alpha related
     void MultiplyAlpha(float alpha);
@@ -273,8 +273,8 @@ private:
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
 
-    Drawing::Region visibleRegion_ = Drawing::Region();
-    bool visibleDirtyFlag_ = false;
+    // save every dirty region of the current surface for quick reject
+    std::stack<Drawing::Region> dirtyRegionStack_;
     
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;

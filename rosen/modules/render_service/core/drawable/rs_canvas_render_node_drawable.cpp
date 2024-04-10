@@ -57,8 +57,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if (!paintFilterCanvas->GetIsParallelCanvas() && (!uniParam || uniParam->IsOpDropped()) &&
-        paintFilterCanvas->GetDirtyFlag() && QuickReject(canvas, params->GetLocalDrawRect())) {
+    if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
         RS_LOGD("CanvasNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
         return;
     }

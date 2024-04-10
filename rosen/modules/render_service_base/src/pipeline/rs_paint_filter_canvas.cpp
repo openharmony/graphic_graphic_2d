@@ -1169,24 +1169,24 @@ void RSPaintFilterCanvas::RestoreStatus(const SaveStatus& status)
     RestoreEnvToCount(status.envSaveCount);
 }
 
-void RSPaintFilterCanvas::UpdateDirtyRegion(Drawing::Region& resultRegion)
+void RSPaintFilterCanvas::PushDirtyRegion(Drawing::Region& resultRegion)
 {
-    visibleRegion_ = resultRegion;
+    dirtyRegionStack_.push(std::move(resultRegion));
 }
 
-Drawing::Region& RSPaintFilterCanvas::GetDirtyRegion()
+void RSPaintFilterCanvas::PopDirtyRegion()
 {
-    return visibleRegion_;
+    dirtyRegionStack_.pop();
 }
 
-void RSPaintFilterCanvas::SetDirtyFlag(bool flag)
+Drawing::Region& RSPaintFilterCanvas::GetCurDirtyRegion()
 {
-    visibleDirtyFlag_ = flag;
+    return dirtyRegionStack_.top();
 }
 
-bool RSPaintFilterCanvas::GetDirtyFlag()
+bool RSPaintFilterCanvas::IsDirtyRegionStackEmpty()
 {
-    return visibleDirtyFlag_;
+    return dirtyRegionStack_.empty();
 }
 
 void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)

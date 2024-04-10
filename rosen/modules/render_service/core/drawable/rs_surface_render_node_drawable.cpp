@@ -175,8 +175,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (surfaceParams->IsMainWindowType()) {
         RSRenderNodeDrawable::ClearProcessedNodeCount();
-        rscanvas->UpdateDirtyRegion(curSurfaceDrawRegion);
-        rscanvas->SetDirtyFlag(true);
+        rscanvas->PushDirtyRegion(curSurfaceDrawRegion);
     }
 
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
@@ -195,8 +194,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RSRenderNodeDrawable::OnDraw(canvas);
     // Draw base pipeline end
-    rscanvas->SetDirtyFlag(false);
     if (surfaceParams->IsMainWindowType()) {
+        rscanvas->PopDirtyRegion();
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw SurfaceNode: [%s], NodeId: %llu, ProcessedNodes: %d",
             surfaceNode->GetName().c_str(), surfaceNode->GetId(), RSRenderNodeDrawable::GetProcessedNodeCount());
     }
