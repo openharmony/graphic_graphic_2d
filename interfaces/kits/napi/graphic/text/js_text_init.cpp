@@ -17,7 +17,9 @@
 
 #include "enum_napi/text_enum_napi.h"
 #include "fontcollection_napi/js_fontcollection.h"
+#include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "paragraph_style_napi/js_paragraphstyle.h"
+#include "paragraph_napi/js_paragraph.h"
 #include "utils/log.h"
 
 namespace OHOS::Rosen {
@@ -25,6 +27,8 @@ napi_value TextInit(napi_env env, napi_value exportObj)
 {
     JsFontCollection::Init(env, exportObj);
     JsEnum::Init(env, exportObj);
+    JsParagraphBuilder::Init(env, exportObj);
+    JsParagraph::Init(env, exportObj);
     return exportObj;
 }
 } // namespace OHOS::Rosen
