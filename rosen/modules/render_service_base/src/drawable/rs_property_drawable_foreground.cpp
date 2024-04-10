@@ -301,7 +301,7 @@ void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canva
         canvas.DetachBrush();
         return;
     }
-    bool isZero = isOutline ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
+    bool isZero = isOutline ? border->GetRadiusFour().IsZero() : properties.GetCornerRadius().IsZero();
     if (isZero && border->ApplyFourLine(pen)) {
         RectF rectf =
             isOutline ? properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect();
@@ -446,7 +446,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
-    ROSEN_LOGD("RSPropertiesPainter::DrawLight illuminatedType:%{public}d", illuminatedType_);
+    ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d", illuminatedType_);
     if (illuminatedType_ == IlluminatedType::BORDER_CONTENT) {
         DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityV4);
         DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityV4);

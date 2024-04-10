@@ -412,6 +412,17 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
         }
     }
 
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
+        // border may should be updated with corner radius
+        if (drawableVec[static_cast<size_t>(RSDrawableSlot::BORDER)]) {
+            dirtySlots.emplace(RSDrawableSlot::BORDER);
+        }
+
+        if (drawableVec[static_cast<size_t>(RSDrawableSlot::OUTLINE)]) {
+            dirtySlots.emplace(RSDrawableSlot::OUTLINE);
+        }
+    }
+
     return dirtySlots;
 }
 
