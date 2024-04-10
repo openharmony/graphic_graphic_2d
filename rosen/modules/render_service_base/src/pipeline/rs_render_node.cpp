@@ -1702,6 +1702,28 @@ void RSRenderNode::MarkFilterCacheFlagsAfterPrepare(
     UpdateDirtySlotsAndPendingNodes(slot);
 }
 
+void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
+{
+    if (GetRenderProperties().GetBackgroundFilter()) {
+        auto filterDrawable = GetFilterDrawable(false);
+        if (filterDrawable == nullptr) {
+            return;
+        }
+        filterDrawable->MarkFilterForceClearCache();
+        filterDrawable->CheckClearFilterCache();
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
+    }
+    if (GetRenderProperties().GetFilter()) {
+        auto filterDrawable = GetFilterDrawable(true);
+        if (filterDrawable == nullptr) {
+            return;
+        }
+        filterDrawable->MarkFilterForceClearCache();
+        filterDrawable->CheckClearFilterCache();
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::FOREGROUND_FILTER);
+    }
+}
+
 
 void RSRenderNode::SetOccludedStatus(bool occluded)
 {
@@ -2097,6 +2119,9 @@ void RSRenderNode::UpdateShouldPaint()
     // alpha is not zero
     shouldPaint_ = (GetRenderProperties().GetAlpha() > 0.0f) &&
         (GetRenderProperties().GetVisible() || HasDisappearingTransition(false));
+    if (!shouldPaint_) { // force clear blur cache
+        MarkForceClearFilterCacheWhenWithInvisible();
+    }
 }
 
 void RSRenderNode::SetSharedTransitionParam(const std::shared_ptr<SharedTransitionParam>& sharedTransitionParam)
@@ -2819,6 +2844,9 @@ void RSRenderNode::OnTreeStateChanged()
             pairedNode->SetSharedTransitionParam(nullptr);
         }
         SetSharedTransitionParam(nullptr);
+    }
+    if (!isOnTheTree_) { // force clear blur cache
+        MarkForceClearFilterCacheWhenWithInvisible();
     }
 }
 
