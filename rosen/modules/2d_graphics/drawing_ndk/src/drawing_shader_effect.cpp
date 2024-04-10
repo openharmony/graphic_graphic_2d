@@ -50,14 +50,18 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateLinearGradient(const OH_Dr
     const OH_Drawing_Point* cEndPt, const uint32_t* colors, const float* pos, uint32_t size,
     OH_Drawing_TileMode cTileMode)
 {
-    if (cStartPt == nullptr || cEndPt == nullptr || colors == nullptr || pos == nullptr) {
+    if (cStartPt == nullptr || cEndPt == nullptr || colors == nullptr) {
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
     std::vector<scalar> posVector;
     for (uint32_t i = 0; i < size; i++) {
         colorsVector.emplace_back(colors[i]);
-        posVector.emplace_back(pos[i]);
+    }
+    if (pos != nullptr) {
+        for (uint32_t i = 0; i < size; i++) {
+            posVector.emplace_back(pos[i]);
+        }
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT,
         CastToPoint(*cStartPt), CastToPoint(*cEndPt), colorsVector, posVector, static_cast<TileMode>(cTileMode));
