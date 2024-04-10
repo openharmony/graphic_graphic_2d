@@ -228,6 +228,30 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
     }
 }
 
+Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node)
+{
+    const sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        return Drawing::Matrix();
+    }
+
+    auto& consumer = node.GetConsumer();
+    if (consumer == nullptr) {
+        return Drawing::Matrix();
+    }
+
+    BufferDrawParam params;
+    params.buffer = buffer;
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    const RSProperties& property = node.GetRenderProperties();
+    params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+    auto transform = consumer->GetTransform();
+    RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
+    RSBaseRenderUtil::FlipMatrix(transform, params);
+    return params.matrix;
+}
+
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node,
     bool forceCPU, uint32_t threadIndex, bool isRenderThread)
 {

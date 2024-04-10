@@ -1222,6 +1222,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
 
     // 1. Update matrix and collect dirty region
+    if (node.GetBuffer() != nullptr) {
+        node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
+    }
     auto dirtyFlag = dirtyFlag_;
     auto prepareClipRect = prepareClipRect_;
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(*curSurfaceDirtyManager_, node.GetParent().lock(),
@@ -1852,10 +1855,12 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfac
     // if current frame hwc enable status not equal with last frame
     // or current frame do gpu composistion and has buffer consumed,
     // we need merge hwc node dst rect to dirty region.
-    bool updateDirty = ((!hwcNode->IsHardwareForcedDisabled()) != hwcNode->GetIsLastFrameHwcEnabled()) ||
-        (hwcNode->IsHardwareForcedDisabled() && hwcNode->IsCurrentFrameBufferConsumed());
-    if (updateDirty) {
+    if (!hwcNode->IsHardwareForcedDisabled()) != hwcNode->GetIsLastFrameHwcEnabled() {
         appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetDstRect());
+        return;
+    }
+    if (hwcNode->IsHardwareForcedDisabled() && hwcNode->IsCurrentFrameBufferConsumed()) {
+        appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetOldDirtyInSurface());
     }
 }
 

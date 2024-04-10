@@ -1163,11 +1163,40 @@ void RSRenderNode::CollectAndUpdateLocalPixelStretchRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(localPixelStretchRect_);
 }
 
+void RSRenderNode::UpdateBufferDirtyRegion()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
+        return;
+    }
+    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNode == nullptr) {
+        return;
+    }
+    auto buffer = surfaceNode->GetBuffer();
+    if (buffer != nullptr) {
+        // Use the matrix from buffer to relative coordinate and the absolute matrix
+        // to calculate the buffer damageRegion's absolute rect
+        auto rect = surfaceNode->GetDamageRegion();
+        auto matrix = surfaceNode->GetBufferRelMatrix();
+        auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
+            RectF(rect.x, rect.y, rect.w, rect.h), matrix);
+        // The buffer's dirtyRect should not be out of the scope of the node's dirtyRect
+        selfDrawRect_ = bufferDirtyRect.IntersectRect(selfDrawRect_);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode id: %" PRIu64 ", buffer size [%d,%d], "
+            "buffer damageRegion [%d,%d,%d,%d], dirtyRect %s", GetId(),
+            buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
+            rect.x, rect.y, rect.w, rect.h, selfDrawRect_.ToString().c_str());
+    }
+#endif
+}
+
 void RSRenderNode::UpdateSelfDrawRect()
 {
     // empty rect would not join and doesn't need to check
     auto& properties = GetRenderProperties();
     selfDrawRect_ = properties.GetLocalBoundsAndFramesRect().ConvertTo<int>();
+    UpdateBufferDirtyRegion();
     if (auto drawRegion = properties.GetDrawRegion()) {
         selfDrawRect_ = selfDrawRect_.JoinRect((*drawRegion).ConvertTo<int>());
     }

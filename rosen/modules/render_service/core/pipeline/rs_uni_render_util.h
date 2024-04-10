@@ -53,6 +53,8 @@ public:
     static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
     static bool HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas);
     static bool HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
+    // This is used for calculate matrix from buffer coordinate to window's relative coordinate
+    static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
     static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface, RectF& localBounds);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,

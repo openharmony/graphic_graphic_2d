@@ -690,6 +690,7 @@ private:
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
     // update drawrect based on self's info
+    void UpdateBufferDirtyRegion();
     void UpdateSelfDrawRect();
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect = std::nullopt);

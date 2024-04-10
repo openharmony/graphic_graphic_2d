@@ -100,6 +100,7 @@ public:
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
 
     static GSError DropFrameProcess(RSSurfaceHandler& node);
+    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 

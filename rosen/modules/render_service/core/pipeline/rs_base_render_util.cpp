@@ -897,6 +897,15 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
     return OHOS::GSERROR_OK;
 }
 
+Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
+{
+    RectI damage;
+    std::for_each(damages.begin(), damages.end(), [&damage](const Rect& damageRect) {
+        damage = damage.JoinRect(RectI(damageRect.x, damageRect.y, damageRect.w, damageRect.h));
+    });
+    return {damage.left_, damage.top_, damage.width_, damage.height_};
+}
+
 bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
@@ -913,16 +922,22 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
-    Rect damage;
-    auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    std::vector<Rect> damages;
+    auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damages);
     if (buffer == nullptr || ret != SURFACE_ERROR_OK) {
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
             surfaceHandler.GetNodeId(), ret);
         return false;
     }
+    // The damages of buffer will be merged here, only single damage is supported so far
+    Rect damageAfterMerge = MergeBufferDamages(damages);
+    if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
+        RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
+            surfaceHandler.GetNodeId());
+    }
 
     surfaceHandler.SetBufferSizeChanged(buffer);
-    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler.SetBuffer(buffer, acquireFence, damageAfterMerge, timestamp);
     surfaceHandler.SetCurrentFrameBufferConsumed();
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, timestamp = %{public}" PRId64 ".",
         surfaceHandler.GetNodeId(), timestamp);

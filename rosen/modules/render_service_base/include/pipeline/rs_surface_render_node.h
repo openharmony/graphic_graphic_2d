@@ -1022,6 +1022,15 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
+    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    {
+        bufferRelMatrix_ = matrix;
+    }
+
+    const Drawing::Matrix& GetBufferRelMatrix() const
+    {
+        return bufferRelMatrix_;
+    }
 
 protected:
     void OnSync() override;
@@ -1245,6 +1254,7 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
     bool lastFrameUifirstFlag_ = false;
+    Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
