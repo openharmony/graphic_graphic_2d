@@ -96,6 +96,16 @@ public:
     {
         return aminationStart_;
     }
+
+    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
+    {
+        commonSubType_ = commonSubType;
+    }
+
+    Drawing::DrawingCommonSubType GetCommonSubType() const
+    {
+        return commonSubType_;
+    }
      
 private:
     std::vector<RSSColor> colorList_;
@@ -104,6 +114,7 @@ private:
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool aminationStart_ = false;
+    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::UP;
 };
 }
 }

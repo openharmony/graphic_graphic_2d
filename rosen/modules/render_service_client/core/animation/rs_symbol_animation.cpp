@@ -58,7 +58,7 @@ void CreateAnimationTimingCurve(OHOS::Rosen::Drawing::DrawingCurveType type, std
 }
 
 bool GetAnimationGroupParameters(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
-    std::shared_ptr<std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>>& parameters)
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters)
 {
     // count animation levels
     int animationLevelNum = -1;
@@ -79,7 +79,7 @@ bool GetAnimationGroupParameters(const std::shared_ptr<TextEngine::SymbolAnimati
     parameters = Drawing::HmSymbolConfigOhos::GetGroupParameters(
         Drawing::DrawingAnimationType(symbolAnimationConfig->effectStrategy), uint16_t(animationLevelNum),
         uint16_t(animationMode));
-    if (parameters == nullptr) {
+    if (parameters.empty()) {
         return false;
     }
     return true;
@@ -184,7 +184,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_, symbolFirstNode.nodeBoundary[0],
         symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
 
-    std::shared_ptr<std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>> parameters = nullptr;
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters);
 
     for (uint32_t n = 0; n < nodeNum; n++) {
@@ -209,11 +209,11 @@ bool RSSymbolAnimation::SetPublicAnimation(
             continue;
         }
 
-        if (parameters->size() <= symbolNode.animationIndex || parameters->at(symbolNode.animationIndex).empty()) {
+        if (parameters.size() <= symbolNode.animationIndex || parameters[symbolNode.animationIndex].empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto oneGroupParas = (*parameters)[int(symbolNode.animationIndex)];
+        auto oneGroupParas = parameters[int(symbolNode.animationIndex)];
         if (oneGroupParas.empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
@@ -360,11 +360,11 @@ bool RSSymbolAnimation::GetScaleUnitAnimationParas(
 {
     // AnimationType, Animation groups, animation_mode; animation_mode is 1 when Animation groups is 1
     auto scaleParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::SCALE_TYPE, 1, 1);
-    if (scaleParas == nullptr || scaleParas->empty() || scaleParas->at(UNIT_GROUP).empty()) {
+    if (scaleParas.empty() || scaleParas[UNIT_GROUP].empty()) {
         ROSEN_LOGD("[%{public}s] can not get scaleParas \n", __func__);
         return false;
     }
-    scaleUnitParas = (*scaleParas)[UNIT_GROUP][UNIT_PERIOD];
+    scaleUnitParas = scaleParas[UNIT_GROUP][UNIT_PERIOD];
 
     auto scaleProperties = scaleUnitParas.properties;
     if (!ElementInMap(SCALE_PROP_X, scaleProperties) || !ElementInMap(SCALE_PROP_Y, scaleProperties)) {
@@ -563,11 +563,11 @@ bool RSSymbolAnimation::GetVariableColorAnimationParas(
 {
     // AnimationType, Animation groups, animation_mode; the variable color groups is 3 , animation_mode is 1
     auto multiGroupParas = Drawing::HmSymbolConfigOhos::GetGroupParameters(Drawing::VARIABLE_COLOR_TYPE, 3, 1);
-    if (multiGroupParas == nullptr || multiGroupParas->size() <= index || multiGroupParas->at(index).empty()) {
+    if (multiGroupParas.size() <= index || multiGroupParas[index].empty()) {
         ROSEN_LOGD("[%{public}s] can not get multiGroupParas \n", __func__);
         return false;
     }
-    auto oneGroupParas = (*multiGroupParas)[index]; // index means the sequence number of node or animation layer
+    auto oneGroupParas = multiGroupParas[index]; // index means the sequence number of node or animation layer
     if (oneGroupParas.empty()) {
         return false;
     }

@@ -118,6 +118,7 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
     textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
     textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
+    textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
     for (auto [tag, value] : style.symbol.GetVisualMap()) {
         textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
     }

@@ -27,20 +27,20 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     RSSymbolLayers symbolInfo;
     symbolInfo.symbolGlyphId = glyphId;
     uint32_t symbolId = static_cast<uint32_t>(glyphId);
-    std::shared_ptr<RSSymbolLayersGroups> symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(symbolId);
-    if (symbolInfoOrign == nullptr || symbolInfoOrign->symbolGlyphId == 0) {
+    RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(symbolId);
+    if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
         return symbolInfo;
     }
 
     RSSymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
-    if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
+    if (symbolInfoOrign.renderModeGroups.find(renderMode) == symbolInfoOrign.renderModeGroups.end()) {
         renderMode = RSSymbolRenderingStrategy::SINGLE;
     }
 
-    symbolInfo.layers = symbolInfoOrign->layers;
-    if (symbolInfoOrign->renderModeGroups.find(renderMode) != symbolInfoOrign->renderModeGroups.end()) {
-        symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
-        symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
+    symbolInfo.layers = symbolInfoOrign.layers;
+    if (symbolInfoOrign.renderModeGroups.find(renderMode) != symbolInfoOrign.renderModeGroups.end()) {
+        symbolInfo.renderGroups = symbolInfoOrign.renderModeGroups[renderMode];
+        symbolInfo.symbolGlyphId = symbolInfoOrign.symbolGlyphId;
     }
 
     std::vector<RSSColor> colorList = symbolText.GetRenderColor();
@@ -179,10 +179,7 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrat
     RSAnimationSetting& animationOut)
 {
     auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyohId);
-    if (symbolInfoOrigin == nullptr) {
-        return false;
-    }
-    std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
+    std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin.animationSettings;
     RSAnimationType animationType =  static_cast<RSAnimationType>(effectStrategy);
 
     for (size_t i = 0; i < animationSettings.size(); i++) {

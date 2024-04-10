@@ -32,7 +32,9 @@ enum SymbolAnimationEffectStrategy {
     SYMBOL_VARIABLE_COLOR = 2,
     SYMBOL_APPEAR = 3,
     SYMBOL_DISAPPEAR = 4,
-    SYMBOL_BOUNCE = 5
+    SYMBOL_BOUNCE = 5,
+    SYMBOL_PULSE = 6,
+    SYMBOL_REPLACE_APPEAR = 7
 };
 
 using SymbolNode = struct SymbolNode {
@@ -51,6 +53,7 @@ using SymbolAnimationConfig = struct SymbolAnimationConfig {
     uint16_t animationMode = 0;
     int repeatCount = 1;
     bool aminationStart = false;
+    Drawing::DrawingCommonSubType commonSubType = Drawing::DrawingCommonSubType::UP;
 };
 }
 }
