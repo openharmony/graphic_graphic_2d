@@ -802,8 +802,8 @@ void RSRenderNode::SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool i
     const RectI& clipRect)
 {
     // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
-    auto dirtyRect = absChildrenRect_;
     if (HasChildrenOutOfRect() && (isDirty || clipAbsDrawRectChange_)) {
+        auto dirtyRect = absChildrenRect_;
         if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             absChildrenRect_ = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
             dirtyRect = dirtyRect.JoinRect(absChildrenRect_);
@@ -1142,7 +1142,7 @@ void RSRenderNode::CollectAndUpdateLocalShadowRect()
             }
         }
     }
-    selfDrawRect_ = selfDrawRect_.JoinRect(localShadowRect_);
+    selfDrawRect_ = selfDrawRect_.JoinRect(localShadowRect_.ConvertTo<float>());
 }
 
 void RSRenderNode::CollectAndUpdateLocalOutlineRect()
@@ -1151,7 +1151,7 @@ void RSRenderNode::CollectAndUpdateLocalOutlineRect()
     if (dirtySlots_.find(RSDrawableSlot::OUTLINE) != dirtySlots_.end()) {
         RSPropertiesPainter::GetOutlineDirtyRect(localOutlineRect_, GetRenderProperties(), false);
     }
-    selfDrawRect_ = selfDrawRect_.JoinRect(localOutlineRect_);
+    selfDrawRect_ = selfDrawRect_.JoinRect(localOutlineRect_.ConvertTo<float>());
 }
 
 void RSRenderNode::CollectAndUpdateLocalPixelStretchRect()
@@ -1160,7 +1160,7 @@ void RSRenderNode::CollectAndUpdateLocalPixelStretchRect()
     if (dirtySlots_.find(RSDrawableSlot::PIXEL_STRETCH) != dirtySlots_.end()) {
         RSPropertiesPainter::GetPixelStretchDirtyRect(localPixelStretchRect_, GetRenderProperties(), false);
     }
-    selfDrawRect_ = selfDrawRect_.JoinRect(localPixelStretchRect_);
+    selfDrawRect_ = selfDrawRect_.JoinRect(localPixelStretchRect_.ConvertTo<float>());
 }
 
 void RSRenderNode::UpdateBufferDirtyRegion()
@@ -1195,17 +1195,17 @@ void RSRenderNode::UpdateSelfDrawRect()
 {
     // empty rect would not join and doesn't need to check
     auto& properties = GetRenderProperties();
-    selfDrawRect_ = properties.GetLocalBoundsAndFramesRect().ConvertTo<int>();
+    selfDrawRect_ = properties.GetLocalBoundsAndFramesRect();
     UpdateBufferDirtyRegion();
     if (auto drawRegion = properties.GetDrawRegion()) {
-        selfDrawRect_ = selfDrawRect_.JoinRect((*drawRegion).ConvertTo<int>());
+        selfDrawRect_ = selfDrawRect_.JoinRect(*drawRegion);
     }
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
 }
 
-const RectI& RSRenderNode::GetSelfDrawRect() const
+const RectF& RSRenderNode::GetSelfDrawRect() const
 {
     return selfDrawRect_;
 }
@@ -1267,7 +1267,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         // currently CheckAndUpdateGeoTrans without dirty check
         if (auto geoPtr = GetRenderProperties().boundsGeo_) {
             if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty) {
-                absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_.ConvertTo<float>());
+                absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_);
                 UpdateClipAbsDrawRectChangeState(clipRect);
             }
         }
@@ -1519,13 +1519,14 @@ void RSRenderNode::MapAndUpdateChildrenRect()
     // all child must map to its direct parent
     if (!childrenRect_.IsEmpty()) {
         // clean subtree means childrenRect maps to parent already
-        childRect = childRect.JoinRect(childrenRect_);
+        childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
     }
     // map before update parent
-    childRect = geoPtr->MapRect(childRect.ConvertTo<float>(), geoPtr->GetMatrix());
+    RectI childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
     if (auto parentNode = parent_.lock()) {
-        parentNode->UpdateChildrenRect(childRect);
+        parentNode->UpdateChildrenRect(childRectMapped);
         // check each child is inside of parent
+        childRect = childRectMapped.ConvertTo<float>();
         if (!childRect.IsInsideOf(parentNode->GetSelfDrawRect())) {
             parentNode->UpdateChildrenOutOfRectFlag(true);
         }
@@ -3467,7 +3468,7 @@ void RSRenderNode::UpdateRenderParams()
 
 bool RSRenderNode::UpdateLocalDrawRect()
 {
-    auto drawRect = selfDrawRect_.JoinRect(childrenRect_);
+    auto drawRect = selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>());
     return stagingRenderParams_->SetLocalDrawRect(drawRect);
 }
 
