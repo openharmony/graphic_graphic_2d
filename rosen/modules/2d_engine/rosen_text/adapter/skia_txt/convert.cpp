@@ -124,6 +124,35 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     }
 }
 
+void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
+{
+    if (style.isSymbolGlyph) {
+        CopyTextStyleSymbol(style, textStyle);
+    }
+    if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
+        textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);
+    }
+    if (style.foregroundBrush.has_value() || style.foregroundPen.has_value()) {
+        textStyle.foreground = SPText::PaintRecord(style.foregroundBrush, style.foregroundPen);
+    }
+
+    for (const auto& [color, offset, radius] : style.shadows) {
+        auto shadowColor = SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue());
+        auto shadowOffset = SkPoint::Make(offset.GetX(), offset.GetY());
+        textStyle.textShadows.emplace_back(shadowColor, shadowOffset, radius);
+    }
+
+    for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
+        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
+    }
+
+    if (!style.fontVariations.GetAxisValues().empty()) {
+        for (const auto& [axis, value] : style.fontVariations.GetAxisValues()) {
+            textStyle.fontVariations.SetAxisValue(axis, value);
+        }
+    }
+}
+
 SPText::TextStyle Convert(const TextStyle& style)
 {
     SPText::TextStyle textStyle;
@@ -153,26 +182,8 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
+    SplitTextStyleConvert(textStyle, style);
 
-    if (style.isSymbolGlyph) {
-        CopyTextStyleSymbol(style, textStyle);
-    }
-    if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
-        textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);
-    }
-    if (style.foregroundBrush.has_value() || style.foregroundPen.has_value()) {
-        textStyle.foreground = SPText::PaintRecord(style.foregroundBrush, style.foregroundPen);
-    }
-
-    for (const auto& [color, offset, radius] : style.shadows) {
-        auto shadowColor = SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue());
-        auto shadowOffset = SkPoint::Make(offset.GetX(), offset.GetY());
-        textStyle.textShadows.emplace_back(shadowColor, shadowOffset, radius);
-    }
-
-    for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
-    }
     return textStyle;
 }
 } // namespace AdapterTxt

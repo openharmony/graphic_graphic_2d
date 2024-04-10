@@ -99,6 +99,14 @@ int32_t Typeface::GetUnitsPerEm() const
     return 0;
 }
 
+std::shared_ptr<Typeface> Typeface::MakeClone(const FontArguments& args) const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->MakeClone(args);
+    }
+    return nullptr;
+}
+
 std::shared_ptr<Data> Typeface::Serialize() const
 {
     if (!typefaceImpl_) {

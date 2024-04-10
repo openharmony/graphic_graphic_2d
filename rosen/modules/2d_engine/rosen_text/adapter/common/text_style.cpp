@@ -55,6 +55,26 @@ void FontFeatures::Clear()
     featureMap_.clear();
 }
 
+void FontVariations::SetAxisValue(const std::string& tag, float value)
+{
+    axis_[tag] = value;
+}
+
+const std::map<std::string, float>& FontVariations::GetAxisValues() const
+{
+    return axis_;
+}
+
+bool FontVariations::operator ==(const FontVariations& rhs) const
+{
+    return axis_ == rhs.axis_;
+}
+
+void FontVariations::Clear()
+{
+    axis_.clear();
+}
+
 TextShadow::TextShadow()
 {
 }
@@ -119,7 +139,8 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         backgroundRect == rhs.backgroundRect &&
         styleId == rhs.styleId &&
         shadows == rhs.shadows &&
-        fontFeatures == rhs.fontFeatures;
+        fontFeatures == rhs.fontFeatures &&
+        fontVariations == rhs.fontVariations;
 }
 
 bool TextStyle::EqualByFonts(const TextStyle &rhs) const
@@ -128,6 +149,7 @@ bool TextStyle::EqualByFonts(const TextStyle &rhs) const
         fontStyle == rhs.fontStyle &&
         fontFamilies == rhs.fontFamilies &&
         fontFeatures == rhs.fontFeatures &&
+        fontVariations == rhs.fontVariations &&
         Drawing::IsScalarAlmostEqual(letterSpacing, rhs.letterSpacing) &&
         Drawing::IsScalarAlmostEqual(wordSpacing, rhs.wordSpacing) &&
         Drawing::IsScalarAlmostEqual(heightScale, rhs.heightScale) &&

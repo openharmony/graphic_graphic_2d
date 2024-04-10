@@ -104,6 +104,40 @@ int32_t SkiaTypeface::GetUnitsPerEm() const
     return skTypeface_->getUnitsPerEm();
 }
 
+std::shared_ptr<Typeface> SkiaTypeface::MakeClone(const FontArguments& args) const
+{
+    if (!skTypeface_) {
+        LOGD("SkiaTypeface::MakeClone, skTypeface nullptr");
+        return nullptr;
+    }
+
+    SkFontArguments skArgs;
+    skArgs.setCollectionIndex(args.GetCollectionIndex());
+
+    SkFontArguments::VariationPosition pos;
+    pos.coordinates = reinterpret_cast<const SkFontArguments::VariationPosition::Coordinate*>(
+        args.GetVariationDesignPosition().coordinates
+    );
+    pos.coordinateCount = args.GetVariationDesignPosition().coordinateCount;
+    skArgs.setVariationDesignPosition(pos);
+
+    SkFontArguments::Palette pal;
+    pal.overrides = reinterpret_cast<const SkFontArguments::Palette::Override*>(
+        args.GetPalette().overrides
+    );
+    pal.index = args.GetPalette().index;
+    pal.overrideCount = args.GetPalette().overrideCount;
+    skArgs.setPalette(pal);
+
+    auto cloned = skTypeface_->makeClone(skArgs);
+    if (!cloned) {
+        return nullptr;
+    }
+
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(cloned);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
 sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()
 {
     if (!skTypeface_) {

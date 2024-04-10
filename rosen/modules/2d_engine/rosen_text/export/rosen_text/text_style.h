@@ -45,6 +45,16 @@ private:
     std::map<std::string, int> featureMap_;
 };
 
+class RS_EXPORT FontVariations {
+public:
+    void SetAxisValue(const std::string& tag, float value);
+    const std::map<std::string, float>& GetAxisValues() const;
+    bool operator ==(const FontVariations& rhs) const;
+    void Clear();
+private:
+    std::map<std::string, float> axis_;
+};
+
 struct RS_EXPORT TextShadow {
     Drawing::Color color = Drawing::Color::COLOR_BLACK;
     Drawing::Point offset;
@@ -94,9 +104,9 @@ struct TextStyle {
     // if Pen and SkPaint are setting, use pen first
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
+    FontVariations fontVariations;
     RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
     int styleId = 0;
-
     bool operator ==(const TextStyle &rhs) const;
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;

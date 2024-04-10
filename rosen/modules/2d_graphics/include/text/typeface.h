@@ -21,6 +21,7 @@
 #include <cstdint>
 
 #include "impl_interface/typeface_impl.h"
+#include "text/font_arguments.h"
 #include "text/font_style.h"
 #include "utils/data.h"
 #include "utils/memory_stream.h"
@@ -84,6 +85,8 @@ public:
     uint32_t GetUniqueID() const;
 
     int32_t GetUnitsPerEm() const;
+
+    std::shared_ptr<Typeface> MakeClone(const FontArguments&) const;
 
     std::shared_ptr<Data> Serialize() const;
     static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
