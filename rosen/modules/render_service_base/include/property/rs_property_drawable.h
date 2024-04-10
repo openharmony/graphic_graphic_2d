@@ -41,6 +41,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     SHADOW,
+    FOREGROUND_FILTER,
     OUTLINE,
 
     // BG properties in Bounds Clip
@@ -85,6 +86,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     PIXEL_STRETCH,
 
     RESTORE_BLEND_MODE,
+    RESTORE_FOREGROUND_FILTER,
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.

@@ -18,6 +18,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_foreground_effect_filter.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_shadow.h"
 #include "pipeline/rs_render_node.h"
@@ -1247,6 +1248,40 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
+}
+
+/**
+ * @tc.name: DrawForegroundFilter001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter001, TestSize.Level1)
+{
+    auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(10.f);
+    RSProperties properties;
+    properties.SetForegroundFilter(foregroundEffectFilter);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
+}
+
+/**
+ * @tc.name: DrawForegroundFilter002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter002, TestSize.Level1)
+{
+    auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(20.f);
+    RSProperties properties;
+    properties.SetForegroundFilter(foregroundEffectFilter);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
 }
 } // namespace Rosen
 } // namespace OHOS
