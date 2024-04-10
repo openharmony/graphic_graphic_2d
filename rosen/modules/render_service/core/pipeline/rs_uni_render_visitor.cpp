@@ -4831,8 +4831,8 @@ bool RSUniRenderVisitor::IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, i
     if (node.IsRosenWeb()) {
         return rotation == ROTATION_90 || rotation == ROTATION_270 ||
             RSUniRenderUtil::Is3DRotation(node.GetTotalMatrix()) ||
-            node.GetDstRect().width_ > node.GetBuffer()->GetWidth() ||
-            node.GetDstRect().height_ > node.GetBuffer()->GetHeight();
+            (node.GetBuffer() && (node.GetDstRect().width_ > node.GetBuffer()->GetWidth())) ||
+            (node.GetBuffer() && (node.GetDstRect().height_ > node.GetBuffer()->GetHeight()));
     }
     return false;
 }
