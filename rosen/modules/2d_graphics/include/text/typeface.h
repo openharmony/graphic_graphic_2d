@@ -21,10 +21,10 @@
 #include <cstdint>
 
 #include "impl_interface/typeface_impl.h"
+#include "text/font_arguments.h"
 #include "text/font_style.h"
 #include "utils/data.h"
 #include "utils/memory_stream.h"
-#include "text/font_arguments.h"
 
 namespace OHOS {
 namespace Rosen {

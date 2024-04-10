@@ -20,9 +20,9 @@
 #include <string>
 
 #include "impl_interface/base_impl.h"
+#include "text/font_arguments.h"
 #include "text/font_style.h"
 #include "utils/data.h"
-#include "text/font_arguments.h"
 
 namespace OHOS {
 namespace Rosen {

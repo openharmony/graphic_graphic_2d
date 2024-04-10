@@ -14,7 +14,7 @@
  */
 
 #include "typography_create.h"
-#include "utils/log.h"
+
 #include "convert.h"
 #include "typography.h"
 #include <unicode/utf8.h>
