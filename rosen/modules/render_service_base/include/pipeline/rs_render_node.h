@@ -660,7 +660,6 @@ private:
     bool isFullChildrenListValid_ = true;
     bool isChildrenSorted_ = true;
 
-    void UpdateFullChildrenListIfNeeded();
     void GenerateFullChildrenList();
     void ResortChildren();
 

@@ -1863,11 +1863,13 @@ void RSRenderNode::ApplyPositionZModifier()
 
 void RSRenderNode::ApplyModifiers()
 {
-    if (!isFullChildrenListValid_ || !isChildrenSorted_) {
-        UpdateFullChildrenListIfNeeded();
+    if (UNLIKELY(!isFullChildrenListValid_)) {
+        GenerateFullChildrenList();
         AddDirtyType(RSModifierType::CHILDREN);
-    }
-    if (childrenHasSharedTransition_) {
+    } else if (UNLIKELY(!isChildrenSorted_)) {
+        ResortChildren();
+        AddDirtyType(RSModifierType::CHILDREN);
+    } else if (UNLIKELY(childrenHasSharedTransition_)) {
         // if children has shared transition, force regenerate RSChildrenDrawable
         AddDirtyType(RSModifierType::CHILDREN);
     } else if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
@@ -1887,9 +1889,7 @@ void RSRenderNode::ApplyModifiers()
             continue;
         }
         modifier->Apply(context);
-        if (!BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifier->GetType())) {
-            isOnlyBasicGeoTransform_ = false;
-        }
+        isOnlyBasicGeoTransform_ = isOnlyBasicGeoTransform_ && BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifier->GetType());
     }
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
@@ -2850,15 +2850,6 @@ RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetSortedChildren() const
 std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const
 {
     return children_.empty() ? nullptr : children_.front().lock();
-}
-
-void RSRenderNode::UpdateFullChildrenListIfNeeded()
-{
-    if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList();
-    } else if (!isChildrenSorted_) {
-        ResortChildren();
-    }
 }
 
 void RSRenderNode::GenerateFullChildrenList()
