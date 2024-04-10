@@ -293,6 +293,24 @@ bool RSRenderNodeDrawable::NeedInitCachedSurface(const Vector2f& newSize)
     return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
 }
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+struct SharedTextureContext {
+    SharedTextureContext(std::shared_ptr<Drawing::Image> sharedImage)
+        : sharedImage_(std::move(sharedImage)) {}
+
+private:
+    std::shared_ptr<Drawing::Image> sharedImage_;
+};
+
+static void DeleteSharedTextureContext(void* context)
+{
+    SharedTextureContext* cleanupHelper = static_cast<SharedTextureContext*>(context);
+    if (cleanupHelper != nullptr) {
+        delete cleanupHelper;
+    }
+}
+#endif
+
 std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilterCanvas& canvas)
 {
     std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
@@ -309,9 +327,10 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
     Drawing::BitmapFormat info = Drawing::BitmapFormat { cachedImage_->GetColorType(), cachedImage_->GetAlphaType() };
+    SharedTextureContext* sharedContext = new SharedTextureContext(cachedImage_); // will move image
     cachedImage_ = std::make_shared<Drawing::Image>();
-    bool ret = cachedImage_->BuildFromTexture(
-        *canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(), origin, info, nullptr);
+    bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
+        origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
     if (!ret) {
         RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
         return nullptr;
