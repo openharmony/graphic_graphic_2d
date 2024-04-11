@@ -173,15 +173,16 @@ napi_value JsParagraphBuilder::OnAddText(napi_env env, napi_callback_info info)
 
 napi_value JsParagraphBuilder::PopStyle(napi_env env, napi_callback_info info)
 {
-    JsParagraphBuilder* jsParagraphBuilder = CheckParamsAndGetThis<JsParagraphBuilder>(env, info);
-    if (!jsParagraphBuilder) {
+    JsParagraphBuilder* me = CheckParamsAndGetThis<JsParagraphBuilder>(env, info);
+    return (me != nullptr) ? me->OnPopStyle(env, info) : nullptr;
+}
+
+napi_value JsParagraphBuilder::OnPopStyle(napi_env env, napi_callback_info info)
+{
+    if (typographyCreate_ == nullptr) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    std::unique_ptr<TypographyCreate> typographyCreate = jsParagraphBuilder->GetTypographyCreate();
-    if (typographyCreate == nullptr) {
-        return nullptr;
-    }
-    typographyCreate->PopStyle();
+    typographyCreate_->PopStyle();
     return NapiGetUndefined(env);
 }
 
@@ -232,11 +233,6 @@ napi_value JsParagraphBuilder::OnBuild(napi_env env, napi_callback_info info)
 
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate_->CreateTypography();
     return JsParagraph::CreateJsTypography(env, std::move(typography));
-}
-
-std::unique_ptr<TypographyCreate> JsParagraphBuilder::GetTypographyCreate()
-{
-    return std::move(typographyCreate_);
 }
 
 } // namespace OHOS::Rosen
