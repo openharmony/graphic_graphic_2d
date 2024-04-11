@@ -47,9 +47,7 @@ public:
     static napi_value GetLineWidth(napi_env env, napi_callback_info info);
     static napi_value DidExceedMaxLines(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
-    static napi_value CreateJsTypography(napi_env env, napi_callback_info info,
-        std::unique_ptr<Typography> typography);
-    static napi_value OnCreateJsTypography(napi_env env, std::unique_ptr<Typography> typography);
+    static napi_value CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     std::shared_ptr<Typography> GetParagraph();
 

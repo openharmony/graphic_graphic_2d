@@ -25,7 +25,6 @@ std::unique_ptr<Typography> g_Typography = nullptr;
 thread_local napi_ref JsParagraph::constructor_ = nullptr;
 const std::string CLASS_NAME = "JsParagraph";
 
-
 napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = 0;
@@ -52,7 +51,6 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
     }
     return jsThis;
 }
-
 
 napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
 {
@@ -511,7 +509,7 @@ std::shared_ptr<Typography> JsParagraph::GetParagraph()
     return typography;
 }
 
-napi_value JsParagraph::OnCreateJsTypography(napi_env env, std::unique_ptr<Typography> typography)
+napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography)
 {
     napi_value constructor = nullptr;
     napi_value result = nullptr;
