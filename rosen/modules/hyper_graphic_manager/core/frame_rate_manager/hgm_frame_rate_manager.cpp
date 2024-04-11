@@ -51,12 +51,12 @@ namespace {
         "VOTER_VIDEO",
         "VOTER_VIRTUALDISPLAY",
         "VOTER_MULTI_APP",
+        "VOTER_ANCO",
 
         "VOTER_XML",
         "VOTER_TOUCH",
         "VOTER_LTPO",
         "VOTER_SCENE",
-        "VOTER_TEMP",
         "VOTER_IDLE"
     };
 }
@@ -917,12 +917,6 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
     }
 }
 
-void HgmFrameRateManager::HandleTempEvent(
-    const std::string& tempEventName, bool eventStatus, uint32_t min, uint32_t max)
-{
-    RS_TRACE_NAME_FMT("HandleTempEvent TempEvent:%s, status:%u, value:[%d-%d]",
-        tempEventName.c_str(), eventStatus, min, max);
-}
 
 } // namespace Rosen
 } // namespace OHOS

@@ -558,7 +558,6 @@ private:
     ScreenId displayNodeScreenId_ = 0;
 
     bool forceUIFirstChanged_ = false;
-    bool hasRosenWebNode_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
