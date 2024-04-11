@@ -190,6 +190,14 @@ public:
      */
     void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag);
 
+    /**
+     * @brief                         Purge unlocked resources by pid from the cache until
+     *                                the provided byte count has been reached or we have purged all unlocked resources.
+     * @param scratchResourcesOnly    Whether to scratch the resources only or not.
+     * @param exitedPidSet            GPU resource exitedPidSet used to purge unlocked resources.
+     */
+    void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
+
     /*
      * @brief                   Purge unlocked resources from the safe cache until
      *                          the provided byte count has been reached or we have purged all unlocked resources.

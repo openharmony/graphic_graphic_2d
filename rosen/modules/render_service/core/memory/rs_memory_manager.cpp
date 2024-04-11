@@ -83,6 +83,18 @@ void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawi
 #endif
 }
 
+void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, std::set<pid_t> exitedPidSet)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("ReleaseGpuResByPid fail, gpuContext is nullptr");
+        return;
+    }
+    RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource exitedPidSet size: %d", exitedPidSet.size());
+    gpuContext->PurgeUnlockedResourcesByPid(false, exitedPidSet);
+#endif
+}
+
 void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

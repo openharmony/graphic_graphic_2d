@@ -49,7 +49,7 @@ public:
     void RemoveTask(const std::string& name);
     void PostRTTask(const std::function<void()>& task);
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
-        AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
+        AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::HIGH);
     void PostSyncTask(const std::function<void()>& task);
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
@@ -60,7 +60,7 @@ public:
     uint64_t GetCurrentTimestamp() const;
     uint32_t GetPendingScreenRefreshRate() const;
 
-    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply);
+    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
@@ -152,6 +152,8 @@ private:
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     ScreenId displayNodeScreenId_ = 0;
+    std::set<pid_t> exitedPidSet_;
+    ClearMemoryMoment clearMoment_;
 };
 } // namespace Rosen
 } // namespace OHOS
