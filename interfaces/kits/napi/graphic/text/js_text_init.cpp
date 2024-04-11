@@ -14,7 +14,6 @@
  */
 
 #include "js_text_init.h"
-
 #include "enum_napi/text_enum_napi.h"
 #include "fontcollection_napi/js_fontcollection.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
