@@ -204,6 +204,21 @@ bool ColorPicker::IsBlackOrWhiteOrGrayColor(uint32_t color) const
     return false;
 }
 
+// Get top proportion colors
+std::vector<ColorManager::Color> ColorPicker::GetTopProportionColors(uint32_t colorsNum) const
+{
+    if (featureColors_.empty() || colorsNum == 0) {
+        return {};
+    }
+    std::vector<ColorManager::Color> colors;
+    uint32_t num = std::min(static_cast<uint32_t>(featureColors_.size()), colorsNum);
+
+    for (uint32_t i = 0; i < num; ++i) {
+        colors.emplace_back(ColorManager::Color(featureColors_[i].first | 0xFF000000));
+    }
+    return colors;
+};
+
 bool ColorPicker::IsEquals(double val1, double val2) const
 {
     // 0.001 is used for double number compare.

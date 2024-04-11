@@ -30,6 +30,7 @@ namespace {
     constexpr uint32_t NUM_2 = 2;
     constexpr uint32_t NUM_3 = 3;
     constexpr uint32_t NUM_4 = 4;
+    constexpr double PROPORTION_COLORS_NUM_LIMIT = 10.0; // proportion colors limit num 10
 }
 
 namespace OHOS {
@@ -122,6 +123,7 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getHighestSaturationColor", GetHighestSaturationColor),
         DECLARE_NAPI_FUNCTION("getAverageColor", GetAverageColor),
         DECLARE_NAPI_FUNCTION("isBlackOrWhiteOrGrayColor", IsBlackOrWhiteOrGrayColor),
+        DECLARE_NAPI_FUNCTION("getTopProportionColors", GetTopProportionColors),
     };
 
     napi_property_descriptor static_prop[] = {
@@ -667,6 +669,50 @@ napi_value ColorPickerNapi::IsBlackOrWhiteOrGrayColor(napi_env env, napi_callbac
     napi_value result = nullptr;
     napi_get_boolean(env, rst, &result);
     return result;
+}
+
+napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_LOG_I("Get Top Proportion Colors");
+    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
+                         nullptr,
+                         EFFECT_LOG_E("GetTopProportionColors, fail to napi_get_cb_info"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker),
+                         nullptr,
+                         EFFECT_LOG_E("GetTopProportionColors, fail to unwrap context"));
+
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker->nativeColorPicker_),
+                         nullptr,
+                         EFFECT_LOG_E("GetTopProportionColors, empty native ColorPicker"));
+
+    unsigned int colorsNum = 0;
+    if (argCount != 1) {
+        return nullptr;
+    }
+    if (Media::ImageNapiUtils::getType(env, argValue[0]) == napi_number) {
+        double number = 0;
+        if (IMG_IS_OK(napi_get_value_double(env, argValue[0], &number))) {
+            colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
+        }
+    }
+
+    napi_value arrayValue = nullptr;
+    std::vector<ColorManager::Color> colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
+    napi_create_array_with_length(env, std::max(1u, static_cast<uint32_t>(colors.size())), &arrayValue);
+    for (uint32_t i = 0; i < std::max(1u, static_cast<uint32_t>(colors.size())); ++i) {
+        napi_value colorValue = i >= colors.size() ?  nullptr : BuildJsColor(env, colors[i]);
+        napi_set_element(env, arrayValue, i, colorValue);
+    }
+    return arrayValue;
 }
 
 ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
