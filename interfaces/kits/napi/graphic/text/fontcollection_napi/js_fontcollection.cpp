@@ -190,7 +190,7 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
     if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok ||
-            argc < ARGC_TWO) {
+        argc < ARGC_TWO) {
         return nullptr;
     }
     std::string familyName;
