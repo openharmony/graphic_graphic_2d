@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_RS_FRAME_REPORT_H
-#define ROSEN_RENDER_SERVICE_BASE_RS_FRAME_REPORT_H
+#ifndef ROSEN_MODULE_RS_FRAME_REPORT_H
+#define ROSEN_MODULE_RS_FRAME_REPORT_H
 
 #include <string>
-
-#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,9 +28,9 @@ using RenderStartFunc = void(*)(uint64_t);
 using RenderEndFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
 using SetFrameParamFunc = void(*)(int, int, int, int);
-class RSB_EXPORT RsFrameReport final {
+class RsFrameReport final {
 public:
-    static RSB_EXPORT RsFrameReport& GetInstance();
+    static RsFrameReport& GetInstance();
     void Init();
     int GetEnable();
 
@@ -63,4 +61,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // FOUNDATION_ACE_FRAMEWORKS_BASE_LOG_FRAME_REPORT_H
+#endif // ROSEN_MODULE_RS_FRAME_REPORT_H

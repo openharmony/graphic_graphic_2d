@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,10 +22,10 @@
 #include "hyper_graphic_manager/core/utils/hgm_command.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
-#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "rs_frame_report.h"
 #include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction.h"
