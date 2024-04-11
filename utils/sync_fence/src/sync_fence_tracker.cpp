@@ -66,39 +66,39 @@ bool SyncFenceTracker::CheckGpuSubhealthEventLimit()
     if (gpuSubhealthEventNum == 0 || tm.tm_yday > gpuSubhealthEventDay) {
         gpuSubhealthEventDay = tm.tm_yday;
         gpuSubhealthEventNum = 0;
-        HILOG_DEBUG(LOG_CORE, "first event of %{public}" PRIu32, gpuSubhealthEventDay);
+        HILOG_DEBUG(LOG_CORE, "first event of %{public}" PRId32, gpuSubhealthEventDay);
         gpuSubhealthEventNum++;
         return true;
     } else if (gpuSubhealthEventNum < GPU_SUBHEALTH_EVENT_LIMIT) {
         gpuSubhealthEventNum++;
-        HILOG_DEBUG(LOG_CORE, "%{public}" PRIu32 "event of %{public}" PRIu32 "day",
+        HILOG_DEBUG(LOG_CORE, "%{public}" PRId32 "event of %{public}" PRId32 "day",
             gpuSubhealthEventNum, gpuSubhealthEventDay);
         return true;
     }
-    HILOG_DEBUG(LOG_CORE, "%{public}" PRIu32 "event exceed %{public}" PRIu32 "day",
+    HILOG_DEBUG(LOG_CORE, "%{public}" PRId32 "event exceed %{public}" PRId32 "day",
         gpuSubhealthEventNum, gpuSubhealthEventDay);
     return false;
 }
 
-inline double SyncFenceTracker::GetDoubleValue(const std::string& fileName)
+inline int32_t SyncFenceTracker::GetValue(const std::string& fileName)
 {
     std::string content;
     OHOS::LoadStringFromFile(fileName, content);
-    double parseVal = 0;
+    int32_t parseVal = 0;
     std::stringstream ss(content);
     HILOG_DEBUG(LOG_CORE, "GetValue content is %{public}s", ss.str().c_str());
     ss >> parseVal;
-    HILOG_DEBUG(LOG_CORE, "GetValue parseVal is %f", parseVal);
+    HILOG_DEBUG(LOG_CORE, "GetValue parseVal is %{public}" PRId32, parseVal);
     return parseVal;
 }
 
-void SyncFenceTracker::ReportEventGpuhealth(unit64_t duration)
+void SyncFenceTracker::ReportEventGpuhealth(int32_t duration)
 {
     auto reportName = "GPU_SUBHEALTH_MONITORING";
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventGpuSubhealth");
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "WAIT_ACQUIRE_FENCE_TIME", duration,
-        "GPU_LOAD", GetDoubleValue(GPU_LOAD));
+        "GPU_LOAD", GetValue(GPU_LOAD));
 }
 
 void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
@@ -110,15 +110,15 @@ void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
         int32_t result;
         
         if (threadName_.compare("Acquire Fence") == 0) {
-            unit64_t startTimestamp = static_cast<unit64_t>(
+            int32_t startTimestamp = static_cast<int32_t>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
             result = fence->Wait(SYNC_TIME_OUT);
-            unit64_t endTimestamp = static_cast<unit64_t>(
+            int32_t endTimestamp = static_cast<int32_t>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
-            unit64_t duration = endTimestamp - startTimestamp;
-            HILOG_DEBUG(LOG_CORE, "Waiting for Acquire Fence: %{public}" PRIu64 "ms", duration);
+            int32_t duration = endTimestamp - startTimestamp;
+            HILOG_DEBUG(LOG_CORE, "Waiting for Acquire Fence: %{public}" PRId32 "ms", duration);
             if (duration > GPU_SUBHEALTH_EVENT_THRESHOLD && CheckGpuSubhealthEventLimit()) {
                 ReportEventGpuSubhealth(duration);
             }
