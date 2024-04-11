@@ -89,7 +89,7 @@ void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
 #endif
 }
 
-RSLayerInfo& RSSurfaceRenderParams::GetLayerInfo()
+const RSLayerInfo& RSSurfaceRenderParams::GetLayerInfo() const
 {
     return layerInfo_;
 }

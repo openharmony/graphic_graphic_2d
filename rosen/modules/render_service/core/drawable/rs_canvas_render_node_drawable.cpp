@@ -84,10 +84,8 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    bool isMirror = RSUniRenderThread::GetCaptureParam().isMirror_;
-    float mirrorScaleX = RSUniRenderThread::GetCaptureParam().scaleX_;
-    float mirrorScaleY = RSUniRenderThread::GetCaptureParam().scaleY_;
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, isMirror, mirrorScaleX, mirrorScaleY);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, true,
+        RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
 
     CheckCacheTypeAndDraw(canvas, *params);
 }

@@ -1099,11 +1099,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.zOrder = GetGlobalZOrder();
     layer.gravity = static_cast<int32_t>(properties.GetFrameGravity());
     layer.blendType = GetBlendType();
-    layer.matrix = GraphicMatrix {totalMatrix_.Get(Drawing::Matrix::Index::SCALE_X),
-        totalMatrix_.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix_.Get(Drawing::Matrix::Index::TRANS_X),
-        totalMatrix_.Get(Drawing::Matrix::Index::SKEW_Y), totalMatrix_.Get(Drawing::Matrix::Index::SCALE_Y),
-        totalMatrix_.Get(Drawing::Matrix::Index::TRANS_Y), totalMatrix_.Get(Drawing::Matrix::Index::PERSP_0),
-        totalMatrix_.Get(Drawing::Matrix::Index::PERSP_1), totalMatrix_.Get(Drawing::Matrix::Index::PERSP_2)};
+    layer.matrix = totalMatrix_;
     RS_LOGD("RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: node: %{public}s-%{public}" PRIu64 ","
         " src: %{public}s, dst: %{public}s, bounds: [%{public}d, %{public}d]"
         " transform: %{public}d, zOrder: %{public}d, cur: %{public}d, last: %{public}d",

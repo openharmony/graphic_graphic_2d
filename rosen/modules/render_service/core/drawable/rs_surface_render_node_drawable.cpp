@@ -292,7 +292,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         RSUniRenderThread::GetCaptureParam().isFirstNode_ = false;
     } else {
-        surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
+        surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas, true,
+            RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
     }
 
     if (isSelfDrawingSurface) {
@@ -359,7 +360,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
         canvas.Save();
     }
 
-    surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
+    surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas, true,
+        RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
@@ -387,6 +389,16 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
         }
         return;
     }
+
+    RSAutoCanvasRestore arc(&canvas);
+    // Hwc nodes need to use LayerMatrix(totalMatrix) when doing capturing
+    if (RSUniRenderThread::GetCaptureParam().isInCaptureFlag_ &&
+        surfaceParams.GetHardwareEnabled()) {
+        auto matrix = surfaceParams.GetLayerInfo().matrix;
+        matrix.PostScale(RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
+        canvas.SetMatrix(matrix);
+    }
+    
     surfaceNode.SetGlobalAlpha(1.0f); // TO-DO
     int threadIndex = 0;
     auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadIndex, true);
