@@ -282,10 +282,8 @@ public:
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
-    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
-        const std::optional<Drawing::Rect>& clipRect);
-    bool UpdateGeometryByParent(const std::shared_ptr<RSRenderNode>& parent,
-        bool needParentOffset, const std::optional<Drawing::Rect>& clipRect);
+    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset);
+    bool UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
     RectF GetLocalBoundsAndFramesRect() const;
     RectF GetBoundsRect() const;
 

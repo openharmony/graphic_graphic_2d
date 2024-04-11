@@ -234,14 +234,13 @@ public:
     const RectI& GetAbsDrawRect() const;
 
     void ResetChangeState();
-    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager,
-        const std::shared_ptr<RSRenderNode>& parent, bool accumGeoDirty, const RectI& clipRect);
+    bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
 
-    bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
-        bool parentDirty, std::optional<RectI> clipRect = std::nullopt);
+    bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
+        std::optional<RectI> clipRect = std::nullopt);
     virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
 
     RSProperties& GetMutableRenderProperties();
@@ -689,9 +688,8 @@ private:
     void UpdateBufferDirtyRegion();
     void UpdateSelfDrawRect();
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
-    void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, std::optional<RectI> clipRect = std::nullopt);
-
-    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
+    void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
+    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage

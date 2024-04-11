@@ -538,6 +538,7 @@ void RSDisplayRenderNodeDrawable::ProcessVirtualScreen(RSDisplayRenderNode& disp
         float mirrorScaleX = mirroredProcessor->GetMirrorScaleX();
         float mirrorScaleY = mirroredProcessor->GetMirrorScaleY();
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, true, mirrorScaleX, mirrorScaleY));
+        RSRenderParams::parentSurfaceMatrix_ = curCanvas_->GetTotalMatrix();
         mirroredNodeDrawable->OnCapture(*curCanvas_);
         RSUniRenderThread::ResetCaptureParam();
         curCanvas_->RestoreToCount(saveCount);

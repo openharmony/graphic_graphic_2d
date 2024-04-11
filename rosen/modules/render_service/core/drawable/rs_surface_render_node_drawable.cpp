@@ -175,6 +175,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
+    RSRenderParams::parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
@@ -283,9 +284,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         RSUniRenderThread::GetCaptureParam().isFirstNode_ = false;
     } else {
-        surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas, true,
-            RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
+        surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
     }
+    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
@@ -351,12 +352,12 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
         canvas.Save();
     }
 
-    surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas, true,
-        RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
+    surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
     }
+    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);

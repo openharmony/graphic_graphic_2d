@@ -35,8 +35,7 @@ public:
     RSObjAbsGeometry();
     ~RSObjAbsGeometry() override;
     void ConcatMatrix(const Drawing::Matrix& matrix);
-    void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, const std::optional<Drawing::Point>& offset,
-        const std::optional<Drawing::Rect>& clipRect);
+    void UpdateMatrix(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
 
     // Using by RenderService
     void UpdateByMatrixFromSelf();
@@ -66,7 +65,7 @@ private:
 
     RectI absRect_;
     Drawing::Matrix matrix_;
-    std::optional<Drawing::Matrix> absMatrix_;
+    Drawing::Matrix absMatrix_;
     std::optional<Drawing::Matrix> contextMatrix_;
 };
 } // namespace Rosen
