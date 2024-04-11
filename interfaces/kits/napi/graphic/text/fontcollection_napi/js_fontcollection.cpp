@@ -125,7 +125,7 @@ bool JsFontCollection::SpiltAbsoluteFontPath(std::string& absolutePath)
     std::string head = absolutePath.substr(0, iter);
     if ((head == "file" && absolutePath.size() > FILE_HEAD_LENGTH)) {
         absolutePath = absolutePath.substr(iter + 3);
-        // the file uri format is like "file://system/fonts...",
+        // the file format is like "file://system/fonts...",
         return true;
     }
     return false;
@@ -182,7 +182,7 @@ bool JsFontCollection::GetFontFileProperties(uint8_t* data, size_t& datalen, con
 
 bool JsFontCollection::AddTypefaceInformation(Drawing::Typeface& typeface, const std::string familyName)
 {
-    LOGE("LoadFontTrace: into AddTypefaceInformation");
+    LOGE("LoadFontTrace: into AddTypefaceInformation familyName=%s",familyName.c_str());
     std::shared_ptr<Drawing::Typeface> drawingTypeface(&typeface);
     std::string name = familyName;
     if (name.empty()) {
@@ -196,7 +196,7 @@ bool JsFontCollection::AddTypefaceInformation(Drawing::Typeface& typeface, const
             return false;
         }
     }
-    LOGE("LoadFontTrace:  AddTypefaceInformation Successed");
+    LOGE("LoadFontTrace: AddTypefaceInformation Successed");
     return true;
 }
 
@@ -220,8 +220,10 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_object) {
         ConvertFromJsValue(env, argv[1], familySrc);
-      //  napi_get_named_property(env, argv[1], "familySrc", &familySrcNApi);
+
     } else {
+        // Resource type data process center, not yet realized
+        //  napi_get_named_property(env, argv[1], "familySrc", &familySrcNApi);
         return nullptr;
     }
     LOGE("LoadFontTrace |Ready into SpiltAbsoluteFontPath  and FamilyStr= %s  familyName=%s",familySrc.c_str(),
@@ -238,8 +240,13 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         LOGE("LoadFontTrace UNVaild Font File");
         return nullptr;
     }
+    LOGE("LoadFontTrace | Success Test  Get Font File and datalen=%zu",rawdatalen);
     Drawing::Typeface* typeface = nullptr;
     typeface = m_fontCollection->LoadFont(familyName, rawData, rawdatalen);
+    if (!typeface) {
+        LOGE("LoadFontTrace No have typeface");        
+        return nullptr;
+    }
     if (!AddTypefaceInformation(*typeface, familyName)) {
         LOGE("LoadFontTrace AddTypefaceInformation false");
         return nullptr;
