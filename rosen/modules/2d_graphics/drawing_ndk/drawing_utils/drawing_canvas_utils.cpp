@@ -24,15 +24,21 @@ using namespace OHOS;
 using namespace Rosen;
 
 void DrawingCanvasUtils::DrawPixelMapRect(Drawing::Canvas* canvas, std::shared_ptr<Media::PixelMap> pixelMap,
-    const Drawing::Rect& src, const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling)
+    const Drawing::Rect* src, const Drawing::Rect* dst, const Drawing::SamplingOptions* sampling)
 {
 #ifdef OHOS_PLATFORM
+    if (!canvas || !pixelMap || !dst) {
+        return;
+    }
     if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
         ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(canvas);
-        canvas_->DrawPixelMapRect(pixelMap, src, dst, sampling);
+        canvas_->DrawPixelMapRect(pixelMap,
+            src ? *src : Drawing::Rect(0, 0, pixelMap->GetWidth(), pixelMap->GetHeight()),
+            *dst, sampling ? *sampling : Drawing::SamplingOptions());
         return;
     }
     std::shared_ptr<Drawing::Image> image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
-    canvas->DrawImageRect(*image, src, dst, sampling);
+    canvas->DrawImageRect(*image, src ? *src : Drawing::Rect(0, 0, pixelMap->GetWidth(), pixelMap->GetHeight()),
+        *dst, sampling ? *sampling : Drawing::SamplingOptions());
 #endif
 }

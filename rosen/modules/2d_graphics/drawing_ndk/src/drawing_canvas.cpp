@@ -383,7 +383,8 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
 #ifdef OHOS_PLATFORM
     DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas),
         Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap)),
-        CastToRect(*src), CastToRect(*dst), CastToSamplingOptions(*cSampingOptions));
+        reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
+        reinterpret_cast<const Drawing::SamplingOptions*>(cSampingOptions));
 #endif
 }
 
