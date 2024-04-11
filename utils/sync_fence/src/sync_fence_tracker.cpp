@@ -92,7 +92,7 @@ inline int32_t SyncFenceTracker::GetValue(const std::string& fileName)
     return parseVal;
 }
 
-void SyncFenceTracker::ReportEventGpuhealth(int32_t duration)
+void SyncFenceTracker::ReportEventGpuSubhealth(int32_t duration)
 {
     auto reportName = "GPU_SUBHEALTH_MONITORING";
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventGpuSubhealth");
