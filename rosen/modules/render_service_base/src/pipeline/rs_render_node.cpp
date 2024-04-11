@@ -917,8 +917,6 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     if (!shouldPaint_ || isOccluded) {
         UpdateChildrenOutOfRectFlag(false); // not need to consider
         // when subTreeOccluded, need to applymodifiers to node's children
-        // [planning] this can be optimized not need to prepareChildren
-        PrepareChildrenForApplyModifiers();
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
             GetId(), shouldPaint_, isOccluded);
         return false;

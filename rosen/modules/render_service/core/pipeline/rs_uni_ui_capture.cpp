@@ -221,10 +221,8 @@ void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<ExtendRecordingCanvas> c
 {
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
-        if (!node->IsOnTheTree()) {
-            node->ApplyModifiers();
-            node->Prepare(visitor);
-        }
+        node->ApplyModifiers();
+        node->PrepareChildrenForApplyModifiers();
         node->Process(visitor);
     };
     RSMainThread::Instance()->PostSyncTask(recordingDrawCall);
