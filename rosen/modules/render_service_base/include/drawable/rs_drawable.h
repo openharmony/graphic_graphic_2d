@@ -88,15 +88,18 @@ enum class RSDrawableSlot : int8_t {
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.
-    // NOTE: MAX and *_END enums are using the one-past-the-end style.
     BG_PROPERTIES_BEGIN      = BLEND_MODE,
-    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY + 1,
-    CONTENT_PROPERTIES_BEGIN = FRAME_OFFSET,
-    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
+    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY,
+    CONTENT_TRANSFORM_BEGIN  = FRAME_OFFSET,
+    CONTENT_TRANSFORM_END    = CLIP_TO_FRAME,
+    CONTENT_PROPERTIES_BEGIN = CONTENT_STYLE,
+    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE,
     FG_PROPERTIES_BEGIN      = BINARIZATION,
-    FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
-    MIN                      = SAVE_ALL,
-    MAX                      = RESTORE_ALL + 1,
+    FG_PROPERTIES_END        = FOREGROUND_COLOR,
+    EXTRA_PROPERTIES_BEGIN   = POINT_LIGHT,
+    EXTRA_PROPERTIES_END     = PIXEL_STRETCH,
+
+    MAX = RESTORE_ALL + 1,
 };
 
 // pure virtual base class

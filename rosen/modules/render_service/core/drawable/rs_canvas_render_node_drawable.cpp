@@ -42,28 +42,24 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    if (renderNode_->IsCmdListEmpty()) { // skip empty RenderNode
+    if (!ShouldPaint()) {
         return;
     }
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        RS_LOGE("params is nullptr");
-        return;
-    }
-    if (!params->GetShouldPaint()) {
-        return;
-    }
+    const auto& params = renderNode_->GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
-        RS_LOGD("CanvasNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
         return;
     }
 
-    GenerateCacheIfNeed(canvas, *params);
-    CheckCacheTypeAndDraw(canvas, *params);
+    if (LIKELY(isDrawingCacheEnabled_)) {
+        GenerateCacheIfNeed(canvas, *params);
+        CheckCacheTypeAndDraw(canvas, *params);
+    } else {
+        RSRenderNodeDrawable::OnDraw(canvas);
+    }
     RSRenderNodeDrawable::ProcessedNodeCountInc();
 }
 
@@ -72,21 +68,19 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
  */
 void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    if (renderNode_->IsCmdListEmpty()) { // skip empty RenderNode
+    if (!ShouldPaint()) {
         return;
     }
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        return;
-    }
-    if (!params->GetShouldPaint()) {
-        return;
-    }
+    const auto& params = renderNode_->GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, true,
         RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
 
-    CheckCacheTypeAndDraw(canvas, *params);
+    if (LIKELY(isDrawingCacheEnabled_)) {
+        CheckCacheTypeAndDraw(canvas, *params);
+    } else {
+        RSRenderNodeDrawable::OnDraw(canvas);
+    }
 }
 } // namespace OHOS::Rosen::DrawableV2

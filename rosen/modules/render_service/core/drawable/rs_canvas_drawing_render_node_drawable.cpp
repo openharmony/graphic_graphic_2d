@@ -52,22 +52,17 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        RS_LOGE("Failed to draw canvas drawing node, params is null!");
+    if (!ShouldPaint()) {
         return;
     }
+    const auto& params = renderNode_->GetRenderParams();
 
-    if (!params->GetShouldPaint()) {
-        return;
-    }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
 
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if ((!uniParam || uniParam->IsOpDropped()) &&  QuickReject(canvas, params->GetLocalDrawRect())) {
-        RS_LOGD("CanvasDrawingNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
+    if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
         return;
     }
 
@@ -123,7 +118,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
     DrawContent(*canvas_, rect);
 
     Rosen::Drawing::Matrix mat;
-    auto& params = renderNode_->GetRenderParams();
+    const auto& params = renderNode_->GetRenderParams();
     auto& frameRect = params->GetFrameRect();
     if (RSPropertiesPainter::GetGravityMatrix(params->GetFrameGravity(),
         { frameRect.GetLeft(), frameRect.GetTop(), frameRect.GetWidth(), frameRect.GetHeight() },

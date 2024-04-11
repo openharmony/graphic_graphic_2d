@@ -545,7 +545,6 @@ public:
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
     const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const;
 
-    void SetNeedSyncFlag(bool needSync);
     void UpdatePointLightDirtySlot();
     void SetUifirstSyncFlag(bool needSync);
     void SetUifirstSkipPartialSync(bool skip)
@@ -568,11 +567,6 @@ public:
     }
 
     void SetOccludedStatus(bool occluded);
-
-    bool IsCmdListEmpty() const
-    {
-        return isDrawCmdListEmpty_;
-    }
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -824,7 +818,6 @@ private:
     };
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
-    bool isDrawCmdListEmpty_ = true; // access by render thread only
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
     DrawCmdIndex uifirstDrawCmdIndex_;

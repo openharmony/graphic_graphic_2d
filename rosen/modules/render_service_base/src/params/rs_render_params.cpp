@@ -49,12 +49,14 @@ const Drawing::Matrix& RSRenderParams::GetMatrix() const
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool needScale,
     float scaleX, float scaleY) const
 {
-    if (HasSandBox()) {
-        Drawing::Matrix matrix = matrix_;
+    if (UNLIKELY(HasSandBox())) {
         if (needScale) {
+            Drawing::Matrix matrix = matrix_;
             matrix.PostScale(scaleX, scaleY);
+            canvas.SetMatrix(matrix);
+        } else {
+            canvas.SetMatrix(matrix_);
         }
-        canvas.SetMatrix(matrix);
         canvas.SetAlpha(alpha_);
     } else {
         canvas.ConcatMatrix(matrix_);
@@ -129,9 +131,18 @@ void RSRenderParams::SetShouldPaint(bool shouldPaint)
     needSync_ = true;
 }
 
+void RSRenderParams::SetContentEmpty(bool empty)
+{
+    if (contentEmpty_ == empty) {
+        return;
+    }
+    contentEmpty_ = empty;
+    needSync_ = true;
+}
+
 bool RSRenderParams::GetShouldPaint() const
 {
-    return shouldPaint_;
+    return shouldPaint_ && !contentEmpty_;
 }
 
 void RSRenderParams::SetChildHasVisibleFilter(bool val)
@@ -261,12 +272,13 @@ bool RSRenderParams::NeedSync() const
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     target->alpha_ = alpha_;
-    target->SetMatrix(matrix_);
-    target->SetBoundsRect(boundsRect_);
-    target->SetFrameRect(frameRect_);
+    target->matrix_ = matrix_;
+    target->boundsRect_ = boundsRect_;
+    target->frameRect_ = frameRect_;
     target->shouldPaint_ = shouldPaint_;
+    target->contentEmpty_ = contentEmpty_;
     target->hasSandBox_ = hasSandBox_;
-    target->SetLocalDrawRect(localDrawRect_);
+    target->localDrawRect_ = localDrawRect_;
     target->id_ = id_;
     target->cacheSize_ = cacheSize_;
     target->frameGravity_ = frameGravity_;
@@ -275,7 +287,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheType_ = drawingCacheType_;
-    target->SetDirtyRegionInfoForDFX(dirtyRegionInfoForDFX_);
+    target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
 
     needSync_ = false;
 }

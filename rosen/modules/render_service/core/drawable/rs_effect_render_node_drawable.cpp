@@ -33,19 +33,18 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        RS_LOGE("params is nullptr");
+    if (!ShouldPaint()) {
         return;
     }
+
+    RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
+    const auto& params = renderNode_->GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
 
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
-        RS_LOGD("EffectNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
         return;
     }
     RSRenderNodeDrawable::OnDraw(canvas);
@@ -53,12 +52,12 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
 void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    RS_LOGD("RSEffectRenderNodeDrawable::OnCapture node: %{public}" PRIu64, renderNode_->GetId());
-    auto& params = renderNode_->GetRenderParams();
-    if (!params) {
-        RS_LOGE("params is nullptr");
+    if (!ShouldPaint()) {
         return;
     }
+
+    RS_LOGD("RSEffectRenderNodeDrawable::OnCapture node: %{public}" PRIu64, renderNode_->GetId());
+    const auto& params = renderNode_->GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);

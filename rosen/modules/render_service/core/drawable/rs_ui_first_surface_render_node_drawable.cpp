@@ -488,11 +488,7 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas)
 {
-    auto& params = GetRenderNode()->GetRenderParams();
-    if (!params) {
-        RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
-        return false;
-    }
+    const auto& params = GetRenderNode()->GetRenderParams();
 
     if (!HasCachedTexture()) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params->GetId());

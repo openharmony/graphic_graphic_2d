@@ -1784,12 +1784,6 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
 }
 
-void RSRenderNode::SetNeedSyncFlag(bool needSync)
-{
-    drawCmdListNeedSync_ = needSync;
-}
-
-
 void RSRenderNode::SetUifirstSyncFlag(bool needSync)
 {
     uifirstNeedSync_ = needSync;
@@ -2031,44 +2025,68 @@ void RSRenderNode::UpdateShadowRect()
 void RSRenderNode::UpdateDisplayList()
 {
 #ifndef ROSEN_ARKUI_X
-    stagingDrawCmdList_.clear();
+    // Planning: use the mask from DrawableVecStatus in rs_drawable.cpp
+    constexpr auto BG_BOUNDS_PROPERTY = 1 << 1;
+    constexpr auto FG_BOUNDS_PROPERTY = 1 << 2;
+    constexpr auto FRAME_PROPERTY = 1 << 4;
+    constexpr auto EXTRA_PROPERTY = 1 << 5;
+    constexpr auto CONTENT_MASK = BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY | FRAME_PROPERTY | EXTRA_PROPERTY;
 
-    // Note: the loop range is [begin, end).
-    auto UpdateDrawableRange = [&](RSDrawableSlot begin, RSDrawableSlot end) -> void {
+    stagingDrawCmdList_.clear();
+    drawCmdListNeedSync_ = true;
+
+    if ((drawableVecStatus_ & CONTENT_MASK) == 0) {
+        // Nothing to draw
+        stagingRenderParams_->SetContentEmpty(true);
+        return;
+    }
+
+    // Note: the loop range is [begin, end], both end is included.
+    auto AppendDrawFunc = [&](RSDrawableSlot begin, RSDrawableSlot end) -> int8_t {
         auto beginIndex = static_cast<int8_t>(begin);
         auto endIndex = static_cast<int8_t>(end);
-        for (int8_t i = beginIndex; i < endIndex; ++i) {
+        for (int8_t i = beginIndex; i <= endIndex; ++i) {
             if (const auto& drawable = drawableVec_[i]) {
                 stagingDrawCmdList_.emplace_back(drawable->CreateDrawFunc());
             }
         }
+        // If the last drawable exist, return its index, otherwise return -1
+        return drawableVec_[endIndex] != nullptr ? stagingDrawCmdList_.size() - 1 : -1;
     };
-    // Convert drawableVec_ to drawable func vector, and record index for important drawables
-    UpdateDrawableRange(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::SHADOW);
-    stagingDrawCmdIndex_.shadowIndex_ =
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::SHADOW)] != nullptr ? stagingDrawCmdList_.size() : -1;
 
-    UpdateDrawableRange(RSDrawableSlot::SHADOW, RSDrawableSlot::USE_EFFECT);
-    stagingDrawCmdIndex_.useEffectIndex_ =
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::USE_EFFECT)] != nullptr ? stagingDrawCmdList_.size() : -1;
+    // Update index of SHADOW
+    stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::SHADOW);
+
+    // Update index of BACKGROUND_FILTER
     stagingDrawCmdIndex_.backgroundFilterIndex_ =
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER)] != nullptr ?
-        stagingDrawCmdList_.size() - 1 : -1;
+        AppendDrawFunc(RSDrawableSlot::OUTLINE, RSDrawableSlot::BACKGROUND_FILTER);
 
-    UpdateDrawableRange(RSDrawableSlot::USE_EFFECT, RSDrawableSlot::CONTENT_STYLE);
-    stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
-    stagingDrawCmdIndex_.contentIndex_ =
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] != nullptr ? stagingDrawCmdList_.size() : -1;
+    // Update index of USE_EFFECT
+    stagingDrawCmdIndex_.useEffectIndex_ = AppendDrawFunc(RSDrawableSlot::USE_EFFECT, RSDrawableSlot::USE_EFFECT);
 
-    UpdateDrawableRange(RSDrawableSlot::CONTENT_STYLE, RSDrawableSlot::FOREGROUND_STYLE);
-    stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
-    stagingDrawCmdIndex_.childrenIndex_ =
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] != nullptr ? stagingDrawCmdList_.size() - 1 : -1;
+    AppendDrawFunc(RSDrawableSlot::BACKGROUND_STYLE, RSDrawableSlot::BG_RESTORE_BOUNDS);
 
-    UpdateDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::MAX);
+    if (drawableVecStatus_ & FRAME_PROPERTY) {
+        // Update index of CONTENT_STYLE
+        stagingDrawCmdIndex_.contentIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_FRAME, RSDrawableSlot::CONTENT_STYLE);
+        stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
+
+        // Update index of CHILDREN
+        stagingDrawCmdIndex_.childrenIndex_ = AppendDrawFunc(RSDrawableSlot::CHILDREN, RSDrawableSlot::CHILDREN);
+        stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+
+        AppendDrawFunc(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::RESTORE_FRAME);
+    } else {
+        // Nothing inside frame, skip useless slots and update indexes
+        stagingDrawCmdIndex_.contentIndex_ = -1;
+        stagingDrawCmdIndex_.childrenIndex_ = -1;
+        stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
+        stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+    }
+
+    AppendDrawFunc(RSDrawableSlot::FG_SAVE_BOUNDS, RSDrawableSlot::RESTORE_ALL);
     stagingDrawCmdIndex_.endIndex_ = stagingDrawCmdList_.size();
-
-    drawCmdListNeedSync_ = true;
+    stagingRenderParams_->SetContentEmpty(false);
 #endif
 }
 
@@ -2108,8 +2126,7 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
 
     // remove all modifiers added by given pid (by matching higher 32 bits of node id)
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
-        modifiers.remove_if(
-            [pid](const auto& it) -> bool { return ExtractPid(it->GetPropertyId()) == pid; });
+        modifiers.remove_if([pid](const auto& it) -> bool { return ExtractPid(it->GetPropertyId()) == pid; });
     }
 }
 
@@ -2123,7 +2140,7 @@ void RSRenderNode::UpdateShouldPaint()
     // node should be painted if either it is visible or it has disappearing transition animation, but only when its
     // alpha is not zero
     shouldPaint_ = (GetRenderProperties().GetAlpha() > 0.0f) &&
-        (GetRenderProperties().GetVisible() || HasDisappearingTransition(false));
+                   (GetRenderProperties().GetVisible() || HasDisappearingTransition(false));
     if (!shouldPaint_) { // force clear blur cache
         MarkForceClearFilterCacheWhenWithInvisible();
     }
@@ -3500,7 +3517,6 @@ void RSRenderNode::OnSync()
 
     if (drawCmdListNeedSync_) {
         std::swap(stagingDrawCmdList_, drawCmdList_);
-        isDrawCmdListEmpty_ = drawCmdList_.empty();
         stagingDrawCmdList_.clear();
         drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;

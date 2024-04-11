@@ -103,8 +103,7 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRen
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    if (!renderNode_) {
-        RS_LOGE("There is no CanvasNode in RSSurfaceRenderNodeDrawable");
+    if (!ShouldPaint()) {
         return;
     }
 
@@ -117,10 +116,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-    if (!surfaceParams) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
-        return;
-    }
+
     bool isuifirstNode = rscanvas->GetIsParallelCanvas();
     if (!isuifirstNode && surfaceParams->GetOccludedByFilterCache()) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] Id:%" PRIu64 "",
@@ -239,18 +235,13 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    if (!renderNode_) {
-        RS_LOGE("There is no SurfaceRender in RSSurfaceRenderNodeDrawable");
+    if (!ShouldPaint()) {
         return;
     }
 
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-    if (!surfaceParams) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
-        return;
-    }
 
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
