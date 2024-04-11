@@ -18,7 +18,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -85,9 +84,6 @@ void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params)
 {
     // check if drawing cache enabled
-    if (!isDrawingCacheEnabled_) {
-        return;
-    }
     if (params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw id:%llu cacheType:%d cacheChanged:%d"
                                    " size:[%.2f, %.2f] ChildHasVisibleFilter:%d ChildHasVisibleEffect:%d"
@@ -138,11 +134,6 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (!isDrawingCacheEnabled_) {
-        RSRenderNodeDrawable::OnDraw(canvas);
-        return;
-    }
-
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         // traverse children to draw filter/shadow/effect

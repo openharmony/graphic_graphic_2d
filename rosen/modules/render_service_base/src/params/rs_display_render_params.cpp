@@ -51,7 +51,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         RS_LOGE("RSDisplayRenderParams::OnSync targetDisplayParams is nullptr");
         return;
     }
-    targetDisplayParams->SetAllMainAndLeashSurfaces(allMainAndLeashSurfaces_);
+    targetDisplayParams->allMainAndLeashSurfaces_ = allMainAndLeashSurfaces_;
     targetDisplayParams->displayHasSecSurface_ = displayHasSecSurface_;
     targetDisplayParams->displayHasSkipSurface_ = displayHasSkipSurface_;
     targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;

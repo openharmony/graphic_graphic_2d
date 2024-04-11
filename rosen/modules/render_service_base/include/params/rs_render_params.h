@@ -64,6 +64,7 @@ public:
 
     bool GetShouldPaint() const;
     void SetShouldPaint(bool shouldPaint);
+    void SetContentEmpty(bool empty);
 
     bool NeedSync() const;
     void SetNeedSync(bool needSync);
@@ -142,6 +143,7 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool shouldPaint_ = false;
+    bool contentEmpty_  = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;

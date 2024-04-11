@@ -198,11 +198,11 @@ enum DrawableVecStatus : uint8_t {
     CLIP_TO_BOUNDS     = 1 << 0,
     BG_BOUNDS_PROPERTY = 1 << 1,
     FG_BOUNDS_PROPERTY = 1 << 2,
-    CLIP_TO_FRAME      = 1 << 3,
+    FRAME_TRANSFORM    = 1 << 3,
     FRAME_PROPERTY     = 1 << 4,
     HAVE_ENV_CHANGE    = 1 << 5,
     BOUNDS_MASK        = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
-    FRAME_MASK         = CLIP_TO_FRAME | FRAME_PROPERTY,
+    FRAME_MASK         = FRAME_TRANSFORM | FRAME_PROPERTY,
     OTHER_MASK         = HAVE_ENV_CHANGE,
 };
 
@@ -223,9 +223,6 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE)) {
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
-    if (properties.GetClipToFrame()) {
-        result |= DrawableVecStatus::CLIP_TO_FRAME;
-    }
 
     if (HasPropertyDrawableInRange(
         drawableVec, RSDrawableSlot::BG_PROPERTIES_BEGIN, RSDrawableSlot::BG_PROPERTIES_END)) {
@@ -236,9 +233,12 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         result |= DrawableVecStatus::FG_BOUNDS_PROPERTY;
     }
 
-    // If we have any frame properties EXCEPT children
-    if (HasPropertyDrawableInRange(drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CHILDREN) ||
-        drawableVec[static_cast<size_t>(RSDrawableSlot::FOREGROUND_STYLE)]) {
+    if (HasPropertyDrawableInRange(
+            drawableVec, RSDrawableSlot::CONTENT_TRANSFORM_BEGIN, RSDrawableSlot::CONTENT_TRANSFORM_END)) {
+        result |= DrawableVecStatus::FRAME_TRANSFORM;
+    }
+    if (HasPropertyDrawableInRange(
+            drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CONTENT_PROPERTIES_END)) {
         result |= DrawableVecStatus::FRAME_PROPERTY;
     }
 
@@ -345,9 +345,7 @@ static void OptimizeFrameSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawab
         drawableVec[static_cast<size_t>(slot)] = nullptr;
     }
 
-    // PLANNING: if both clipToFrame and clipToBounds are set, and frame == bounds, we don't need an extra clip
-    if (flags & DrawableVecStatus::FRAME_PROPERTY) {
-        // if we
+    if (flags & DrawableVecStatus::FRAME_TRANSFORM) {
         SaveRestoreHelper(
             drawableVec, RSDrawableSlot::SAVE_FRAME, RSDrawableSlot::RESTORE_FRAME, RSPaintFilterCanvas::kCanvas);
     }

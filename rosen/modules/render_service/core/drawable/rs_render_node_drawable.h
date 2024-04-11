@@ -19,12 +19,13 @@
 #include <memory>
 #include <vector>
 
-#include "draw/canvas.h"
-#include "drawable/rs_render_node_drawable_adapter.h"
-#include "draw/surface.h"
-#include "image/gpu_context.h"
 #include "common/rs_common_def.h"
-#include "modifier/rs_render_modifier.h"
+#include "draw/canvas.h"
+#include "draw/surface.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
+#include "image/gpu_context.h"
+#include "pipeline/rs_render_node.h"
+
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"
 #endif
@@ -50,15 +51,22 @@ public:
     virtual void OnDraw(Drawing::Canvas& canvas);
     virtual void OnCapture(Drawing::Canvas& canvas);
 
-    std::shared_ptr<const RSRenderNode> GetRenderNode()
+    inline std::shared_ptr<const RSRenderNode> GetRenderNode()
     {
         return renderNode_;
     }
 
-    bool GetOpDropped() const
+    inline bool GetOpDropped() const
     {
         return isOpDropped_;
     }
+
+    inline bool ShouldPaint() const
+    {
+        const auto& params = renderNode_->GetRenderParams();
+        return LIKELY(params != nullptr) && params->GetShouldPaint();
+    }
+
 protected:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;

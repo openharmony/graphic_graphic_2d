@@ -37,7 +37,7 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
         return;
     }
 
-    auto& params = renderNode_->GetRenderParams();
+    const auto& params = renderNode_->GetRenderParams();
     if (!params) {
         RS_LOGE("params is nullptr");
         return;
@@ -50,7 +50,6 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
-        RS_LOGD("CanvasNode[%{public}" PRIu64 "] have no intersect with canvas's clipRegion", params->GetId());
         return;
     }
 
