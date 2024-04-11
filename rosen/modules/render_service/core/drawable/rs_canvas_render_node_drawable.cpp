@@ -74,8 +74,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     const auto& params = renderNode_->GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, true,
-        RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
 
     if (LIKELY(isDrawingCacheEnabled_)) {
         CheckCacheTypeAndDraw(canvas, *params);

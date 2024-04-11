@@ -1268,9 +1268,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
 
         const Drawing::Matrix* parentMatrix = nullptr;
         std::optional<Drawing::Point> offset;
-        if (sharedTransitionParam_ && properties.GetSandBox()) {
-            auto parent = GetInstanceRootNode();
-            parentMatrix = parent ? &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) : nullptr;
+        if (properties.GetSandBox()) {
             offset = Drawing::Point { properties.GetSandBox()->x_, properties.GetSandBox()->y_ };
         } else {
             parentMatrix = parent ? &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) : nullptr;

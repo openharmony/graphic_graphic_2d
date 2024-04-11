@@ -20,6 +20,8 @@
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
+Drawing::Matrix RSRenderParams::parentSurfaceMatrix_;
+
 void RSRenderParams::SetAlpha(float alpha)
 {
     if (alpha_ == alpha) {
@@ -46,17 +48,11 @@ const Drawing::Matrix& RSRenderParams::GetMatrix() const
     return matrix_;
 }
 
-void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool needScale,
-    float scaleX, float scaleY) const
+void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const
 {
     if (UNLIKELY(HasSandBox())) {
-        if (needScale) {
-            Drawing::Matrix matrix = matrix_;
-            matrix.PostScale(scaleX, scaleY);
-            canvas.SetMatrix(matrix);
-        } else {
-            canvas.SetMatrix(matrix_);
-        }
+        canvas.SetMatrix(parentSurfaceMatrix_);
+        canvas.ConcatMatrix(matrix_);
         canvas.SetAlpha(alpha_);
     } else {
         canvas.ConcatMatrix(matrix_);

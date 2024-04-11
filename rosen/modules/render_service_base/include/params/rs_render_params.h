@@ -46,8 +46,7 @@ public:
     void SetMatrix(const Drawing::Matrix& matrix);
     const Drawing::Matrix& GetMatrix() const;
 
-    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool needScale = false,
-        float scaleX = 1.0f, float scaleY = 1.0f) const;
+    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
 
     void SetBoundsRect(const Drawing::RectF& boundsRect);
     const Drawing::Rect& GetBounds() const;
@@ -121,6 +120,8 @@ public:
 
     // dfx
     virtual std::string ToString() const;
+
+    static Drawing::Matrix parentSurfaceMatrix_;
 
 protected:
     bool needSync_ = false;
