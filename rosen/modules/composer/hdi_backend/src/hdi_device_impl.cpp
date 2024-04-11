@@ -112,6 +112,8 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
 {
     CHECK_FUNC(g_composer);
     DisplayCapability hdiInfo;
+    uint32_t propertyId = DisplayPropertyID::DISPLAY_PROPERTY_ID_SKIP_VALIDATE;
+    uint64_t propertyValue;
     int32_t ret = g_composer->GetDisplayCapability(screenId, hdiInfo);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         info.name = hdiInfo.name;
@@ -133,6 +135,8 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
             info.props.emplace_back(graphicProperty);
         }
     }
+
+    ret = g_composer->GetDisplayProperty(screenId, propertyId, propertyValue);
     return ret;
 }
 
@@ -391,6 +395,35 @@ int32_t HdiDeviceImpl::Commit(uint32_t screenId, sptr<SyncFence> &fence)
         fence = new SyncFence(-1);
     }
 
+    return ret;
+}
+
+int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence,
+    int32_t &skipState, bool &needFlush, std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences)
+{
+    ScopedBytrace bytrace(__func__);
+    CHECK_FUNC(g_composer);
+    int32_t fenceFd = -1;
+    std::vector<int32_t>fenceFds;
+    
+    int32_t ret = g_composer->CommitAndGetReleaseFence(screenId, fenceFd, skipState, needFlush, layers, fenceFds);
+
+    if (skipState == 0 || fenceFd >= 0) {
+        fence = new SyncFence(fenceFd);
+    } else {
+        fence =new SyncFence(-1);
+    }
+
+    size_t fencesNum = fenceFds.size();
+    fences.resize(fencesNum);
+    for(size_t i = 0; i < fencesNum; i++) {
+        if(fenceFds[i] >= 0) {
+            fences[i] = new SyncFence(fenceFds[i]);
+        } else {
+            fences[i] = new SyncFence(-1);
+        }
+
+    }
     return ret;
 }
 /* set & get device screen info end */

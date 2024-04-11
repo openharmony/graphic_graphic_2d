@@ -128,20 +128,32 @@ void HdiBackend::Repaint(const OutputPtr &output)
     }
 
     bool needFlush = false;
-    int32_t ret = output->PreProcessLayersComp(needFlush);
+    int32_t skipState = INT32_MAX;
+    std::vector<uint32_t> layers;
+    std::vector<sptr<SyncFence>> fences;
+    int32_t ret = output->PreProcessLayersComp();
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         return;
     }
 
-    ret = PrepareCompleteIfNeed(output, needFlush);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        return;
-    }
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
-    ret = output->Commit(fbFence);
+    ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, layers, fences);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("commit failed, ret is %{public}d", ret);
-        // return
+        HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
+    }
+
+    if (skipState != GRAPHIC_DISPLAY_SUCCESS) {
+        output->UpdateLayerCompType();
+        ret = PrepareCompleteIfNeed(output, needFlush);
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            return;
+        }
+
+        ret = output->Commit(fbFence);
+        HLOGD("%{public}s: ValidateDisplay", __func__);
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("second commit failed, ret is %{public}d", ret);
+        }
     }
 
     if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {

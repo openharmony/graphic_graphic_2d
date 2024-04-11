@@ -254,6 +254,24 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer002, Function | MediumTest | Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->ClearFrameBuffer(), GSERROR_INVALID_OPERATING);
 }
+
+/*
+* Function: CommitAndGetReleaseFence001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call CommitAndGetReleaseFence()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Level1)
+{
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    int32_t skipState = 0;
+    bool needFlush = false;
+	std::vector<uint32_t> layers;
+    std::vector<sptr<SyncFence>> fences;
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, layers, fences), ROSEN_ERROR_NOT_INIT);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

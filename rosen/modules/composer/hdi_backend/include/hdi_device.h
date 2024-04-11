@@ -61,6 +61,7 @@ public:
     virtual int32_t GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapability &info) = 0;
     virtual int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys) = 0;
     virtual int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) = 0;
+    virtual int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState, bool &needFlush, std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences) = 0;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
