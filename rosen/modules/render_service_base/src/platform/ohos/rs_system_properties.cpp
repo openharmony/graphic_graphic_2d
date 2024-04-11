@@ -541,6 +541,14 @@ bool RSSystemProperties::GetUIFirstEnabled()
 #endif
 }
 
+bool RSSystemProperties::GetUIFirstForceEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.force.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     static bool openDebugTrace =
