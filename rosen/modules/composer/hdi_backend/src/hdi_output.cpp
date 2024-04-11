@@ -538,7 +538,7 @@ int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
     return ret;
 }
 
-void HdiOutput::ReleaseSurfaceBuffer()
+void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
 {
     auto releaseBuffer = [](sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence,
         sptr<IConsumerSurface> cSurface) -> void {
@@ -579,11 +579,14 @@ void HdiOutput::ReleaseSurfaceBuffer()
             auto preBuffer = layer->GetPreBuffer();
             auto consumer = layer->GetSurface();
             releaseBuffer(preBuffer, fence, consumer);
+            if (layer->GetUniRenderFlag()) {
+                releaseFence = fence;
+            }
         }
     }
 }
 
-void HdiOutput::ReleaseLayers()
+void HdiOutput::ReleaseLayers(sptr<SyncFence>& releaseFence)
 {
     auto layerPresentTimestamp = [](const LayerInfoPtr& layer, const sptr<IConsumerSurface>& cSurface) -> void {
         if (!layer->IsSupportedPresentTimestamp()) {
@@ -608,7 +611,7 @@ void HdiOutput::ReleaseLayers()
             layerPresentTimestamp(layer->GetLayerInfo(), layer->GetLayerInfo()->GetSurface());
         }
     }
-    ReleaseSurfaceBuffer();
+    ReleaseSurfaceBuffer(releaseFence);
 }
 
 std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()

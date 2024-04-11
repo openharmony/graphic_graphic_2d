@@ -85,6 +85,9 @@ private:
     HgmRefreshRates hgmRefreshRates_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
+    sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+
+    friend class RSUniRenderThread;
 };
 }
 #endif // RS_HARDWARE_THREAD_H

@@ -209,6 +209,7 @@ void RSUniRenderThread::Render()
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
+    std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
         if (!params->GetHardwareEnabled()) {
@@ -216,20 +217,27 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             if (preBuffer == nullptr) {
                 continue;
             }
-            auto releaseTask = [buffer = preBuffer, consumer = surfaceNode->GetConsumer()]() mutable {
-                auto ret = consumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
+            auto releaseTask = [buffer = preBuffer, consumer = surfaceNode->GetConsumer(),
+                useReleaseFence = params->GetLastFrameHardwareEnabled()]() mutable {
+                auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
+                    RSHardwareThread::Instance().releaseFence_ : SyncFence::INVALID_FENCE);
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }
             };
             preBuffer = nullptr;
-            if (params->GetLastFrameHardwareEnabled()) {
-                RSHardwareThread::Instance().PostTask(releaseTask);
-            } else {
-                releaseTask();
-            }
+            releaseTasks.emplace_back(releaseTask);
         }
     }
+    if (releaseTasks.empty()) {
+        return;
+    }
+    auto releaseBufferTask = [releaseTasks]() {
+        for (const auto& task : releaseTasks) {
+            task();
+        }
+    };
+    RSHardwareThread::Instance().PostTask(releaseBufferTask);
 }
 
 void RSUniRenderThread::ReleaseSurface()

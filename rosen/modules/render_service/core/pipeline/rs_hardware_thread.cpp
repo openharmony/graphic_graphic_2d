@@ -194,7 +194,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         if (output->IsDeviceValid()) {
             hdiBackend_->Repaint(output);
         }
-        output->ReleaseLayers();
+        output->ReleaseLayers(releaseFence_);
         RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
         // TO-DO
         RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();

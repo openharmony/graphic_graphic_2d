@@ -63,11 +63,12 @@ void RSUniRenderProcessor::PostProcess()
 void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    auto& layerInfo = params.GetLayerInfo();
+    auto& layerInfo = params.layerInfo_;
 
     layer->SetSurface(node.GetConsumer());
     layer->SetBuffer(layerInfo.buffer, layerInfo.acquireFence);
     layer->SetPreBuffer(layerInfo.preBuffer);
+    layerInfo.preBuffer = nullptr;
     layer->SetZorder(layerInfo.zOrder);
 
     GraphicLayerAlpha alpha;

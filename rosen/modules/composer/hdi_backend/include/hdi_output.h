@@ -90,7 +90,7 @@ public:
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
-    void ReleaseLayers();
+    void ReleaseLayers(sptr<SyncFence>& releaseFence);
 
 private:
     HdiDevice *device_ = nullptr;
@@ -120,7 +120,7 @@ private:
     void ResetLayerStatus();
     void ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
     void UpdatePrevLayerInfo();
-    void ReleaseSurfaceBuffer();
+    void ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence);
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);
