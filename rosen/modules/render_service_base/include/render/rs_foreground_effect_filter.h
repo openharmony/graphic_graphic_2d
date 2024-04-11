@@ -15,9 +15,10 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_FOREGROUND_EFFECT_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_FOREGROUND_EFFECT_FILTER_H
 
+#include <memory>
+
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
-#include <memory>
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {
@@ -63,6 +64,7 @@ private:
     static constexpr float DILATED_CONVOLUTION_LARGE_RADIUS = 4.6f;
     static constexpr int EXPAND_UNIT_NUM = 4;
     static constexpr int MOVE_UNIT_NUM = 2;
+    static constexpr float BLUR_RADIUS_LIMIT = 10000.0f;
 
     void MakeForegroundEffect();
     void ComputeParamter(int radius);

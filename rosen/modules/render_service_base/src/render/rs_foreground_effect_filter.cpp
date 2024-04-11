@@ -14,6 +14,7 @@
  */
 #include "render/rs_foreground_effect_filter.h"
 
+#include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "src/core/SkOpts.h"
@@ -77,7 +78,9 @@ void RSForegroundEffectFilter::ComputeParamter(int radius)
 {
     static constexpr int noiseFactor = 3; // 3 : smooth the radius change
     blurRadius_ = radius * 4 / noiseFactor * noiseFactor; // 4 : scale between gauss radius and kawase
-
+    if (blurRadius_ > BLUR_RADIUS_LIMIT) {
+        blurRadius_ = BLUR_RADIUS_LIMIT;
+    }
     AdjustRadiusAndScale();
     ComputePassesAndUnit();
 }
@@ -112,11 +115,16 @@ void RSForegroundEffectFilter::ComputePassesAndUnit()
         numberOfPasses_ = 1;
     }
     radiusByPasses_ = tmpRadius / numberOfPasses_;
-    unit_ = std::ceil(radiusByPasses_ * blurScale_);
+    int unitPadding = 1; // add padding to avoid expanded image is not large enough
+    unit_ = std::ceil(radiusByPasses_ * blurScale_) + unitPadding;
 }
 
 float RSForegroundEffectFilter::GetDirtyExtension()
 {
+    if (ROSEN_EQ(blurScale_, 0.0f)) {
+        ROSEN_LOGD("RSForegroundEffectFilter::GetDirtyExtension blurRadius is 0.0");
+        return 0.0f;
+    }
     return std::ceil(EXPAND_UNIT_NUM * unit_ * numberOfPasses_ * 1 / blurScale_);
 }
 
@@ -176,7 +184,11 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
 
     Drawing::Matrix blurMatrixInv;
     blurMatrixInv.Translate(-MOVE_UNIT_NUM * unit_ * numberOfPasses_, -MOVE_UNIT_NUM * unit_ * numberOfPasses_);
-    blurMatrixInv.PostScale(1/scaleW, 1/scaleH);
+    if (ROSEN_EQ(scaleW, 0.0f) || ROSEN_EQ(scaleH, 0.0f)) {
+        ROSEN_LOGD("RSForegroundEffectFilter scaleW or scaleH is 0");
+        return;
+    }
+    blurMatrixInv.PostScale(1 / scaleW, 1 / scaleH);
     const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*tmpBlur, Drawing::TileMode::DECAL,
         Drawing::TileMode::DECAL, linear, blurMatrixInv);
     Drawing::Brush brush;

@@ -1257,7 +1257,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter001, TestSize.Level1)
 {
-    auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(10.f);
+    float blurRadius = 10.f; // foreground effect blur radius
+    auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(blurRadius);
     RSProperties properties;
     properties.SetForegroundFilter(foregroundEffectFilter);
 
@@ -1274,7 +1275,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter001, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter002, TestSize.Level1)
 {
-    auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(20.f);
+    float blurRadius = 20.f; // foreground effect blur radius
+    auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(blurRadius);
     RSProperties properties;
     properties.SetForegroundFilter(foregroundEffectFilter);
 

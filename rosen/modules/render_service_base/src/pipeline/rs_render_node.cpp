@@ -31,7 +31,6 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "render/rs_foreground_effect_filter.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -41,6 +40,7 @@
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_drawable.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_foreground_effect_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #ifdef DDGR_ENABLE_FEATURE_OPINC
