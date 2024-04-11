@@ -49,6 +49,7 @@
 #include "render/rs_mask.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
+#include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
 
@@ -97,10 +98,39 @@ MARSHALLING_AND_UNMARSHALLING(double, Double)
 #undef MARSHALLING_AND_UNMARSHALLING
 
 namespace {
-template<typename T, typename P>
-static inline sk_sp<T> sk_reinterpret_cast(sk_sp<P> ptr)
+bool MarshallingExtendObjectFromDrawCmdList(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
 {
-    return sk_sp<T>(static_cast<T*>(SkSafeRef(ptr.get())));
+    std::vector<std::shared_ptr<Drawing::ExtendObject>> objectVec;
+    uint32_t objectSize = val->GetAllExtendObject(objectVec);
+    if (!parcel.WriteUint32(objectSize)) {
+        return false;
+    }
+    if (objectSize == 0) {
+        return true;
+    }
+    for (const auto& object : objectVec) {
+        if (!object->Marshalling(parcel)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+{
+    uint32_t objectSize = parcel.ReadUint32();
+    if (objectSize == 0) {
+        return true;
+    }
+    std::vector<std::shared_ptr<Drawing::ExtendObject>> objectVec;
+    for (uint32_t i = 0; i < objectSize; i++) {
+        std::shared_ptr<RSPixelMapShader> object = std::make_shared<RSPixelMapShader>();
+        if (!object->Unmarshalling(parcel)) {
+            return false;
+        }
+        objectVec.emplace_back(object);
+    }
+    return val->SetupExtendObject(objectVec);
 }
 } // namespace
 
@@ -1215,6 +1245,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             }
         }
     }
+
+    ret &= MarshallingExtendObjectFromDrawCmdList(parcel, val);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
+        return ret;
+    }
 #ifdef ROSEN_OHOS
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
     uint32_t surfaceBufferSize = val->GetAllSurfaceBuffer(surfaceBufferVec);
@@ -1353,6 +1389,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetupBaseObj(ObjectBaseVec);
     }
 
+    ret &= UnmarshallingExtendObjectToDrawCmdList(parcel, val);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
+        return ret;
+    }
 #ifdef ROSEN_OHOS
     uint32_t surfaceBufferSize = parcel.ReadUint32();
     if (surfaceBufferSize > 0) {

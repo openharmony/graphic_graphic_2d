@@ -247,6 +247,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_mask.cpp",
     "src/render/rs_material_filter.cpp",
     "src/render/rs_path.cpp",
+    "src/render/rs_pixel_map_shader.cpp",
     "src/render/rs_pixel_map_util.cpp",
     "src/render/rs_resource_manager.cpp",
     "src/render/rs_shader.cpp",

@@ -236,6 +236,8 @@ public:
     static sptr<SurfaceBuffer> GetSurfaceBufferFromCmdList(
         const CmdList& cmdList, uint32_t imageFilterHandle);
 #endif
+    static uint32_t AddExtendObjectToCmdList(CmdList& cmdList, std::shared_ptr<ExtendObject>);
+    static std::shared_ptr<ExtendObject> GetExtendObjectFromCmdList(const CmdList& cmdList, uint32_t index);
 };
 } // namespace Drawing
 } // namespace Rosen
