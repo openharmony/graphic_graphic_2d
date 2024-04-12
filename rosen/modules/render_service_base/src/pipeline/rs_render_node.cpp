@@ -835,8 +835,8 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
         if (auto context = GetContext().lock()) {
             context->AddActiveNode(shared_from_this());
         }
-        SetParentSubTreeDirty();
     }
+    SetParentSubTreeDirty();
     dirtyStatus_ = NodeDirty::DIRTY;
 }
 
