@@ -203,6 +203,22 @@ private:
     RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data);
     RSB_EXPORT static void UnmarshalNode(RSRenderNode& node, std::stringstream& data);
 
+    // JSON
+    static void RenderServiceTreeDump(JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpSubClassNode(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpDrawCmdModifiers(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpDrawCmdModifier(
+        const RSRenderNode& node, JsonWriter& outWrapper, int type, RSRenderModifier& modifier);
+    RSB_EXPORT static void DumpProperties(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpPropertiesTransform(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpPropertiesDecoration(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpPropertiesEffects(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpPropertiesShadow(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpPropertiesColor(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpAnimations(const RSAnimationManager& animationManager, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpAnimation(const RSRenderAnimation& animation, JsonWriter& outWrapper);
+
     // RSRenderNode
     RSB_EXPORT static std::string DumpRenderProperties(const RSRenderNode& node);
     RSB_EXPORT static std::string DumpModifiers(const RSRenderNode& node);
@@ -248,6 +264,7 @@ private:
     static void DumpConnections(const ArgList& args);
     static void DumpNodeProperties(const ArgList& args);
     static void DumpTree(const ArgList& args);
+    static void DumpTreeToJson(const ArgList& args);
     static void DumpSurfaces(const ArgList& args);
     static void DumpNodeSurface(const ArgList& args);
     static void PatchNode(const ArgList& args);

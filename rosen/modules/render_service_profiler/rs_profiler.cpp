@@ -352,6 +352,31 @@ void RSProfiler::OnFrameEnd()
     AwakeRenderServiceThread();
 }
 
+void RSProfiler::RenderServiceTreeDump(JsonWriter& out)
+{
+    RS_TRACE_NAME("GetDumpTreeJSON");
+
+    if (!g_renderServiceContext) {
+        return;
+    }
+
+    auto& animation = out["Animation Node"];
+    animation.PushArray();
+    for (auto& [nodeId, _] : g_renderServiceContext->animatingNodeList_) {
+        animation.Append(nodeId);
+    }
+    animation.PopArray();
+
+    auto& root = out["Root node"];
+    const auto rootNode = g_renderServiceContext->GetGlobalRootRenderNode();
+    if (rootNode) {
+        DumpNode(*rootNode, root);
+    } else {
+        root.PushObject();
+        root.PopObject();
+    }
+}
+
 bool RSProfiler::IsEnabled()
 {
     return g_renderService && g_renderServiceThread && g_renderServiceContext;
@@ -645,6 +670,30 @@ void RSProfiler::DumpTree(const ArgList& args)
     }
 
     Respond(out);
+}
+
+void RSProfiler::DumpTreeToJson(const ArgList& args)
+{
+    if (!g_renderServiceContext) {
+        return;
+    }
+
+    JsonWriter json;
+    json.PushObject();
+    RenderServiceTreeDump(json);
+
+    auto& display = json["Display"];
+    auto displayNode = GetDisplayNode(*g_renderServiceContext);
+    auto dirtyManager = displayNode ? displayNode->GetDirtyManager() : nullptr;
+    if ( dirtyManager) {
+        const auto displayRect = dirtyManager->GetSurfaceRect();
+        display = { displayRect.GetLeft(), displayRect.GetTop(), displayRect.GetRight(), displayRect.GetBottom() };
+    } else {
+        display = { 0.0f, 0.0f, 0.0f, 0.0f };
+    }
+
+    json.PopObject();
+    Network::SendRSTreeDumpJSON(json.GetDumpString());
 }
 
 void RSProfiler::DumpSurfaces(const ArgList& args)
