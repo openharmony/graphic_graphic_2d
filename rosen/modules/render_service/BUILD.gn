@@ -187,7 +187,6 @@ ohos_shared_library("librender_service") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
-    "$graphic_2d_root/rosen/modules/frame_report:librs_frame_report",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -199,6 +198,13 @@ ohos_shared_library("librender_service") {
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
       "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
     ]
+  }
+
+  if (rosen_is_ohos) {
+    sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+  } else {
+    sources +=
+        [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }
 
   #profiler
