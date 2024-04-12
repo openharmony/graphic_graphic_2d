@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include "command/rs_surface_node_command.h"
 #include "delegate/rs_functional_delegate.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
@@ -32,7 +33,6 @@
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
 #include "render_context/shader_cache.h"
-#include "rs_frame_report.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"

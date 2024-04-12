@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,7 @@
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_divided_render_util.h"
+#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -78,7 +79,6 @@
 #include "render_context/memory_handler.h"
 #endif
 #include "render/rs_pixel_map_util.h"
-#include "rs_frame_report.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
 

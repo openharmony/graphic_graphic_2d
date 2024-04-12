@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -51,7 +51,6 @@ template("render_service_client_source_set") {
     is_static_lib = invoker.is_static_lib
     include_dirs = [
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$graphic_2d_root/rosen/modules/frame_report/include",
       "$graphic_2d_root/rosen/modules/render_frame_trace/include",
       "$graphic_2d_root/rosen/modules/render_service_base/src",
       "$graphic_2d_root/utils/color_manager/export",
@@ -155,7 +154,6 @@ template("render_service_client_source_set") {
     ]
 
     deps = [
-      "$graphic_2d_root/rosen/modules/frame_report:librs_frame_report",
       "$graphic_2d_root/rosen/modules/platform:ipc_core",
       "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     ]

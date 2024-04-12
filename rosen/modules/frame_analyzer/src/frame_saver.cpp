@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001400
+#define LOG_DOMAIN 1400
 
 #undef LOG_TAG
 #define LOG_TAG "FramePainter"

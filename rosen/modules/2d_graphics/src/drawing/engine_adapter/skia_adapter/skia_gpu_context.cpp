@@ -71,7 +71,7 @@ void SkiaGPUContext::InitSkExecutor()
     static std::mutex mtx;
     mtx.lock();
     if (threadPool == nullptr) {
-        threadPool = SkExecutor::MakeFIFOThreadPool(2); // 2 threads async task
+        threadPool = SkExecutor::MakeFIFOThreadPool(3); // 3 threads async task
     }
     mtx.unlock();
 }
