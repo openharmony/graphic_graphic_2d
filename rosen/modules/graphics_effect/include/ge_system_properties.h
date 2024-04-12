@@ -33,9 +33,9 @@ class GESystemProperties final {
 public:
     ~GESystemProperties() = default;
 
-    static std::string GetEventProperty(const std::string &paraName);
-    static bool GetBoolSystemProperty(const char *name, bool defaultValue);
-    static int ConvertToInt(const char *originValue, int defaultValue);
+    static std::string GetEventProperty(const std::string& paraName);
+    static bool GetBoolSystemProperty(const char* name, bool defaultValue);
+    static int ConvertToInt(const char* originValue, int defaultValue);
 
 private:
     GESystemProperties() = default;

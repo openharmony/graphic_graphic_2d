@@ -18,20 +18,20 @@
 namespace OHOS {
 namespace Rosen {
 
-std::string GESystemProperties::GetEventProperty(const std::string &paraName)
+std::string GESystemProperties::GetEventProperty(const std::string& paraName)
 {
     return system::GetParameter(paraName, "0");
 }
 
-bool GESystemProperties::GetBoolSystemProperty(const char *name, bool defaultValue)
+bool GESystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     static CachedHandle g_Handle = CachedParameterCreate(name, defaultValue ? "1" : "0");
     int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    const char* enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, defaultValue ? 1 : 0) != 0;
 }
 
-int GESystemProperties::ConvertToInt(const char *originValue, int defaultValue)
+int GESystemProperties::ConvertToInt(const char* originValue, int defaultValue)
 {
     return originValue == nullptr ? defaultValue : std::atoi(originValue);
 }

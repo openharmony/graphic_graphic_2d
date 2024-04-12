@@ -47,6 +47,8 @@ ohos_shared_library("libgraphics_effect") {
   ]
 
   sources = [
+    "src/ge_aibar_shader_filter.cpp",
+    "src/ge_grey_shader_filter.cpp",
     "src/ge_kawase_blur_shader_filter.cpp",
     "src/ge_render.cpp",
     "src/ge_system_properties.cpp",
@@ -55,7 +57,6 @@ ohos_shared_library("libgraphics_effect") {
     "src/ge_visual_effect_impl.cpp",
   ]
 
-  # 对同部件其它模块的依赖
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/platform:eventhandler",
@@ -64,7 +65,6 @@ ohos_shared_library("libgraphics_effect") {
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
   ]
 
-  # 对其它部件的模块的依赖
   external_deps = [ "hilog:libhilog" ]
   external_deps += [
     "c_utils:utils",

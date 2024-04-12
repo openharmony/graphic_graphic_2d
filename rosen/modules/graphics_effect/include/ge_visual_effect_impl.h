@@ -32,24 +32,22 @@ class GEVisualEffectImpl {
 public:
     enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, MAX };
 
-    GEVisualEffectImpl(const std::string &name);
+    GEVisualEffectImpl(const std::string& name);
 
     ~GEVisualEffectImpl();
 
-    void SetParam(const std::string &tag, int32_t param);
-    void SetParam(const std::string &tag, int64_t param);
-    void SetParam(const std::string &tag, float param);
-    void SetParam(const std::string &tag, double param);
-    void SetParam(const std::string &tag, const char *const param);
-    void SetParam(const std::string &tag, const std::shared_ptr<Drawing::Image> param);
-    void SetParam(const std::string &tag, const std::shared_ptr<Drawing::ColorFilter> param);
+    void SetParam(const std::string& tag, int32_t param);
+    void SetParam(const std::string& tag, int64_t param);
+    void SetParam(const std::string& tag, float param);
+    void SetParam(const std::string& tag, double param);
+    void SetParam(const std::string& tag, const char* const param);
 
     void SetFilterType(FilterType type)
     {
         filterType_ = type;
     }
 
-    const FilterType &GetFilterType() const
+    const FilterType& GetFilterType() const
     {
         return filterType_;
     }
@@ -59,7 +57,7 @@ public:
         kawaseParams_ = std::make_shared<GEKawaseBlurShaderFilterParams>();
     }
 
-    const std::shared_ptr<GEKawaseBlurShaderFilterParams> &GetKawaseParams() const
+    const std::shared_ptr<GEKawaseBlurShaderFilterParams>& GetKawaseParams() const
     {
         return kawaseParams_;
     }
@@ -69,7 +67,7 @@ public:
         aiBarParams_ = std::make_shared<GEAIBarShaderFilterParams>();
     }
 
-    const std::shared_ptr<GEAIBarShaderFilterParams> &GetAIBarParams() const
+    const std::shared_ptr<GEAIBarShaderFilterParams>& GetAIBarParams() const
     {
         return aiBarParams_;
     }
@@ -79,7 +77,7 @@ public:
         greyParams_ = std::make_shared<GEGreyShaderFilterParams>();
     }
 
-    const std::shared_ptr<GEGreyShaderFilterParams> &GetGreyParams() const
+    const std::shared_ptr<GEGreyShaderFilterParams>& GetGreyParams() const
     {
         return greyParams_;
     }

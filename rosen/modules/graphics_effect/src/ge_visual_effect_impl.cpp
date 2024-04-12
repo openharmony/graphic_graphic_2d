@@ -22,24 +22,24 @@ namespace Rosen {
 namespace Drawing {
 
 std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> GEVisualEffectImpl::g_initialMap = {
-    {"KWASE_BLUR", [](GEVisualEffectImpl* impl) {
+    { "KWASE_BLUR",
+        [](GEVisualEffectImpl* impl) {
             impl->SetFilterType(GEVisualEffectImpl::FilterType::KAWASE_BLUR);
             impl->MakeKawaseParams();
-        }
-    },
-    {"GREY", [](GEVisualEffectImpl* impl) {
+        } },
+    { "GREY",
+        [](GEVisualEffectImpl* impl) {
             impl->SetFilterType(GEVisualEffectImpl::FilterType::GREY);
             impl->MakeGreyParams();
-        }
-    },
-    {"AIBAR", [](GEVisualEffectImpl* impl) {
+        } },
+    { "AIBAR",
+        [](GEVisualEffectImpl* impl) {
             impl->SetFilterType(GEVisualEffectImpl::FilterType::AIBAR);
             impl->MakeAIBarParams();
-        }
-    }
+        } }
 };
 
-GEVisualEffectImpl::GEVisualEffectImpl(const std::string &name)
+GEVisualEffectImpl::GEVisualEffectImpl(const std::string& name)
 {
     auto iter = g_initialMap.find(name);
     if (iter != g_initialMap.end()) {
@@ -47,11 +47,9 @@ GEVisualEffectImpl::GEVisualEffectImpl(const std::string &name)
     }
 }
 
-GEVisualEffectImpl::~GEVisualEffectImpl()
-{
-}
+GEVisualEffectImpl::~GEVisualEffectImpl() {}
 
-void GEVisualEffectImpl::SetParam(const std::string &tag, int32_t param)
+void GEVisualEffectImpl::SetParam(const std::string& tag, int32_t param)
 {
     switch (filterType_) {
         case FilterType::KAWASE_BLUR: {
@@ -62,7 +60,18 @@ void GEVisualEffectImpl::SetParam(const std::string &tag, int32_t param)
     }
 }
 
-void GEVisualEffectImpl::SetParam(const std::string &tag, float param)
+void GEVisualEffectImpl::SetParam(const std::string& tag, int64_t param)
+{
+    switch (filterType_) {
+        case FilterType::KAWASE_BLUR: {
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void GEVisualEffectImpl::SetParam(const std::string& tag, float param)
 {
     switch (filterType_) {
         case FilterType::AIBAR: {
@@ -70,12 +79,35 @@ void GEVisualEffectImpl::SetParam(const std::string &tag, float param)
                 return;
             }
 
+            if (tag == "AIBAR_LOW") {
+                aiBarParams_->aiBarLow = param;
+            }
+
+            if (tag == "AIBAR_HIGH") {
+                aiBarParams_->aiBarHigh = param;
+            }
+
+            if (tag == "AIBAR_THRESHOLD") {
+                aiBarParams_->aiBarThreshold = param;
+            }
+
+            if (tag == "AIBAR_OPACITY") {
+                aiBarParams_->aiBarOpacity = param;
+            }
+
+            if (tag == "AIBAR_SATURATION") {
+                aiBarParams_->aiBarSaturation = param;
+            }
             break;
         }
         default:
             break;
     }
 }
+
+void GEVisualEffectImpl::SetParam(const std::string& tag, double param) {}
+
+void GEVisualEffectImpl::SetParam(const std::string& tag, const char* const param) {}
 
 } // namespace Drawing
 } // namespace Rosen

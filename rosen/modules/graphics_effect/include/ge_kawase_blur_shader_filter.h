@@ -32,37 +32,37 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT GEKawaseBlurShaderFilter : public GEShaderFilter {
 public:
-    GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams &params);
+    GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams& params);
     ~GEKawaseBlurShaderFilter() override;
     int GetRadius() const;
 
-    std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> image,
-        const Drawing::Rect &src, const Drawing::Rect &dst) override;
+    std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
+        const Drawing::Rect& src, const Drawing::Rect& dst) override;
 
 private:
     friend class RSMarshallingHelper;
 
     static Drawing::Matrix GetShaderTransform(
-        const Drawing::Canvas *canvas, const Drawing::Rect &blurRect, float scale = 1.0f);
+        const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scale = 1.0f);
     bool InitBlurEffect();
     bool InitMixEffect();
     // Advanced Filter
     bool InitBlurEffectForAdvancedFilter();
-    void CheckInputImage(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image,
-        std::shared_ptr<Drawing::Image> &checkedImage, const Drawing::Rect &src) const;
-    void OutputOriginalImage(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image,
-        const Drawing::Rect &src, const Drawing::Rect &dst) const;
+    void CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        std::shared_ptr<Drawing::Image>& checkedImage, const Drawing::Rect& src) const;
+    void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::Rect& src, const Drawing::Rect& dst) const;
 
-    std::shared_ptr<Drawing::Image> ScaleAndAddRandomColor(Drawing::Canvas &canvas,
-        const std::shared_ptr<Drawing::Image> &image, const std::shared_ptr<Drawing::Image> &blurImage,
-        const Drawing::Rect &src, const Drawing::Rect &dst, int &width, int &height) const;
+    std::shared_ptr<Drawing::Image> ScaleAndAddRandomColor(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& blurImage,
+        const Drawing::Rect& src, const Drawing::Rect& dst, int& width, int& height) const;
     void ComputeRadiusAndScale(int radius);
     void AdjustRadiusAndScale();
     std::string GetDescription() const;
-    void SetBlurBuilderParam(Drawing::RuntimeShaderBuilder &blurBuilder, const float offsetXY,
-        const Drawing::ImageInfo &scaledInfo, const int width, const int height);
-    bool IsInputValid(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image, const Drawing::Rect &src,
-        const Drawing::Rect &dst);
+    void SetBlurBuilderParam(Drawing::RuntimeShaderBuilder& blurBuilder, const float offsetXY,
+        const Drawing::ImageInfo& scaledInfo, const int width, const int height);
+    bool IsInputValid(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src,
+        const Drawing::Rect& dst);
 
     std::shared_ptr<Drawing::RuntimeEffect> blurEffect_;
     std::shared_ptr<Drawing::RuntimeEffect> mixEffect_;

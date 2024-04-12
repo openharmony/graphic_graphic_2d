@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-// 部件：foundation/graphic/graphic_effect_engine
-
 #ifndef GRAPHICS_EFFECT_GE_RENDER_H
 #define GRAPHICS_EFFECT_GE_RENDER_H
 
@@ -42,16 +40,16 @@ public:
     GERender();
     ~GERender();
 
-    void DrawImageEffect(Drawing::Canvas &canvas, Drawing::GEVisualEffectContainer &visualEffect,
-        const std::shared_ptr<Drawing::Image> &image, const Drawing::Rect &src, const Drawing::Rect &dst,
-        const Drawing::SamplingOptions &sampling);
+    void DrawImageEffect(Drawing::Canvas& canvas, Drawing::GEVisualEffectContainer& visualEffect,
+        const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src, const Drawing::Rect& dst,
+        const Drawing::SamplingOptions& sampling);
 
-    std::shared_ptr<Drawing::Image> ApplyImageEffect(Drawing::Canvas &canvas,
-        Drawing::GEVisualEffectContainer &visualEffect, const std::shared_ptr<Drawing::Image> &image,
-        const Drawing::Rect &src, const Drawing::Rect &dst, const Drawing::SamplingOptions &sampling);
+    std::shared_ptr<Drawing::Image> ApplyImageEffect(Drawing::Canvas& canvas,
+        Drawing::GEVisualEffectContainer& visualEffect, const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::Rect& src, const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling);
 
 private:
-    std::vector<std::shared_ptr<GEShaderFilter>> GenerateShaderFilter(Drawing::GEVisualEffectContainer &visualEffect);
+    std::vector<std::shared_ptr<GEShaderFilter>> GenerateShaderFilter(Drawing::GEVisualEffectContainer& visualEffect);
 };
 
 } // namespace GraphicsEffectEngine

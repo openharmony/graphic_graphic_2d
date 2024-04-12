@@ -22,15 +22,35 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-GEVisualEffect::GEVisualEffect(const std::string &name, DrawingPaintType type)
+GEVisualEffect::GEVisualEffect(const std::string& name, DrawingPaintType type)
     : visualEffectName_(name), type_(type), visualEffectImpl_(std::make_unique<GEVisualEffectImpl>(name))
 {}
 
 GEVisualEffect::~GEVisualEffect() {}
 
-void GEVisualEffect::SetParam(const std::string &tag, int32_t param)
+void GEVisualEffect::SetParam(const std::string& tag, int32_t param)
 {
     (void)type_;
+    visualEffectImpl_->SetParam(tag, param);
+}
+
+void GEVisualEffect::SetParam(const std::string& tag, int64_t param)
+{
+    visualEffectImpl_->SetParam(tag, param);
+}
+
+void GEVisualEffect::SetParam(const std::string& tag, float param)
+{
+    visualEffectImpl_->SetParam(tag, param);
+}
+
+void GEVisualEffect::SetParam(const std::string& tag, double param)
+{
+    visualEffectImpl_->SetParam(tag, param);
+}
+
+void GEVisualEffect::SetParam(const std::string& tag, const char* const param)
+{
     visualEffectImpl_->SetParam(tag, param);
 }
 

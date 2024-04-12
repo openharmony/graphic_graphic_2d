@@ -48,10 +48,14 @@ class GEVisualEffectImpl;
 
 class GEVisualEffect {
 public:
-    GEVisualEffect(const std::string &name, DrawingPaintType type = DrawingPaintType::BRUSH);
+    GEVisualEffect(const std::string& name, DrawingPaintType type = DrawingPaintType::BRUSH);
     ~GEVisualEffect();
 
-    void SetParam(const std::string &tag, int32_t param);
+    void SetParam(const std::string& tag, int32_t param);
+    void SetParam(const std::string& tag, int64_t param);
+    void SetParam(const std::string& tag, float param);
+    void SetParam(const std::string& tag, double param);
+    void SetParam(const std::string& tag, const char* const param);
 
     const std::shared_ptr<GEVisualEffectImpl> GetImpl() const
     {

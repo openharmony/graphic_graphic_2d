@@ -60,7 +60,7 @@ static bool IsAdvancedFilterUsable()
     return false;
 }
 
-static void getNormalizedOffset(SkV2 *offsets, const uint32_t offsetCount, const OffsetInfo &offsetInfo)
+static void getNormalizedOffset(SkV2* offsets, const uint32_t offsetCount, const OffsetInfo& offsetInfo)
 {
     if (offsets == nullptr || offsetCount != BLUR_SAMPLE_COUNT) {
         LOGE("%s: Invalid offsets.", __func__);
@@ -82,7 +82,7 @@ static void getNormalizedOffset(SkV2 *offsets, const uint32_t offsetCount, const
 
 static const bool IS_ADVANCED_FILTER_USABLE_CHECK_ONCE = IsAdvancedFilterUsable();
 
-GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams &params)
+GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams& params)
     : radius_(params.radius)
 {
     if (!InitBlurEffect()) {
@@ -107,8 +107,8 @@ int GEKawaseBlurShaderFilter::GetRadius() const
     return radius_;
 }
 
-std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::Canvas &canvas,
-    const std::shared_ptr<Drawing::Image> image, const Drawing::Rect &src, const Drawing::Rect &dst)
+std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::Canvas& canvas,
+    const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
 {
     if (!IsInputValid(canvas, image, src, dst)) {
         return image;
@@ -164,8 +164,8 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
     return output;
 }
 
-bool GEKawaseBlurShaderFilter::IsInputValid(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image,
-    const Drawing::Rect &src, const Drawing::Rect &dst)
+bool GEKawaseBlurShaderFilter::IsInputValid(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    const Drawing::Rect& src, const Drawing::Rect& dst)
 {
     if (!blurEffect_ || !mixEffect_ || !image) {
         LOGE("GEKawaseBlurShaderFilter::shader error");
@@ -179,8 +179,8 @@ bool GEKawaseBlurShaderFilter::IsInputValid(Drawing::Canvas &canvas, const std::
     return true;
 }
 
-void GEKawaseBlurShaderFilter::SetBlurBuilderParam(Drawing::RuntimeShaderBuilder &blurBuilder, const float offsetXY,
-    const Drawing::ImageInfo &scaledInfo, const int width, const int height)
+void GEKawaseBlurShaderFilter::SetBlurBuilderParam(Drawing::RuntimeShaderBuilder& blurBuilder, const float offsetXY,
+    const Drawing::ImageInfo& scaledInfo, const int width, const int height)
 {
     // Advanced Filter: check is AF usable only the first time
     bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && blurEffectAF_ != nullptr;
@@ -282,7 +282,7 @@ bool GEKawaseBlurShaderFilter::InitBlurEffectForAdvancedFilter()
 }
 
 Drawing::Matrix GEKawaseBlurShaderFilter::GetShaderTransform(
-    const Drawing::Canvas *canvas, const Drawing::Rect &blurRect, float scale)
+    const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scale)
 {
     Drawing::Matrix matrix;
     matrix.SetScale(scale, scale);
@@ -292,8 +292,8 @@ Drawing::Matrix GEKawaseBlurShaderFilter::GetShaderTransform(
     return matrix;
 }
 
-void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image,
-    std::shared_ptr<Drawing::Image> &checkedImage, const Drawing::Rect &src) const
+void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    std::shared_ptr<Drawing::Image>& checkedImage, const Drawing::Rect& src) const
 {
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
@@ -307,8 +307,8 @@ void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas &canvas, const st
     }
 }
 
-void GEKawaseBlurShaderFilter::OutputOriginalImage(Drawing::Canvas &canvas,
-    const std::shared_ptr<Drawing::Image> &image, const Drawing::Rect &src, const Drawing::Rect &dst) const
+void GEKawaseBlurShaderFilter::OutputOriginalImage(Drawing::Canvas& canvas,
+    const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
     Drawing::Brush brush;
     Drawing::Matrix inputMatrix;
@@ -325,12 +325,12 @@ void GEKawaseBlurShaderFilter::OutputOriginalImage(Drawing::Canvas &canvas,
     canvas.DetachBrush();
 }
 
-std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ScaleAndAddRandomColor(Drawing::Canvas &canvas,
-    const std::shared_ptr<Drawing::Image> &image, const std::shared_ptr<Drawing::Image> &blurImage,
-    const Drawing::Rect &src, const Drawing::Rect &dst, int &width, int &height) const
+std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ScaleAndAddRandomColor(Drawing::Canvas& canvas,
+    const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& blurImage,
+    const Drawing::Rect& src, const Drawing::Rect& dst, int& width, int& height) const
 {
     if (abs(blurScale_) <= 1e-6) {
-        LOGE("likeji GEKawaseBlurShaderFilter::blurScale is zero.");
+        LOGE("GEKawaseBlurShaderFilter::blurScale is zero.");
         return blurImage;
     }
     float invBlurScale = 1.0f / blurScale_;
@@ -357,7 +357,7 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ScaleAndAddRandomColor
     LOGD("GEKawaseBlurShaderFilter::kawase random color factor : %{public}f", factor);
     auto scaledInfo = Drawing::ImageInfo(width, height, blurImage->GetImageInfo().GetColorType(),
         blurImage->GetImageInfo().GetAlphaType(), blurImage->GetImageInfo().GetColorSpace());
-    LOGE("likeji GEKawaseBlurShaderFilter::ScaleAndAddRandomColor output, width = %{public}d, height = %{public}d",
+    LOGE("GEKawaseBlurShaderFilter::ScaleAndAddRandomColor output, width = %{public}d, height = %{public}d",
         scaledInfo.GetWidth(), scaledInfo.GetHeight());
     auto output = mixBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
     return output;

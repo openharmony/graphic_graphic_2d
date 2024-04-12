@@ -24,11 +24,11 @@ namespace Rosen {
 class RSB_EXPORT GEShaderFilter {
 public:
     GEShaderFilter() = default;
-    GEShaderFilter(const GEShaderFilter &) = delete;
+    GEShaderFilter(const GEShaderFilter&) = delete;
     virtual ~GEShaderFilter() = default;
 
-    virtual std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas &canvas,
-        const std::shared_ptr<Drawing::Image> image, const Drawing::Rect &src, const Drawing::Rect &dst) = 0;
+    virtual std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst) = 0;
 
     uint32_t Hash() const
     {
