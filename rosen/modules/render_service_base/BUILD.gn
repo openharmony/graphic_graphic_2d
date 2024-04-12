@@ -64,7 +64,7 @@ ohos_source_set("render_service_base_src") {
     blocklist = "./rs_base_blocklist.txt"
     if (rosen_is_ohos) {
       boundary_sanitize = true
-      integer_overflow = true
+      integer_overflow = false
       ubsan = true
     }
   }
