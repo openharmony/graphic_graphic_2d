@@ -440,7 +440,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
 
     auto iter = lightSourcesAndPosVec_.begin();
     auto cnt = 0;
-    while (iter != lightSourcesAndPosVec.end() && cnt < MAX_LIGHT_SOURCES) {
+    while (iter != lightSourcesAndPosVec_.end() && cnt < MAX_LIGHT_SOURCES) {
         auto lightPos = iter->second;
         auto lightIntensity = iter->first->GetLightIntensity();
         auto lightColor = iter->first->GetLightColor();
