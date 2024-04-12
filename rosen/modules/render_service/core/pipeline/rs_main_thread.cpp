@@ -1320,7 +1320,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             grContext->Flush();
             SkGraphics::PurgeAllCaches(); // clear cpu cache
             auto pid = *(this->exitedPidSet_.begin());
-            if (this->exitedPidSet_.size() == 1 && pid == -1) {         // no exited app, just clear scratch resource
+            if (this->exitedPidSet_.size() == 1 && pid == -1) {  // no exited app, just clear scratch resource
                 if (deeply || this->deviceType_ != DeviceType::PHONE) {
                     MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
                 } else {
@@ -1336,7 +1336,8 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         },
         CLEAR_GPU_CACHE,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate());
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
+        AppExecFwk::EventQueue::Priority::HIGH);
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
