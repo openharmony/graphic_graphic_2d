@@ -199,6 +199,19 @@ public:
     void SetBlendMode(BlendMode mode);
 
     /**
+     * @brief Sets the current blender, increasing its refcnt, and if a blender is already
+     *        present, decreasing that object's refcnt.
+     * @param blender  Blender used to set
+     */
+    void SetBlender(std::shared_ptr<Blender> blender);
+
+    /**
+     * @brief Returns the user-supplied blend function, if one has been set.
+     * @return the Blender assigned to this Brush, otherwise nullptr
+     */
+    std::shared_ptr<Blender> GetBlender() const;
+
+    /**
      * @brief Returns true if pixels on the active edges of Path may be drawn with partial transparency.
      * @return antialiasing state
      */

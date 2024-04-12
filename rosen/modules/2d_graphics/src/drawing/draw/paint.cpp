@@ -39,6 +39,7 @@ Paint::Paint(const Paint& other) noexcept
     colorSpace_ = other.colorSpace_;
     shaderEffect_ = other.shaderEffect_;
     pathEffect_ = other.pathEffect_;
+    blender_ = other.blender_;
 }
 
 Paint::Paint(const Color& c, std::shared_ptr<ColorSpace> colorSpace) noexcept
@@ -63,6 +64,7 @@ Paint& Paint::operator=(const Paint& other)
     colorSpace_ = other.colorSpace_;
     shaderEffect_ = other.shaderEffect_;
     pathEffect_ = other.pathEffect_;
+    blender_ = other.blender_;
     return *this;
 }
 
@@ -74,7 +76,8 @@ bool Paint::CanCombinePaint(const Paint& pen, const Paint& brush)
         pen.hasFilter_ == brush.hasFilter_ &&
         pen.filter_ == brush.filter_ &&
         pen.colorSpace_ == brush.colorSpace_ &&
-        pen.shaderEffect_ == brush.shaderEffect_;
+        pen.shaderEffect_ == brush.shaderEffect_ &&
+        pen.blender_ == brush.blender_;
 }
 
 void Paint::AttachBrush(const Brush& brush)
@@ -91,6 +94,7 @@ void Paint::AttachBrush(const Brush& brush)
     }
     colorSpace_ = brush.GetColorSpace();
     shaderEffect_ = brush.GetShaderEffect();
+    blender_ = brush.GetBlender();
 }
 
 void Paint::AttachPen(const Pen& pen)
@@ -112,6 +116,7 @@ void Paint::AttachPen(const Pen& pen)
     colorSpace_ = pen.GetColorSpace();
     shaderEffect_ = pen.GetShaderEffect();
     pathEffect_ = pen.GetPathEffect();
+    blender_ = pen.GetBlender();
 }
 
 void Paint::SetStyle(const PaintStyle& style)
@@ -191,6 +196,11 @@ void Paint::SetPathEffect(std::shared_ptr<PathEffect> e)
     pathEffect_ = e;
 }
 
+void Paint::SetBlender(std::shared_ptr<Blender> blender)
+{
+    blender_ = blender;
+}
+
 void Paint::SetAntiAlias(bool aa)
 {
     antiAlias_ = aa;
@@ -234,7 +244,8 @@ bool operator==(const Paint& p1, const Paint& p2)
         p1.filter_ == p2.filter_ &&
         p1.colorSpace_ == p2.colorSpace_ &&
         p1.shaderEffect_ == p2.shaderEffect_ &&
-        p1.pathEffect_ == p2.pathEffect_;
+        p1.pathEffect_ == p2.pathEffect_ &&
+        p1.blender_ == p2.blender_;
 }
 
 bool operator!=(const Paint& p1, const Paint& p2)
@@ -250,7 +261,8 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.filter_ != p2.filter_ ||
         p1.colorSpace_ != p2.colorSpace_ ||
         p1.shaderEffect_ != p2.shaderEffect_ ||
-        p1.pathEffect_ != p2.pathEffect_;
+        p1.pathEffect_ != p2.pathEffect_ ||
+        p1.blender_ != p2.blender_;
 }
 } // namespace Drawing
 } // namespace Rosen
