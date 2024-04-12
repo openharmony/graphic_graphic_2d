@@ -47,7 +47,9 @@ ohos_shared_library("libgraphics_effect") {
   ]
 
   sources = [
+    "src/ge_kawase_blur_shader_filter.cpp",
     "src/ge_render.cpp",
+    "src/ge_system_properties.cpp",
     "src/ge_visual_effect.cpp",
     "src/ge_visual_effect_container.cpp",
     "src/ge_visual_effect_impl.cpp",

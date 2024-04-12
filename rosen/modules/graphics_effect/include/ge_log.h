@@ -41,7 +41,7 @@ namespace Rosen {
 #define GE_LOGE(format, ...) HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
 #define GE_LOGW(format, ...) HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
 #define GE_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Rosen
+} // namespace OHOS
 
-#endif  // GRAPHICS_EFFECT_LOG_H
+#endif // GRAPHICS_EFFECT_LOG_H

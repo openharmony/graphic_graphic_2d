@@ -12,32 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef GRAPHICS_EFFECT_GE_VISUAL_EFFECT_CONTAINER_H
-#define GRAPHICS_EFFECT_GE_VISUAL_EFFECT_CONTAINER_H
 
-#include "ge_visual_effect.h"
+#include "ge_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
 
-class GEVisualEffectContainer {
-public:
-    GEVisualEffectContainer();
-    ~GEVisualEffectContainer() = default;
+std::string GESystemProperties::GetEventProperty(const std::string &paraName)
+{
+    return system::GetParameter(paraName, "0");
+}
 
-    void AddToChainedFilter(std::shared_ptr<Drawing::GEVisualEffect> visualEffect);
-    const std::vector<std::shared_ptr<GEVisualEffect>> GetFilters() const
-    {
-        return filterVec_;
-    }
+bool GESystemProperties::GetBoolSystemProperty(const char *name, bool defaultValue)
+{
+    static CachedHandle g_Handle = CachedParameterCreate(name, defaultValue ? "1" : "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, defaultValue ? 1 : 0) != 0;
+}
 
-private:
-    std::vector<std::shared_ptr<GEVisualEffect>> filterVec_;
-};
+int GESystemProperties::ConvertToInt(const char *originValue, int defaultValue)
+{
+    return originValue == nullptr ? defaultValue : std::atoi(originValue);
+}
 
-} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // GRAPHICS_EFFECT_GE_VISUAL_EFFECT_CONTAINER_H

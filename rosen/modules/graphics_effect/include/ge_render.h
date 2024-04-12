@@ -15,21 +15,21 @@
 
 // 部件：foundation/graphic/graphic_effect_engine
 
-#ifndef GRAPHICS_EFFECT_ENGINE_GE_RENDER_H
-#define GRAPHICS_EFFECT_ENGINE_GE_RENDER_H
+#ifndef GRAPHICS_EFFECT_GE_RENDER_H
+#define GRAPHICS_EFFECT_GE_RENDER_H
 
 #include <memory>
 
+#include "ge_shader_filter.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
-#include "ge_shader_filter.h"
 
+#include "draw/brush.h"
+#include "draw/canvas.h"
+#include "draw/pen.h"
 #include "effect/color_filter.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
-#include "draw/canvas.h"
-#include "draw/brush.h"
-#include "draw/pen.h"
 #include "image/image.h"
 
 namespace OHOS {
@@ -46,16 +46,15 @@ public:
         const std::shared_ptr<Drawing::Image> &image, const Drawing::Rect &src, const Drawing::Rect &dst,
         const Drawing::SamplingOptions &sampling);
 
-    std::shared_ptr<Drawing::Image> ApplyImageEffect(
-        Drawing::Canvas &canvas, Drawing::GEVisualEffectContainer &visualEffect,
-        const std::shared_ptr<Drawing::Image> &image, const Drawing::Rect &src, const Drawing::Rect &dst,
-        const Drawing::SamplingOptions &sampling);
+    std::shared_ptr<Drawing::Image> ApplyImageEffect(Drawing::Canvas &canvas,
+        Drawing::GEVisualEffectContainer &visualEffect, const std::shared_ptr<Drawing::Image> &image,
+        const Drawing::Rect &src, const Drawing::Rect &dst, const Drawing::SamplingOptions &sampling);
 
 private:
     std::vector<std::shared_ptr<GEShaderFilter>> GenerateShaderFilter(Drawing::GEVisualEffectContainer &visualEffect);
 };
 
-}  // namespace GraphicsEffectEngine
-}  // namespace OHOS
+} // namespace GraphicsEffectEngine
+} // namespace OHOS
 
-#endif  // GRAPHICS_EFFECT_ENGINE_GE_RENDER_H
+#endif // GRAPHICS_EFFECT_GE_RENDER_H

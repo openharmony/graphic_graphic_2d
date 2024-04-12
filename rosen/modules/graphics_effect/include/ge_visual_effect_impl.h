@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef GRAPHICS_EFFECT_ENGINE_VISUAL_EFFECT_IMPL_H
-#define GRAPHICS_EFFECT_ENGINE_VISUAL_EFFECT_IMPL_H
+#ifndef GRAPHICS_EFFECT_GE_VISUAL_EFFECT_IMPL_H
+#define GRAPHICS_EFFECT_GE_VISUAL_EFFECT_IMPL_H
 
 #include <memory>
 
@@ -30,9 +30,8 @@ namespace Drawing {
 
 class GEVisualEffectImpl {
 public:
-    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, CHAINED_FILTER, MAX };
+    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, MAX };
 
-public:
     GEVisualEffectImpl(const std::string &name);
 
     ~GEVisualEffectImpl();
@@ -45,19 +44,19 @@ public:
     void SetParam(const std::string &tag, const std::shared_ptr<Drawing::Image> param);
     void SetParam(const std::string &tag, const std::shared_ptr<Drawing::ColorFilter> param);
 
-    const std::vector<std::shared_ptr<GEVisualEffectImpl>> GetFilters() const
-    {
-        return filterVec_;
-    }
-
     void SetFilterType(FilterType type)
     {
         filterType_ = type;
     }
 
-    const FilterType& GetFilterType() const
+    const FilterType &GetFilterType() const
     {
         return filterType_;
+    }
+
+    void MakeKawaseParams()
+    {
+        kawaseParams_ = std::make_shared<GEKawaseBlurShaderFilterParams>();
     }
 
     const std::shared_ptr<GEKawaseBlurShaderFilterParams> &GetKawaseParams() const
@@ -65,9 +64,19 @@ public:
         return kawaseParams_;
     }
 
+    void MakeAIBarParams()
+    {
+        aiBarParams_ = std::make_shared<GEAIBarShaderFilterParams>();
+    }
+
     const std::shared_ptr<GEAIBarShaderFilterParams> &GetAIBarParams() const
     {
         return aiBarParams_;
+    }
+
+    void MakeGreyParams()
+    {
+        greyParams_ = std::make_shared<GEGreyShaderFilterParams>();
     }
 
     const std::shared_ptr<GEGreyShaderFilterParams> &GetGreyParams() const
@@ -79,15 +88,14 @@ private:
     static std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> g_initialMap;
 
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
-    std::vector<std::shared_ptr<GEVisualEffectImpl>> filterVec_;
 
     std::shared_ptr<GEKawaseBlurShaderFilterParams> kawaseParams_ = nullptr;
     std::shared_ptr<GEAIBarShaderFilterParams> aiBarParams_ = nullptr;
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
 };
 
-}  // namespace Drawing
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 
-#endif  // GRAPHICS_EFFECT_ENGINE_VISUAL_EFFECT_IMPL_H
+#endif // GRAPHICS_EFFECT_GE_VISUAL_EFFECT_IMPL_H

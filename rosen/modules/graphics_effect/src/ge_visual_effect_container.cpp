@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "ge_visual_effect_container.h"
 
 #include "ge_log.h"
@@ -20,15 +21,13 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-GEVisualEffectContainer::GEVisualEffectContainer()
-{
-}
+GEVisualEffectContainer::GEVisualEffectContainer() {}
 
 void GEVisualEffectContainer::AddToChainedFilter(std::shared_ptr<Drawing::GEVisualEffect> visualEffect)
 {
     filterVec_.push_back(visualEffect);
 }
 
-}  // namespace Drawing
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
