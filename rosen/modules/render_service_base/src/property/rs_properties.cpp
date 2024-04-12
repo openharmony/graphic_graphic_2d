@@ -132,6 +132,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
     [](RSProperties* prop) { prop->SetGreyCoef(std::nullopt); },         // GREY_COEF
     [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },           // LIGHT_INTENSITY
+    [](RSProperties* prop) { prop->SetLightColor({}); },                 // LIGHT_COLOR
     [](RSProperties* prop) { prop->SetLightPosition({}); },              // LIGHT_POSITION
     [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
@@ -1823,6 +1824,16 @@ void RSProperties::SetLightIntensity(float lightIntensity)
     }
 }
 
+void RSProperties::SetLightColor(Color lightColor)
+{
+    if (!lightSourcePtr_) {
+        lightSourcePtr_ = std::make_shared<RSLightSource>();
+    }
+    lightSourcePtr_->SetLightColor(lightColor);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 void RSProperties::SetLightPosition(const Vector4f& lightPosition)
 {
     if (!lightSourcePtr_) {
@@ -1882,6 +1893,11 @@ void RSProperties::SetBloom(float bloomIntensity)
 float RSProperties::GetLightIntensity() const
 {
     return lightSourcePtr_ ? lightSourcePtr_->GetLightIntensity() : 0.f;
+}
+
+Color RSProperties::GetLightColor() const
+{
+    return lightSourcePtr_ ? lightSourcePtr_->GetLightColor() : RgbPalette::White();
 }
 
 Vector4f RSProperties::GetLightPosition() const

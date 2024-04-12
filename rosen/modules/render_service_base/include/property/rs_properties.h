@@ -321,11 +321,13 @@ public:
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 
     void SetLightIntensity(float lightIntensity);
+    void SetLightColor(Color lightColor);
     void SetLightPosition(const Vector4f& lightPosition);
     void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
     void SetIlluminatedType(int illuminatedType);
     void SetBloom(float bloomIntensity);
     float GetLightIntensity() const;
+    Color GetLightColor() const;
     Vector4f GetLightPosition() const;
     float GetIlluminatedBorderWidth() const;
     int GetIlluminatedType() const;

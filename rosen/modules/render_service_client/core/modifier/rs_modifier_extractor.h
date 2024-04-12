@@ -95,6 +95,7 @@ public:
     float GetDynamicDimDegree() const;
 
     float GetLightIntensity() const;
+    Color GetLightColor() const;
     Vector4f GetLightPosition() const;
     float GetIlluminatedBorderWidth() const;
     int GetIlluminatedType() const;
