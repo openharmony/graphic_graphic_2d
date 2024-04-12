@@ -2476,14 +2476,20 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
             return;
         }
+        bool isOpDropped = isOpDropped_;
+        isOpDropped_ = false;
         ProcessChildren(node);
         DrawWatermarkIfNeed(node);
         DrawCurtainScreen();
+        isOpDropped_ = isOpDropped;
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     } else if (drivenInfo_ && drivenInfo_->currDrivenRenderMode == DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode DrivenUniRenderMode is REUSE_WITH_CLIP_HOLE");
+        bool isOpDropped = isOpDropped_;
+        isOpDropped_ = false;
         node.SetGlobalZOrder(globalZOrder_);
         processor_->ProcessDisplaySurface(node);
+        isOpDropped_ = isOpDropped;
 #endif
     } else {
         curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
@@ -2662,8 +2668,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isOpDropped_ && !isDirtyRegionAlignedEnable_) {
             clipRegion_ = region;
             ClipRegion(canvas_, region);
+            if (!region.IsEmpty()) {
+                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            }
+        } else {
+            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
-        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (isUIFirst_) {
