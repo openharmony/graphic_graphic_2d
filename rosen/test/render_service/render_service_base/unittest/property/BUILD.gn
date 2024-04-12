@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/property"
 
@@ -46,7 +47,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
     "//third_party/googletest:gtest_main",
   ]
   deps += [ "//third_party/skia:skia_ohos" ]
