@@ -2063,9 +2063,13 @@ void RSRenderNode::UpdateDisplayList()
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::SHADOW);
 
+    // Update index of BACKGROUND_COLOR
+    stagingDrawCmdIndex_.backgroundColorIndex_ =
+        AppendDrawFunc(RSDrawableSlot::OUTLINE, RSDrawableSlot::BACKGROUND_COLOR);
+
     // Update index of BACKGROUND_FILTER
     stagingDrawCmdIndex_.backgroundFilterIndex_ =
-        AppendDrawFunc(RSDrawableSlot::OUTLINE, RSDrawableSlot::BACKGROUND_FILTER);
+        AppendDrawFunc(RSDrawableSlot::BACKGROUND_SHADER, RSDrawableSlot::BACKGROUND_FILTER);
 
     // Update index of USE_EFFECT
     stagingDrawCmdIndex_.useEffectIndex_ = AppendDrawFunc(RSDrawableSlot::USE_EFFECT, RSDrawableSlot::USE_EFFECT);
@@ -2076,9 +2080,9 @@ void RSRenderNode::UpdateDisplayList()
         // Update index of CONTENT_STYLE
         stagingDrawCmdIndex_.contentIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_FRAME, RSDrawableSlot::CONTENT_STYLE);
 
-        // Update index of BACKGOUND_END
+        // Update index of BACKGROUND_END
         stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdIndex_.contentIndex_ == -1 ?
-            stagingDrawCmdList_.size() : stagingDrawCmdIndex_.contentIndex_ - 1;
+            stagingDrawCmdList_.size() : stagingDrawCmdIndex_.contentIndex_;
 
         // Update index of CHILDREN
         stagingDrawCmdIndex_.childrenIndex_ = AppendDrawFunc(RSDrawableSlot::CHILDREN, RSDrawableSlot::CHILDREN);

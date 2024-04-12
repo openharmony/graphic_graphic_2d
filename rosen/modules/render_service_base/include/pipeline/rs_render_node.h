@@ -807,6 +807,7 @@ private:
     struct DrawCmdIndex {
         int8_t shadowIndex_           = -1;
         int8_t backgroundFilterIndex_ = -1;
+        int8_t backgroundColorIndex_  = -1;
         int8_t useEffectIndex_        = -1;
         int8_t backgroundEndIndex_    = -1;
         int8_t childrenIndex_         = -1;
