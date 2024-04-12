@@ -1755,11 +1755,11 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
             !curSurface->HasWindowCorner() &&
             !curSurface->GetAnimateState() && // when node animating (i.e. 3d animation), the region cannot be trusted
             curSurface->GetName().find("hisearch") == std::string::npos) {
-            occlusionSurfaces.insert(curSurface->GetDstRect());
+            occlusionSurfaces.insert({curSurface->GetId(), curSurface->GetDstRect()});
         }
     } else {
         size_t beforeSize = occlusionSurfaces.size();
-        occlusionSurfaces.insert(curSurface->GetDstRect());
+        occlusionSurfaces.insert({curSurface->GetId(), curSurface->GetDstRect()});
         bool insertSuccess = occlusionSurfaces.size() > beforeSize ? true : false;
         if (insertSuccess) {
             needProcess = true;
@@ -1768,7 +1768,7 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
                 curSurface->GetAnimateState() || // when node animating(i.e. 3d animation), the region cannot be trusted
                 curSurface->GetName().find("hisearch") != std::string::npos) {
                 auto iter = std::find_if(occlusionSurfaces.begin(), occlusionSurfaces.end(),
-                    [&curSurface](RectI r) -> bool {return r == curSurface->GetDstRect();});
+                    [&curSurface](const std::pair<NodeId, RectI>& r) -> bool {return r.second == curSurface->GetDstRect();});
                 if (iter != occlusionSurfaces.end()) {
                     occlusionSurfaces.erase(iter);
                 }
