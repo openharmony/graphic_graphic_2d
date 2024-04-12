@@ -91,6 +91,7 @@ class RSRenderNodeMap;
 class RSAnimationManager;
 class RSCommand;
 class ArgList;
+class JsonWriter;
 
 enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
 
@@ -211,11 +212,6 @@ private:
     RSB_EXPORT static void DumpDrawCmdModifier(
         const RSRenderNode& node, JsonWriter& outWrapper, int type, RSRenderModifier& modifier);
     RSB_EXPORT static void DumpProperties(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesTransform(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesDecoration(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesEffects(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesShadow(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpPropertiesColor(const RSProperties& properties, JsonWriter& outWrapper);
     RSB_EXPORT static void DumpAnimations(const RSAnimationManager& animationManager, JsonWriter& outWrapper);
     RSB_EXPORT static void DumpAnimation(const RSRenderAnimation& animation, JsonWriter& outWrapper);
 

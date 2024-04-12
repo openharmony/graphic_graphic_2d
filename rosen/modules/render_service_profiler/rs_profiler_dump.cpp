@@ -158,7 +158,6 @@ void RSProfiler::DumpDrawCmdModifier(const RSRenderNode& node, JsonWriter& out, 
             out["ENV_FOREGROUND_COLOR"] = "#" + Hex(propertyPtr->Get().AsRgbaInt()) + " (RGBA)";
             out.PopObject();
         }
-
     } else if (modType == RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY) {
         auto propertyPtr =
             std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(modifier.GetProperty());
@@ -177,6 +176,20 @@ void RSProfiler::DumpDrawCmdModifier(const RSRenderNode& node, JsonWriter& out, 
             out.PopObject();
         }
     }
+}
+
+void RSProfiler::DumpProperties(const RSProperties& properties, JsonWriter& out)
+{
+    out.PushObject();
+    out["Bounds"] = { properties.GetBoundsPositionX(), properties.GetBoundsPositionY(), properties.GetBoundsWidth(),
+        properties.GetBoundsHeight() };
+    out["Frame"] = { properties.GetFramePositionX(), properties.GetFramePositionY(), properties.GetFrameWidth(),
+        properties.GetFrameHeight() };
+
+    if (!properties.GetVisible()) {
+        out["IsVisible"] = false;
+    }
+    out.PopObject();
 }
 
 void RSProfiler::DumpAnimations(const RSAnimationManager& animationManager, JsonWriter& out)
