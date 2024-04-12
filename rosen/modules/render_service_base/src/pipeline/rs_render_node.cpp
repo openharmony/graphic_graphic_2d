@@ -1582,6 +1582,37 @@ void RSRenderNode::UpdateLastFilterCacheRegion(const std::optional<RectI>& clipR
     }
 }
 
+void RSRenderNode::UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect)
+{
+    lastFilterRegion_ = rect;
+}
+
+inline static Drawing::Rect Rect2DrawingRect(const RectF& r)
+{
+    return Drawing::Rect(r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_);
+}
+
+void RSRenderNode::UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect)
+{
+    auto& rootProperties = subTreeRoot.GetRenderProperties();
+    auto rootGeo = rootProperties.GetBoundsGeometry();
+    if (!rootGeo) {
+        return;
+    }
+    Drawing::Matrix absMatrix;
+    auto directParent = GetParent().lock();
+    while (directParent && directParent->GetId() != subTreeRoot.GetId()) {
+        if (auto parentGeo = directParent->GetRenderProperties().GetBoundsGeometry()) {
+            absMatrix.PreConcat(parentGeo->GetMatrix());
+        }
+        directParent = directParent->GetParent().lock();
+    }
+    absMatrix.PreConcat(rootGeo->GetMatrix());
+    Drawing::RectF absRect;
+    absMatrix.MapRect(absRect, Rect2DrawingRect(GetRenderProperties().GetBoundsRect()));
+    filterRect = RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight());
+}
+
 void RSRenderNode::MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged)
 {
     auto filterDrawable = GetFilterDrawable(isForeground);
@@ -1619,7 +1650,10 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     if (filterDrawable == nullptr) {
         return;
     }
-    if (!dirtyManager.GetCurrentFrameDirtyRegion().Intersect(lastFilterRegion_)) {
+    auto dirtyRegion = dirtyManager.GetCurrentFrameDirtyRegion();
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithDirty lastRect:%s, dirtyRegion:%s",
+        GetId(), lastFilterRegion_.ToString().c_str(), dirtyRegion.ToString().c_str());
+    if (!dirtyRegion.Intersect(lastFilterRegion_)) {
         return;
     }
     MarkFilterStatusChanged(isForeground, false);
@@ -1642,6 +1676,8 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
     if (clipRect.has_value()) {
         absRect.IntersectRect(*clipRect);
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheManagerWithCacheRegion lastRect:%s, currRegion:%s",
+        GetId(), lastFilterRegion_.ToString().c_str(), absRect.ToString().c_str());
     if (absRect.IsInsideOf(lastFilterRegion_)) {
         return;
     }

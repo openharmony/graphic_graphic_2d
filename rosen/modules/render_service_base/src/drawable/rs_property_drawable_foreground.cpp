@@ -210,6 +210,7 @@ RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
+    nodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetFilter();
     if (rsFilter == nullptr) {
         return false;

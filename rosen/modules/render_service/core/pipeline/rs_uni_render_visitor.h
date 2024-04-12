@@ -396,7 +396,7 @@ private:
         return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
     }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
-    void CheckSubFilterNodeNeedClearCache(RSRenderNode& node);
+    void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node);
 
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render

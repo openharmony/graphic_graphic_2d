@@ -403,6 +403,7 @@ RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
+    nodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -415,6 +416,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
+    nodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -437,8 +439,9 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
 {
     auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas && ptr->filter_ && ptr->hasEffectChildren_) {
+        if (canvas && ptr && ptr->filter_ && ptr->hasEffectChildren_) {
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+            RS_OPTIONAL_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->nodeId_);
             RSPropertyDrawableUtils::DrawBackgroundEffect(
                 paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->clearFilteredCacheAfterDrawing_);
         }

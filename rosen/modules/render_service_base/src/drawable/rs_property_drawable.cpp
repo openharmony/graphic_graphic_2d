@@ -183,7 +183,8 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas && ptr->filter_) {
+        if (canvas && ptr && ptr->filter_) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->nodeId_);
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
                 ptr->cacheManager_, ptr->IsForeground(), ptr->clearFilteredCacheAfterDrawing_);
         }
@@ -251,9 +252,9 @@ void RSFilterDrawable::CheckClearFilterCache()
 
     stagingClearFilteredCacheAfterDrawing_ =
         filterType_ != RSFilter::AIBAR ? (filterHashChanged_ && !filterRegionChanged_) : false;
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache forceUseCache_:%d, "
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu], forceUseCache_:%d, "
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, hasEffectChildren_:%d,"
-        "filterType_:%d, lastOccluded_:%d", stagingForceUseCache_, forceClearCache_, filterHashChanged_,
+        "filterType_:%d, lastOccluded_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
         filterRegionChanged_, filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
         cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_);
 
@@ -322,8 +323,8 @@ void RSFilterDrawable::ClearFilterCache()
             cacheManager_ != nullptr, filter_ == nullptr);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache clearType:%d, isOccluded_:%d",
-        clearType_, isOccluded_);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d, isOccluded_:%d",
+        nodeId_, clearType_, isOccluded_);
     cacheManager_->InvalidateFilterCache(clearType_);
     lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (stagingClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);

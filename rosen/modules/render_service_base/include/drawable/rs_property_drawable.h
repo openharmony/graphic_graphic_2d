@@ -176,6 +176,7 @@ protected:
     bool isFilterCacheValid_ = false; // catch status in current frame
  
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
+    NodeId nodeId_ = INVALID_NODEID;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

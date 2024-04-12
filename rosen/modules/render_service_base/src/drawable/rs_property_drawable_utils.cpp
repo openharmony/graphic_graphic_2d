@@ -699,6 +699,8 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     srcRect.Offset(-effectData->cachedRect_.GetLeft(), -effectData->cachedRect_.GetTop());
     canvas->DrawImageRect(*effectData->cachedImage_, srcRect, dstRect,
         Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, src:%s, dst:%s",
+        effectData->cachedRect_.ToString().c_str(), srcRect.ToString().c_str(), dstRect.ToString().c_str());
     canvas->DetachBrush();
 }
 

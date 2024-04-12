@@ -421,6 +421,8 @@ public:
 
     // for blur filter cache
     void UpdateLastFilterCacheRegion(const std::optional<RectI>& clipRect = std::nullopt);
+    void UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect);
+    void UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
     virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
@@ -565,6 +567,7 @@ public:
     }
 
     void SetOccludedStatus(bool occluded);
+    const RectI GetFilterCachedRegion() const;
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -628,7 +631,6 @@ protected:
     bool clipAbsDrawRectChange_ = false;
 
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
-    const RectI GetFilterCachedRegion() const;
     virtual void MarkFilterCacheFlagsAfterPrepare(
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false);
     std::atomic<bool> isStaticCached_ = false;

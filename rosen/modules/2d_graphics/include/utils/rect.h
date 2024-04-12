@@ -17,6 +17,7 @@
 #define RECT_H
 
 #include <cmath>
+#include <string>
 #include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
@@ -105,6 +106,8 @@ public:
      * @return true if other is valid.
      */
     inline bool Join(const RectI& other);
+
+    inline std::string ToString() const;
 
     friend inline bool operator==(const RectI& r1, const RectI& r2);
     friend inline bool operator!=(const RectI& r1, const RectI& r2);
@@ -240,6 +243,12 @@ inline bool RectI::Contains(const RectI& other) const
         right_ >= other.right_ && bottom_ >= other.bottom_;
 }
 
+inline std::string RectI::ToString() const
+{
+    return std::string("(") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
+        std::to_string(right_ - left_) + ", " + std::to_string(bottom_ - top_) + ")";
+}
+
 inline bool operator==(const RectI& r1, const RectI& r2)
 {
     return r1.left_ == r2.left_ && r1.right_ == r2.right_ && r1.top_ == r2.top_ && r1.bottom_ == r2.bottom_;
@@ -279,6 +288,7 @@ public:
     inline void MakeOutset(scalar dx, scalar dy);
     inline void Round();
     inline RectI RoundOut();
+    inline std::string ToString() const;
 
     /*
      * @brief        If RectF intersects other, sets RectF to intersection.
@@ -433,6 +443,12 @@ inline bool RectF::Join(const RectF& other)
             right_ > other.right_ ? right_ : other.right_, bottom_ > other.bottom_ ? bottom_ : other.bottom_);
     }
     return true;
+}
+
+inline std::string RectF::ToString() const
+{
+    return std::string("(") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
+        std::to_string(right_ - left_) + ", " + std::to_string(bottom_ - top_) + ")";
 }
 
 inline bool operator==(const RectF& r1, const RectF& r2)
