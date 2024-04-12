@@ -90,6 +90,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::LIGHT_UP_EFFECT,               // LIGHT_UP_EFFECT
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_PERCENT
+    RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_TILE_MODE
     RSDrawableSlot::USE_EFFECT,                    // USE_EFFECT
     RSDrawableSlot::BLEND_MODE,                    // COLOR_BLEND_MODE
     RSDrawableSlot::BLEND_MODE,                    // COLOR_BLEND_APPLY_TYPE

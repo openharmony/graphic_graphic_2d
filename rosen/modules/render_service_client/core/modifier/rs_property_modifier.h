@@ -787,6 +787,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSPixelStretchTileModeModifier : public RSGeometryModifier {
+public:
+    explicit RSPixelStretchTileModeModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSPixelStretchTileModeModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSGrayScaleModifier : public RSForegroundModifier {
 public:
     explicit RSGrayScaleModifier(const std::shared_ptr<RSPropertyBase>& property);

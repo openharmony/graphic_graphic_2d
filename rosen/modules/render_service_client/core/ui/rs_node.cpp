@@ -1415,9 +1415,11 @@ void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
         RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
 }
 
-void RSNode::SetPixelStretch(const Vector4f& stretchSize)
+void RSNode::SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode)
 {
     SetProperty<RSPixelStretchModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
+    SetProperty<RSPixelStretchTileModeModifier, RSProperty<int>>(
+        RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
 }
 
 void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent)

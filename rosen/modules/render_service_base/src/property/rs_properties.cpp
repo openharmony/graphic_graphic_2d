@@ -112,6 +112,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH
     [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
+    [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
     [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
@@ -2195,6 +2196,20 @@ void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretch
     if (pixelStretchPercent_.has_value() && pixelStretchPercent_->IsZero()) {
         pixelStretchPercent_ = std::nullopt;
     }
+}
+
+void RSProperties::SetPixelStretchTileMode(int stretchTileMode)
+{
+    pixelStretchTileMode_ = std::clamp<int>(stretchTileMode, static_cast<int>(Drawing::TileMode::CLAMP),
+        static_cast<int>(Drawing::TileMode::DECAL));
+    SetDirty();
+    pixelStretchNeedUpdate_ = true;
+    contentDirty_ = true;
+}
+
+int RSProperties::GetPixelStretchTileMode() const
+{
+    return pixelStretchTileMode_;
 }
 
 // Image effect properties

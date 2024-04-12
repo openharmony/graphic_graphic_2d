@@ -304,7 +304,7 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
-    void SetPixelStretch(const Vector4f& stretchSize);
+    void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent);
 
     void SetPaintOrder(bool drawContentLast);
