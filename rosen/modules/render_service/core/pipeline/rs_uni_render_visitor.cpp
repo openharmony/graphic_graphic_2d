@@ -4405,7 +4405,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (!node.ShouldPaint() ||
         (canvas_ && canvas_->GetDeviceClipBounds().IsEmpty() && hardwareEnabledNodes_.empty())) {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (isOpincDropNodeExt_) {
+        if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
             return;
         }
 #else
@@ -4416,7 +4416,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ && !node.HasSubSurface() &&
         geoPtr && IsOutOfScreenRegion(geoPtr->GetAbsRect()) && !isSubThread_) {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (isOpincDropNodeExt_) {
+        if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
             return;
         }
 #else
@@ -4441,7 +4441,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 
             node.isCoveredByOtherNode_ = false;
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (isOpincDropNodeExt_) {
+            if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
                 return;
             }
 #else
@@ -4472,7 +4472,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
                         node.GetId(), node.GetType(), DirtyRegionType::CANVAS_NODE_SKIP_RECT, dirtyRect);
                 } else {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-                    if (isOpincDropNodeExt_) {
+                    if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
                         return;
                     }
 #else
@@ -4493,7 +4493,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         // skip render driven node sub tree
         if (RSDrivenRenderManager::GetInstance().ClipHoleForDrivenNode(*canvas_, node)) {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (isOpincDropNodeExt_) {
+            if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
                 return;
             }
 #else

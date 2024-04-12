@@ -519,6 +519,7 @@ public:
     const std::shared_ptr<RSAutoCache>& GetAutoCache();
     bool isOpincRectOutParent_ = false;
     bool isOpincPrepareDis_ = false;
+    bool isOpincRootNode_ = false;
 #endif
 
 #ifdef RS_ENABLE_STACK_CULLING
