@@ -146,6 +146,19 @@ public:
         return uiFirstFlag_;
     }
 
+    void SetBufferClearCacheSet(const std::set<int32_t> bufferCacheSet)
+    {
+        if (bufferCacheSet.size() > 0) {
+            bufferCacheSet_ = bufferCacheSet;
+            needSync_ = true;
+        }
+    }
+
+    const std::set<int32_t> GetBufferClearCacheSet()
+    {
+        return bufferCacheSet_;
+    }
+
     void SetIsParentUifirstNodeEnableParam(bool isUifirstParent)
     {
         if (uiFirstParentFlag_ == isUifirstParent) {
@@ -246,6 +259,7 @@ private:
     bool isSkipLayer_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
+    std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
 
     friend class RSSurfaceRenderNode;

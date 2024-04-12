@@ -56,12 +56,12 @@ public:
 
     static std::shared_ptr<NativeVkImageRes> Create(sptr<OHOS::SurfaceBuffer> buffer);
 
-    uint32_t GetThreadIndex() const
+    pid_t GetThreadIndex() const
     {
         return threadIndex_;
     }
 
-    void SetThreadIndex(const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX)
+    void SetThreadIndex(const pid_t threadIndex = UNI_RENDER_THREAD_INDEX)
     {
         threadIndex_ = threadIndex;
     }
@@ -70,7 +70,7 @@ private:
     NativeWindowBuffer* mNativeWindowBuffer;
     Drawing::BackendTexture mBackendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* mVulkanCleanupHelper;
-    uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
+    pid_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
 };
 
 class RSVkImageManager {
@@ -79,7 +79,7 @@ public:
     ~RSVkImageManager() noexcept = default;
 
     std::shared_ptr<NativeVkImageRes> MapVkImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, uint32_t threadIndex);
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex);
     void UnMapVkImageFromSurfaceBuffer(int32_t seqNum);
     void UnMapVkImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
@@ -88,7 +88,7 @@ public:
 
 private:
     std::shared_ptr<NativeVkImageRes> NewImageCacheFromBuffer(
-        const sptr<OHOS::SurfaceBuffer>& buffer, uint32_t threadIndex);
+        const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex);
 
     mutable std::mutex opMutex_;
     static constexpr size_t MAX_CACHE_SIZE = 16;

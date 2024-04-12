@@ -817,5 +817,27 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
     }
 #endif // RS_ENABLE_EGLIMAGE
 }
+
+void RSBaseRenderEngine::ClearCacheSet(const std::set<int32_t> unmappedCache)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (vkImageManager_ != nullptr) {
+            for (auto id : unmappedCache) {
+                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id);
+            }
+        }
+    }
+#endif // RS_ENABLE_VK
+
+#ifdef RS_ENABLE_EGLIMAGE
+    if (eglImageManager_ != nullptr) {
+        for (auto id : unmappedCache) {
+            eglImageManager_->UnMapEglImageFromSurfaceBuffer(id);
+        }
+    }
+#endif // RS_ENABLE_EGLIMAGE
+}
 } // namespace Rosen
 } // namespace OHOS

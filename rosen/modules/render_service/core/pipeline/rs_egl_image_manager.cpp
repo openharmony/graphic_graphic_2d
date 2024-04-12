@@ -23,6 +23,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
+#include "pipeline/rs_task_dispatcher.h"
 
 #ifndef NDEBUG
 #include <cassert>
@@ -247,7 +248,7 @@ void RSEglImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
 }
 
 GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-    const uint32_t threadIndex)
+    const pid_t threadIndex)
 {
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
@@ -281,7 +282,7 @@ std::unique_ptr<ImageCacheSeq> RSEglImageManager::CreateImageCacheFromBuffer(con
 }
 
 GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-    const sptr<SyncFence>& acquireFence, uint32_t threadIndex)
+    const sptr<SyncFence>& acquireFence, pid_t threadIndex)
 {
     WaitAcquireFence(acquireFence);
     auto bufferId = buffer->GetSeqNum();
@@ -315,7 +316,7 @@ void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
 
 void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
 {
-    uint32_t threadIndex = UNI_MAIN_THREAD_INDEX;
+    pid_t threadIndex = 0;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
         if (imageCacheSeqs_.count(seqNum) == 0) {
@@ -338,11 +339,7 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
         RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %d", seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}d", seqNum);
     };
-    if (threadIndex == UNI_MAIN_THREAD_INDEX) {
-        RSMainThread::Instance()->PostTask(func);
-    } else {
-        RSSubThreadManager::Instance()->PostTask(func, threadIndex);
-    }
+    RSTaskDispatcher::GetInstance().PostTask(threadIndex, func);
 }
 
 void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum)

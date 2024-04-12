@@ -206,7 +206,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         RS_LOGE("RSSurfaceRenderParams::OnSync targetSurfaceParams is nullptr");
         return;
     }
-
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
@@ -233,7 +232,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->name_ = name_;
-    targetSurfaceParams->surfaceCacheContentStatic_ = GetSurfaceCacheContentStatic();
+    targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
+    targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;
     targetSurfaceParams->positionZ_ = positionZ_;
     targetSurfaceParams->isSubTreeDirty_ = isSubTreeDirty_;
     RSRenderParams::OnSync(target);

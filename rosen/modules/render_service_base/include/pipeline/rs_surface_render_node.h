@@ -446,6 +446,8 @@ public:
         srcRect_ = rect;
     }
 
+    void NeedClearBufferCache();
+
     const RectI& GetSrcRect() const
     {
         return srcRect_;
