@@ -296,6 +296,8 @@ public:
         skipJankAnimatorFrame_.store(skipJankAnimatorFrame);
     }
 
+    bool IsRequestedNextVSync();
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;

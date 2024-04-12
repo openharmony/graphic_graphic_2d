@@ -132,6 +132,18 @@ HWTEST_F(VsyncReceiverTest, Init003, Function | MediumTest| Level3)
 }
 
 /*
+* Function: IsRequestedNextVSync001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsRequestedNextVSync
+ */
+HWTEST_F(VsyncReceiverTest, IsRequestedNextVSync001, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->IsRequestedNextVSync(), false);
+}
+
+/*
 * Function: RequestNextVSync001
 * Type: Function
 * Rank: Important(2)
@@ -165,6 +177,18 @@ HWTEST_F(VsyncReceiverTest, RequestNextVSync002, Function | MediumTest| Level3)
     vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb, "unknown", 0), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: IsRequestedNextVSync002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsRequestedNextVSync
+ */
+HWTEST_F(VsyncReceiverTest, IsRequestedNextVSync002, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->IsRequestedNextVSync(), true);
 }
 
 /*

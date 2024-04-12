@@ -58,6 +58,16 @@ public:
     int64_t timeStamp_;
     thread_local static inline int64_t periodShared_ = 0;
     thread_local static inline int64_t timeStampShared_ = 0;
+    void SetRNVFlag(bool RNVFlag)
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        RNVFlag_ = RNVFlag;
+    }
+    bool GetRNVFlag()
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        return RNVFlag_;
+    }
 
 private:
     void OnReadable(int32_t fileDescriptor) override;
@@ -65,6 +75,7 @@ private:
     void *userData_;
     std::mutex mtx_;
     std::string name_;
+    bool RNVFlag_ = false;
 };
 
 #ifdef __OHOS__
@@ -96,6 +107,7 @@ public:
     void CloseVsyncReceiverFd();
     virtual VsyncError RequestNextVSync(FrameCallback callback, const std::string &fromWhom,
                                         int64_t lastVSyncTS);
+    virtual bool IsRequestedNextVSync();
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
