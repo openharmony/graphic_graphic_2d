@@ -155,7 +155,7 @@ void VSyncSampler::UpdateReferenceTimeLocked()
     if (isFrameRateChanging && (numSamples_ >= 2)) {
         int64_t prevSample = samples_[(firstSampleIndex_ + numSamples_ - 2) % MAX_SAMPLES]; // at least 2 samples
         int64_t latestSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
-        CreateVSyncGenerator()->CheckAndUpdateRefereceTime(latestSample - prevSample, prevSample);
+        CreateVSyncGenerator()->CheckAndUpdateReferenceTime(latestSample - prevSample, prevSample);
     }
 }
 
