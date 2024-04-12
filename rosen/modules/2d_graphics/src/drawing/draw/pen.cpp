@@ -144,6 +144,16 @@ void Pen::SetBlendMode(BlendMode mode)
     return brush_.SetBlendMode(mode);
 }
 
+void Pen::SetBlender(std::shared_ptr<Blender> blender)
+{
+    brush_.SetBlender(blender);
+}
+
+std::shared_ptr<Blender> Pen::GetBlender() const
+{
+    return brush_.GetBlender();
+}
+
 bool Pen::IsAntiAlias() const
 {
     return brush_.IsAntiAlias();

@@ -103,6 +103,20 @@ static const std::vector<struct JsEnumInt> g_placeholderVerticalAlignment = {
     { "CENTER_OF_ROW_BOX", static_cast<size_t>(PlaceholderVerticalAlignment::CENTER_OF_ROW_BOX) },
 };
 
+static const std::vector<struct JsEnumInt> g_rectWidthStyle = {
+    { "TIGHT", static_cast<size_t>(TextRectWidthStyle::TIGHT) },
+    { "MAX", static_cast<size_t>(TextRectWidthStyle::MAX) },
+};
+
+static const std::vector<struct JsEnumInt> g_rectHeightStyle = {
+    { "TIGHT", static_cast<size_t>(TextRectHeightStyle::TIGHT) },
+    { "MAX", static_cast<size_t>(TextRectHeightStyle::COVER_TOP_AND_BOTTOM) },
+    { "INCLUDELINESPACEMIDDLE", static_cast<size_t>(TextRectHeightStyle::COVER_HALF_TOP_AND_BOTTOM) },
+    { "INCLUDELINESPACETOP", static_cast<size_t>(TextRectHeightStyle::COVER_TOP) },
+    { "INCLUDELINESPACEBOTTOM", static_cast<size_t>(TextRectHeightStyle::COVER_BOTTOM) },
+    { "STRUCT", static_cast<size_t>(TextRectHeightStyle::FOLLOW_BY_STRUT) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "TextAlign", g_textAlign },
     { "TextDecorationStyle", g_textDecorationStyle },
@@ -115,6 +129,8 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "EllipsisModal", g_ellipsisModal },
     { "TextDecoration", g_textDecoration },
     { "PlaceholderAlignment", g_placeholderVerticalAlignment },
+    { "RectWidthStyle", g_rectWidthStyle},
+    { "RectHeightStyle", g_rectHeightStyle},
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

@@ -1295,6 +1295,44 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanva
     return envStack_.top().effectData_;
 }
 
+void RSPaintFilterCanvas::ReplaceMainScreenData(std::shared_ptr<Drawing::Surface>& offscreenSurface,
+    std::shared_ptr<RSPaintFilterCanvas>& offscreenCanvas)
+{
+    if (offscreenSurface != nullptr && offscreenCanvas != nullptr) {
+        storeMainScreenSurface_.push(surface_);
+        storeMainScreenCanvas_.push(canvas_);
+        surface_ = offscreenSurface.get();
+        canvas_ = offscreenCanvas.get();
+        OffscreenData offscreenData = {offscreenSurface, offscreenCanvas};
+        offscreenDataList_.push(offscreenData);
+    }
+}
+
+void RSPaintFilterCanvas::SwapBackMainScreenData()
+{
+    if (!storeMainScreenSurface_.empty() && !storeMainScreenCanvas_.empty() && !offscreenDataList_.empty()) {
+        surface_ = storeMainScreenSurface_.top();
+        canvas_ = storeMainScreenCanvas_.top();
+        storeMainScreenSurface_.pop();
+        storeMainScreenCanvas_.pop();
+        offscreenDataList_.pop();
+    }
+}
+
+void RSPaintFilterCanvas::SavePCanvasList()
+{
+    storedPCanvasList_.push_back(pCanvasList_);
+}
+
+void RSPaintFilterCanvas::RestorePCanvasList()
+{
+    if (!storedPCanvasList_.empty()) {
+        auto item = storedPCanvasList_.back();
+        pCanvasList_.swap(item);
+        storedPCanvasList_.pop_back();
+    }
+}
+
 void RSPaintFilterCanvas::SetCanvasStatus(const CanvasStatus& status)
 {
     SetAlpha(status.alpha_);

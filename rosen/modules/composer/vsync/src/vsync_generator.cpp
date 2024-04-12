@@ -589,7 +589,7 @@ void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor
     rsVSyncDistributor_ = rsVSyncDistributor;
 }
 
-VsyncError VSyncGenerator::CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
+VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
 {
     if (hardwareVsyncInterval < 0 || referenceTime < 0) {
         VLOGE("wrong parameter, hardwareVsyncInterval:" VPUBI64 ", referenceTime:" VPUBI64,

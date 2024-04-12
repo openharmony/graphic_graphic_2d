@@ -179,7 +179,7 @@ private:
     bool isLtpo_ = true;
     bool isReduceAllowed_ = true;
     bool isRefreshNeed_ = true;
-    bool isTouchEnable_ = true;
+    bool isTouchEnable_ = false;
     int32_t touchFps_ = 120;
     int32_t idleFps_ = 60;
     int32_t touchCnt_ = 0;

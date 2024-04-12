@@ -57,6 +57,7 @@ enum class ImageFit {
     NONE,
     SCALE_DOWN,
     TOP_LEFT,
+    COVER_TOP_LEFT,
 };
 
 class RSB_EXPORT RSImage : public RSImageBase {

@@ -1,0 +1,76 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+ohos_shared_library("libgraphics_effect") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags = [
+    "-O2",
+    "-ftrapv",
+    "-FPIC",
+    "-FS",
+    "-D_FORTIFY_SOURCE=2",
+  ]
+  cflags_cc = [
+    "-O2",
+    "-ftrapv",
+    "-FPIC",
+    "-FS",
+    "-D_FORTIFY_SOURCE=2",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/src",
+    "$graphic_2d_root/rosen/modules/utils",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/utils/color_manager/export",
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+  ]
+
+  sources = [
+    "src/ge_render.cpp",
+    "src/ge_visual_effect.cpp",
+    "src/ge_visual_effect_container.cpp",
+    "src/ge_visual_effect_impl.cpp",
+  ]
+
+  # 对同部件其它模块的依赖
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/rosen/modules/platform:hilog",
+    "$graphic_2d_root/rosen/modules/platform:ipc_core",
+    "$graphic_2d_root/utils/sandbox:sandbox_utils",
+  ]
+
+  # 对其它部件的模块的依赖
+  external_deps = [ "hilog:libhilog" ]
+  external_deps += [
+    "c_utils:utils",
+    "hitrace:hitrace_meter",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

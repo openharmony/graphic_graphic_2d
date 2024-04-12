@@ -105,7 +105,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
 
     touchMgr_->touchMachine_.RegisterIdleEventCallback([this] () {
         DeliverRefreshRateVote(0, "VOTER_TOUCH", REMOVE_VOTE);
-        touchMgr_->StopRSTimer(curScreenId_);
     });
 }
 
@@ -554,10 +553,10 @@ void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
     }
 
     static std::mutex hgmTouchEventMutex;
+    std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
     if (touchCnt_ < 0) {
         touchCnt_ = 0;
     }
-    std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         touchCnt_++;
         if (touchCnt_ == LAST_TOUCH_DOWN_CNT) {

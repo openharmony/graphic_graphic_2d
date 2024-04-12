@@ -229,6 +229,8 @@ public:
     bool NeedFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
+    const std::shared_ptr<RSFilter>& GetForegroundFilter() const;
+    void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
 
     void SetBackgroundBlurRadius(float backgroundBlurRadius);
     float GetBackgroundBlurRadius() const;
@@ -514,6 +516,7 @@ private:
     float spherizeDegree_ = 0.f;
     bool isSpherizeValid_ = false;
     float lightUpEffectDegree_ = 1.0f;
+    std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
 
     // filter property
     float backgroundBlurRadius_ = 0.f;

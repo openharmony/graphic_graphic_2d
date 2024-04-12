@@ -83,6 +83,9 @@ public:
     void SetPathEffect(std::shared_ptr<PathEffect> e);
     const std::shared_ptr<PathEffect> GetPathEffect() const { return pathEffect_; }
 
+    void SetBlender(std::shared_ptr<Blender> blender);
+    std::shared_ptr<Blender> GetBlender() const { return blender_; }
+
     void SetAntiAlias(bool aa);
     bool IsAntiAlias() const { return antiAlias_; }
 
@@ -109,6 +112,7 @@ private:
     std::shared_ptr<ColorSpace> colorSpace_ = nullptr;
     std::shared_ptr<ShaderEffect> shaderEffect_ = nullptr;
     std::shared_ptr<PathEffect> pathEffect_ = nullptr;
+    std::shared_ptr<Blender> blender_ = nullptr;
 };
 } // namespace Drawing
 } // namespace Rosen

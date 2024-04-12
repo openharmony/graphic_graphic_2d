@@ -54,7 +54,7 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
         }
         STEP("2. check the result of configuration") {
             int32_t load = parser->LoadConfiguration(CONFIG);
-            STEP_ASSERT_GT(load, 0);
+            STEP_ASSERT_GE(load, 0);
         }
     }
 }

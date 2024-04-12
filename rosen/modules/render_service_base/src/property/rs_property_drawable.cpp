@@ -93,6 +93,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::FILTER, RSPropertyDrawableSlot::COMPOSITING_FILTER },
     { RSModifierType::BACKGROUND_FILTER, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, RSPropertyDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FOREGROUND_EFFECT_RADIUS, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::FRAME_GRAVITY, RSPropertyDrawableSlot::FRAME_OFFSET },
@@ -183,6 +184,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     CustomModifierAdapter<RSModifierType::TRANSITION>,           // TRANSITION
     CustomModifierAdapter<RSModifierType::ENV_FOREGROUND_COLOR>, // ENV_FOREGROUND_COLOR
     RSShadowDrawable::Generate,                                  // SHADOW
+    RSForegroundFilterDrawable::Generate,                        // FOREGROUND_FILTER
     RSOutlineDrawable::Generate,                                 // OUTLINE
 
     // BG properties in Bounds Clip
@@ -226,8 +228,9 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     RSParticleDrawable::Generate,                         // PARTICLE_EFFECT
     RSPixelStretchDrawable::Generate,                     // PIXEL_STRETCH
 
-    BlendRestoreDrawableGenerate, // RESTORE_BLEND
-    nullptr,                      // RESTORE_ALL
+    BlendRestoreDrawableGenerate,                   // RESTORE_BLEND
+    RSForegroundFilterRestoreDrawable::Generate,    // RESTORE_FOREGROUND_FILTER
+    nullptr,                                        // RESTORE_ALL
 };
 
 enum DrawableVecStatus : uint8_t {
@@ -283,6 +286,10 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
     if (dirtySlots.count(RSPropertyDrawableSlot::BLEND_MODE)) {
         // BlendMode Restore should be regenerated with BlendMode
         dirtySlots.emplace(RSPropertyDrawableSlot::RESTORE_BLEND_MODE);
+    }
+    if (dirtySlots.count(RSPropertyDrawableSlot::FOREGROUND_FILTER)) {
+        // ForegroundFilter Restore should be regenerated with ForegroundFilter
+        dirtySlots.emplace(RSPropertyDrawableSlot::RESTORE_FOREGROUND_FILTER);
     }
 
     return dirtySlots;

@@ -296,6 +296,26 @@ public:
     bool Update(const RSRenderContent& content) override;
 };
 
+bool IsForegroundFilterValid(const RSRenderContent& content);
+
+class RSForegroundFilterDrawable : public RSPropertyDrawable {
+public:
+    explicit RSForegroundFilterDrawable() = default;
+    ~RSForegroundFilterDrawable() override = default;
+    static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& content);
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+    bool Update(const RSRenderContent& content) override;
+};
+
+class RSForegroundFilterRestoreDrawable : public RSPropertyDrawable {
+public:
+    explicit RSForegroundFilterRestoreDrawable() = default;
+    ~RSForegroundFilterRestoreDrawable() override = default;
+    static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& content);
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+    bool Update(const RSRenderContent& content) override;
+};
+
 // EffectDataGenerate
 class RSEffectDataGenerateDrawable : public RSPropertyDrawable {
 public:
