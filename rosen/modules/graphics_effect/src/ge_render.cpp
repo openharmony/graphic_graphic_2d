@@ -14,17 +14,16 @@
  */
 #include "ge_render.h"
 
-#include "ge_visual_effect_impl.h"
+#include "ge_kawase_blur_shader_filter.h"
 #include "ge_log.h"
+#include "ge_visual_effect_impl.h"
 
 namespace OHOS {
 namespace GraphicsEffectEngine {
 
-GERender::GERender()
-{}
+GERender::GERender() {}
 
-GERender::~GERender()
-{}
+GERender::~GERender() {}
 
 void GERender::DrawImageEffect(Drawing::Canvas &canvas, Drawing::GEVisualEffectContainer &veContainer,
     const std::shared_ptr<Drawing::Image> &image, const Drawing::Rect &src, const Drawing::Rect &dst,
@@ -68,11 +67,21 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
     std::vector<std::shared_ptr<GEShaderFilter>> shaderFilters;
     for (auto vef : veContainer.GetFilters()) {
         auto ve = vef->GetImpl();
-        std::shared_ptr<GEShaderFilter> shaderFilter = nullptr;
+        std::shared_ptr<GEShaderFilter> shaderFilter;
+        switch (ve->GetFilterType()) {
+            case Drawing::GEVisualEffectImpl::FilterType::KAWASE_BLUR: {
+                const auto &kawaseParams = ve->GetKawaseParams();
+                LOGE("GERender::KAWASE_BLUR %{public}d", kawaseParams->radius);
+                shaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(*kawaseParams);
+                break;
+            }
+            default:
+                break;
+        }
         shaderFilters.push_back(shaderFilter);
     }
     return shaderFilters;
 }
 
-}  // namespace GraphicsEffectEngine
-}  // namespace OHOS
+} // namespace GraphicsEffectEngine
+} // namespace OHOS

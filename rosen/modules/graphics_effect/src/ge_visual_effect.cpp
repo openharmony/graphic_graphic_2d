@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "ge_visual_effect.h"
-#include "ge_visual_effect_impl.h"
+
 #include "ge_log.h"
+#include "ge_visual_effect_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,8 +26,7 @@ GEVisualEffect::GEVisualEffect(const std::string &name, DrawingPaintType type)
     : visualEffectName_(name), type_(type), visualEffectImpl_(std::make_unique<GEVisualEffectImpl>(name))
 {}
 
-GEVisualEffect::~GEVisualEffect()
-{}
+GEVisualEffect::~GEVisualEffect() {}
 
 void GEVisualEffect::SetParam(const std::string &tag, int32_t param)
 {
@@ -33,6 +34,6 @@ void GEVisualEffect::SetParam(const std::string &tag, int32_t param)
     visualEffectImpl_->SetParam(tag, param);
 }
 
-}  // namespace Drawing
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef GRAPHICS_EFFECT_ENGINE_VISUAL_EFFECT_H
-#define GRAPHICS_EFFECT_ENGINE_VISUAL_EFFECT_H
+#ifndef GRAPHICS_EFFECT_GE_VISUAL_EFFECT_H
+#define GRAPHICS_EFFECT_GE_VISUAL_EFFECT_H
 
 #include <memory>
 
+#include "effect/color_filter.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
-#include "effect/color_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -64,8 +64,8 @@ private:
     std::shared_ptr<GEVisualEffectImpl> visualEffectImpl_;
 };
 
-}  // namespace Drawing
-}  // namespace Rosen
-}  // namespace OHOS
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 
-#endif  // GRAPHICS_EFFECT_ENGINE_VISUAL_EFFECT_H
+#endif // GRAPHICS_EFFECT_GE_VISUAL_EFFECT_H
