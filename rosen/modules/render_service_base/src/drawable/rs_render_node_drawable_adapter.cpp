@@ -145,6 +145,9 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
 void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    if (renderNode_->drawCmdList_.empty()) {
+        return;
+    }
     DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.backgroundEndIndex_);
 }
 

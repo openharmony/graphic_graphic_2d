@@ -166,11 +166,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     surfaceNode->UpdateFilterCacheStatusWithVisible(true);
 
-    // TO-DO [Sub Thread] CheckFilterCache
-
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
 
     // Draw base pipeline start
+    surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
+
+    auto bounds = surfaceParams->GetFrameRect();
+
+    // 1. draw background
+    DrawBackground(canvas, bounds);
+
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid()) {
         rscanvas->Save();
@@ -181,7 +186,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->PushDirtyRegion(curSurfaceDrawRegion);
     }
 
-    surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
     auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
 
@@ -189,6 +193,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
     }
 
+    // 2. draw self drawing node
     if (surfaceParams->GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(*surfaceNode, *rscanvas, *surfaceParams);
     }
@@ -197,7 +202,15 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->Restore();
     }
 
-    RSRenderNodeDrawable::OnDraw(canvas);
+    // 3. Draw content of this node by the main canvas.
+    DrawContent(canvas, bounds);
+
+    // 4. Draw children of this node by the main canvas.
+    DrawChildren(canvas, bounds);
+
+    // 5. Draw foreground of this node by the main canvas.
+    DrawForeground(canvas, bounds);
+
     // Draw base pipeline end
     if (surfaceParams->IsMainWindowType()) {
         rscanvas->PopDirtyRegion();
