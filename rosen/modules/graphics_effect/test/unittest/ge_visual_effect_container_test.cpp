@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-class GEVisualEffectTest : public testing::Test {
+class GEVisualEffectContainerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -32,25 +32,28 @@ public:
     void TearDown() override;
 };
 
-void GEVisualEffectTest::SetUpTestCase(void) {}
-void GEVisualEffectTest::TearDownTestCase(void) {}
+void GEVisualEffectContainerTest::SetUpTestCase(void) {}
+void GEVisualEffectContainerTest::TearDownTestCase(void) {}
 
-void GEVisualEffectTest::SetUp() {}
-void GEVisualEffectTest::TearDown() {}
+void GEVisualEffectContainerTest::SetUp() {}
+void GEVisualEffectContainerTest::TearDown() {}
 
 /**
- * @tc.name: SetParam001
- * @tc.desc: Verify the SetParam
+ * @tc.name: AddToChainedFilter001
+ * @tc.desc: Verify the AddToChainedFilter
  * @tc.type: FUNC
  */
-HWTEST_F(GEVisualEffectTest, SetParam001, TestSize.Level1)
+HWTEST_F(GEVisualEffectContainerTest, AddToChainedFilter001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam001 start";
+    GTEST_LOG_(INFO) << "GEVisualEffectContainerTest AddToChainedFilter001 start";
 
     auto visualEffect = std::make_shared<GEVisualEffect>("KAWASE_BLUR");
     visualEffect->SetParam("KAWASE_BLUR_RADIUS", 1);
 
-    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam001 end";
+    auto visualEffectContainer = std::make_shared<GEVisualEffectContainer>();
+    visualEffectContainer->AddToChainedFilter(visualEffect);
+
+    GTEST_LOG_(INFO) << "GEVisualEffectContainerTest AddToChainedFilter001 end";
 }
 
 } // namespace Drawing

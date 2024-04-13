@@ -25,6 +25,7 @@ GEVisualEffectContainer::GEVisualEffectContainer() {}
 
 void GEVisualEffectContainer::AddToChainedFilter(std::shared_ptr<Drawing::GEVisualEffect> visualEffect)
 {
+    LOGE("GERender::AddToChainedFilter %{public}s", visualEffect->GetName().c_str());
     filterVec_.push_back(visualEffect);
 }
 

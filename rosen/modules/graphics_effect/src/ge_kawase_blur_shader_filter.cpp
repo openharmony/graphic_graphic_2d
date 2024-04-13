@@ -132,7 +132,9 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::Matrix blurMatrix;
     blurMatrix.Translate(-src.GetLeft(), -src.GetTop());
-    blurMatrix.PostScale(blurScale_, blurScale_);
+    float scaleW = static_cast<float>(scaledInfo.GetWidth()) / input->GetWidth();
+    float scaleH = static_cast<float>(scaledInfo.GetHeight()) / input->GetHeight();
+    blurMatrix.PostScale(scaleW, scaleH);
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
     // Advanced Filter: check is AF usable only the first time
@@ -282,10 +284,10 @@ bool GEKawaseBlurShaderFilter::InitBlurEffectForAdvancedFilter()
 }
 
 Drawing::Matrix GEKawaseBlurShaderFilter::GetShaderTransform(
-    const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scale)
+    const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scaleW, float scaleH)
 {
     Drawing::Matrix matrix;
-    matrix.SetScale(scale, scale);
+    matrix.SetScale(scaleW, scaleH);
     Drawing::Matrix translateMatrix;
     translateMatrix.Translate(blurRect.GetLeft(), blurRect.GetTop());
     matrix.PostConcat(translateMatrix);
@@ -312,7 +314,10 @@ void GEKawaseBlurShaderFilter::OutputOriginalImage(Drawing::Canvas& canvas,
 {
     Drawing::Brush brush;
     Drawing::Matrix inputMatrix;
+    float scaleW = dst.GetWidth() / image->GetWidth();
+    float scaleH = dst.GetHeight() / image->GetHeight();
     inputMatrix.Translate(-src.GetLeft(), -src.GetTop());
+    inputMatrix.PostScale(scaleW, scaleH);
     Drawing::Matrix matrix;
     matrix.Translate(dst.GetLeft(), dst.GetTop());
     inputMatrix.PostConcat(matrix);
@@ -333,16 +338,18 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ScaleAndAddRandomColor
         LOGE("GEKawaseBlurShaderFilter::blurScale is zero.");
         return blurImage;
     }
-    float invBlurScale = 1.0f / blurScale_;
+
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
     Drawing::RuntimeShaderBuilder mixBuilder(mixEffect_);
-    const auto scaleMatrix = GetShaderTransform(&canvas, dst, invBlurScale);
+    const auto scaleMatrix = GetShaderTransform(
+        &canvas, dst, dst.GetWidth() / blurImage->GetWidth(), dst.GetHeight() / blurImage->GetHeight());
     auto tmpShader = Drawing::ShaderEffect::CreateImageShader(
         *blurImage, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, scaleMatrix);
     mixBuilder.SetChild("blurredInput", tmpShader);
     Drawing::Matrix inputMatrix;
     inputMatrix.Translate(-src.GetLeft(), -src.GetTop());
+    inputMatrix.PostScale(dst.GetWidth() / image->GetWidth(), dst.GetHeight() / image->GetHeight());
     Drawing::Matrix matrix;
     matrix.Translate(dst.GetLeft(), dst.GetTop());
     inputMatrix.PostConcat(matrix);
@@ -352,13 +359,12 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ScaleAndAddRandomColor
     float mixFactor = (abs(MAX_CROSS_FADE_RADIUS) <= 1e-6) ? 1.f : (blurRadius_ / MAX_CROSS_FADE_RADIUS);
     mixBuilder.SetUniform("mixFactor", std::min(1.0f, mixFactor));
 
-    static auto factor = 1.75;
+    static auto factor = 1.75; // 1.75 from experience
     mixBuilder.SetUniform("inColorFactor", factor);
     LOGD("GEKawaseBlurShaderFilter::kawase random color factor : %{public}f", factor);
     auto scaledInfo = Drawing::ImageInfo(width, height, blurImage->GetImageInfo().GetColorType(),
         blurImage->GetImageInfo().GetAlphaType(), blurImage->GetImageInfo().GetColorSpace());
-    LOGE("GEKawaseBlurShaderFilter::ScaleAndAddRandomColor output, width = %{public}d, height = %{public}d",
-        scaledInfo.GetWidth(), scaledInfo.GetHeight());
+
     auto output = mixBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
     return output;
 }

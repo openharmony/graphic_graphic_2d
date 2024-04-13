@@ -27,6 +27,7 @@ public:
     ~GEVisualEffectContainer() = default;
 
     void AddToChainedFilter(std::shared_ptr<Drawing::GEVisualEffect> visualEffect);
+
     const std::vector<std::shared_ptr<GEVisualEffect>> GetFilters() const
     {
         return filterVec_;

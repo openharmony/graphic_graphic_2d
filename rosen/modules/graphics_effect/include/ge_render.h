@@ -40,16 +40,16 @@ public:
     GERender();
     ~GERender();
 
-    void DrawImageEffect(Drawing::Canvas& canvas, Drawing::GEVisualEffectContainer& visualEffect,
+    void DrawImageEffect(Drawing::Canvas& canvas, Drawing::GEVisualEffectContainer& veContainer,
         const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src, const Drawing::Rect& dst,
         const Drawing::SamplingOptions& sampling);
 
     std::shared_ptr<Drawing::Image> ApplyImageEffect(Drawing::Canvas& canvas,
-        Drawing::GEVisualEffectContainer& visualEffect, const std::shared_ptr<Drawing::Image>& image,
+        Drawing::GEVisualEffectContainer& veContainer, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling);
 
 private:
-    std::vector<std::shared_ptr<GEShaderFilter>> GenerateShaderFilter(Drawing::GEVisualEffectContainer& visualEffect);
+    std::vector<std::shared_ptr<GEShaderFilter>> GenerateShaderFilter(Drawing::GEVisualEffectContainer& veContainer);
 };
 
 } // namespace GraphicsEffectEngine
