@@ -26,17 +26,20 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int SHADER_FILTERS_SIZE = 10;
+}
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter)
     : RSFilter(), imageFilter_(imageFilter)
 {
     hash_ = SkOpts::hash(&imageFilter_, sizeof(imageFilter_), 0);
-    shaderFilters_.reserve(10); // Most of the time the number of shaderFilters is less than 10
+    shaderFilters_.reserve(SHADER_FILTERS_SIZE);
 }
 
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<RSShaderFilter> shaderFilter)
 {
     hash_ = shaderFilter->Hash();
-    shaderFilters_.reserve(10);
+    shaderFilters_.reserve(SHADER_FILTERS_SIZE);
     shaderFilters_.emplace_back(shaderFilter);
 }
 
@@ -45,7 +48,7 @@ RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilt
 {
     hash_ = shaderFilter->Hash();
     hash_ = SkOpts::hash(&imageFilter_, sizeof(imageFilter_), hash_);
-    shaderFilters_.reserve(10);
+    shaderFilters_.reserve(SHADER_FILTERS_SIZE);
     shaderFilters_.emplace_back(shaderFilter);
 }
 

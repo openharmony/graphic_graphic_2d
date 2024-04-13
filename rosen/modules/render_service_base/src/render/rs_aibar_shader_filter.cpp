@@ -50,11 +50,11 @@ void RSAIBarShaderFilter::GenerateGEVisualEffect(
 {
     auto aiBarPara = GetAiInvertCoef();
     auto aiBarFilter = std::make_shared<Drawing::GEVisualEffect>("AIBAR", Drawing::DrawingPaintType::BRUSH);
-    aiBarFilter->SetParam("AIBAR_LOW", aiBarPara[0]); // low
-    aiBarFilter->SetParam("AIBAR_HIGH", aiBarPara[1]); // high
-    aiBarFilter->SetParam("AIBAR_THRESHOLD", aiBarPara[2]); // threshold
-    aiBarFilter->SetParam("AIBAR_OPACITY", aiBarPara[3]); // opacity
-    aiBarFilter->SetParam("AIBAR_SATURATION", aiBarPara[4]); // saturation
+    aiBarFilter->SetParam("AIBAR_LOW", aiBarPara[0]); // aiBarPara[0] is low
+    aiBarFilter->SetParam("AIBAR_HIGH", aiBarPara[1]); // aiBarPara[1] is high
+    aiBarFilter->SetParam("AIBAR_THRESHOLD", aiBarPara[2]); // aiBarPara[2] is threshold
+    aiBarFilter->SetParam("AIBAR_OPACITY", aiBarPara[3]); // aiBarPara[3] is opacity
+    aiBarFilter->SetParam("AIBAR_SATURATION", aiBarPara[4]); // aiBarPara[4] is saturation
  
     visualEffectContainer->AddToChainedFilter(aiBarFilter);
 }
