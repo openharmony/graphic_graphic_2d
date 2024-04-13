@@ -141,6 +141,15 @@ public:
         // The fence which get from hdi is preBuffer's releaseFence now.
         preBuffer_.releaseFence = std::move(fence);
     }
+
+    void SetBufferSizeChanged(const sptr<SurfaceBuffer>& buffer)
+    {
+        if (preBuffer_.buffer == nullptr) {
+            return;
+        }
+        bufferSizeChanged_ = buffer->GetWidth() != preBuffer_.buffer->GetWidth() ||
+                             buffer->GetHeight() != preBuffer_.buffer->GetHeight();
+    }
 #endif
 
     SurfaceBufferEntry& GetPreBuffer()
@@ -175,15 +184,6 @@ public:
     bool GetBufferSizeChanged()
     {
         return bufferSizeChanged_;
-    }
-
-    void SetBufferSizeChanged(const sptr<SurfaceBuffer>& buffer)
-    {
-        if (preBuffer_.buffer == nullptr) {
-            return;
-        }
-        bufferSizeChanged_ = buffer->GetWidth() != preBuffer_.buffer->GetWidth() ||
-                             buffer->GetHeight() != preBuffer_.buffer->GetHeight();
     }
 
     bool HasConsumer() const
