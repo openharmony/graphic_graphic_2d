@@ -123,6 +123,10 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
 void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
 {
+    if (renderNode_->drawCmdList_.empty()) {
+        return;
+    }
+
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
 
     if (UNLIKELY(skipShadow_)) {
@@ -153,6 +157,10 @@ void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const 
 
 void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    if (renderNode_->drawCmdList_.empty()) {
+        return;
+    }
+
     auto index = renderNode_->drawCmdIndex_.contentIndex_;
     if (index == -1) {
         return;
@@ -162,6 +170,10 @@ void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Dra
 
 void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    if (renderNode_->drawCmdList_.empty()) {
+        return;
+    }
+
     auto index = renderNode_->drawCmdIndex_.childrenIndex_;
     if (index == -1) {
         return;
@@ -171,6 +183,10 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
 
 void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    if (renderNode_->uifirstDrawCmdList_.empty()) {
+        return;
+    }
+
     const auto& drawCmdList_ = renderNode_->uifirstDrawCmdList_;
     auto contentIdx = renderNode_->uifirstDrawCmdIndex_.contentIndex_;
     auto childrenIdx = renderNode_->uifirstDrawCmdIndex_.childrenIndex_;
@@ -189,10 +205,6 @@ void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const 
 
 void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    const auto& drawCmdList_ = renderNode_->drawCmdList_;
-    if (drawCmdList_.empty()) {
-        return;
-    }
     DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.endIndex_);
 }
 
@@ -254,6 +266,10 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectF loc
 void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     Drawing::Canvas& canvas, const RSRenderParams& params) const
 {
+    if (renderNode_->uifirstDrawCmdList_.empty()) {
+        return;
+    }
+
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
     auto backgroundIndex = renderNode_->drawCmdIndex_.backgroundEndIndex_;
     auto bounds = params.GetBounds();
