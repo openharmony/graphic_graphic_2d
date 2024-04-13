@@ -315,6 +315,11 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
     const Drawing::Rect* rect, const uint64_t tid, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
     std::lock_guard<std::mutex> lock(drawingMutex);
+    if (GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: surface used by multi threads");
+        return false;
+    }
+
     if (!pixelmap || !rect) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: pixelmap is nullptr");
         return false;
@@ -328,11 +333,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
     auto image = surface_->GetImageSnapshot();
     if (image == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: GetImageSnapshot failed");
-        return false;
-    }
-
-    if (GetTid() != tid) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: surface used by multi threads");
         return false;
     }
 
