@@ -2013,7 +2013,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         children_.insert(children_.begin() + index, childId);
     }
     child->SetParent(id_);
-    if (isTextureExportNode_) {
+    if (isTextureExportNode_ != child->isTextureExportNode_) {
         child->SyncTextureExport(isTextureExportNode_);
     }
     child->OnAddChildren();
