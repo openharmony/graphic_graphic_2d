@@ -43,7 +43,7 @@ private:
     friend class RSMarshallingHelper;
 
     static Drawing::Matrix GetShaderTransform(
-        const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scale = 1.0f);
+        const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scaleW = 1.0f, float scaleH = 1.0f);
     bool InitBlurEffect();
     bool InitMixEffect();
     // Advanced Filter
