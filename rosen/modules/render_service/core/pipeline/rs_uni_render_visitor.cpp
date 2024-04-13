@@ -1276,7 +1276,11 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
     // collect surface occlusion visibleLevel
     auto visibleLevel = GetRegionVisibleLevel(node.GetVisibleRegion(), selfDrawRegion);
     // wms default all visible about sefdrawing node and AbilityComponent node
-    if (node.IsSelfDrawingNode() || node.IsAbilityComponent()) {
+    auto instanceNode = node.GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (instanceNode == nullptr) {
+        return;
+    }
+    if ((node.IsSelfDrawingNode() && !instanceNode->GetVisibleRegion().IsEmpty()) || node.IsAbilityComponent()) {
         dstCurVisVec_.emplace_back(std::make_pair(node.GetId(),
             WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE));
         return;
