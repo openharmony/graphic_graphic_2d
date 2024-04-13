@@ -207,6 +207,12 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     // them again.
     RS_OPTIONAL_TRACE_FUNC();
 
+    auto width = surface->Width();
+    auto height = surface->Height();
+    Drawing::Matrix mat = canvas.GetTotalMatrix();
+    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+        filter->SetCanvasChange(mat, width, height);
+    }
     // Create an offscreen canvas with the same size as the filter region.
     auto offscreenRect = dstRect;
     auto offscreenSurface = surface->MakeSurface(offscreenRect.GetWidth(), offscreenRect.GetHeight());

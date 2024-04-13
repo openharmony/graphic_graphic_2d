@@ -248,6 +248,10 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     }
 
     filter->PreProcess(imageSnapshot);
+    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+        Drawing::Matrix mat = canvas->GetTotalMatrix();
+        filter->SetCanvasChange(mat, surface->Width(), surface->Height());
+    }
     Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());

@@ -2375,9 +2375,6 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node)
     if (curSurfaceNode_ && !isNodeAddedToTransparentCleanFilters) {
         node.MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
     }
-    if (node.IsInstanceOf<RSEffectRenderNode>() && node.ChildHasVisibleEffect()) {
-        node.MarkFilterHasEffectChildren();
-    }
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)

@@ -174,7 +174,13 @@ protected:
     RSFilter::FilterType filterType_ = RSFilter::NONE;
     int cacheUpdateInterval_ = 0;
     bool isFilterCacheValid_ = false; // catch status in current frame
- 
+
+    // used for linear gradient blur
+    float stagingFrameWidth_ = 0.f;
+    float stagingFrameHeight_ = 0.f;
+    float frameWidth_ = 0.f;
+    float frameHeight_ = 0.f;
+
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
     NodeId nodeId_ = INVALID_NODEID;
 };

@@ -1706,6 +1706,9 @@ inline static bool IsLargeArea(int width, int height)
 
 void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelowContainsFilterNode)
 {
+    if (IsInstanceOf<RSEffectRenderNode>() && ChildHasVisibleEffect()) {
+        MarkFilterHasEffectChildren();
+    }
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare filter cache is disabled.");
         return;

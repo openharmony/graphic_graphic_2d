@@ -163,6 +163,10 @@ void RSFilterDrawable::OnSync()
     forceUseCache_ = stagingForceUseCache_;
     clearFilteredCacheAfterDrawing_ = stagingClearFilteredCacheAfterDrawing_;
 
+    if (filterType_ == RSFilter::LINEAR_GRADIENT_BLUR) {
+        frameWidth_ = stagingFrameWidth_;
+        frameHeight_ = stagingFrameHeight_;
+    }
     filterHashChanged_ = false;
     filterRegionChanged_ = false;
     filterInteractWithDirty_ = false;
@@ -185,6 +189,10 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         if (canvas && ptr && ptr->filter_) {
             RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->nodeId_);
+            if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+                auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
+                filter->SetBoundsGeometry(ptr->frameWidth_, ptr->frameHeight_);
+            }
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
                 ptr->cacheManager_, ptr->IsForeground(), ptr->clearFilteredCacheAfterDrawing_);
         }
