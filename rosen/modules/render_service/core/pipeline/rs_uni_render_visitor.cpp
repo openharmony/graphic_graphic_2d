@@ -1386,6 +1386,36 @@ void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
     }
 }
 
+bool RSUniRenderVisitor::IsLeashAndHasMainSubNode(RSRenderNode& node) const
+{
+    if (node.GetType() != RSRenderNodeType::SURFACE_NODE) {
+        return false;
+    }
+    const auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
+    if (!surfaceNode.IsLeashWindow()) {
+        return false;
+    }
+    // check leashWindow surface has first level mainwindow node
+    auto children = node.GetSortedChildren();
+    auto iter = std::find_if((*children).begin(), (*children).end(),
+        [](const std::shared_ptr<RSRenderNode>& node) {
+        if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            const auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(*node);
+            return surfaceNode.IsMainWindowType();
+        }
+        return false;
+    });
+    return iter != (*children).end();
+}
+
+bool RSUniRenderVisitor::NeedPrepareChindrenInReverseOrder(RSRenderNode& node) const
+{
+    if (!curSurfaceNode_) {
+        return true;
+    }
+    return IsLeashAndHasMainSubNode(node);
+}
+
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
     MergeRemovedChildDirtyRegion(node);
@@ -1394,14 +1424,13 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
     auto children = node.GetSortedChildren();
-    // leashwindow should not include multi mainwindow
-    if (curSurfaceNode_) {
-        std::for_each((*children).begin(), (*children).end(), [this](const std::shared_ptr<RSRenderNode>& node) {
+    if (NeedPrepareChindrenInReverseOrder(node)) {
+        std::for_each((*children).rbegin(), (*children).rend(), [this](const std::shared_ptr<RSRenderNode>& node) {
             curDirty_ = node->IsDirty();
             node->QuickPrepare(shared_from_this());
         });
     } else {
-        std::for_each((*children).rbegin(), (*children).rend(), [this](const std::shared_ptr<RSRenderNode>& node) {
+        std::for_each((*children).begin(), (*children).end(), [this](const std::shared_ptr<RSRenderNode>& node) {
             curDirty_ = node->IsDirty();
             node->QuickPrepare(shared_from_this());
         });
@@ -2226,7 +2255,7 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSR
             filterNode->GetId(), dirtyManager->GetCurrentFrameDirtyRegion().ToString().c_str(),
             filterNode->GetFilterCachedRegion().ToString().c_str());
         const auto& properties = filterNode->GetRenderProperties();
-        if (properties.GetBackgroundFilter() && 
+        if (properties.GetBackgroundFilter() &&
             dirtyManager->GetCurrentFrameDirtyRegion().Intersect(filterNode->GetFilterCachedRegion())) {
             filterNode->MarkFilterStatusChanged(false, false); // 1. background 2. interact with dirty
         }
