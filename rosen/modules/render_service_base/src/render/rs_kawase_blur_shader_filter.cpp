@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +14,12 @@
  */
 #include "render/rs_kawase_blur_shader_filter.h"
 
-#include "src/core/SkOpts.h"
-#include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
-#include "common/rs_optional_trace.h"
-#include "include/gpu/GrDirectContext.h"
-#ifdef USE_ROSEN_DRAWING
-#include "effect/runtime_shader_builder.h"
 #include "effect/color_matrix.h"
-#endif
+#include "effect/runtime_shader_builder.h"
+#include "include/gpu/GrDirectContext.h"
+#include "platform/common/rs_system_properties.h"
+#include "src/core/SkOpts.h"
+
 
 namespace OHOS {
 namespace Rosen {

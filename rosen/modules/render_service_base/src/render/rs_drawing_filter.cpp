@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,10 +19,10 @@
 #include "draw/blend_mode.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
-#include "src/core/SkOpts.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
+#include "src/core/SkOpts.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -163,7 +163,8 @@ void RSDrawingFilter::CaclMaskColor(std::shared_ptr<Drawing::Image>& image)
         auto colorPicker = RSPropertiesPainter::CalcAverageColor(image);
         maskColor_ = RSColor(Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
             Drawing::Color::ColorQuadGetB(colorPicker), maskColor_.GetAlpha());
-    } else if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled &&
+    }
+    if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled &&
         image != nullptr) {
         RSColor color;
         if (colorPickerTask_->GetWaitRelease()) {
@@ -186,16 +187,10 @@ void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)
     if (needMaskColor_) {
         CaclMaskColor(image);
     }
-    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
-        filter->PreProcess(image);
-    });
 }
 
 void RSDrawingFilter::PostProcess(RSPaintFilterCanvas& canvas)
 {
-    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
-        filter->PostProcess(canvas);
-    });
     if (needMaskColor_) {
         Drawing::Brush brush;
         brush.SetColor(maskColor_.AsArgbInt());

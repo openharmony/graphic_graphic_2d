@@ -16,16 +16,11 @@
 
 #include <unordered_map>
 
-#include "src/core/SkOpts.h"
 #include "common/rs_common_def.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "property/rs_properties_painter.h"
-#include "render/rs_kawase_blur.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "src/core/SkOpts.h"
 
-#include "include/effects/SkImageFilters.h"
-#include "include/core/SkTileMode.h"
 
 namespace OHOS {
 namespace Rosen {

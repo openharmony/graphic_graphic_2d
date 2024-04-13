@@ -51,6 +51,7 @@ public:
     {
         return image;
     }
+    
     virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
 

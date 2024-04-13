@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,12 +19,12 @@
 
 namespace OHOS {
 namespace Rosen {
-RSGreyShaderFilter::RSGreyShaderFilter(float greyCoef1, float greyCoef2)
-    : greyCoef1_(greyCoef1), greyCoef2_(greyCoef2)
+RSGreyShaderFilter::RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh)
+    : greyCoefLow_(greyCoefLow), greyCoefHigh_(greyCoefHigh)
 {
     type_ = ShaderFilterType::GREY;
-    hash_ = SkOpts::hash(&greyCoef1_, sizeof(greyCoef1_), hash_);
-    hash_ = SkOpts::hash(&greyCoef2_, sizeof(greyCoef2_), hash_);
+    hash_ = SkOpts::hash(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
+    hash_ = SkOpts::hash(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
 }
 
 RSGreyShaderFilter::~RSGreyShaderFilter() {};
@@ -32,8 +32,8 @@ RSGreyShaderFilter::~RSGreyShaderFilter() {};
 void RSGreyShaderFilter::GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
     auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);
-    greyFilter->SetParam("GREY_COEF_1", greyCoef1_);
-    greyFilter->SetParam("GREY_COEF_2", greyCoef2_);
+    greyFilter->SetParam("GREY_COEF_1", greyCoefLow_);
+    greyFilter->SetParam("GREY_COEF_2", greyCoefHigh_);
     visualEffectContainer->AddToChainedFilter(greyFilter);
 }
 } // namespace Rosen

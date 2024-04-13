@@ -15,7 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_KAWASE_BLUR_SHADER_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_KAWASE_BLUR_SHADER_FILTER_H
 
-#include "render/rs_shader_filter.h"
+#include "render/rs_drawing_filter.h"
 
 namespace OHOS {
 namespace Rosen {

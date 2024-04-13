@@ -15,20 +15,18 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
 
+#include "common/rs_color.h"
 #include "draw/brush.h"
 #include "draw/canvas.h"
-#include "effect/image_filter.h"
-#include "effect/runtime_shader_builder.h"
-#include "render/rs_kawase_blur.h"
-#include "render/rs_filter.h"
-#include "render/rs_shader_filter.h"
-
-#include "common/rs_color.h"
 #include "draw/color.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
+#include "effect/image_filter.h"
+#include "effect/runtime_shader_builder.h"
 #include "property/rs_color_picker_cache_task.h"
-
+#include "render/rs_filter.h"
+#include "render/rs_kawase_blur.h"
+#include "render/rs_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,31 +52,34 @@ public:
     {
         colorMode_ = colorMode;
     }
+
     int GetColorMode()
     {
         return colorMode_;
     }
+
     void SetMaskCOlor(Color maskColor)
     {
         maskColor_ = maskColor;
     }
+
     RSColor GetMaskCOlor()
     {
         return maskColor_;
     }
+
     void SetNeedMaskCOlor(bool needMaskColor)
     {
         needMaskColor_ = needMaskColor;
     }
-    std::shared_ptr<RSShaderFilter> FindLinearGradientBlurShaderFilter();
 
+    std::shared_ptr<RSShaderFilter> FindLinearGradientBlurShaderFilter();
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter> other) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<Drawing::ImageFilter> other) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSShaderFilter> other) const;
     
     bool CanSkipFrame() const { return false; }
     bool CanSkipFrame(float radius) const;
-    
     void CaclMaskColor(std::shared_ptr<Drawing::Image>& image);
     void PreProcess(std::shared_ptr<Drawing::Image>& image);
     void PostProcess(RSPaintFilterCanvas& canvas);
@@ -90,7 +91,7 @@ private:
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
     bool needMaskColor_ = false;
     int colorMode_;
-    RSColor maskColor_ = RSColor();
+    RSColor maskColor_;
     std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
     friend class RSMarshallingHelper;
 };

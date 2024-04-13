@@ -15,12 +15,9 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_LINEAR_GRADIENT_BLUR_SHADER_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_LINEAR_GRADIENT_BLUR_SHADER_FILTER_H
 
-#include "render/rs_drawing_filter.h"
-#include "render/rs_shader_filter.h"
 #include "render/rs_gradient_blur_para.h"
+#include "render/rs_shader_filter.h"
 
-#include "effect/runtime_effect.h"
-#include "effect/runtime_shader_builder.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,6 +39,7 @@ public:
         geoWidth_ = std::ceil(geoWidth);
         geoHeight_ = std::ceil(geoHeight);
     }
+    
     void IsOffscreenCanvas(bool isOffscreenCanvas)
     {
         isOffscreenCanvas_ = isOffscreenCanvas;

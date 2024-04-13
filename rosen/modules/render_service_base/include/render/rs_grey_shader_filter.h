@@ -21,13 +21,13 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSGreyShaderFilter : public RSShaderFilter {
 public:
-    RSGreyShaderFilter(float greyCoef1, float greyCoef2);
+    RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh);
     ~RSGreyShaderFilter() override;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 private:
-    float greyCoef1_ = 0.f;
-    float greyCoef2_ = 0.f;
+    float greyCoefLow_ = 0.f;
+    float greyCoefHigh_ = 0.f;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen
