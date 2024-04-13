@@ -483,7 +483,12 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     }
     auto& renderParams = renderNode_->GetUifirstRenderParams();
     Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+
+    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
+    RSRenderParams::parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
+
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
+    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas)

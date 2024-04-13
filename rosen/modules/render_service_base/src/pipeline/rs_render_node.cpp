@@ -1243,6 +1243,7 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
     RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect)
 {
+    const static auto IdentityMatrix = Drawing::Matrix();
     // 1. update self drawrect if dirty
     if (IsDirty()) {
         UpdateSelfDrawRect();
@@ -1260,6 +1261,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
         const Drawing::Matrix* parentMatrix = nullptr;
         std::optional<Drawing::Point> offset;
         if (properties.GetSandBox()) {
+            parentMatrix = &IdentityMatrix;
             offset = Drawing::Point { properties.GetSandBox()->x_, properties.GetSandBox()->y_ };
         } else {
             parentMatrix = parent ? &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) : nullptr;

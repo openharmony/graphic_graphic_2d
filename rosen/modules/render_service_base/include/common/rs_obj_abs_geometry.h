@@ -65,7 +65,7 @@ private:
 
     RectI absRect_;
     Drawing::Matrix matrix_;
-    Drawing::Matrix absMatrix_;
+    std::optional<Drawing::Matrix> absMatrix_;
     std::optional<Drawing::Matrix> contextMatrix_;
 };
 } // namespace Rosen

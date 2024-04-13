@@ -37,7 +37,9 @@ void RSObjAbsGeometry::ConcatMatrix(const Drawing::Matrix& matrix)
         return;
     }
     matrix_.PreConcat(matrix);
-    absMatrix_.PreConcat(matrix);
+    if (absMatrix_.has_value()) {
+        absMatrix_->PreConcat(matrix);
+    }
     SetAbsRect();
 }
 
@@ -51,9 +53,13 @@ void RSObjAbsGeometry::ConcatMatrix(const Drawing::Matrix& matrix)
 void RSObjAbsGeometry::UpdateMatrix(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset)
 {
     // Initialize the absolute matrix with the absolute matrix of the parent view if the parent view exists
-    absMatrix_ = (parentMatrix == nullptr) ? Drawing::Matrix() : *parentMatrix;
-    if (offset.has_value()) {
-        absMatrix_.PreTranslate(offset->GetX(), offset->GetY());
+    if (parentMatrix == nullptr) {
+        absMatrix_.reset();
+    } else {
+        absMatrix_ = *parentMatrix;
+        if (offset.has_value()) {
+            absMatrix_->PreTranslate(offset->GetX(), offset->GetY());
+        }
     }
     // Reset the matrix of the current view
     matrix_.Reset();
@@ -71,10 +77,12 @@ void RSObjAbsGeometry::UpdateMatrix(const Drawing::Matrix* parentMatrix, const s
         UpdateAbsMatrix3D();
     }
     // If the absolute matrix of the current view exists, update it with the context matrix and the current matrix
-    if (contextMatrix_.has_value()) {
-        absMatrix_.PreConcat(*contextMatrix_);
+    if (absMatrix_.has_value()) {
+        if (contextMatrix_.has_value()) {
+            absMatrix_->PreConcat(*contextMatrix_);
+        }
+        absMatrix_->PreConcat(matrix_);
     }
-    absMatrix_.PreConcat(matrix_);
     // If the context matrix of the current view exists, update the current matrix with it
     if (contextMatrix_.has_value()) {
         matrix_.PreConcat(*contextMatrix_);
@@ -88,7 +96,7 @@ void RSObjAbsGeometry::UpdateMatrix(const Drawing::Matrix* parentMatrix, const s
  */
 void RSObjAbsGeometry::UpdateByMatrixFromSelf()
 {
-    absMatrix_ = Drawing::Matrix();
+    absMatrix_.reset();
     matrix_.Reset();
 
     // If the view has no transformations or only 2D transformations, update the absolute matrix with 2D transformations
@@ -338,7 +346,8 @@ const Drawing::Matrix& RSObjAbsGeometry::GetMatrix() const
 
 const Drawing::Matrix& RSObjAbsGeometry::GetAbsMatrix() const
 {
-    return absMatrix_;
+    // if absMatrix_ is empty, return matrix_ instead
+    return absMatrix_ ? *absMatrix_ : matrix_;
 }
 } // namespace Rosen
 } // namespace OHOS

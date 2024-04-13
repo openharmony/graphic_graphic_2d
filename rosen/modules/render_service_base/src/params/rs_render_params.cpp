@@ -20,7 +20,7 @@
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
-Drawing::Matrix RSRenderParams::parentSurfaceMatrix_;
+thread_local Drawing::Matrix RSRenderParams::parentSurfaceMatrix_;
 
 void RSRenderParams::SetAlpha(float alpha)
 {

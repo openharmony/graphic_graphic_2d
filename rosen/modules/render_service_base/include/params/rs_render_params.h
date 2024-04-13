@@ -121,7 +121,7 @@ public:
     // dfx
     virtual std::string ToString() const;
 
-    static Drawing::Matrix parentSurfaceMatrix_;
+    thread_local static Drawing::Matrix parentSurfaceMatrix_;
 
 protected:
     bool needSync_ = false;

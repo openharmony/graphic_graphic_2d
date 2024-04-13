@@ -182,6 +182,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
+    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
 
     if (isSelfDrawingSurface) {
@@ -203,6 +204,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw SurfaceNode: [%s], NodeId: %llu, ProcessedNodes: %d",
             surfaceNode->GetName().c_str(), surfaceNode->GetId(), RSRenderNodeDrawable::GetProcessedNodeCount());
     }
+
+    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
 }
 
 void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThreadParams* uniParam,
@@ -293,6 +296,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
     } else {
         surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
     }
+    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     if (isSelfDrawingSurface) {
@@ -328,6 +332,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
     }
 
     RSRenderNodeDrawable::OnCapture(canvas);
+
+    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
 }
 
 void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
@@ -364,6 +370,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
     }
+    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     if (surfaceParams.GetBuffer() != nullptr) {
@@ -375,6 +382,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
     }
 
     RSRenderNodeDrawable::OnCapture(canvas);
+
+    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
 }
 
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
