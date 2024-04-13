@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <map>
+#include <mutex>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
