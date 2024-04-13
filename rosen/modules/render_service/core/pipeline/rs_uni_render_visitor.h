@@ -221,6 +221,8 @@ private:
     bool InitDisplayInfo(RSDisplayRenderNode& node);
 
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
+    bool NeedPrepareChindrenInReverseOrder(RSRenderNode& node) const;
+    bool IsLeashAndHasMainSubNode(RSRenderNode& node) const;
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
