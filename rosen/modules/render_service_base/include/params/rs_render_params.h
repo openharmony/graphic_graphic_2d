@@ -110,6 +110,10 @@ public:
     void SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo);
     DirtyRegionInfoForDFX GetDirtyRegionInfoForDFX() const;
 
+    void OnCanvasDrawingSurfaceChange();
+    bool GetCanvasDrawingSurfaceChanged() const;
+    void ResetCanvasDrawingSurfaceChanged();
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -145,6 +149,7 @@ private:
     bool isSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
+    bool canvasDrawingNodeSurfaceChanged_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
