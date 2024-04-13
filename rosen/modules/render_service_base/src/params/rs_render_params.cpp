@@ -265,6 +265,23 @@ bool RSRenderParams::NeedSync() const
 {
     return needSync_;
 }
+
+void RSRenderParams::OnCanvasDrawingSurfaceChange()
+{
+    canvasDrawingNodeSurfaceChanged_ = true;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetCanvasDrawingSurfaceChanged() const
+{
+    return canvasDrawingNodeSurfaceChanged_;
+}
+
+void RSRenderParams::ResetCanvasDrawingSurfaceChanged()
+{
+    canvasDrawingNodeSurfaceChanged_ = false;
+}
+
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     target->alpha_ = alpha_;
@@ -284,7 +301,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->shadowRect_ = shadowRect_;
     target->drawingCacheType_ = drawingCacheType_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
-
+    target->canvasDrawingNodeSurfaceChanged_ = canvasDrawingNodeSurfaceChanged_;
     needSync_ = false;
 }
 
