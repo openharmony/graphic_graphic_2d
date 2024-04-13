@@ -2150,6 +2150,21 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, boo
     region->Join(Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()));
 }
 
+void RSRenderNode::MarkFilterHasEffectChildren()
+{
+    // now only background filter need to mark effect child
+    if (GetRenderProperties().GetBackgroundFilter()) {
+        auto filterDrawable = GetFilterDrawable(false);
+        if (filterDrawable == nullptr) {
+            return;
+        }
+        filterDrawable->MarkHasEffectChildren();
+    }
+    if (!RSProperties::FilterCacheEnabled) {
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
+    }
+}
+
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)
 {
     if (modifiers_.count(id)) {

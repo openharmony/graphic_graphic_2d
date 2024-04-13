@@ -153,9 +153,7 @@ void RSEffectRenderNode::MarkFilterCacheFlagsAfterPrepare(
     if (isRotationChanged_) {
         filterDrawable->MarkRotationChanged();
     }
-    if (ChildHasVisibleEffect()) {
-        filterDrawable->MarkHasEffectChildren();
-    }
+
     RSRenderNode::MarkFilterCacheFlagsAfterPrepare(filterDrawable, isForeground);
     preStaticStatus_ = IsStaticCached();
 }
