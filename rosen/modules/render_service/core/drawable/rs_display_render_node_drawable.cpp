@@ -452,12 +452,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
         DrawWatermarkIfNeed(*displayNodeSp, *curCanvas_);
         DrawCurtainScreen(*displayNodeSp, *curCanvas_);
+        // switch color filtering
+        SwitchColorFilter(*curCanvas_);
     }
     PostClearMemoryTask();
     rsDirtyRectsDfx.OnDraw(curCanvas_);
-
-    // switch color filtering
-    SwitchColorFilter(*curCanvas_);
 
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
         for (const auto& [rect, updateTimes] : drawingCacheInfos_) {
