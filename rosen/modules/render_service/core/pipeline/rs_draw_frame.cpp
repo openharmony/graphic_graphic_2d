@@ -20,6 +20,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uifirst_manager.h"
+#include "property/rs_filter_cache_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -51,7 +52,16 @@ void RSDrawFrame::RenderFrame()
     UnblockMainThread();
     Render();
     ReleaseSelfDrawingNodeBuffer();
+    NotifyClearGpuCache();
     JankStatsRenderFrameEnd(doJankStats);
+}
+
+void RSDrawFrame::NotifyClearGpuCache()
+{
+    if (RSFilterCacheManager::GetFilterInvalid()) {
+        unirenderInstance_.ClearMemoryCache(ClearMemoryMoment::FILTER_INVALID, true);
+        RSFilterCacheManager::SetFilterInvalid(false);
+    }
 }
 
 void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()

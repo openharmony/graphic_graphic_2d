@@ -49,6 +49,7 @@ private:
     void ReleaseSelfDrawingNodeBuffer();
     void JankStatsRenderFrameStart();
     bool IsUniRenderAndOnVsync() const;
+    void NotifyClearGpuCache();
     void JankStatsRenderFrameAfterSync(bool doJankStats);
     void JankStatsRenderFrameEnd(bool doJankStats);
 

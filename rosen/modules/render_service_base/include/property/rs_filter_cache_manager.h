@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
 
+#include <atomic>
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
 
@@ -38,7 +39,7 @@ class RSDrawingFilter;
 // this. This means if both background and foreground need to apply filter, the caller should create two
 // RSFilterCacheManager, pass the correct dirty region, and call the DrawFilter() in correct order.
 // Warn: Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures.
-class RSFilterCacheManager final {
+class RSB_EXPORT RSFilterCacheManager final {
 public:
     RSFilterCacheManager() = default;
     ~RSFilterCacheManager() = default;
@@ -92,6 +93,9 @@ public:
     {
         return cachedSnapshot_ != nullptr || cachedFilteredSnapshot_ != nullptr;
     }
+    
+    static bool GetFilterInvalid();
+    static void SetFilterInvalid(bool invalidFilter);
 
 private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
@@ -122,6 +126,9 @@ private:
     bool pendingPurge_ = false;
     // Region of the cached image, used to determine if we need to invalidate the cache.
     RectI snapshotRegion_; // Note: in device coordinate.
+
+    // This flag is used to notify unirender_thread need to clear gpu memory.
+    static inline std::atomic_bool filterInvalid_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

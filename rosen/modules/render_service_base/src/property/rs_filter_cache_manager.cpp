@@ -283,6 +283,17 @@ void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
         RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::InvalidateFilterCache FILTERED_SNAPSHOT");
         cachedFilteredSnapshot_.reset();
     }
+    filterInvalid_ = true;
+}
+
+bool RSFilterCacheManager::GetFilterInvalid()
+{
+    return filterInvalid_;
+}
+
+void RSFilterCacheManager::SetFilterInvalid(bool invalidFilter)
+{
+    filterInvalid_ = invalidFilter;
 }
 
 void RSFilterCacheManager::ReleaseCacheOffTree()
