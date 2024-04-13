@@ -908,6 +908,57 @@ void RSNode::SetSkewY(float skewY)
     property->Set(skew);
 }
 
+void RSNode::SetPersp(float persp)
+{
+    SetPersp({ persp, persp });
+}
+
+void RSNode::SetPersp(float perspX, float perspY)
+{
+    SetPersp({ perspX, perspY });
+}
+
+void RSNode::SetPersp(const Vector2f& persp)
+{
+    SetProperty<RSPerspModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::PERSP, persp);
+}
+
+void RSNode::SetPerspX(float perspX)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::PERSP);
+    if (iter == propertyModifiers_.end()) {
+        SetPersp(perspX, 0.f);
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto persp = property->Get();
+    persp.x_ = perspX;
+    property->Set(persp);
+}
+
+void RSNode::SetPerspY(float perspY)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::PERSP);
+    if (iter == propertyModifiers_.end()) {
+        SetPersp(0.f, perspY);
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto persp = property->Get();
+    persp.y_ = perspY;
+    property->Set(persp);
+}
+
 // Set the foreground color of the control
 void RSNode::SetEnvForegroundColor(uint32_t colorValue)
 {

@@ -165,6 +165,37 @@ namespace {
             }
         }
     }
+
+    void ApplyPerspToMatrix(const Transform& trans, Drawing::Matrix& m, bool preConcat)
+    {
+        if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
+            Drawing::Matrix perspM {};
+            perspM.SetMatrix(1.f, 0.f, 0.f,
+                0.f, 1.f, 0.f,
+                trans.perspX_, trans.perspY_, 1.f);
+            if (preConcat) {
+                m = perspM * m;
+            } else {
+                m = m * perspM;
+            }
+        }
+    }
+
+    void ApplyPerspToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
+    {
+        if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
+            Drawing::Matrix44 perspM44 {};
+            perspM44.SetMatrix44RowMajor({1.f, 0.f, 0.f, 0.f,
+                0.f, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                trans.perspX_, trans.perspY_, 0.f, 1.f});
+            if (preConcat) {
+                m44 = perspM44 * m44;
+            } else {
+                m44 = m44 * perspM44;
+            }
+        }
+    }
 }
 
 void RSObjAbsGeometry::UpdateAbsMatrix2D()
@@ -172,6 +203,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix2D()
     if (!trans_) {
         matrix_.PreTranslate(x_, y_);
     } else {
+        // Persp
+        if (!ROSEN_EQ(trans_->perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->perspY_, 0.f, EPSILON)) {
+            matrix_.PreTranslate(trans_->pivotX_ * width_, trans_->pivotY_ * height_);
+            ApplyPerspToMatrix(trans_.value(), matrix_, false);
+            matrix_.PreTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_);
+        }
         // Translate
         if ((x_ + trans_->translateX_ != 0) || (y_ + trans_->translateY_ != 0)) {
             matrix_.PreTranslate(x_ + trans_->translateX_, y_ + trans_->translateY_);
@@ -199,9 +236,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
     // If the view has a non-identity quaternion, apply 3D transformations
     if (!trans_->quaternion_.IsIdentity()) {
         Drawing::Matrix44 matrix3D;
+        // Pivot
+        matrix3D.Translate(trans_->pivotX_ * width_, trans_->pivotY_ * height_, 0);
+        // Persp
+        ApplyPerspToMatrix44(trans_.value(), matrix3D, false);
         // Translate
-        matrix3D.Translate(trans_->pivotX_ * width_ + x_ + trans_->translateX_,
-            trans_->pivotY_ * height_ + y_ + trans_->translateY_, z_ + trans_->translateZ_);
+        matrix3D.PreTranslate(x_ + trans_->translateX_, y_ + trans_->translateY_, z_ + trans_->translateZ_);
         // Rotate
         float x = trans_->quaternion_[0];
         float y = trans_->quaternion_[1];
@@ -258,12 +298,17 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
             matrix3D.PreScale(trans_->scaleX_, trans_->scaleY_);
         }
-        // Translate
+        // Pivot
         matrix3D.PreTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_);
 
+        // Translate
+        matrix3D.PostTranslate(x_ + trans_->translateX_, y_ + trans_->translateY_);
+        // PostPersp
+        ApplyPerspToMatrix(trans_.value(), matrix3D, true);
+        // Pivot
+        matrix3D.PostTranslate(trans_->pivotX_ * width_, trans_->pivotY_ * height_);
+
         // Concatenate the 3D matrix with the 2D matrix
-        matrix3D.PostTranslate(
-            trans_->pivotX_ * width_ + x_ + trans_->translateX_, trans_->pivotY_ * height_ + y_ + trans_->translateY_);
         matrix_.PreConcat(matrix3D);
     }
 }

@@ -20,6 +20,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr static float FLOAT_DATA_INIT = 0.5f;
+constexpr static float FLOAT_DATA_UPDATE = 1.0f;
+
 class RSObjAbsGeometryTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -61,6 +64,8 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix001, TestSize.Level1)
     float scaleY = 0.5f;
     float skewX = 0.5f;
     float skewY = 0.5f;
+    float perspX = FLOAT_DATA_INIT;
+    float perspY = FLOAT_DATA_INIT;
     rsObjAbsGeometry.SetRect(x, y, w, h);
     rsObjAbsGeometry.SetQuaternion(quaternion);
     rsObjAbsGeometry.SetRotationY(rotationY);
@@ -81,16 +86,21 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix001, TestSize.Level1)
     rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt, std::nullopt);
     rsObjAbsGeometry.SetSkewY(skewY);
     rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt, std::nullopt);
+    rsObjAbsGeometry.SetPerspX(perspX);
+    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt, std::nullopt);
+    rsObjAbsGeometry.SetPerspY(perspY);
+    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt, std::nullopt);
     rsObjAbsGeometry.SetQuaternion(quaternion.Flip());
     rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt, std::nullopt);
     scaleX = 1.f;
     scaleY = 1.f;
     skewX = 0.5f;
     skewY = 0.5f;
-    rsObjAbsGeometry.SetScale(scaleX, scaleY);
+    perspX = FLOAT_DATA_UPDATE;
+    perspY = FLOAT_DATA_UPDATE;
     rsObjAbsGeometry.SetScale(scaleX, scaleY);
     rsObjAbsGeometry.SetSkew(skewX, skewY);
-    rsObjAbsGeometry.SetSkew(skewX, skewY);
+    rsObjAbsGeometry.SetPersp(perspX, perspY);
     rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt, std::nullopt);
     rsObjAbsGeometry.SetContextMatrix(contextMatrix);
     rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt, std::nullopt);
