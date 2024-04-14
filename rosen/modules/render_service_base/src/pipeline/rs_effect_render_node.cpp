@@ -156,6 +156,7 @@ void RSEffectRenderNode::MarkFilterCacheFlagsAfterPrepare(
 
     RSRenderNode::MarkFilterCacheFlagsAfterPrepare(filterDrawable, isForeground);
     preStaticStatus_ = IsStaticCached();
+    lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
 }
 
 bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()

@@ -1575,6 +1575,12 @@ const RectI RSRenderNode::GetFilterCachedRegion() const
     return lastFilterRegion_;
 }
 
+bool RSRenderNode::IsEffectNodeNeedTakeSnapShot() const
+{
+    return GetRenderProperties().GetBackgroundFilter() != nullptr &&
+        !lastFrameHasVisibleEffect_ && ChildHasVisibleEffect();
+}
+
 void RSRenderNode::UpdateLastFilterCacheRegion(const std::optional<RectI>& clipRect)
 {
     lastFilterRegion_ = GetFilterRect();

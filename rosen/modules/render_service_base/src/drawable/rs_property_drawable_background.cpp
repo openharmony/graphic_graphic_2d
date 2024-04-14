@@ -426,9 +426,12 @@ bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSBackgroundEffectDrawable::OnSync()
 {
-    // planning: adapte freeze and rotation logic
     hasEffectChildren_ = stagingHasEffectChildren_;
     RSFilterDrawable::OnSync();
+    // clear both cache image when it has no effect children and will not draw in this frame
+    if (!hasEffectChildren_) {
+        lastCacheType_ = FilterCacheType::NONE;
+    }
     stagingHasEffectChildren_ = false;
 }
 
