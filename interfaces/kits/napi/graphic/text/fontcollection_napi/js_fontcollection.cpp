@@ -45,7 +45,7 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("disableFallback", JsFontCollection::DisableFallback),
-        DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFont),
+        DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFont),
     };
 
     napi_value constructor = nullptr;

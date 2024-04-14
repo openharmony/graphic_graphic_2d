@@ -274,7 +274,7 @@ inline napi_value GetPositionWithAffinityAndConvertToJsValue(napi_env env,
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (positionWithAffinity != nullptr && objValue != nullptr) {
-        napi_set_named_property(env, objValue, "pos", CreateJsNumber(env, positionWithAffinity->index));
+        napi_set_named_property(env, objValue, "position", CreateJsNumber(env, positionWithAffinity->index));
         napi_set_named_property(env, objValue, "affinity", CreateJsNumber(env, (int)positionWithAffinity->affinity));
     }
     return objValue;

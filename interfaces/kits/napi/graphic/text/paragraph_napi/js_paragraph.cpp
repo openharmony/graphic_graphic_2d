@@ -56,7 +56,7 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("layout", JsParagraph::Layout),
+        DECLARE_NAPI_FUNCTION("layoutSync", JsParagraph::Layout),
         DECLARE_NAPI_FUNCTION("paint", JsParagraph::Paint),
         DECLARE_NAPI_FUNCTION("getMaxWidth", JsParagraph::GetMaxWidth),
         DECLARE_NAPI_FUNCTION("getHeight", JsParagraph::GetHeight),

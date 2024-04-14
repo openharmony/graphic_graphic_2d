@@ -82,9 +82,9 @@ static const std::vector<struct JsEnumInt> g_breakStrategy = {
 };
 
 static const std::vector<struct JsEnumInt> g_ellipsisModal = {
-    { "HEAD", static_cast<size_t>(EllipsisModal::HEAD) },
+    { "START", static_cast<size_t>(EllipsisModal::HEAD) },
     { "MIDDLE", static_cast<size_t>(EllipsisModal::MIDDLE) },
-    { "TAIL", static_cast<size_t>(EllipsisModal::TAIL) },
+    { "END", static_cast<size_t>(EllipsisModal::TAIL) },
 };
 
 static const std::vector<struct JsEnumInt> g_textDecoration = {
@@ -111,9 +111,9 @@ static const std::vector<struct JsEnumInt> g_rectWidthStyle = {
 static const std::vector<struct JsEnumInt> g_rectHeightStyle = {
     { "TIGHT", static_cast<size_t>(TextRectHeightStyle::TIGHT) },
     { "MAX", static_cast<size_t>(TextRectHeightStyle::COVER_TOP_AND_BOTTOM) },
-    { "INCLUDELINESPACEMIDDLE", static_cast<size_t>(TextRectHeightStyle::COVER_HALF_TOP_AND_BOTTOM) },
-    { "INCLUDELINESPACETOP", static_cast<size_t>(TextRectHeightStyle::COVER_TOP) },
-    { "INCLUDELINESPACEBOTTOM", static_cast<size_t>(TextRectHeightStyle::COVER_BOTTOM) },
+    { "INCLUDE_LINE_SPACE_MIDDLE", static_cast<size_t>(TextRectHeightStyle::COVER_HALF_TOP_AND_BOTTOM) },
+    { "INCLUDE_LINE_SPACE_TOP", static_cast<size_t>(TextRectHeightStyle::COVER_TOP) },
+    { "INCLUDE_LINE_SPACE_BOTTOM", static_cast<size_t>(TextRectHeightStyle::COVER_BOTTOM) },
     { "STRUCT", static_cast<size_t>(TextRectHeightStyle::FOLLOW_BY_STRUT) },
 };
 
@@ -124,10 +124,10 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "FontStyle", g_fontStyle },
     { "TextBaseline", g_textBaseline },
     { "TextDirection", g_textDirection },
-    { "WordBreakType", g_wordBreakType },
+    { "WordBreak", g_wordBreakType },
     { "BreakStrategy", g_breakStrategy },
-    { "EllipsisModal", g_ellipsisModal },
-    { "TextDecoration", g_textDecoration },
+    { "EllipsisMode", g_ellipsisModal },
+    { "TextDecorationType", g_textDecoration },
     { "PlaceholderAlignment", g_placeholderVerticalAlignment },
     { "RectWidthStyle", g_rectWidthStyle},
     { "RectHeightStyle", g_rectHeightStyle},
