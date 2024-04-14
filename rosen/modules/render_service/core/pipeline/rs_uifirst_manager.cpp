@@ -80,17 +80,17 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id)
     subthreadProcessDoneNode_.push_back(id);
 }
 
-void RSUifirstManager::MergeOldDirty(DrawableV2::RSSurfaceRenderNodeDrawable* drawable)
+void RSUifirstManager::MergeOldDirty(RSSurfaceRenderNode& node)
 {
-    auto node = static_cast<const RSSurfaceRenderNode*>(drawable->GetRenderNode().get());
-    if (node == nullptr) {
+    auto params = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (!params->GetPreSurfaceCacheContentStatic()) {
         return;
     }
-    if (node->IsAppWindow() && !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
-        node->GetDirtyManager()->MergeDirtyRect(node->GetOldDirty());
+    if (node.IsAppWindow() && !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock())) {
+        node.GetDirtyManager()->MergeDirtyRect(node.GetOldDirty());
         return;
     }
-    for (auto& child : *node->GetSortedChildren()) {
+    for (auto& child : *node.GetSortedChildren()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (surfaceNode && surfaceNode->IsAppWindow()) {
             surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
@@ -98,6 +98,7 @@ void RSUifirstManager::MergeOldDirty(DrawableV2::RSSurfaceRenderNodeDrawable* dr
         }
     }
 }
+
 void RSUifirstManager::ProcessDoneNode()
 {
     SetHasDoneNodeFlag(false);
@@ -114,7 +115,6 @@ void RSUifirstManager::ProcessDoneNode()
         if (drawable && drawable->GetCacheSurfaceNeedUpdated() &&
             drawable->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false)) {
             drawable->UpdateCompletedCacheSurface();
-            MergeOldDirty(drawable);
             SetHasDoneNodeFlag(true);
         }
         subthreadProcessingNode_.erase(id);
@@ -478,6 +478,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, bool curren
             RS_TRACE_NAME_FMT("UIFirst_keep enable  %lx", node.GetId());
             UpdateChildrenDirtyRect(*surfaceNode);
             node.SetHwcChildrenDisabledStateByUifirst();
+            MergeOldDirty(node);
             AddPendingPostNode(node.GetId(), surfaceNode);
         } else { // switch: enable -> disable
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lx", node.GetId());

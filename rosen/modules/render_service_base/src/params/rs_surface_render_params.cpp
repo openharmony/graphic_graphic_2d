@@ -166,11 +166,17 @@ sptr<SyncFence> RSSurfaceRenderParams::GetAcquireFence() const
 }
 #endif
 
+bool RSSurfaceRenderParams::GetPreSurfaceCacheContentStatic() const
+{
+    return preSurfaceCacheContentStatic_;
+}
+
 void RSSurfaceRenderParams::SetSurfaceCacheContentStatic(bool contentStatic)
 {
     if (surfaceCacheContentStatic_ == contentStatic) {
         return;
     }
+    preSurfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     surfaceCacheContentStatic_ = contentStatic;
     needSync_ = true;
 }

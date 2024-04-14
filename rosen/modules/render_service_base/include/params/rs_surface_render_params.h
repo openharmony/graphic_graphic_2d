@@ -180,6 +180,7 @@ public:
     }
     void SetSurfaceCacheContentStatic(bool contentStatic);
     bool GetSurfaceCacheContentStatic() const;
+    bool GetPreSurfaceCacheContentStatic() const;
 
     float GetPositionZ() const;
 
@@ -247,6 +248,7 @@ private:
     RRect rrect_;
 
     bool surfaceCacheContentStatic_ = false;
+    bool preSurfaceCacheContentStatic_ = false;
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
     bool occlusionVisible_ = false;
