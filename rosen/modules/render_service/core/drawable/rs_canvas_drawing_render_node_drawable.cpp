@@ -464,6 +464,9 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
         }
     }
     canvas_->DrawImage(*preImageInNewContext, 0.f, 0.f, Drawing::SamplingOptions());
+    if (preThreadInfo_.second && preSurface) {
+        preThreadInfo_.second(std::move(preSurface));
+    }
     preThreadInfo_ = curThreadInfo_;
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();
