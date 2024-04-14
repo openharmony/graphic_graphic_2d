@@ -2224,9 +2224,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     if (node.GetRenderProperties().NeedFilter()) {
         UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, node.GetOldDirtyInSurface());
         CollectFilterInfoAndUpdateDirty(node);
-        if (!subTreeSkipped) {
-            node.UpdateLastFilterCacheRegion(prepareClipRect_);
-        }
+        node.UpdateLastFilterCacheRegion(prepareClipRect_);
         node.SetGlobalAlpha(curAlpha_);
     }
 
