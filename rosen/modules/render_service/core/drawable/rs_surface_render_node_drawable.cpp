@@ -171,11 +171,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // Draw base pipeline start
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
 
-    auto bounds = surfaceParams->GetFrameRect();
-
-    // 1. draw background
-    DrawBackground(canvas, bounds);
-
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid()) {
         rscanvas->Save();
@@ -188,6 +183,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
+
+    auto bounds = surfaceParams->GetFrameRect();
+
+    // 1. draw background
+    DrawBackground(canvas, bounds);
 
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*rscanvas);
@@ -312,6 +312,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
     auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
+    auto bounds = surfaceParams->GetFrameRect();
+
+    // 1. draw background
+    DrawBackground(canvas, bounds);
+
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
     }
@@ -325,6 +330,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         return;
     }
 
+    // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
     }
@@ -344,7 +350,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         return;
     }
 
-    RSRenderNodeDrawable::OnCapture(canvas);
+    // 3. Draw content of this node by the main canvas.
+    DrawContent(canvas, bounds);
+
+    // 4. Draw children of this node by the main canvas.
+    DrawChildren(canvas, bounds);
+
+    // 5. Draw foreground of this node by the main canvas.
+    DrawForeground(canvas, bounds);
 
     RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
 }
@@ -380,12 +393,18 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
 
     surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
 
+    auto bounds = surfaceParams->GetFrameRect();
+
+    // 1. draw background
+    DrawBackground(canvas, bounds);
+
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(canvas);
     }
     auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
+    // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
     }
@@ -394,7 +413,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
         canvas.Restore();
     }
 
-    RSRenderNodeDrawable::OnCapture(canvas);
+    // 3. Draw content of this node by the main canvas.
+    DrawContent(canvas, bounds);
+
+    // 4. Draw children of this node by the main canvas.
+    DrawChildren(canvas, bounds);
+
+    // 5. Draw foreground of this node by the main canvas.
+    DrawForeground(canvas, bounds);
 
     RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
 }
