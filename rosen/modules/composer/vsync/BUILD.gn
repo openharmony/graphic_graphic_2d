@@ -66,6 +66,7 @@ ohos_shared_library("libvsync") {
     "$graphic_2d_root/utils/log",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/render_frame_trace/include",
   ]
 
   defines = []
@@ -78,6 +79,7 @@ ohos_shared_library("libvsync") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/render_frame_trace:rs_frame_report_ext",
     "$graphic_2d_root/utils:sandbox_utils",
     "$graphic_2d_root/utils:socketpair",
   ]
