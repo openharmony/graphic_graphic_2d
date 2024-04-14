@@ -63,7 +63,7 @@ public:
         return hasDoneNode_;
     }
 
-    void MergeOldDirty(DrawableV2::RSSurfaceRenderNodeDrawable* drawable);
+    void MergeOldDirty(RSSurfaceRenderNode& node);
 
 private:
     RSUifirstManager() = default;
