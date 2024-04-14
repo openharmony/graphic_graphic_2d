@@ -178,17 +178,17 @@ void GEVisualEffectImpl::SetAIBarParams(const std::string& tag, float param)
         return;
     }
 
-    static std::unordered_map<std::string, std::function<void(float)>> actions = {
-        { "AIBAR_LOW",        [this](float p) { this->aiBarParams_->aiBarLow        = p; } },
-        { "AIBAR_HIGH",       [this](float p) { this->aiBarParams_->aiBarHigh       = p; } },
-        { "AIBAR_THRESHOLD",  [this](float p) { this->aiBarParams_->aiBarThreshold  = p; } },
-        { "AIBAR_OPACITY",    [this](float p) { this->aiBarParams_->aiBarOpacity    = p; } },
-        { "AIBAR_SATURATION", [this](float p) { this->aiBarParams_->aiBarSaturation = p; } }
+    static std::unordered_map<std::string, std::function<void(GEVisualEffectImpl*, float)>> actions = {
+        { "AIBAR_LOW",        [](GEVisualEffectImpl* obj, float p) { obj->aiBarParams_->aiBarLow        = p; } },
+        { "AIBAR_HIGH",       [](GEVisualEffectImpl* obj, float p) { obj->aiBarParams_->aiBarHigh       = p; } },
+        { "AIBAR_THRESHOLD",  [](GEVisualEffectImpl* obj, float p) { obj->aiBarParams_->aiBarThreshold  = p; } },
+        { "AIBAR_OPACITY",    [](GEVisualEffectImpl* obj, float p) { obj->aiBarParams_->aiBarOpacity    = p; } },
+        { "AIBAR_SATURATION", [](GEVisualEffectImpl* obj, float p) { obj->aiBarParams_->aiBarSaturation = p; } }
     };
 
     auto it = actions.find(tag);
     if (it != actions.end()) {
-        it->second(param);
+        it->second(this, param);
     }
 }
 
@@ -198,14 +198,14 @@ void GEVisualEffectImpl::SetGreyParams(const std::string& tag, float param)
         return;
     }
 
-    static std::unordered_map<std::string, std::function<void(float)>> actions = {
-        { "GREY_COEF_1", [this](float p) { this->greyParams_->greyCoef1 = p; } },
-        { "GREY_COEF_2", [this](float p) { this->greyParams_->greyCoef2 = p; } }
+    static std::unordered_map<std::string, std::function<void(GEVisualEffectImpl*, float)>> actions = {
+        { "GREY_COEF_1", [](GEVisualEffectImpl* obj, float p) { obj->greyParams_->greyCoef1 = p; } },
+        { "GREY_COEF_2", [](GEVisualEffectImpl* obj, float p) { obj->greyParams_->greyCoef2 = p; } }
     };
 
     auto it = actions.find(tag);
     if (it != actions.end()) {
-        it->second(param);
+        it->second(this, param);
     }
 }
 
@@ -215,17 +215,17 @@ void GEVisualEffectImpl::SetLinearGradientBlurParams(const std::string& tag, flo
         return;
     }
 
-    static std::unordered_map<std::string, std::function<void(float)>> actions = {
-        { "BLURRADIUS", [this](float p) { this->linearGradientBlurParams_->blurRadius = p; } },
-        { "GEOWIDTH",   [this](float p) { this->linearGradientBlurParams_->geoWidth   = p; } },
-        { "GEOHEIGHT",  [this](float p) { this->linearGradientBlurParams_->geoHeight  = p; } },
-        { "TRANX",      [this](float p) { this->linearGradientBlurParams_->tranX      = p; } },
-        { "TRANY",      [this](float p) { this->linearGradientBlurParams_->tranY      = p; } }
+    static std::unordered_map<std::string, std::function<void(GEVisualEffectImpl*, float)>> actions = {
+        { "BLURRADIUS", [](GEVisualEffectImpl* obj, float p) { obj->linearGradientBlurParams_->blurRadius = p; } },
+        { "GEOWIDTH",   [](GEVisualEffectImpl* obj, float p) { obj->linearGradientBlurParams_->geoWidth   = p; } },
+        { "GEOHEIGHT",  [](GEVisualEffectImpl* obj, float p) { obj->linearGradientBlurParams_->geoHeight  = p; } },
+        { "TRANX",      [](GEVisualEffectImpl* obj, float p) { obj->linearGradientBlurParams_->tranX      = p; } },
+        { "TRANY",      [](GEVisualEffectImpl* obj, float p) { obj->linearGradientBlurParams_->tranY      = p; } }
     };
 
     auto it = actions.find(tag);
     if (it != actions.end()) {
-        it->second(param);
+        it->second(this, param);
     }
 }
 
