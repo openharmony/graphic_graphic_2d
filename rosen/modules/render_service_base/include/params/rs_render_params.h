@@ -110,9 +110,10 @@ public:
     void SetDirtyRegionInfoForDFX(DirtyRegionInfoForDFX dirtyRegionInfo);
     DirtyRegionInfoForDFX GetDirtyRegionInfoForDFX() const;
 
-    void OnCanvasDrawingSurfaceChange();
+    // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
+    void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
     bool GetCanvasDrawingSurfaceChanged() const;
-    void ResetCanvasDrawingSurfaceChanged();
+    void SetCanvasDrawingSurfaceChanged(bool changeFlag);
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
