@@ -494,7 +494,7 @@ void RSCanvasDrawingRenderNode::ResetSurface()
     }
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
-    stagingRenderParams_->OnCanvasDrawingSurfaceChange();
+    stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
 }
 
 const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDrawingRenderNode::GetDrawCmdLists() const

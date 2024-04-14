@@ -58,7 +58,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const auto& params = renderNode_->GetRenderParams();
     if (params->GetCanvasDrawingSurfaceChanged()) {
         ResetSurface();
-        params->ResetCanvasDrawingSurfaceChanged();
+        params->SetCanvasDrawingSurfaceChanged(false);
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
