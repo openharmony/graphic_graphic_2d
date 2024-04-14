@@ -312,7 +312,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
     auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
-    auto bounds = surfaceParams->GetFrameRect();
+    auto bounds = surfaceParams.GetFrameRect();
 
     // 1. draw background
     DrawBackground(canvas, bounds);
@@ -393,7 +393,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
 
     surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
 
-    auto bounds = surfaceParams->GetFrameRect();
+    auto bounds = surfaceParams.GetFrameRect();
 
     // 1. draw background
     DrawBackground(canvas, bounds);
