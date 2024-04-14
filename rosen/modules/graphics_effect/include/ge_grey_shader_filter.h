@@ -36,8 +36,6 @@ private:
 
     float greyCoef1_ = 0.f;
     float greyCoef2_ = 0.f;
-
-    static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
 };
 
 } // namespace Rosen

@@ -95,8 +95,7 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImage(D
         return image;
     }
     LOGD("GELinearGradientBlurShaderFilter::DrawImageRect%{public}f,  %{public}f, %{public}f, %{public}f, %{public}f "
-         "%{public}d",
-        para->blurRadius_, geoWidth_, geoHeight_, tranX_, tranY_, (int)isOffscreenCanvas_);
+         "%{public}d", para->blurRadius_, geoWidth_, geoHeight_, tranX_, tranY_, (int)isOffscreenCanvas_);
 
     ComputeScale(dst.GetWidth(), dst.GetHeight(), para->useMaskAlgorithm_);
     auto clipIPadding = Drawing::Rect(0, 0, geoWidth_ * imageScale_, geoHeight_ * imageScale_);
@@ -191,13 +190,12 @@ void GELinearGradientBlurShaderFilter::TransformGradientBlurDirection(uint8_t& d
 }
 
 bool GELinearGradientBlurShaderFilter::GetGEGradientDirectionPoints(
-    Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction)
+    Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction) // 2 size of points
 {
     switch (direction) {
         case GEGradientDirection::BOTTOM: {
             pts[0].Set(clipBounds.GetWidth() / 2 + clipBounds.GetLeft(), clipBounds.GetTop()); // 2 middle of width;
-            pts[1].Set(clipBounds.GetWidth() / 2 + clipBounds.GetLeft(),
-                clipBounds.GetBottom()); // 2  middle of width;
+            pts[1].Set(clipBounds.GetWidth() / 2 + clipBounds.GetLeft(), clipBounds.GetBottom()); // 2  middle of width;
             break;
         }
         case GEGradientDirection::TOP: {
@@ -224,7 +222,7 @@ bool GELinearGradientBlurShaderFilter::GetGEGradientDirectionPoints(
 }
 
 bool GELinearGradientBlurShaderFilter::ProcessGradientDirectionPoints(
-    Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction)
+    Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction)  // 2 size of points
 {
     switch (direction) {
         case GEGradientDirection::RIGHT_BOTTOM: {
@@ -266,7 +264,7 @@ std::shared_ptr<Drawing::ShaderEffect> GELinearGradientBlurShaderFilter::MakeAlp
 {
     std::vector<Drawing::ColorQuad> c;
     std::vector<Drawing::scalar> p;
-    Drawing::Point pts[2];
+    Drawing::Point pts[2];  // 2 size of points
 
     uint8_t direction = static_cast<uint8_t>(para->direction_);
     if (directionBias != 0) {
@@ -276,7 +274,7 @@ std::shared_ptr<Drawing::ShaderEffect> GELinearGradientBlurShaderFilter::MakeAlp
     if (!result) {
         return nullptr;
     }
-    uint8_t ColorMax = 255;
+    uint8_t ColorMax = 255; // 255 max number of color
     uint8_t ColorMin = 0;
     if (para->fractionStops_[0].second > 0.01) { // 0.01 represents the fraction bias
         c.emplace_back(Drawing::Color::ColorQuadSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));

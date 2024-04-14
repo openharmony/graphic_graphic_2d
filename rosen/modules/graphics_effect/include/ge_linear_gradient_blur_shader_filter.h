@@ -62,7 +62,7 @@ private:
     static Drawing::Rect ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst);
     static uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
     static bool GetGEGradientDirectionPoints(
-        Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction);
+        Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction);  // 2 size of points
     static std::shared_ptr<Drawing::ShaderEffect> MakeAlphaGradientShader(
         const Drawing::Rect& clipBounds, const std::shared_ptr<GELinearGradientBlurPara>& para, uint8_t directionBias);
     static std::shared_ptr<Drawing::Image> DrawMaskLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image,
@@ -76,7 +76,7 @@ private:
     std::shared_ptr<Drawing::Image> ProcessImageDDGR(
         Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image, uint8_t directionBias);
     static bool ProcessGradientDirectionPoints(
-        Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction);
+        Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction);  // 2 size of points
     static std::shared_ptr<Drawing::Image> BuildMeanLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image,
         Drawing::Canvas& canvas, float radius, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
         Drawing::Matrix blurMatrix);
