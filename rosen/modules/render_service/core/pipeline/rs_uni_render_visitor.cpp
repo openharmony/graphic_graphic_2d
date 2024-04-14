@@ -5134,7 +5134,7 @@ void RSUniRenderVisitor::ScaleMirrorIfNeedForWiredScreen(RSDisplayRenderNode& no
         float mirrorScaleX = boundsWidth / mainWidth;
         float mirrorScaleY = boundsHeight / mainHeight;
         float ratio = 0.5f;
-        if (mirrorScaleX < mirrorScaleY) {
+        if (mirrorScaleY < mirrorScaleX) {
             mirrorScale = mirrorScaleY;
             startX = (boundsWidth - (mirrorScale * mainWidth)) * ratio;
         } else {
