@@ -570,6 +570,7 @@ public:
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
+    bool IsEffectNodeNeedTakeSnapShot() const;
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -636,6 +637,7 @@ protected:
     virtual void MarkFilterCacheFlagsAfterPrepare(
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false);
     std::atomic<bool> isStaticCached_ = false;
+    bool lastFrameHasVisibleEffect_ = false;
 
 private:
     NodeId id_;
