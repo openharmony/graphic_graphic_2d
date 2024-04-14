@@ -20,6 +20,7 @@
 #include "rosen_text/typography_create.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_style.h"
+#include "rosen_text/typography_types.h"
 #include "txt/paragraph.h"
 #include "txt/placeholder_run.h"
 

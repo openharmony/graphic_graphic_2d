@@ -13,30 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_MODULES_SPTEXT_UTILS_H
-#define ROSEN_MODULES_SPTEXT_UTILS_H
+#ifndef ROSEN_TEXT_EXPORT_ROSEN_TEXT_RUN_H
+#define ROSEN_TEXT_EXPORT_ROSEN_TEXT_RUN_H
 
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-    TypeName(const TypeName&) = delete;    \
-    TypeName& operator=(const TypeName&) = delete
+#include "draw/canvas.h"
+#include "text/font.h"
+#include "utils/point.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace SPText {
-template<typename T>
-struct Range {
-    Range() : start(), end() {}
-    Range(T s, T e) : start(s), end(e) {}
+class Run {
+public:
+    virtual ~Run() = default;
 
-    bool operator==(const Range<T>& other) const
-    {
-        return start == other.start && end == other.end;
-    }
-
-    T start;
-    T end;
+    virtual Drawing::Font GetFont() const = 0;
+    virtual size_t GetGlyphCount() const = 0;
+    virtual std::vector<uint16_t> GetGlyphs() const = 0;
+    virtual std::vector<Drawing::Point> GetPositions() = 0;
+    virtual std::vector<Drawing::Point> GetOffsets() = 0;
+    virtual void Paint(Drawing::Canvas *canvas, double x, double y) = 0;
 };
-} // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_MODULES_SPTEXT_UTILS_H
+
+#endif // ROSEN_TEXT_EXPORT_ROSEN_TEXT_RUN_H
