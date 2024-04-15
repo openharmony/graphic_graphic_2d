@@ -52,7 +52,7 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 }
 
-void MemoryManager::DumpMemoryUsage(DfxString& log, const Drawing::GPUContext* gpuContext, std::string& type)
+void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
 {
     if (type.empty() || type == MEM_RS_TYPE) {
         DumpRenderServiceMemory(log);
@@ -61,7 +61,7 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const Drawing::GPUContext* g
         DumpDrawingCpuMemory(log);
     }
     if (type.empty() || type == MEM_GPU_TYPE) {
-        DumpDrawingGpuMemory(log, gpuContext);
+        RSUniRenderThread::Instance().DumpMem(log);
     }
     if (type.empty() || type == MEM_JEMALLOC_TYPE) {
         std::string out;

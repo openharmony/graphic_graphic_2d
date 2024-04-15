@@ -49,28 +49,4 @@ HWTEST_F(RSRenderNodeMapTest, ObtainScreenLockWindowNodeIdTest, TestSize.Level1)
     rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNode);
 }
 
-/**
- * @tc.name: AddDrivenRenderNodeTest
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeMapTest, AddDrivenRenderNodeTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> nodePtr;
-    RSRenderNodeMap rsRenderNodeMap;
-    rsRenderNodeMap.ObtainLauncherNodeId(nodePtr);
-}
-/**
- * @tc.name: AddDrivenRenderNodeTest
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeMapTest, GetAnimationFallbackNodeTest, TestSize.Level1)
-{
-    RSRenderNodeMap rsRenderNodeMap;
-    rsRenderNodeMap.GetAnimationFallbackNode();
-    ASSERT_NE(rsRenderNodeMap.GetAnimationFallbackNode(), nullptr);
-}
 } // namespace OHOS::Rosen

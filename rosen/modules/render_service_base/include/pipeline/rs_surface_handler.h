@@ -108,7 +108,6 @@ public:
         const Rect& damage,
         const int64_t timestamp)
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         preBuffer_.Reset();
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
@@ -119,19 +118,16 @@ public:
 
     const sptr<SurfaceBuffer>& GetBuffer() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.buffer;
     }
 
     const sptr<SyncFence>& GetAcquireFence() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.acquireFence;
     }
 
     const Rect& GetDamageRegion() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.damageRect;
     }
 
@@ -144,6 +140,15 @@ public:
     {
         // The fence which get from hdi is preBuffer's releaseFence now.
         preBuffer_.releaseFence = std::move(fence);
+    }
+
+    void SetBufferSizeChanged(const sptr<SurfaceBuffer>& buffer)
+    {
+        if (preBuffer_.buffer == nullptr) {
+            return;
+        }
+        bufferSizeChanged_ = buffer->GetWidth() != preBuffer_.buffer->GetWidth() ||
+                             buffer->GetHeight() != preBuffer_.buffer->GetHeight();
     }
 #endif
 
@@ -159,13 +164,11 @@ public:
 
     int64_t GetTimestamp() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.timestamp;
     }
 
     void CleanCache()
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         buffer_.Reset();
         preBuffer_.Reset();
     }
@@ -177,6 +180,11 @@ public:
 
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
+
+    bool GetBufferSizeChanged()
+    {
+        return bufferSizeChanged_;
+    }
 
     bool HasConsumer() const
     {
@@ -202,7 +210,6 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         if (bufferDeleteCb != nullptr) {
             buffer_.RegisterDeleteBufferListener(bufferDeleteCb);
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
@@ -218,11 +225,11 @@ protected:
 
 private:
     NodeId id_ = 0;
-    mutable std::mutex bufMutex_;
-    SurfaceBufferEntry buffer_; // GUARDED BY bufMutex_
-    SurfaceBufferEntry preBuffer_; // GUARDED BY bufMutex_
+    SurfaceBufferEntry buffer_;
+    SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
+    bool bufferSizeChanged_ = false;
 };
 }
 }

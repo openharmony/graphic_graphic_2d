@@ -161,10 +161,16 @@ void GPUContext::StoreVkPipelineCacheData()
 }
 #endif
 
+void GPUContext::RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func)
+{
+    impl_->RegisterPostFunc(func);
+}
+
 GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() const
 {
     return persistentCache_;
 }
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

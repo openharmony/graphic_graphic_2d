@@ -14,32 +14,36 @@
  */
 
 #include "rs_render_service.h"
+
+#include <iservice_registry.h>
+#include <malloc.h>
+#include <platform/common/rs_log.h>
+#include <string>
+#include <system_ability_definition.h>
+#include <unistd.h>
+
 #include "hgm_core.h"
+#include "parameter.h"
 #include "rs_main_thread.h"
+#include "rs_profiler.h"
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
+
+#include "common/rs_singleton.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_hardware_thread.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
 #endif
 
-#include <malloc.h>
-#include <string>
-#include <unistd.h>
-
-#include <iservice_registry.h>
-#include <platform/common/rs_log.h>
-#include <system_ability_definition.h>
-#include "parameter.h"
-#include "rs_profiler.h"
-
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
+constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
 }
 RSRenderService::RSRenderService() {}
 
@@ -66,7 +70,9 @@ bool RSRenderService::Init()
             return false;
         }
     } else {
+        RSUniRenderThread::Instance().Start();
         RSHardwareThread::Instance().Start();
+        StartRCDUpdateThread(RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext().get());
     }
 
     auto generator = CreateVSyncGenerator();
@@ -121,6 +127,14 @@ void RSRenderService::Run()
 {
     RS_LOGE("RSRenderService::Run");
     mainThread_->Start();
+}
+
+void RSRenderService::StartRCDUpdateThread(RenderContext* context) const
+{
+    auto subThreadManager = RSSubThreadManager::Instance();
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        subThreadManager->StartRCDThread(context);
+    }
 }
 
 sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)

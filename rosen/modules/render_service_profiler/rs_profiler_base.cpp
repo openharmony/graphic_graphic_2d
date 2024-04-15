@@ -356,9 +356,6 @@ void RSProfiler::FilterForPlayback(RSRenderNodeMap& map, pid_t pid)
     EraseIf(
         map.surfaceNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
-    EraseIf(map.drivenRenderNodeMap_,
-        [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
-
     EraseIf(map.residentSurfaceNodeMap_,
         [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
@@ -385,7 +382,6 @@ void RSProfiler::FilterMockNode(RSRenderNodeMap& map)
     });
 
     EraseIf(map.surfaceNodeMap_, [](const auto& pair) -> bool { return Utils::IsNodeIdPatched(pair.first); });
-    EraseIf(map.drivenRenderNodeMap_, [](const auto& pair) -> bool { return Utils::IsNodeIdPatched(pair.first); });
     EraseIf(map.residentSurfaceNodeMap_, [](const auto& pair) -> bool { return Utils::IsNodeIdPatched(pair.first); });
     EraseIf(map.displayNodeMap_, [](const auto& pair) -> bool { return Utils::IsNodeIdPatched(pair.first); });
 

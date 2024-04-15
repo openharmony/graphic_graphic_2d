@@ -21,8 +21,38 @@
 namespace OHOS {
 namespace Rosen {
 
-ExtendRecordingCanvas::ExtendRecordingCanvas(int width, int height, bool addDrawOpImmediate)
+ExtendRecordingCanvas::ExtendRecordingCanvas(int32_t width, int32_t height, bool addDrawOpImmediate)
     : Drawing::RecordingCanvas(width, height, addDrawOpImmediate) {}
+
+std::unique_ptr<ExtendRecordingCanvas> ExtendRecordingCanvas::Obtain(int32_t width, int32_t height,
+    bool addDrawOpImmediate)
+{
+    std::unique_ptr<ExtendRecordingCanvas> canvas = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(canvasMutex_);
+        if (canvasPool_.empty()) {
+            return std::make_unique<ExtendRecordingCanvas>(width, height, addDrawOpImmediate);
+        }
+        canvas = std::move(canvasPool_.front());
+        canvasPool_.pop();
+    }
+
+    if (!canvas) {
+        canvas = std::make_unique<ExtendRecordingCanvas>(width, height, addDrawOpImmediate);
+    } else {
+        canvas->Reset(width, height, addDrawOpImmediate);
+    }
+    return canvas;
+}
+
+void ExtendRecordingCanvas::Recycle(std::unique_ptr<ExtendRecordingCanvas>& canvas)
+{
+    std::lock_guard<std::mutex> lock(canvasMutex_);
+    if (canvasPool_.size() >= MAX_CANVAS_SIZE) {
+        return;
+    }
+    canvasPool_.push(std::move(canvas));
+}
 
 void ExtendRecordingCanvas::DrawImageWithParm(
     const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,

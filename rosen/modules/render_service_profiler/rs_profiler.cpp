@@ -93,16 +93,10 @@ double RSProfiler::GetDirtyRegionRelative(RSContext& context)
     const bool isAlignedDirtyRegion = false;
     RSUniRenderUtil::MergeDirtyHistory(displayNode, bufferAge, isAlignedDirtyRegion);
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
-    const Occlusion::Region dirtyRegion =
-        RSUniRenderUtil::MergeVisibleDirtyRegion(displayNode, hasVisibleDirtyRegionSurfaceVec, isAlignedDirtyRegion);
 
-    const std::vector<Occlusion::Rect>& visibleDirtyRects = dirtyRegion.GetRegionRects();
     double accumulatedArea = 0.0;
-    for (const Occlusion::Rect& rect : visibleDirtyRects) {
-        const int width = rect.right_ - rect.left_;
-        const int height = rect.bottom_ - rect.top_;
-        accumulatedArea += width * height;
-    }
+
+    // PLANNING: temporary remove dirty region dump, add back later
 
     const double dirtyRegionPercentage = accumulatedArea / (displayWidth * displayHeight);
     return dirtyRegionPercentage;

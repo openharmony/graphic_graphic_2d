@@ -67,7 +67,7 @@ private:
     bool IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs);
 
     static std::atomic<float> animationScale_;
-    static bool isInitialized_;
+    static std::atomic<bool> isInitialized_;
 
     ForwardDirection direction_ { ForwardDirection::NORMAL };
     int64_t playTime_ { 0 };

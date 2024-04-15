@@ -801,12 +801,11 @@ HWTEST_F(RSPropertiesTest, UpdateGeometry001, TestSize.Level1)
     RSProperties properties;
     RSProperties* parent = &properties;
     std::optional<Drawing::Point> offset;
-    std::optional<Drawing::Rect> clipRect;
-    bool res = properties.UpdateGeometry(parent, false, offset, clipRect);
+    bool res = properties.UpdateGeometry(parent, false, offset);
     EXPECT_EQ(res, false);
 
     properties.SetFramePositionY(1.0f);
-    res = properties.UpdateGeometry(parent, true, offset, clipRect);
+    res = properties.UpdateGeometry(parent, true, offset);
     EXPECT_EQ(res, true);
 
     auto newVect = std::make_shared<Vector2f>(1.f, 1.f);
@@ -815,7 +814,7 @@ HWTEST_F(RSPropertiesTest, UpdateGeometry001, TestSize.Level1)
     Vector4f lightPosition = {1.f, 1.f, 1.f, 1.f};
     properties.SetLightPosition(lightPosition);
     properties.SetIlluminatedBorderWidth(1.f);
-    properties.UpdateGeometry(parent, true, offset, clipRect);
+    properties.UpdateGeometry(parent, true, offset);
     EXPECT_EQ(res, true);
 }
 
@@ -1493,19 +1492,6 @@ HWTEST_F(RSPropertiesTest, SetColorBlendMode001, TestSize.Level1)
     RSProperties properties;
     properties.SetColorBlendMode(1);
     EXPECT_EQ(properties.contentDirty_, true);
-}
-
-/**
- * @tc.name: ReleaseColorPickerTaskShadow001
- * @tc.desc: test results of ReleaseColorPickerTaskShadow
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesTest, ReleaseColorPickerTaskShadow001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.ReleaseColorPickerTaskShadow();
-    EXPECT_EQ(properties.colorPickerTaskShadow_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -53,10 +53,28 @@ HWTEST_F(RSJankStatsTest, SetEndTimeTest, TestSize.Level1)
     auto& rsJankStats = RSJankStats::GetInstance();
     rsJankStats.SetEndTime(false);
     rsJankStats.SetStartTime();
+    rsJankStats.SetOnVsyncStartTime(TIMESTAMP_INITIAL, TIMESTAMP_INITIAL);
     pid_t appPid = 1;
     rsJankStats.SetAppFirstFrame(appPid);
     rsJankStats.SetEndTime(true);
-    rsJankStats.SetSkipDisplayNode();
+}
+
+/**
+ * @tc.name: HandleDirectCompositionTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, HandleDirectCompositionTest, TestSize.Level1)
+{
+    auto& rsJankStats = RSJankStats::GetInstance();
+    rsJankStats.SetStartTime();
+    rsJankStats.SetEndTime(true);
+    rsJankStats.SetOnVsyncStartTime(TIMESTAMP_INITIAL, TIMESTAMP_INITIAL);
+    rsJankStats.SetEndTime(false);
+    rsJankStats.SetStartTime();
+    JankDurationParams rsParams;
+    rsJankStats.HandleDirectComposition(rsParams, true);
 }
 
 /**

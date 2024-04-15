@@ -59,6 +59,23 @@ void RecordingCanvas::ResetCanvas(int32_t width, int32_t height)
     Reset(width, height);
 }
 
+void RecordingCanvas::Reset(int32_t width, int32_t height, bool addDrawOpImmediate)
+{
+    DrawCmdList::UnmarshalMode mode =
+        addDrawOpImmediate ? DrawCmdList::UnmarshalMode::IMMEDIATE : DrawCmdList::UnmarshalMode::DEFERRED;
+    cmdList_ = std::make_shared<DrawCmdList>(width, height, mode);
+    addDrawOpImmediate_ = addDrawOpImmediate;
+    isCustomTextType_ = false;
+    customTextBrush_ = std::nullopt;
+    customTextPen_ = std::nullopt;
+    saveOpStateStack_ = std::stack<SaveOpState>();
+    gpuContext_ = nullptr;
+    RemoveAll();
+    DetachBrush();
+    DetachPen();
+    NoDrawCanvas::Reset(width, height);
+}
+
 void RecordingCanvas::DrawPoint(const Point& point)
 {
     if (!addDrawOpImmediate_) {

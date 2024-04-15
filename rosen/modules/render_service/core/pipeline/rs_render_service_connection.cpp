@@ -15,12 +15,18 @@
 
 #include "rs_render_service_connection.h"
 
-#include "common/rs_background_thread.h"
 #include "frame_report.h"
-#include "hgm_core.h"
 #include "hgm_command.h"
+#include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "rs_main_thread.h"
+#include "rs_profiler.h"
+#include "rs_trace.h"
+#include "system/rs_system_parameters.h"
+
+#include "common/rs_background_thread.h"
+#include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
@@ -28,6 +34,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
+#include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -36,9 +43,6 @@
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "render/rs_typeface_cache.h"
-#include "rs_main_thread.h"
-#include "rs_trace.h"
-#include "rs_profiler.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -59,6 +63,7 @@ RSRenderServiceConnection::RSRenderServiceConnection(
     : remotePid_(remotePid),
       renderService_(renderService),
       mainThread_(mainThread),
+      renderThread_(RSUniRenderThread::Instance()),
       screenManager_(screenManager),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
@@ -535,6 +540,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
         RSHardwareThread::Instance().ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
         mainThread_->SetDiscardJankFrames(true);
+        renderThread_.SetDiscardJankFrames(true);
         OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
     } else {
         mainThread_->ScheduleTask(
@@ -546,30 +552,45 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node == nullptr) {
-            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture: node is nullptr");
-            callback->OnSurfaceCapture(id, nullptr);
-            return;
-        }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
-            mainThread_->GetDeviceType() == DeviceType::PHONE) ? !node->IsOnTheTree() : false;
-        std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
-            RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
-            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-            RSSurfaceCaptureTask task(id, scaleX, scaleY, isProcOnBgThread);
-            if (!task.Run(callback)) {
-                callback->OnSurfaceCapture(id, nullptr);
+        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
+            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD ||
+            RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+            auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+            auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+            if (node == nullptr) {
+                RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture node == nullptr");
+                return;
             }
-            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        };
-        std::function<void()> captureTaskOnBgThread = [=]() -> void {
-            mainThread_->SetSurfaceCapProcFinished(false);
-            RSBackgroundThread::Instance().PostTask(captureTask);
-        };
-        auto task = isProcOnBgThread ? captureTaskOnBgThread : captureTask;
-        mainThread_->PostTask(task);
+            auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
+                !node->IsOnTheTree() : false;
+            std::function<void()> captureTask = [scaleY, scaleX, callback, id, isProcOnBgThread]() -> void {
+                RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]",
+                    id);
+                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+                RSSurfaceCaptureTask task(id, scaleX, scaleY, isProcOnBgThread);
+                if (!task.Run(callback)) {
+                    callback->OnSurfaceCapture(id, nullptr);
+                }
+                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+            };
+            if (isProcOnBgThread) {
+                RSBackgroundThread::Instance().PostTask(captureTask);
+            } else {
+                mainThread_->PostTask(captureTask);
+            }
+        } else {
+            std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
+                RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]",
+                    id);
+                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+                RSSurfaceCaptureTaskParallel task(id, scaleX, scaleY);
+                if (!task.Run(callback)) {
+                    callback->OnSurfaceCapture(id, nullptr);
+                }
+                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+            };
+            renderThread_.PostTask(captureTask);
+        }
     } else {
         TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY, isSync);
     }
@@ -591,12 +612,12 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<R
         RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
     } else {
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-        if (node == nullptr || !node->GetCommandExcuted()) {
+        if (node == nullptr || !node->GetCommandExecuted()) {
             RSOffscreenRenderThread::Instance().InSertCaptureTask(id, offscreenRenderTask);
             return;
         }
         RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
-        node->SetCommandExcuted(false);
+        node->SetCommandExecuted(false);
     }
 }
 
@@ -990,13 +1011,23 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
         RS_LOGE("RSRenderServiceConnection::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
         return false;
     }
-    auto tid = node->GetTid();
+    auto tid = node->GetTid(); // planning: id may change in subthread
+    auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    if (drawableNode) {
+        tid = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetTid();
+    }
+    auto getDrawableBitmapTask = [&node, &bitmap, tid]() {
+        auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        bitmap = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetBitmap(tid);
+    };
     auto getBitmapTask = [&node, &bitmap, tid]() { bitmap = node->GetBitmap(tid); };
-    if (tid == UINT32_MAX) {
+    if (tid == UNI_MAIN_THREAD_INDEX) {
         mainThread_->PostSyncTask(getBitmapTask);
+    } else if (tid == UNI_RENDER_THREAD_INDEX) {
+        renderThread_.PostSyncTask(getDrawableBitmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
-            RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getBitmapTask, true);
+            RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getDrawableBitmapTask, true);
     }
     return !bitmap.IsEmpty();
 }
@@ -1014,21 +1045,33 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         return false;
     }
     bool result = false;
-    auto tid = node->GetTid();
+    auto tid = node->GetTid(); // planning: id may change in subthread
+
+    auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    if (drawableNode) {
+        tid = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->GetTid();
+    }
     auto getPixelmapTask = [&node, &pixelmap, rect, &result, tid, drawCmdList]() {
         result = node->GetPixelmap(pixelmap, rect, tid, drawCmdList);
+    };
+    auto getDrawablePixelmapTask = [&node, &pixelmap, rect, &result, tid, drawCmdList]() {
+        auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        result = static_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable*>(drawableNode.get())->
+            GetPixelmap(pixelmap, rect, tid, drawCmdList);
     };
     if (!node->IsOnTheTree()) {
         node->ClearOp();
     }
-    if (tid == UINT32_MAX) {
+    if (tid == UNI_MAIN_THREAD_INDEX) {
         if (!mainThread_->IsIdle() && mainThread_->GetContext().HasActiveNode(node)) {
             return false;
         }
         mainThread_->PostSyncTask(getPixelmapTask);
+    } else if (tid == UNI_RENDER_THREAD_INDEX) {
+        renderThread_.PostSyncTask(getDrawablePixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
-            RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getPixelmapTask, true);
+            RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getDrawablePixelmapTask, true);
     }
     return result;
 }
@@ -1163,7 +1206,7 @@ int32_t RSRenderServiceConnection::ResizeVirtualScreen(ScreenId id, uint32_t wid
 void RSRenderServiceConnection::ReportJankStats()
 {
     auto task = [this]() -> void { RSJankStats::GetInstance().ReportJankStats(); };
-    mainThread_->PostTask(task);
+    renderThread_.PostTask(task);
 }
 
 void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
@@ -1191,7 +1234,7 @@ void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
     auto task = [this, info]() -> void {
         RSJankStats::GetInstance().SetReportEventResponse(info);
     };
-    mainThread_->PostTask(task);
+    renderThread_.PostTask(task);
 }
 
 void RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
@@ -1199,16 +1242,16 @@ void RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
     auto task = [this, info]() -> void {
         RSJankStats::GetInstance().SetReportEventComplete(info);
     };
-    mainThread_->PostTask(task);
+    renderThread_.PostTask(task);
 }
 
 void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
 {
-    bool isReportTaskDelayed = mainThread_->IsMainLooping();
+    bool isReportTaskDelayed = renderThread_.IsMainLooping();
     auto task = [this, info, isReportTaskDelayed]() -> void {
         RSJankStats::GetInstance().SetReportEventJankFrame(info, isReportTaskDelayed);
     };
-    mainThread_->PostTask(task);
+    renderThread_.PostTask(task);
 }
 
 void RSRenderServiceConnection::ReportGameStateData(GameStateData info)

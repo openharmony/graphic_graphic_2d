@@ -47,6 +47,7 @@ void RSProxyRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    ApplyModifiers();
     visitor->PrepareProxyRenderNode(*this);
 }
 

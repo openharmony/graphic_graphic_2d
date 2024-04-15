@@ -25,6 +25,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "utils/region.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -139,6 +140,10 @@ public:
     ~RSPaintFilterCanvas() override {};
 
     void CopyConfiguration(const RSPaintFilterCanvas& other);
+    void PushDirtyRegion(Drawing::Region& resultRegion);
+    void PopDirtyRegion();
+    bool IsDirtyRegionStackEmpty();
+    Drawing::Region& GetCurDirtyRegion();
 
     // alpha related
     void MultiplyAlpha(float alpha);
@@ -157,15 +162,11 @@ public:
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
 
-    // blendmode related
-    int SaveBlendMode();
     void SetBlendMode(std::optional<int> blendMode);
-    void RestoreBlendMode();
-    std::optional<int> GetBlendMode();
-    void AddBlendOffscreenLayer(bool isExtra);
-    void MinusBlendOffscreenLayer();
-    bool IsBlendOffscreenExtraLayer() const;
-    int GetBlendOffscreenLayerCnt() const;
+    int GetBlendOffscreenLayerCnt() const
+    {
+        return 0;
+    };
 
     // save/restore utils
     struct SaveStatus {
@@ -174,11 +175,12 @@ public:
         int envSaveCount = -1;
     };
     enum SaveType : uint8_t {
-        kNone   = 0x0,
-        kCanvas = 0x1,
-        kAlpha  = 0x2,
-        kEnv    = 0x4,
-        kAll    = kCanvas | kAlpha | kEnv,
+        kNone           = 0x0,
+        kCanvas         = 0x1,
+        kAlpha          = 0x2,
+        kEnv            = 0x4,
+        kCanvasAndAlpha = kCanvas | kAlpha,
+        kAll            = kCanvas | kAlpha | kEnv,
     };
 
     SaveStatus SaveAllStatus(SaveType type = kAll);
@@ -206,6 +208,9 @@ public:
     CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
+
+    void SetParallelThreadIdx(uint32_t idx);
+    uint32_t GetParallelThreadIdx() const;
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
 
@@ -254,6 +259,7 @@ protected:
     using Env = struct {
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
+        std::optional<int> blendMode_;
     };
     const std::stack<float>& GetAlphaStack();
     const std::stack<Env>& GetEnvStack();
@@ -278,11 +284,12 @@ private:
     Drawing::Surface* surface_ = nullptr;
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
+
+    // save every dirty region of the current surface for quick reject
+    std::stack<Drawing::Region> dirtyRegionStack_;
     
-    // blendmode related
-    std::stack<std::optional<int>> blendModeStack_;
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
-    std::stack<bool> blendOffscreenStack_;
+    // std::stack<bool> blendOffscreenStack_;
 
     // foregroundFilter related
     std::vector<std::vector<Canvas*>> storedPCanvasList_; // store pCanvasList_
@@ -294,6 +301,7 @@ private:
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     Drawing::Rect visibleRect_ = Drawing::Rect();
 
+    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     bool isParallelCanvas_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;

@@ -19,7 +19,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-static bool g_releaseResourceEnabled_ = true;
+static std::atomic<bool> g_releaseResourceEnabled_ = true;
 }
 RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
 {

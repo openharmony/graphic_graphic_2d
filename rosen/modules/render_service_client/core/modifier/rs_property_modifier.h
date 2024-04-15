@@ -553,19 +553,19 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-class RSC_EXPORT RSDynamicDimDegreeModifier : public RSForegroundModifier {
+class RSC_EXPORT RSEmitterUpdaterModifier : public RSForegroundModifier {
 public:
-    explicit RSDynamicDimDegreeModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSDynamicDimDegreeModifier() = default;
+    explicit RSEmitterUpdaterModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSEmitterUpdaterModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-class RSC_EXPORT RSEmitterUpdaterModifier : public RSForegroundModifier {
+class RSC_EXPORT RSDynamicDimDegreeModifier : public RSForegroundModifier {
 public:
-    explicit RSEmitterUpdaterModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSEmitterUpdaterModifier() = default;
+    explicit RSDynamicDimDegreeModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSDynamicDimDegreeModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

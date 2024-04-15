@@ -56,6 +56,8 @@ public:
     ~RSDirtyRegionManager() = default;
     // update/expand current frame dirtyregion
     void MergeDirtyRect(const RectI& rect, bool isDebugRect = false);
+    // update/expand current frame dirtyregion if intersect
+    bool MergeDirtyRectIfIntersect(const RectI& rect);
     // update/expand dirtyregion after merge history
     void MergeDirtyRectAfterMergeHistory(const RectI& rect);
     // clip dirtyregion in current frame
@@ -64,7 +66,7 @@ public:
     void ClipDirtyRectWithinSurface();
     // clear allinfo except dirtyregion history
     void Clear();
-    
+
     // update current frame's visited dirtyregion
     void UpdateVisitedDirtyRects(const std::vector<RectI>& rects);
     RectI GetIntersectedVisitedDirtyRect(const RectI& absRect) const;
@@ -89,6 +91,9 @@ public:
     const RectI& GetCurrentFrameDirtyRegion();
     // return merged historical region
     const RectI& GetDirtyRegion() const;
+    // return mapAbs dirtyRegion
+    const RectI& GetCurrentFrameMpsAbsDirtyRect() const;
+    void SetCurrentFrameDirtyRect(const RectI& dirtyRect);
     /*  return merged historical region upside down in left-bottom origin coordinate
         reason: when use OpenGL SetDamageRegion, coordinate system conversion exists.
     */
@@ -126,6 +131,8 @@ public:
         }
         return false;
     }
+    // OnSync must be Executed after UpdateDirty API
+    void OnSync(std::shared_ptr<RSDirtyRegionManager> targetManager);
 
     // added for dirty region dfx
     void UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE,
@@ -181,6 +188,7 @@ private:
     bool isDirtyRegionAlignedEnable_ = false;
     bool isFilterCacheRectValid_ = true;
     bool isDisplayDirtyManager_ = false;
+    std::atomic<bool> isSync_ = false;
 
     // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
     // For example when dirtymanager is used in cachesurface when surfacenode's
