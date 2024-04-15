@@ -43,6 +43,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::INVALID,                       // CAMERA_DISTANCE
     RSDrawableSlot::INVALID,                       // SCALE
     RSDrawableSlot::INVALID,                       // SKEW
+    RSDrawableSlot::INVALID,                       // PERSP
     RSDrawableSlot::INVALID,                       // TRANSLATE
     RSDrawableSlot::INVALID,                       // TRANSLATE_Z
     RSDrawableSlot::INVALID,                       // SUBLAYER_TRANSFORM

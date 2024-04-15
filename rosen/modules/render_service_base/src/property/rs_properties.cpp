@@ -67,6 +67,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetCameraDistance(0.f); },            // CAMERA_DISTANCE
     [](RSProperties* prop) { prop->SetScale(Vector2f(1.f, 1.f)); },      // SCALE
     [](RSProperties* prop) { prop->SetSkew(Vector2f(0.f, 0.f)); },       // SKEW
+    [](RSProperties* prop) { prop->SetPersp(Vector2f(0.f, 0.f)); },      // PERSP
     [](RSProperties* prop) { prop->SetTranslate(Vector2f(0.f, 0.f)); },  // TRANSLATE
     [](RSProperties* prop) { prop->SetTranslateZ(0.f); },                // TRANSLATE_Z
     [](RSProperties* prop) { prop->SetSublayerTransform({}); },          // SUBLAYER_TRANSFORM
@@ -648,6 +649,27 @@ void RSProperties::SetSkewY(float skewY)
     SetDirty();
 }
 
+void RSProperties::SetPersp(Vector2f persp)
+{
+    boundsGeo_->SetPersp(persp.x_, persp.y_);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetPerspX(float perspX)
+{
+    boundsGeo_->SetPerspX(perspX);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetPerspY(float perspY)
+{
+    boundsGeo_->SetPerspY(perspY);
+    geoDirty_ = true;
+    SetDirty();
+}
+
 void RSProperties::SetTranslate(Vector2f translate)
 {
     boundsGeo_->SetTranslateX(translate[0]);
@@ -730,6 +752,21 @@ float RSProperties::GetSkewY() const
 Vector2f RSProperties::GetSkew() const
 {
     return { boundsGeo_->GetSkewX(), boundsGeo_->GetSkewY() };
+}
+
+float RSProperties::GetPerspX() const
+{
+    return boundsGeo_->GetPerspX();
+}
+
+float RSProperties::GetPerspY() const
+{
+    return boundsGeo_->GetPerspY();
+}
+
+Vector2f RSProperties::GetPersp() const
+{
+    return { boundsGeo_->GetPerspX(), boundsGeo_->GetPerspY() };
 }
 
 Vector2f RSProperties::GetTranslate() const

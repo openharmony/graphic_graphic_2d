@@ -147,6 +147,13 @@ public:
     float GetSkewX() const;
     float GetSkewY() const;
 
+    void SetPersp(Vector2f persp);
+    void SetPerspX(float perspX);
+    void SetPerspY(float perspY);
+    Vector2f GetPersp() const;
+    float GetPerspX() const;
+    float GetPerspY() const;
+
     void SetAlpha(float alpha);
     float GetAlpha() const;
     void SetAlphaOffscreen(bool alphaOffscreen);

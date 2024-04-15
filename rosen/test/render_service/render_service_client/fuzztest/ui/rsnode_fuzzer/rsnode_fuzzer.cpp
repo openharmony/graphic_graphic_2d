@@ -104,6 +104,7 @@ void RSNodeFuzzTestInner01(std::shared_ptr<RSSurfaceNode> surfaceNode)
     Vector2f translate(GetData<float>(), GetData<float>());
     Vector2f scale(GetData<float>(), GetData<float>());
     Vector2f skew(GetData<float>(), GetData<float>());
+    Vector2f persp(GetData<float>(), GetData<float>());
 
     surfaceNode->SetBounds(bounds);
     surfaceNode->SetBounds(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
@@ -148,6 +149,12 @@ void RSNodeFuzzTestInner01(std::shared_ptr<RSSurfaceNode> surfaceNode)
     surfaceNode->SetSkew(skew);
     surfaceNode->SetSkewX(GetData<float>());
     surfaceNode->SetSkewY(GetData<float>());
+
+    surfaceNode->SetPersp(GetData<float>());
+    surfaceNode->SetPersp(GetData<float>(), GetData<float>());
+    surfaceNode->SetPersp(persp);
+    surfaceNode->SetPerspX(GetData<float>());
+    surfaceNode->SetPerspY(GetData<float>());
 
     surfaceNode->SetAlpha(GetData<float>());
     surfaceNode->SetAlphaOffscreen(GetData<float>());
