@@ -21,7 +21,6 @@
 #include <scoped_bytrace.h>
 #include <valarray>
 #include <securec.h>
-#include "v1_1/include/idisplay_composer_interface.h"
 #include "v1_2/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
@@ -35,6 +34,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+using namespace OHOS::HDI::Display::Composer::V1_0;
+using namespace OHOS::HDI::Display::Composer::V1_1;
 using namespace OHOS::HDI::Display::Composer::V1_2;
 using IDisplayComposerInterfaceSptr = sptr<OHOS::HDI::Display::Composer::V1_2::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;

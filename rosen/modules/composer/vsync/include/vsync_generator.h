@@ -68,7 +68,7 @@ public:
     virtual void Dump(std::string &result) = 0;
     virtual bool GetFrameRateChaingStatus() = 0;
     virtual VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) = 0;
-    virtual VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) = 0;
+    virtual VsyncError CheckAndUpdateReferenceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) = 0;
     virtual void SetPendingMode(int64_t period, int64_t timestamp) = 0;
     virtual VsyncError StartRefresh() = 0;
 
@@ -102,7 +102,7 @@ public:
     void Dump(std::string &result) override;
     bool GetFrameRateChaingStatus() override;
     VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) override;
-    VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) override;
+    VsyncError CheckAndUpdateReferenceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) override;
     void SetPendingMode(int64_t period, int64_t timestamp) override;
     VsyncError StartRefresh() override;
 

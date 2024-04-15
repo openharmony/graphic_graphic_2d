@@ -72,6 +72,7 @@ public:
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
         const std::optional<Drawing::Rect>& rect = std::nullopt,
         const std::shared_ptr<RSFilter>& externalFilter = nullptr);
+    static void DrawForegroundFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawForegroundColor(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawMask(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawMask(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Rect maskBounds);

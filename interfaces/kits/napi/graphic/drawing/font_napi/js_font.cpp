@@ -372,5 +372,10 @@ std::shared_ptr<Font> JsFont::GetFont()
 {
     return m_font;
 }
+
+void JsFont::SetFont(std::shared_ptr<Font> font)
+{
+    m_font = font;
+}
 } // namespace Drawing
 } // namespace OHOS::Rosen

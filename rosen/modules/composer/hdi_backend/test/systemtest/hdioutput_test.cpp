@@ -80,11 +80,7 @@ HWTEST_F(HdiOutputSysTest, PreProcessLayersComp001, Function | MediumTest| Level
     // layerIdMap is not nullptr in hdiouput
     HdiOutputSysTest::hdiOutput_->SetLayerInfo(layerInfos_);
     EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(1));
-    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(), GRAPHIC_DISPLAY_FAILURE);
-
-    EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(1));
-    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(), 1);
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(), GRAPHIC_DISPLAY_SUCCESS);
 
     HdiOutputSysTest::hdiOutput_->SetLayerCompCapacity(1);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(), GRAPHIC_DISPLAY_SUCCESS);

@@ -452,4 +452,30 @@ HWTEST_F(SyncFenceTest, TrackFenceTest, Function | MediumTest | Level2)
     ASSERT_EQ(ret, 0);
     tracker->TrackFence(syncFence);
 }
+
+/*
+* Function: TrackFenceTestAcquireFence
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call TrackFence, call Loop
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, TrackFenceTestAcquireFence, Function | MediumTest | Level2)
+{
+    sptr<SyncTimeline> syncTimeline_ = new SyncTimeline();
+    bool valid = syncTimeline_->IsValid();
+    ASSERT_EQ(true, valid);
+    int32_t fd = syncTimeline_->GenerateFence("Acquire Fence", 1);
+    sptr<SyncFence> syncFence = new SyncFence(fd);
+    ASSERT_GE(fd, 0);
+
+    auto tracker = std::make_shared<SyncFenceTracker>("Acquire Fence");
+    tracker->TrackFence(syncFence);
+
+    // increase timeline from 0 -> 15
+    auto ret = syncTimeline_->IncreaseSyncPoint(15);
+    ASSERT_EQ(ret, 0);
+    tracker->TrackFence(syncFence);
+}
 } // namespace OHOS

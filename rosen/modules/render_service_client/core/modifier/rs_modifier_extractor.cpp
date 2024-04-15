@@ -352,6 +352,76 @@ float RSModifierExtractor::GetDynamicDimDegree() const
     GET_PROPERTY_FROM_MODIFIERS(float, DYNAMIC_DIM_DEGREE, 0.f, =);
 }
 
+float RSModifierExtractor::GetBackgroundBlurRadius() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS, 0.f, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurSaturation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_SATURATION, 0.f, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurBrightness() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_BRIGHTNESS, 0.f, =);
+}
+
+Color RSModifierExtractor::GetBackgroundBlurMaskColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, BACKGROUND_BLUR_MASK_COLOR, RSColor(), =);
+}
+
+int RSModifierExtractor::GetBackgroundBlurColorMode() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, BACKGROUND_BLUR_COLOR_MODE, BLUR_COLOR_MODE::DEFAULT, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurRadiusX() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS_X, 0.f, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurRadiusY() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS_Y, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurRadius() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurSaturation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_SATURATION, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurBrightness() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_BRIGHTNESS, 0.f, =);
+}
+
+Color RSModifierExtractor::GetForegroundBlurMaskColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, FOREGROUND_BLUR_MASK_COLOR, RSColor(), =);
+}
+
+int RSModifierExtractor::GetForegroundBlurColorMode() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, FOREGROUND_BLUR_COLOR_MODE, BLUR_COLOR_MODE::DEFAULT, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurRadiusX() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS_X, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurRadiusY() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS_Y, 0.f, =);
+}
+
 float RSModifierExtractor::GetLightIntensity() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_INTENSITY, 0.f, =);

@@ -432,6 +432,22 @@ private:
     void RemoveChildById(NodeId childId);
     virtual void CreateTextureExportRenderNodeInRT() {};
 
+    void SetBackgroundBlurRadius(float radius);
+    void SetBackgroundBlurSaturation(float saturation);
+    void SetBackgroundBlurBrightness(float brightness);
+    void SetBackgroundBlurMaskColor(Color maskColor);
+    void SetBackgroundBlurColorMode(int colorMode);
+    void SetBackgroundBlurRadiusX(float blurRadiusX);
+    void SetBackgroundBlurRadiusY(float blurRadiusY);
+
+    void SetForegroundBlurRadius(float radius);
+    void SetForegroundBlurSaturation(float saturation);
+    void SetForegroundBlurBrightness(float brightness);
+    void SetForegroundBlurMaskColor(Color maskColor);
+    void SetForegroundBlurColorMode(int colorMode);
+    void SetForegroundBlurRadiusX(float blurRadiusX);
+    void SetForegroundBlurRadiusY(float blurRadiusY);
+    
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();

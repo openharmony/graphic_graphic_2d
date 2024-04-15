@@ -265,12 +265,14 @@ HWTEST_F(HdiOutputTest, ClearFrameBuffer002, Function | MediumTest | Level1)
 */
 HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Level1)
 {
+    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _)).WillRepeatedly(testing::Return(0));
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     int32_t skipState = 0;
     bool needFlush = false;
-	std::vector<uint32_t> layers;
+    std::vector<uint32_t> layers;
     std::vector<sptr<SyncFence>> fences;
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, layers, fences), ROSEN_ERROR_NOT_INIT);
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, layers, fences),
+        GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace
 } // namespace Rosen

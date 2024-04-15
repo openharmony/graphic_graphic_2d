@@ -21,6 +21,7 @@
 #include <hitrace_meter.h>
 #include "event_handler.h"
 #include "graphic_common.h"
+#include "rs_frame_report_ext.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
 
@@ -78,6 +79,9 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         " expectedEnd:" + std::to_string(expectedEnd) + " vsyncId:" + std::to_string(data[2])); // data[2] is vsyncId
     if (dataCount > 0 && cb != nullptr) {
         cb(now, userData_);
+    }
+    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
+        OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
     }
 }
 
@@ -150,6 +154,9 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::st
     }
     listener_->SetCallback(callback);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
+    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
+        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    }
     return connection_->RequestNextVSync(fromWhom, lastVSyncTS);
 }
 

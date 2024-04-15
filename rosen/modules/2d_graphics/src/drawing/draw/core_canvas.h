@@ -665,6 +665,16 @@ public:
     }
     std::shared_ptr<CoreCanvasImpl> GetCanvasData() const;
 
+    Paint& GetMutableBrush()
+    {
+        return paintBrush_;
+    }
+
+    Paint& GetMutablePen()
+    {
+        return paintPen_;
+    }
+
 protected:
     CoreCanvas(int32_t width, int32_t height);
     void BuildNoDraw(int32_t width, int32_t height);

@@ -143,7 +143,10 @@ void HdiBackend::Repaint(const OutputPtr &output)
     }
 
     if (skipState != GRAPHIC_DISPLAY_SUCCESS) {
-        output->UpdateLayerCompType();
+        ret = output->UpdateLayerCompType();
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            return;
+        }
         ret = PrepareCompleteIfNeed(output, needFlush);
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             return;

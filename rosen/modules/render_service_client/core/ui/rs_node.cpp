@@ -1444,6 +1444,90 @@ void RSNode::OnRemoveChildren()
     }
 }
 
+void RSNode::SetBackgroundBlurRadius(float radius)
+{
+    SetProperty<RSBackgroundBlurRadiusModifier, RSAnimatableProperty<float>>(
+        RSModifierType::BACKGROUND_BLUR_RADIUS, radius);
+}
+
+void RSNode::SetBackgroundBlurSaturation(float saturation)
+{
+    SetProperty<RSBackgroundBlurSaturationModifier, RSAnimatableProperty<float>>(
+        RSModifierType::BACKGROUND_BLUR_SATURATION, saturation);
+}
+
+void RSNode::SetBackgroundBlurBrightness(float brightness)
+{
+    SetProperty<RSBackgroundBlurBrightnessModifier, RSAnimatableProperty<float>>(
+        RSModifierType::BACKGROUND_BLUR_BRIGHTNESS, brightness);
+}
+
+void RSNode::SetBackgroundBlurMaskColor(Color maskColor)
+{
+    SetProperty<RSBackgroundBlurMaskColorModifier, RSAnimatableProperty<Color>>(
+        RSModifierType::BACKGROUND_BLUR_MASK_COLOR, maskColor);
+}
+
+void RSNode::SetBackgroundBlurColorMode(int colorMode)
+{
+    SetProperty<RSBackgroundBlurColorModeModifier, RSProperty<int>>(
+        RSModifierType::BACKGROUND_BLUR_COLOR_MODE, colorMode);
+}
+
+void RSNode::SetBackgroundBlurRadiusX(float blurRadiusX)
+{
+    SetProperty<RSBackgroundBlurRadiusXModifier, RSAnimatableProperty<float>>(
+        RSModifierType::BACKGROUND_BLUR_RADIUS_X, blurRadiusX);
+}
+
+void RSNode::SetBackgroundBlurRadiusY(float blurRadiusY)
+{
+    SetProperty<RSBackgroundBlurRadiusYModifier, RSAnimatableProperty<float>>(
+        RSModifierType::BACKGROUND_BLUR_RADIUS_Y, blurRadiusY);
+}
+
+void RSNode::SetForegroundBlurRadius(float radius)
+{
+    SetProperty<RSForegroundBlurRadiusModifier, RSAnimatableProperty<float>>(
+        RSModifierType::FOREGROUND_BLUR_RADIUS, radius);
+}
+
+void RSNode::SetForegroundBlurSaturation(float saturation)
+{
+    SetProperty<RSForegroundBlurSaturationModifier, RSAnimatableProperty<float>>(
+        RSModifierType::FOREGROUND_BLUR_SATURATION, saturation);
+}
+
+void RSNode::SetForegroundBlurBrightness(float brightness)
+{
+    SetProperty<RSForegroundBlurBrightnessModifier, RSAnimatableProperty<float>>(
+        RSModifierType::FOREGROUND_BLUR_BRIGHTNESS, brightness);
+}
+
+void RSNode::SetForegroundBlurMaskColor(Color maskColor)
+{
+    SetProperty<RSForegroundBlurMaskColorModifier, RSAnimatableProperty<Color>>(
+        RSModifierType::FOREGROUND_BLUR_MASK_COLOR, maskColor);
+}
+
+void RSNode::SetForegroundBlurColorMode(int colorMode)
+{
+    SetProperty<RSForegroundBlurColorModeModifier, RSProperty<int>>(
+        RSModifierType::FOREGROUND_BLUR_COLOR_MODE, colorMode);
+}
+
+void RSNode::SetForegroundBlurRadiusX(float blurRadiusX)
+{
+    SetProperty<RSForegroundBlurRadiusXModifier, RSAnimatableProperty<float>>(
+        RSModifierType::FOREGROUND_BLUR_RADIUS_X, blurRadiusX);
+}
+
+void RSNode::SetForegroundBlurRadiusY(float blurRadiusY)
+{
+    SetProperty<RSForegroundBlurRadiusYModifier, RSAnimatableProperty<float>>(
+        RSModifierType::FOREGROUND_BLUR_RADIUS_Y, blurRadiusY);
+}
+
 bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
 {
     std::shared_ptr<RSAnimation> animation = nullptr;

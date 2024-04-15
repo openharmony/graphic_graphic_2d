@@ -58,7 +58,7 @@ void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParame
         coeffDecay_ = -dampingRatio_ * naturalAngularVelocity;
         coeffScale_ = (initialVelocity_ + initialOffset_ * dampingRatio_ * naturalAngularVelocity) *=
             (1 / dampedAngularVelocity_);
-    } else if (dampingRatio_ == 1) { // Critically-Damped Systems
+    } else if (ROSEN_EQ(dampingRatio_, 1.0f)) { // Critically-Damped Systems
         coeffDecay_ = -naturalAngularVelocity;
         coeffScale_ = initialVelocity_ + initialOffset_ * naturalAngularVelocity;
     } else { // Over-damped Systems
@@ -92,9 +92,22 @@ float RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::EstimateDuration() c
             return 0.0f;
         }
         estimatedDuration = log(fmax(coeffScale, initialOffset) / minimumAmplitude) / -coeffDecay_;
-    } else if (dampingRatio_ == 1) { // Critically-damped
-        // critical damping spring will rest at 2 * natural period
-        estimatedDuration = response_ * 2;
+    } else if (ROSEN_EQ(dampingRatio_, 1.0f)) { // Critically-damped
+        // critical damping spring use dampingRatio = 0.999 to esimate duration approximately
+        constexpr float dampingRatio = 0.999f;
+        double naturalAngularVelocity = 2 * FLOAT_PI / response_;
+        double dampedAngularVelocity = naturalAngularVelocity * sqrt(1.0f - dampingRatio * dampingRatio);
+        if (ROSEN_EQ(dampedAngularVelocity, 0.0)) {
+            return 0.0f;
+        }
+        double tempCoeffA = 1.0 / (dampingRatio * naturalAngularVelocity);
+        double tempCoeffB = toFloat((initialVelocity_ + initialOffset_ * dampingRatio * naturalAngularVelocity) *
+                                    (1 / dampedAngularVelocity));
+        double tempCoeffC = sqrt(initialOffset * initialOffset + tempCoeffB * tempCoeffB);
+        if (ROSEN_EQ(tempCoeffC, 0.0)) {
+            return 0.0f;
+        }
+        estimatedDuration = log(tempCoeffC / minimumAmplitude) * tempCoeffA;
     } else { // Over-damped
         if (ROSEN_EQ(coeffDecay_, 0.0f) || ROSEN_EQ(coeffDecayAlt_, 0.0f)) {
             ROSEN_LOGE("RSSpringModel::%{public}s, coeffDecay_ or coeffDecayAlt_ euqal zero.", __func__);
@@ -124,7 +137,7 @@ std::shared_ptr<RSRenderPropertyBase> RSSpringModel<std::shared_ptr<RSRenderProp
         double rad = dampedAngularVelocity_ * time;
         auto coeffPeriod = (initialOffset_ * cos(rad)) += (coeffScale_ * sin(rad));
         return coeffPeriod *= coeffDecay;
-    } else if (dampingRatio_ == 1) {
+    } else if (ROSEN_EQ(dampingRatio_, 1.0f)) {
         // critical-damped
         return ((coeffScale_ * time) += initialOffset_) *= coeffDecay;
     } else {
@@ -149,7 +162,7 @@ float RSSpringModel<float>::EstimateDuration() const
     float estimatedDuration = 0.0f;
     if (dampingRatio_ < 1.0f) { // Under-damped
         estimatedDuration = EstimateDurationForUnderDampedModel();
-    } else if (dampingRatio_ == 1.0f) { // Critically-damped
+    } else if (ROSEN_EQ(dampingRatio_, 1.0f)) { // Critically-damped
         estimatedDuration = EstimateDurationForCriticalDampedModel();
     } else { // Over-damped
         estimatedDuration = EstimateDurationForOverDampedModel();

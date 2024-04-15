@@ -26,6 +26,7 @@
 #include "utils/rect.h"
 
 #include "text_style.h"
+#include "text_line_base.h"
 #include "typography_types.h"
 #include "symbol_animation_config.h"
 
@@ -60,14 +61,6 @@ struct IndexAndAffinity {
     size_t index;
     Affinity affinity;
     IndexAndAffinity(size_t charIndex, Affinity charAffinity);
-};
-
-struct Boundary {
-    size_t leftIndex = 0; // include leftIndex_
-    size_t rightIndex = 0; // not include rightIndex_
-
-    Boundary(size_t left, size_t right);
-    bool operator ==(const Boundary& rhs) const;
 };
 
 struct LineMetrics {
@@ -146,6 +139,8 @@ public:
     virtual Drawing::FontMetrics GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle) = 0;
     virtual bool GetLineFontMetrics(const size_t lineNumber,
         size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics) = 0;
+    virtual std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const = 0;
+    virtual std::unique_ptr<Typography> CloneSelf() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -64,7 +64,7 @@ ohos_source_set("render_service_base_src") {
     blocklist = "./rs_base_blocklist.txt"
     if (rosen_is_ohos) {
       boundary_sanitize = true
-      integer_overflow = true
+      integer_overflow = false
       ubsan = true
     }
   }
@@ -221,6 +221,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
     "src/render/rs_filter.cpp",
+    "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",

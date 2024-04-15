@@ -77,6 +77,27 @@ const float END_FRACTION_DATA[] = {0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
 constexpr uint32_t SUCCESS_INT = 1;
 const std::string SUCCESS_STRING = "success";
 constexpr bool SUCCESS_BOOL = true;
+
+const Drawing::DrawingPiecewiseParameter BOUNCE_FIRST_PHASE_PARAS = {
+    // the 16: duration, 0: delay, 1 and 1.01: scale
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 16, 0, {{"sx", {1, 1.01}}, {"sy", {1, 1.01}}}
+};
+const Drawing::DrawingPiecewiseParameter BOUNCE_SECOND_PHASE_PARAS = {
+    OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
+    // the -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
+    {{"velocity", -300}, {"mass", 1}, {"stiffness", 328}, {"damping", 16}},
+    0, 16, {{"sx", {1.01, 1}}, {"sy", {1.01, 1}}} // 16: duration, 0: delay, 1 and 1.01: scale
+};
+const Drawing::DrawingPiecewiseParameter APPEAR_FIRST_PHASE_PARAS = {
+    OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
+    // the -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
+    {{"velocity", 0}, {"mass", 1}, {"stiffness", 228}, {"damping", 22}},
+    16, 0, {{"sx", {0.9, 1}}, {"sy", {0.9, 1}}} // 16: duration, 0: delay, 1.01: scale
+};
+const Drawing::DrawingPiecewiseParameter APPEAR_SECOND_PHASE_PARAS = {
+    // the 100: duration, 0: delay, 0.0 and 1: alpha
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 100, 0, {{"alpha", {0.0, 1}}}
+};
 }
 } // namespace Rosen
 } // namespace OHOS

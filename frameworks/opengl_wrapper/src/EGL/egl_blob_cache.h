@@ -99,13 +99,19 @@ public:
                             EGLsizeiANDROID valueSize);
 
     //inner set func
-    void setBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
+    void setBlobLock(const void *key, EGLsizeiANDROID keySize, const void *value,
                 EGLsizeiANDROID valueSize);
 
     //inner get func
+    EGLsizeiANDROID getBlobLock(const void *key, EGLsizeiANDROID keySize, void *value,
+                            EGLsizeiANDROID valueSize);
+
+    void setBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
+                EGLsizeiANDROID valueSize);
+
     EGLsizeiANDROID getBlob(const void *key, EGLsizeiANDROID keySize, void *value,
                             EGLsizeiANDROID valueSize);
-    
+
     void Init(EglWrapperDisplay* display);
 
     //get cache dir from upper layer
@@ -126,6 +132,8 @@ public:
     bool ValidFile(uint8_t *buf, size_t len);
 
     uint32_t CrcGen(const uint8_t *buf, size_t len);
+
+    void MoveToFront(std::shared_ptr<Blob>& cur);
 private:
     static BlobCache *blobCache_;
     size_t maxShaderSize_;
@@ -139,6 +147,7 @@ private:
     std::string fileName_;
     bool saveStatus_ = false;
     bool initStatus_;
+    bool readStatus_ = false;
     std::mutex blobmutex_;
 };
 

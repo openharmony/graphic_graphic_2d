@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -33,7 +33,6 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_draw_cmd_list_test.cpp",
     "rs_draw_cmd_test.cpp",
     "rs_effect_render_node_test.cpp",
-    "rs_frame_report_test.cpp",
     "rs_occlusion_config_test.cpp",
     "rs_paint_filter_canvas_test.cpp",
     "rs_proxy_render_node_test.cpp",

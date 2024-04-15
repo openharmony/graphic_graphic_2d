@@ -294,10 +294,6 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ is nullptr");
         return bitmap;
     }
-    if (GetTid() != tid) {
-        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ used by multi threads");
-        return bitmap;
-    }
     if (!image_->AsLegacyBitmap(bitmap)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: asLegacyBitmap failed");
     }

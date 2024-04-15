@@ -38,6 +38,7 @@ group("graphic_common_test") {
     "rosen/modules/effect/test/unittest:test",
     "rosen/samples/texgine:texgine_feature_test",
     "rosen/test/frame_analyzer:test",
+    "rosen/test/frame_report:test",
     "rosen/test/hyper_graphic_manager:test",
     "rosen/test/render_frame_trace:test",
     "rosen/test/render_service:test",

@@ -29,7 +29,7 @@ VSyncController::~VSyncController()
 {
 }
 
-VsyncError VSyncController::SetEnable(bool enbale, bool& isGeneratorEnable)
+VsyncError VSyncController::SetEnable(bool enable, bool& isGeneratorEnable)
 {
     if (generator_ == nullptr) {
         return VSYNC_ERROR_NULLPTR;
@@ -44,7 +44,7 @@ VsyncError VSyncController::SetEnable(bool enbale, bool& isGeneratorEnable)
         phaseOffset = phaseOffset_;
     }
     VsyncError ret = VSYNC_ERROR_OK;
-    if (enbale) {
+    if (enable) {
         // If the sampler does not complete the sampling work, the generator does not work
         // We need to tell the distributor to use the software vsync
         isGeneratorEnable = generator->IsEnable();
@@ -55,7 +55,7 @@ VsyncError VSyncController::SetEnable(bool enbale, bool& isGeneratorEnable)
         }
     } else {
         ret = generator->RemoveListener(this);
-        isGeneratorEnable = enbale;
+        isGeneratorEnable = enable;
     }
 
     enabled_ = isGeneratorEnable;

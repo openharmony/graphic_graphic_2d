@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,7 +55,6 @@
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_divided_render_util.h"
-#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -79,6 +78,7 @@
 #include "render_context/memory_handler.h"
 #endif
 #include "render/rs_pixel_map_util.h"
+#include "rs_frame_report.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
 
@@ -704,7 +704,7 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
     if (subThreadNodes_.empty() &&
-        (deviceType_ == DeviceType::PHONE || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
+        (deviceType_ != DeviceType::PC || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
         RSSubThreadManager::Instance()->ResetSubThreadGrContext();
         return false;
     }
@@ -1320,7 +1320,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             grContext->Flush();
             SkGraphics::PurgeAllCaches(); // clear cpu cache
             auto pid = *(this->exitedPidSet_.begin());
-            if (this->exitedPidSet_.size() == 1 && pid == -1) {         // no exited app, just clear scratch resource
+            if (this->exitedPidSet_.size() == 1 && pid == -1) {  // no exited app, just clear scratch resource
                 if (deeply || this->deviceType_ != DeviceType::PHONE) {
                     MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
                 } else {
@@ -1336,7 +1336,8 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         },
         CLEAR_GPU_CACHE,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate());
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
+        AppExecFwk::EventQueue::Priority::HIGH);
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -3054,6 +3055,11 @@ const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
+    if (RSSystemProperties::GetUIFirstForceEnabled()) {
+        isUiFirstOn_ = true;
+        return;
+    }
+
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
         return;
@@ -3068,7 +3074,7 @@ void RSMainThread::UpdateUIFirstSwitch()
     }
     auto screenManager_ = CreateOrGetScreenManager();
     uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
-    if (deviceType_ == DeviceType::PHONE) {
+    if (deviceType_ != DeviceType::PC) {
         if (isFoldScreenDevice_) {
             isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
         } else {

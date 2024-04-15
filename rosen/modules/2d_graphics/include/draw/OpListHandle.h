@@ -55,6 +55,11 @@ struct OpInfo {
         return opInfo_;
     }
 
+    void ResetOpInfo()
+    {
+        opInfo_.canReUseCache = false;
+    }
+
 template<typename T>
     T* GetImpl() const
     {

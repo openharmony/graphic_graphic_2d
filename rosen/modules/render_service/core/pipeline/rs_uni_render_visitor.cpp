@@ -2476,14 +2476,20 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
             return;
         }
+        bool isOpDropped = isOpDropped_;
+        isOpDropped_ = false;
         ProcessChildren(node);
         DrawWatermarkIfNeed(node);
         DrawCurtainScreen();
+        isOpDropped_ = isOpDropped;
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     } else if (drivenInfo_ && drivenInfo_->currDrivenRenderMode == DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode DrivenUniRenderMode is REUSE_WITH_CLIP_HOLE");
+        bool isOpDropped = isOpDropped_;
+        isOpDropped_ = false;
         node.SetGlobalZOrder(globalZOrder_);
         processor_->ProcessDisplaySurface(node);
+        isOpDropped_ = isOpDropped;
 #endif
     } else {
         curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
@@ -2662,8 +2668,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isOpDropped_ && !isDirtyRegionAlignedEnable_) {
             clipRegion_ = region;
             ClipRegion(canvas_, region);
+            if (!region.IsEmpty()) {
+                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            }
+        } else {
+            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
-        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (isUIFirst_) {
@@ -4405,7 +4415,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (!node.ShouldPaint() ||
         (canvas_ && canvas_->GetDeviceClipBounds().IsEmpty() && hardwareEnabledNodes_.empty())) {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (isOpincDropNodeExt_) {
+        if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
             return;
         }
 #else
@@ -4416,7 +4426,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ && !node.HasSubSurface() &&
         geoPtr && IsOutOfScreenRegion(geoPtr->GetAbsRect()) && !isSubThread_) {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-        if (isOpincDropNodeExt_) {
+        if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
             return;
         }
 #else
@@ -4441,7 +4451,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 
             node.isCoveredByOtherNode_ = false;
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (isOpincDropNodeExt_) {
+            if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
                 return;
             }
 #else
@@ -4472,7 +4482,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
                         node.GetId(), node.GetType(), DirtyRegionType::CANVAS_NODE_SKIP_RECT, dirtyRect);
                 } else {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-                    if (isOpincDropNodeExt_) {
+                    if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
                         return;
                     }
 #else
@@ -4493,7 +4503,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         // skip render driven node sub tree
         if (RSDrivenRenderManager::GetInstance().ClipHoleForDrivenNode(*canvas_, node)) {
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (isOpincDropNodeExt_) {
+            if (isOpincDropNodeExt_ && !node.isOpincRootNode_) {
                 return;
             }
 #else

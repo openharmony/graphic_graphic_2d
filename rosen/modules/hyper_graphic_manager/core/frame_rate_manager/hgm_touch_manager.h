@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,6 +70,7 @@ public:
 private:
     TouchState currentState_;
     std::mutex touchStateMutex_;
+    std::mutex touchTimerMapMutex_;
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> touchTimerMap_;
     IdleEventCallback idleEventCallback_ = nullptr;
 };
@@ -94,6 +96,7 @@ public:
     TouchStateMachine touchMachine_;
 private:
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> rsTimerMap_;
+    mutable std::mutex timerMapMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

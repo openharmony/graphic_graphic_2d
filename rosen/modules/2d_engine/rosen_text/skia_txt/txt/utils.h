@@ -20,4 +20,23 @@
     TypeName(const TypeName&) = delete;    \
     TypeName& operator=(const TypeName&) = delete
 
+namespace OHOS {
+namespace Rosen {
+namespace SPText {
+template<typename T>
+struct Range {
+    Range() : start(), end() {}
+    Range(T s, T e) : start(s), end(e) {}
+
+    bool operator==(const Range<T>& other) const
+    {
+        return start == other.start && end == other.end;
+    }
+
+    T start;
+    T end;
+};
+} // namespace SPText
+} // namespace Rosen
+} // namespace OHOS
 #endif // ROSEN_MODULES_SPTEXT_UTILS_H
