@@ -20,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace OHOS::Rosen {
 
