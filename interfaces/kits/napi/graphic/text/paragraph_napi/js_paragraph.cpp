@@ -19,6 +19,7 @@
 #include "js_paragraph.h"
 #include "../js_text_utils.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
+#include "utils/log.h"
 
 namespace OHOS::Rosen {
 std::unique_ptr<Typography> g_Typography = nullptr;

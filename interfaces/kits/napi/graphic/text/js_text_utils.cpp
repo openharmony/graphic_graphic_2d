@@ -14,7 +14,7 @@
  */
 
 #include "js_text_utils.h"
-#include "utils/log.h"
+
 namespace OHOS::Rosen {
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
