@@ -90,6 +90,10 @@ public:
         const Drawing::Point& innerRectCenter) const;
 
 private:
+    Drawing::Point GetTLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
+    Drawing::Point GetTRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
+    Drawing::Point GetBLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
+    Drawing::Point GetBRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     // Vectors containing uniform or four-sided border attributes.
     // If four-sided, the order of contents is left, top, right, bottom.
     std::vector<Color> colors_;
