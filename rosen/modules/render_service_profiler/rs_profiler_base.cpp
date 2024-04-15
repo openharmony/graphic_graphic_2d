@@ -824,4 +824,37 @@ void RSProfiler::SetReplayTimes(double replayStartTime, double recordStartTime)
     g_transactionTimeCorrection = static_cast<int64_t>((replayStartTime - recordStartTime) * NS_TO_S);
 }
 
+void RSProfiler::PerfTreeFlatten(const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet)
+{
+    if (node.renderContent_ == nullptr) {
+        return;
+    }
+
+    for (auto& [type, modifiers] : node.renderContent_->drawCmdModifiers_) {
+        if (type >= RSModifierType::ENV_FOREGROUND_COLOR) {
+            continue;
+        }
+        for (auto& modifier : modifiers) {
+            auto propertyValue = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>
+                (modifier->GetProperty())->Get();
+            if (propertyValue != nullptr && propertyValue->GetOpItemSize() > 0) {
+                nodeSet.insert(node.id_);
+            }
+        }
+    }
+
+    if (node.GetSortedChildren()) {
+        for (auto& child : *node.GetSortedChildren()) {
+            if (child) {
+                PerfTreeFlatten(*child, nodeSet);
+            }
+        }
+    }
+    for (auto& [child, pos] : node.disappearingChildren_) {
+        if (child) {
+            PerfTreeFlatten(*child, nodeSet);
+        }
+    }
+}
+
 } // namespace OHOS::Rosen

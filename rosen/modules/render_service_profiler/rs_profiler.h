@@ -214,7 +214,7 @@ private:
     RSB_EXPORT static NodeId PatchPlainNodeId(const Parcel& parcel, NodeId id);
     RSB_EXPORT static pid_t PatchPlainPid(const Parcel& parcel, pid_t pid);
 
-    static void PerfTreeFlatten(const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet);
+    RSB_EXPORT static void PerfTreeFlatten(const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet);
 
     static bool IsRecording();
     static bool IsPlaying();
