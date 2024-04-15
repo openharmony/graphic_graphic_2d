@@ -162,16 +162,16 @@ ImageFilter::ImageFilter(FilterType t, BlendMode mode, std::shared_ptr<ImageFilt
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateShaderImageFilter(
-    std::shared_ptr<ShaderEffect> shader)
+    std::shared_ptr<ShaderEffect> shader, const Rect& rect)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::SHADER, shader);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::SHADER, shader, rect);
 }
 
-ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader) noexcept
+ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& rect) noexcept
     : ImageFilter()
 {
     type_ = t;
-    impl_->InitWithShader(shader);
+    impl_->InitWithShader(shader, rect);
 }
 
 } // namespace Drawing
