@@ -417,13 +417,12 @@ int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFenc
 
     size_t fencesNum = fenceFds.size();
     fences.resize(fencesNum);
-    for(size_t i = 0; i < fencesNum; i++) {
-        if(fenceFds[i] >= 0) {
+    for (size_t i = 0; i < fencesNum; i++) {
+        if (fenceFds[i] >= 0) {
             fences[i] = new SyncFence(fenceFds[i]);
         } else {
             fences[i] = new SyncFence(-1);
         }
-
     }
     return ret;
 }
