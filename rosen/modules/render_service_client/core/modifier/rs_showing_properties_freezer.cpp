@@ -128,11 +128,6 @@ std::optional<Vector2f> RSShowingPropertiesFreezer::GetSkew() const
     return GetPropertyImpl<Vector2f, RSModifierType::SKEW>();
 }
 
-std::optional<Vector2f> RSShowingPropertiesFreezer::GetPersp() const
-{
-    return GetPropertyImpl<Vector2f, RSModifierType::PERSP>();
-}
-
 std::optional<float> RSShowingPropertiesFreezer::GetAlpha() const
 {
     return GetPropertyImpl<float, RSModifierType::ALPHA>();

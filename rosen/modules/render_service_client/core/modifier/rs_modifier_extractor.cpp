@@ -145,11 +145,6 @@ Vector2f RSModifierExtractor::GetSkew() const
     GET_PROPERTY_FROM_MODIFIERS(Vector2f, SKEW, Vector2f(0.f, 0.f), +=);
 }
 
-Vector2f RSModifierExtractor::GetPersp() const
-{
-    GET_PROPERTY_FROM_MODIFIERS(Vector2f, PERSP, Vector2f(0.f, 0.f), +=);
-}
-
 float RSModifierExtractor::GetAlpha() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, ALPHA, 1.f, *=);

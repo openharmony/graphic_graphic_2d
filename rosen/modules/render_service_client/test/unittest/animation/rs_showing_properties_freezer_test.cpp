@@ -213,22 +213,6 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetSkewTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPerspTest
- * @tc.desc: Verify the GetPersp
- * @tc.type:FUNC
- */
-HWTEST_F(RSShowingPropertiesFreezerTest, GetPerspTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPerspTest start";
-    auto canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(Vector2f(SHOWING_FLOAT_NUM, 0.f));
-    auto result = canvasNode->GetShowingProperties().GetPersp();
-    EXPECT_TRUE(result.has_value());
-    EXPECT_TRUE(result->x_ == SHOWING_FLOAT_NUM);
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPerspTest end";
-}
-
-/**
  * @tc.name: GetAlphaTest
  * @tc.desc: Verify the GetAlpha
  * @tc.type:FUNC

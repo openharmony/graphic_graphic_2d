@@ -29,14 +29,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-constexpr static float FLOAT_DATA_ZERO = 0.0f;
-constexpr static float FLOAT_DATA_POSITIVE = 485.44f;
-constexpr static float FLOAT_DATA_NEGATIVE = -34.4f;
-constexpr static float FLOAT_DATA_MAX = std::numeric_limits<float>::max();
-constexpr static float FLOAT_DATA_MIN = std::numeric_limits<float>::min();
-constexpr static float FLOAT_DATA_INIT = 0.5f;
-constexpr static float FLOAT_DATA_UPDATE = 1.0f;
-
 class RSNodeTest : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -1306,191 +1298,6 @@ HWTEST_F(RSNodeTest, SetandGetSkewY005, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetSkewY(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().y_, floatData[0]));
-}
-
-/**
- * @tc.name: SetandGetPersp001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPersp001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(FLOAT_DATA_POSITIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_POSITIVE));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
-}
-
-/**
- * @tc.name: SetandGetPersp002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPersp002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(FLOAT_DATA_NEGATIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_NEGATIVE));
-}
-
-/**
- * @tc.name: SetandGetPersp003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPersp003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(FLOAT_DATA_MAX);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MAX));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_MAX));
-}
-
-/**
- * @tc.name: SetandGetPersp004
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPersp004, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(FLOAT_DATA_MAX, FLOAT_DATA_ZERO);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MAX));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_ZERO));
-}
-
-/**
- * @tc.name: SetandGetPersp0005
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPersp0005, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(FLOAT_DATA_NEGATIVE, FLOAT_DATA_POSITIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspX001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspX001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspX(FLOAT_DATA_POSITIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_POSITIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspX002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspX002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspX(FLOAT_DATA_NEGATIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspX003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspX003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspX(FLOAT_DATA_MAX);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MAX));
-}
-
-/**
- * @tc.name: SetandGetPerspX004
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspX004, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspX(FLOAT_DATA_MIN);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_MIN));
-}
-
-/**
- * @tc.name: SetandGetPerspX005
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspX005, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspX(FLOAT_DATA_ZERO);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_ZERO));
-}
-
-/**
- * @tc.name: SetandGetPerspY001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspY001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspY(FLOAT_DATA_POSITIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspY002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspY002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspY(FLOAT_DATA_NEGATIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_NEGATIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspY003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspY003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspY(FLOAT_DATA_MAX);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_MAX));
-}
-
-/**
- * @tc.name: SetandGetPerspY004
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspY004, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspY(FLOAT_DATA_MIN);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_MIN));
-}
-
-/**
- * @tc.name: SetandGetPerspY005
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspY005, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspY(FLOAT_DATA_ZERO);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_ZERO));
 }
 
 /**
@@ -3613,11 +3420,8 @@ HWTEST_F(RSNodeTest, SetProperty001, TestSize.Level1)
         RSModifierType::TRANSLATE_Z, 45.f, 90.f);
     SetPropertyTest<RSScaleModifier, RSAnimatableProperty<Vector2f>, Vector2f>(
         RSModifierType::SCALE, Vector2f(0.f, 0.f), Vector2f(1.f, 1.f));
-    SetPropertyTest<RSSkewModifier, RSAnimatableProperty<Vector2f>, Vector2f>(
+    SetPropertyTest<RSScaleModifier, RSAnimatableProperty<Vector2f>, Vector2f>(
         RSModifierType::SKEW, Vector2f(1.f, 1.f), Vector2f(-1.f, -1.f));
-    SetPropertyTest<RSPerspModifier, RSAnimatableProperty<Vector2f>, Vector2f>(
-        RSModifierType::PERSP, Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT),
-        Vector2f(FLOAT_DATA_UPDATE, FLOAT_DATA_UPDATE));
     SetPropertyTest<RSForegroundColorModifier, RSAnimatableProperty<Color>, Color>(
         RSModifierType::FOREGROUND_COLOR, Color(), Color(0xFF00FF00));
     SetPropertyTest<RSBackgroundColorModifier, RSAnimatableProperty<Color>, Color>(
@@ -3748,15 +3552,6 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
         node->AddModifier(modifier);
         ASSERT_TRUE(node != nullptr);
         ASSERT_EQ(node->GetStagingProperties().GetSkew(), value);
-        node->RemoveModifier(modifier);
-    }
-    {
-        auto value = Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT);
-        auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
-        auto modifier = std::make_shared<RSPerspModifier>(prop);
-        node->AddModifier(modifier);
-        ASSERT_TRUE(node != nullptr);
-        ASSERT_EQ(node->GetStagingProperties().GetPersp(), value);
         node->RemoveModifier(modifier);
     }
 

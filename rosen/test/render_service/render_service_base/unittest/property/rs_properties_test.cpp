@@ -307,8 +307,6 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     properties.SetScaleY(1.f);
     properties.SetSkewX(1.f);
     properties.SetSkewY(1.f);
-    properties.SetPerspX(1.f);
-    properties.SetPerspY(1.f);
     Color color1;
     properties.SetForegroundColor(color1);
     properties.SetBackgroundColor(color1);

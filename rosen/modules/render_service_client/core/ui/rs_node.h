@@ -217,12 +217,6 @@ public:
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
 
-    void SetPersp(float persp);
-    void SetPersp(float perspX, float perspY);
-    void SetPersp(const Vector2f& persp);
-    void SetPerspX(float perspX);
-    void SetPerspY(float perspY);
-
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
 
