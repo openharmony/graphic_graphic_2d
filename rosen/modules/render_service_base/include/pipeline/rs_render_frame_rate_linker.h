@@ -43,7 +43,7 @@ public:
     const FrameRateRange& GetExpectedRange() const;
     void SetFrameRate(uint32_t rate);
     uint32_t GetFrameRate() const;
-    void SyncFrameRateRange(const FrameRateRange& range);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range);
 private:
     static FrameRateLinkerId GenerateId();
     FrameRateLinkerId id_ = 0;

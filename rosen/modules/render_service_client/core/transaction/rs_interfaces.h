@@ -112,7 +112,7 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SyncFrameRateRange(const FrameRateRange& range);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 

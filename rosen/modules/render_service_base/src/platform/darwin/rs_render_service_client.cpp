@@ -158,7 +158,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 {
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
 }
 

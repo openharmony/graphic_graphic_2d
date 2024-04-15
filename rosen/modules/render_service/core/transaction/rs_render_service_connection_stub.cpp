@@ -365,10 +365,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            FrameRateLinkerId id = data.ReadUint64();
             uint32_t min = data.ReadUint32();
             uint32_t max = data.ReadUint32();
             uint32_t preferred = data.ReadUint32();
-            SyncFrameRateRange({min, max, preferred});
+            SyncFrameRateRange(id, {min, max, preferred});
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {

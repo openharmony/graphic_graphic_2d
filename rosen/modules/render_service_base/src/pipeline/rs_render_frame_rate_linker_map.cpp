@@ -26,16 +26,16 @@ RSRenderFrameRateLinkerMap::RSRenderFrameRateLinkerMap()
 bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr)
 {
     FrameRateLinkerId id = linkerPtr->GetId();
-    if (frameRateLikerMap_.count(id)) {
+    if (frameRateLinkerMap_.count(id)) {
         return false;
     }
-    frameRateLikerMap_.emplace(id, linkerPtr);
+    frameRateLinkerMap_.emplace(id, linkerPtr);
     return true;
 }
 
 void RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
-    frameRateLikerMap_.erase(id);
+    frameRateLinkerMap_.erase(id);
 }
 
 void RSRenderFrameRateLinkerMap::FilterFrameRateLinkerByPid(pid_t pid)
@@ -43,14 +43,14 @@ void RSRenderFrameRateLinkerMap::FilterFrameRateLinkerByPid(pid_t pid)
     ROSEN_LOGD("RSRenderFrameRateLinkerMap::FilterFrameRateLinkerByPid removing all linker belong to pid %{public}llu",
         (unsigned long long)pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(frameRateLikerMap_, [pid](const auto& pair) -> bool {
+    EraseIf(frameRateLinkerMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
     });
 }
 
 std::shared_ptr<RSRenderFrameRateLinker> RSRenderFrameRateLinkerMap::GetFrameRateLinker(FrameRateLinkerId id)
 {
-    return frameRateLikerMap_.count(id) ? frameRateLikerMap_[id] : nullptr;
+    return frameRateLinkerMap_.count(id) ? frameRateLinkerMap_[id] : nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

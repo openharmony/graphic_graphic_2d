@@ -515,7 +515,7 @@ void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
     }
 }
 
-void RSRenderServiceConnectionProxy::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -526,6 +526,7 @@ void RSRenderServiceConnectionProxy::SyncFrameRateRange(const FrameRateRange& ra
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
     data.WriteUint32(range.min_);
     data.WriteUint32(range.max_);
     data.WriteUint32(range.preferred_);

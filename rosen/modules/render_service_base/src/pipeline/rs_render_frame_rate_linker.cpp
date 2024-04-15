@@ -34,7 +34,7 @@ FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
     return ((FrameRateLinkerId)pid_ << 32) | (currentId);
 }
 
-RSRenderFrameRateLinker::RSRenderFrameRateLinker(NodeId id) : id_(id) {}
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id) : id_(id) {}
 RSRenderFrameRateLinker::RSRenderFrameRateLinker() : id_(GenerateId()) {}
 
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
