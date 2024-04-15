@@ -225,8 +225,7 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
 
     // color blend mode has implicit dependency on clipToBounds
     if (properties.GetClipToBounds() || properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
-        properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE))
-    {
+        properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE)) {
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
 
@@ -240,16 +239,16 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     }
 
     if (HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::CONTENT_TRANSFORM_BEGIN, RSDrawableSlot::CONTENT_TRANSFORM_END)) {
+        drawableVec, RSDrawableSlot::CONTENT_TRANSFORM_BEGIN, RSDrawableSlot::CONTENT_TRANSFORM_END)) {
         result |= DrawableVecStatus::FRAME_TRANSFORM;
     }
     if (HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CONTENT_PROPERTIES_END)) {
+        drawableVec, RSDrawableSlot::CONTENT_PROPERTIES_BEGIN, RSDrawableSlot::CONTENT_PROPERTIES_END)) {
         result |= DrawableVecStatus::FRAME_PROPERTY;
     }
 
     if (HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END)) {
+        drawableVec, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END)) {
         result |= DrawableVecStatus::EXTRA_PROPERTY;
     }
 

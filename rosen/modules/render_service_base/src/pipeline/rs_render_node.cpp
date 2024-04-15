@@ -1256,7 +1256,6 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
     auto& properties = GetMutableRenderProperties();
     if (accumGeoDirty || properties.NeedClip() ||
         properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
-
         const Drawing::Matrix* parentMatrix = nullptr;
         std::optional<Drawing::Point> offset;
         if (properties.GetSandBox()) {
@@ -1957,7 +1956,8 @@ void RSRenderNode::ApplyModifiers()
             continue;
         }
         modifier->Apply(context);
-        isOnlyBasicGeoTransform_ = isOnlyBasicGeoTransform_ && BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifier->GetType());
+        isOnlyBasicGeoTransform_ = isOnlyBasicGeoTransform_ &&
+            BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifier->GetType());
     }
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
