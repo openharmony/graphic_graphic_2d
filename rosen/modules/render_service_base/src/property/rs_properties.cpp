@@ -379,7 +379,8 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
-bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset)
+bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
+    const std::optional<Drawing::Point>& offset)
 {
     auto prevAbsMatrix = prevAbsMatrix_;
     boundsGeo_->UpdateMatrix(parentMatrix, offset);

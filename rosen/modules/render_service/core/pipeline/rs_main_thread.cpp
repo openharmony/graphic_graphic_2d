@@ -1771,7 +1771,7 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
                 curSurface->GetAnimateState() || // when node animating(i.e. 3d animation), the region cannot be trusted
                 curSurface->GetName().find("hisearch") != std::string::npos) {
                 auto iter = std::find_if(occlusionSurfaces.begin(), occlusionSurfaces.end(),
-                    [&curSurface](const std::pair<NodeId, RectI>& r) -> bool {return r.second == curSurface->GetDstRect();});
+                    [&curSurface](const auto& r) -> bool {return r.second == curSurface->GetDstRect();});
                 if (iter != occlusionSurfaces.end()) {
                     occlusionSurfaces.erase(iter);
                 }

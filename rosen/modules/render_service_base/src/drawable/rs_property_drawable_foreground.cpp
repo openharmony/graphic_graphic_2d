@@ -491,7 +491,6 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
         uniform vec4 specularLightColor[12];
         uniform float specularStrength[12];
 
-
         mediump vec4 main(vec2 drawing_coord) {
             vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
             float ambientStrength = 0.0;
