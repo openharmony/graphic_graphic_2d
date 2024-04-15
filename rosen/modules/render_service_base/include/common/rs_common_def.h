@@ -38,6 +38,7 @@ using SurfaceId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
+constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -161,11 +162,11 @@ enum class SystemAnimatedScenes : uint32_t {
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
     APP_WINDOW_NODE,          // surfacenode created as app main window
+    STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
+    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
+    LEASH_WINDOW_NODE,        // leashwindow
     ABILITY_COMPONENT_NODE,   // surfacenode created as ability component
     SELF_DRAWING_NODE,        // surfacenode created by arkui component (except ability component)
-    STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
-    LEASH_WINDOW_NODE,        // leashwindow
-    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
     SURFACE_TEXTURE_NODE,      // create by video
     FOREGROUND_SURFACE,
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
@@ -239,25 +240,25 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
-inline bool ROSEN_LNE(float left, float right) //less not equal
+inline bool ROSEN_LNE(float left, float right) // less not equal
 {
     constexpr float epsilon = -0.001f;
     return (left - right) < epsilon;
 }
 
-inline bool ROSEN_GNE(float left, float right) //great not equal
+inline bool ROSEN_GNE(float left, float right) // great not equal
 {
     constexpr float epsilon = 0.001f;
     return (left - right) > epsilon;
 }
 
-inline bool ROSEN_GE(float left, float right) //great or equal
+inline bool ROSEN_GE(float left, float right) // great or equal
 {
     constexpr float epsilon = -0.001f;
     return (left - right) > epsilon;
 }
 
-inline bool ROSEN_LE(float left, float right) //less or equal
+inline bool ROSEN_LE(float left, float right) // less or equal
 {
     constexpr float epsilon = 0.001f;
     return (left - right) < epsilon;

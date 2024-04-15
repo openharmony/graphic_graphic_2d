@@ -47,7 +47,6 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
     "//drivers/peripheral/display/interfaces/include/",
@@ -62,22 +61,19 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
   ]
 
   public_deps = [
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/utils:sync_fence",
-    "//commonlibrary/c_utils/base:utils",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
+  public_external_deps = [ "graphic_surface:sync_fence" ]
   deps += [ "//third_party/skia:skia_ohos" ]
   public_deps += [ "//third_party/skia:skia_ohos" ]
 
   if (ace_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]
 
-    public_deps += [
-      "$graphic_2d_root:libgl",
-      "//third_party/openssl:libcrypto_shared",
-    ]
+    public_deps += [ "$graphic_2d_root:libgl" ]
+
+    public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
   external_deps = [

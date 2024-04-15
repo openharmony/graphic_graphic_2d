@@ -83,6 +83,18 @@ void SkiaColorSpace::InitWithRGB(const CMSTransferFuncType& func, const CMSMatri
     colorSpace_ = SkColorSpace::MakeRGB(ConvertToSkCMSTransferFunction(func), ConvertToSkCMSMatrix3x3(matrix));
 }
 
+void SkiaColorSpace::InitWithCustomRGB(const CMSTransferFunction& func, const CMSMatrix3x3& matrix)
+{
+    skcms_Matrix3x3 skMatrix3x3;
+    for (int i = 0; i < MATRIX3_SIZE; i++) {
+        for (int j = 0; j < MATRIX3_SIZE; j++) {
+            skMatrix3x3.vals[i][j] = matrix.vals[i][j];
+        }
+    }
+    skcms_TransferFunction skTransferFunc = { func.g, func.a, func.b, func.d, func.e, func.f };
+    colorSpace_ = SkColorSpace::MakeRGB(skTransferFunc, skMatrix3x3);
+}
+
 void SkiaColorSpace::SetColorSpace(sk_sp<SkColorSpace> skColorSpace)
 {
     colorSpace_ = skColorSpace;

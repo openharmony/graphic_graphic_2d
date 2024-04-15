@@ -93,6 +93,24 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
     callback->OnHgmRefreshRateModeChanged(currentRefreshRateModeName);
 }
 
+void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
+    pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback)
+{
+    std::lock_guard<std::mutex> lock(mtx_);
+    if (callback == nullptr) {
+        if (refreshRateUpdateCallbacks_.find(pid) != refreshRateUpdateCallbacks_.end()) {
+            refreshRateUpdateCallbacks_.erase(pid);
+            HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", pid);
+        }
+        return;
+    }
+    refreshRateUpdateCallbacks_[pid] = callback;
+    uint32_t currentRefreshRate =
+        HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
+    HGM_LOGD("%{public}s : currentRefreshRate = %{public}d", __func__, currentRefreshRate);
+    callback->OnHgmRefreshRateUpdate(currentRefreshRate);
+}
+
 void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 {
     std::lock_guard<std::mutex> lock(mtx_);
@@ -134,6 +152,16 @@ void HgmConfigCallbackManager::SyncRefreshRateModeChangeCallback(int32_t refresh
     for (const auto& [_, callback] : refreshRateModeCallbacks_) {
         if (callback) {
             callback->OnHgmRefreshRateModeChanged(refreshRateMode);
+        }
+    }
+}
+
+void HgmConfigCallbackManager::SyncRefreshRateUpdateCallback(int32_t refreshRate)
+{
+    std::lock_guard<std::mutex> lock(mtx_);
+    for (const auto& callback : refreshRateUpdateCallbacks_) {
+        if (callback.second != nullptr) {
+            callback.second->OnHgmRefreshRateUpdate(refreshRate);
         }
     }
 }

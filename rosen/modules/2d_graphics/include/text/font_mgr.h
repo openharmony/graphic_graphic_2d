@@ -50,8 +50,9 @@ public:
      * @param familyName  Font family name.
      * @param data        Font data.
      * @param dataLength  The size of font data.
+     * @return  A pointer to typeface.
      */
-    void LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength);
+    Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength);
 
     /**
      * @brief             Load theme font typeface.
@@ -97,6 +98,12 @@ public:
      * @return            Returns the corresponding font
      */
     Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const;
+
+    int CountFamilies() const;
+
+    void GetFamilyName(int index, std::string& str) const;
+
+    FontStyleSet* CreateStyleSet(int index) const;
 
 private:
     std::shared_ptr<FontMgrImpl> fontMgrImpl_;

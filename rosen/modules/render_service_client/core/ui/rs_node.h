@@ -126,6 +126,7 @@ public:
 
     bool IsUniRenderEnabled() const;
     bool IsRenderServiceNode() const;
+    void SetTakeSurfaceForUIFlag();
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
@@ -235,6 +236,7 @@ public:
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
 
     void SetBgImage(const std::shared_ptr<RSImage>& image);
+    void SetBgImageInnerRect(const Vector4f& innerRect);
     void SetBgImageSize(float width, float height);
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
@@ -260,6 +262,7 @@ public:
     void SetOutlineStyle(const Vector4<BorderStyle>& style);
     void SetOutlineRadius(const Vector4f& radius);
 
+    void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
@@ -372,6 +375,10 @@ public:
 
     void SetFrameNodeInfo(int32_t id, std::string tag);
 
+    virtual void SetTextureExport(bool isTextureExportNode);
+
+    void SyncTextureExport(bool isTextureExportNode);
+
     int32_t GetFrameNodeId();
 
     std::string GetFrameNodeTag();
@@ -385,6 +392,12 @@ public:
 
     // key: symbolSpanID, value:symbol animation node list
     std::unordered_map<uint64_t, std::list<SharedPtr>> canvasNodesListMap;
+
+    void SetInstanceId(int32_t instanceId);
+    int32_t GetInstanceId() const
+    {
+        return instanceId_;
+    }
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -408,7 +421,7 @@ protected:
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
 
-    std::recursive_mutex& GetPropertyMutex()
+    std::recursive_mutex& GetPropertyMutex() const
     {
         return propertyMutex_;
     }
@@ -417,13 +430,31 @@ private:
     static void InitUniRenderEnabled();
     NodeId id_;
     NodeId parent_ = 0;
+    int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
     std::string nodeName_ = "";
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
+    virtual void CreateTextureExportRenderNodeInRT() {};
 
+    void SetBackgroundBlurRadius(float radius);
+    void SetBackgroundBlurSaturation(float saturation);
+    void SetBackgroundBlurBrightness(float brightness);
+    void SetBackgroundBlurMaskColor(Color maskColor);
+    void SetBackgroundBlurColorMode(int colorMode);
+    void SetBackgroundBlurRadiusX(float blurRadiusX);
+    void SetBackgroundBlurRadiusY(float blurRadiusY);
+
+    void SetForegroundBlurRadius(float radius);
+    void SetForegroundBlurSaturation(float saturation);
+    void SetForegroundBlurBrightness(float brightness);
+    void SetForegroundBlurMaskColor(Color maskColor);
+    void SetForegroundBlurColorMode(int colorMode);
+    void SetForegroundBlurRadiusX(float blurRadiusX);
+    void SetForegroundBlurRadiusY(float blurRadiusY);
+    
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
@@ -451,8 +482,9 @@ private:
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
-    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
-    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+    std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
+    std::shared_ptr<RSModifier> modifiersTypeMap_[(uint16_t)RSModifierType::MAX_RS_MODIFIER_TYPE] = { nullptr };
+    std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
 
@@ -463,7 +495,7 @@ private:
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
     std::mutex animationMutex_;
-    std::recursive_mutex propertyMutex_;
+    mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;
     friend class RSTransition;

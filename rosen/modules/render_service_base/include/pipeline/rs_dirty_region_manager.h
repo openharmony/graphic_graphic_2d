@@ -55,9 +55,13 @@ public:
     RSDirtyRegionManager(bool isDisplayDirtyManager);
     ~RSDirtyRegionManager() = default;
     // update/expand current frame dirtyregion
+<<<<<<< HEAD
     void MergeDirtyRect(const RectI& rect);
     // update/expand current frame dirtyregion if intersect
     bool MergeDirtyRectIfIntersect(const RectI& rect);
+=======
+    void MergeDirtyRect(const RectI& rect, bool isDebugRect = false);
+>>>>>>> origin/master
     // update/expand dirtyregion after merge history
     void MergeDirtyRectAfterMergeHistory(const RectI& rect);
     // clip dirtyregion in current frame
@@ -169,6 +173,7 @@ private:
     RectI surfaceRect_;             // dirtyregion clipbounds
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
+    RectI debugRect_;               // dirtyRegion for showing currentFreshRate debug
     std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion
     std::vector<RectI> cacheableFilterRects_ = {};  // node's region if filter cachable
     std::vector<RectI> mergedDirtyRegions_ = {};

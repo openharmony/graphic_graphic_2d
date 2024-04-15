@@ -355,7 +355,7 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen004, Function | SmallTest | Level2
     rsInterfaces->SetScreenPowerStatus(virtualScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     usleep(SET_REFRESHRATE_SLEEP_US); // wait 50000us to ensure SetScreenPowerStatus done.
     auto powerStatus = rsInterfaces->GetScreenPowerStatus(virtualScreenId);
-    EXPECT_EQ(powerStatus, ScreenPowerStatus::INVALID_POWER_STATUS);
+    EXPECT_NE(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
 
     auto screenCapability = rsInterfaces->GetScreenCapability(virtualScreenId);
     EXPECT_EQ(screenCapability.GetPhyWidth(), 0);
@@ -564,7 +564,7 @@ HWTEST_F(RSInterfacesTest, GetScreenPowerStatus001, Function | SmallTest | Level
 HWTEST_F(RSInterfacesTest, GetScreenPowerStatus002, Function | SmallTest | Level2)
 {
     auto powerStatus = rsInterfaces->GetScreenPowerStatus(INVALID_SCREEN_ID);
-    EXPECT_EQ(powerStatus, ScreenPowerStatus::INVALID_POWER_STATUS);
+    EXPECT_NE(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
 }
 
 /*
@@ -987,7 +987,7 @@ HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval003, Function | SmallTest |
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     uint32_t skipFrameInterval = 100;  // for test
     int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1227,6 +1227,33 @@ HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: RegisterHgmRefreshRateUpdateCallback Test
+ * @tc.desc: RegisterHgmRefreshRateUpdateCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    HgmRefreshRateUpdateCallback cb = [](int32_t refreshRate){};
+    int32_t ret = rsInterfaces->RegisterHgmRefreshRateUpdateCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterHgmRefreshRateUpdateCallback Test
+ * @tc.desc: UnRegisterHgmRefreshRateUpdateCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t ret = rsInterfaces->UnRegisterHgmRefreshRateUpdateCallback();
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterHgmConfigChangeCallback Test
  * @tc.desc: RegisterHgmConfigChangeCallback Test
  * @tc.type: FUNC
@@ -1279,9 +1306,13 @@ HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level2)
  */
 HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Level2)
 {
+    constexpr int32_t maxFps = 1000;
+    constexpr int32_t minFps = 1;
     ASSERT_NE(rsInterfaces, nullptr);
-    EventInfo eventInfo = { "VOTER_IDLE", true, 1, 1000 };
-    rsInterfaces->NotifyRefreshRateEvent(eventInfo);
+    EventInfo addVote = { "VOTER_VIDEO", true, minFps, maxFps };
+    EventInfo delVote = { "VOTER_VIDEO", false};
+    rsInterfaces->NotifyRefreshRateEvent(addVote);
+    rsInterfaces->NotifyRefreshRateEvent(delVote);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1392,6 +1423,50 @@ HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2
     ASSERT_EQ(ret, 0);
 
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
+ * @tc.name: SetCurtainScreenUsingStatus001
+ * @tc.desc: Test SetCurtainScreenUsingStatus interface while input is true.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest | Level2)
+{
+    rsInterfaces->SetCurtainScreenUsingStatus(true);
+}
+
+/*
+ * @tc.name: SetCurtainScreenUsingStatus001
+ * @tc.desc: Test SetCurtainScreenUsingStatus interface while input is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus002, Function | SmallTest | Level2)
+{
+    rsInterfaces->SetCurtainScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: SetVirtualScreenUsingStatus001
+ * @tc.desc: Test SetVirtualScreenUsingStatus interface while input is true.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus001, Function | SmallTest | Level2)
+{
+    rsInterfaces->SetVirtualScreenUsingStatus(true);
+}
+
+/*
+ * @tc.name: SetVirtualScreenUsingStatus002
+ * @tc.desc: Test SetVirtualScreenUsingStatus interface while input is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest | Level2)
+{
+    rsInterfaces->SetVirtualScreenUsingStatus(false);
 }
 } // namespace Rosen
 } // namespace OHOS

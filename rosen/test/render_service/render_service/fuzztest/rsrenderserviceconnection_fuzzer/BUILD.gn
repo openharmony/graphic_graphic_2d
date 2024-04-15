@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
@@ -21,18 +22,51 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection_fuzzer"
 
-  include_dirs = []
+  include_dirs = [
+    "../../../../../rosen/modules/platform/ipc_core",
+    "../../../../../rosen/modules/platform",
+    "../../../../../modules/hyper_graphic_manager/core/config",
+    "../../../../../modules/render_service/core",
+    "../../../../../modules/render_service_base/src",
+    "../../../../../test/include",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$memmgr_root/interface/innerkits/include",
+    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
+    "$memmgr_plugin_root/interface/innerkits/include",
+    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
+  ]
+
+  deps = [
+    "../../../../../modules/2d_graphics:2d_graphics",
+    "../../../../../modules/composer:libcomposer",
+    "../../../../../modules/render_service:librender_service",
+    "../../../../../modules/render_service_base:librender_service_base",
+    "../../../../../modules/render_service_client:librender_service_client",
+  ]
+
   cflags = [
     "-g",
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
+
   sources = [ "rsrenderserviceconnection_fuzzer.cpp" ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_manager",
     "c_utils:utils",
+    "common_event_service:cesfwk_core",
+    "common_event_service:cesfwk_innerkits",
     "hilog:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

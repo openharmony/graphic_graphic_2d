@@ -16,6 +16,7 @@
 #include <cstddef>
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_runtime_effect.h"
+#include "skia_adapter/skia_runtime_shader_builder.h"
 #include "effect/runtime_effect.h"
 
 using namespace testing;
@@ -97,12 +98,10 @@ HWTEST_F(SkiaRuntimeEffectTest, GetRuntimeEffect001, TestSize.Level1)
  */
 HWTEST_F(SkiaRuntimeEffectTest, MakeShader001, TestSize.Level1)
 {
-    SkiaRuntimeEffect skiaRuntimeEffect;
-    std::shared_ptr<Data> uniforms = std::make_shared<Data>();
-    std::shared_ptr<ShaderEffect> children[] = {ShaderEffect::CreateColorShader(0xFF000000)};
+    SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder;
+    skiaRuntimeShaderBuilder.MakeShader(nullptr, false);
     Matrix matrix;
-    skiaRuntimeEffect.MakeShader(uniforms, children, 1, &matrix, true);
-    skiaRuntimeEffect.MakeShader(nullptr, children, 1, nullptr, true);
+    skiaRuntimeShaderBuilder.MakeShader(&matrix, false);
 }
 } // namespace Drawing
 } // namespace Rosen

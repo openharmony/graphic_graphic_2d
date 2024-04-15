@@ -38,7 +38,7 @@ public:
         : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
           abilityName_(std::move(other.abilityName_)), pid_(other.pid_), index_(other.index_)
     {}
-    ~RSTransactionData() noexcept override;
+    ~RSTransactionData() override;
 
     [[nodiscard]] static RSTransactionData* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;

@@ -34,6 +34,7 @@ std::optional<T> RSShowingPropertiesFreezer::GetPropertyImpl() const
     if (node == nullptr) {
         return std::nullopt;
     }
+    std::unique_lock<std::recursive_mutex> lock(node->propertyMutex_);
     auto iter = node->propertyModifiers_.find(Type);
     if (iter == node->propertyModifiers_.end()) {
         ROSEN_LOGE(

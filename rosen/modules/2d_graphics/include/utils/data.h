@@ -31,7 +31,7 @@ public:
      * @brief         Create a new Data from a pointer allocated by malloc. When Data is destroyed, data is released.
      * @param data    A pointer to data.
      * @param length  Length of data.
-     * @return        If create Data successed, return true.
+     * @return        If create Data succeeded, return true.
      */
     bool BuildFromMalloc(const void* data, size_t length);
 
@@ -39,7 +39,7 @@ public:
      * @brief         Create a new Data by copying the specified data.
      * @param data    A pointer to data. It must not be nullptr.
      * @param length  Length of data.
-     * @return        If create Data successed, return true.
+     * @return        If create Data succeeded, return true.
      */
     bool BuildWithCopy(const void* data, size_t length);
 
@@ -50,7 +50,7 @@ public:
      * @param length  Length of data.
      * @param proc    release callback func.
      * @param ctx     context, usually nullptr.
-     * @return        If create Data successed, return true.
+     * @return        If create Data succeeded, return true.
      */
     bool BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx);
 
@@ -58,14 +58,14 @@ public:
      * @brief         Create a new Data. When Data is destroyed, data isn't released.
      * @param data    A pointer to data.
      * @param length  Length of data.
-     * @return        If create Data successed, return true.
+     * @return        If create Data succeeded, return true.
      */
     bool BuildWithoutCopy(const void* data, size_t length);
 
     /**
      * @brief:        Create a new Data with uninitialized contents.
      * @param length  Size of Data buffer.
-     * @return        If create Data successed, return true.
+     * @return        If create Data succeeded, return true.
      */
     bool BuildUninitialized(size_t length);
 

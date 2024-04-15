@@ -25,11 +25,9 @@ ohos_fuzztest("RSPropertyFuzzTest") {
   }
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
   ]
   deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",

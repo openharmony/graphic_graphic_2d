@@ -15,6 +15,7 @@
 #include <chrono>
 #include <thread>
 #include <unistd.h>
+#include <vulkan/vulkan.h>
 #include <window.h>
 #include <gtest/gtest.h>
 #include <dlfcn.h>
@@ -24,7 +25,6 @@
 
 #include "refbase.h"
 #include "surface.h"
-#include "vulkan/vulkan.h"
 #include "render_context/render_context.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_surface_extractor.h"
@@ -56,6 +56,7 @@ public:
     static inline PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
     static inline PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
     static inline PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
+    static inline PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
     static inline PFN_vkCreateSurfaceOHOS vkCreateSurfaceOHOS;
     static inline PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR;
     static inline PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
@@ -163,6 +164,9 @@ HWTEST_F(VulkanLoaderSystemTest, LoadInstanceFuncPtr, TestSize.Level1)
         vkEnumeratePhysicalDevices = reinterpret_cast<PFN_vkEnumeratePhysicalDevices>(
             vkGetInstanceProcAddr(instance_, "vkEnumeratePhysicalDevices"));
         EXPECT_NE(vkEnumeratePhysicalDevices, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties = reinterpret_cast<PFN_vkGetPhysicalDeviceQueueFamilyProperties>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceQueueFamilyProperties"));
+        EXPECT_NE(vkEnumeratePhysicalDevices, nullptr);
         vkCreateDevice = reinterpret_cast<PFN_vkCreateDevice>(
             vkGetInstanceProcAddr(instance_, "vkCreateDevice"));
         EXPECT_NE(vkCreateDevice, nullptr);
@@ -196,6 +200,7 @@ HWTEST_F(VulkanLoaderSystemTest, LoadInstanceFuncPtr, TestSize.Level1)
 HWTEST_F(VulkanLoaderSystemTest, createDevice_Test, TestSize.Level1)
 {
     if (isSupportedVulkan_) {
+        // Physical Devices
         uint32_t gpuCount = 0;
         VkResult err = vkEnumeratePhysicalDevices(instance_, &gpuCount, nullptr);
         EXPECT_EQ(err, VK_SUCCESS);
@@ -204,10 +209,43 @@ HWTEST_F(VulkanLoaderSystemTest, createDevice_Test, TestSize.Level1)
         err = vkEnumeratePhysicalDevices(instance_, &gpuCount, physicalDevices.data());
         EXPECT_EQ(err, VK_SUCCESS);
         physicalDevice_ = physicalDevices[0];
+        EXPECT_NE(physicalDevice_, nullptr);
 
+        // Graphics queue
+        uint32_t queueCount;
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueCount, nullptr);
+
+        std::vector<VkQueueFamilyProperties> queueProps(queueCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueCount, queueProps.data());
+
+        uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
+        for (uint32_t i = 0; i < queueCount; i++) {
+            if (queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                graphicsQueueFamilyIndex = i;
+                break;
+            }
+        }
+        EXPECT_NE(graphicsQueueFamilyIndex, UINT32_MAX);
+
+        VkDeviceQueueCreateInfo queueInfo{};
+        queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueInfo.pNext = nullptr;
+        queueInfo.flags = 0;
+        queueInfo.queueFamilyIndex = graphicsQueueFamilyIndex;
+        queueInfo.queueCount = 2;
+        const float priorities[1] = {1.0f};
+        queueInfo.pQueuePriorities = priorities;
+        
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
+        queueCreateInfos.push_back(queueInfo);
+
+        // Device
         std::vector<const char*> deviceExtensions;
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         VkDeviceCreateInfo deviceCreateInfo = {};
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
         deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
         deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
@@ -285,7 +323,11 @@ HWTEST_F(VulkanLoaderSystemTest, createSwapChain_Test, TestSize.Level1)
         VkSurfaceCapabilitiesKHR surfCaps;
         VkResult err = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface_, &surfCaps);
         EXPECT_EQ(err, VK_SUCCESS);
+
         uint32_t desiredNumberOfSwapchainImages = surfCaps.minImageCount + 1;
+        if ((surfCaps.maxImageCount > 0) && (desiredNumberOfSwapchainImages > surfCaps.maxImageCount)) {
+            desiredNumberOfSwapchainImages = surfCaps.maxImageCount;
+        }
         swapchainCI.minImageCount = desiredNumberOfSwapchainImages;
         swapchainCI.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
         uint32_t formatCount;

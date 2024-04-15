@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -169,12 +169,11 @@ ohos_shared_library("librender_service") {
   include_dirs = [
     "core",
     "core/round_corner_display",
-    "$graphic_2d_root/frameworks/surface/include",
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/frame_report/include",
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
@@ -201,7 +200,6 @@ ohos_shared_library("librender_service") {
   }
 
   deps = [
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
@@ -210,9 +208,37 @@ ohos_shared_library("librender_service") {
 
   if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
       use_rosen_drawing) {
-    deps +=
-        [ "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample" ]
+    deps += [
+      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
+      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
+    ]
   }
+
+  if (rosen_is_ohos) {
+    sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+  } else {
+    sources +=
+        [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
+  }
+
+  #profiler
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+    sources += [
+      "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_archive.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_network.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_utils.cpp",
+    ]
+  }
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
   public_deps = [
     "//third_party/libpng:libpng",
@@ -255,16 +281,20 @@ ohos_shared_library("librender_service") {
   }
 
   external_deps = [
+    "battery_manager:batterysrv_client",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
     "graphic_surface:frame_report",
+    "graphic_surface:surface",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "hiview:libucollection_utility",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
@@ -303,6 +333,7 @@ ohos_shared_library("librender_service") {
 
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
     defines += accessibility_defines
   }
 
@@ -340,19 +371,23 @@ ohos_executable("render_service") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    if (rosen_is_ohos) {
+      boundary_sanitize = true
+      integer_overflow = true
+      ubsan = true
+    }
   }
   sources = [ "core/main.cpp" ]
 
   include_dirs = [
     "core",
+    "$graphic_2d_root/interfaces/inner_api/common",
     "//commonlibrary/c_utils/base/include",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/utils/color_manager/export",
   ]
 
   deps = [
     ":librender_service",
-    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",

@@ -30,6 +30,7 @@ config("local_text") {
 
   include_dirs = [
     "../text",
+    "../drawing",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
@@ -52,10 +53,15 @@ ohos_shared_library("text_napi") {
 
 ohos_shared_library("text_napi_impl") {
   sources = [
+    "enum_napi/text_enum_napi.cpp",
     "fontcollection_napi/js_fontcollection.cpp",
     "js_text_init.cpp",
     "js_text_utils.cpp",
+    "paragraph_builder_napi/js_paragraph_builder.cpp",
+    "paragraph_napi/js_paragraph.cpp",
     "paragraph_style_napi/js_paragraphstyle.cpp",
+    "run_napi/js_run.cpp",
+    "text_line_napi/js_text_line.cpp",
   ]
 
   configs = [
@@ -64,6 +70,7 @@ ohos_shared_library("text_napi_impl") {
   ]
 
   deps = [
+    "$graphic_2d_root/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
   ]

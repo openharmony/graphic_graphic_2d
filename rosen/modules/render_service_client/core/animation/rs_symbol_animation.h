@@ -12,23 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_SYMBOL_ANIMATION_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_SYMBOL_ANIMATION_H
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
-#include "ui/rs_canvas_node.h"
-#include "ui/rs_node.h"
+
+#include "animation/rs_animation_timing_curve.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
-#include "animation/rs_animation_timing_curve.h"
-#include "symbol_animation_config.h"
-
 #include "draw/path.h"
 #include "include/text/hm_symbol_config_ohos.h"
+#include "modifier/rs_property.h"
+#include "modifier/rs_property_modifier.h"
+#include "symbol_animation_config.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,34 +45,66 @@ public:
 
     // set symbol animation manager
     bool SetSymbolAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-
     bool SetScaleUnitAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     bool SetVariableColorAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
 
 private:
+    // SetPublicAnimation is interface for animation that can be spliced by atomizated animations
+    bool SetPublicAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    // choose the animation is a public animation or special animation
+    bool ChooseAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+
+    void InitSupportAnimationTable();
+
+    // to start animations for one path group
+    void GroupAnimationStart(
+        const std::shared_ptr<RSNode>& rsNode, std::vector<std::shared_ptr<RSAnimation>>& animations);
+
+    // Set Node Center Offset
+    void SetNodePivot(const std::shared_ptr<RSNode>& rsNode);
+
+    // splice atomizated animation construct
+    void SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
+        std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
+        const TextEngine::SymbolAnimationEffectStrategy& effectStrategy);
+
+    void BounceAnimation(
+        const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
+    void AppearAnimation(
+        const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
+
+    // atomizated animation construct
+    void ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode, Drawing::DrawingPiecewiseParameter& scaleParamter,
+        std::vector<std::shared_ptr<RSAnimation>>& animations);
+    void AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode, Drawing::DrawingPiecewiseParameter& alphaParamter,
+        std::vector<std::shared_ptr<RSAnimation>>& animations);
+
+    // drawing a path group : symbol drawing or path drawing
+    void GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode, TextEngine::SymbolNode& symbolNode,
+        const Vector4f& offsets, bool isMultiLayer);
+
     void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, TextEngine::SymbolNode& symbolNode);
 
     Vector4f CalculateOffset(const Drawing::Path& path, const float& offsetX, const float& offsetY);
-    void DrawSymbolOnCanvas(ExtendRecordingCanvas* recordingCanvas,
-        TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
-    void DrawPathOnCanvas(ExtendRecordingCanvas* recordingCanvas,
-        TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+    void DrawSymbolOnCanvas(
+        ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+    void DrawPathOnCanvas(
+        ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
     bool CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
         const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas);
 
     std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
         const Drawing::DrawingPiecewiseParameter& scaleUnitParas,
-        const Vector2f& scaleValueBegin = Vector2f{0.f, 0.f},
-        const Vector2f& scaleValue = Vector2f{0.f, 0.f},
-        const Vector2f& scaleValueEnd = Vector2f{0.f, 0.f});
-    bool GetScaleUnitAnimationParas(Drawing::DrawingPiecewiseParameter& scaleUnitParas,
-        Vector2f& scaleValueBegin, Vector2f& scaleValue);
+        const Vector2f& scaleValueBegin = Vector2f { 0.f, 0.f }, const Vector2f& scaleValue = Vector2f { 0.f, 0.f },
+        const Vector2f& scaleValueEnd = Vector2f { 0.f, 0.f });
+    bool GetScaleUnitAnimationParas(
+        Drawing::DrawingPiecewiseParameter& scaleUnitParas, Vector2f& scaleValueBegin, Vector2f& scaleValue);
     RSAnimationTimingCurve SetScaleSpringTimingCurve(const std::map<std::string, double_t>& curveArgs);
 
     std::shared_ptr<RSAnimation> VariableColorSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-        uint32_t& duration, int& delay, std::vector<float>& timePercents);
-    bool GetVariableColorAnimationParas(const uint32_t index, uint32_t& totalDuration, int& delay,
-        std::vector<float>& timePercents);
+        const uint32_t& duration, const int& delay, const std::vector<float>& timePercents);
+    bool GetVariableColorAnimationParas(
+        const uint32_t index, uint32_t& totalDuration, int& delay, std::vector<float>& timePercents);
 
     std::shared_ptr<RSNode> rsNode_ = nullptr;
 
@@ -83,6 +116,8 @@ private:
 
     // variableColor symbol animation
     std::vector<std::shared_ptr<RSAnimatableProperty<float>>> alphaPropertyPhases_;
+    // animation support splice base animation
+    std::vector<TextEngine::SymbolAnimationEffectStrategy> publicSupportAnimations_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

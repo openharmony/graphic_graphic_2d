@@ -60,6 +60,12 @@ public:
 
     void SetIndents(const std::vector<float>& indents) override;
 
+    void MarkDirty() override;
+
+    int32_t GetUnresolvedGlyphsCount() override;
+
+    void UpdateFontSize(size_t from, size_t to, float fontSize) override;
+
     float DetectIndents(size_t index) override;
 
     void Layout(double width) override;
@@ -79,9 +85,10 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
-    std::vector<LineMetrics>& GetLineMetrics() override;
+    std::vector<LineMetrics>& GetLineMetrics(std::vector<size_t>& startIndexs) override;
 
-    bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
+    bool GetLineMetricsAt(
+        int lineNumber, skia::textlayout::LineMetrics* lineMetrics, size_t& startIndex) const override;
 
     void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc
@@ -100,6 +107,11 @@ public:
     Drawing::FontMetrics MeasureText() override;
 
     Drawing::FontMetrics GetFontMetricsResult(const SPText::TextStyle& textStyle) override;
+
+    bool GetLineFontMetrics(const size_t lineNumber, size_t& charNumber,
+        std::vector<Drawing::FontMetrics>& fontMetrics) override;
+    std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
+    std::unique_ptr<Paragraph> CloneSelf() override;
 
 private:
     TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle);

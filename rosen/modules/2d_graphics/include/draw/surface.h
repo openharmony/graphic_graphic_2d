@@ -63,6 +63,7 @@ public:
     /**
      * @brief         Bind raster Surface.
      * @param bitmap  Raster pixel array.
+     * @return        true if Bind success.
      */
     bool Bind(const Bitmap& bitmap);
 
@@ -147,8 +148,10 @@ public:
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const;
 
     /**
-     * @brief   Returns a compatible Surface, with the specified widht and height.
-     * @return  A shared pointer to Surface
+     * @brief         Returns a compatible Surface, with the specified width and height.
+     * @param width   surface width
+     * @param height  surface height
+     * @return        A shared pointer to Surface
      */
     std::shared_ptr<Surface> MakeSurface(int width, int height) const;
 
@@ -159,8 +162,9 @@ public:
     ImageInfo GetImageInfo();
 
     /**
-     * @brief   Gets BackendTexture of Surface.
-     * @return  BackendTexture
+     * @brief         Gets BackendTexture of Surface.
+     * @param access  backend access mode, default as FLUSH_READ
+     * @return        BackendTexture
      */
     BackendTexture GetBackendTexture(BackendAccess access = BackendAccess::FLUSH_READ) const;
 

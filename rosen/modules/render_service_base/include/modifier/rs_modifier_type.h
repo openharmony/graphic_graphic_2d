@@ -50,6 +50,7 @@ enum class RSModifierType : int16_t {
     BACKGROUND_COLOR,              // 20
     BACKGROUND_SHADER,             // 21
     BG_IMAGE,                      // 22
+<<<<<<< HEAD
     BG_IMAGE_WIDTH,                // 23
     BG_IMAGE_HEIGHT,               // 24
     BG_IMAGE_POSITION_X,           // 25
@@ -125,6 +126,98 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR_STRATEGY, // 95
     GEOMETRYTRANS,                 // 96
     CHILDREN,                      // 97, PLACEHOLDER, no such modifier, but we need a dirty flag
+=======
+    BG_IMAGE_INNER_RECT,           // 23
+    BG_IMAGE_WIDTH,                // 24
+    BG_IMAGE_HEIGHT,               // 25
+    BG_IMAGE_POSITION_X,           // 26
+    BG_IMAGE_POSITION_Y,           // 27
+    SURFACE_BG_COLOR,              // 28
+    BORDER_COLOR,                  // 29
+    BORDER_WIDTH,                  // 30
+    BORDER_STYLE,                  // 31
+    FILTER,                        // 32
+    BACKGROUND_FILTER,             // 33
+    LINEAR_GRADIENT_BLUR_PARA,     // 34
+    DYNAMIC_LIGHT_UP_RATE,         // 35
+    DYNAMIC_LIGHT_UP_DEGREE,       // 36
+    FRAME_GRAVITY,                 // 37
+    CLIP_RRECT,                    // 38
+    CLIP_BOUNDS,                   // 39
+    CLIP_TO_BOUNDS,                // 40
+    CLIP_TO_FRAME,                 // 41
+    VISIBLE,                       // 42
+    SHADOW_COLOR,                  // 43
+    SHADOW_OFFSET_X,               // 44
+    SHADOW_OFFSET_Y,               // 45
+    SHADOW_ALPHA,                  // 46
+    SHADOW_ELEVATION,              // 47
+    SHADOW_RADIUS,                 // 48
+    SHADOW_PATH,                   // 49
+    SHADOW_MASK,                   // 50
+    SHADOW_COLOR_STRATEGY,         // 51
+    MASK,                          // 52
+    SPHERIZE,                      // 53
+    LIGHT_UP_EFFECT,               // 54
+    PIXEL_STRETCH,                 // 55
+    PIXEL_STRETCH_PERCENT,         // 56
+    USE_EFFECT,                    // 57
+    COLOR_BLEND_MODE,              // 58
+    COLOR_BLEND_APPLY_TYPE,        // 59
+    SANDBOX,                       // 60
+    GRAY_SCALE,                    // 61
+    BRIGHTNESS,                    // 62
+    CONTRAST,                      // 63
+    SATURATE,                      // 64
+    SEPIA,                         // 65
+    INVERT,                        // 66
+    AIINVERT,                      // 67
+    SYSTEMBAREFFECT,               // 68
+    HUE_ROTATE,                    // 69
+    COLOR_BLEND,                   // 70
+    PARTICLE,                      // 71
+    SHADOW_IS_FILLED,              // 72
+    OUTLINE_COLOR,                 // 73
+    OUTLINE_WIDTH,                 // 74
+    OUTLINE_STYLE,                 // 75
+    OUTLINE_RADIUS,                // 76
+    USE_SHADOW_BATCHING,           // 77
+    GREY_COEF,                     // 78
+    LIGHT_INTENSITY,               // 79
+    LIGHT_COLOR,                   // 80
+    LIGHT_POSITION,                // 81
+    ILLUMINATED_BORDER_WIDTH,      // 82
+    ILLUMINATED_TYPE,              // 83
+    BLOOM,                         // 84
+    PARTICLE_EMITTER_UPDATER,      // 85
+    FOREGROUND_EFFECT_RADIUS,      // 86
+    DYNAMIC_DIM_DEGREE,            // 87
+    BACKGROUND_BLUR_RADIUS,        // 88
+    BACKGROUND_BLUR_SATURATION,    // 89
+    BACKGROUND_BLUR_BRIGHTNESS,    // 90
+    BACKGROUND_BLUR_MASK_COLOR,    // 91
+    BACKGROUND_BLUR_COLOR_MODE,    // 92
+    BACKGROUND_BLUR_RADIUS_X,      // 93
+    BACKGROUND_BLUR_RADIUS_Y,      // 94
+    FOREGROUND_BLUR_RADIUS,        // 95
+    FOREGROUND_BLUR_SATURATION,    // 96
+    FOREGROUND_BLUR_BRIGHTNESS,    // 97
+    FOREGROUND_BLUR_MASK_COLOR,    // 98
+    FOREGROUND_BLUR_COLOR_MODE,    // 99
+    FOREGROUND_BLUR_RADIUS_X,      // 100
+    FOREGROUND_BLUR_RADIUS_Y,      // 101
+    CUSTOM,                        // 102
+    EXTENDED,                      // 103
+    TRANSITION,                    // 104
+    BACKGROUND_STYLE,              // 105
+    CONTENT_STYLE,                 // 106
+    FOREGROUND_STYLE,              // 107
+    OVERLAY_STYLE,                 // 108
+    NODE_MODIFIER,                 // 109
+    ENV_FOREGROUND_COLOR,          // 110
+    ENV_FOREGROUND_COLOR_STRATEGY, // 111
+    GEOMETRYTRANS,                 // 112
+>>>>>>> origin/master
     MAX_RS_MODIFIER_TYPE,
 };
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;

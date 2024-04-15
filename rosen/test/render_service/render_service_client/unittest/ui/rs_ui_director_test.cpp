@@ -235,4 +235,16 @@ HWTEST_F(RSUIDirectorTest, SetRootTest, TestSize.Level1)
     director->SetRoot(nodeId);
     director->SetRoot(nodeId);
 }
+
+/**
+ * @tc.name: setflushEmptyCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, setflushEmptyCallbackTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->SetFlushEmptyCallback(nullptr);
+}
 } // namespace OHOS::Rosen

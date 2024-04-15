@@ -242,14 +242,16 @@ public:
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
+    bool IsLeashOrMainWindow() const
+    {
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    }
+
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::DEFAULT ||
-               nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
-               nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
 
     bool GetIsLastFrameHwcEnabled() const
@@ -437,8 +439,12 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
+<<<<<<< HEAD
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const;
+=======
+    const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
+>>>>>>> origin/master
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -541,7 +547,7 @@ public:
     void SetVisibleRegionRecursive(
         const Occlusion::Region& region,
         VisibleData& visibleVec,
-        std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+        std::map<NodeId, RSVisibleLevel>& pidVisMap,
         bool needSetVisibleRegion = true,
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);
@@ -729,8 +735,9 @@ public:
 
     void UpdatePositionZ()
     {
-        zOrderChanged_ = !ROSEN_EQ(GetRenderProperties().GetPositionZ(), positionZ_);
-        positionZ_ = GetRenderProperties().GetPositionZ();
+        const auto& zProperties = GetRenderProperties().GetPositionZ();
+        zOrderChanged_ = !ROSEN_EQ(zProperties, positionZ_);
+        positionZ_ = zProperties;
     }
 
     inline bool HasContainerWindow() const
@@ -920,6 +927,8 @@ public:
         return surfaceCacheContentStatic_;
     }
 
+    void UpdateSurfaceCacheContentStatic();
+
     void UpdateSurfaceCacheContentStatic(
         const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds);
     // temperory limit situation:
@@ -1029,13 +1038,24 @@ public:
         bufferRelMatrix_ = matrix;
     }
 
+<<<<<<< HEAD
+=======
+    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    {
+        bufferRelMatrix_ = matrix;
+    }
+
+>>>>>>> origin/master
     const Drawing::Matrix& GetBufferRelMatrix() const
     {
         return bufferRelMatrix_;
     }
 
+<<<<<<< HEAD
 protected:
     void OnSync() override;
+=======
+>>>>>>> origin/master
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -1045,7 +1065,10 @@ private:
     bool IsHistoryOccludedDirtyRegionNeedSubmit();
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
-    bool IsHardwareDisabledBySrcRect() const;
+    inline bool IsHardwareDisabledBySrcRect() const
+    {
+        return isHardwareForcedDisabledBySrcRect_;
+    }
     bool IsYUVBufferFormat() const;
     void InitRenderParams() override;
     void UpdateRenderParams() override;
@@ -1253,14 +1276,20 @@ private:
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     bool forceUIFirstChanged_ = false;
+<<<<<<< HEAD
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
     bool lastFrameUifirstFlag_ = false;
+=======
+>>>>>>> origin/master
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

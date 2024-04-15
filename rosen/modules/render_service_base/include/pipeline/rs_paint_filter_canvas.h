@@ -231,6 +231,18 @@ public:
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
 
+    // for foregroundFilter to store offscreen canvas & surface
+    struct OffscreenData {
+        std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr;
+        std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas_ = nullptr;
+    };
+    // for foregroundFilter to store and restore offscreen canvas & surface
+    void ReplaceMainScreenData(std::shared_ptr<Drawing::Surface>& offscreenSurface,
+        std::shared_ptr<RSPaintFilterCanvas>& offscreenCanvas);
+    void SwapBackMainScreenData();
+    void SavePCanvasList();
+    void RestorePCanvasList();
+
     // canvas status relate
     struct CanvasStatus {
         float alpha_;
@@ -278,6 +290,12 @@ private:
     
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;
+
+    // foregroundFilter related
+    std::vector<std::vector<Canvas*>> storedPCanvasList_; // store pCanvasList_
+    std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
+    std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
+    std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };

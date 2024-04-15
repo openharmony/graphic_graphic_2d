@@ -19,6 +19,7 @@ declare_args() {
   graphic_2d_feature_ace_enable_gpu = true
   graphic_2d_feature_color_gamut_enable = false
   graphic_2d_feature_rs_enable_eglimage = false
+  graphic_2d_feature_rs_enable_profiler = true
   graphic_2d_feature_use_texgine = false
   graphic_2d_feature_rs_enable_uni_render = false
   graphic_2d_feature_wuji_enable = false
@@ -57,7 +58,8 @@ declare_args() {
   graphic_2d_feature_enable_stack_culling = false
 }
 
-if (graphic_2d_feature_product == "phone") {
+if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_product == "tablet") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_ddgr = false
   graphic_2d_feature_enable_stack_culling = true
@@ -273,6 +275,7 @@ hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"
 skia_root_new = "//third_party/skia"
+graphic_surface_root = "//foundation/graphic/graphic_surface"
 memmgr_root = "//foundation/resourceschedule/memmgr"
 memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
 fuzz_test_output_path = "graphic_2d/graphic_2d"

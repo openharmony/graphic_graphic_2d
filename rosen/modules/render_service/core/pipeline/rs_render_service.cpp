@@ -34,9 +34,13 @@
 #include <platform/common/rs_log.h>
 #include <system_ability_definition.h>
 #include "parameter.h"
+<<<<<<< HEAD
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+=======
+#include "rs_profiler.h"
+>>>>>>> origin/master
 
 namespace OHOS {
 namespace Rosen {
@@ -117,6 +121,7 @@ bool RSRenderService::Init()
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
 
+    RS_PROFILER_INIT(this);
     return true;
 }
 
@@ -137,6 +142,7 @@ void RSRenderService::StartRCDUpdateThread(RenderContext* context) const
 sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     pid_t remotePid = GetCallingPid();
+    RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
     sptr<RSIRenderServiceConnection> newConn(
@@ -243,9 +249,13 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump the fps info of composer\n")
         .append("[surface name] fps             ")
         .append("|dump the fps info of surface\n")
-        .append("composer fpsClear                   ")
+        .append("composer fpsClear              ")
         .append("|clear the fps info of composer\n")
-        .append("[surface name] fpsClear             ")
+        .append("[windowname] fps               ")
+        .append("|dump the fps info of window\n")
+        .append("[windowname] hitchs            ")
+        .append("|dump the hitchs info of window\n")
+        .append("[surface name] fpsClear        ")
         .append("|clear the fps info of surface\n")
         .append("nodeNotOnTree                  ")
         .append("|dump nodeNotOnTree info\n")
@@ -342,6 +352,27 @@ void RSRenderService::DumpClearRefreshRateCounts(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- ClearRefreshRateCounts: \n");
     RSHardwareThread::Instance().ClearRefreshRateCounts(dumpString);
+}
+
+void RSRenderService::WindowHitchsDump(
+    std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter != argSets.end()) {
+        std::string layerArg;
+        argSets.erase(iter);
+        if (!argSets.empty()) {
+            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        }
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            RSHardwareThread::Instance().ScheduleTask(
+                [this, &dumpString, &layerArg]() { return screenManager_->HitchsDump(dumpString, layerArg); }).wait();
+        } else {
+            mainThread_->ScheduleTask(
+                [this, &dumpString, &layerArg]() { return screenManager_->HitchsDump(dumpString, layerArg); }).wait();
+        }
+    }
 }
 
 void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
@@ -472,6 +503,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg14(u"dumpNode");
     std::u16string arg15(u"fpsCount");
     std::u16string arg16(u"clearFpsCount");
+    std::u16string arg17(u"hitchs");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -527,6 +559,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     }
     FPSDUMPProcess(argSets, dumpString, arg3);
     FPSDUMPClearProcess(argSets, dumpString, arg13);
+    WindowHitchsDump(argSets, dumpString, arg17);
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpHelpInfo(dumpString); }).wait();

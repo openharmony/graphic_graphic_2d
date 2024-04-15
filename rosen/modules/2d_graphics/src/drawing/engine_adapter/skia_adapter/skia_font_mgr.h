@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,7 @@ public:
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgr();
 #ifndef USE_TEXGINE
     static std::shared_ptr<FontMgrImpl> CreateDynamicFontMgr();
-    void LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) override;
+    Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) override;
     void LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength) override;
 #endif
@@ -49,6 +49,10 @@ public:
     FontStyleSet* MatchFamily(const char familyName[]) const override;
 
     Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const override;
+
+    int CountFamilies() const override;
+    void GetFamilyName(int index, std::string& str) const override;
+    FontStyleSet* CreateStyleSet(int index) const override;
 private:
     sk_sp<SkFontMgr> skFontMgr_;
 };

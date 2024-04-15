@@ -44,6 +44,8 @@ private:
     static napi_value Blur(napi_env env, napi_callback_info info);
     static napi_value Brightness(napi_env env, napi_callback_info info);
     static napi_value Grayscale(napi_env env, napi_callback_info info);
+    static napi_value Invert(napi_env env, napi_callback_info info);
+    static napi_value SetColorMatrix(napi_env env, napi_callback_info info);
     void AddNextFilter(sk_sp<SkImageFilter> filter);
     void Render(bool forceCPU);
     std::vector<sk_sp<SkImageFilter> > skFilters_;

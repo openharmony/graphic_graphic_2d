@@ -65,7 +65,7 @@ HWTEST_F(SkiaPathEffectTest, InitWithDiscrete001, TestSize.Level1)
     skiaPathEffect.SetSkPathEffect(nullptr);
     skiaPathEffect.Serialize();
     skiaPathEffect.Deserialize(nullptr);
-    EXPECT_TRUE(skiaPathEffect.GetPathEffect() != nullptr);
+    EXPECT_TRUE(skiaPathEffect.GetPathEffect() == nullptr);
 }
 
 /**

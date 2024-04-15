@@ -330,7 +330,7 @@ HWTEST_F(ImageTest, SerializeAndDeserializeTest001, TestSize.Level1)
 
     BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     auto bitmap = std::make_shared<Bitmap>();
-    bitmap->Build(10, 10, bitmapFormat);
+    EXPECT_TRUE(bitmap->Build(10, 10, bitmapFormat));
     image->BuildFromBitmap(*bitmap);
     data = image->Serialize();
     ASSERT_TRUE(data != nullptr);

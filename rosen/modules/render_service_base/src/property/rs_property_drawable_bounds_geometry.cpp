@@ -39,6 +39,7 @@
 
 namespace {
 constexpr int PARAM_DOUBLE = 2;
+constexpr int TRACE_LEVEL_TWO = 2;
 constexpr int16_t BORDER_TRANSPARENT = 255;
 } // namespace
 namespace OHOS::Rosen {
@@ -300,6 +301,8 @@ RSPropertyDrawable::DrawablePtr RSMaskDrawable::Generate(const RSRenderContent& 
         return std::make_unique<RSGradientMaskDrawable>(mask);
     } else if (mask->IsPathMask()) {
         return std::make_unique<RSPathMaskDrawable>(mask);
+    } else if (mask->IsPixelMapMask()) {
+        return std::make_unique<RSPixelMapMaskDrawable>(mask);
     }
     return nullptr;
 }
@@ -415,6 +418,30 @@ void RSPathMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, true);
 }
 
+RSPixelMapMaskDrawable::RSPixelMapMaskDrawable(std::shared_ptr<RSMask> mask) : RSMaskDrawable(mask) {}
+
+void RSPixelMapMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    auto& properties = content.GetRenderProperties();
+    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
+    canvas.Save();
+    Drawing::SaveLayerOps slr(&bounds, nullptr);
+    canvas.SaveLayer(slr);
+    int tmpLayer = canvas.GetSaveCount();
+    Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
+    canvas.SaveLayer(slrMask);
+    {
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        if (mask_->GetImage()) {
+            canvas.DrawImage(*mask_->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
+        }
+    }
+    canvas.RestoreToCount(tmpLayer);
+    Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);
+    canvas.SaveLayer(slrContent);
+    canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, true);
+}
+
 // ============================================================================
 // Shadow
 RSPropertyDrawable::DrawablePtr RSShadowBaseDrawable::Generate(const RSRenderContent& content)
@@ -501,6 +528,9 @@ void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas&
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSShadowDrawable::DrawShadow, Radius: %f, ShadowOffsetX: %f, ShadowOffsetY: %f, bounds: %s", radius_, offsetX_,
+        offsetY_, content.GetRenderProperties().GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     auto deviceClipBounds = canvas.GetDeviceClipBounds();
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path;
@@ -532,6 +562,11 @@ void RSHardwareAccelerationShadowDrawable::Draw(const RSRenderContent& content, 
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSHardwareAccelerationShadowDrawable::DrawShadow, Elevation: %f, ShadowOffsetX: %f, "
+        "ShadowOffsetY: %f, bounds: %s",
+        shadowElevation_, offsetX_, offsetY_,
+        content.GetRenderProperties().GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path;
     ClipShadowPath(content, canvas, path);
@@ -694,6 +729,39 @@ void RSBackgroundFilterDrawable::Draw(const RSRenderContent& content, RSPaintFil
     RSPropertiesPainter::DrawFilter(content.GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
 }
 
+// compositing filter
+RSPropertyDrawable::DrawablePtr RSCompositingFilterDrawable::Generate(const RSRenderContent& content)
+{
+    if (!RSPropertiesPainter::BLUR_ENABLED) {
+        ROSEN_LOGD("RSCompositingFilterDrawable::Generate close blur.");
+        return nullptr;
+    }
+    auto& filter = content.GetRenderProperties().GetFilter();
+    if (filter == nullptr) {
+        return nullptr;
+    }
+    return std::make_unique<RSCompositingFilterDrawable>();
+}
+
+bool RSCompositingFilterDrawable::Update(const RSRenderContent& content)
+{
+    return content.GetRenderProperties().GetFilter() != nullptr;
+}
+
+void RSCompositingFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    RSPropertiesPainter::DrawFilter(content.GetRenderProperties(), canvas, FilterType::FOREGROUND_FILTER);
+}
+
+bool IsForegroundFilterValid(const RSRenderContent& content)
+{
+    auto& rsFilter = content.GetRenderProperties().GetForegroundFilter();
+    if (rsFilter == nullptr) {
+        return false;
+    }
+    return true;
+}
+
 // foreground filter
 RSPropertyDrawable::DrawablePtr RSForegroundFilterDrawable::Generate(const RSRenderContent& content)
 {
@@ -701,8 +769,8 @@ RSPropertyDrawable::DrawablePtr RSForegroundFilterDrawable::Generate(const RSRen
         ROSEN_LOGD("RSForegroundFilterDrawable::Generate close blur.");
         return nullptr;
     }
-    auto& filter = content.GetRenderProperties().GetFilter();
-    if (filter == nullptr) {
+
+    if (!IsForegroundFilterValid(content)) {
         return nullptr;
     }
     return std::make_unique<RSForegroundFilterDrawable>();
@@ -710,12 +778,58 @@ RSPropertyDrawable::DrawablePtr RSForegroundFilterDrawable::Generate(const RSRen
 
 bool RSForegroundFilterDrawable::Update(const RSRenderContent& content)
 {
-    return content.GetRenderProperties().GetFilter() != nullptr;
+    return content.GetRenderProperties().GetForegroundFilter() != nullptr;
 }
 
 void RSForegroundFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-    RSPropertiesPainter::DrawFilter(content.GetRenderProperties(), canvas, FilterType::FOREGROUND_FILTER);
+    RS_OPTIONAL_TRACE_NAME("RSForegroundFilterDrawable::Draw");
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        ROSEN_LOGD("RSForegroundFilterDrawable::Draw main screen canvas no surface.");
+        return;
+    }
+    auto bounds = content.GetRenderProperties().GetBoundsRect();
+    std::shared_ptr<Drawing::Surface> offscreenSurface = surface->MakeSurface(bounds.width_, bounds.height_);
+    if (!offscreenSurface) {
+        ROSEN_LOGD("RSForegroundFilterDrawable::Draw create offscreenSurface fail.");
+        return;
+    }
+    auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+    if (!offscreenCanvas) {
+        ROSEN_LOGD("RSForegroundFilterDrawable::Draw create offscreenCanvas fail.");
+        return;
+    }
+    canvas.ReplaceMainScreenData(offscreenSurface, offscreenCanvas);
+    offscreenCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    canvas.SavePCanvasList();
+    canvas.RemoveAll();
+    canvas.AddCanvas(offscreenCanvas.get());
+}
+
+// foreground filter restore
+RSPropertyDrawable::DrawablePtr RSForegroundFilterRestoreDrawable::Generate(const RSRenderContent& content)
+{
+    if (!RSPropertiesPainter::BLUR_ENABLED) {
+        ROSEN_LOGD("RSForegroundFilterDrawable::Generate close blur.");
+        return nullptr;
+    }
+
+    if (!IsForegroundFilterValid(content)) {
+        return nullptr;
+    }
+
+    return std::make_unique<RSForegroundFilterRestoreDrawable>();
+}
+
+bool RSForegroundFilterRestoreDrawable::Update(const RSRenderContent& content)
+{
+    return content.GetRenderProperties().GetForegroundFilter() != nullptr;
+}
+
+void RSForegroundFilterRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    RSPropertiesPainter::DrawForegroundFilter(content.GetRenderProperties(), canvas);
 }
 
 // effect data
@@ -839,20 +953,25 @@ RSPropertyDrawable::DrawablePtr RSPixelStretchDrawable::Generate(const RSRenderC
 void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     auto& properties = content.GetRenderProperties();
-    bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
     auto borderColorAlpha = properties.GetBorderColor()[0].GetAlpha();
     Drawing::Brush brush = brush_;
-    brush.SetAntiAlias(antiAlias);
-    canvas.AttachBrush(brush);
     // use drawrrect to avoid texture update in phone screen rotation scene
-    if (RSSystemProperties::IsPhoneType()) {
+    if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
+        bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
+        brush.SetAntiAlias(antiAlias);
+        canvas.AttachBrush(brush);
         if (borderColorAlpha < BORDER_TRANSPARENT) {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()));
         }
     } else {
-        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
+        canvas.AttachBrush(brush);
+        if (borderColorAlpha < BORDER_TRANSPARENT) {
+            canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
+        } else {
+            canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());
+        }
     }
     canvas.DetachBrush();
 }
@@ -928,7 +1047,10 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
     const auto& image = properties.GetBgImage();
 
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
+    auto innerRect = properties.GetBgImageInnerRect();
     canvas.AttachBrush(brush_);
+    image->SetInnerRect(std::make_optional<Drawing::RectI>(
+        innerRect.x_, innerRect.y_, innerRect.x_ + innerRect.z_, innerRect.y_ + innerRect.w_));
     image->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
 }
@@ -943,6 +1065,8 @@ std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderCont
         // no blend
         return nullptr;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "BlendSaveDrawableGenerate::BlendMode, blendMode: %d, blendModeApplyType: %d", blendMode, blendModeApplyType);
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         return std::make_unique<RSBlendFastDrawable>(blendMode);
     }

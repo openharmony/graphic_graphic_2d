@@ -41,6 +41,7 @@ public:
 
     void PostProcess(Drawing::Canvas& canvas) override {};
     std::string GetDescription() override;
+    std::string GetDetailedDescription() override;
 
     bool CanSkipFrame() const override { return false; };
     static bool IsAiInvertCoefValid(const std::vector<float>& aiInvertCoef);

@@ -31,6 +31,7 @@ constexpr int DEFAULT_CACHE_HEIGHT = 2710;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
+constexpr int DEFAULT_SCALE_MODE = 2;
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = Drawing::SystemProperties::GetGpuApiType();
@@ -90,6 +91,33 @@ void RSSystemProperties::SetRecordingDisenabled()
 {
     system::SetParameter("debug.graphic.recording.enabled", "0");
     RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
+}
+
+bool RSSystemProperties::GetProfilerEnabled()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.profiler.enabled", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
+bool RSSystemProperties::GetInstantRecording()
+{
+    return (system::GetParameter("debug.graphic.instant.recording.enabled", "0") != "0");
+}
+
+void RSSystemProperties::SetInstantRecording(bool flag)
+{
+    system::SetParameter("debug.graphic.instant.recording.enabled", flag ? "1" : "0");
+}
+
+bool RSSystemProperties::GetSaveRDC()
+{
+    return (system::GetParameter("debug.graphic.rdcenabled", "0") != "0");
+}
+
+void RSSystemProperties::SetSaveRDC(bool flag)
+{
+    system::SetParameter("debug.graphic.rdcenabled", flag ? "1" : "0");
 }
 
 std::string RSSystemProperties::GetRecordingFile()
@@ -519,10 +547,19 @@ bool RSSystemProperties::GetUIFirstEnabled()
 #endif
 }
 
+<<<<<<< HEAD
 bool RSSystemProperties::GetUIFirstDebugEnabled()
 {
     static bool debugEnable = system::GetParameter("persist.sys.graphic.uifirstDebugEnabled", "0") != "0";
     return debugEnable;
+=======
+bool RSSystemProperties::GetUIFirstForceEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.force.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+>>>>>>> origin/master
 }
 
 bool RSSystemProperties::GetDebugTraceEnabled()
@@ -532,11 +569,19 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return openDebugTrace;
 }
 
+<<<<<<< HEAD
 bool RSSystemProperties::GetDumpImgEnabled()
 {
     static bool dumpImgEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0")).c_str()) != 0;
     return dumpImgEnabled;
+=======
+int RSSystemProperties::GetDebugTraceLevel()
+{
+    static int openDebugTraceLevel =
+        std::atoi((system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str());
+    return openDebugTraceLevel;
+>>>>>>> origin/master
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
@@ -740,7 +785,7 @@ bool RSSystemProperties::GetViewOcclusionCullingEnabled()
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     static bool subSurfaceEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "0")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "1")).c_str());
     return subSurfaceEnabled;
 }
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
@@ -772,12 +817,20 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return dumpUIPixelmapEnabled;
 }
 
+<<<<<<< HEAD
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.SubTreePrepareCheckType.type", "2");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
+=======
+uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
+{
+    static uint32_t scaleModeDFX =
+        std::atoi((system::GetParameter("persist.rosen.virtualScreenScaleMode.debugType", "2")).c_str());
+    return (scaleModeDFX > DEFAULT_SCALE_MODE) ? DEFAULT_SCALE_MODE : scaleModeDFX;
+>>>>>>> origin/master
 }
 } // namespace Rosen
 } // namespace OHOS

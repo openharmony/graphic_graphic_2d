@@ -52,6 +52,8 @@ private:
     void DumpRefreshRateCounts(std::string& dumpString) const;
     void DumpClearRefreshRateCounts(std::string& dumpString) const;
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
+    void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+        const std::u16string& arg) const;
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
     void DumpNode(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
     void FPSDUMPProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
@@ -74,6 +76,10 @@ private:
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
     sptr<VSyncDistributor> appVSyncDistributor_;
+
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // Rosen
 } // OHOS

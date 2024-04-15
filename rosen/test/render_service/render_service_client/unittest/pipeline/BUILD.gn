@@ -34,6 +34,11 @@ ohos_unittest("RSRenderClientPipelineTest") {
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
   ]
 
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
   include_dirs = [
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/modules/render_service_base",

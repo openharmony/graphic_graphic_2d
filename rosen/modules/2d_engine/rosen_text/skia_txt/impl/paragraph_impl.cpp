@@ -23,6 +23,7 @@
 #include "skia_adapter/skia_convert_utils.h"
 #include "text/font_metrics.h"
 #include "paragraph_builder_impl.h"
+#include "text_line_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -103,6 +104,30 @@ bool ParagraphImpl::DidExceedMaxLines()
 size_t ParagraphImpl::GetLineCount() const
 {
     return paragraph_->lineNumber();
+}
+
+void ParagraphImpl::MarkDirty()
+{
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->markDirty();
+}
+
+int32_t ParagraphImpl::GetUnresolvedGlyphsCount()
+{
+    if (paragraph_ == nullptr) {
+        return 0;
+    }
+    return paragraph_->unresolvedGlyphs();
+}
+
+void ParagraphImpl::UpdateFontSize(size_t from, size_t to, float fontSize)
+{
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->updateFontSize(from, to, fontSize);
 }
 
 void ParagraphImpl::SetIndents(const std::vector<float>& indents)
@@ -196,11 +221,11 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
-std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
+std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics(std::vector<size_t>& startIndexs)
 {
     if (!lineMetrics_) {
         std::vector<skt::LineMetrics> metrics;
-        paragraph_->getLineMetrics(metrics);
+        paragraph_->getLineMetrics(metrics, startIndexs);
 
         lineMetrics_.emplace();
         lineMetricsStyles_.reserve(std::accumulate(metrics.begin(), metrics.end(), 0,
@@ -234,9 +259,9 @@ std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
     return lineMetrics_.value();
 }
 
-bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
+bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics, size_t& startIndex) const
 {
-    return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
+    return paragraph_->getLineMetricsAt(lineNumber, lineMetrics, startIndex);
 }
 
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
@@ -291,6 +316,43 @@ Drawing::FontMetrics ParagraphImpl::GetFontMetricsResult(const SPText::TextStyle
     skTextStyle.getFontMetrics(&fontMetrics);
     return fontMetrics;
 }
+
+bool ParagraphImpl::GetLineFontMetrics(const size_t lineNumber, size_t& charNumber,
+    std::vector<Drawing::FontMetrics>& fontMetrics)
+{
+    if (!paragraph_) {
+        return false;
+    }
+    return paragraph_->GetLineFontMetrics(lineNumber, charNumber, fontMetrics);
+}
+
+std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
+{
+    if (!paragraph_) {
+        return {};
+    }
+    std::vector<std::unique_ptr<skt::TextLineBase>> textLineBases = paragraph_->GetTextLines();
+    std::vector<std::unique_ptr<SPText::TextLineBase>> lines;
+    for (std::unique_ptr<skt::TextLineBase>& textLineBase : textLineBases) {
+        std::unique_ptr<SPText::TextLineImpl> textLinePtr =
+            std::make_unique<SPText::TextLineImpl>(std::move(textLineBase), paints_);
+        lines.emplace_back(std::move(textLinePtr));
+    }
+    return lines;
+}
+
+std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
+{
+    if (!paragraph_) {
+        return nullptr;
+    }
+    std::vector<PaintRecord> paints = paints_;
+    std::unique_ptr<skt::Paragraph> sktParagraph = paragraph_->CloneSelf();
+    std::unique_ptr<ParagraphImpl> paragraph = std::make_unique<ParagraphImpl>(std::move(sktParagraph),
+        std::move(paints));
+    return paragraph;
+}
+
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

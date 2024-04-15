@@ -18,6 +18,8 @@
 
 #include "hdi_device.h"
 #include "graphic_error.h"
+#include "v1_1/include/idisplay_composer_interface.h"
+#include "v1_2/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,6 +60,8 @@ public:
     int32_t GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapability &info) override;
     int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys) override;
     int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) override;
+    int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState,
+                                     bool &needFlush) override;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
@@ -82,6 +86,9 @@ public:
                              const std::vector<GraphicHDRMetaData> &metaData) override;
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
+    int32_t GetSupportedLayerPerFrameParameterKey(std::vector<std::string>& keys) override;
+    int32_t SetLayerPerFrameParameter(uint32_t devId, uint32_t layerId, const std::string& key,
+                                      const std::vector<int8_t>& value) override;
     int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) override;
     int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                              GraphicPresentTimestampType &type) override;

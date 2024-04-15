@@ -25,6 +25,7 @@
 #include "render/rs_pixel_map_util.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -71,8 +72,12 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             if (!isBackground) {
                 ApplyCanvasClip(canvas);
             }
-            canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            if (innerRect_.has_value()) {
+                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+            } else {
+                canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
+                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            }
         }
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
             canvas.Restore();
@@ -123,6 +128,11 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
                 imageParameter.dstH = std::min(imageParameter.frameH, imageParameter.frameW / imageParameter.ratio);
             }
             break;
+        case ImageFit::COVER_TOP_LEFT:
+            imageParameter.dstW = std::max(imageParameter.frameW, imageParameter.frameH * imageParameter.ratio);
+            imageParameter.dstH = std::max(imageParameter.frameH, imageParameter.frameW / imageParameter.ratio);
+            tempRectF.SetAll(0, 0, std::ceil(imageParameter.dstW), std::ceil(imageParameter.dstH));
+            return tempRectF;
         case ImageFit::CONTAIN:
         default:
             imageParameter.dstW = std::min(imageParameter.frameW, imageParameter.frameH * imageParameter.ratio);
@@ -281,8 +291,12 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
                     // In case of perspective transformation, make dstRect 1px outset to anti-alias
                     dst_.MakeOutset(1, 1);
                 }
-                canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+                if (innerRect_.has_value()) {
+                    canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+                } else {
+                    canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
+                        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+                }
             }
             if (isAstc) {
                 canvas.Restore();
@@ -356,6 +370,7 @@ static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& widt
         RS_LOGE("RSImage::Unmarshalling uniqueId fail");
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, uniqueId);
     if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
         RS_LOGE("RSImage::Unmarshalling width fail");
         return false;
@@ -423,6 +438,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
         RS_LOGE("RSImage::Unmarshalling nodeId fail");
         return nullptr;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId);
 
     bool useSkImage;
     std::shared_ptr<Drawing::Image> img;

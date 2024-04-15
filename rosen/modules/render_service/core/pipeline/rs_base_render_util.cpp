@@ -936,7 +936,10 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
             surfaceHandler.GetNodeId());
     }
 
+<<<<<<< HEAD
     surfaceHandler.SetBufferSizeChanged(buffer);
+=======
+>>>>>>> origin/master
     surfaceHandler.SetBuffer(buffer, acquireFence, damageAfterMerge, timestamp);
     surfaceHandler.SetCurrentFrameBufferConsumed();
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, timestamp = %{public}" PRId64 ".",

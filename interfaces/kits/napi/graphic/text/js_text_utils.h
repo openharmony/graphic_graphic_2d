@@ -19,6 +19,15 @@
 #include <map>
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
+#include "utils/point.h"
+
+#include "utils/log.h"
+#include "draw/color.h"
+#include "text_style.h"
+#include "typography.h"
+#include "typography_create.h"
+#include "typography_style.h"
+#include <codecvt>
 
 namespace OHOS::Rosen {
 constexpr size_t ARGC_ONE = 1;
@@ -218,9 +227,105 @@ inline napi_value NapiGetUndefined(napi_env env)
     return result;
 }
 
+inline napi_value GetPointAndConvertToJsValue(napi_env env, Drawing::Point& ponit)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "x", CreateJsNumber(env, ponit.GetX()));
+        napi_set_named_property(env, objValue, "y", CreateJsNumber(env, ponit.GetY()));
+    }
+    return objValue;
+}
+
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func);
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
+
+inline std::u16string Str8ToStr16(const std::string &str)
+{
+    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
+}
+
+inline void SetTextStyleDoubleValueFromJS(napi_env env, napi_value argValue, const std::string str, double& cValue)
+{
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, str.c_str(), &tempValue);
+    if (tempValue == nullptr) {
+        return;
+    }
+    ConvertFromJsValue(env, tempValue, cValue);
+}
+
+inline void SetTextStyleBooleValueFromJS(napi_env env, napi_value argValue, const std::string str, bool& cValue)
+{
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, str.c_str(), &tempValue);
+    if (tempValue == nullptr) {
+        return;
+    }
+    ConvertFromJsValue(env, tempValue, cValue);
+}
+
+inline napi_value GetPositionWithAffinityAndConvertToJsValue(napi_env env,
+    IndexAndAffinity* positionWithAffinity)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (positionWithAffinity != nullptr && objValue != nullptr) {
+        napi_set_named_property(env, objValue, "position", CreateJsNumber(env, positionWithAffinity->index));
+        napi_set_named_property(env, objValue, "affinity", CreateJsNumber(env, (int)positionWithAffinity->affinity));
+    }
+    return objValue;
+}
+
+inline napi_value GetRangeAndConvertToJsValue(napi_env env, Boundary* range)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (range != nullptr && objValue != nullptr) {
+        napi_set_named_property(env, objValue, "start", CreateJsNumber(env, range->leftIndex));
+        napi_set_named_property(env, objValue, "end", CreateJsNumber(env, range->rightIndex));
+    }
+    return objValue;
+}
+
+inline napi_value GetRectAndConvertToJsValue(napi_env env, Drawing::Rect rect)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "left", CreateJsNumber(env, rect.GetLeft()));
+        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, rect.GetTop()));
+        napi_set_named_property(env, objValue, "right", CreateJsNumber(env, rect.GetRight()));
+        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, rect.GetBottom()));
+    }
+    return objValue;
+}
+
+inline napi_value CreateTextRectJsValue(napi_env env, TextRect textrect)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "rect", GetRectAndConvertToJsValue(env, textrect.rect));
+        napi_set_named_property(env, objValue, "direction", CreateJsNumber(env, (int)textrect.direction));
+    }
+    return objValue;
+}
+
+bool OnMakeFontFamilies(napi_env& env, napi_value jsValue, std::vector<std::string> &fontFamilies);
+
+bool SetTextStyleColor(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc);
+
+bool GetDecorationFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
+
+bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan);
+
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

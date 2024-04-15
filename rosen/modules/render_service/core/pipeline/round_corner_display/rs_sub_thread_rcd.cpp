@@ -18,6 +18,9 @@
 #include "memory/rs_tag_tracker.h"
 #include "rs_trace.h"
 #include "platform/common/rs_log.h"
+#ifdef RES_SCHED_ENABLE
+#include "qos.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +39,14 @@ void RSSubThreadRCD::Start(RenderContext* context)
     std::string name = "RoundCornerDisplaySubThread";
     runner_ = AppExecFwk::EventRunner::Create(name);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+
+#ifdef RES_SCHED_ENABLE
+    PostTask([this]() {
+        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+        RS_LOGI("RoundCornerDisplay: SetThreadQos retcode = %{public}d", ret);
+    });
+#endif
+
     renderContext_ = context;
 }
 

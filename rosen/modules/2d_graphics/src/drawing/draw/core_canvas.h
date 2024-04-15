@@ -98,6 +98,7 @@ public:
 
     /**
      * @brief Gets the bounds of layer, may be nullptr.
+     * @return Returns the bounds of layer.
      */
     const Rect* GetBounds() const
     {
@@ -106,6 +107,7 @@ public:
 
     /**
      * @brief Gets the brush of layer, may be nullptr.
+     * @return Returns the brush of layer.
      */
     const Brush* GetBrush() const
     {
@@ -114,6 +116,7 @@ public:
 
     /**
      * @brief Gets the options to modify layer.
+     * @return Returns the options to modify layer.
      */
     uint32_t GetSaveLayerFlags() const
     {
@@ -142,38 +145,45 @@ public:
 
     /**
      * @brief Gets the total matrix of Canvas to device.
+     * @return Returns the total matrix of Canvas to device.
      */
     virtual Matrix GetTotalMatrix() const;
 
     /**
      * @brief Gets bounds of clip in local coordinates.
+     * @return Returns bounds of clip in local coordinates.
      */
     virtual Rect GetLocalClipBounds() const;
 
     /**
-     * @brief Gets bounds of clip in device corrdinates.
+     * @brief Gets bounds of clip in device coordinates.
+     * @return Returns bounds of clip in device coordinates.
      */
     virtual RectI GetDeviceClipBounds() const;
 
+#ifdef ACE_ENABLE_GPU
     /**
      * @brief Gets GPU context of the GPU surface associated with Canvas.
+     * @return Returns GPU context of the GPU surface associated with Canvas.
      */
-#ifdef ACE_ENABLE_GPU
     virtual std::shared_ptr<GPUContext> GetGPUContext();
 #endif
 
     /**
      * @brief Gets width of Canvas.
+     * @return Returns width of Canvas.
      */
     int32_t GetWidth() const;
 
     /**
      * @brief Gets height of Canvas.
+     * @return Returns height of Canvas.
      */
     int32_t GetHeight() const;
 
     /**
      * @brief Gets ImageInfo of Canvas.
+     * @return Returns ImageInfo of Canvas.
      */
     ImageInfo GetImageInfo();
 
@@ -348,6 +358,7 @@ public:
      * @param center IRect edge of image corners and sides
      * @param dst    destination Rect of image to draw to
      * @param filter what technique to use when sampling the image
+     * @param brush  brush containing MaskFilter; or nullptr
      */
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
@@ -432,10 +443,9 @@ public:
 
     /**
      * @brief Replace the clipping area with the intersection or difference between the
-     * current clipping area and RectI, and use a clipping edge that is aliased or anti-aliased.
+     * current clipping area and RectI, and use a clipping edge.
      * @param rect        To combine with clipping area.
      * @param op          To apply to clip.
-     * @param doAntiAlias true if clip is to be anti-aliased. The default value is false.
      */
     virtual void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT);
 
@@ -539,7 +549,7 @@ public:
      * Mathematically, constructs a rotation matrix; premultiplies the rotation matrix by
      * a translation matrix; then replaces RSMatrix with the resulting matrix premultiplied with RSMatrix.
      * This has the effect of rotating the drawing about a given point before transforming the result with RSMatrix.
-     * @param degrees amount to rotate, in degrees
+     * @param deg amount to rotate, in degrees
      * @param sx      x-axis value of the point to rotate about
      * @param sy      y-axis value of the point to rotate about
      */
@@ -654,6 +664,16 @@ public:
         return impl_->DowncastingTo<T>();
     }
     std::shared_ptr<CoreCanvasImpl> GetCanvasData() const;
+
+    Paint& GetMutableBrush()
+    {
+        return paintBrush_;
+    }
+
+    Paint& GetMutablePen()
+    {
+        return paintPen_;
+    }
 
 protected:
     CoreCanvas(int32_t width, int32_t height);

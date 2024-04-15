@@ -18,7 +18,10 @@
 
 #include <chrono>
 #include <set>
+<<<<<<< HEAD
 #include <functional>
+=======
+>>>>>>> origin/master
 #include "base_impl.h"
 #include "image/trace_memory_dump.h"
 #ifdef RS_ENABLE_VK
@@ -28,6 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+using pid_t = int;
 struct GPUResourceTag;
 class GPUContext;
 class GPUContextOptions;

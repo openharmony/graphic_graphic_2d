@@ -128,6 +128,8 @@ public:
 
     virtual void ClearFpsDump(std::string& dumpString, std::string& arg) = 0;
 
+    virtual void HitchsDump(std::string& dumpString, std::string& arg) = 0;
+
     virtual int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual int32_t GetScreenBacklight(ScreenId id) = 0;
@@ -171,9 +173,6 @@ public:
 
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    virtual void HandlePostureData(const SensorEvent * const event) = 0;
-#endif
     virtual ScreenId GetActiveScreenId() = 0;
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
@@ -182,6 +181,10 @@ public:
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) = 0;
+#endif
+
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    virtual void HandlePostureData(const SensorEvent * const event) = 0;
 #endif
 };
 
@@ -283,6 +286,8 @@ public:
 
     void ClearFpsDump(std::string& dumpString, std::string& arg) override;
 
+    void HitchsDump(std::string& dumpString, std::string& arg) override;
+
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     int32_t GetScreenBacklight(ScreenId id) override;
@@ -328,9 +333,6 @@ public:
 
     int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    void HandlePostureData(const SensorEvent * const event) override;
-#endif
     ScreenId GetActiveScreenId() override;
     
     /* only used for mock tests */
@@ -346,6 +348,10 @@ public:
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     float GetScreenBrightnessNits(ScreenId id) override;
+#endif
+
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    void HandlePostureData(const SensorEvent * const event) override;
 #endif
 
 private:

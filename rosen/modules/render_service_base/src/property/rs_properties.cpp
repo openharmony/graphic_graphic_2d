@@ -26,6 +26,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_filter.h"
+#include "render/rs_foreground_effect_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_linear_gradient_blur_filter.h"
 
@@ -76,6 +77,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetBackgroundColor({}); },            // BACKGROUND_COLOR
     [](RSProperties* prop) { prop->SetBackgroundShader({}); },           // BACKGROUND_SHADER
     [](RSProperties* prop) { prop->SetBgImage({}); },                    // BG_IMAGE
+    [](RSProperties* prop) { prop->SetBgImageInnerRect({}); },           // Bg_Image_Inner_Rect
     [](RSProperties* prop) { prop->SetBgImageWidth(0.f); },              // BG_IMAGE_WIDTH
     [](RSProperties* prop) { prop->SetBgImageHeight(0.f); },             // BG_IMAGE_HEIGHT
     [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); },          // BG_IMAGE_POSITION_X
@@ -138,7 +140,26 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
     [](RSProperties* prop) { prop->SetEmitterUpdater({}); },             // PARTICLE_EMITTER_UPDATER
+<<<<<<< HEAD
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
+=======
+    [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
+    [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
+    [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
+    [](RSProperties* prop) { prop->SetBackgroundBlurSaturation({}); },   // BACKGROUND_BLUR_SATURATION
+    [](RSProperties* prop) { prop->SetBackgroundBlurBrightness({}); },   // BACKGROUND_BLUR_BRIGHTNESS
+    [](RSProperties* prop) { prop->SetBackgroundBlurMaskColor(RSColor()); }, // BACKGROUND_BLUR_MASKCOLOR
+    [](RSProperties* prop) { prop->SetBackgroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT); }, // BACKGROUND_BLUR_COLORMODE
+    [](RSProperties* prop) { prop->SetBackgroundBlurRadiusX(0.f); },     // BACKGROUND_BLUR_RADIUS_X
+    [](RSProperties* prop) { prop->SetBackgroundBlurRadiusY(0.f); },     // BACKGROUND_BLUR_RADIUS_Y
+    [](RSProperties* prop) { prop->SetForegroundBlurRadius(0.f); },      // FOREGROUND_BLUR_RADIUS
+    [](RSProperties* prop) { prop->SetForegroundBlurSaturation({}); },   // FOREGROUND_BLUR_SATURATION
+    [](RSProperties* prop) { prop->SetForegroundBlurBrightness({}); },   // FOREGROUND_BLUR_BRIGHTNESS
+    [](RSProperties* prop) { prop->SetForegroundBlurMaskColor(RSColor()); }, // FOREGROUND_BLUR_MASKCOLOR
+    [](RSProperties* prop) { prop->SetForegroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT); }, // FOREGROUND_BLUR_COLORMODE
+    [](RSProperties* prop) { prop->SetForegroundBlurRadiusX(0.f); },     // FOREGROUND_BLUR_RADIUS_X
+    [](RSProperties* prop) { prop->SetForegroundBlurRadiusY(0.f); },     // FOREGROUND_BLUR_RADIUS_Y
+>>>>>>> origin/master
 };
 } // namespace
 
@@ -388,6 +409,7 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     if (!RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         return true;
     }
+<<<<<<< HEAD
     const auto& rect = boundsGeo_->GetAbsRect();
     if (!lastRect_.has_value()) {
         lastRect_ = rect;
@@ -397,6 +419,9 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     lastRect_ = rect;
     return dirtyFlag;
 }
+=======
+    auto& boundsGeoPtr = (boundsGeo_);
+>>>>>>> origin/master
 
 bool RSProperties::UpdateGeometry(
     const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset)
@@ -404,12 +429,23 @@ bool RSProperties::UpdateGeometry(
     if (!dirtyFlag && !geoDirty_) {
         return false;
     }
+<<<<<<< HEAD
     auto parentMatrix = parent == nullptr ? nullptr : &(parent->GetBoundsGeometry()->GetAbsMatrix());
     if (parentMatrix && sandbox_ && sandbox_->matrix_) {
         parentMatrix = &(sandbox_->matrix_.value());
     }
     CheckEmptyBounds();
     boundsGeo_->UpdateMatrix(parentMatrix, offset);
+=======
+    auto parentGeoPtr = parent == nullptr ? nullptr : (parent->boundsGeo_.get());
+    if (parentGeoPtr && sandbox_ && sandbox_->matrix_) {
+        auto parentGeo = std::make_shared<RSObjAbsGeometry>();
+        parentGeo->ConcatMatrix(*(sandbox_->matrix_));
+        boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+    } else {
+        boundsGeoPtr->UpdateMatrix(parent == nullptr ? nullptr : (parent->boundsGeo_), offset, clipRect);
+    }
+>>>>>>> origin/master
     if (lightSourcePtr_ && lightSourcePtr_->IsLightSourceValid()) {
         CalculateAbsLightPosition();
         RSPointLightManager::Instance()->AddDirtyLightSource(backref_);
@@ -857,6 +893,21 @@ std::shared_ptr<RSImage> RSProperties::GetBgImage() const
     return decoration_ ? decoration_->bgImage_ : nullptr;
 }
 
+void RSProperties::SetBgImageInnerRect(const Vector4f& rect)
+{
+    if (!decoration_) {
+        decoration_ = std::make_optional<Decoration>();
+    }
+    decoration_->bgImageInnerRect_ = rect;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+Vector4f RSProperties::GetBgImageInnerRect() const
+{
+    return decoration_ ? decoration_->bgImageInnerRect_ : Vector4f();
+}
+
 void RSProperties::SetBgImageWidth(float width)
 {
     if (!decoration_) {
@@ -1046,6 +1097,27 @@ const std::shared_ptr<RSBorder>& RSProperties::GetOutline() const
     return outline_;
 }
 
+void RSProperties::SetForegroundEffectRadius(const float foregroundEffectRadius)
+{
+    foregroundEffectRadius_ = foregroundEffectRadius;
+    if (IsForegroundEffectRadiusValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetForegroundEffectRadius() const
+{
+    return foregroundEffectRadius_;
+}
+
+bool RSProperties::IsForegroundEffectRadiusValid() const
+{
+    return ROSEN_GNE(foregroundEffectRadius_, 0.0);
+}
+
 void RSProperties::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
     backgroundFilter_ = backgroundFilter;
@@ -1120,11 +1192,14 @@ void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
     contentDirty_ = true;
 }
 
+<<<<<<< HEAD
 const std::optional<float>& RSProperties::GetDynamicDimDegree() const
 {
     return dynamicDimDegree_;
 }
 
+=======
+>>>>>>> origin/master
 void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
     filter_ = filter;
@@ -1171,6 +1246,11 @@ const std::optional<float>& RSProperties::GetDynamicLightUpDegree() const
     return dynamicLightUpDegree_;
 }
 
+const std::optional<float>& RSProperties::GetDynamicDimDegree() const
+{
+    return dynamicDimDegree_;
+}
+
 const std::optional<Vector2f>& RSProperties::GetGreyCoef() const
 {
     return greyCoef_;
@@ -1192,6 +1272,22 @@ bool RSProperties::IsDynamicLightUpValid() const
     return dynamicLightUpRate_.has_value() && dynamicLightUpDegree_.has_value() &&
            ROSEN_GNE(*dynamicLightUpRate_, 0.0) && ROSEN_GE(*dynamicLightUpDegree_, -1.0) &&
            ROSEN_LE(*dynamicLightUpDegree_, 1.0);
+}
+
+const std::shared_ptr<RSFilter>& RSProperties::GetForegroundFilter() const
+{
+    return foregroundFilter_;
+}
+
+void RSProperties::SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter)
+{
+    foregroundFilter_ = foregroundFilter;
+    if (foregroundFilter) {
+        isDrawn_ = true;
+    }
+    SetDirty();
+    filterNeedUpdate_ = true;
+    contentDirty_ = true;
 }
 
 // shadow properties
@@ -1704,6 +1800,295 @@ bool RSProperties::IsLightUpEffectValid() const
     return ROSEN_GE(GetLightUpEffect(), 0.0) && ROSEN_LNE(GetLightUpEffect(), 1.0);
 }
 
+// filter property
+void RSProperties::SetBackgroundBlurRadius(float backgroundBlurRadius)
+{
+    backgroundBlurRadius_ = backgroundBlurRadius;
+    if (IsBackgroundBlurRadiusValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetBackgroundBlurRadius() const
+{
+    return backgroundBlurRadius_;
+}
+
+bool RSProperties::IsBackgroundBlurRadiusValid() const
+{
+    return ROSEN_GNE(GetBackgroundBlurRadius(), 0.0);
+}
+
+void RSProperties::SetBackgroundBlurSaturation(float backgroundBlurSaturation)
+{
+    backgroundBlurSaturation_ = backgroundBlurSaturation;
+    if (IsBackgroundBlurSaturationValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetBackgroundBlurSaturation() const
+{
+    return backgroundBlurSaturation_;
+}
+
+bool RSProperties::IsBackgroundBlurSaturationValid() const
+{
+    return ROSEN_GE(GetBackgroundBlurSaturation(), 1.0);
+}
+
+void RSProperties::SetBackgroundBlurBrightness(float backgroundBlurBrightness)
+{
+    backgroundBlurBrightness_ = backgroundBlurBrightness;
+    if (IsBackgroundBlurBrightnessValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetBackgroundBlurBrightness() const
+{
+    return backgroundBlurBrightness_;
+}
+    
+bool RSProperties::IsBackgroundBlurBrightnessValid() const
+{
+    return ROSEN_GE(GetBackgroundBlurBrightness(), 1.0);
+}
+
+void RSProperties::SetBackgroundBlurMaskColor(Color backgroundMaskColor)
+{
+    backgroundMaskColor_ = backgroundMaskColor;
+    if (IsBackgroundBlurMaskColorValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+const Color& RSProperties::GetBackgroundBlurMaskColor() const
+{
+    return backgroundMaskColor_;
+}
+
+bool RSProperties::IsBackgroundBlurMaskColorValid() const
+{
+    return backgroundMaskColor_ != RSColor();
+}
+
+void RSProperties::SetBackgroundBlurColorMode(int backgroundColorMode)
+{
+    backgroundColorMode_ = backgroundColorMode;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+int RSProperties::GetBackgroundBlurColorMode() const
+{
+    return backgroundColorMode_;
+}
+    
+void RSProperties::SetBackgroundBlurRadiusX(float backgroundBlurRadiusX)
+{
+    backgroundBlurRadiusX_ = backgroundBlurRadiusX;
+    if (IsBackgroundBlurRadiusXValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetBackgroundBlurRadiusX() const
+{
+    return backgroundBlurRadiusX_;
+}
+    
+bool RSProperties::IsBackgroundBlurRadiusXValid() const
+{
+    return ROSEN_GNE(GetBackgroundBlurRadiusX(), 0.0);
+}
+
+void RSProperties::SetBackgroundBlurRadiusY(float backgroundBlurRadiusY)
+{
+    backgroundBlurRadiusY_ = backgroundBlurRadiusY;
+    if (IsBackgroundBlurRadiusYValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+float RSProperties::GetBackgroundBlurRadiusY() const
+{
+    return backgroundBlurRadiusY_;
+}
+    
+bool RSProperties::IsBackgroundBlurRadiusYValid() const
+{
+    return ROSEN_GNE(GetBackgroundBlurRadiusY(), 0.0);
+}
+
+void RSProperties::SetForegroundBlurRadius(float foregroundBlurRadius)
+{
+    foregroundBlurRadius_ = foregroundBlurRadius;
+    if (IsForegroundBlurRadiusValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetForegroundBlurRadius() const
+{
+    return foregroundBlurRadius_;
+}
+
+bool RSProperties::IsForegroundBlurRadiusValid() const
+{
+    return ROSEN_GNE(GetForegroundBlurRadius(), 0.0);
+}
+
+void RSProperties::SetForegroundBlurSaturation(float foregroundBlurSaturation)
+{
+    foregroundBlurSaturation_ = foregroundBlurSaturation;
+    if (IsForegroundBlurSaturationValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+float RSProperties::GetForegroundBlurSaturation() const
+{
+    return foregroundBlurSaturation_;
+}
+
+bool RSProperties::IsForegroundBlurSaturationValid() const
+{
+    return ROSEN_GE(GetForegroundBlurSaturation(), 1.0);
+}
+
+void RSProperties::SetForegroundBlurBrightness(float foregroundBlurBrightness)
+{
+    foregroundBlurBrightness_ = foregroundBlurBrightness;
+    if (IsForegroundBlurBrightnessValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+float RSProperties::GetForegroundBlurBrightness() const
+{
+    return foregroundBlurBrightness_;
+}
+    
+bool RSProperties::IsForegroundBlurBrightnessValid() const
+{
+    return ROSEN_GE(GetForegroundBlurBrightness(), 1.0);
+}
+
+void RSProperties::SetForegroundBlurMaskColor(Color foregroundMaskColor)
+{
+    foregroundMaskColor_ = foregroundMaskColor;
+    if (IsForegroundBlurMaskColorValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+const Color& RSProperties::GetForegroundBlurMaskColor() const
+{
+    return foregroundMaskColor_;
+}
+
+bool RSProperties::IsForegroundBlurMaskColorValid() const
+{
+    return foregroundMaskColor_ != RSColor();
+}
+
+void RSProperties::SetForegroundBlurColorMode(int foregroundColorMode)
+{
+    foregroundColorMode_ = foregroundColorMode;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+int RSProperties::GetForegroundBlurColorMode() const
+{
+    return foregroundColorMode_;
+}
+
+void RSProperties::SetForegroundBlurRadiusX(float foregroundBlurRadiusX)
+{
+    foregroundBlurRadiusX_ = foregroundBlurRadiusX;
+    if (IsForegroundBlurRadiusXValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetForegroundBlurRadiusX() const
+{
+    return foregroundBlurRadiusX_;
+}
+    
+bool RSProperties::IsForegroundBlurRadiusXValid() const
+{
+    return ROSEN_GNE(GetForegroundBlurRadiusX(), 0.0);
+}
+
+void RSProperties::SetForegroundBlurRadiusY(float foregroundBlurRadiusY)
+{
+    foregroundBlurRadiusY_ = foregroundBlurRadiusY;
+    if (IsForegroundBlurRadiusYValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+    
+float RSProperties::GetForegroundBlurRadiusY() const
+{
+    return foregroundBlurRadiusY_;
+}
+    
+bool RSProperties::IsForegroundBlurRadiusYValid() const
+{
+    return ROSEN_GNE(GetForegroundBlurRadiusY(), 0.0);
+}
+
+bool RSProperties::IsBackgroundMaterialFilterValid() const
+{
+    return IsBackgroundBlurRadiusValid();
+}
+
+bool RSProperties::IsForegroundMaterialFilterVaild() const
+{
+    return IsForegroundBlurRadiusValid();
+}
+
 void RSProperties::SetUseEffect(bool useEffect)
 {
     useEffect_ = useEffect;
@@ -1728,21 +2113,6 @@ void RSProperties::SetUseShadowBatching(bool useShadowBatching)
     SetDirty();
 }
 
-bool RSProperties::GetUseShadowBatching() const
-{
-    return useShadowBatching_;
-}
-
-void RSProperties::SetNeedSkipShadow(bool needSkipShadow)
-{
-    needSkipShadow_ = needSkipShadow;
-}
-
-bool RSProperties::GetNeedSkipShadow() const
-{
-    return needSkipShadow_;
-}
-
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
     pixelStretch_ = stretchSize;
@@ -1752,11 +2122,6 @@ void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
     if (pixelStretch_.has_value() && pixelStretch_->IsZero()) {
         pixelStretch_ = std::nullopt;
     }
-}
-
-const std::optional<Vector4f>& RSProperties::GetPixelStretch() const
-{
-    return pixelStretch_;
 }
 
 RectI RSProperties::GetPixelStretchDirtyRect() const
@@ -1783,11 +2148,6 @@ void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretch
     }
 }
 
-const std::optional<Vector4f>& RSProperties::GetPixelStretchPercent() const
-{
-    return pixelStretchPercent_;
-}
-
 // Image effect properties
 void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
 {
@@ -1795,11 +2155,6 @@ void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
     colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
-}
-
-const std::optional<float>& RSProperties::GetGrayScale() const
-{
-    return grayScale_;
 }
 
 void RSProperties::SetLightIntensity(float lightIntensity)
@@ -1911,16 +2266,6 @@ int RSProperties::GetIlluminatedType() const
     return illuminatedPtr_ ? static_cast<int>(illuminatedPtr_->GetIlluminatedType()) : 0;
 }
 
-float RSProperties::GetBloom() const
-{
-    return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
-}
-
-float RSProperties::GetIlluminatedBorderWidth() const
-{
-    return illuminatedPtr_ ? illuminatedPtr_->GetIlluminatedBorderWidth() : 0.f;
-}
-
 void RSProperties::CalculateAbsLightPosition()
 {
     auto lightSourceAbsRect = boundsGeo_->GetAbsRect();
@@ -1950,16 +2295,6 @@ void RSProperties::CalculateAbsLightPosition()
     lightAbsPosition.z_ = lightPos.z_;
     lightAbsPosition.w_ = lightPos.w_;
     lightSourcePtr_->SetAbsLightPosition(lightAbsPosition);
-}
-
-const std::shared_ptr<RSLightSource>& RSProperties::GetLightSource() const
-{
-    return lightSourcePtr_;
-}
-
-const std::shared_ptr<RSIlluminated>& RSProperties::GetIlluminated() const
-{
-    return illuminatedPtr_;
 }
 
 void RSProperties::SetBrightness(const std::optional<float>& brightness)
@@ -2844,9 +3179,24 @@ void RSProperties::OnApplyModifiers()
                 frameGeo_->GetWidth(), frameGeo_->GetHeight());
             filter_ = linearBlurFilter;
         }
+        if (IsForegroundEffectRadiusValid()) {
+            auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
+            foregroundFilter_ = foregroundEffectFilter;
+        }
+        if (!IsForegroundEffectRadiusValid()) {
+            foregroundFilter_.reset();
+        }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
+<<<<<<< HEAD
                       IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+=======
+                      IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+                      foregroundFilter_ != nullptr;
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+        CreateFilterCacheManagerIfNeed();
+#endif
+>>>>>>> origin/master
         ApplyGreyCoef();
     }
     GenerateRRect();

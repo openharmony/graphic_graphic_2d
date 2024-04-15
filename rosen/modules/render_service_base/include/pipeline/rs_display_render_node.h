@@ -79,6 +79,16 @@ public:
         return rogWidth_;
     }
 
+    void SetRenderWindowsName(std::vector<std::string>& windowsName)
+    {
+        windowsName_ = windowsName;
+    }
+
+    std::vector<std::string>& GetRenderWindowName()
+    {
+        return windowsName_;
+    }
+
     uint32_t GetRogHeight() const
     {
         return rogHeight_;
@@ -204,6 +214,9 @@ public:
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
+// add: #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
+// add:     std::unique_lock<std::mutex> lock(mtx_);
+// add: #endif
         currentFrameSurfacePos_[id] = rect;
     }
 
@@ -331,7 +344,11 @@ private:
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+<<<<<<< HEAD
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
+=======
+    std::vector<std::string> windowsName_;
+>>>>>>> origin/master
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::mutex mtx_;

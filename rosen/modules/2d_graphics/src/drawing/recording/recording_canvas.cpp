@@ -27,6 +27,7 @@
 #include "effect/path_effect.h"
 #include "effect/shader_effect.h"
 #include "utils/log.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -330,6 +331,7 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
 
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
+    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
     if (!blob) {
         return;
     }
@@ -346,11 +348,12 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
     }
     TextBlob::Context ctx {nullptr, IsCustomTypeface()};
     auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob, &ctx);
-    OpDataHandle typefaceHandle { 0 };
-    if (IsCustomTypeface()) {
-        typefaceHandle = CmdListHelper::AddTypefaceToCmdList(*cmdList_, ctx.GetTypeface());
+    uint64_t globalUniqueId = 0;
+    if (ctx.GetTypeface() != nullptr) {
+        uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
+        globalUniqueId = (shiftedPid | typefaceId);
     }
-    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, typefaceHandle, x, y);
+    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, globalUniqueId, x, y);
 }
 
 void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)

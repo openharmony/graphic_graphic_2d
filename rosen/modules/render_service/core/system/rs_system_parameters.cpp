@@ -78,7 +78,11 @@ bool RSSystemParameters::GetShowRefreshRateEnabled()
 
 QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
 {
+<<<<<<< HEAD
     static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "2");
+=======
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "4");
+>>>>>>> origin/master
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));

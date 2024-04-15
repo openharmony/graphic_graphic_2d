@@ -42,6 +42,7 @@ class MaskCmdList;
 class Data;
 class Image;
 class Bitmap;
+class Typeface;
 }
 class RSFilter;
 class RSImage;
@@ -195,6 +196,8 @@ public:
         return true;
     }
 
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
@@ -330,12 +333,14 @@ public:
         if (!Unmarshalling(parcel, size)) {
             return false;
         }
-        val.resize(size);
+        val.clear();
         for (uint32_t i = 0; i < size; ++i) {
             // in-place unmarshalling
-            if (!Unmarshalling(parcel, val[i])) {
+            T tmp;
+            if (!Unmarshalling(parcel, tmp)) {
                 return false;
             }
+            val.emplace_back(tmp);
         }
         return true;
     }

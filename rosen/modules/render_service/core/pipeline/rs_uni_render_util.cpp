@@ -410,28 +410,30 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilt
 bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     auto surfaceNodePtr = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNodePtr == nullptr) {
+    if (surfaceNodePtr == nullptr ||
+        (!surfaceNodePtr->IsAppWindow() && !surfaceNodePtr->IsLeashWindow())) {
         return false;
     }
+
+    auto curNode = surfaceNodePtr;
     if (surfaceNodePtr->IsAppWindow()) {
         auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr->GetParent().lock());
-        auto curNode = surfaceNodePtr;
         if (rsParent && rsParent->IsLeashWindow()) {
             curNode = rsParent;
         }
-        if (!curNode->ShouldPaint()) {
-            return false;
-        }
-        if (curNode->IsOnTheTree()) {
-            return HandleSubThreadNode(*curNode, canvas);
-        } else {
+    }
+    if (!curNode->ShouldPaint()) {
+        return false;
+    }
+    if (curNode->IsOnTheTree()) {
+        return HandleSubThreadNode(*curNode, canvas);
+    } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-            if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
-                RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
-            }
-#endif
-            return false;
+        if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
         }
+#endif
+        return false;
     }
     return false;
 }
@@ -504,11 +506,21 @@ void RSUniRenderUtil::ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& 
 
 bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation)
 {
-    bool isPhoneType = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
+    auto deviceType = RSMainThread::Instance()->GetDeviceType();
     bool isNeedAssignToSubThread = false;
+<<<<<<< HEAD
     if (isPhoneType && node->IsLeashWindow()) {
         isNeedAssignToSubThread = (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) ||
             node->GetForceUIFirst()) && !node->HasFilter();
+=======
+    if (deviceType != DeviceType::PC && node->IsLeashWindow()) {
+        isNeedAssignToSubThread = (node->IsScale() || node->IsScaleInPreFrame()
+            || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) || node->GetForceUIFirst()) && !node->HasFilter();
+        RS_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
+            " status:%d filter:%d isScale:%d isScalePreFrame:%d forceUIFirst:%d isNeedAssign:%d",
+            node->GetName().c_str(), node->GetId(), node->GetCacheSurfaceProcessedStatus(), node->HasFilter(),
+            node->IsScale(), node->IsScaleInPreFrame(), node->GetForceUIFirst(), isNeedAssignToSubThread);
+>>>>>>> origin/master
     }
     std::string surfaceName = node->GetName();
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
@@ -521,7 +533,7 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
         return true;
     }
-    if (isPhoneType) {
+    if (deviceType != DeviceType::PC) {
         return isNeedAssignToSubThread;
     } else { // PC or TABLET
         if ((node->IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
@@ -811,11 +823,11 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
     }
 }
 
-void RSUniRenderUtil::FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas)
+void RSUniRenderUtil::CeilTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas)
 {
     auto matrix = canvas.GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
-    matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
 }
 

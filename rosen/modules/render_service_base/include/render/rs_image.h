@@ -57,6 +57,7 @@ enum class ImageFit {
     NONE,
     SCALE_DOWN,
     TOP_LEFT,
+    COVER_TOP_LEFT,
 };
 
 class RSB_EXPORT RSImage : public RSImageBase {
@@ -71,6 +72,7 @@ public:
     void SetImageRepeat(int repeatNum);
     void SetRadius(const std::vector<Drawing::Point>& radius);
     void SetScale(double scale);
+    void SetInnerRect(const std::optional<Drawing::RectI>& innerRect) { innerRect_ = innerRect;}
 
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
     void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
@@ -109,6 +111,7 @@ private:
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;
     std::vector<Drawing::Point> radius_ = std::vector<Drawing::Point>(4);
+    std::optional<Drawing::RectI> innerRect_ = std::nullopt;
     bool hasRadius_ = false;
     RectF frameRect_;
     double scale_ = 1.0;

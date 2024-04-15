@@ -21,6 +21,8 @@
 #include <unordered_map>
 #include <memory>
 
+#include "text/typeface.h"
+
 #ifndef USE_GRAPHIC_TEXT_GINE
 namespace rosen {
 class FontCollection;
@@ -71,6 +73,24 @@ private:
     FontCollectionMgr() {}
 
     std::unordered_map<void*, std::shared_ptr<FontCollectionType>> collections_;
+    std::mutex mutex_;
+};
+
+class TypefaceMgr {
+public:
+    TypefaceMgr(const TypefaceMgr&) = delete;
+    TypefaceMgr& operator=(const TypefaceMgr&) = delete;
+
+    static TypefaceMgr& GetInstance();
+
+    void Insert(void* key, std::shared_ptr<Typeface> typeface);
+    std::shared_ptr<Typeface> Find(void* key);
+    bool Remove(void* key);
+
+private:
+    TypefaceMgr() {}
+
+    std::unordered_map<void*, std::shared_ptr<Typeface>> typeface_;
     std::mutex mutex_;
 };
 } // namespace Drawing

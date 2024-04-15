@@ -163,10 +163,10 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr);
     OpDataHandle opDataHandle;
-    OpDataHandle typefaceHandle;
+    uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        typefaceHandle, 0, 0, paintHandle};
+        globalUniqueId, 0, 0, paintHandle};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle);
     player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle);
 }
@@ -252,15 +252,7 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
     Point point;
     Paint paint;
     DrawSymbolOpItem opItem{drawingHMSymbolData, point, paint};
-    opItem.SetSymbol();
-    opItem.InitialScale();
-    opItem.InitialVariableColor();
-    opItem.SetSymbol();
-    opItem.SetScale(0);
-    opItem.SetVariableColor(0);
     Path path;
-    opItem.UpdateScale(100, path); // 100: cur
-    opItem.UpdataVariableColor(100, 0); // 100: cur
     opItem.Marshalling(*drawCmdList);
     SymbolOpHandle symbolOpHandle;
     PaintHandle paintHandle;
@@ -270,19 +262,10 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     opItem.Playback(recordingCanvas.get(), nullptr);
     opItem.Playback(nullptr, nullptr);
-    
+
     DrawingHMSymbolData drawingHMSymbolData2;
-    drawingHMSymbolData2.symbolInfo_.effect = DrawingEffectStrategy::HIERARCHICAL;
     DrawSymbolOpItem opItem2{drawingHMSymbolData2, point, paint};
     opItem2.Playback(recordingCanvas.get(), nullptr);
-    opItem2.SetScale(10); // 10: scale
-    opItem2.SetVariableColor(5); // 5: index
-    opItem2.SetScale(0);
-    opItem2.SetScale(10); // 10: scale
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
-    opItem2.InitialScale();
-    opItem2.SetScale(0);
 }
 
 /**
@@ -580,9 +563,9 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     auto opDataHandle = CmdListHelper::AddTextBlobToCmdList(*drawCmdList, textBlob.get());
     opDataHandle.offset = 2;
     opDataHandle.size = 10;
-    OpDataHandle typefaceHandle;
+    uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, typefaceHandle, 10, 10, paintHandle}; // 10: x, y
+    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId, 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
 }
 
@@ -594,9 +577,9 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, DrawCmdList002, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
     ColorQuad color = 0xFF000000;
-    drawCmdList->AddOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
+    drawCmdList->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
     EXPECT_TRUE(drawCmdList->IsEmpty());
     drawCmdList->SetIsCache(true);
     EXPECT_TRUE(drawCmdList->GetIsCache());
@@ -606,13 +589,15 @@ HWTEST_F(DrawCmdTest, DrawCmdList002, TestSize.Level1)
     std::string s = "";
     s = drawCmdList->GetOpsWithDesc();
     drawCmdList->ClearOp();
+    delete drawCmdList;
 
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(
+    auto drawCmdList2 = new DrawCmdList(
         10, 10, DrawCmdList::UnmarshalMode::IMMEDIATE); // 10: width, height
     EXPECT_TRUE(drawCmdList2->IsEmpty());
-    EXPECT_TRUE(drawCmdList->GetOpItemSize() >= 0);
-    drawCmdList->AddDrawOp(nullptr);
+    EXPECT_TRUE(drawCmdList2->GetOpItemSize() >= 0);
+    drawCmdList2->AddDrawOp(nullptr);
     EXPECT_TRUE(drawCmdList2->IsEmpty());
+    delete drawCmdList2;
 }
 
 /**
@@ -623,14 +608,15 @@ HWTEST_F(DrawCmdTest, DrawCmdList002, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, GetOpsWithDesc001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
-    Brush brush;
-    drawCmdList->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
-    drawCmdList->AddDrawOp(nullptr);
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    ColorQuad color = 0xFF000000;
+    drawCmdList->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
+    drawCmdList->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::DST_OVER);
 
     std::string s = "";
     s = drawCmdList->GetOpsWithDesc();
     drawCmdList->ClearOp();
+    delete drawCmdList;
 }
 
 /**
@@ -641,16 +627,18 @@ HWTEST_F(DrawCmdTest, GetOpsWithDesc001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, MarshallingDrawOps001, TestSize.Level1)
 {
-    auto drawCmdList1 = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto drawCmdList1 = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
     drawCmdList1->MarshallingDrawOps();
     drawCmdList1->UnmarshallingDrawOps();
     drawCmdList1->AddDrawOp(nullptr);
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    delete drawCmdList1;
+
+    auto drawCmdList2 = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmdList2->MarshallingDrawOps();
-    drawCmdList2->AddDrawOp(nullptr);
-    Brush brush;
-    drawCmdList2->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
     drawCmdList2->UnmarshallingDrawOps();
+    ColorQuad color = 0xFF000000;
+    drawCmdList2->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
+    delete drawCmdList2;
 }
 
 /**
@@ -661,7 +649,7 @@ HWTEST_F(DrawCmdTest, MarshallingDrawOps001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
     drawCmdList->SetWidth(0);
     Canvas canvas;
     Rect rect;
@@ -677,9 +665,11 @@ HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
     drawCmdList->Playback(canvas, &rect);
     drawCmdList->SetCachedHighContrast(true);
     drawCmdList->Playback(canvas, &rect);
+    delete drawCmdList;
 
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(10, 10, DrawCmdList::UnmarshalMode::DEFERRED);
+    auto drawCmdList2 = new DrawCmdList(10, 10, DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmdList2->Playback(*recordingCanvas, &rect);
+    delete drawCmdList2;
 
     auto drawCmdList3 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     drawCmdList3->Playback(*recordingCanvas, &rect);
@@ -693,7 +683,7 @@ HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, GenerateCache001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
     drawCmdList->SetIsCache(true);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     Rect rect;
@@ -718,14 +708,15 @@ HWTEST_F(DrawCmdTest, GenerateCache001, TestSize.Level1)
     drawCmdList->MarshallingDrawOps();
     drawCmdList->AddDrawOp(nullptr);
     drawCmdList->UnmarshallingDrawOps();
+    delete drawCmdList;
     
-    auto drawCmdList2 = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto drawCmdList2 = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmdList2->SetIsCache(false);
     drawCmdList2->GenerateCache(recordingCanvas.get(), &rect);
-    drawCmdList2->AddDrawOp(nullptr);
-    drawCmdList2->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
-    drawCmdList2->AddDrawOp(opItem);
+    ColorQuad color2 = 0xFF000000;
+    drawCmdList2->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color2, BlendMode::SRC_OVER);
     drawCmdList2->GenerateCache(recordingCanvas.get(), &rect);
+    delete drawCmdList2;
 }
 
 /**

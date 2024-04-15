@@ -348,17 +348,26 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
+uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
+{
+    return {};
+}
+
 bool RSSystemProperties::GetHwcRegionDfxEnabled()
 {
     return false;
 }
 
+<<<<<<< HEAD
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;
 }
 
 bool RSSystemProperties::GetRenderParallelEnabled()
+=======
+bool RSSystemProperties::GetUIFirstForceEnabled()
+>>>>>>> origin/master
 {
     return false;
 }

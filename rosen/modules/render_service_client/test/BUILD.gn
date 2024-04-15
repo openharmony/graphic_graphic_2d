@@ -419,24 +419,18 @@ ohos_executable("render_service_client_watermark_demo") {
 ohos_executable("rs_uni_render_pixelmap_demo") {
   sources = [ "rs_uni_render_pixelmap_demo.cpp" ]
 
-  include_dirs = [ "//foundation/window/window_manager/interfaces/innerkits" ]
-
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/window/window_manager/wm:libwm",
-    "//foundation/window/window_manager/wmserver:libwms",
-    "//third_party/zlib:libz",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "image_framework:image_native",
+    "window_manager:libwm",
   ]
-
-  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -478,7 +472,6 @@ ohos_executable("render_service_client_tunnel_handle_demo") {
 
     # render_service_base include
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/wmclient/",
   ]
 
@@ -493,6 +486,7 @@ ohos_executable("render_service_client_tunnel_handle_demo") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
   ]
 
@@ -508,7 +502,6 @@ ohos_executable("render_service_client_overlay_demo") {
 
     # render_service_base include
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/wmclient/",
   ]
 
@@ -644,6 +637,26 @@ ohos_executable("render_service_client_fingerprint_demo") {
     "c_utils:utils",
     "hilog:libhilog",
     "window_manager:libdm",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("render_service_client__alpha_offscreen_demo") {
+  sources = [ "render_service_client__alpha_offscreen_demo.cpp" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "window_manager:libwm",
   ]
 
   part_name = "graphic_2d"

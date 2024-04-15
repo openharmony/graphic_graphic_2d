@@ -51,6 +51,7 @@ public:
     RSFilter& operator=(const RSFilter&) = delete;
     RSFilter& operator=(const RSFilter&&) = delete;
     virtual std::string GetDescription();
+    virtual std::string GetDetailedDescription();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
         int style, float dipScale, BLUR_COLOR_MODE mode = DEFAULT, float ratio = 1.0);
@@ -66,6 +67,7 @@ public:
         LIGHT_UP_EFFECT,
         AIBAR,
         LINEAR_GRADIENT_BLUR,
+        FOREGROUND_EFFECT,
     };
     FilterType GetFilterType() const
     {
@@ -74,6 +76,12 @@ public:
     virtual bool IsValid() const
     {
         return type_ != FilterType::NONE;
+    }
+
+    float DecreasePrecision(float value)
+    {
+        // preserve two digital precision when calculating hash, this can reuse filterCache as much as possible.
+        return 0.01 * round(value * 100);
     }
 
     uint32_t Hash() const

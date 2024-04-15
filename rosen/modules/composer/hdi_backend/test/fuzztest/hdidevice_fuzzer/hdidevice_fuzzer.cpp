@@ -70,6 +70,13 @@ namespace OHOS {
         device->SetLayerTunnelHandle(screenId, layerId, nullptr);
         device->GetPresentTimestamp(screenId, layerId, timestamp);
         device->SetLayerMaskInfo(screenId, layerId, maskInfo);
+
+        // DISPLAY ENGINE
+        std::vector<std::string> keys{};
+        device->GetSupportedLayerPerFrameParameterKey(keys);
+        std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
+        std::string validKey = "ArsrDoEnhance";
+        device->SetLayerPerFrameParameter(screenId, layerId, validKey, valueBlob);
     }
 
     void HdiDeviceFuzzTest2()

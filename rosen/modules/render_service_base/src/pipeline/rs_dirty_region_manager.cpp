@@ -35,7 +35,7 @@ RSDirtyRegionManager::RSDirtyRegionManager(bool isDisplayDirtyManager)
     isDisplayDirtyManager_ = isDisplayDirtyManager;
 }
 
-void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
+void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect, bool isDebugRect)
 {
     if (rect.IsEmpty()) {
         return;
@@ -47,6 +47,9 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
     }
     if (isDisplayDirtyManager_) {
         mergedDirtyRegions_.emplace_back(rect);
+    }
+    if (isDebugRect) {
+        debugRect_ = rect;
     }
 }
 
@@ -222,7 +225,7 @@ void RSDirtyRegionManager::Clear()
 
 bool RSDirtyRegionManager::IsCurrentFrameDirty() const
 {
-    return !currentFrameDirtyRegion_.IsEmpty();
+    return !currentFrameDirtyRegion_.IsEmpty() && currentFrameDirtyRegion_ != debugRect_;
 }
 
 bool RSDirtyRegionManager::IsDirty() const

@@ -31,17 +31,19 @@ namespace AdapterTxt {
 class FontCollection : public ::OHOS::Rosen::FontCollection {
 public:
     explicit FontCollection(std::shared_ptr<txt::FontCollection> fontCollection = nullptr);
-
+    ~FontCollection();
     std::shared_ptr<txt::FontCollection> Get();
 
     void DisableFallback() override;
     void DisableSystemFont() override;
-    void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    Drawing::Typeface* LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
     void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
-
+    std::shared_ptr<Drawing::FontMgr> GetFontMgr() override;
+    void AddLoadedFamilyName(const std::string& name) override;
 private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
+    std::vector<std::string> familyNames_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen

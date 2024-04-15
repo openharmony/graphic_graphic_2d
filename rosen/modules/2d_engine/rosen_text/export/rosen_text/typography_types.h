@@ -16,6 +16,8 @@
 #ifndef ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_TYPES_H
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_TYPES_H
 
+#include <cstddef>
+
 namespace OHOS {
 namespace Rosen {
 enum class TextDirection {
@@ -71,9 +73,22 @@ enum class FontWeight {
     W900,
 };
 
+enum class FontWidth {
+    ULTRA_CONDENSED = 1,
+    EXTRA_CONDENSED = 2,
+    CONDENSED = 3,
+    SEMI_CONDENSED = 4,
+    NORMAL = 5,
+    SEMI_EXPANDED = 6,
+    EXPANDED = 7,
+    EXTRA_EXPANDED = 8,
+    ULTRA_EXPANDED = 9,
+};
+
 enum class FontStyle {
     NORMAL,
     ITALIC,
+    OBLIQUE,
 };
 
 enum class TextBaseline {
@@ -86,6 +101,42 @@ enum class EllipsisModal {
     MIDDLE = 1,
     TAIL = 2,
 };
+
+enum TextHeightBehavior {
+    ALL = 0x0,
+    DISABLE_FIRST_ASCENT = 0x1,
+    DISABLE_LAST_ASCENT = 0x2,
+    DISABLE_ALL = 0x1 | 0x2,
+};
+
+enum StyleType {
+    NONE_ATTRIBUTES,
+    ALL_ATTRIBUTES,
+    FONT,
+    FOREGROUND,
+    BACKGROUND,
+    SHADOW,
+    DECORATIONS,
+    LETTER_SPACING,
+    WORD_SPACING
+};
+
+struct Boundary {
+    size_t leftIndex = 0; // include leftIndex_
+    size_t rightIndex = 0; // not include rightIndex_
+
+    Boundary(size_t left, size_t right)
+    {
+        leftIndex = left;
+        rightIndex = right;
+    }
+
+    bool operator ==(const Boundary& rhs) const
+    {
+        return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
+    }
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

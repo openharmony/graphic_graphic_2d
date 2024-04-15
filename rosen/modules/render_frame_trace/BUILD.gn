@@ -27,9 +27,9 @@ ohos_source_set("render_frame_trace") {
       cflags += [ "-fwhole-program-vtables" ]
     }
   }
-  deps = [ "//third_party/jsoncpp:jsoncpp" ]
+  external_deps = [ "jsoncpp:jsoncpp" ]
   if (!build_ohos_sdk) {
-    external_deps = [
+    external_deps += [
       "ipc:ipc_single",
       "qos_manager:concurrent_task_client",
     ]
@@ -41,6 +41,15 @@ ohos_source_set("render_frame_trace") {
       external_deps += [ "frame_aware_sched:frame_trace_intf" ]
     }
   }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_source_set("rs_frame_report_ext") {
+  include_dirs = [ "include" ]
+  sources = [ "src/rs_frame_report_ext.cpp" ]
+  external_deps = [ "hilog:libhilog" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

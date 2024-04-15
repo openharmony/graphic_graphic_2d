@@ -61,6 +61,7 @@ using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
+using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
 
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -118,11 +119,12 @@ public:
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
-        uint64_t id = 0);
+        uint64_t id = 0,
+        NodeId windowNodeId = 0);
 
     bool TakeSurfaceCapture(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
-        SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE);
+        SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE, bool isSync = false);
 
     int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId);
@@ -243,6 +245,8 @@ public:
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
+    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
@@ -256,6 +260,8 @@ public:
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback);
+
+    int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
 
@@ -295,7 +301,10 @@ public:
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);

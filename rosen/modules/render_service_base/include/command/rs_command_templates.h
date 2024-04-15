@@ -94,6 +94,31 @@ public:
 
 private:
     std::tuple<Params...> params_;
+
+#ifdef RS_PROFILER_ENABLED
+    void Patch() override
+    {
+        PatchParameters(params_, std::make_index_sequence<std::tuple_size_v<decltype(params_)>> {});
+    }
+
+    template<typename T, std::size_t... Index>
+    static void PatchParameters(const T& params, std::index_sequence<Index...>)
+    {
+        (PatchParameter(std::get<Index>(params)), ...);
+    }
+
+    template<typename T>
+    static void PatchParameter(const T& value)
+    {
+        if (std::is_same<NodeId, T>::value || std::is_same<AnimationId, T>::value ||
+            std::is_same<PropertyId, T>::value) {
+            auto& id = reinterpret_cast<NodeId&>(const_cast<T&>(value));
+
+            constexpr uint32_t bits = 62u;
+            id |= (static_cast<uint64_t>(1) << bits);
+        }
+    }
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

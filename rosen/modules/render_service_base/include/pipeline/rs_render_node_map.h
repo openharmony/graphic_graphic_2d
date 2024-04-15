@@ -56,6 +56,7 @@ public:
     void TraverseCanvasDrawingNodes(std::function<void (const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetResidentSurfaceNodeMap() const;
     bool IsResidentProcessNode(NodeId id) const;
+    void CalCulateAbilityComponentNumsInProcess(NodeId id);
 
     NodeId GetEntryViewNodeId() const;
     NodeId GetWallPaperViewNodeId() const;
@@ -64,6 +65,7 @@ public:
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 private:
     explicit RSRenderNodeMap();
+    void EraseAbilityComponentNumsInProcess(NodeId id);
     ~RSRenderNodeMap() = default;
     RSRenderNodeMap(const RSRenderNodeMap&) = delete;
     RSRenderNodeMap(const RSRenderNodeMap&&) = delete;
@@ -76,6 +78,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> residentSurfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSDisplayRenderNode>> displayNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;
+    std::unordered_map<pid_t, int> abilityComponentNumsInProcess_;
 
     NodeId entryViewNodeId_ = 0;
     NodeId wallpaperViewNodeId_ = 0;
@@ -86,6 +89,9 @@ private:
 
     friend class RSContext;
     friend class RSMainThread;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

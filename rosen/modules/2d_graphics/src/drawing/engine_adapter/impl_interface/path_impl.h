@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,7 @@ enum class PathDirection;
 enum class PathFillType;
 enum class PathOp;
 enum class ArcSize;
+enum class PathAddMode;
 class PathImpl : public BaseImpl {
 public:
     PathImpl() noexcept {}
@@ -54,15 +55,19 @@ public:
     virtual void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) = 0;
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) = 0;
+    virtual void ConicTo(scalar ctrlX, scalar ctrlY, scalar endX, scalar endY, scalar weight) = 0;
 
     virtual void RMoveTo(scalar dx, scalar dy) = 0;
     virtual void RLineTo(scalar dx, scalar dy) = 0;
     virtual void RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy) = 0;
     virtual void RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, scalar dy3) = 0;
+    virtual void RConicTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY, scalar weight) = 0;
     virtual void RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2) = 0;
 
     virtual void AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) = 0;
+    virtual void AddRect(const Rect& rect, unsigned start, PathDirection dir) = 0;
     virtual void AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) = 0;
+    virtual void AddOval(scalar left, scalar top, scalar right, scalar bottom, unsigned start, PathDirection dir) = 0;
     virtual void AddArc(scalar left, scalar top, scalar right, scalar bottom, scalar startAngle, scalar sweepAngle) = 0;
     virtual void AddPoly(const std::vector<Point>& point, int count, bool close) = 0;
     virtual void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir) = 0;
@@ -70,10 +75,10 @@ public:
         scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius, PathDirection dir) = 0;
     virtual void AddRoundRect(const RoundRect& rrect, PathDirection dir) = 0;
 
-    virtual void AddPath(const Path& src, scalar dx, scalar dy) = 0;
-    virtual void AddPath(const Path& src) = 0;
+    virtual void AddPath(const Path& src, scalar dx, scalar dy, PathAddMode mode) = 0;
+    virtual void AddPath(const Path& src, PathAddMode mode) = 0;
     virtual bool Contains(scalar x, scalar y) const = 0;
-    virtual void AddPathWithMatrix(const Path& src, const Matrix& matrix) = 0;
+    virtual void AddPath(const Path& src, const Matrix& matrix, PathAddMode mode) = 0;
     virtual void ReverseAddPath(const Path& src) = 0;
 
     virtual Rect GetBounds() const = 0;
@@ -81,7 +86,9 @@ public:
 
     virtual bool Interpolate(const Path& ending, scalar weight, Path& out) = 0;
     virtual void Transform(const Matrix& matrix) = 0;
+    virtual void TransformWithPerspectiveClip(const Matrix& matrix, Path* dst, bool applyPerspectiveClip) = 0;
     virtual void Offset(scalar dx, scalar dy) = 0;
+    virtual void Offset(Path* dst, scalar dx, scalar dy) = 0;
     virtual bool OpWith(const Path& path1, const Path& path2, PathOp op) = 0;
 
     virtual bool IsValid() const = 0;

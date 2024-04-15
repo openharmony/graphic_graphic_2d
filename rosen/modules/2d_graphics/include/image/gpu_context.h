@@ -15,9 +15,16 @@
 
 #ifndef GPU_CONTEXT_H
 #define GPU_CONTEXT_H
+<<<<<<< HEAD
 
 #include <functional>
 
+=======
+#include <set>
+#include "impl_interface/gpu_context_impl.h"
+#include "utils/drawing_macros.h"
+#include "utils/data.h"
+>>>>>>> origin/master
 #include "trace_memory_dump.h"
 
 #include "impl_interface/gpu_context_impl.h"
@@ -103,44 +110,47 @@ public:
     GPUContext();
     ~GPUContext() {}
 
-    /*
+    /**
      * @brief           Creates a GL GPUContext for a backend context.
      * @param options   Option to create a GL GPUContext.
      */
     bool BuildFromGL(const GPUContextOptions& options);
 
-   /*
-     * @brief           Creates a VK GPUContext for a backend context.
-     * @param options   Option to create a VK GPUContext.
-     */
 #ifdef RS_ENABLE_VK
     bool BuildFromVK(const GrVkBackendContext& context);
+
+    /**
+     * @brief           Creates a VK GPUContext for a backend context.
+     * @param context   An existed VK Context used to create a VK GPUContext.
+     * @param options   Option to create a VK GPUContext.
+     */
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options);
 #endif
 
-    /*
+    /**
      * @brief   Call to ensure all drawing to the context has been flushed to underlying 3D API specific objects.
      */
     void Flush();
 
-    /*
+    /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
      */
     void Submit();
 
-    /*
-     * @brief   Call to ensure all drawing to the context has been flushed and submitted to underlying 3D API.
+    /**
+     * @brief           Call to ensure all drawing to the context has been flushed and submitted to underlying 3D API.
+     * @param syncCpu   Whether to sync CPU or not.
      */
     void FlushAndSubmit(bool syncCpu = false);
 
-    /*
+    /**
      * @brief             Purge GPU resources that haven't been used in the past 'msNotUsed' milliseconds
                           or are otherwise marked for deletion.
      * @param msNotUsed   Only unlocked resources not used in these last milliseconds will be cleaned up.
      */
     void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed);
 
-    /*
+    /**
      * @brief                   Gets the current GPU resource cache limits.
      * @param maxResource       If non-null, returns maximum number of resources that can be held in the cache.
      * @param maxResourceBytes  If non-null, returns maximum number of bytes of video memory
@@ -148,45 +158,48 @@ public:
      */
     void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const;
 
-    /*
+    /**
      * @brief                   Specify the GPU resource cache limits.
      * @param maxResource       The maximum number of resources that can be held in the cache.
      * @param maxResourceBytes  The maximum number of bytes of video memory that can be held in the cache.
      */
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes);
 
-    /*
+    /**
      * @brief                   Gets the current GPU resource cache usage.
      * @param resourceCount     If non-null, returns the number of resources that are held in the cache.
      * @param resourceBytes     If non-null, returns the total number of bytes of video memory held in the cache.
      */
     void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const;
 
-    /*
+    /**
      * @brief                   Free GPU created by the contetx.
      */
     void FreeGpuResources();
 
-    /*
+    /**
      * @brief                   Dump GPU stats.
      * @param out               Dump GPU stat string.
      */
     void DumpGpuStats(std::string& out) const;
 
-    /*
+    /**
      * @brief                   After returning it will assume that the underlying context may no longer be valid.
      */
     void ReleaseResourcesAndAbandonContext();
 
-    /*
-     * @brief                   Purge unlocked resources from the cache until
-     *                          the provided byte count has been reached or we have purged all unlocked resources.
+    /**
+     * @brief                         Purge unlocked resources from the cache until
+     *                                the provided byte count has been reached or we have purged all unlocked resources.
+     * @param scratchResourcesOnly    Whether to scratch the resources only or not.
      */
     void PurgeUnlockedResources(bool scratchResourcesOnly);
 
-    /*
-     * @brief                   Purge unlocked resources by tag from the cache until
-     *                          the provided byte count has been reached or we have purged all unlocked resources.
+    /**
+     * @brief                         Purge unlocked resources by tag from the cache until
+     *                                the provided byte count has been reached or we have purged all unlocked resources.
+     * @param scratchResourcesOnly    Whether to scratch the resources only or not.
+     * @param tag                     GPU resource tag used to purge unlocked resources.
      */
     void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag);
 
@@ -198,42 +211,52 @@ public:
      */
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
 
+<<<<<<< HEAD
     /*
+=======
+    /**
+>>>>>>> origin/master
      * @brief                   Purge unlocked resources from the safe cache until
      *                          the provided byte count has been reached or we have purged all unlocked resources.
      */
     void PurgeUnlockAndSafeCacheGpuResources();
 
-    /*
+    /**
      * @brief                   Releases GPUResource objects and removes them from the cache by tag.
+     * @param tag               GPU resource tag used to release.
      */
     void ReleaseByTag(const GPUResourceTag &tag);
 
-    /*
+    /**
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.
+     * @param traceMemoryDump   A trace to memory dump.
+     * @param tag               GPU resource tag used to dump memory statistics.
      */
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
 
-    /*
+    /**
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.
+     * @param traceMemoryDump   A trace to memory dump.
      */
     void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const;
 
-    /*
+    /**
      * @brief                   Set current resource tag for gpu cache recycle.
+     * @param tag               GPU resource tag used to set current GPU resource tag.
      */
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
-    /*
-     * @brief                   Store vulkan pipeline cache
-    */
 #ifdef RS_ENABLE_VK
+    /**
+     * @brief                   Store vulkan pipeline cache
+     */
     void StoreVkPipelineCacheData();
 #endif
 
-    /*
-     * @brief   Get the adaptation layer instance, called in the adaptation layer.
-     * @return  Adaptation Layer instance.
+    /**
+     * @brief       Get the adaptation layer instance, called in the adaptation layer.
+     * @param T     The name of Impl class.
+     * @return      Adaptation Layer instance.
      */
     template<typename T>
     T* GetImpl() const

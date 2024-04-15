@@ -45,15 +45,10 @@ void SkiaHmSymbolConfigOhosTest::TearDown() {}
  */
 HWTEST_F(SkiaHmSymbolConfigOhosTest, GetSymbolLayersGroups001, TestSize.Level1)
 {
-    RenderGroup renderGroup;
-    std::map<SymbolRenderingStrategy, std::vector<RenderGroup>> renderModeGroups {
-        { SymbolRenderingStrategy::INVALID_RENDERING_STRATEGY, { renderGroup } }
-    };
-    AnimationSetting animationSetting;
-    SymbolLayersGroups group {1, {}, renderModeGroups, { animationSetting } };
-    HmSymbolConfig_OHOS::getInstance()->getHmSymbolConfig()->insert({1, group});
-    auto groups = SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(1);
-    ASSERT_TRUE(groups != nullptr);
+    HmSymbolConfig_OHOS::GetInstance()->ParseConfigOfHmSymbol("hm_symbol_config_next.json",
+        SkString("/system/fonts/"));
+    auto groups = SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(3); // 3 is an existing GlyphID
+    ASSERT_TRUE(groups.symbolGlyphId != 0);
 }
 } // namespace Drawing
 } // namespace Rosen

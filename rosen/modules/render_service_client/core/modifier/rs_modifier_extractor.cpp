@@ -26,27 +26,26 @@
 
 namespace OHOS {
 namespace Rosen {
-RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
+RSModifierExtractor::RSModifierExtractor(RSNode* node) : node_(node) {}
 constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS(T, propertyType, defaultValue, operator)                                        \
     do {                                                                                                            \
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
-        if (!node) {                                                                                                \
+        if (!node_) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
-        auto iter = node->propertyModifiers_.find(RSModifierType::propertyType);                                    \
-        if (iter != node->propertyModifiers_.end()) {                                                               \
+        std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                      \
+        auto iter = node_->propertyModifiers_.find(RSModifierType::propertyType);                                    \
+        if (iter != node_->propertyModifiers_.end()) {                                                               \
             if (!iter->second || !iter->second->GetProperty()) {                                                    \
                 return defaultValue;                                                                                \
             }                                                                                                       \
             return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                     \
         }                                                                                                           \
         T value = defaultValue;                                                                                     \
-        if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
-            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());                \
+        if (node_->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
+            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node_->modifiers_.size());                \
         }                                                                                                           \
-        for (auto& [_, modifier] : node->modifiers_) {                                                              \
+        for (auto& [_, modifier] : node_->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
                 value operator std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();             \
             }                                                                                                       \
@@ -54,14 +53,36 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
         return value;                                                                                               \
     } while (0)
 
+#define GET_PROPERTY_FROM_MODIFIERS_EQRETURN(T, propertyType, defaultValue, operator)                               \
+    do {                                                                                                            \
+        if (node_ == nullptr) {                                                                                     \
+            return defaultValue;                                                                                    \
+        }                                                                                                           \
+        std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                     \
+        auto iter = node_->propertyModifiers_.find(RSModifierType::propertyType);                                   \
+        if (iter != node_->propertyModifiers_.end()) {                                                              \
+            if (!iter->second || !iter->second->GetProperty()) {                                                    \
+                return defaultValue;                                                                                \
+            }                                                                                                       \
+            return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                   \
+        }                                                                                                           \
+                                                                                                                    \
+        auto modifier = node_->modifiersTypeMap_[(int16_t)RSModifierType::propertyType];                            \
+        if (modifier != nullptr) {                                                                                  \
+            return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                       \
+        } else {                                                                                                     \
+            return defaultValue;                                                                                    \
+        }                                                                                                           \
+    } while (0)                                                                                                      \
+
 Vector4f RSModifierExtractor::GetBounds() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, BOUNDS, Vector4f(), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, BOUNDS, Vector4f(), =);
 }
 
 Vector4f RSModifierExtractor::GetFrame() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, FRAME, Vector4f(), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, FRAME, Vector4f(), =);
 }
 
 float RSModifierExtractor::GetPositionZ() const
@@ -71,17 +92,17 @@ float RSModifierExtractor::GetPositionZ() const
 
 Vector2f RSModifierExtractor::GetPivot() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector2f, PIVOT, Vector2f(0.5f, 0.5f), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector2f, PIVOT, Vector2f(0.5f, 0.5f), =);
 }
 
 float RSModifierExtractor::GetPivotZ() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, PIVOT_Z, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, PIVOT_Z, 0.f, =);
 }
 
 Quaternion RSModifierExtractor::GetQuaternion() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Quaternion, QUATERNION, Quaternion(), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Quaternion, QUATERNION, Quaternion(), =);
 }
 
 float RSModifierExtractor::GetRotation() const
@@ -101,7 +122,7 @@ float RSModifierExtractor::GetRotationY() const
 
 float RSModifierExtractor::GetCameraDistance() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, CAMERA_DISTANCE, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, CAMERA_DISTANCE, 0.f, =);
 }
 
 Vector2f RSModifierExtractor::GetTranslate() const
@@ -131,194 +152,274 @@ float RSModifierExtractor::GetAlpha() const
 
 bool RSModifierExtractor::GetAlphaOffscreen() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, ALPHA_OFFSCREEN, true, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(bool, ALPHA_OFFSCREEN, true, =);
 }
 
 Vector4f RSModifierExtractor::GetCornerRadius() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, CORNER_RADIUS, Vector4f(), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, CORNER_RADIUS, Vector4f(), =);
 }
 
 Color RSModifierExtractor::GetForegroundColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Color, FOREGROUND_COLOR, RgbPalette::Transparent(), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Color, FOREGROUND_COLOR, RgbPalette::Transparent(), =);
 }
 
 Color RSModifierExtractor::GetBackgroundColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Color, BACKGROUND_COLOR, RgbPalette::Transparent(), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Color, BACKGROUND_COLOR, RgbPalette::Transparent(), =);
 }
 
 Color RSModifierExtractor::GetSurfaceBgColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Color, SURFACE_BG_COLOR, RgbPalette::Transparent(), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Color, SURFACE_BG_COLOR, RgbPalette::Transparent(), =);
 }
 
 std::shared_ptr<RSShader> RSModifierExtractor::GetBackgroundShader() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSShader>, BACKGROUND_SHADER, nullptr, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSShader>, BACKGROUND_SHADER, nullptr, =);
 }
 
 std::shared_ptr<RSImage> RSModifierExtractor::GetBgImage() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSImage>, BG_IMAGE, nullptr, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSImage>, BG_IMAGE, nullptr, =);
 }
 
 float RSModifierExtractor::GetBgImageWidth() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, BG_IMAGE_WIDTH, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, BG_IMAGE_WIDTH, 0.f, =);
 }
 
 float RSModifierExtractor::GetBgImageHeight() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, BG_IMAGE_HEIGHT, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, BG_IMAGE_HEIGHT, 0.f, =);
 }
 
 float RSModifierExtractor::GetBgImagePositionX() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, BG_IMAGE_POSITION_X, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, BG_IMAGE_POSITION_X, 0.f, =);
 }
 
 float RSModifierExtractor::GetBgImagePositionY() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, BG_IMAGE_POSITION_Y, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, BG_IMAGE_POSITION_Y, 0.f, =);
 }
 
 Vector4<Color> RSModifierExtractor::GetBorderColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4<Color>, BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4<Color>, BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
 }
 
 Vector4f RSModifierExtractor::GetBorderWidth() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, BORDER_WIDTH, Vector4f(0.f), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, BORDER_WIDTH, Vector4f(0.f), =);
 }
 
 Vector4<uint32_t> RSModifierExtractor::GetBorderStyle() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(
         Vector4<uint32_t>, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
 
 Vector4<Color> RSModifierExtractor::GetOutlineColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4<Color>, OUTLINE_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4<Color>, OUTLINE_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
 }
 
 Vector4f RSModifierExtractor::GetOutlineWidth() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTLINE_WIDTH, Vector4f(0.f), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, OUTLINE_WIDTH, Vector4f(0.f), =);
 }
 
 Vector4<uint32_t> RSModifierExtractor::GetOutlineStyle() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(
         Vector4<uint32_t>, OUTLINE_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
 
 Vector4f RSModifierExtractor::GetOutlineRadius() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTLINE_RADIUS, Vector4f(0.f), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, OUTLINE_RADIUS, Vector4f(0.f), =);
+}
+
+float RSModifierExtractor::GetForegroundEffectRadius() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_EFFECT_RADIUS, 0.f, =);
 }
 
 std::shared_ptr<RSFilter> RSModifierExtractor::GetBackgroundFilter() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSFilter>, BACKGROUND_FILTER, nullptr, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSFilter>, BACKGROUND_FILTER, nullptr, =);
 }
 
 std::shared_ptr<RSFilter> RSModifierExtractor::GetFilter() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSFilter>, FILTER, nullptr, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSFilter>, FILTER, nullptr, =);
 }
 
 Color RSModifierExtractor::GetShadowColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Color, SHADOW_COLOR, Color::FromArgbInt(DEFAULT_SPOT_COLOR), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Color, SHADOW_COLOR, Color::FromArgbInt(DEFAULT_SPOT_COLOR), =);
 }
 
 float RSModifierExtractor::GetShadowOffsetX() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, SHADOW_OFFSET_X, DEFAULT_SHADOW_OFFSET_X, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SHADOW_OFFSET_X, DEFAULT_SHADOW_OFFSET_X, =);
 }
 
 float RSModifierExtractor::GetShadowOffsetY() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, SHADOW_OFFSET_Y, DEFAULT_SHADOW_OFFSET_Y, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SHADOW_OFFSET_Y, DEFAULT_SHADOW_OFFSET_Y, =);
 }
 
 float RSModifierExtractor::GetShadowAlpha() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, SHADOW_ALPHA, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SHADOW_ALPHA, 0.f, =);
 }
 
 float RSModifierExtractor::GetShadowElevation() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, SHADOW_ELEVATION, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SHADOW_ELEVATION, 0.f, =);
 }
 
 float RSModifierExtractor::GetShadowRadius() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, SHADOW_RADIUS, DEFAULT_SHADOW_RADIUS, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SHADOW_RADIUS, DEFAULT_SHADOW_RADIUS, =);
 }
 
 std::shared_ptr<RSPath> RSModifierExtractor::GetShadowPath() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSPath>, SHADOW_PATH, nullptr, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSPath>, SHADOW_PATH, nullptr, =);
 }
 
 bool RSModifierExtractor::GetShadowMask() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_MASK, false, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(bool, SHADOW_MASK, false, =);
 }
 
 bool RSModifierExtractor::GetShadowIsFilled() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_IS_FILLED, false, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(bool, SHADOW_IS_FILLED, false, =);
 }
 
 int RSModifierExtractor::GetShadowColorStrategy() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(int, SHADOW_COLOR_STRATEGY, SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(int, SHADOW_COLOR_STRATEGY, SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE, =);
 }
 
 Gravity RSModifierExtractor::GetFrameGravity() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Gravity, FRAME_GRAVITY, Gravity::DEFAULT, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Gravity, FRAME_GRAVITY, Gravity::DEFAULT, =);
 }
 
 std::shared_ptr<RSPath> RSModifierExtractor::GetClipBounds() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSPath>, CLIP_BOUNDS, nullptr, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSPath>, CLIP_BOUNDS, nullptr, =);
 }
 
 bool RSModifierExtractor::GetClipToBounds() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, CLIP_TO_BOUNDS, false, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(bool, CLIP_TO_BOUNDS, false, =);
 }
 
 bool RSModifierExtractor::GetClipToFrame() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, CLIP_TO_FRAME, false, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(bool, CLIP_TO_FRAME, false, =);
 }
 
 bool RSModifierExtractor::GetVisible() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, VISIBLE, true, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(bool, VISIBLE, true, =);
 }
 
 std::shared_ptr<RSMask> RSModifierExtractor::GetMask() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSMask>, MASK, nullptr, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSMask>, MASK, nullptr, =);
 }
 
 float RSModifierExtractor::GetSpherizeDegree() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, SPHERIZE, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SPHERIZE, 0.f, =);
 }
 
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_UP_EFFECT, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_UP_EFFECT, 0.f, =);
+}
+
+float RSModifierExtractor::GetDynamicDimDegree() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, DYNAMIC_DIM_DEGREE, 0.f, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurRadius() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS, 0.f, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurSaturation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_SATURATION, 0.f, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurBrightness() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_BRIGHTNESS, 0.f, =);
+}
+
+Color RSModifierExtractor::GetBackgroundBlurMaskColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, BACKGROUND_BLUR_MASK_COLOR, RSColor(), =);
+}
+
+int RSModifierExtractor::GetBackgroundBlurColorMode() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, BACKGROUND_BLUR_COLOR_MODE, BLUR_COLOR_MODE::DEFAULT, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurRadiusX() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS_X, 0.f, =);
+}
+
+float RSModifierExtractor::GetBackgroundBlurRadiusY() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS_Y, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurRadius() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurSaturation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_SATURATION, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurBrightness() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_BRIGHTNESS, 0.f, =);
+}
+
+Color RSModifierExtractor::GetForegroundBlurMaskColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, FOREGROUND_BLUR_MASK_COLOR, RSColor(), =);
+}
+
+int RSModifierExtractor::GetForegroundBlurColorMode() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, FOREGROUND_BLUR_COLOR_MODE, BLUR_COLOR_MODE::DEFAULT, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurRadiusX() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS_X, 0.f, =);
+}
+
+float RSModifierExtractor::GetForegroundBlurRadiusY() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS_Y, 0.f, =);
 }
 
 float RSModifierExtractor::GetDynamicDimDegree() const
@@ -328,7 +429,12 @@ float RSModifierExtractor::GetDynamicDimDegree() const
 
 float RSModifierExtractor::GetLightIntensity() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_INTENSITY, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_INTENSITY, 0.f, =);
+}
+
+Color RSModifierExtractor::GetLightColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, LIGHT_COLOR, RgbPalette::White(), =);
 }
 
 Color RSModifierExtractor::GetLightColor() const
@@ -338,22 +444,22 @@ Color RSModifierExtractor::GetLightColor() const
 
 Vector4f RSModifierExtractor::GetLightPosition() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, LIGHT_POSITION, Vector4f(0.f), =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, LIGHT_POSITION, Vector4f(0.f), =);
 }
 
 float RSModifierExtractor::GetIlluminatedBorderWidth() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, ILLUMINATED_BORDER_WIDTH, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, ILLUMINATED_BORDER_WIDTH, 0.f, =);
 }
 
 int RSModifierExtractor::GetIlluminatedType() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(int, ILLUMINATED_TYPE, 0, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(int, ILLUMINATED_TYPE, 0, =);
 }
 
 float RSModifierExtractor::GetBloom() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, BLOOM, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, BLOOM, 0.f, =);
 }
 
 std::string RSModifierExtractor::Dump() const

@@ -35,8 +35,8 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
-    void Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride) override;
-    void Build(const ImageInfo& imageInfo, int32_t stride) override;
+    bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride) override;
+    bool Build(const ImageInfo& imageInfo, int32_t stride) override;
     int GetWidth() const override;
     int GetHeight() const override;
     int GetRowBytes() const override;

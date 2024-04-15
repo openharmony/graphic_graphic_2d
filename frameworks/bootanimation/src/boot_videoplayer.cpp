@@ -22,7 +22,7 @@
 using namespace OHOS;
 #ifdef PLAYER_FRAMEWORK_ENABLE
 static const int CONTENT_TYPE_UNKNOWN = 0;
-static const int STREAM_USAGE_RINGTONE = 6;
+static const int STREAM_USAGE_ENFORCED_TONE = 15;
 #endif
 
 void BootVideoPlayer::SetVideoPath(const std::string& path)
@@ -113,7 +113,7 @@ void BootVideoPlayer::SetVideoSound()
     LOGI("BootVideoPlayer SetVideoSound");
     Media::Format format;
     format.PutIntValue(Media::PlayerKeys::CONTENT_TYPE, CONTENT_TYPE_UNKNOWN);
-    format.PutIntValue(Media::PlayerKeys::STREAM_USAGE, STREAM_USAGE_RINGTONE);
+    format.PutIntValue(Media::PlayerKeys::STREAM_USAGE, STREAM_USAGE_ENFORCED_TONE);
     format.PutIntValue(Media::PlayerKeys::RENDERER_FLAG, 0);
     int ret = mediaPlayer_->SetParameter(format);
     if (ret !=  0) {

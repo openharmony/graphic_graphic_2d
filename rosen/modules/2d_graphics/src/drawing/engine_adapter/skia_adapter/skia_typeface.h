@@ -47,6 +47,7 @@ public:
     bool GetItalic() const override;
     uint32_t GetUniqueID() const override;
     int32_t GetUnitsPerEm() const override;
+    std::shared_ptr<Typeface> MakeClone(const FontArguments& args) const override;
     sk_sp<SkTypeface> GetSkTypeface();
 
     static std::shared_ptr<Typeface> MakeDefault();

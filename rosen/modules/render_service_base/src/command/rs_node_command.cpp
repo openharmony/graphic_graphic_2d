@@ -92,6 +92,15 @@ void RSNodeCommandHelper::SetOutOfParent(RSContext& context, NodeId nodeId, OutO
     }
 }
 
+void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->ExcuteSurfaceCaptureCommand();
+    }
+}
+
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId)
 {
     auto& nodeMap = context.GetNodeMap();

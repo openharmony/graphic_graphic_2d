@@ -49,6 +49,11 @@ public:
         vsyncCallbacks_ = cb.callback_;
         userData_ = cb.userData_;
     }
+    void SetName(std::string &name)
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        name_ = name;
+    }
     int64_t period_;
     int64_t timeStamp_;
     thread_local static inline int64_t periodShared_ = 0;
@@ -59,6 +64,7 @@ private:
     VSyncCallback vsyncCallbacks_;
     void *userData_;
     std::mutex mtx_;
+    std::string name_;
 };
 
 #ifdef __OHOS__

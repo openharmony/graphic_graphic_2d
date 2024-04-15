@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -69,6 +69,7 @@ public:
     bool Equals(const Matrix& a, const Matrix& b) const override;
     void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2) override;
+    bool SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf) override;
     void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const override;
     bool MapRect(Rect& dst, const Rect& src) const override;
     bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count) override;

@@ -72,6 +72,7 @@ public:
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
     void Dump(std::string &result) const;
     void DumpFps(std::string &result, const std::string &arg) const;
+    void DumpHitchs(std::string &result, const std::string &arg) const;
     void ClearFpsDump(std::string &result, const std::string &arg);
     void SetDirectClientCompEnableStatus(bool enableStatus);
     bool GetDirectClientCompEnableStatus() const;
@@ -80,11 +81,12 @@ public:
     RosenError InitDevice();
     /* only used for mock tests */
     RosenError SetHdiOutputDevice(HdiDevice* device);
-    int32_t PreProcessLayersComp(bool &needFlush);
+    int32_t PreProcessLayersComp();
     int32_t UpdateLayerCompType();
     int32_t FlushScreen(std::vector<LayerPtr> &compClientLayers);
     int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry);
     int32_t Commit(sptr<SyncFence> &fbFence);
+    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush);
     int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
@@ -95,7 +97,11 @@ public:
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
-    sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
+
+    std::vector<sptr<SyncFence>> historicalPresentfences_;
+    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::INVALID_FENCE;
+    int32_t presentFenceIndex_ = 0;
+
     sptr<SurfaceBuffer> currFrameBuffer_ = nullptr;
     sptr<SurfaceBuffer> lastFrameBuffer_ = nullptr;
 
@@ -125,6 +131,9 @@ private:
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);
     static void SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers);
+
+    // DISPLAY ENGINE
+    bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
 };
 } // namespace Rosen
 } // namespace OHOS

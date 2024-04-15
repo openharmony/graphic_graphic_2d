@@ -37,6 +37,7 @@ ohos_unittest("RSAnimationTest") {
     "rs_path_animation_test.cpp",
     "rs_showing_properties_freezer_test.cpp",
     "rs_spring_animation_test.cpp",
+    "rs_symbol_animation_test.cpp",
     "rs_transition_effect_test.cpp",
     "rs_transition_test.cpp",
   ]
@@ -67,6 +68,10 @@ config("rs_animation_test_config") {
     "//foundation/window/window_manager/interfaces/innerkits",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
     "$rosen_root/modules/render_service_client/core/animation/",
+  ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 }
 

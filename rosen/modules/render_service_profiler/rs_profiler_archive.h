@@ -40,12 +40,11 @@ public:
         return isReading_;
     }
 
-    void Serialize(float& value);
-    void Serialize(double& value);
-    void Serialize(int32_t& value);
-    void Serialize(uint32_t& value);
-    void Serialize(size_t& value);
-    void Serialize(std::string& value);
+    template<typename T>
+    void Serialize(T& value)
+    {
+        Serialize(&value, sizeof(value));
+    }
 
     template<typename T>
     void Serialize(std::vector<T>& vector)

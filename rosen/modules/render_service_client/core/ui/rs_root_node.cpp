@@ -18,6 +18,7 @@
 #include "command/rs_root_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
@@ -26,8 +27,25 @@ namespace OHOS {
 namespace Rosen {
 std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode, bool isTextureExportNode)
 {
+    static std::once_flag flag;
     std::shared_ptr<RSRootNode> node(new RSRootNode(isRenderServiceNode, isTextureExportNode));
     RSNodeMap::MutableInstance().RegisterNode(node);
+
+    std::call_once(flag, []() {
+        std::function<bool (std::shared_ptr<Drawing::Typeface>)> registerTypefaceFunc =
+            [] (std::shared_ptr<Drawing::Typeface> typeface) -> bool {
+                static Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+                return interface.RegisterTypeface(typeface);
+            };
+        Drawing::Typeface::RegisterCallBackFunc(registerTypefaceFunc);
+
+        std::function<bool (std::shared_ptr<Drawing::Typeface>)> unregisterTypefaceFunc =
+            [] (std::shared_ptr<Drawing::Typeface> typeface) -> bool {
+                static Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+                return interface.UnRegisterTypeface(typeface);
+            };
+        Drawing::Typeface::UnRegisterCallBackFunc(unregisterTypefaceFunc);
+    });
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {

@@ -52,6 +52,51 @@ void RSFilterCacheManager::UpdateCacheStateWithFilterHash(const std::shared_ptr<
         cachedFilterHash_, filterHash);
     cachedFilteredSnapshot_.reset();
 }
+<<<<<<< HEAD
+=======
+void RSFilterCacheManager::PostPartialFilterRenderInit(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect, bool& shouldClearFilteredCache)
+{
+    RS_OPTIONAL_TRACE_FUNC();
+    auto surface = canvas.GetSurface();
+    auto width = surface->Width();
+    auto height = surface->Height();
+    Drawing::Matrix mat = canvas.GetTotalMatrix();
+    auto directionBias = CalcDirectionBias(mat);
+    auto previousSurfaceFlag = task_->surfaceFlag;
+    task_->surfaceFlag = directionBias;
+    if (previousSurfaceFlag != -1 && previousSurfaceFlag != task_->surfaceFlag) {
+        StopFilterPartialRender();
+    }
+    task_->SetCompleted(task_->GetStatus() == CacheProcessStatus::DONE);
+    if (task_->GetStatus() == CacheProcessStatus::DOING) {
+        task_->SetCompleted(!task_->isFirstInit_);
+    }
+    if (task_->GetStatus() == CacheProcessStatus::DONE) {
+        task_->Reset();
+        task_->isFirstInit_ = false;
+        task_->SwapTexture();
+        task_->SetStatus(CacheProcessStatus::WAITING);
+    }
+    if (task_->isTaskRelease_.load()) {
+        return;
+    }
+    if (task_->cachedFirstFilter_ != nullptr && task_->isFirstInit_ &&
+        task_->GetStatus() == CacheProcessStatus::DOING) {
+        cachedFilteredSnapshot_ = task_->cachedFirstFilter_;
+        shouldClearFilteredCache = IsClearFilteredCache(filter, dstRect);
+    } else {
+        task_->cachedFirstFilter_ = nullptr;
+    }
+    if (RSFilterCacheTask::FilterPartialRenderEnabled &&
+        (cachedSnapshot_ != nullptr && cachedSnapshot_->cachedImage_ != nullptr) &&
+        (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) &&
+        IsNearlyFullScreen(cachedSnapshot_->cachedRect_, width, height)) {
+        task_->isLastRender_ = false;
+        PostPartialFilterRenderTask(filter, dstRect);
+    }
+}
+>>>>>>> origin/master
 
 void RSFilterCacheManager::UpdateCacheStateWithFilterRegion()
 {

@@ -17,8 +17,8 @@ import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 config("export_config") {
-  cflags_cc = [ "-std=c++17" ]
   include_dirs = [ "include" ]
+  cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
 }
@@ -62,6 +62,11 @@ ohos_source_set("render_service_base_src") {
     cfi_cross_dso = false
     debug = false
     blocklist = "./rs_base_blocklist.txt"
+    if (rosen_is_ohos) {
+      boundary_sanitize = true
+      integer_overflow = false
+      ubsan = true
+    }
   }
   defines = []
   defines += gpu_defines
@@ -232,6 +237,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
     "src/render/rs_filter.cpp",
+    "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
@@ -246,6 +252,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
+    "src/render/rs_typeface_cache.cpp",
 
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",
@@ -389,20 +396,25 @@ ohos_source_set("render_service_base_src") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/utils",
-    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/interfaces/inner_api/surface",
   ]
+
   include_dirs += [ "//third_party/skia/src" ]
+
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
-  external_deps = [ "hilog:libhilog" ]
+
+  external_deps = [
+    "graphic_surface:surface_headers",
+    "hilog:libhilog",
+  ]
 
   if (graphic_2d_feature_enable_opinc) {
     include_dirs += opinc_adapter_opt_set.opinc_include_set
@@ -466,9 +478,27 @@ ohos_source_set("render_service_base_src") {
     include_dirs += ddgr_ext_configs.libddgr_ext_adaptor_include_dirs
   }
 
+  #profiler
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+    sources += [
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
+    ]
+  }
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
+
   if (defined(graphic_2d_ext_configs.vendor_root)) {
     sources -= graphic_2d_ext_configs.librender_service_base_ext_sources_del
     sources += graphic_2d_ext_configs.librender_service_base_ext_sources
+  }
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_BASE_SCHED_ENABLE" ]
+    external_deps += [ "qos_manager:qos" ]
   }
 
   part_name = "graphic_2d"
@@ -512,6 +542,7 @@ ohos_shared_library("librender_service_base") {
     ":render_service_base_src",
     "src/platform:platform",
   ]
+
   external_deps = [ "hilog:libhilog" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {

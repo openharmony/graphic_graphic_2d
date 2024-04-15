@@ -25,6 +25,7 @@
 #include "draw/brush.h"
 #include "draw/color.h"
 #include "utils/point.h"
+#include "utils/scalar.h"
 
 #include "common/rs_macros.h"
 #include "typography_types.h"
@@ -42,6 +43,16 @@ public:
 
 private:
     std::map<std::string, int> featureMap_;
+};
+
+class RS_EXPORT FontVariations {
+public:
+    void SetAxisValue(const std::string& tag, float value);
+    const std::map<std::string, float>& GetAxisValues() const;
+    bool operator ==(const FontVariations& rhs) const;
+    void Clear();
+private:
+    std::map<std::string, float> axis_;
 };
 
 struct RS_EXPORT TextShadow {
@@ -73,6 +84,7 @@ struct TextStyle {
     TextDecorationStyle decorationStyle = TextDecorationStyle::SOLID;
     double decorationThicknessScale = 1.0;
     FontWeight fontWeight = FontWeight::W400;
+    FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     TextBaseline baseline = TextBaseline::ALPHABETIC;
     std::vector<std::string> fontFamilies;
@@ -92,15 +104,17 @@ struct TextStyle {
     // if Pen and SkPaint are setting, use pen first
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
+    FontVariations fontVariations;
     RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
     int styleId = 0;
-
     bool operator ==(const TextStyle &rhs) const;
-
+    bool EqualByFonts(const TextStyle &rhs) const;
+    bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph
     bool isSymbolGlyph = false;
     HMSymbolTxt symbol;
     double baseLineShift = 0.0;
+    bool isPlaceholder = false;
 };
 } // namespace Rosen
 } // namespace OHOS

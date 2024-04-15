@@ -160,6 +160,7 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
     }
 }
 
+<<<<<<< HEAD
 void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -187,6 +188,8 @@ bool RSSurfaceRenderNode::IsHardwareDisabledBySrcRect() const
     return isHardwareForcedDisabledBySrcRect_;
 }
 
+=======
+>>>>>>> origin/master
 bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -536,7 +539,7 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
     SendCommandFromRT(command, GetId());
 }
 
-std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetDirtyManager() const
+const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNode::GetDirtyManager() const
 {
     return dirtyManager_;
 }
@@ -1141,7 +1144,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
-                                                    std::map<uint32_t, RSVisibleLevel>& pidVisMap,
+                                                    std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
                                                     bool needSetVisibleRegion,
                                                     RSVisibleLevel visibleLevel,
                                                     bool isSystemAnimatedScenes)
@@ -1159,8 +1162,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     // collect visible changed pid
     if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE && !isSystemAnimatedScenes) {
-        uint32_t tmpPid = ExtractPid(GetId());
-        pidVisMap[tmpPid] = !IsNeedSetVSync() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
+        visMapForVsyncRate[GetId()] = !IsNeedSetVSync() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
     }
 
     visibleRegionForCallBack_ = region;
@@ -1173,7 +1175,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     for (auto& child : *GetChildren()) {
         if (auto surfaceChild = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
-            surfaceChild->SetVisibleRegionRecursive(region, visibleVec, pidVisMap, needSetVisibleRegion,
+            surfaceChild->SetVisibleRegionRecursive(region, visibleVec, visMapForVsyncRate, needSetVisibleRegion,
                 visibleLevel, isSystemAnimatedScenes);
         }
     }
@@ -1214,9 +1216,6 @@ bool RSSurfaceRenderNode::SubNodeIntersectWithDirty(const RectI& r) const
 
 bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const
 {
-    if (dirtyManager_ == nullptr) {
-        return true;
-    }
     switch (opDropType) {
         case PartialRenderType::SET_DAMAGE_AND_DROP_OP:
             return SubNodeIntersectWithDirty(r);
@@ -1273,9 +1272,6 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
 
 void RSSurfaceRenderNode::CalcFilterCacheValidForOcclusion()
 {
-    if (!dirtyManager_) {
-        return;
-    }
     isFilterCacheStatusChanged_ = false;
     bool currentCacheValidForOcclusion = isFilterCacheFullyCovered_ && dirtyManager_->IsFilterCacheRectValid();
     if (isFilterCacheValidForOcclusion_ != currentCacheValidForOcclusion) {
@@ -1388,9 +1384,6 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged)
 {
-    if (!dirtyManager_) {
-        return;
-    }
     // traversal filter nodes including app window
     for (auto node : filterNodes_) {
         if (node == nullptr || !node->IsOnTheTree() || !node->GetRenderProperties().NeedFilter()) {
@@ -1841,6 +1834,14 @@ void RSSurfaceRenderNode::ResetAbilityNodeIds()
     abilityNodeIds_.clear();
 }
 
+void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic()
+{
+    dirtyContentNodeNum_ = 0;
+    dirtyGeoNodeNum_ = 0;
+    dirtynodeNum_ = 0;
+    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform();
+}
+
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
     const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds)
 {
@@ -2046,7 +2047,7 @@ bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
 bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 {
     bool isDirty = deviceType == DeviceType::PC ? !surfaceCacheContentStatic_ :
-        (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty());
+        !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty();
     if (isDirty) {
         return false;
     }
@@ -2072,9 +2073,6 @@ bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
 {
     bool isStaticUnderVisibleRegion = false;
-    if (dirtyManager_ == nullptr) {
-        return false;
-    }
     if (!dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
         if (deviceType != DeviceType::PC) {
             return false;
@@ -2141,7 +2139,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId)
 {
-    instanceRootNodeId = (IsMainWindowType() || IsLeashWindow()) ? GetId() : instanceRootNodeId;
+    instanceRootNodeId = IsLeashOrMainWindow() ? GetId() : instanceRootNodeId;
     if (IsLeashWindow()) {
         firstLevelNodeId = GetId();
     } else if (IsAppWindow()) {

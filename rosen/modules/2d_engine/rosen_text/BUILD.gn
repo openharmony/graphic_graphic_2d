@@ -164,6 +164,8 @@ if (enable_text_gine) {
       "adapter/common/typography_style.cpp",
       "adapter/skia_txt/convert.cpp",
       "adapter/skia_txt/font_collection.cpp",
+      "adapter/skia_txt/run_impl.cpp",
+      "adapter/skia_txt/text_line_base.cpp",
       "adapter/skia_txt/typography.cpp",
       "adapter/skia_txt/typography_create.cpp",
     ]
@@ -190,6 +192,15 @@ if (enable_text_gine) {
     ]
 
     external_deps = [ "hilog:libhilog" ]
+
+    is_cross_platform =
+        current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
+        current_os == "android" || current_os == "ios"
+
+    if (!is_cross_platform) {
+      external_deps += [ "hitrace:hitrace_meter" ]
+    }
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

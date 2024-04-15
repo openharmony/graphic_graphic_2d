@@ -1,0 +1,226 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
+
+drawing_root = "$rosen_root/modules/2d_graphics"
+drawing_ndk_include_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/include"
+drawing_ndk_src_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/src"
+drawing_utils_root = "$rosen_root/modules/2d_graphics/drawing_ndk/drawing_utils"
+
+config("export_config") {
+  include_dirs = [ "$drawing_ndk_include_dir" ]
+}
+
+if (enable_text_gine) {
+  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+}
+
+template("drawing_ndk_source_set") {
+  forward_variables_from(invoker, "*")
+
+  ohos_source_set(target_name) {
+    defines += invoker.defines
+    cflags_cc += invoker.cflags_cc
+    if (use_texgine) {
+      defines += [ "USE_TEXGINE" ]
+    } else if (use_skia_txt) {
+      defines += [ "USE_SKIA_TXT" ]
+    }
+
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+
+    public_deps = [
+      "$drawing_root:2d_graphics",
+      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    ]
+    public_external_deps = [ "jsoncpp:jsoncpp" ]
+    external_deps = [ "napi:ace_napi" ]
+    configs = [ ":export_config" ]
+    sources = [
+      "$drawing_ndk_src_dir/drawing_bitmap.cpp",
+      "$drawing_ndk_src_dir/drawing_brush.cpp",
+      "$drawing_ndk_src_dir/drawing_canvas.cpp",
+      "$drawing_ndk_src_dir/drawing_color.cpp",
+      "$drawing_ndk_src_dir/drawing_color_filter.cpp",
+      "$drawing_ndk_src_dir/drawing_color_space.cpp",
+      "$drawing_ndk_src_dir/drawing_filter.cpp",
+      "$drawing_ndk_src_dir/drawing_font.cpp",
+      "$drawing_ndk_src_dir/drawing_font_collection.cpp",
+      "$drawing_ndk_src_dir/drawing_font_mgr.cpp",
+      "$drawing_ndk_src_dir/drawing_gpu_context.cpp",
+      "$drawing_ndk_src_dir/drawing_image.cpp",
+      "$drawing_ndk_src_dir/drawing_mask_filter.cpp",
+      "$drawing_ndk_src_dir/drawing_matrix.cpp",
+      "$drawing_ndk_src_dir/drawing_memory_stream.cpp",
+      "$drawing_ndk_src_dir/drawing_path.cpp",
+      "$drawing_ndk_src_dir/drawing_path_effect.cpp",
+      "$drawing_ndk_src_dir/drawing_pen.cpp",
+      "$drawing_ndk_src_dir/drawing_pixel_map.cpp",
+      "$drawing_ndk_src_dir/drawing_point.cpp",
+      "$drawing_ndk_src_dir/drawing_rect.cpp",
+      "$drawing_ndk_src_dir/drawing_region.cpp",
+      "$drawing_ndk_src_dir/drawing_register_font.cpp",
+      "$drawing_ndk_src_dir/drawing_round_rect.cpp",
+      "$drawing_ndk_src_dir/drawing_sampling_options.cpp",
+      "$drawing_ndk_src_dir/drawing_shader_effect.cpp",
+      "$drawing_ndk_src_dir/drawing_surface.cpp",
+      "$drawing_ndk_src_dir/drawing_text_blob.cpp",
+      "$drawing_ndk_src_dir/drawing_text_typography.cpp",
+      "$drawing_ndk_src_dir/drawing_typeface.cpp",
+      "$drawing_utils_root/drawing_canvas_utils.cpp",
+    ]
+
+    if (is_arkui_x) {
+      defines += [ "CROSS_PLATFORM" ]
+    }
+    if (ace_enable_gpu) {
+      defines += [ "ACE_ENABLE_GPU" ]
+    }
+    if (is_emulator) {
+      defines += [ "ROSEN_EMULATOR" ]
+    }
+
+    include_dirs = [
+      "$drawing_utils_root",
+      "$graphic_2d_root/rosen/modules/render_service_base/include",
+      "$rosen_root/modules/texgine/src",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include/mdkKits/",
+    ]
+
+    if (enable_text_gine) {
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      if (use_texgine) {
+        defines += [ "USE_TEXGINE" ]
+      }
+      include_dirs += [
+        "$flutter_root/engine",
+        "$rosen_root/modules/2d_engine/rosen_text",
+        "$rosen_root/modules/2d_engine/rosen_text/adapter",
+        "$rosen_root/modules/2d_engine/rosen_text/export",
+      ]
+    } else {
+      include_dirs += [
+        "$ace_napi_frameworks/frameworks",
+        "$rosen_2d_engine_root",
+      ]
+    }
+
+    if (platform == "ohos" || platform == "ohos_ng") {
+      defines += [ "OHOS_PLATFORM" ]
+      external_deps += [
+        "bounds_checking_function:libsec_static",
+        "hilog:libhilog",
+        "image_framework:image_native",
+        "image_framework:pixelmap_ndk",
+      ]
+
+      deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+      include_dirs += [ "$flutter_root/engine" ]
+
+      if (enable_text_gine && use_texgine) {
+        include_dirs -= [ "$flutter_root/engine" ]
+      }
+
+      remove_configs = [ "//build/config/compiler:default_include_dirs" ]
+      include_dirs += [
+        "$flutter_root/txt/src",
+        "//third_party/skia/third_party/externals/harfbuzz/src",
+      ]
+    } else {
+      deps = []
+      cflags = [ "-std=c++17" ]
+
+      if (!is_arkui_x) {
+        deps += [ "$rosen_root/modules/platform:hilog" ]
+      }
+
+      external_deps += [ "bounds_checking_function:libsec_static" ]
+      defines += [ "MODULE_DRAWING" ]
+
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+    }
+    if (enable_text_gine) {
+      deps += [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      if (use_skia_txt) {
+        include_dirs +=
+            [ "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt" ]
+      }
+    }
+    if (rosen_is_ohos) {
+      include_dirs += [ "$graphic_2d_root/interfaces/inner_api/surface" ]
+      external_deps += [ "c_utils:utils" ]
+    }
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}
+
+foreach(item, ace_platforms) {
+  drawing_ndk_source_set("drawing_ndk_source_" + item.name) {
+    platform = item.name
+    defines = []
+
+    if (defined(item.config)) {
+      config = item.config
+    } else {
+      config = {
+      }
+    }
+
+    if (defined(config.defines)) {
+      defines += config.defines
+    }
+
+    if (defined(config.cflags_cc)) {
+      cflags_cc = config.cflags_cc
+    } else {
+      cflags_cc = []
+    }
+  }
+}
+
+if (!is_arkui_x) {
+  ## Build native_drawing_ndk.so
+  ohos_shared_library("native_drawing_ndk") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+    platform = current_os
+    if (platform == "mingw") {
+      platform = "windows"
+    }
+    public_configs = [ ":export_config" ]
+    deps = [ "$drawing_root/drawing_ndk:drawing_ndk_source_$platform" ]
+
+    if (platform == "ohos") {
+      version_script = "$drawing_root/2d_graphics.versionscript"
+      symlink_target_name = [ "libnative_drawing.so" ]
+      innerapi_tags = [ "platformsdk_indirect" ]
+    }
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}

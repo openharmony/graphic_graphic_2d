@@ -137,12 +137,9 @@ inline bool RectI::IsEmpty() const
 {
     int64_t w = (int64_t)right_ - (int64_t)left_;
     int64_t h = (int64_t)bottom_ - (int64_t)top_;
-    if (w <= 0 || h <= 0) {
-        return true;
-    }
-    // Return true if either exceeds int32_t
-    int32_t int32test = (w | h) & 0xFFFFFFFF;
-    return int32test < 0;
+    int64_t r = w | h;
+    // return true if either under 0 or either exceed int32_t
+    return r <= 0 || (r & 0xffffffff) < 0;
 }
 
 inline int RectI::GetLeft() const

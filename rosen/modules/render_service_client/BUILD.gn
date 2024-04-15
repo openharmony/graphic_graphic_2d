@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,13 +21,11 @@ config("render_service_client_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
 
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
@@ -41,6 +39,11 @@ template("render_service_client_source_set") {
       cfi_cross_dso = false
       debug = false
       blocklist = "./rs_client_blocklist.txt"
+      if (rosen_is_ohos) {
+        boundary_sanitize = true
+        integer_overflow = true
+        ubsan = true
+      }
     }
     defines = []
     defines += gpu_defines
@@ -48,6 +51,7 @@ template("render_service_client_source_set") {
     is_static_lib = invoker.is_static_lib
     include_dirs = [
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
+      "$graphic_2d_root/rosen/modules/frame_report/include",
       "$graphic_2d_root/rosen/modules/render_frame_trace/include",
       "$graphic_2d_root/rosen/modules/render_service_base/src",
       "$graphic_2d_root/utils/color_manager/export",
@@ -129,6 +133,13 @@ template("render_service_client_source_set") {
       sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
     }
 
+    if (rosen_is_ohos) {
+      sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+    } else {
+      sources +=
+          [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
+    }
+
     cflags = [
       "-Wall",
       "-Wno-pointer-arith",
@@ -171,10 +182,12 @@ template("render_service_client_source_set") {
     }
     if (rosen_is_ohos) {
       public_deps += [
-        "$graphic_2d_root:libsurface",
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
         "$graphic_2d_root/utils/color_manager:color_manager",
       ]
+
+      public_external_deps = [ "graphic_surface:surface" ]
+
       external_deps = [
         "c_utils:utils",
         "hisysevent:libhisysevent",
@@ -184,6 +197,7 @@ template("render_service_client_source_set") {
 
       if (accessibility_enable) {
         external_deps += [ "accessibility:accessibilityconfig" ]
+        external_deps += [ "accessibility:accessibility_common" ]
         defines += accessibility_defines
       }
     } else if (rosen_preview) {
@@ -200,6 +214,9 @@ template("render_service_client_source_set") {
       external_deps += [ "hilog:libhilog" ]
     } else {
       external_deps = [ "hilog:libhilog" ]
+    }
+    if (!defined(public_external_deps)) {
+      public_external_deps = [ "graphic_surface:surface_headers" ]
     }
     if (rosen_cross_platform) {
       deps += [ "$rosen_root/modules/platform:hilog" ]
@@ -267,8 +284,11 @@ ohos_shared_library("librender_service_client") {
     debug = false
     blocklist = "./rs_client_blocklist.txt"
   }
+
   public_deps = [ ":render_service_client_src" ]
+
   external_deps = [ "hilog:libhilog" ]
+
   innerapi_tags = [ "platformsdk" ]
 
   if (enhanced_opt) {

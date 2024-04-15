@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <functional>
 
 #include "rs_interfaces.h"
@@ -167,8 +168,8 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
     return renderServiceClient_->SetShowRefreshRateEnabled(enable);
 }
 
-bool RSInterfaces::TakeSurfaceCaptureForUI(
-    std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {
     if (!node) {
         ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
@@ -182,11 +183,30 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
         return false;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
+        if (isSync) {
+            node->SetTakeSurfaceForUIFlag();
+        }
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
-            SurfaceCaptureType::UICAPTURE);
+            SurfaceCaptureType::UICAPTURE, isSync);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
+}
+
+bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        return renderServiceClient_->RegisterTypeface(typeface);
+    }
+    return true;
+}
+
+bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        return renderServiceClient_->UnRegisterTypeface(typeface);
+    }
+    return true;
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -319,9 +339,10 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
 std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
     const std::string& name,
     uint64_t id,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
+    NodeId windowNodeId)
 {
-    return renderServiceClient_->CreateVSyncReceiver(name, looper, id);
+    return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId);
 }
 
 int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
@@ -408,6 +429,16 @@ int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallb
 int32_t RSInterfaces::RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback)
 {
     return renderServiceClient_->RegisterHgmRefreshRateModeChangeCallback(callback);
+}
+
+int32_t RSInterfaces::RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback)
+{
+    return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(callback);
+}
+
+int32_t RSInterfaces::UnRegisterHgmRefreshRateUpdateCallback()
+{
+    return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(nullptr);
 }
 
 void RSInterfaces::SetAppWindowNum(uint32_t num)

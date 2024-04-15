@@ -194,6 +194,12 @@ HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     uint32_t layerMask = 0;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMaskInfo(screenId, layerId, layerMask), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<std::string> keys;
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedLayerPerFrameParameterKey(keys), GRAPHIC_DISPLAY_SUCCESS);
+    const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
+    const std::string validKey = "ArsrDoEnhance";
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPerFrameParameter(screenId, layerId, validKey, valueBlob),
+              GRAPHIC_DISPLAY_SUCCESS);
     GraphicLayerInfo layerInfo;
     uint32_t cacheCount = 1;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->CreateLayer(screenId, layerInfo, cacheCount, layerId),

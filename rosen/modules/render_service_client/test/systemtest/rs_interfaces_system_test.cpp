@@ -178,6 +178,31 @@ HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus002, Function | Medi
 {
     RSInterfaces::GetInstance().SetCurtainScreenUsingStatus(false);
 }
+<<<<<<< HEAD
+=======
+
+/**
+ * @tc.name: SetVirtualScreenUsingStatus001
+ * @tc.desc: Virtual screen use status.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus001, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(true);
+}
+
+/**
+ * @tc.name: SetVirtualScreenUsingStatus002
+ * @tc.desc: Virtual screen don't use status.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus002, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(false);
+}
+>>>>>>> origin/master
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -299,7 +299,7 @@ SymbolLayersHandle CmdListHelper::AddSymbolLayersToCmdList(CmdList& cmdList, con
     }
     std::pair<uint32_t, size_t> groupsHandle = AddVectorToCmdList(cmdList, handleVector2);
 
-    return { symbolLayers.symbolGlyphId, layersHandle, groupsHandle, static_cast<int32_t>(symbolLayers.effect)};
+    return { symbolLayers.symbolGlyphId, layersHandle, groupsHandle};
 }
 
 DrawingSymbolLayers CmdListHelper::GetSymbolLayersFromCmdList(const CmdList& cmdList,
@@ -321,8 +321,6 @@ DrawingSymbolLayers CmdListHelper::GetSymbolLayersFromCmdList(const CmdList& cmd
         renderGroups.push_back(GetRenderGroupFromCmdList(cmdList, handleVector2.at(i)));
     }
     symbolLayers.renderGroups = renderGroups;
-
-    symbolLayers.effect = static_cast<DrawingEffectStrategy>(symbolLayersHandle.effect);
 
     return symbolLayers;
 }
@@ -367,21 +365,6 @@ DrawingGroupInfo CmdListHelper::GetGroupInfoFromCmdList(const CmdList& cmdList, 
     groupInfo.layerIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec1);
     groupInfo.maskIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec2);
     return groupInfo;
-}
-
-OpDataHandle CmdListHelper::AddTypefaceToCmdList(CmdList& cmdList, const std::shared_ptr<Typeface>& typeface)
-{
-    if (typeface == nullptr) {
-        LOGD("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return { 0 };
-    }
-    return cmdList.AddTypeface(typeface);
-}
-
-std::shared_ptr<Typeface> CmdListHelper::GetTypefaceFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& opDataHandle)
-{
-    return (const_cast<CmdList&>(cmdList)).GetTypeface(opDataHandle);
 }
 
 OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx)

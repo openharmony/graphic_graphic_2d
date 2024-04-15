@@ -36,10 +36,15 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
+#include "render/rs_typeface_cache.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+<<<<<<< HEAD
 #include "system/rs_system_parameters.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+=======
+#include "rs_profiler.h"
+>>>>>>> origin/master
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -177,6 +182,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
             mainThread_->ClearSurfaceOcclusionChangeCallback(remotePid_);
         }).wait();
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         cleanDone_ = true;
@@ -309,6 +315,8 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         "id:%{public}" PRIu64 " name:%{public}s bundleName:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
         node->GetId(), node->GetName().c_str(), node->GetBundleName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
+    auto defaultUsage = surface->GetDefaultUsage();
+    surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->SetConsumer(surface);
     std::function<void()> registerNode = [node, this]() -> void {
         this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
@@ -333,9 +341,10 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
 
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
                                                                         const sptr<VSyncIConnectionToken>& token,
-                                                                        uint64_t id)
+                                                                        uint64_t id,
+                                                                        NodeId windowNodeId)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject());
+    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), windowNodeId);
     if (ExtractPid(id) == remotePid_) {
         auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
         auto& context = mainThread_->GetContext();
@@ -343,7 +352,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
         frameRateLikerMap.RegisterFrameRateLinker(linker);
         conn->id_ = id;
     }
-    auto ret = appVSyncDistributor_->AddConnection(conn);
+    auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
         return nullptr;
     }
@@ -542,7 +551,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
     if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         if (RSSystemParameters::GetRsSurfaceCaptureType() ==
@@ -585,12 +594,12 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             renderThread_.PostTask(captureTask);
         }
     } else {
-        TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY);
+        TakeSurfaceCaptureForUIWithUni(id, callback, scaleX, scaleY, isSync);
     }
 }
 
 void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+    float scaleX, float scaleY, bool isSync)
 {
     std::function<void()> offscreenRenderTask = [scaleY, scaleX, callback, id]() -> void {
         RS_LOGD("RSRenderService::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender"
@@ -601,7 +610,17 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<R
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     };
-    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+    if (!isSync) {
+        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+    } else {
+        auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
+        if (node == nullptr || !node->GetCommandExcuted()) {
+            RSOffscreenRenderThread::Instance().InSertCaptureTask(id, offscreenRenderTask);
+            return;
+        }
+        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+        node->SetCommandExcuted(false);
+    }
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
@@ -1059,6 +1078,23 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
     return result;
 }
 
+bool RSRenderServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
+    std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    RS_LOGD("RSRenderServiceConnection::RegisterTypeface: pid[%{public}d] register typeface[%{public}u]",
+        RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+    return true;
+}
+
+bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+{
+    RS_LOGD("RSRenderServiceConnection::UnRegisterTypeface: pid[%{public}d] unregister typeface[%{public}u]",
+        RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
+    return true;
+}
+
 int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -1123,6 +1159,15 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateModeChangeCallback(
     }
 
     HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
+    sptr<RSIHgmConfigChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
 }
 
@@ -1270,6 +1315,18 @@ void RSRenderServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScreen
     return;
 }
 
+<<<<<<< HEAD
+=======
+#ifdef RS_PROFILER_ENABLED
+int RSRenderServiceConnection::OnRemoteRequest(
+    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+{
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
+    return RSRenderServiceConnectionStub::OnRemoteRequest(code, data, reply, option);
+}
+#endif
+
+>>>>>>> origin/master
 void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
     auto task = [this, isCurtainScreenOn]() -> void {

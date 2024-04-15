@@ -26,6 +26,10 @@
 #endif
 #include "rs_trace.h"
 
+#ifdef RES_BASE_SCHED_ENABLE
+#include "qos.h"
+#endif
+
 namespace OHOS::Rosen {
 RSBackgroundThread& RSBackgroundThread::Instance()
 {
@@ -37,6 +41,12 @@ RSBackgroundThread::RSBackgroundThread()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSBackgroundThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+#ifdef RES_BASE_SCHED_ENABLE
+    PostTask([this]() {
+        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+        RS_LOGI("RSBackgroundThread: SetThreadQos retcode = %{public}d", ret);
+    });
+#endif
 }
 
 void RSBackgroundThread::PostTask(const std::function<void()>& task)

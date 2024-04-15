@@ -35,6 +35,7 @@
 namespace OHOS::Rosen {
 class HgmFrameRateManager;
 using RefreshRateModeChangeCallback = std::function<void(int32_t)>;
+using RefreshRateUpdateCallback = std::function<void(int32_t)>;
 class HgmCore final {
 public:
     static HgmCore& Instance();
@@ -64,7 +65,7 @@ public:
         return activeScreenId_;
     }
 
-    std::shared_ptr<PolicyConfigData> GetPolicyConfigData() const
+    const std::shared_ptr<PolicyConfigData>& GetPolicyConfigData() const
     {
         return mPolicyConfigData_;
     }
@@ -153,9 +154,15 @@ public:
     void SetLtpoConfig();
     int64_t GetIdealPeriod(uint32_t rate);
     void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
+    void RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback);
     RefreshRateModeChangeCallback GetRefreshRateModeChangeCallback() const
     {
         return refreshRateModeChangeCallback_;
+    }
+
+    RefreshRateUpdateCallback GetRefreshRateUpdate() const
+    {
+        return refreshRateUpdateCallback_;
     }
 private:
     HgmCore();
@@ -196,6 +203,7 @@ private:
     uint32_t alignRate_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
+    RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

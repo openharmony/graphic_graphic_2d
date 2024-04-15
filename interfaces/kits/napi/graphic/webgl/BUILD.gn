@@ -22,7 +22,6 @@ config("render_config") {
 
 ohos_source_set("webgl_src") {
   include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",
   ]
@@ -36,6 +35,7 @@ ohos_source_set("webgl_src") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "image_framework:image_native",
     "napi:ace_napi",
@@ -99,6 +99,7 @@ ohos_source_set("webgl_src") {
 }
 
 ohos_shared_library("libwebglnapi") {
+  external_deps = [ "hilog:libhilog" ]
   deps = [ ":webgl_src" ]
   if (ace_enable_gpu) {
     install_enable = true

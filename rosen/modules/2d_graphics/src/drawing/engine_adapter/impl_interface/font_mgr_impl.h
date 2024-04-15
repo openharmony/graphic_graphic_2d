@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ public:
     ~FontMgrImpl() override = default;
 
 #ifndef USE_TEXGINE
-    virtual void LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) = 0;
+    virtual Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) = 0;
     virtual void LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength) = 0;
 #endif
@@ -39,6 +39,10 @@ public:
     virtual FontStyleSet* MatchFamily(const char familyName[]) const = 0;
 
     virtual Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const = 0;
+
+    virtual int CountFamilies() const = 0;
+    virtual void GetFamilyName(int index, std::string& str) const = 0;
+    virtual FontStyleSet* CreateStyleSet(int index) const = 0;
 protected:
     FontMgrImpl() noexcept = default;
 };

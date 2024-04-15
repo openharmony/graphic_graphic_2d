@@ -87,6 +87,10 @@ std::shared_ptr<RSInterpolator> RSInterpolator::Unmarshalling(Parcel& parcel)
     static std::mutex cachedInterpolatorsMutex_;
     static std::unordered_map<uint32_t, std::weak_ptr<RSInterpolator>> cachedInterpolators_;
     static const auto Destructor = [](RSInterpolator* ptr) {
+        if (ptr == nullptr) {
+            ROSEN_LOGE("RSInterpolator::Unmarshalling, sharePtr is nullptr.");
+            return;
+        }
         std::unique_lock<std::mutex> lock(cachedInterpolatorsMutex_);
         cachedInterpolators_.erase(ptr->id_); // Unregister interpolator from cache before destruction.
         delete ptr;

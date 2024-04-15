@@ -169,7 +169,7 @@ void RSJankStats::SetRSJankStats(uint32_t dynamicRefreshRate)
         return;
     }
     if (missedVsync >= VSYNC_JANK_LOG_THRESHOLED) {
-        ROSEN_LOGI("RSJankStats::SetJankStats jank frames %{public}lld", missedVsync);
+        ROSEN_LOGI("RSJankStats::SetJankStats jank frames %{public} " PRId64 "", missedVsync);
     }
     size_t type = JANK_FRAME_INVALID;
     if (missedVsync < 6) {                                       // JANK_FRAME_6_FREQ   : (0,6)
@@ -250,9 +250,15 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefres
     jankFrames.lastTotalFrameTimeSteadyForHTR_ = jankFrames.totalFrameTimeSteadyForHTR_;
     const int64_t frameTimeForHTR = GetEffectiveFrameTime(true);
     const float frameHitchTime = std::max<float>(0.f, frameTimeForHTR - standardFrameTime);
+<<<<<<< HEAD
     const bool isConsiderRsStartTimeForHTR = jankFrames.isFirstFrame_ || isFirstSetEnd_;
     const int64_t frameDurationForHTR = (isConsiderRsStartTimeForHTR ?
         (rtEndTimeSteady_ - rsStartTimeSteady_) : (rtEndTimeSteady_ - rtLastEndTimeSteady_));
+=======
+    const bool isCalculateOnVsyncTimeForHTR = jankFrames.isFirstFrame_ || isFirstSetEnd_;
+    const int64_t frameDurationForHTR =
+        (isCalculateOnVsyncTimeForHTR ? frameTimeForHTR : (endTimeSteady_ - lastEndTimeSteady_));
+>>>>>>> origin/master
     jankFrames.maxHitchTime_ = std::max<float>(jankFrames.maxHitchTime_, frameHitchTime);
     jankFrames.totalHitchTimeSteady_ += frameHitchTime;
     jankFrames.totalFrameTimeSteadyForHTR_ += frameDurationForHTR;

@@ -42,6 +42,7 @@ public:
     ShaderEffectImpl() noexcept {}
     ~ShaderEffectImpl() override {}
     virtual void InitWithColor(ColorQuad color) = 0;
+    virtual void InitWithColorSpace(const Color4f& color, std::shared_ptr<ColorSpace> colorSpace) = 0;
     virtual void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) = 0;
     virtual void InitWithImage(
         const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling, const Matrix& matrix) = 0;

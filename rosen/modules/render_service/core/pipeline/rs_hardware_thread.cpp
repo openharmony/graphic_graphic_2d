@@ -147,7 +147,7 @@ void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
         return;
     }
     std::map<uint32_t, uint64_t>::iterator iter;
-    for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); iter++) {
+    for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); ++iter) {
         dumpString.append(
             "Refresh Rate:" + std::to_string(iter->first) + ", Count:" + std::to_string(iter->second) + ";\n");
     }
@@ -249,7 +249,8 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
             static_cast<int>(id), refreshRate);
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
         if (status < EXEC_SUCCESS) {
-            RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}llu", refreshRate, id);
+            RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,
+                id);
         }
     }
 }
@@ -403,7 +404,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
         canvas->ConcatMatrix(params.matrix);
 #ifndef RS_ENABLE_EGLIMAGE
-        uniRenderEngine_->DrawBuffer(*canvas, params);
+        RSBaseRenderEngine::DrawBuffer(*canvas, params);
 #else
         if (!params.useCPU) {
             if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
@@ -527,7 +528,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
             canvas->DetachBrush();
         } else {
-            uniRenderEngine_->DrawBuffer(*canvas, params);
+            RSBaseRenderEngine::DrawBuffer(*canvas, params);
         }
 #endif
         // Dfx for redraw region

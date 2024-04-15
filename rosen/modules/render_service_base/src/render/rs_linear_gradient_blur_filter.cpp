@@ -16,8 +16,7 @@
 #include "src/core/SkOpts.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_optional_trace.h"
-
-    #include "draw/surface.h"
+#include "draw/surface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -53,12 +52,10 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
     }
 
     RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur");
-    uint8_t directionBias = CalcDirectionBias(mat_);
-    auto clipIPadding = ComputeRectBeforeClip(directionBias, dst);
-    ComputeScale(clipIPadding.GetWidth(), clipIPadding.GetHeight(), para->useMaskAlgorithm_);
-    auto scaledClipIPadding = Drawing::Rect(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() +
-        clipIPadding.GetWidth() * imageScale_, clipIPadding.GetTop() + clipIPadding.GetHeight() * imageScale_);
-    auto alphaGradientShader = MakeAlphaGradientShader(scaledClipIPadding, para, directionBias);
+    ComputeScale(dst.GetWidth(), dst.GetHeight(), para->useMaskAlgorithm_);
+    auto clipIPadding = Drawing::Rect(0, 0, geoWidth_ * imageScale_, geoHeight_ * imageScale_);
+    uint8_t directionBias = 0;
+    auto alphaGradientShader = MakeAlphaGradientShader(clipIPadding, para, directionBias);
     if (alphaGradientShader == nullptr) {
         ROSEN_LOGE("RSLinearGradientBlurFilter::DrawImageRect alphaGradientShader null");
         return;
@@ -115,35 +112,6 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
         MakeVerticalMeanBlurEffect();
         DrawMeanLinearGradientBlur(image, canvas, radius, alphaGradientShader, dst);
     }
-}
-
-Drawing::Rect RSLinearGradientBlurFilter::ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst)
-{
-    auto clipIPadding = dst;
-    float width = geoWidth_;
-    float height = geoHeight_;
-    if (directionBias == 1 || directionBias == 3) { // 1 3: rotation 0 270
-        width = geoHeight_;
-        height = geoWidth_;
-    }
-
-    if (height - dst.GetHeight() > 1) {
-        if (mat_.Get(Drawing::Matrix::TRANS_Y) > surfaceHeight_ / 2) {  // 2 half of height
-            clipIPadding = Drawing::Rect(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetTop() + height);
-        } else {
-            clipIPadding = Drawing::Rect(dst.GetLeft(), dst.GetBottom() - height, dst.GetRight(), dst.GetBottom());
-        }
-    }
-    if (width - dst.GetWidth() > 1) {
-        if (mat_.Get(Drawing::Matrix::TRANS_X) > surfaceWidth_ / 2) {   // 2 half of width
-            clipIPadding = Drawing::Rect(clipIPadding.GetLeft(), clipIPadding.GetTop(), clipIPadding.GetLeft() + width,
-                clipIPadding.GetBottom());
-        } else {
-            clipIPadding = Drawing::Rect(clipIPadding.GetRight() - width, clipIPadding.GetTop(),
-                clipIPadding.GetRight(), clipIPadding.GetBottom());
-        }
-    }
-    return clipIPadding;
 }
 
 void RSLinearGradientBlurFilter::ComputeScale(float width, float height, bool useMaskAlgorithm)
@@ -248,10 +216,16 @@ bool RSLinearGradientBlurFilter::GetGradientDirectionPoints(
             pts[1].Set(clipBounds.GetRight(), clipBounds.GetTop());
             break;
         }
-        default: {
-            return false;
-        }
+        default: { return false; }
     }
+
+    Drawing::Matrix pointsMat = mat_;
+    if (isOffscreenCanvas_) { pointsMat.PostTranslate(-tranX_, -tranY_); }
+    std::vector<Drawing::Point> points(pts, pts + 2); // 2 size of pts
+    pointsMat.MapPoints(points, points, points.size());
+    pts[0].Set(points[0].GetX(), points[0].GetY());
+    pts[1].Set(points[1].GetX(), points[1].GetY());
+
     return true;
 }
 
@@ -433,20 +407,14 @@ void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_pt
     auto imageInfo = image->GetImageInfo();
     auto srcRect = Drawing::Rect(0, 0, imageInfo.GetWidth(), imageInfo.GetHeight());
     blurFilter->DrawImageRect(canvas, image, srcRect, dst);
-    auto offscreenSurface = canvas.GetSurface();
-    if (offscreenSurface == nullptr) {
-        return;
-    }
-    std::shared_ptr<Drawing::Image> filteredSnapshot = offscreenSurface->GetImageSnapshot();
-    Drawing::Matrix matrix;
+    
     Drawing::Matrix inputMatrix;
     inputMatrix.Translate(dst.GetLeft(), dst.GetTop());
+    inputMatrix.PostScale(dst.GetWidth() / imageInfo.GetWidth(), dst.GetHeight() / imageInfo.GetHeight());
 
     auto srcImageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), inputMatrix);
-    auto blurImageShader = Drawing::ShaderEffect::CreateImageShader(*filteredSnapshot, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
-    auto shader = MakeMaskLinearGradientBlurShader(srcImageShader, blurImageShader, alphaGradientShader);
+    auto shader = MakeMaskLinearGradientBlurShader(srcImageShader, alphaGradientShader);
 
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
@@ -456,35 +424,16 @@ void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_pt
 }
 
 std::shared_ptr<Drawing::ShaderEffect> RSLinearGradientBlurFilter::MakeMaskLinearGradientBlurShader(
-    std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
-    std::shared_ptr<Drawing::ShaderEffect> gradientShader)
+    std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> gradientShader)
 {
     static const char* prog = R"(
         uniform shader srcImageShader;
-        uniform shader blurImageShader;
         uniform shader gradientShader;
-        half4 meanFilter(float2 coord)
-        {
-            vec3 srcColor = vec3(srcImageShader.eval(coord).r,
-                srcImageShader.eval(coord).g, srcImageShader.eval(coord).b);
-            vec3 blurColor = vec3(blurImageShader.eval(coord).r,
-                blurImageShader.eval(coord).g, blurImageShader.eval(coord).b);
-            float gradient = gradientShader.eval(coord).a;
-
-            vec3 color = blurColor * gradient + srcColor * (1 - gradient);
-            return vec4(color, 1.0);
-        }
+        
         half4 main(float2 coord)
         {
-            if (abs(gradientShader.eval(coord).a) < 0.001) {
-                return srcImageShader.eval(coord);
-            }
-
-            if (abs(gradientShader.eval(coord).a) > 0.999) {
-                return blurImageShader.eval(coord);
-            }
-
-            return meanFilter(coord);
+            float gradient = 1.0 - gradientShader.eval(coord).a;
+            return half4(srcImageShader.eval(coord).rgb * gradient, gradient);
         }
     )";
 
@@ -497,7 +446,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSLinearGradientBlurFilter::MakeMaskLinea
 
     auto builder = std::make_shared<Drawing::RuntimeShaderBuilder>(maskBlurShaderEffect_);
     builder->SetChild("srcImageShader", srcImageShader);
-    builder->SetChild("blurImageShader", blurImageShader);
     builder->SetChild("gradientShader", gradientShader);
     return builder->MakeShader(nullptr, false);
 }
@@ -505,6 +453,11 @@ std::shared_ptr<Drawing::ShaderEffect> RSLinearGradientBlurFilter::MakeMaskLinea
 std::string RSLinearGradientBlurFilter::GetDescription()
 {
     return "RSLinearGradientBlurFilter";
+}
+
+std::string RSLinearGradientBlurFilter::GetDetailedDescription()
+{
+    return "RSLinearGradientBlurFilterBlur, radius: " + std::to_string(linearGradientBlurPara_->blurRadius_);
 }
 } // namespace Rosen
 } // namespace OHOS

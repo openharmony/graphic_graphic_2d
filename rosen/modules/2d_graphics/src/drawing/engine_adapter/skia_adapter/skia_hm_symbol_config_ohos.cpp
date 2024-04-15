@@ -21,20 +21,17 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
+DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
 {
-    SymbolLayersGroups* groups = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyphId);
-    if (!groups) {
-        return nullptr;
-    }
+    SymbolLayersGroups groups = HmSymbolConfig_OHOS::GetInstance()->GetSymbolLayersGroups(glyphId);
 
-    std::shared_ptr<DrawingSymbolLayersGroups> drawingGroups = std::make_shared<DrawingSymbolLayersGroups>();
-    drawingGroups->symbolGlyphId = groups->symbolGlyphId;
-    drawingGroups->layers = groups->layers;
+    DrawingSymbolLayersGroups drawingGroups;
+    drawingGroups.symbolGlyphId = groups.symbolGlyphId;
+    drawingGroups.layers = groups.layers;
     std::vector<DrawingAnimationSetting> drawingSettings;
-    auto settings = groups->animationSettings;
+    auto settings = groups.animationSettings;
     std::map<DrawingSymbolRenderingStrategy, std::vector<DrawingRenderGroup>> drawingRenderModeGroups;
-    auto renderModeGroups = groups->renderModeGroups;
+    auto renderModeGroups = groups.renderModeGroups;
     for (size_t i = 0; i < settings.size(); i++) {
         drawingSettings.push_back(ConvertToDrawingAnimationSetting(settings.at(i)));
     }
@@ -51,8 +48,8 @@ std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLaye
         iter++;
     }
 
-    drawingGroups->animationSettings = drawingSettings;
-    drawingGroups->renderModeGroups = drawingRenderModeGroups;
+    drawingGroups.animationSettings = drawingSettings;
+    drawingGroups.renderModeGroups = drawingRenderModeGroups;
 
     return drawingGroups;
 }
@@ -60,9 +57,10 @@ std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLaye
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)
 {
     DrawingAnimationSetting drawingSetting;
-    drawingSetting.animationMode = setting.animationMode;
-    drawingSetting.animationSubType = static_cast<DrawingAnimationSubType>(setting.animationSubType);
-    drawingSetting.animationType = static_cast<DrawingAnimationType>(setting.animationType);
+    for (size_t i = 0; i <setting.animationTypes.size(); i++) {
+        DrawingAnimationType animationType = static_cast<DrawingAnimationType>(setting.animationTypes[i]);
+        drawingSetting.animationTypes.push_back(animationType);
+    }
 
     std::vector<DrawingGroupSetting> groupSettings;
     for (size_t i = 0; i < setting.groupSettings.size(); i++) {
@@ -122,21 +120,17 @@ static std::vector<DrawingPiecewiseParameter> ConvertPiecewiseParametersVec(cons
     return out;
 }
 
-std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaHmSymbolConfigOhos::GetGroupParameters(
-    DrawingAnimationType type, DrawingAnimationSubType subType, int animationMode)
+std::vector<std::vector<DrawingPiecewiseParameter>> SkiaHmSymbolConfigOhos::GetGroupParameters(
+    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
-    auto animationSubType = static_cast<AnimationSubType>(type);
-    auto animationType = static_cast<AnimationType>(subType);
-    auto parametersPtr = HmSymbolConfig_OHOS::getInstance()->getGroupParameters(
-        animationType, animationSubType, animationMode);
-    if (parametersPtr == nullptr) {
-        return nullptr;
-    }
+    auto animationType = static_cast<AnimationType>(type);
+    auto subType = static_cast<CommonSubType>(commonSubType);
+    auto parametersPtr = HmSymbolConfig_OHOS::GetInstance()->GetGroupParameters(
+        animationType, groupSum, animationMode, subType);
 
-    std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> parameters =
-        std::make_shared<std::vector<std::vector<DrawingPiecewiseParameter>>>();
-    for (auto& paraTmp : (*parametersPtr)) {
-        parameters->push_back(ConvertPiecewiseParametersVec(paraTmp));
+    std::vector<std::vector<DrawingPiecewiseParameter>> parameters;
+    for (auto& paraTmp : parametersPtr) {
+        parameters.push_back(ConvertPiecewiseParametersVec(paraTmp));
     }
     return parameters;
 }

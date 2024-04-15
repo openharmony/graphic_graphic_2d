@@ -24,8 +24,15 @@
 #include <set>
 
 #include "rs_base_render_engine.h"
+<<<<<<< HEAD
 
 #include "params/rs_render_thread_params.h"
+=======
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
+#include "pipeline/driven_render/rs_driven_render_manager.h"
+>>>>>>> origin/master
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
@@ -137,7 +144,10 @@ public:
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
+    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
+    void RotateMirrorCanvasIfNeedForWiredScreen(RSDisplayRenderNode& node);
+    void ScaleMirrorIfNeedForWiredScreen(RSDisplayRenderNode& node, bool canvasRotation = false);
 
     bool GetIsPartialRenderEnabled() const
     {
@@ -196,7 +206,7 @@ private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color,
         const RSPaintStyle fillType, float alpha, int edgeWidth, std::string extra = "");
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
-    void DrawCacheRegionForDFX(std::vector<RectI> cacheRects);
+    void DrawCacheRegionForDFX(std::map<NodeId, RectI>& cacheRects);
     void DrawHwcRegionForDFX(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hwcNodes);
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     void DrawAutoCacheRegionForDFX(std::vector<RectI, std::string> cacheRegionInfo);
@@ -206,7 +216,7 @@ private:
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
     void DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNode& node);
-    void DrawCurrentRefreshRate(uint32_t currentRefreshRate, uint32_t realtimeRefreshRate);
+    void DrawCurrentRefreshRate(uint32_t currentRefreshRate, uint32_t realtimeRefreshRate, RSDisplayRenderNode& node);
     // check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
     {
@@ -262,6 +272,10 @@ private:
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
 
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
+<<<<<<< HEAD
+=======
+    std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
+>>>>>>> origin/master
     void ClipRegion(std::shared_ptr<Drawing::Canvas> canvas, const Drawing::Region& region) const;
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
@@ -314,7 +328,6 @@ private:
     void DrawChildRenderNode(RSRenderNode& node);
     void DrawChildCanvasRenderNode(RSRenderNode& node);
 
-    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation = false);
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
@@ -425,7 +438,8 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     Drawing::Region clipRegion_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    std::vector<RectI> cacheRenderNodeMapRects_;
+    std::map<NodeId, RectI> cacheRenderNodeMapRects_;
+    std::map<NodeId, bool> cacheRenderNodeIsUpdateMap_;
     Drawing::Rect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;
 
@@ -558,6 +572,7 @@ private:
     bool notRunCheckAndSetNodeCacheType_ = false;
     bool noNeedTodrawShadowAgain_ = false;
     int updateCacheProcessCnt_ = 0;
+    std::vector<std::string> windowsName_;
 
     NodeId firstVisitedCache_ = INVALID_NODEID;
     std::unordered_set<NodeId> visitedCacheNodeIds_ = {};
@@ -583,8 +598,10 @@ private:
     void endCapture() const;
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #endif
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder captureRecorder_;
+#endif
     bool isNodeSingleFrameComposer_ = false;
-
     // use for screen recording optimization
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
@@ -608,6 +625,10 @@ private:
     std::vector<RectI> nodesUseEffectForDfx_;
     // pair<ApplyBackgroundEffectNodeList, ApplyBackgroundEffectFallbackNodeList>
     std::unordered_map<NodeId, std::pair<std::vector<RectI>, std::vector<RectI>>> effectNodeMapForDfx_;
+
+    // use for curtain screen
+    void DrawCurtainScreen();
+    bool isCurtainScreenOn_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

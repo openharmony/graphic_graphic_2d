@@ -300,7 +300,7 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
     }
 }
 
-void RSSurfaceNode::CreateTextExportRenderNodeInRT()
+void RSSurfaceNode::CreateTextureExportRenderNodeInRT()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
         RSSurfaceNodeType::SELF_DRAWING_NODE, true);
@@ -308,6 +308,12 @@ void RSSurfaceNode::CreateTextExportRenderNodeInRT()
     if (transactionProxy == nullptr) {
         return;
     }
+    transactionProxy->AddCommand(command, false);
+    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+    transactionProxy->AddCommand(command, false);
+
+    RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+    command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
     transactionProxy->AddCommand(command, false);
 }
 
@@ -321,6 +327,7 @@ void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
     }
     transactionProxy->AddCommand(command, false);
     // need to reset isTextureExport sign in renderService
+    command = std::make_unique<RSSurfaceNodeSetIsTextureExportNode>(GetId(), isTextureExportNode);
     transactionProxy->AddCommand(command, true);
 }
 
@@ -335,7 +342,7 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
         DoFlushModifier();
         return;
     }
-    CreateTextExportRenderNodeInRT();
+    CreateTextureExportRenderNodeInRT();
     SetIsTextureExportNode(isTextureExportNode);
     SetSurfaceIdToRenderNode();
     DoFlushModifier();
@@ -486,14 +493,16 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
 #ifndef ROSEN_CROSS_PLATFORM
         sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
         if (surface == nullptr) {
-            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu cannot find surface by surfaceId %llu",
+            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %{public}" PRIu64
+                       " cannot find surface by surfaceId %{public}" PRIu64 "",
                 GetId(), surfaceId);
             return false;
         }
         surface_ = std::static_pointer_cast<RSRenderServiceClient>(
             RSIRenderClient::CreateRenderServiceClient())->CreateRSSurface(surface);
         if (surface_ == nullptr) {
-            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu creat RSSurface fail", GetId());
+            ROSEN_LOGE(
+                "RSSurfaceNode::CreateNodeAndSurface nodeId is %{public}" PRIu64 " creat RSSurface fail", GetId());
             return false;
         }
 #endif
@@ -701,6 +710,7 @@ void RSSurfaceNode::MarkUiFrameAvailable(bool available)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, false);
+        transactionProxy->FlushImplicitTransaction();
     }
 }
 

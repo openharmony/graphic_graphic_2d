@@ -135,9 +135,7 @@ void DrawCmdList::ClearOp()
     imageAllocator_.ClearData();
     bitmapAllocator_.ClearData();
     imageMap_.clear();
-    typefaceMap_.clear();
     imageHandleVec_.clear();
-    typefaceHandleVec_.clear();
     drawOpItems_.clear();
     lastOpGenSize_ = 0;
     lastOpItemOffset_ = std::nullopt;
@@ -191,7 +189,7 @@ std::string DrawCmdList::GetOpsWithDesc() const
         desc += typeOpDes[item->GetType()];
         desc += "\n";
     }
-    LOGI("DrawCmdList::GetOpsWithDesc %{public}s, opitem sz: %{public}u", desc.c_str(), drawOpItems_.size());
+    LOGI("DrawCmdList::GetOpsWithDesc %{public}s, opitem sz: %{public}zu", desc.c_str(), drawOpItems_.size());
     return desc;
 }
 
@@ -212,14 +210,14 @@ void DrawCmdList::MarshallingDrawOps()
     }
     std::vector<uint32_t> opIndexForCache(replacedOpListForVector_.size());
     uint32_t opReplaceIndex = 0;
-    for (size_t index = 0; index < drawOpItems_.size(); index++) {
+    for (auto index = 0u; index < drawOpItems_.size(); ++index) {
         drawOpItems_[index]->Marshalling(*this);
         if (index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
             opIndexForCache[opReplaceIndex] = lastOpItemOffset_.value();
             ++opReplaceIndex;
         }
     }
-    for (auto index = 0u; index < replacedOpListForVector_.size(); index++) {
+    for (auto index = 0u; index < replacedOpListForVector_.size(); ++index) {
         replacedOpListForVector_[index].second->Marshalling(*this);
         replacedOpListForBuffer_.emplace_back(opIndexForCache[index], lastOpItemOffset_.value());
     }
@@ -309,8 +307,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     }
     if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
         PlaybackByBuffer(canvas, &tmpRect);
-    }
-    if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
+    } else if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
         PlaybackByVector(canvas, &tmpRect);
     }
 }
@@ -326,8 +323,7 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
         GenerateCacheByBuffer(canvas, rect);
-    }
-    if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
+    } else if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
         GenerateCacheByVector(canvas, rect);
     }
 #endif
@@ -397,7 +393,7 @@ void DrawCmdList::GenerateCacheByVector(Canvas* canvas, const Rect* rect)
         return;
     }
     uint32_t opSize = drawOpItems_.size();
-    for (auto index = 0u; index < opSize; index++) {
+    for (auto index = 0u; index < opSize; ++index) {
         std::shared_ptr<DrawOpItem> op = drawOpItems_[index];
         if (!op || op->GetType() != DrawOpItem::TEXT_BLOB_OPITEM) {
             continue;

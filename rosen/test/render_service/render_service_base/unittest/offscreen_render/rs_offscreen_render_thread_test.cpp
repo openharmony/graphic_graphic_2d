@@ -49,4 +49,15 @@ HWTEST_F(RSOffscreenRenderThreadTest, Stop001, TestSize.Level1)
     auto task = RSOffscreenRenderThreadTest::DisplayTestInfo;
     RSOffscreenRenderThread::Instance().PostTask(task);
 }
+
+/**
+ * @tc.name: InsertTask
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOffscreenRenderThreadTest, InsertTask, TestSize.Level1)
+{
+    ASSERT_TRUE(RSOffscreenRenderThread::Instance().GetCaptureTask(0) == nullptr);
+}
 } // namespace OHOS::Rosen

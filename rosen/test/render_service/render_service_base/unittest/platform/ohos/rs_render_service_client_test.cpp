@@ -96,6 +96,19 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Nullptr, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TakeSurfaceCapture Test nullptr
+ * @tc.desc: TakeSurfaceCapture Test nullptr
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->TakeSurfaceCapture(123, nullptr, 1.0f, 1.0f, SurfaceCaptureType::DEFAULT_CAPTURE, true);
+    ASSERT_NE(ret, true);
+}
+
+/**
  * @tc.name: RegisterBufferAvailableListener Test a notfound id True
  * @tc.desc: RegisterBufferAvailableListener Test a notfound id True
  * @tc.type:FUNC
@@ -173,6 +186,54 @@ HWTEST_F(RSClientTest, CreateVirtualScreen, TestSize.Level2)
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
         "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: SetVirtualScreenUsingStatus Test
+ * @tc.desc: Test SetVirtualScreenUsingStatus while input is true
+ * @tc.type:FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSClientTest, SetVirtualScreenUsingStatus001, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->SetVirtualScreenUsingStatus(true);
+}
+
+/**
+ * @tc.name: SetVirtualScreenUsingStatus Test
+ * @tc.desc: Test SetVirtualScreenUsingStatus while input is false
+ * @tc.type:FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSClientTest, SetVirtualScreenUsingStatus002, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->SetVirtualScreenUsingStatus(false);
+}
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus Test
+ * @tc.desc: Test SetCurtainScreenUsingStatus while input is true
+ * @tc.type:FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSClientTest, SetCurtainScreenUsingStatus001, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->SetCurtainScreenUsingStatus(true);
+}
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus Test
+ * @tc.desc: Test SetCurtainScreenUsingStatus while input is false
+ * @tc.type:FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSClientTest, SetCurtainScreenUsingStatus002, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->SetCurtainScreenUsingStatus(false);
 }
 } // namespace Rosen
 } // namespace OHOS

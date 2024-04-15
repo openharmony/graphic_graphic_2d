@@ -28,6 +28,23 @@ class ShaderCache : public Drawing::GPUContextOptions::PersistentCache {
 public:
     static ShaderCache& Instance();
 
+    struct OptionalLockGuard {
+        explicit OptionalLockGuard(std::mutex& m): mtx_(m), status(m.try_lock()) {}
+
+        ~OptionalLockGuard()
+        {
+            if (status) {
+                mtx_.unlock();
+            }
+        }
+
+        OptionalLockGuard(const OptionalLockGuard&) = delete;
+        OptionalLockGuard& operator=(const OptionalLockGuard&) = delete;
+
+        std::mutex& mtx_;
+        bool status = false;
+    };
+
     virtual void InitShaderCache(const char *identity, const size_t size, bool isUni);
     virtual void InitShaderCache()
     {

@@ -25,6 +25,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_blur_filter.h"
+#include "render/rs_foreground_effect_filter.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_material_filter.h"
 #include "platform/common/rs_system_properties.h"
@@ -46,6 +47,7 @@ namespace Rosen {
 namespace {
 bool g_forceBgAntiAlias = true;
 constexpr int PARAM_DOUBLE = 2;
+constexpr int TRACE_LEVEL_TWO = 2;
 constexpr float MIN_TRANS_RATIO = 0.0f;
 constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
@@ -286,6 +288,11 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertiesPainter::DrawShadow, ShadowElevation: %f, ShadowRadius: %f, ShadowOffsetX: "
+        "%f, ShadowOffsetY: %f, bounds: %s",
+        properties.GetShadowElevation(), properties.GetShadowRadius(), properties.GetShadowOffsetX(),
+        properties.GetShadowOffsetY(), properties.GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path;
     if (properties.GetShadowPath() && properties.GetShadowPath()->GetDrawingPath().IsValid()) {
@@ -595,6 +602,35 @@ std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing:
     return builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
 }
 
+void RSPropertiesPainter::DrawForegroundFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    auto surface = canvas.GetSurface();
+    std::shared_ptr<Drawing::Image> imageSnapshot = nullptr;
+    if (surface) {
+        imageSnapshot = surface->GetImageSnapshot();
+    } else {
+        ROSEN_LOGD("RSPropertiesPainter::DrawForegroundFilter Surface null");
+    }
+
+    canvas.RestorePCanvasList();
+    canvas.SwapBackMainScreenData();
+
+    auto& RSFilter = properties.GetForegroundFilter();
+    if (RSFilter == nullptr) {
+        return;
+    }
+
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawForegroundFilter image null");
+        return;
+    }
+    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
+
+    foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
+        imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+}
+
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     FilterType filterType, const std::optional<Drawing::Rect>& rect, const std::shared_ptr<RSFilter>& externalFilter)
 {
@@ -615,6 +651,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
     }
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawFilter, filterType: %d, %s, bounds: %s", filterType,
+        RSFilter->GetDetailedDescription().c_str(), properties.GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     g_blurCnt++;
     Drawing::AutoCanvasRestore acr(canvas, true);
 
@@ -642,13 +680,20 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
         if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-            filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
+            filter->IsOffscreenCanvas(true);
+            filter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
+            needSnapshotOutset = false;
         }
         cacheManager->DrawFilter(canvas, filter, needSnapshotOutset);
         return;
     }
 #endif
 
+    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+        filter->IsOffscreenCanvas(false);
+        filter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
+        needSnapshotOutset = false;
+    }
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
     if (needSnapshotOutset) {
@@ -666,12 +711,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     filter->PreProcess(imageSnapshot);
-    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        Drawing::Matrix mat = canvas.GetTotalMatrix();
-        filter->SetCanvasChange(mat, surface->Width(), surface->Height());
-        filter->SetBoundsGeometry(properties.GetFrameWidth(), properties.GetFrameHeight());
-    }
-
     canvas.ResetMatrix();
     auto visibleRect = canvas.GetVisibleRect();
     visibleRect.Round();
@@ -734,6 +773,8 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     }
     g_blurCnt++;
     RS_TRACE_NAME("DrawBackgroundEffect " + RSFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "EffectComponent, %s, bounds: %s",
+        RSFilter->GetDetailedDescription().c_str(), properties.GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect surface null");
@@ -894,6 +935,9 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     Drawing::Rect clipBounds(
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     canvas.Restore();
+
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertiesPainter::DrawPixelStretch, right: %f, bottom: %f",
+        tmpBounds.GetRight(), tmpBounds.GetBottom());
 
     /*  Calculates the relative coordinates of the clipbounds
         with respect to the origin of the current canvas coordinates */
@@ -1425,6 +1469,11 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
         canvas.DetachPen();
+    } else if (mask->IsPixelMapMask()) {
+        Drawing::AutoCanvasRestore arc(canvas, true);
+        if (mask->GetImage()) {
+            canvas.DrawImage(*mask->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
+        }
     }
 
     // back to mask layer
@@ -1681,6 +1730,9 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeLightUpEffectSha
 
 void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawDynamicLightUp, rate: %f, degree: %f, bounds: %s",
+        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value(),
+        properties.GetBoundsGeometry()->GetAbsRect().ToString().c_str());
     Drawing::Surface* surface = canvas.GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawDynamicLightUp surface is null");
@@ -1884,5 +1936,83 @@ bool RSPropertiesPainter::IsDangerousBlendMode(int blendMode, int blendApplyType
     }
     return tmp & offscreenDangerousBit;
 }
+<<<<<<< HEAD
+=======
+
+void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties)
+{
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+
+    if (blendMode == 0) {
+        // no blend
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertiesPainter::BlendMode, blendMode: %d, blendModeApplyType: %d", blendMode, blendModeApplyType);
+
+    canvas.Save();
+    canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
+
+    if (canvas.GetBlendOffscreenLayerCnt() == 0 && IsDangerousBlendMode(blendMode - 1, blendModeApplyType)) {
+        Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
+        canvas.SaveLayer(maskLayerRec);
+        canvas.AddBlendOffscreenLayer(true);
+        ROSEN_LOGD("Dangerous fast blendmode may produce transparent pixels, add extra offscreen here.");
+    }
+    // fast blend mode
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        canvas.SaveBlendMode();
+        canvas.SetBlendMode({ blendMode - 1 }); // map blendMode to SkBlendMode
+        return;
+    }
+
+    // save layer mode
+    auto matrix = canvas.GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
+    Drawing::Brush blendBrush_;
+    blendBrush_.SetAlphaF(canvas.GetAlpha());
+    blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
+    canvas.SaveLayer(maskLayerRec);
+
+    canvas.AddBlendOffscreenLayer(false);
+    canvas.SaveBlendMode();
+    canvas.SetBlendMode(std::nullopt);
+    canvas.SaveAlpha();
+    canvas.SetAlpha(1.0f);
+}
+
+void RSPropertiesPainter::EndBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties)
+{
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+
+    if (blendMode == 0) {
+        // no blend
+        return;
+    }
+
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        canvas.RestoreBlendMode();
+        if (canvas.IsBlendOffscreenExtraLayer()) {
+            canvas.Restore();
+            canvas.MinusBlendOffscreenLayer();
+        }
+    } else {
+        canvas.RestoreBlendMode();
+        canvas.RestoreAlpha();
+        canvas.Restore();
+        canvas.MinusBlendOffscreenLayer();
+        if (canvas.IsBlendOffscreenExtraLayer()) {
+            canvas.Restore();
+            canvas.MinusBlendOffscreenLayer();
+        }
+    }
+    canvas.Restore();
+}
+>>>>>>> origin/master
 } // namespace Rosen
 } // namespace OHOS

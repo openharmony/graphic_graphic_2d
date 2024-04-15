@@ -343,16 +343,20 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Dr
         }
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
+            auto r = topBorder.GetBounds();
+            canvas.DrawRect(r);
+            canvas.DetachPen();
             Drawing::Brush brush;
             brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
-            canvas.DrawRect(topBorder.GetBounds());
+            r.MakeOutset(-pen.GetWidth() / PARAM_DOUBLE, -pen.GetWidth() / PARAM_DOUBLE);
+            canvas.DrawRect(r);
             canvas.DetachBrush();
         } else {
             canvas.DrawPath(topBorder);
+            canvas.DetachPen();
         }
-        canvas.DetachPen();
     }
 }
 
@@ -415,16 +419,20 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const 
         }
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
+            auto r = rightBorder.GetBounds();
+            canvas.DrawRect(r);
+            canvas.DetachPen();
             Drawing::Brush brush;
             brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
-            canvas.DrawRect(rightBorder.GetBounds());
+            r.MakeOutset(-pen.GetWidth() / PARAM_DOUBLE, -pen.GetWidth() / PARAM_DOUBLE);
+            canvas.DrawRect(r);
             canvas.DetachBrush();
         } else {
             canvas.DrawPath(rightBorder);
+            canvas.DetachPen();
         }
-        canvas.DetachPen();
     }
 }
 
@@ -489,16 +497,20 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const
         }
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
+            auto r = bottomBorder.GetBounds();
+            canvas.DrawRect(r);
+            canvas.DetachPen();
             Drawing::Brush brush;
             brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
-            canvas.DrawRect(bottomBorder.GetBounds());
+            r.MakeOutset(-pen.GetWidth() / PARAM_DOUBLE, -pen.GetWidth() / PARAM_DOUBLE);
+            canvas.DrawRect(r);
             canvas.DetachBrush();
         } else {
             canvas.DrawPath(bottomBorder);
+            canvas.DetachPen();
         }
-        canvas.DetachPen();
     }
 }
 
@@ -560,16 +572,20 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const D
         }
         canvas.AttachPen(pen);
         if (style == BorderStyle::SOLID) {
+            auto r = leftBorder.GetBounds();
+            canvas.DrawRect(r);
+            canvas.DetachPen();
             Drawing::Brush brush;
             brush.SetColor(pen.GetColor());
             brush.SetAntiAlias(true);
             canvas.AttachBrush(brush);
-            canvas.DrawRect(leftBorder.GetBounds());
+            r.MakeOutset(-pen.GetWidth() / PARAM_DOUBLE, -pen.GetWidth() / PARAM_DOUBLE);
+            canvas.DrawRect(r);
             canvas.DetachBrush();
         } else {
             canvas.DrawPath(leftBorder);
+            canvas.DetachPen();
         }
-        canvas.DetachPen();
     }
 }
 

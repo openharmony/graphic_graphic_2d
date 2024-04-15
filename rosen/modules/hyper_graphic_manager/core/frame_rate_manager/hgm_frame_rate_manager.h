@@ -17,6 +17,7 @@
 #define HGM_FRAME_RATE_MANAGER_H
 
 #include <mutex>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -31,6 +32,7 @@
 #include "hgm_command.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
+#include "hgm_touch_manager.h"
 #include "hgm_vsync_generator_controller.h"
 
 namespace OHOS {
@@ -47,7 +49,45 @@ enum TouchStatus : uint32_t {
     TOUCH_CANCEL = 1,
     TOUCH_DOWN = 2,
     TOUCH_MOVE = 3,
-    TOUCH_UP = 4
+    TOUCH_UP = 4,
+    TOUCH_PULL_DOWN = 12,
+    TOUCH_PULL_UP = 14,
+};
+
+struct FrameRateVoteInfo {
+    std::string voterName = "";
+    uint32_t preferred = 0;
+    FrameRateLinkerId pid = 0;
+    std::string ltpoType = "";
+    uint64_t timestamp = 0;
+
+    void SetTimestamp(uint64_t curTimestamp)
+    {
+        timestamp = curTimestamp;
+    }
+
+    void SetVoteInfo(const std::string& curVoterName, uint32_t curPreferred)
+    {
+        voterName = curVoterName;
+        preferred = curPreferred;
+    }
+
+    void SetLtpoInfo(FrameRateLinkerId curPid, const std::string& curLtpoType)
+    {
+        pid = curPid;
+        ltpoType = curLtpoType;
+    }
+
+    std::string ToString() const
+    {
+        std::stringstream str;
+        str << "VOTER_NAME:" << voterName << ";";
+        str << "PREFERRED:" << preferred << ";";
+        str << "LTPO_TYPE:" << ltpoType << ";";
+        str << "PID:" << pid << ";";
+        str << "TIMESTAMP:" << timestamp << ".";
+        return str.str();
+    }
 };
 
 class HgmFrameRateManager {
@@ -59,7 +99,6 @@ public:
     void HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleTouchEvent(int32_t touchStatus);
-    void HandleTempEvent(const std::string& tempEventName, bool eventStatus, uint32_t min, uint32_t max);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
@@ -87,6 +126,7 @@ public:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
+    std::shared_ptr<HgmTouchManager> touchMgr_ = std::make_unique<HgmTouchManager>();
 private:
     void Reset();
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -107,8 +147,9 @@ private:
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
-    VoteRange ProcessRefreshRateVote();
+    VoteRange ProcessRefreshRateVote(FrameRateVoteInfo& frameRateVoteInfo);
     void UpdateVoteRule();
+    void ReportHiSysEvent(const FrameRateVoteInfo& frameRateVoteInfo);
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -129,6 +170,7 @@ private:
     std::unordered_map<std::string, std::vector<std::pair<pid_t, VoteRange>>> voteRecord_;
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
+    std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
 
     std::string curPkgName_ = "";
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
@@ -137,9 +179,10 @@ private:
     bool isLtpo_ = true;
     bool isReduceAllowed_ = true;
     bool isRefreshNeed_ = true;
-    bool isTouchEnable_ = true;
+    bool isTouchEnable_ = false;
     int32_t touchFps_ = 120;
     int32_t idleFps_ = 60;
+    int32_t touchCnt_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

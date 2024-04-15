@@ -221,11 +221,6 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
             return;
         }
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ProcessDisplaySurface:(%f, %f, %f, %f), " \
-            "rotation:%d, oriRotation:%d",
-            mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_,
-            static_cast<int>(node.GetScreenRotation()), static_cast<int>(node.GetOriginScreenRotation()));
-
         CanvasAdjustment(node, canvasRotation_);
 
         canvas_->Save();
@@ -239,6 +234,10 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         JudgeResolution(node);
         ScaleMirrorIfNeed(node);
         RotateMirrorCanvasIfNeed(node, canvasRotation_);
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ProcessDisplaySurface:(%f, %f, %f, %f), " \
+            "rotation:%d, oriRotation:%d",
+            mainWidth_, mainHeight_, mirrorWidth_, mirrorHeight_,
+            static_cast<int>(node.GetScreenRotation()), static_cast<int>(node.GetOriginScreenRotation()));
 
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
         canvas_->Restore();

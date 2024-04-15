@@ -1,0 +1,74 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_out_path = "graphic_2d/surfaceimage"
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":native_image_test" ]
+}
+
+## UnitTest native_image_test {{{
+ohos_unittest("native_image_test") {
+  module_out_path = module_out_path
+
+  sources = []
+  if (surface_enable_gpu) {
+    sources += [ "native_image_test.cpp" ]
+  }
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest native_image_test }}}
+
+## Build surface_test_common.a {{{
+ohos_static_library("surface_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  public_deps = [
+    "$graphic_2d_root:libnative_image",
+    "$graphic_2d_root/utils:libgraphic_utils",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+    "graphic_surface:buffer_handle",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+## Build surface_test_common.a }}}

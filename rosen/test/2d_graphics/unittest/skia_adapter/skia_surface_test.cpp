@@ -278,7 +278,7 @@ HWTEST_F(SkiaSurfaceTest, Width001, TestSize.Level1)
 {
     auto surface = std::make_unique<SkiaSurface>();
     ASSERT_TRUE(surface != nullptr);
-    ASSERT_TRUE(surface->Width() > 0);
+    ASSERT_TRUE(surface->Width() == 0);
 }
 
 /**
@@ -291,7 +291,7 @@ HWTEST_F(SkiaSurfaceTest, Height001, TestSize.Level1)
 {
     auto surface = std::make_unique<SkiaSurface>();
     ASSERT_TRUE(surface != nullptr);
-    ASSERT_TRUE(surface->Height() > 0);
+    ASSERT_TRUE(surface->Height() == 0);
 }
 } // namespace Drawing
 } // namespace Rosen

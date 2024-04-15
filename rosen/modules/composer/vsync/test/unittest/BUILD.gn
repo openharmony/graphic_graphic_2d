@@ -39,7 +39,6 @@ ohos_unittest("vsync_connection_test") {
     ":vsync_test_common",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
-  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_connection_test }}}
@@ -51,7 +50,6 @@ ohos_unittest("vsync_controller_test") {
   sources = [ "vsync_controller_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
-  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_controller_test }}}
@@ -66,7 +64,6 @@ ohos_unittest("vsync_distributor_test") {
     ":vsync_test_common",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
-  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_distributor_test }}}
@@ -78,7 +75,6 @@ ohos_unittest("vsync_generator_test") {
   sources = [ "vsync_generator_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
-  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_generator_test }}}
@@ -96,7 +92,6 @@ ohos_unittest("vsync_receiver_test") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
-  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_receiver_test }}}
@@ -108,7 +103,6 @@ ohos_unittest("vsync_sampler_test") {
   sources = [ "vsync_sampler_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
-  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_sampler_test }}}
@@ -152,6 +146,12 @@ ohos_static_library("vsync_test_common") {
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
+
+  public_external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
+  ]
+
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

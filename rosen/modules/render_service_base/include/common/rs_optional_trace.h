@@ -40,6 +40,20 @@
         }                                                                   \
     } while (0)
 
+#ifdef ROSEN_TRACE_DISABLE
+#define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
+    do {                                                                    \
+        (void)TRACE_LEVEL_TWO;                                              \
+    } while (0)
+#else
+#define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
+    do {                                                                    \
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= Level) {     \
+            HITRACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, fmt, ##__VA_ARGS__); \
+        }                                                                   \
+    } while (0)
+#endif
+
 #define RS_APPOINTED_TRACE_BEGIN(node, name)                           \
     do {                                                             \
         if (Rosen::RSSystemProperties::GetDebugTraceEnabled() ||     \

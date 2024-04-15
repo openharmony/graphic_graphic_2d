@@ -155,10 +155,21 @@ public:
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
-    bool GetUseShadowBatching() const;
+    inline bool GetUseShadowBatching() const
+    {
+        return useShadowBatching_;
+    }
+
     void SetUseShadowBatching(bool useShadowBatching);
-    bool GetNeedSkipShadow() const;
-    void SetNeedSkipShadow(bool needSkipShadow);
+    inline bool GetNeedSkipShadow() const
+    {
+        return needSkipShadow_;
+    }
+
+    inline void SetNeedSkipShadow(bool needSkipShadow)
+    {
+        needSkipShadow_ = needSkipShadow;
+    }
 
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
@@ -175,6 +186,8 @@ public:
     std::shared_ptr<RSShader> GetBackgroundShader() const;
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     std::shared_ptr<RSImage> GetBgImage() const;
+    void SetBgImageInnerRect(const Vector4f& rect);
+    Vector4f GetBgImageInnerRect() const;
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
     void SetBgImagePositionX(float positionX);
@@ -202,6 +215,10 @@ public:
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
 
+    void SetForegroundEffectRadius(const float foregroundEffectRadius);
+    float GetForegroundEffectRadius() const;
+    bool IsForegroundEffectRadiusValid() const;
+
     // filter properties
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
@@ -218,7 +235,66 @@ public:
     bool NeedFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
+    const std::shared_ptr<RSFilter>& GetForegroundFilter() const;
+    void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
 
+    void SetBackgroundBlurRadius(float backgroundBlurRadius);
+    float GetBackgroundBlurRadius() const;
+    bool IsBackgroundBlurRadiusValid() const;
+
+    void SetBackgroundBlurSaturation(float backgroundBlurSaturation);
+    float GetBackgroundBlurSaturation() const;
+    bool IsBackgroundBlurSaturationValid() const;
+
+    void SetBackgroundBlurBrightness(float backgroundBlurBrightness);
+    float GetBackgroundBlurBrightness() const;
+    bool IsBackgroundBlurBrightnessValid() const;
+
+    void SetBackgroundBlurMaskColor(Color backgroundMaskColor);
+    const Color& GetBackgroundBlurMaskColor() const;
+    bool IsBackgroundBlurMaskColorValid() const;
+
+    void SetBackgroundBlurColorMode(int backgroundColorMode);
+    int GetBackgroundBlurColorMode() const;
+
+    void SetBackgroundBlurRadiusX(float backgroundBlurRadiusX);
+    float GetBackgroundBlurRadiusX() const;
+    bool IsBackgroundBlurRadiusXValid() const;
+
+    void SetBackgroundBlurRadiusY(float backgroundBlurRadiusY);
+    float GetBackgroundBlurRadiusY() const;
+    bool IsBackgroundBlurRadiusYValid() const;
+
+    void SetForegroundBlurRadius(float ForegroundBlurRadius);
+    float GetForegroundBlurRadius() const;
+    bool IsForegroundBlurRadiusValid() const;
+
+    void SetForegroundBlurSaturation(float ForegroundBlurSaturation);
+    float GetForegroundBlurSaturation() const;
+    bool IsForegroundBlurSaturationValid() const;
+
+    void SetForegroundBlurBrightness(float ForegroundBlurBrightness);
+    float GetForegroundBlurBrightness() const;
+    bool IsForegroundBlurBrightnessValid() const;
+
+    void SetForegroundBlurMaskColor(Color ForegroundMaskColor);
+    const Color& GetForegroundBlurMaskColor() const;
+    bool IsForegroundBlurMaskColorValid() const;
+
+    void SetForegroundBlurColorMode(int ForegroundColorMode);
+    int GetForegroundBlurColorMode() const;
+
+    void SetForegroundBlurRadiusX(float foregroundBlurRadiusX);
+    float GetForegroundBlurRadiusX() const;
+    bool IsForegroundBlurRadiusXValid() const;
+
+    void SetForegroundBlurRadiusY(float foregroundBlurRadiusY);
+    float GetForegroundBlurRadiusY() const;
+    bool IsForegroundBlurRadiusYValid() const;
+
+    bool IsBackgroundMaterialFilterValid() const;
+    bool IsForegroundMaterialFilterVaild() const;
+    
     // shadow properties
     void SetShadowColor(Color color);
     void SetShadowOffsetX(float offsetX);
@@ -271,9 +347,17 @@ public:
 
     // Pixel Stretch
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);
-    const std::optional<Vector4f>& GetPixelStretch() const;
+    inline const std::optional<Vector4f>& GetPixelStretch() const
+    {
+        return pixelStretch_;
+    }
+
     void SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent);
-    const std::optional<Vector4f>& GetPixelStretchPercent() const;
+    inline const std::optional<Vector4f>& GetPixelStretchPercent() const
+    {
+        return pixelStretchPercent_;
+    }
+
     void SetAiInvert(const std::optional<Vector4f>& aiInvert);
     const std::optional<Vector4f>& GetAiInvert() const;
     void SetSystemBarEffect(bool systemBarEffect);
@@ -302,7 +386,11 @@ public:
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
-    const std::optional<float>& GetGrayScale() const;
+    inline const std::optional<float>& GetGrayScale() const
+    {
+        return grayScale_;
+    }
+
     void SetBrightness(const std::optional<float>& brightness);
     const std::optional<float>& GetBrightness() const;
     void SetContrast(const std::optional<float>& contrast);
@@ -329,12 +417,26 @@ public:
     float GetLightIntensity() const;
     Color GetLightColor() const;
     Vector4f GetLightPosition() const;
-    float GetIlluminatedBorderWidth() const;
+    inline float GetIlluminatedBorderWidth() const
+    {
+        return illuminatedPtr_ ? illuminatedPtr_->GetIlluminatedBorderWidth() : 0.f;
+    }
+
     int GetIlluminatedType() const;
-    float GetBloom() const;
+    inline float GetBloom() const
+    {
+        return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
+    }
+
     void CalculateAbsLightPosition();
-    const std::shared_ptr<RSLightSource>& GetLightSource() const;
-    const std::shared_ptr<RSIlluminated>& GetIlluminated() const;
+    inline const std::shared_ptr<RSLightSource>& GetLightSource() const
+    {
+        return lightSourcePtr_;
+    }
+    inline const std::shared_ptr<RSIlluminated>& GetIlluminated() const
+    {
+        return illuminatedPtr_;
+    }
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
@@ -405,6 +507,7 @@ private:
     std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
     std::shared_ptr<RSIlluminated> illuminatedPtr_ = nullptr;
 
+    float foregroundEffectRadius_ = 0.f;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<EmitterUpdater> emitterUpdater_ = nullptr;
@@ -420,7 +523,25 @@ private:
     float spherizeDegree_ = 0.f;
     bool isSpherizeValid_ = false;
     float lightUpEffectDegree_ = 1.0f;
+    std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
 
+    // filter property
+    float backgroundBlurRadius_ = 0.f;
+    float backgroundBlurSaturation_ = 1.f;
+    float backgroundBlurBrightness_ = 1.f;
+    Color backgroundMaskColor_ = RSColor();
+    int backgroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
+    float backgroundBlurRadiusX_ = 0.f;
+    float backgroundBlurRadiusY_ = 0.f;
+
+    float foregroundBlurRadius_ = 0.f;
+    float foregroundBlurSaturation_ = 1.f;
+    float foregroundBlurBrightness_ = 1.f;
+    Color foregroundMaskColor_ = RSColor();
+    int foregroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
+    float foregroundBlurRadiusX_ = 0.f;
+    float foregroundBlurRadiusY_ = 0.f;
+    
     std::weak_ptr<RSRenderNode> backref_;
 
     std::optional<Vector4f> pixelStretch_;

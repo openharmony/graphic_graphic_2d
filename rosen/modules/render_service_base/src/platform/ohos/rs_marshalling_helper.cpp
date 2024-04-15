@@ -14,6 +14,7 @@
  */
 
 #include "transaction/rs_marshalling_helper.h"
+#include "rs_profiler.h"
 
 #include <cstdint>
 #include <memory>
@@ -219,6 +220,37 @@ static void sk_free_releaseproc(const void* ptr, void*)
     MemoryTrack::Instance().RemovePictureRecord(ptr);
     free(const_cast<void*>(ptr));
     ptr = nullptr;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    if (!typeface) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Typeface is nullptr");
+        return false;
+    }
+    std::shared_ptr<Drawing::Data> data = typeface->Serialize();
+    if (!data) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Typeface serialize failed");
+        return false;
+    }
+    Marshalling(parcel, data);
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    std::shared_ptr<Drawing::Data> data;
+    if (!Unmarshalling(parcel, data) || !data) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Typeface data");
+        return false;
+    }
+    typeface = Drawing::Typeface::Deserialize(data->GetData(), data->GetSize());
+    if (typeface == nullptr) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Typeface Deserialize");
+        return false;
+    }
+
+    return true;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
@@ -464,6 +496,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
     int32_t size = parcel.ReadInt32();
+    if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}d", size);
+        return false;
+    }
     bool isMalloc = false;
     auto data = static_cast<const Drawing::scalar*>(RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc));
     if (data == nullptr) {
@@ -1016,7 +1052,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
         return parcel.WriteInt32(-1);
     }
     auto position = parcel.GetWritePosition();
-    if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
+    if (!(parcel.WriteInt32(1) && RS_PROFILER_MARSHAL_PIXELMAP(parcel, val))) {
         ROSEN_LOGE("failed RSMarshallingHelper::Marshalling Media::PixelMap");
         return false;
     }
@@ -1037,7 +1073,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         val = nullptr;
         return true;
     }
-    val.reset(Media::PixelMap::Unmarshalling(parcel));
+    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         return false;
@@ -1217,6 +1253,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     bool cachedHighContrast = parcel.ReadBool();
 
     uint32_t replacedOpListSize = parcel.ReadUint32();
+    uint32_t readableSize = parcel.GetReadableBytes() / (sizeof(uint32_t) * 2);    // 增加IPC异常保护，读取2个uint_32_t
+    if (replacedOpListSize > readableSize) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing readableSize %{public}d less than size %{public}d",
+            readableSize, replacedOpListSize);
+        val = nullptr;
+        return false;
+    }
     std::vector<std::pair<uint32_t, uint32_t>> replacedOpList;
     for (uint32_t i = 0; i < replacedOpListSize; ++i) {
         auto regionPos = parcel.ReadUint32();
@@ -1563,6 +1606,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
         if (!Unmarshalling(parcel, value)) {                                                                          \
             return false;                                                                                             \
         }                                                                                                             \
+        RS_PROFILER_PATCH_NODE_ID(parcel, id);                                                                        \
         val.reset(new TEMPLATE<T>(value, id, type));                                                                  \
         return val != nullptr;                                                                                        \
     }

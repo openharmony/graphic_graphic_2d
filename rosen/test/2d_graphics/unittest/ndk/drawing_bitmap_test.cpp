@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "c/drawing_bitmap.h"
-#include "c/drawing_types.h"
+#include "drawing_bitmap.h"
+#include "drawing_types.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -51,12 +51,12 @@ void NativeDrawingBitmapTest::TearDown()
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_bitmap002
+ * @tc.name: NativeDrawingBitmapTest_bitmapBuild001
  * @tc.desc: test for drawing_bitmap build.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap002, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapBuild001, TestSize.Level1)
 {
     const unsigned int width = 500;
     const unsigned int height = 500;
@@ -67,12 +67,12 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap002, TestSize.Le
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_bitmap003
+ * @tc.name: NativeDrawingBitmapTest_bitmapBuild002
  * @tc.desc: test for drawing_bitmap build.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap003, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapBuild002, TestSize.Level1)
 {
     const unsigned int width = 0;
     const unsigned int height = 0;
@@ -83,12 +83,12 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap003, TestSize.Le
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_bitmap004
+ * @tc.name: NativeDrawingBitmapTest_bitmapBuild003
  * @tc.desc: test for drawing_bitmap build.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap004, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapBuild003, TestSize.Level1)
 {
     const unsigned int width = 500;
     const unsigned int height = 500;
@@ -100,12 +100,12 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap004, TestSize.Le
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_bitmap005
+ * @tc.name: NativeDrawingBitmapTest_bitmapBuild004
  * @tc.desc: test for drawing_bitmap build.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap005, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapBuild004, TestSize.Level1)
 {
     const unsigned int width = 500;
     const unsigned int height = 500;
@@ -116,12 +116,12 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap005, TestSize.Le
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_bitmap006
+ * @tc.name: NativeDrawingBitmapTest_bitmapCreateFromPixels005
  * @tc.desc: test for OH_Drawing_BitmapCreateFromPixels.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap006, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapCreateFromPixels005, TestSize.Level1)
 {
     OH_Drawing_Image_Info imageInfo;
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
@@ -144,12 +144,12 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmap006, TestSize.Le
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_GetImageInfo001
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetImageInfo006
  * @tc.desc: test for drawing_bitmapGetImageInfo.
  * @tc.type: FUNC
  * @tc.require: AR20240104201189
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetImageInfo001, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetImageInfo006, TestSize.Level1)
 {
     const unsigned int width = 500;
     const unsigned int height = 500;
@@ -162,16 +162,47 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetImageInfo001, TestS
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_GetColorFormat001
+ * @tc.name: NativeDrawingBitmapTest_BitmapReadPixels007
+ * @tc.desc: test for drawing_BitmapReadPixels.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_BitmapReadPixels007, TestSize.Level1)
+{
+    const unsigned int width = 500;
+    const unsigned int height = 500;
+    OH_Drawing_BitmapFormat bitmapFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_UNPREMUL};
+    OH_Drawing_BitmapBuild(bitmap_, width, height, &bitmapFormat);
+    OH_Drawing_Image_Info imageInfo {width, height, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_UNPREMUL};
+    void* pixels = new uint32_t[width * height];
+    bool res = OH_Drawing_BitmapReadPixels(nullptr, nullptr, nullptr, width * 4, 0, 0);
+    EXPECT_EQ(res, false);
+    res = OH_Drawing_BitmapReadPixels(nullptr, &imageInfo, pixels, width * 4, 0, 0);
+    EXPECT_EQ(res, false);
+    res = OH_Drawing_BitmapReadPixels(bitmap_, nullptr, pixels, width * 4, 0, 0);
+    EXPECT_EQ(res, false);
+    res = OH_Drawing_BitmapReadPixels(bitmap_, &imageInfo, nullptr, width * 4, 0, 0);
+    EXPECT_EQ(res, false);
+    res = OH_Drawing_BitmapReadPixels(bitmap_, &imageInfo, pixels, width * 4, 0, 0);
+    EXPECT_EQ(res, true);
+    if (pixels != nullptr) {
+        delete[] reinterpret_cast<uint32_t*>(pixels);
+        pixels = nullptr;
+    }
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_GetColorFormat008
  * @tc.desc: test for drawing_BitmapGetColorFormat.
  * @tc.type: FUNC
  * @tc.require: AR20240104201189
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetColorFormat001, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetColorFormat008, TestSize.Level1)
 {
     const unsigned int width = 500;
     const unsigned int height = 500;
     OH_Drawing_ColorFormat formats[] = {
+        COLOR_FORMAT_UNKNOWN,
         COLOR_FORMAT_ALPHA_8,
         COLOR_FORMAT_RGB_565,
         COLOR_FORMAT_ARGB_4444,
@@ -180,34 +211,37 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetColorFormat001, Tes
     };
 
     OH_Drawing_AlphaFormat alphaFormats[] = {
+        ALPHA_FORMAT_UNKNOWN,
         ALPHA_FORMAT_OPAQUE,
         ALPHA_FORMAT_PREMUL,
         ALPHA_FORMAT_UNPREMUL
     };
     OH_Drawing_ColorFormat colorFormat_;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 1; i < 6; i++) {
         OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
-        if (!bitmap) {
-            break;
-        }
-        OH_Drawing_BitmapFormat bitmapFormat = {formats[i], alphaFormats[1]};
+        OH_Drawing_BitmapFormat bitmapFormat = {formats[i], alphaFormats[2]};
         OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
+        if (bitmap == nullptr) {
+            colorFormat_ = OH_Drawing_BitmapGetColorFormat(bitmap);
+            EXPECT_EQ(colorFormat_, formats[0]);
+        }
         colorFormat_ = OH_Drawing_BitmapGetColorFormat(bitmap);
         EXPECT_EQ(colorFormat_, formats[i]);
     }
 }
 
 /*
- * @tc.name: NativeDrawingBitmapTest_GetAlphaFormat001
+ * @tc.name: NativeDrawingBitmapTest_GetAlphaFormat009
  * @tc.desc: test for drawing_BitmapGetAlphaFormat.
  * @tc.type: FUNC
  * @tc.require: AR20240104201189
  */
-HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetAlphaFormat001, TestSize.Level1)
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetAlphaFormat009, TestSize.Level1)
 {
     const unsigned int width = 500;
     const unsigned int height = 500;
     OH_Drawing_ColorFormat formats[] = {
+        COLOR_FORMAT_UNKNOWN,
         COLOR_FORMAT_ALPHA_8,
         COLOR_FORMAT_RGB_565,
         COLOR_FORMAT_ARGB_4444,
@@ -216,18 +250,20 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetAlphaFormat001, Tes
     };
 
     OH_Drawing_AlphaFormat alphaFormats[] = {
+        ALPHA_FORMAT_UNKNOWN,
         ALPHA_FORMAT_OPAQUE,
         ALPHA_FORMAT_PREMUL,
         ALPHA_FORMAT_UNPREMUL
     };
     OH_Drawing_AlphaFormat alphaFormat_;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 1; i < 4; i++) {
         OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
-        if (!bitmap) {
-            break;
-        }
-        OH_Drawing_BitmapFormat bitmapFormat = {formats[2], alphaFormats[i]};
+        OH_Drawing_BitmapFormat bitmapFormat = {formats[3], alphaFormats[i]};
         OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
+        if (bitmap == nullptr) {
+            alphaFormat_ = OH_Drawing_BitmapGetAlphaFormat(bitmap);
+            EXPECT_EQ(alphaFormat_, alphaFormats[0]);
+        }
         alphaFormat_ = OH_Drawing_BitmapGetAlphaFormat(bitmap);
         EXPECT_EQ(alphaFormat_, alphaFormats[i]);
     }

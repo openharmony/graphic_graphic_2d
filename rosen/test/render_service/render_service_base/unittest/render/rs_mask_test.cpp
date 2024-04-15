@@ -268,4 +268,38 @@ HWTEST_F(RSMaskTest, MarshlingandUnMarshling001, TestSize.Level1)
     free(buffer);
     ASSERT_TRUE(ret);
 }
+
+/**
+ * @tc.name: CreatePixelMapMask
+ * @tc.desc:
+ * @tc.type:FUNC`
+ */
+HWTEST_F(RSMaskTest, CreatePixelMapMask001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by PixelMap
+     */
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    std::shared_ptr<RSMask> mask = RSMask::CreatePixelMapMask(pixelmap);
+    ASSERT_TRUE(mask != nullptr);
+    mask->SetPixelMap(pixelmap);
+    ASSERT_TRUE(mask->GetImage() == nullptr);
+    ASSERT_TRUE(mask->IsPixelMapMask());
+}
+
+/**
+ * @tc.name: CreatePixelMapMask
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, CreatePixelMapMask002, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by PixelMap
+     */
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+    ASSERT_TRUE(mask != nullptr);
+    ASSERT_TRUE(mask->IsPixelMapMask() == false);
+}
 } // namespace OHOS::Rosen

@@ -27,32 +27,25 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     RSSymbolLayers symbolInfo;
     symbolInfo.symbolGlyphId = glyphId;
     uint32_t symbolId = static_cast<uint32_t>(glyphId);
-    std::shared_ptr<RSSymbolLayersGroups> symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(symbolId);
-    if (symbolInfoOrign == nullptr || symbolInfoOrign->symbolGlyphId == 0) {
+    RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(symbolId);
+    if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
         return symbolInfo;
     }
 
     RSSymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
-    RSEffectStrategy effectMode = symbolText.GetEffectStrategy();
-    if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
+    if (symbolInfoOrign.renderModeGroups.find(renderMode) == symbolInfoOrign.renderModeGroups.end()) {
         renderMode = RSSymbolRenderingStrategy::SINGLE;
     }
 
-    symbolInfo.layers = symbolInfoOrign->layers;
-    if (symbolInfoOrign->renderModeGroups.find(renderMode) != symbolInfoOrign->renderModeGroups.end()) {
-        symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
-        symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
+    symbolInfo.layers = symbolInfoOrign.layers;
+    if (symbolInfoOrign.renderModeGroups.find(renderMode) != symbolInfoOrign.renderModeGroups.end()) {
+        symbolInfo.renderGroups = symbolInfoOrign.renderModeGroups[renderMode];
+        symbolInfo.symbolGlyphId = symbolInfoOrign.symbolGlyphId;
     }
 
     std::vector<RSSColor> colorList = symbolText.GetRenderColor();
     if (!colorList.empty()) {
         SetSymbolRenderColor(renderMode, colorList, symbolInfo);
-    }
-
-    if (effectMode == RSEffectStrategy::HIERARCHICAL &&
-        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups)) {
-        symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
-        symbolInfo.effect = effectMode;
     }
     return symbolInfo;
 }
@@ -186,32 +179,18 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrat
     RSAnimationSetting& animationOut)
 {
     auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyohId);
-    if (symbolInfoOrigin == nullptr) {
-        return false;
-    }
-    std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
-
-    RSAnimationType animationType = RSAnimationType::INVALID_ANIMATION_TYPE;
-    RSAnimationSubType animationSubType = RSAnimationSubType::INVALID_ANIMATION_SUB_TYPE;
-    uint32_t animationMode = 1;
-    if (effectStrategy == RSEffectStrategy::SCALE) {
-        animationType = RSAnimationType::SCALE_EFFECT;
-        animationSubType = RSAnimationSubType::UNIT;
-        return true;
-    }
-
-    if (effectStrategy == RSEffectStrategy::HIERARCHICAL) {
-        animationType = RSAnimationType::VARIABLE_COLOR;
-        animationSubType = RSAnimationSubType::VARIABLE_3_GROUP;
-    }
+    std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin.animationSettings;
+    RSAnimationType animationType =  static_cast<RSAnimationType>(effectStrategy);
 
     for (size_t i = 0; i < animationSettings.size(); i++) {
-        if (animationType == animationSettings[i].animationType &&
-            animationSubType == animationSettings[i].animationSubType &&
-            animationMode == animationSettings[i].animationMode) {
-                animationOut = animationSettings[i];
-                return true;
-            }
+        if (std::find(animationSettings[i].animationTypes.begin(), animationSettings[i].animationTypes.end(),
+            animationType) == animationSettings[i].animationTypes.end()) {
+            continue;
+        }
+        if (animationSettings[i].groupSettings.size() > 0) {
+            animationOut = animationSettings[i];
+            return true;
+        }
     }
     return false;
 }

@@ -126,6 +126,12 @@ public:
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
 
+    static bool GetProfilerEnabled();
+    static bool GetInstantRecording();
+    static void SetInstantRecording(bool flag);
+    static bool GetSaveRDC();
+    static void SetSaveRDC(bool flag);
+
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
@@ -184,8 +190,13 @@ public:
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
+<<<<<<< HEAD
     static bool GetUIFirstDebugEnabled();
+=======
+    static bool GetUIFirstForceEnabled();
+>>>>>>> origin/master
     static bool GetDebugTraceEnabled();
+    static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
     static bool GetCacheCmdEnabled();
@@ -219,7 +230,12 @@ public:
 
     static bool GetDumpUICaptureEnabled();
     static bool GetDumpUIPixelmapEnabled();
+<<<<<<< HEAD
     static bool GetDumpImgEnabled();
+=======
+    static uint32_t GetVirtualScreenScaleModeDFX();
+
+>>>>>>> origin/master
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;

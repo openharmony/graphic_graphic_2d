@@ -70,6 +70,15 @@ bool RSCanvasNode::IsRecording() const
     return recordingCanvas_ != nullptr;
 }
 
+void RSCanvasNode::CreateTextureExportRenderNodeInRT()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), true);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, false);
+    }
+}
+
 void RSCanvasNode::FinishRecording()
 {
     if (!IsRecording()) {

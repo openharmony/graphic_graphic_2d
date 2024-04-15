@@ -38,6 +38,7 @@ namespace Drawing {
 #endif
 
 class Canvas;
+class Image;
 class JsCanvas final {
 public:
     explicit JsCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
@@ -45,7 +46,7 @@ public:
 
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
-    DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas, float width, float height);
+    DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas);
 
     static napi_value Init(napi_env env, napi_value exportObj);
 
@@ -57,6 +58,7 @@ public:
     static napi_value DrawPath(napi_env env, napi_callback_info info);
     static napi_value DrawLine(napi_env env, napi_callback_info info);
     static napi_value DrawText(napi_env env, napi_callback_info info);
+    static napi_value DrawPixelMapMesh(napi_env env, napi_callback_info info);
     static napi_value AttachPen(napi_env env, napi_callback_info info);
     static napi_value AttachBrush(napi_env env, napi_callback_info info);
     static napi_value DetachPen(napi_env env, napi_callback_info info);
@@ -64,6 +66,9 @@ public:
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();
+    DRAWING_API void ClipCanvas(float width, float height);
+    DRAWING_API void SaveCanvas();
+    DRAWING_API void RestoreCanvas();
 
 private:
     napi_value OnDrawRect(napi_env env, napi_callback_info info);
@@ -74,6 +79,10 @@ private:
     napi_value OnDrawPath(napi_env env, napi_callback_info info);
     napi_value OnDrawLine(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
+    napi_value OnDrawPixelMapMesh(napi_env env, napi_callback_info info);
+
+    void DrawingPixelMapMesh(const Drawing::Image& image, int column, int row,
+        float* vertices, int* colors);
 
     static bool DeclareFuncAndCreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
