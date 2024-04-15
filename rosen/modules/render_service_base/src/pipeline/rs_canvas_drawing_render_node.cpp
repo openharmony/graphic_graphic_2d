@@ -502,7 +502,20 @@ const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDraw
 void RSCanvasDrawingRenderNode::ClearResource()
 {
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    drawCmdLists_.clear();
+    if (drawCmdListsVisited_) {
+        drawCmdLists_.clear();
+        drawCmdListsVisited_ = false;
+    }
+}
+
+bool RSCanvasDrawingRenderNode::IsDrawCmdListsVisited() const
+{
+    return drawCmdListsVisited_;
+}
+
+void RSCanvasDrawingRenderNode::SetDrawCmdListsVisited(bool flag)
+{
+    drawCmdListsVisited_ = flag;
 }
 } // namespace Rosen
 } // namespace OHOS

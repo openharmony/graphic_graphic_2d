@@ -75,6 +75,8 @@ public:
     void PlaybackInCorrespondThread();
     const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
     void ClearResource() override;
+    bool IsDrawCmdListsVisited() const;
+    void SetDrawCmdListsVisited(bool flag);
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
@@ -103,6 +105,7 @@ private:
 
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
+    std::atomic<bool> drawCmdListsVisited_ = false;
 };
 
 } // namespace Rosen
