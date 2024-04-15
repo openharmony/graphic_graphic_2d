@@ -247,6 +247,12 @@ void RSProperty<std::shared_ptr<EmitterUpdater>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyEmitterUpdater, value, type);
 }
 template<>
+void RSProperty<std::shared_ptr<ParticleNoiseField>>::UpdateToRender(
+    const std::shared_ptr<ParticleNoiseField>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyParticleNoiseField, value, type);
+}
+template<>
 void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
     const std::shared_ptr<RSShader>& value, PropertyUpdateType type) const
 {

@@ -141,6 +141,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
     [](RSProperties* prop) { prop->SetEmitterUpdater({}); },             // PARTICLE_EMITTER_UPDATER
+    [](RSProperties* prop) { prop->SetParticleNoiseField({}); },         // PARTICLE_NOISE_FIELD
     [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
@@ -1174,6 +1175,17 @@ void RSProperties::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para
     contentDirty_ = true;
 }
 
+void RSProperties::SetParticleNoiseField(const std::shared_ptr<ParticleNoiseField>& para)
+{
+    particleNoiseField_ = para;
+    if (particleNoiseField_) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
 void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
 {
     dynamicLightUpRate_ = rate;
@@ -1251,6 +1263,11 @@ const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradient
 const std::shared_ptr<EmitterUpdater>& RSProperties::GetEmitterUpdater() const
 {
     return emitterUpdater_;
+}
+
+const std::shared_ptr<ParticleNoiseField>& RSProperties::GetParticleNoiseField() const
+{
+    return particleNoiseField_;
 }
 
 void RSProperties::IfLinearGradientBlurInvalid()

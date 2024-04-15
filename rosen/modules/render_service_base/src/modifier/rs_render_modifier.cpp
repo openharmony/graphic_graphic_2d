@@ -21,7 +21,6 @@
 
 #include "pixel_map.h"
 
-#include "animation/rs_render_particle.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"

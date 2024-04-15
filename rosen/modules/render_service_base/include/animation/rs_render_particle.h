@@ -31,14 +31,13 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class ParticleUpdator: uint32_t { NONE = 0, RANDOM, CURVE };
+enum class ParticleUpdator : uint32_t { NONE = 0, RANDOM, CURVE };
 
-enum class ShapeType: uint32_t { RECT = 0, CIRCLE, ELLIPSE };
+enum class ShapeType : uint32_t { RECT = 0, CIRCLE, ELLIPSE };
 
-enum class ParticleType: uint32_t {
-    POINTS = 0,
-    IMAGES
-};
+enum class ParticleType : uint32_t { POINTS = 0, IMAGES };
+
+enum class DistributionType : uint32_t { UNIFORM = 0, GAUSSIAN };
 
 template<typename T>
 struct Range {
@@ -172,6 +171,7 @@ public:
 class RSB_EXPORT RenderParticleColorParaType {
 public:
     Range<Color> colorVal_;
+    DistributionType distribution_;
     ParticleUpdator updator_;
     Range<float> redRandom_;
     Range<float> greenRandom_;
@@ -179,14 +179,17 @@ public:
     Range<float> alphaRandom_;
 
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife_;
-    RenderParticleColorParaType(const Range<Color>& colorVal, const ParticleUpdator& updator,
-        const Range<float>& redRandom, const Range<float>& greenRandom, const Range<float>& blueRandom,
-        const Range<float>& alphaRandom, std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife)
-        : colorVal_(colorVal), updator_(updator), redRandom_(redRandom), greenRandom_(greenRandom),
-          blueRandom_(blueRandom), alphaRandom_(alphaRandom), valChangeOverLife_(std::move(valChangeOverLife))
+    RenderParticleColorParaType(const Range<Color>& colorVal, const DistributionType& distribution,
+        const ParticleUpdator& updator, const Range<float>& redRandom, const Range<float>& greenRandom,
+        const Range<float>& blueRandom, const Range<float>& alphaRandom,
+        std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife)
+        : colorVal_(colorVal), distribution_(distribution), updator_(updator), redRandom_(redRandom),
+          greenRandom_(greenRandom), blueRandom_(blueRandom), alphaRandom_(alphaRandom),
+          valChangeOverLife_(std::move(valChangeOverLife))
     {}
     RenderParticleColorParaType()
-        : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_(), alphaRandom_()
+        : colorVal_(), distribution_(DistributionType::UNIFORM), updator_(ParticleUpdator::NONE), redRandom_(),
+          greenRandom_(), blueRandom_(), alphaRandom_()
     {}
     RenderParticleColorParaType(const RenderParticleColorParaType& color) = default;
     RenderParticleColorParaType& operator=(const RenderParticleColorParaType& color) = default;
@@ -244,6 +247,7 @@ public:
 
     const Color& GetColorStartValue();
     const Color& GetColorEndValue();
+    const DistributionType& GetColorDistribution();
     const ParticleUpdator& GetColorUpdator();
     float GetRedRandomStart() const;
     float GetRedRandomEnd() const;
@@ -354,23 +358,33 @@ public:
     bool IsAlive() const;
     void SetIsDead();
     static float GetRandomValue(float min, float max);
+    void SetColor();
+    int GenerateColorComponent(double mean, double stddev);
     Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize);
-    Color Lerp(const Color& start, const Color& end, float t);
     std::shared_ptr<ParticleRenderParams> particleParams_;
 
     bool operator==(const RSRenderParticle& rhs)
     {
-        return (position_ == rhs.position_) && (velocity_ == rhs.velocity_) &&
-               (acceleration_ == rhs.acceleration_) && (scale_ == rhs.scale_) && (spin_ == rhs.spin_) &&
-               (opacity_ == rhs.opacity_) && (color_ == rhs.color_) && (radius_ == rhs.radius_) &&
-               (particleType_ == rhs.particleType_) && (activeTime_ == rhs.activeTime_) &&
+        return (position_ == rhs.position_) && (velocity_ == rhs.velocity_) && (acceleration_ == rhs.acceleration_) &&
+               (scale_ == rhs.scale_) && (spin_ == rhs.spin_) && (opacity_ == rhs.opacity_) && (color_ == rhs.color_) &&
+               (radius_ == rhs.radius_) && (particleType_ == rhs.particleType_) && (activeTime_ == rhs.activeTime_) &&
                (lifeTime_ == rhs.lifeTime_) && (imageSize_ == rhs.imageSize_);
     }
 
+    static Color Lerp(const Color& start, const Color& end, float t)
+    {
+        Color result;
+        result.SetRed(start.GetRed() + static_cast<int>(std::round((end.GetRed() - start.GetRed()) * t)));
+        result.SetGreen(start.GetGreen() + static_cast<int>(std::round((end.GetGreen() - start.GetGreen()) * t)));
+        result.SetBlue(start.GetBlue() + static_cast<int>(std::round((end.GetBlue() - start.GetBlue()) * t)));
+        result.SetAlpha(start.GetAlpha() + static_cast<int>(std::round((end.GetAlpha() - start.GetAlpha()) * t)));
+        return result;
+    }
+
 private:
-    Vector2f position_ = {0.f, 0.f};
-    Vector2f velocity_ = {0.f, 0.f};
-    Vector2f acceleration_ = {0.f, 0.f};
+    Vector2f position_ = { 0.f, 0.f };
+    Vector2f velocity_ = { 0.f, 0.f };
+    Vector2f acceleration_ = { 0.f, 0.f };
     float scale_ = 1.f;
     float spin_ = 0.f;
     float opacity_ = 1.f;
@@ -443,6 +457,7 @@ public:
     }
 
     friend class RSRenderParticleAnimation;
+
 private:
     std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector_;
 };
