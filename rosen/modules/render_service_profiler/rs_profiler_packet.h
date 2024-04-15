@@ -67,10 +67,10 @@ public:
 };
 
 template<typename T, typename = void>
-struct has_contiguous_layout : std::false_type {};
+struct HasContiguousLayout : std::false_type {};
 
 template<typename T>
-struct has_contiguous_layout<T, std::void_t<decltype(std::declval<T>().data())>> : std::true_type {};
+struct HasContiguousLayout<T, std::void_t<decltype(std::declval<T>().data())>> : std::true_type {};
 
 class Packet {
 public:
@@ -205,14 +205,13 @@ inline T Packet::Read(size_t size)
 }
 
 template<typename T>
-[[maybe_unused]] inline bool Packet::Write(const T& value)
+[[maybe_unused]] bool Packet::Write(const T& value)
 {
     if constexpr (std::is_trivially_copyable_v<T>) {
         return WriteTrivial(value);
-    } else if constexpr (has_contiguous_layout<T>::value) {
+    } else if constexpr (HasContiguousLayout<T>::value) {
         return Write(reinterpret_cast<const void*>(value.data()), value.size() * sizeof(typename T::value_type));
     } else {
-        
         bool res = true;
         for (auto it = value.cbegin(); it != value.cend(); ++it) {
             res = res && Write(*it);
