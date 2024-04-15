@@ -219,6 +219,20 @@ RSDrawingCacheType RSRenderParams::GetDrawingCacheType() const
     return drawingCacheType_;
 }
 
+void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
+{
+    if (drawingCacheIncludeProperty_ == includeProperty) {
+        return;
+    }
+    drawingCacheIncludeProperty_ = includeProperty;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetDrawingCacheIncludeProperty() const
+{
+    return drawingCacheIncludeProperty_;
+}
+
 void RSRenderParams::SetShadowRect(Drawing::Rect rect)
 {
     if (shadowRect_ == rect) {
@@ -306,6 +320,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheType_ = drawingCacheType_;
+    target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     OnCanvasDrawingSurfaceChange(target);
     needSync_ = false;

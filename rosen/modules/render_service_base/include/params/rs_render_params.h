@@ -104,6 +104,9 @@ public:
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const;
 
+    void SetDrawingCacheIncludeProperty(bool includeProperty);
+    bool GetDrawingCacheIncludeProperty() const;
+
     void SetShadowRect(Drawing::Rect rect);
     Drawing::Rect GetShadowRect() const;
 
@@ -146,6 +149,7 @@ private:
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
+    bool drawingCacheIncludeProperty_ = false;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool shouldPaint_ = false;

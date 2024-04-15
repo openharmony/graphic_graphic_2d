@@ -811,6 +811,7 @@ private:
     // Test pipeline
     struct DrawCmdIndex {
         int8_t shadowIndex_           = -1;
+        int8_t renderGroupBeginIndex_ = -1;
         int8_t backgroundFilterIndex_ = -1;
         int8_t backgroundColorIndex_  = -1;
         int8_t useEffectIndex_        = -1;
@@ -818,6 +819,7 @@ private:
         int8_t childrenIndex_         = -1;
         int8_t contentIndex_          = -1;
         int8_t foregroundBeginIndex_  = -1;
+        int8_t renderGroupEndIndex_   = -1;
         int8_t endIndex_              = -1;
     };
     bool addedToPendingSyncList_ = false;

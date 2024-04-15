@@ -965,6 +965,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfo id:%llu contentDirty:%d subTreeDirty:%d nodeGroupType:%d",
         GetId(), IsContentDirty(), IsSubTreeDirty(), nodeGroupType_);
     SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty()));
+    stagingRenderParams_->SetDrawingCacheIncludeProperty(nodeGroupIncludeProperty_);
 }
 
 void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
@@ -979,6 +980,7 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
             "childHasVisibleEffect:%d",
             GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
     }
+    AddToPendingSyncList();
 }
 
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -2104,9 +2106,12 @@ void RSRenderNode::UpdateDisplayList()
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::SHADOW);
 
+    AppendDrawFunc(RSDrawableSlot::OUTLINE, RSDrawableSlot::OUTLINE);
+    stagingDrawCmdIndex_.renderGroupBeginIndex_ = stagingDrawCmdList_.size();
+
     // Update index of BACKGROUND_COLOR
     stagingDrawCmdIndex_.backgroundColorIndex_ =
-        AppendDrawFunc(RSDrawableSlot::OUTLINE, RSDrawableSlot::BACKGROUND_COLOR);
+        AppendDrawFunc(RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::BACKGROUND_COLOR);
 
     // Update index of BACKGROUND_FILTER
     stagingDrawCmdIndex_.backgroundFilterIndex_ =
@@ -2137,6 +2142,7 @@ void RSRenderNode::UpdateDisplayList()
         stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
         stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
     }
+    stagingDrawCmdIndex_.renderGroupEndIndex_ = stagingDrawCmdList_.size();
 
     AppendDrawFunc(RSDrawableSlot::FG_SAVE_BOUNDS, RSDrawableSlot::RESTORE_ALL);
     stagingDrawCmdIndex_.endIndex_ = stagingDrawCmdList_.size();

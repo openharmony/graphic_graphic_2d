@@ -100,6 +100,8 @@ protected:
     static int GetProcessedNodeCount();
     static void ProcessedNodeCountInc();
     static void ClearProcessedNodeCount();
+    static inline bool drawBlurForCache_ = false;
+
 private:
     DrawableCacheType cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
@@ -118,7 +120,6 @@ private:
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
 
     static inline bool isOpDropped_ = true;
-    static inline bool drawBlurForCache_ = false;
     static inline int processedNodeCount_ = 0;
     // used foe render group cache
 };

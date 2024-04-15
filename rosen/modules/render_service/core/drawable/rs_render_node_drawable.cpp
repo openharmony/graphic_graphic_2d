@@ -179,9 +179,15 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         }
         case DrawableCacheType::CONTENT: {
             RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", renderNode_->GetId());
-            DrawBackground(canvas, params.GetBounds());
-            DrawCachedImage(*curCanvas, params.GetCacheSize());
-            DrawForeground(canvas, params.GetBounds());
+            if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
+                DrawBackground(canvas, params.GetBounds());
+                DrawCachedImage(*curCanvas, params.GetCacheSize());
+                DrawForeground(canvas, params.GetBounds());
+            } else {
+                DrawBeforeCacheWithProperty(canvas, params.GetBounds());
+                DrawCachedImage(*curCanvas, params.GetCacheSize());
+                DrawAfterCacheWithProperty(canvas, params.GetBounds());
+            }
             DrawDfxForCache(canvas, params.GetBounds());
             break;
         }
@@ -454,8 +460,12 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 
     // draw content + children
     auto bounds = params.GetBounds();
-    DrawContent(*cacheCanvas, params.GetFrameRect());
-    DrawChildren(*cacheCanvas, bounds);
+    if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
+        DrawContent(*cacheCanvas, params.GetFrameRect());
+        DrawChildren(*cacheCanvas, bounds);
+    } else {
+        DrawCacheWithProperty(*cacheCanvas, bounds);
+    }
 
     isOpDropped_ = isOpDropped;
 

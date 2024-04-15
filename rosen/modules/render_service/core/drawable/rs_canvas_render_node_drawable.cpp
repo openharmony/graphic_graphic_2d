@@ -55,7 +55,9 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
-        GenerateCacheIfNeed(canvas, *params);
+        if (!drawBlurForCache_) {
+            GenerateCacheIfNeed(canvas, *params);
+        }
         CheckCacheTypeAndDraw(canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);

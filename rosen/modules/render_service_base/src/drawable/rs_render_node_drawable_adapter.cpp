@@ -123,7 +123,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
 void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
 {
-    if (renderNode_->drawCmdList_.empty()) {
+    if (renderNode_->drawCmdList_.empty() || start < 0 || end < 0 || start > end) {
         return;
     }
 
@@ -302,6 +302,23 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
     }
+}
+
+void RSRenderNodeDrawableAdapter::DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.renderGroupBeginIndex_,
+        renderNode_->drawCmdIndex_.renderGroupEndIndex_);
+}
+
+void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(renderNode_->drawCmdIndex_.renderGroupBeginIndex_ - 1));
+}
+
+void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.renderGroupEndIndex_,
+        renderNode_->drawCmdIndex_.endIndex_);
 }
 
 bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
