@@ -2260,7 +2260,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
     }
-    if (node.GetRenderProperties().GetSandBox()) {
+    if (node.GetSharedTransitionParam() && node.GetRenderProperties().GetSandBox()) {
         node.GetStagingRenderParams()->SetAlpha(curAlpha_);
     } else {
         node.GetStagingRenderParams()->SetAlpha(node.GetRenderProperties().GetAlpha());

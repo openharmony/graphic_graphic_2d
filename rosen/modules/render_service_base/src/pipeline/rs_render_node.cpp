@@ -1258,9 +1258,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
         properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
         const Drawing::Matrix* parentMatrix = nullptr;
         std::optional<Drawing::Point> offset;
-        if (properties.GetSandBox()) {
+        if (auto sandbox = properties.GetSandBox(); sandbox.has_value() && sharedTransitionParam_) {
             parentMatrix = &IdentityMatrix;
-            offset = Drawing::Point { properties.GetSandBox()->x_, properties.GetSandBox()->y_ };
+            offset = Drawing::Point { sandbox->x_, sandbox->y_ };
         } else {
             parentMatrix = parent ? &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) : nullptr;
             if (parent && !IsInstanceOf<RSSurfaceRenderNode>()) {
@@ -3541,7 +3541,7 @@ void RSRenderNode::UpdateRenderParams()
         return;
     }
 
-    if (GetRenderProperties().GetSandBox()) {
+    if (sharedTransitionParam_ && GetRenderProperties().GetSandBox()) {
         stagingRenderParams_->SetMatrix(boundGeo->GetAbsMatrix());
         stagingRenderParams_->SetHasSandBox(true);
     } else {
