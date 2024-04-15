@@ -604,6 +604,12 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
                                               std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount)
 {
     for (uint32_t i = 0; i < connections_.size(); i++) {
+        ScopedDebugTrace trace("CollectConnectionsLTPO, i:" + std::to_string(i) +
+                               ", name:" + connections_[i]->info_.name_ +
+                               ", rate:" + std::to_string(connections_[i]->rate_) +
+                               ", vsyncPulseFreq:" + std::to_string(connections_[i]->vsyncPulseFreq_) +
+                               ", referencePulseCount:" + std::to_string(connections_[i]->referencePulseCount_) +
+                               ", vsyncCount:" + std::to_string(vsyncCount));
         if (!connections_[i]->triggerThisTime_ && connections_[i]->rate_ <= 0) {
             continue;
         }

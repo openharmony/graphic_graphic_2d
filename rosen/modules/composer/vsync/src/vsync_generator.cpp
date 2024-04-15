@@ -45,7 +45,8 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
-constexpr int64_t MAX_TIMESTAMP_THRESHOLD = 1000000; // 1000000ns == 1.0ms
+constexpr int64_t REFERENCETIME_CHECK_THRESHOLD = 2000000; // 2000000ns == 2.0ms
+constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 
 static void SetThreadHighPriority()
 {
@@ -263,6 +264,7 @@ bool VSyncGenerator::CheckTimingCorrect(int64_t now, int64_t referenceTime, int6
 bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, int64_t nextVSyncTime)
 {
     if (!CheckTimingCorrect(now, referenceTime, nextVSyncTime)) {
+        ScopedBytrace trace("Timing not Correct");
         return false;
     }
 
@@ -277,6 +279,7 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
         needChangeGeneratorRefreshRate_ = false;
         refreshRateIsChanged_ = true;
         frameRateChanging_ = true;
+        ScopedBytrace trace("frameRateChanging_ = true");
         modelChanged = true;
     }
 
@@ -535,6 +538,9 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     if (generatorRefreshRate != currRefreshRate_) {
         changingGeneratorRefreshRate_ = generatorRefreshRate;
         needChangeGeneratorRefreshRate_ = true;
+    } else {
+        ScopedBytrace trace("refreshRateNotChanged, generatorRefreshRate:" + std::to_string(generatorRefreshRate) +
+                            ", currRefreshRate_:" + std::to_string(currRefreshRate_));
     }
 
     waitForTimeoutCon_.notify_all();
@@ -589,6 +595,41 @@ void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor
     rsVSyncDistributor_ = rsVSyncDistributor;
 }
 
+void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
+{
+    if (lastPeriod_ == period_) {
+        if (abs(hardwareVsyncInterval - period_) > PERIOD_CHECK_THRESHOLD) {
+            // if software period not changed, and hardwareVsyncInterval,
+            // and software period is not the same, accumulate counter
+            periodCheckCounter_++;
+            ScopedBytrace trace("CounterAccumulated, lastPeriod_:" + std::to_string(lastPeriod_) +
+                                ", period_:" + std::to_string(period_) +
+                                ", hardwareVsyncInterval:" + std::to_string(hardwareVsyncInterval) +
+                                ", periodCheckCounter_:" + std::to_string(periodCheckCounter_));
+        }
+    } else {
+        // if period changed, record this period as lastPeriod_ and clear periodCheckCounter_
+        lastPeriod_ = period_;
+        periodCheckCounter_ = 0;
+        ScopedBytrace trace("periodCheckCounter_ = 0");
+    }
+    // exit frameRateChanging status when the frame rate is inconsistent for 10 consecutive times.
+    if (periodCheckCounter_ > 10) {
+        ScopedBytrace trace("samePeriodCounter ERROR, period_:" + std::to_string(period_) +
+                            ", hardwareVsyncInterval:" + std::to_string(hardwareVsyncInterval) +
+                            ", pendingReferenceTime_:" + std::to_string(pendingReferenceTime_) +
+                            ", referenceTime_:" + std::to_string(referenceTime_) +
+                            ", referenceTimeDiff:" + std::to_string(abs(pendingReferenceTime_ - referenceTime_)));
+        VLOGE("samePeriodCounter ERROR, period_:" VPUBI64 ", hardwareVsyncInterval:" VPUBI64
+            ", pendingReferenceTime_:" VPUBI64 ", referenceTime_:" VPUBI64 ", referenceTimeDiff:" VPUBI64,
+            period_, hardwareVsyncInterval, pendingReferenceTime_, referenceTime_,
+            abs(pendingReferenceTime_ - referenceTime_));
+        // end the frameRateChanging status
+        frameRateChanging_ = false;
+        ScopedBytrace forceEnd("frameRateChanging_ = false, forceEnd");
+    }
+}
+
 VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
 {
     if (hardwareVsyncInterval < 0 || referenceTime < 0) {
@@ -600,11 +641,15 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
     if (pendingPeriod_ <= 0) {
         return VSYNC_ERROR_API_FAILED;
     }
+
+    PeriodCheckLocked(hardwareVsyncInterval);
+
     if (rsVSyncDistributor_->IsDVsyncOn() ||
-        ((abs(pendingReferenceTime_ - referenceTime_) < MAX_TIMESTAMP_THRESHOLD) &&
-        (abs(hardwareVsyncInterval - pendingPeriod_) < MAX_TIMESTAMP_THRESHOLD))) {
+        ((abs(pendingReferenceTime_ - referenceTime_) < REFERENCETIME_CHECK_THRESHOLD) &&
+        (abs(hardwareVsyncInterval - pendingPeriod_) < PERIOD_CHECK_THRESHOLD))) {
         // framerate has changed
         frameRateChanging_ = false;
+        ScopedBytrace changeEnd("frameRateChanging_ = false");
         pendingPeriod_ = 0;
         int64_t actualOffset = referenceTime - pendingReferenceTime_;
         if (pulse_ == 0) {
@@ -699,6 +744,7 @@ void VSyncGenerator::Dump(std::string &result)
     result += "\nphase:" + std::to_string(phase_);
     result += "\nreferenceTime:" + std::to_string(referenceTime_);
     result += "\nvsyncMode:" + std::to_string(vsyncMode_);
+    result += "\nperiodCheckCounter_:" + std::to_string(periodCheckCounter_);
 }
 } // namespace impl
 sptr<VSyncGenerator> CreateVSyncGenerator()
