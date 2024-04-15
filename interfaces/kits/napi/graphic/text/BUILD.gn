@@ -74,9 +74,9 @@ ohos_shared_library("text_napi_impl") {
   ]
 
   external_deps = [
+    "graphic_surface:surface",
     "hilog:libhilog",
     "napi:ace_napi",
-    "graphic_surface:surface",
   ]
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
