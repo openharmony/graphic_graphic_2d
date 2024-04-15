@@ -37,6 +37,11 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_skia_filter_test.cpp",
   ]
 
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   configs = [
     ":render_test",
     "$ace_root:ace_test_config",
