@@ -261,6 +261,9 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
 
     for (auto linker : appFrameRateLinkers) {
         auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, linker.second->GetExpectedRange());
+        if (touchMgr_->touchMachine_.GetState() != TouchState::IDLE) {
+            appFrameRate = OLED_NULL_HZ;
+        }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
