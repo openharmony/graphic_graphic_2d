@@ -636,7 +636,7 @@ EGLBoolean EglWrapperDisplay::SwapBuffers(EGLSurface surf)
 {
     WLOGD("");
     std::lock_guard<std::mutex> lock(refLockMutex_);
-    
+
     EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surf);
     if (!CheckObject(surfPtr)) {
         if (surfPtr->GetEglSurface() == nullptr) {
