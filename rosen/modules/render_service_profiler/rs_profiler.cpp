@@ -957,7 +957,9 @@ void RSProfiler::CalcPerfNodeAllStep()
         g_calcPerfNode = 1;
         AwakeRenderServiceThread();
         return;
-    } else if (g_nodeSetPerfCalcIndex - 1 < g_nodeSetPerf.size()) {
+    }
+    
+    if (g_nodeSetPerfCalcIndex - 1 < static_cast<int32_t>(g_nodeSetPerf.size())) {
         auto it = g_nodeSetPerf.begin();
         std::advance(it, g_nodeSetPerfCalcIndex - 1);
         g_calcPerfNode = *it;
@@ -1013,11 +1015,9 @@ void RSProfiler::RecordStart(const ArgList& args)
 {
     g_recordStartTime = 0.0;
 
-    auto& imageMap = RSProfiler::GetImageCache();
     ClearImageCache();
 
     g_recordFile.Create(RSFile::GetDefaultPath());
-    g_recordFile.SetImageCache(reinterpret_cast<std::map<uint64_t, FileImageCacheRecord>*>(&imageMap));
     g_recordFile.AddLayer(); // add 0 layer
 
     auto& nodeMap = g_renderServiceContext->GetMutableNodeMap();
@@ -1097,10 +1097,8 @@ void RSProfiler::PlaybackStart(const ArgList& args)
     g_playbackPid = args.Pid();
     g_playbackStartTime = 0.0;
 
-    auto imageCache = &GetImageCache();
     ClearImageCache();
 
-    g_playbackFile.SetImageCache(reinterpret_cast<FileImageCache*>(imageCache));
     g_playbackFile.Open(RSFile::GetDefaultPath());
     if (!g_playbackFile.IsOpen()) {
         return;
