@@ -198,33 +198,21 @@ bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
 bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInfo,
     int height, int width, int stride, uint8_t *img)
 {
-    struct CldInfo {
-        uint32_t cldDataOffset = 0;
-        uint32_t cldSize = 0;
-        uint32_t cldWidth = 0;
-        uint32_t cldHeight = 0;
-        uint32_t cldStride = 0;
-        uint32_t exWidth = 0;
-        uint32_t exHeight = 0;
-        uint32_t baseColor = 0;
-    };
-
     const uint32_t bytesPerPixel = 4; // 4 means four bytes per pixel
-    CldInfo cldInfo;
-    cldInfo.cldSize = static_cast<uint32_t>(cldLayerInfo.bufferSize);
-    cldInfo.cldWidth = static_cast<uint32_t>(cldLayerInfo.cldWidth);
-    cldInfo.cldHeight = static_cast<uint32_t>(cldLayerInfo.cldHeight);
-    cldInfo.cldStride = static_cast<uint32_t>(cldLayerInfo.cldWidth * bytesPerPixel);
-    cldInfo.exWidth = static_cast<uint32_t>(width);
-    cldInfo.exHeight = static_cast<uint32_t>(height);
+    cldInfo_.cldSize = static_cast<uint32_t>(cldLayerInfo.bufferSize);
+    cldInfo_.cldWidth = static_cast<uint32_t>(cldLayerInfo.cldWidth);
+    cldInfo_.cldHeight = static_cast<uint32_t>(cldLayerInfo.cldHeight);
+    cldInfo_.cldStride = static_cast<uint32_t>(cldLayerInfo.cldWidth * bytesPerPixel);
+    cldInfo_.exWidth = static_cast<uint32_t>(width);
+    cldInfo_.exHeight = static_cast<uint32_t>(height);
     
     int offset = 0;
     int offsetCldInfo = 0;
     offsetCldInfo = height * stride;
     offset = (height + 1) * stride;
-    cldInfo.cldDataOffset = static_cast<uint32_t>(offset);
+    cldInfo_.cldDataOffset = static_cast<uint32_t>(offset);
     
-    errno_t ret = memcpy_s(reinterpret_cast<void*>(img + offsetCldInfo), sizeof(cldInfo), &cldInfo, sizeof(cldInfo));
+    errno_t ret = memcpy_s(reinterpret_cast<void*>(img + offsetCldInfo), sizeof(cldInfo_), &cldInfo_, sizeof(cldInfo_));
     if (ret != EOK) {
         RS_LOGE("[%s] memcpy_s failed", __func__);
         return false;
@@ -317,6 +305,11 @@ float RSRcdSurfaceRenderNode::GetFrameOffsetX() const
 float RSRcdSurfaceRenderNode::GetFrameOffsetY() const
 {
     return rcdExtInfo_.GetFrameOffsetY();
+}
+
+const CldInfo& RSRcdSurfaceRenderNode::GetCldInfo() const
+{
+    return cldInfo_;
 }
 } // namespace Rosen
 } // namespace OHOS

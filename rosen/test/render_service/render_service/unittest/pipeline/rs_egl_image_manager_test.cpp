@@ -93,7 +93,7 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
         eglImageManager_->ShrinkCachesIfNeeded(true);
 
         // create cache from buffer directly
-        auto ret = eglImageManager_->CreateImageCacheFromBuffer(buffer);
+        auto ret = eglImageManager_->CreateImageCacheFromBuffer(buffer, 0);
         ASSERT_NE(ret, 0);
         eglImageManager_->ShrinkCachesIfNeeded(false);
     }
@@ -113,7 +113,7 @@ HWTEST_F(RSEglImageManagerTest, MapEglImageFromSurfaceBuffer001, TestSize.Level1
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         sptr<OHOS::SurfaceBuffer> buffer = displayNode->GetBuffer();
         sptr<SyncFence> acquireFence;
-        auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence);
+        auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, 0);
         ASSERT_NE(ret, 0);
     }
 }

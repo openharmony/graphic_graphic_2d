@@ -23,6 +23,7 @@
 #include "skia_adapter/skia_convert_utils.h"
 #include "text/font_metrics.h"
 #include "paragraph_builder_impl.h"
+#include "text_line_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -324,6 +325,34 @@ bool ParagraphImpl::GetLineFontMetrics(const size_t lineNumber, size_t& charNumb
     }
     return paragraph_->GetLineFontMetrics(lineNumber, charNumber, fontMetrics);
 }
+
+std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
+{
+    if (!paragraph_) {
+        return {};
+    }
+    std::vector<std::unique_ptr<skt::TextLineBase>> textLineBases = paragraph_->GetTextLines();
+    std::vector<std::unique_ptr<SPText::TextLineBase>> lines;
+    for (std::unique_ptr<skt::TextLineBase>& textLineBase : textLineBases) {
+        std::unique_ptr<SPText::TextLineImpl> textLinePtr =
+            std::make_unique<SPText::TextLineImpl>(std::move(textLineBase), paints_);
+        lines.emplace_back(std::move(textLinePtr));
+    }
+    return lines;
+}
+
+std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
+{
+    if (!paragraph_) {
+        return nullptr;
+    }
+    std::vector<PaintRecord> paints = paints_;
+    std::unique_ptr<skt::Paragraph> sktParagraph = paragraph_->CloneSelf();
+    std::unique_ptr<ParagraphImpl> paragraph = std::make_unique<ParagraphImpl>(std::move(sktParagraph),
+        std::move(paints));
+    return paragraph;
+}
+
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

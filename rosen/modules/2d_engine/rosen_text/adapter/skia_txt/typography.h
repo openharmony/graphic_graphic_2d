@@ -68,6 +68,8 @@ public:
     Drawing::FontMetrics GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle) override;
     bool GetLineFontMetrics(const size_t lineNumber, size_t& charNumber,
         std::vector<Drawing::FontMetrics>& fontMetrics) override;
+    std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const override;
+    std::unique_ptr<OHOS::Rosen::Typography> CloneSelf() override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
 };

@@ -24,6 +24,9 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 
+#include "drawable/rs_render_node_drawable.h"
+#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 namespace OHOS {
 namespace Rosen {
 class RSRenderTaskBase {

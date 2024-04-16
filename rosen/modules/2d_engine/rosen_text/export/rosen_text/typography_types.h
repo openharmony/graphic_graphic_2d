@@ -16,6 +16,8 @@
 #ifndef ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_TYPES_H
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_TYPES_H
 
+#include <cstddef>
+
 namespace OHOS {
 namespace Rosen {
 enum class TextDirection {
@@ -117,6 +119,22 @@ enum StyleType {
     DECORATIONS,
     LETTER_SPACING,
     WORD_SPACING
+};
+
+struct Boundary {
+    size_t leftIndex = 0; // include leftIndex_
+    size_t rightIndex = 0; // not include rightIndex_
+
+    Boundary(size_t left, size_t right)
+    {
+        leftIndex = left;
+        rightIndex = right;
+    }
+
+    bool operator ==(const Boundary& rhs) const
+    {
+        return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
+    }
 };
 
 } // namespace Rosen

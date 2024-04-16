@@ -32,9 +32,10 @@ RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
 }
 
 bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                     std::shared_ptr<RSBaseRenderEngine> renderEngine)
+                                     std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    // planning: adapt isRenderThread
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine, isRenderThread)) {
         return false;
     }
 
@@ -46,7 +47,7 @@ bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX,
         [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
 }
 
-void RSPhysicalScreenProcessor::PostProcess(RSDisplayRenderNode* node)
+void RSPhysicalScreenProcessor::PostProcess()
 {
     composerAdapter_->CommitLayers(layers_);
     MultiLayersPerf(layers_.size());
@@ -67,11 +68,6 @@ void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 void RSPhysicalScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
     RS_LOGI("RSPhysicalScreenProcessor::ProcessDisplaySurface() is not supported.");
-}
-
-void RSPhysicalScreenProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
-{
-    RS_LOGI("RSPhysicalScreenProcessor::ProcessDrivenSurface() is not supported.");
 }
 
 void RSPhysicalScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

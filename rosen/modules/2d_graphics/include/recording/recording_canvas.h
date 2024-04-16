@@ -60,6 +60,7 @@ public:
 #endif
 
     void Clear() const;
+    void Reset(int32_t width, int32_t height, bool addDrawOpImmediate = true);
 
     void ResetCanvas(int32_t width, int32_t height);
 

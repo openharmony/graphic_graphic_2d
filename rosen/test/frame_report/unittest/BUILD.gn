@@ -19,10 +19,15 @@ ohos_unittest("frame_report_test") {
   include_dirs = [ "$graphic_2d_root/rosen/modules/frame_report/include" ]
   sources = [ "rs_frame_report_test.cpp" ]
 
-  deps = [
-    "$graphic_2d_root/rosen/modules/frame_report:librs_frame_report",
-    "$graphic_2d_root/utils/test_header:test_header",
-  ]
+  if (current_os == "ohos") {
+    sources += [
+      "$graphic_2d_root/rosen/modules/frame_report/src/rs_frame_report.cpp",
+    ]
+  } else {
+    sources += [ "$graphic_2d_root/rosen/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
+  }
+
+  deps = [ "$graphic_2d_root/utils/test_header:test_header" ]
   external_deps = [ "hilog:libhilog" ]
 
   cflags = [

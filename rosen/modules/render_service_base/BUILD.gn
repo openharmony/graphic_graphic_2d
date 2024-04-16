@@ -64,7 +64,7 @@ ohos_source_set("render_service_base_src") {
     blocklist = "./rs_base_blocklist.txt"
     if (rosen_is_ohos) {
       boundary_sanitize = true
-      integer_overflow = true
+      integer_overflow = false
       ubsan = true
     }
   }
@@ -175,6 +175,13 @@ ohos_source_set("render_service_base_src") {
     "src/memory/rs_memory_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
 
+    #params
+    "src/params/rs_canvas_render_params.cpp",
+    "src/params/rs_display_render_params.cpp",
+    "src/params/rs_render_params.cpp",
+    "src/params/rs_render_thread_params.cpp",
+    "src/params/rs_surface_render_params.cpp",
+
     #pipeline
     "src/pipeline/rs_canvas_drawing_render_node.cpp",
     "src/pipeline/rs_canvas_render_node.cpp",
@@ -214,6 +221,15 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_drawable_utilities.cpp",
     "src/property/rs_property_trace.cpp",
 
+    #drawable
+    "src/drawable/rs_drawable.cpp",
+    "src/drawable/rs_misc_drawable.cpp",
+    "src/drawable/rs_property_drawable.cpp",
+    "src/drawable/rs_property_drawable_background.cpp",
+    "src/drawable/rs_property_drawable_foreground.cpp",
+    "src/drawable/rs_property_drawable_utils.cpp",
+    "src/drawable/rs_render_node_drawable_adapter.cpp",
+
     #render
     "src/render/rs_aibar_filter.cpp",
     "src/render/rs_blur_filter.cpp",
@@ -221,6 +237,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_picker.cpp",
     "src/render/rs_filter.cpp",
+    "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
@@ -296,7 +313,6 @@ ohos_source_set("render_service_base_src") {
       "src/memory/rs_tag_tracker.cpp",
 
       #pipeline
-
       "src/pipeline/rs_display_render_node.cpp",
       "src/pipeline/rs_occlusion_config.cpp",
       "src/pipeline/rs_uni_render_judgement.cpp",

@@ -149,3 +149,8 @@ FIRST_FRAME_DRAWN:
 HGM_VOTER_INFO:
   __BASE: {type: STATISTIC, level: MINOR, desc: hgm voter info statistics}
   MSG: {type: STRING, desc: voter info}
+
+GPU_SUBHEALTH_MONITORING:
+  __BASE: {type: STATISTIC, level: MINOR, desc: GPU subhealth monitoring statistics}
+  WAIT_ACQUIRE_FENCE_TIME: {type: UINT64, desc: wait acquire fence time}
+  GPU_LOAD: {type: DOUBLE, desc: gpu load}

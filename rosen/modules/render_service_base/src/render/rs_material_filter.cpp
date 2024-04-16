@@ -221,7 +221,7 @@ void RSMaterialFilter::PreProcess(std::shared_ptr<Drawing::Image> imageSnapshot)
     }
 }
 
-void RSMaterialFilter::PostProcess(RSPaintFilterCanvas& canvas)
+void RSMaterialFilter::PostProcess(Drawing::Canvas& canvas)
 {
     Drawing::Brush brush;
     brush.SetColor(maskColor_.AsArgbInt());

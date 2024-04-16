@@ -46,6 +46,7 @@ public:
     static napi_value MeasureText(napi_env env, napi_callback_info info);
 
     std::shared_ptr<Font> GetFont();
+    void SetFont(std::shared_ptr<Font> font);
 
 private:
     napi_value OnEnableSubpixel(napi_env env, napi_callback_info info);

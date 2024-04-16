@@ -110,21 +110,6 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSharedTransitionParamTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, SetSharedTransitionParamTest, TestSize.Level1)
-{
-    using SharedTransitionParam = std::pair<NodeId, std::weak_ptr<RSRenderNode>>;
-    const std::optional<SharedTransitionParam> sharedTransitionParam;
-    RSRenderNode node(id, context);
-    node.SetSharedTransitionParam(std::move(sharedTransitionParam));
-    ASSERT_FALSE(node.IsDirty());
-}
-
-/**
  * @tc.name: InitCacheSurfaceTest
  * @tc.desc: test
  * @tc.type:FUNC
@@ -303,62 +288,47 @@ HWTEST_F(RSRenderNodeTest,  SetDrawingCacheRootIdTest, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetCacheGeoPreparationDelay01
- * @tc.desc: test SetCacheGeoPreparationDelay once
+ * @tc.name: SetGeoUpdateDelay01
+ * @tc.desc: test SetGeoUpdateDelay once
  * @tc.type: FUNC
  * @tc.require: issueI8JMN8
  */
-HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay01, TestSize.Level2)
+HWTEST_F(RSRenderNodeTest,  SetGeoUpdateDelay01, TestSize.Level2)
 {
     RSRenderNode node(id, context);
     // test default value
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
+    ASSERT_EQ(node.GetGeoUpdateDelay(), false);
 
-    node.SetCacheGeoPreparationDelay(true);
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+    node.SetGeoUpdateDelay(true);
+    ASSERT_EQ(node.GetGeoUpdateDelay(), true);
 }
 
 /**
- * @tc.name: SetCacheGeoPreparationDelay02
- * @tc.desc: test SetCacheGeoPreparationDelay would not be covered by later setting
+ * @tc.name: SetGeoUpdateDelay02
+ * @tc.desc: test SetGeoUpdateDelay would not be covered by later setting
  * @tc.type: FUNC
  * @tc.require: issueI8JMN8
  */
-HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay02, TestSize.Level2)
+HWTEST_F(RSRenderNodeTest,  SetGeoUpdateDelay02, TestSize.Level2)
 {
     RSRenderNode node(id, context);
-    node.SetCacheGeoPreparationDelay(true);
-    node.SetCacheGeoPreparationDelay(false);
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+    node.SetGeoUpdateDelay(true);
+    node.SetGeoUpdateDelay(false);
+    ASSERT_EQ(node.GetGeoUpdateDelay(), true);
 }
 
 /**
- * @tc.name: ResetCacheGeoPreparationDelay01
- * @tc.desc: test SetCacheGeoPreparationDelay would be reset
+ * @tc.name: ResetGeoUpdateDelay01
+ * @tc.desc: test SetGeoUpdateDelay would be reset
  * @tc.type: FUNC
  * @tc.require: issueI8JMN8
  */
-HWTEST_F(RSRenderNodeTest,  ResetCacheGeoPreparationDelay01, TestSize.Level2)
+HWTEST_F(RSRenderNodeTest,  ResetGeoUpdateDelay01, TestSize.Level2)
 {
     RSRenderNode node(id, context);
-    node.SetCacheGeoPreparationDelay(true);
-    node.ResetCacheGeoPreparationDelay();
-    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
-}
-
-/**
- * @tc.name: SetContainBootAnimation
- * @tc.desc: test SetContainBootAnimation and GetContainBootAnimation
- * @tc.type: FUNC
- * @tc.require:SR000HSUII
- */
-HWTEST_F(RSRenderNodeTest,  SetContainBootAnimation001, TestSize.Level2)
-{
-    RSRenderNode node(id, context);
-    node.SetContainBootAnimation(true);
-    ASSERT_EQ(node.GetContainBootAnimation(), true);
-    node.SetContainBootAnimation(false);
-    ASSERT_EQ(node.GetContainBootAnimation(), false);
+    node.SetGeoUpdateDelay(true);
+    node.ResetGeoUpdateDelay();
+    ASSERT_EQ(node.GetGeoUpdateDelay(), false);
 }
 
 /**

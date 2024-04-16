@@ -24,7 +24,7 @@ namespace Rosen {
 class RSB_EXPORT RSRTRefreshCallback {
 public:
     static RSRTRefreshCallback& Instance();
-    void ExcuteRefresh();
+    void ExecuteRefresh();
 private:
     RSRTRefreshCallback() = default;
     ~RSRTRefreshCallback() = default;

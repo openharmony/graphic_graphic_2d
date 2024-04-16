@@ -21,7 +21,6 @@
 #include <scoped_bytrace.h>
 #include <valarray>
 #include <securec.h>
-#include "v1_1/include/idisplay_composer_interface.h"
 #include "v1_2/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
@@ -35,6 +34,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+using namespace OHOS::HDI::Display::Composer::V1_0;
+using namespace OHOS::HDI::Display::Composer::V1_1;
 using namespace OHOS::HDI::Display::Composer::V1_2;
 using IDisplayComposerInterfaceSptr = sptr<OHOS::HDI::Display::Composer::V1_2::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
@@ -112,6 +113,8 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
 {
     CHECK_FUNC(g_composer);
     DisplayCapability hdiInfo;
+    uint32_t propertyId = DisplayPropertyID::DISPLAY_PROPERTY_ID_SKIP_VALIDATE;
+    uint64_t propertyValue;
     int32_t ret = g_composer->GetDisplayCapability(screenId, hdiInfo);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         info.name = hdiInfo.name;
@@ -133,6 +136,8 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
             info.props.emplace_back(graphicProperty);
         }
     }
+
+    ret = g_composer->GetDisplayProperty(screenId, propertyId, propertyValue);
     return ret;
 }
 
@@ -389,6 +394,21 @@ int32_t HdiDeviceImpl::Commit(uint32_t screenId, sptr<SyncFence> &fence)
         fence = new SyncFence(fenceFd);
     } else {
         fence = new SyncFence(-1);
+    }
+
+    return ret;
+}
+
+int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState,
+                                                bool &needFlush)
+{
+    ScopedBytrace bytrace(__func__);
+    CHECK_FUNC(g_composer);
+    int32_t fenceFd = -1;
+    int32_t ret = g_composer->CommitAndGetReleaseFence(screenId, fenceFd, skipState, needFlush);
+
+    if (skipState == 0) {
+        fence = new SyncFence(fenceFd);
     }
 
     return ret;

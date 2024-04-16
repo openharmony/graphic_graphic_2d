@@ -39,6 +39,8 @@ public:
     bool Init();
     void Run();
 
+    void StartRCDUpdateThread(RenderContext* context) const;
+
 private:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
     void DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;

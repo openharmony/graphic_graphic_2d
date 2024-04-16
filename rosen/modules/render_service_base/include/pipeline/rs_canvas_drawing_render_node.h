@@ -35,9 +35,12 @@ public:
     using SharedPtr = std::shared_ptr<RSCanvasDrawingRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::CANVAS_DRAWING_NODE;
 
-    explicit RSCanvasDrawingRenderNode(NodeId id,
-        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
+    explicit RSCanvasDrawingRenderNode(
+        NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     virtual ~RSCanvasDrawingRenderNode();
+
+    // Used in uni render thread.
+    void InitRenderContent();
 
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
 
@@ -46,7 +49,10 @@ public:
         return Type;
     }
 
-    Drawing::Bitmap GetBitmap(const uint64_t tid = UINT32_MAX);
+
+    Drawing::Bitmap GetBitmap();
+    Drawing::Bitmap GetBitmap(const uint64_t tid);
+    std::shared_ptr<Drawing::Image> GetImage(const uint64_t tid);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
 
@@ -56,10 +62,7 @@ public:
         threadId_ = threadId;
     }
 
-    uint32_t GetTid() const
-    {
-        return curThreadInfo_.first;
-    }
+    uint32_t GetTid() const;
 
     void AddDirtyType(RSModifierType type) override;
     void ClearOp();
@@ -68,8 +71,12 @@ public:
     {
         return isNeedProcess_;
     }
+    void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
-
+    const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
+    void ClearResource() override;
+    bool IsDrawCmdListsVisited() const;
+    void SetDrawCmdListsVisited(bool flag);
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
@@ -95,6 +102,10 @@ private:
     pid_t threadId_ = 0;
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
+
+    // Used in uni render thread.
+    uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
+    std::atomic<bool> drawCmdListsVisited_ = false;
 };
 
 } // namespace Rosen

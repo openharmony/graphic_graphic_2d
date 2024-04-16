@@ -37,7 +37,6 @@ namespace {
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
     constexpr float DIVISOR_TWO = 2.0f;
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
-    constexpr float ONE_MS_IN_NANO = 1000000.0f;
     constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 10;
     constexpr int32_t LAST_TOUCH_DOWN_CNT = 1;
@@ -105,7 +104,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
 
     touchMgr_->touchMachine_.RegisterIdleEventCallback([this] () {
         DeliverRefreshRateVote(0, "VOTER_TOUCH", REMOVE_VOTE);
-        touchMgr_->StopRSTimer(curScreenId_);
     });
 }
 
@@ -263,6 +261,9 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
 
     for (auto linker : appFrameRateLinkers) {
         auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, linker.second->GetExpectedRange());
+        if (touchMgr_->touchMachine_.GetState() != TouchState::IDLE) {
+            appFrameRate = OLED_NULL_HZ;
+        }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
@@ -288,21 +289,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
             FrameRateReport();
         }
     };
-
-    if (isDvsyncOn) {
-        HgmTaskHandleThread::Instance().PostTask(task);
-        return;
-    }
-    uint64_t expectTime = timestamp + static_cast<uint64_t>(controller_->GetCurrentOffset());
-    uint64_t currTime = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-    int64_t delayTime = std::ceil(static_cast<int64_t>(expectTime - currTime) * 1.0f / ONE_MS_IN_NANO) + 1;
-    if (delayTime <= 0) {
-        HgmTaskHandleThread::Instance().PostTask(task);
-    } else {
-        HgmTaskHandleThread::Instance().PostTask(task, delayTime);
-    }
+    HgmTaskHandleThread::Instance().PostTask(task);
 }
 
 void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range)
@@ -554,10 +541,10 @@ void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
     }
 
     static std::mutex hgmTouchEventMutex;
+    std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
     if (touchCnt_ < 0) {
         touchCnt_ = 0;
     }
-    std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         touchCnt_++;
         if (touchCnt_ == LAST_TOUCH_DOWN_CNT) {

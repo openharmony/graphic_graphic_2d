@@ -78,10 +78,30 @@ bool RSSystemParameters::GetShowRefreshRateEnabled()
 
 QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "4");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "2");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));
+}
+
+RsParallelType RSSystemParameters::GetRsParallelType()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.parallel.type", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<RsParallelType>(ConvertToInt(type, 0));
+}
+
+RsSurfaceCaptureType RSSystemParameters::GetRsSurfaceCaptureType()
+{
+    if (GetRsParallelType() == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+        return RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD;
+    }
+    static CachedHandle g_Handle =
+        CachedParameterCreate("persist.sys.graphic.surface_capture.type", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<RsSurfaceCaptureType>(ConvertToInt(type, 0));
 }
 
 bool RSSystemParameters::GetVSyncControlEnabled()
@@ -107,7 +127,7 @@ bool RSSystemParameters::GetFilterCacheOcculusionEnabled()
 
 bool RSSystemParameters::GetSkipCanvasNodeOutofScreenEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipCanvasNodeOutofScreen.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipCanvasNodeOutofScreen.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -127,6 +147,13 @@ bool RSSystemParameters::GetRenderStop()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::GetPrevalidateHwcNodeEnabled()
+{
+    static bool prevalidateHwcNodeEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.prevalidateHwcNode.Enabled", "0")).c_str()) != 0;
+    return prevalidateHwcNodeEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

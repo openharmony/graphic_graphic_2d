@@ -344,6 +344,25 @@ void SkiaGPUContext::StoreVkPipelineCacheData()
     grContext_->storeVkPipelineCacheData();
 }
 #endif
+
+std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>>
+    SkiaGPUContext::contextPostMap_ = {};
+
+void SkiaGPUContext::RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func)
+{
+    if (grContext_ != nullptr) {
+        contextPostMap_[uintptr_t(grContext_.get())] = func;
+    }
+}
+
+std::function<void(const std::function<void()>& task)> SkiaGPUContext::GetPostFunc(sk_sp<GrDirectContext> grContext)
+{
+    if (grContext != nullptr && contextPostMap_.count(uintptr_t(grContext.get())) > 0) {
+        return contextPostMap_[uintptr_t(grContext.get())];
+    }
+    return nullptr;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

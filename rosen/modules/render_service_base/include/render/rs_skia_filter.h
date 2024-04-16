@@ -15,11 +15,12 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 
+#include <optional>
+
 #include "common/rs_vector2.h"
 #include "draw/brush.h"
 #include "draw/canvas.h"
 #include "effect/image_filter.h"
-
 #include "render/rs_filter.h"
 
 namespace OHOS {
@@ -35,7 +36,7 @@ public:
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
     virtual std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const = 0;
     virtual void PreProcess(std::shared_ptr<Drawing::Image> image) {};
-    virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
+    virtual void PostProcess(Drawing::Canvas& canvas) {};
     virtual void SetGreyCoef(const std::optional<Vector2f>& greyCoef) {};
     virtual bool CanSkipFrame() const { return false; };
     virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight) {};

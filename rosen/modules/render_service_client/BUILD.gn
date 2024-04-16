@@ -133,6 +133,13 @@ template("render_service_client_source_set") {
       sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
     }
 
+    if (rosen_is_ohos) {
+      sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+    } else {
+      sources +=
+          [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
+    }
+
     cflags = [
       "-Wall",
       "-Wno-pointer-arith",
@@ -155,7 +162,6 @@ template("render_service_client_source_set") {
     ]
 
     deps = [
-      "$graphic_2d_root/rosen/modules/frame_report:librs_frame_report",
       "$graphic_2d_root/rosen/modules/platform:ipc_core",
       "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     ]

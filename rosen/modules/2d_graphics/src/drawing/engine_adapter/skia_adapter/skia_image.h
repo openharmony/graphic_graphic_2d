@@ -45,7 +45,7 @@ public:
 
     SkiaImage() noexcept;
     explicit SkiaImage(sk_sp<SkImage> skImg) noexcept;
-    ~SkiaImage() override {}
+    ~SkiaImage() override;
 
     AdapterType GetType() const override
     {
@@ -117,6 +117,7 @@ public:
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 
+    void PostSkImgToTargetThread();
 private:
 #ifdef ACE_ENABLE_GPU
 #ifdef NEW_SKIA

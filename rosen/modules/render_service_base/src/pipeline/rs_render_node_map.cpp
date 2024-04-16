@@ -161,24 +161,9 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     EraseAbilityComponentNumsInProcess(id);
     renderNodeMap_.erase(id);
     surfaceNodeMap_.erase(id);
-    drivenRenderNodeMap_.erase(id);
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
-}
-
-void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
-{
-    NodeId id = nodePtr->GetId();
-    if (!renderNodeMap_.count(id)) {
-        return;
-    }
-    drivenRenderNodeMap_.emplace(id, nodePtr);
-}
-
-void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
-{
-    drivenRenderNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
@@ -206,10 +191,6 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
 
     EraseIf(surfaceNodeMap_, [pid](const auto& pair) -> bool {
-        return ExtractPid(pair.first) == pid;
-    });
-
-    EraseIf(drivenRenderNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
     });
 
@@ -266,13 +247,6 @@ bool RSRenderNodeMap::ContainPid(pid_t pid) const
 {
     return std::any_of(surfaceNodeMap_.begin(), surfaceNodeMap_.end(),
         [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
-}
-
-void RSRenderNodeMap::TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const
-{
-    for (const auto& [_, node] : drivenRenderNodeMap_) {
-        func(node);
-    }
 }
 
 void RSRenderNodeMap::TraverseDisplayNodes(std::function<void (const std::shared_ptr<RSDisplayRenderNode>&)> func) const

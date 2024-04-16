@@ -41,6 +41,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     SHADOW,
+    FOREGROUND_FILTER,
     OUTLINE,
 
     // BG properties in Bounds Clip
@@ -85,6 +86,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     PIXEL_STRETCH,
 
     RESTORE_BLEND_MODE,
+    RESTORE_FOREGROUND_FILTER,
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.
@@ -122,8 +124,7 @@ public:
     // Generator Utilities
     static void InitializeSaveRestore(const RSRenderContent& content, DrawableVec& drawableVec);
     static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
-        const RSProperties& properties,
-        std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+        const RSProperties& properties, const ModifierDirtyTypes& dirtyTypes);
     static bool UpdateDrawableVec(const RSRenderContent& content, DrawableVec& drawableVec,
         std::unordered_set<RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(

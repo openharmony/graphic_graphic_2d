@@ -207,11 +207,6 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return 0;
 }
 
-bool RSSystemProperties::GetFilterPartialRenderEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetColorPickerPartialEnabled()
 {
     return false;
@@ -359,6 +354,21 @@ uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
 }
 
 bool RSSystemProperties::GetHwcRegionDfxEnabled()
+{
+    return false;
+}
+
+SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
+{
+    return SubTreePrepareCheckType::ENABLED;
+}
+
+bool RSSystemProperties::GetRenderParallelEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetUIFirstForceEnabled()
 {
     return false;
 }

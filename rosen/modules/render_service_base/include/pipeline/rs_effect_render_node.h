@@ -18,6 +18,7 @@
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,12 +32,18 @@ public:
         return Type;
     }
 
+    bool GetUifirstSupportFlag() override
+    {
+        return false;
+    }
+
     explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
     ~RSEffectRenderNode() override;
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
 
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
@@ -54,23 +61,35 @@ public:
 
     void SetRotationChanged(bool isRotationChanged);
     bool GetRotationChanged() const;
-    void SetInvalidateTimesForRotation(int times);
+
+    void SetCurrentAttachedScreenId(uint64_t screenId);
+    uint64_t GetCurrentAttachedScreenId() const;
+    void SetFoldStatusChanged(bool foldStatusChanged);
+
+    bool CheckFilterCacheNeedForceClear();
+    bool CheckFilterCacheNeedForceSave();
+
+    // planning: delte when freeze enabled for all nodes.
+    bool IsStaticCached() const override
+    {
+        return isStaticCached_;
+    }
 
 protected:
     RectI GetFilterRect() const override;
-    void UpdateFilterCacheManagerWithCacheRegion(
-        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) override;
-    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) override;
+    void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
+        const std::optional<RectI>& clipRect, bool isForeground = false) override;
+    void MarkFilterCacheFlagsAfterPrepare(
+        std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, bool isForeground = false) override;
 
 private:
-    bool NeedForceCache();
-
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;
     bool preRotationStatus_ = false;
     bool preStaticStatus_ = false;
-    int invalidateTimes_ = 0;
-    int cacheUpdateInterval_ = 1;
+
+    uint64_t currentAttachedScreenId_ = INVALID_SCREEN_ID; // the current screen this node attached.
+    bool foldStatusChanged_ = false; // fold or expand screen.
 };
 } // namespace Rosen
 } // namespace OHOS

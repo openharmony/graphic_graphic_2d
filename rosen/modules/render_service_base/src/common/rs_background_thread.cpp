@@ -82,6 +82,12 @@ void RSBackgroundThread::InitRenderContext(RenderContext* context)
     renderContext_ = context;
     PostTask([this]() {
         gpuContext_ = CreateShareGPUContext();
+        if (gpuContext_ == nullptr) {
+            return;
+        }
+        gpuContext_->RegisterPostFunc([](const std::function<void()>& task) {
+            RSBackgroundThread::Instance().PostTask(task);
+        });
     });
 }
 

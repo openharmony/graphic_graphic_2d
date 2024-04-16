@@ -110,6 +110,12 @@ public:
     {
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
     }
+    template<typename T>
+    std::shared_ptr<const T> ReinterpretCastTo() const
+    {
+        return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
+    }
+
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
 
@@ -217,6 +223,12 @@ public:
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
 
+    void SetPersp(float persp);
+    void SetPersp(float perspX, float perspY);
+    void SetPersp(const Vector2f& persp);
+    void SetPerspX(float perspX);
+    void SetPerspY(float perspY);
+
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
 
@@ -308,11 +320,12 @@ public:
 
     void SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType);
 
-    // driven render
-    void MarkDrivenRender(bool flag);
-    void MarkDrivenRenderItemIndex(int index);
-    void MarkDrivenRenderFramePaintState(bool flag);
-    void MarkContentChanged(bool isChanged);
+    // driven render was shelved, functions will be deleted soon [start]
+    void MarkDrivenRender(bool flag) {}
+    void MarkDrivenRenderItemIndex(int index) {}
+    void MarkDrivenRenderFramePaintState(bool flag) {}
+    void MarkContentChanged(bool isChanged) {}
+    // driven render was shelved, functions will be deleted soon [end]
 
     void AddModifier(const std::shared_ptr<RSModifier> modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
@@ -432,6 +445,22 @@ private:
     void RemoveChildById(NodeId childId);
     virtual void CreateTextureExportRenderNodeInRT() {};
 
+    void SetBackgroundBlurRadius(float radius);
+    void SetBackgroundBlurSaturation(float saturation);
+    void SetBackgroundBlurBrightness(float brightness);
+    void SetBackgroundBlurMaskColor(Color maskColor);
+    void SetBackgroundBlurColorMode(int colorMode);
+    void SetBackgroundBlurRadiusX(float blurRadiusX);
+    void SetBackgroundBlurRadiusY(float blurRadiusY);
+
+    void SetForegroundBlurRadius(float radius);
+    void SetForegroundBlurSaturation(float saturation);
+    void SetForegroundBlurBrightness(float brightness);
+    void SetForegroundBlurMaskColor(Color maskColor);
+    void SetForegroundBlurColorMode(int colorMode);
+    void SetForegroundBlurRadiusX(float blurRadiusX);
+    void SetForegroundBlurRadiusY(float blurRadiusY);
+    
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
@@ -452,8 +481,6 @@ private:
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };
-    // driven render
-    bool drivenFlag_ = false;
 
     bool isNodeGroup_ = false;
 

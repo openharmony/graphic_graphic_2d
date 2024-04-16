@@ -253,6 +253,12 @@ public:
     Region(const Region& reg) : rects_(reg.rects_), bound_(reg.bound_) {}
     ~Region() {}
 
+    void Reset()
+    {
+        rects_.clear();
+        bound_ = Rect {};
+    }
+
     std::vector<Rect>& GetRegionRectsRef()
     {
         return rects_;

@@ -24,7 +24,7 @@ RSRTRefreshCallback& RSRTRefreshCallback::Instance()
     return instance;
 }
 
-void RSRTRefreshCallback::ExcuteRefresh()
+void RSRTRefreshCallback::ExecuteRefresh()
 {
     if (callback_) {
         callback_();

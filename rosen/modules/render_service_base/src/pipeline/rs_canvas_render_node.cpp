@@ -70,11 +70,21 @@ void RSCanvasRenderNode::ClearRecording()
     RemoveModifier(ANONYMOUS_MODIFIER_ID);
 }
 
+void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+{
+    if (!visitor) {
+        return;
+    }
+    ApplyModifiers();
+    visitor->QuickPrepareCanvasRenderNode(*this);
+}
+
 void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
         return;
     }
+    ApplyModifiers();
     visitor->PrepareCanvasRenderNode(*this);
 }
 
@@ -87,8 +97,17 @@ void RSCanvasRenderNode::OnTreeStateChanged()
             ClearCacheSurfaceInThread();
             SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
+        if (clearSurfaceTask_) {
+            needClearSurface_ = true;
+            AddToPendingSyncList();
+        }
     }
     RSRenderNode::OnTreeStateChanged();
+}
+
+void RSRenderNode::RegisterClearSurfaceFunc(ClearSurfaceTask task)
+{
+    clearSurfaceTask_ = task;
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -224,91 +243,6 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
             canvasChild->InternalDrawContent(canvas);
         }
     }
-}
-
-void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    RSRenderNode::ProcessRenderBeforeChildren(canvas);
-    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
-    ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
-    ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
-
-    RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
-    RSPropertiesPainter::DrawOutline(GetRenderProperties(), canvas);
-    RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
-    RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
-    ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
-    RSRenderNode::ProcessRenderAfterChildren(canvas);
-#endif
-}
-
-void RSCanvasRenderNode::ProcessDrivenContentRender(RSPaintFilterCanvas& canvas)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    canvasNodeSaveCount_ = canvas.SaveAllStatus();
-    canvas.Translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-    DrawDrivenContent(canvas);
-#endif
-}
-
-void RSCanvasRenderNode::ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    // Unresolvable bug: Driven render do not support DrawFilter/DrawBorder/FOREGROUND_STYLE/OVERLAY_STYLE
-    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
-    ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
-
-    canvas.RestoreStatus(canvasNodeSaveCount_);
-#endif
-}
-
-RectF RSCanvasRenderNode::GetDrivenContentClipFrameRect() const
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    // temporary solution for driven content clip
-    RectF rect;
-    auto itr = GetDrawCmdModifiers().find(RSModifierType::CONTENT_STYLE);
-    if (itr == GetDrawCmdModifiers().end() || itr->second.empty()) {
-        return rect;
-    }
-    if (!itr->second.empty()) {
-        auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(itr->second.front());
-        if (drawCmdModifier != nullptr) {
-            rect = drawCmdModifier->GetCmdsClipRect();
-        }
-    }
-    return rect;
-#else
-    return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
-#endif
-}
-
-void RSCanvasRenderNode::DrawDrivenContent(RSPaintFilterCanvas& canvas)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
-    auto itr = GetDrawCmdModifiers().find(RSModifierType::CONTENT_STYLE);
-    if (itr == GetDrawCmdModifiers().end() || itr->second.empty()) {
-        return;
-    }
-    int32_t index = 0;
-    for (const auto& modifier : itr->second) {
-        if (index == 0) {
-            // temporary solution for driven content clip
-            auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifier);
-            if (drawCmdModifier != nullptr) {
-                drawCmdModifier->ApplyForDrivenContent(context);
-                index++;
-                continue;
-            }
-        }
-        if (modifier != nullptr) {
-            modifier->Apply(context);
-        }
-        index++;
-    }
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

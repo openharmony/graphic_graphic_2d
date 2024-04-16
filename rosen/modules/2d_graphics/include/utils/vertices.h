@@ -30,7 +30,7 @@ enum class VertexMode {
     LAST_VERTEXMODE = TRIANGLEFAN_VERTEXMODE,
 };
 
-enum class BuilderFlags {
+enum BuilderFlags {
     HAS_TEXCOORDS_BUILDER_FLAG = 1 << 0,
     HAS_COLORS_BUILDER_FLAG = 1 << 1,
 };
@@ -82,7 +82,7 @@ public:
     }
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
-    class Builder {
+    class DRAWING_API Builder {
     public:
         Builder(VertexMode mode, int vertexCount, int indexCount, uint32_t flags);
         virtual ~Builder() {};

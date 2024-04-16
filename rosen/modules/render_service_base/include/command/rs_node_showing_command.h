@@ -61,7 +61,8 @@ private:
     NodeId targetId_ = 0;
     std::shared_ptr<RSRenderPropertyBase> property_;
     bool isTimeout_ = true;
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
+    using Registrar = RSCommandRegister<commandType, commandSubType, Unmarshalling>;
+    static Registrar instance_;
 };
 
 class RSB_EXPORT RSNodeGetShowingPropertiesAndCancelAnimation : public RSSyncTask {
@@ -91,7 +92,8 @@ public:
 private:
     RSNodeGetShowingPropertiesAndCancelAnimation(uint64_t timeoutNS): RSSyncTask(timeoutNS) {}
     PropertiesMap propertiesMap_;
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
+    using Registrar = RSCommandRegister<commandType, commandSubType, Unmarshalling>;
+    static Registrar instance_;
 };
 
 } // namespace Rosen

@@ -124,6 +124,8 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
     rsImage.SetImageFit(0);
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(8);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
 }
 
@@ -204,6 +206,8 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.SetImageFit(1);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     image.SetImageFit(7);
+    image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
+    image.SetImageFit(8);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
 }

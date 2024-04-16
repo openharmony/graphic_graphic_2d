@@ -234,13 +234,15 @@ public:
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+
     GpuDirtyRegionInfo GetCurrentDirtyRegionInfo(ScreenId id);
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
-    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

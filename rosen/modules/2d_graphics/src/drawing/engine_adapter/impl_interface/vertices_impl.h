@@ -27,7 +27,6 @@ namespace Rosen {
 namespace Drawing {
 
 enum class VertexMode;
-enum class BuilderFlags;
 
 class VerticesImpl : public BaseImpl {
 public:

@@ -26,12 +26,11 @@ public:
     ~RSUniRenderVirtualProcessor() noexcept override = default;
 
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-              std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+              std::shared_ptr<RSBaseRenderEngine> renderEngine, bool isRenderThread = false) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
-    void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
-    void PostProcess(RSDisplayRenderNode* node) override;
+    void PostProcess() override;
     void Fill(RSPaintFilterCanvas& canvas,
         float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
     void UniScale(RSPaintFilterCanvas& canvas,
@@ -40,6 +39,14 @@ public:
     std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
     {
         return std::move(canvas_);
+    }
+    float GetMirrorScaleX() const
+    {
+        return mirrorScaleX_;
+    }
+    float GetMirrorScaleY() const
+    {
+        return mirrorScaleY_;
     }
 private:
     void CanvasRotation(ScreenRotation screenRotation, float width, float height);
@@ -61,6 +68,8 @@ private:
     bool canvasRotation_ = false;
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation mainScreenRotation_ = ScreenRotation::ROTATION_0;
+    float mirrorScaleX_ = 1.0f;
+    float mirrorScaleY_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS
