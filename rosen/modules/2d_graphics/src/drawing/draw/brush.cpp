@@ -27,6 +27,7 @@ Brush::Brush() noexcept
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
       blender_(nullptr),
+      blurDrawLooper_(nullptr),
       antiAlias_(false)
 {}
 
@@ -37,6 +38,7 @@ Brush::Brush(const Color& c) noexcept
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
       blender_(nullptr),
+      blurDrawLooper_(nullptr),
       antiAlias_(false)
 {}
 
@@ -47,12 +49,13 @@ Brush::Brush(int rgba) noexcept
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
       blender_(nullptr),
+      blurDrawLooper_(nullptr),
       antiAlias_(false)
 {}
 
 Brush::Brush(std::shared_ptr<ShaderEffect> e) noexcept
     : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), blender_(nullptr),
-    antiAlias_(false)
+    blurDrawLooper_(nullptr), antiAlias_(false)
 {}
 
 const Color& Brush::GetColor() const
@@ -127,6 +130,16 @@ std::shared_ptr<ShaderEffect> Brush::GetShaderEffect() const
     return shaderEffect_;
 }
 
+void Brush::SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper)
+{
+    blurDrawLooper_ = blurDrawLooper;
+}
+
+std::shared_ptr<BlurDrawLooper> Brush::GetLooper() const
+{
+    return blurDrawLooper_;
+}
+
 void Brush::SetBlender(std::shared_ptr<Blender> blender)
 {
     blender_ = blender;
@@ -166,7 +179,7 @@ bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
         b1.blender_ == b2.blender_ && b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ &&
-        b1.antiAlias_ == b2.antiAlias_;
+        b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)

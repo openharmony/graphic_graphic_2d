@@ -86,6 +86,9 @@ public:
     void SetBlender(std::shared_ptr<Blender> blender);
     std::shared_ptr<Blender> GetBlender() const { return blender_; }
 
+    void SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper);
+    std::shared_ptr<BlurDrawLooper> GetLooper() const;
+
     void SetAntiAlias(bool aa);
     bool IsAntiAlias() const { return antiAlias_; }
 
@@ -113,6 +116,8 @@ private:
     std::shared_ptr<ShaderEffect> shaderEffect_ = nullptr;
     std::shared_ptr<PathEffect> pathEffect_ = nullptr;
     std::shared_ptr<Blender> blender_ = nullptr;
+    // blur effect, non-atomic interface
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper_ = nullptr;
 };
 } // namespace Drawing
 } // namespace Rosen

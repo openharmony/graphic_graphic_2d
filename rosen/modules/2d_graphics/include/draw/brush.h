@@ -19,6 +19,7 @@
 #include "draw/color.h"
 #include "effect/color_space.h"
 #include "effect/blender.h"
+#include "effect/blur_draw_looper.h"
 #include "effect/filter.h"
 #include "effect/shader_effect.h"
 #include "utils/drawing_macros.h"
@@ -226,6 +227,16 @@ public:
      */
     void Reset();
 
+    /**
+     * @brief Sets BlurDrawLooper, it will generate two draw operations, which may affect performance.
+     */
+    void SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper);
+
+    /**
+     * @brief Gets BlurDrawLooper.
+     */
+    std::shared_ptr<BlurDrawLooper> GetLooper() const;
+
     friend DRAWING_API bool operator==(const Brush& b1, const Brush& b2);
     friend DRAWING_API bool operator!=(const Brush& b1, const Brush& b2);
 
@@ -236,6 +247,7 @@ private:
     std::shared_ptr<ColorSpace> colorSpace_;
     std::shared_ptr<ShaderEffect> shaderEffect_;
     std::shared_ptr<Blender> blender_;
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper_;
 
     bool antiAlias_;
     bool hasFilter_ = false;
