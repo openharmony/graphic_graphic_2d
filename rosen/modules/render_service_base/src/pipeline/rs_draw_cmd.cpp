@@ -673,12 +673,11 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;
     }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     canvas->DrawImageRect(*image, Rect{
         surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
         surfaceBufferInfo_.offSetX_ + surfaceBufferInfo_.width_,
         surfaceBufferInfo_.offSetY_ + surfaceBufferInfo_.height_},
-        samplingOptions);
+        Drawing::SamplingOptions());
 #endif
 }
 
