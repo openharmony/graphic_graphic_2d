@@ -96,6 +96,11 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // 4. Draw foreground of this drawing node by the main canvas.
     DrawForeground(canvas, bounds);
+
+    // 5. Ready to clear resource.
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto canvasDrawingRenderNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
+    canvasDrawingRenderNode->SetDrawCmdListsVisited(true);
 }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

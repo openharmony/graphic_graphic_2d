@@ -918,13 +918,11 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
 
 void RSRenderNode::PrepareChildrenForApplyModifiers()
 {
-    if (IsSubTreeDirty()) {
-        auto children = GetSortedChildren();
-        std::for_each((*children).begin(), (*children).end(),
-            [this](const std::shared_ptr<RSRenderNode>& node) {
-            node->PrepareSelfNodeForApplyModifiers();
-        });
-    }
+    auto children = GetSortedChildren();
+    std::for_each((*children).begin(), (*children).end(),
+        [this](const std::shared_ptr<RSRenderNode>& node) {
+        node->PrepareSelfNodeForApplyModifiers();
+    });
 }
 
 void RSRenderNode::PrepareSelfNodeForApplyModifiers()
