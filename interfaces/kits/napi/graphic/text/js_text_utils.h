@@ -107,6 +107,13 @@ inline napi_value CreateJsNumber(napi_env env, int64_t value)
     return result;
 }
 
+inline napi_value CreateJsNumber(napi_env env, uint64_t value)
+{
+    napi_value result = nullptr;
+    napi_create_int64(env, value, &result);
+    return result;
+}
+
 inline napi_value CreateJsNumber(napi_env env, double value)
 {
     napi_value result = nullptr;
@@ -149,6 +156,16 @@ inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, uint32_t& valu
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int64_t& value)
 {
     return napi_get_value_int64(env, jsValue, &value) == napi_ok;
+}
+
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, uint64_t& value)
+{
+    int64_t num;
+    auto res = napi_get_value_int64(env, jsValue, &num);
+    if (res == napi_ok) {
+        value = static_cast<uint64_t>(num);
+    }
+    return res == napi_ok;
 }
 
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, double& value)
