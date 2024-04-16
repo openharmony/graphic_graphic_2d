@@ -345,7 +345,7 @@ EGLBoolean EglInitializeImpl(EGLDisplay dpy, EGLint *major, EGLint *minor)
     WLOGD("");
 #if USE_APS_IGAMESERVICE_FUNC
     OHOS::GameService::EglSliceReport::GetInstance().InitSliceReport();
-#endid
+#endif
     EglWrapperDisplay *display = EglWrapperDisplay::GetWrapperDisplay(dpy);
     if (!display) {
         WLOGE("EGLDislay is invalid.");
