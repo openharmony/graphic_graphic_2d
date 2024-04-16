@@ -19,6 +19,7 @@
 #include <list>
 
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
+#include "rs_profiler_cache.h"
 #include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_file.h"
@@ -586,6 +587,15 @@ void RSProfiler::ProcessSendingRdc()
     g_rdcSent = true;
 }
 
+static uint32_t GetImagesAdded()
+{
+    static std::atomic<uint32_t> lastCount = 0;
+    const size_t count = ImageCache::Size();
+    const uint32_t added = count - lastCount;
+    lastCount = count;
+    return added;
+}
+
 void RSProfiler::RecordUpdate()
 {
     if (!IsRecording() || (g_recordStartTime <= 0.0)) {
@@ -602,7 +612,7 @@ void RSProfiler::RecordUpdate()
         captureData.SetTime(timeSinceRecordStart);
         captureData.SetProperty(RSCaptureData::KEY_RS_FRAME_LEN, frameLengthNanosecs);
         captureData.SetProperty(RSCaptureData::KEY_RS_CMD_COUNT, GetCommandCount());
-        captureData.SetProperty(RSCaptureData::KEY_RS_PIXEL_IMAGE_ADDED, GetImageCount());
+        captureData.SetProperty(RSCaptureData::KEY_RS_PIXEL_IMAGE_ADDED, GetImagesAdded());
         captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION, floor(g_dirtyRegionPercentage));
 
         std::vector<char> out;
@@ -1015,7 +1025,7 @@ void RSProfiler::RecordStart(const ArgList& args)
 {
     g_recordStartTime = 0.0;
 
-    ClearImageCache();
+    ImageCache::Reset();
 
     g_recordFile.Create(RSFile::GetDefaultPath());
     g_recordFile.AddLayer(); // add 0 layer
@@ -1071,23 +1081,14 @@ void RSProfiler::RecordStop(const ArgList& args)
     stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
     stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
 
-    auto& imageMap = GetImageCache();
-
-    const uint32_t imageMapCount = imageMap.size();
-    stream.write(reinterpret_cast<const char*>(&imageMapCount), sizeof(imageMapCount));
-    for (auto item : imageMap) {
-        stream.write(reinterpret_cast<const char*>(&item.first), sizeof(item.first));
-        stream.write(reinterpret_cast<const char*>(&item.second.skipBytes), sizeof(item.second.skipBytes));
-        stream.write(reinterpret_cast<const char*>(&item.second.imageSize), sizeof(item.second.imageSize));
-        stream.write(reinterpret_cast<const char*>(item.second.image.get()), item.second.imageSize);
-    }
+    ImageCache::Serialize(stream);
 
     Network::SendBinary(stream.str().data(), stream.str().size());
 
     g_recordFile.Close();
     g_recordStartTime = 0.0;
 
-    ClearImageCache();
+    ImageCache::Reset();
 
     Respond("Network: Record stop (" + std::to_string(stream.str().size()) + ")");
 }
@@ -1097,7 +1098,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
     g_playbackPid = args.Pid();
     g_playbackStartTime = 0.0;
 
-    ClearImageCache();
+    ImageCache::Reset();
 
     g_playbackFile.Open(RSFile::GetDefaultPath());
     if (!g_playbackFile.IsOpen()) {

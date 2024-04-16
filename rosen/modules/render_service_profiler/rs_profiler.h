@@ -97,14 +97,6 @@ class JsonWriter;
 
 enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
 
-struct ImageCacheRecord {
-    std::shared_ptr<void> image;
-    uint32_t imageSize = 0u;
-    uint32_t skipBytes = 0u;
-};
-
-using ImageCache = std::map<uint64_t, ImageCacheRecord>;
-
 class RSProfiler {
 public:
     static void Init(RSRenderService* renderService);
@@ -149,12 +141,7 @@ public:
     RSB_EXPORT static bool MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map);
     RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel);
 
-// temporary
 public:
-    RSB_EXPORT static ImageCache& GetImageCache();
-    RSB_EXPORT static void ClearImageCache();
-    RSB_EXPORT static void AddImage(uint64_t id, void* image, uint32_t size, uint32_t skipBytes);
-    RSB_EXPORT static ImageCacheRecord* GetImage(uint64_t id);
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
 
 private:
@@ -171,12 +158,7 @@ private:
     RSB_EXPORT static void SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent);
     RSB_EXPORT static pid_t GetSubstitutingPid();
 
-    RSB_EXPORT static uint32_t GenerateImageId();
-    RSB_EXPORT static uint32_t GetImageCount();
-
 private:
-    RSB_EXPORT static std::string DumpImageCache();
-
     RSB_EXPORT static void SetReplayTimes(double replayStartTime, double recordStartTime);
     RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime);
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
