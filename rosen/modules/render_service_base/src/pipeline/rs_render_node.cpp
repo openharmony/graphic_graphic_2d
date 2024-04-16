@@ -2858,7 +2858,7 @@ void RSRenderNode::SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode>
 
     auto curSurfaceNode = (static_cast<const RSSurfaceRenderNode*>(curSurfaceNodeParam.get()));
     auto surfaceNodeAbsRect = curSurfaceNode->GetOldDirty();
-    auto absRect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+    auto absRect = GetFilterRect();
     if (surfaceNodeAbsRect.IsInsideOf(absRect)) {
         isFullSurfaceOpaquCanvasNode_ = true;
 
