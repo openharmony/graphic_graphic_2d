@@ -203,7 +203,8 @@ check_igraphics_core_file_args = [
 ]
 check_igameservice_core_file_args = [
   "--filename",
-  rebase_path("//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni"),
+  rebase_path(
+      "//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni"),
 ]
 check_aps_core_file_args = [
   "--filename",
@@ -242,14 +243,15 @@ if (exec_script(check_graphic_ext_file_script,
 }
 if (exec_script(check_graphic_ext_file_script,
                 check_aps_core_file_args,
-                "string") == "True" &&  exec_script(check_graphic_ext_file_script,
+                "string") == "True" &&
+    exec_script(check_graphic_ext_file_script,
                 check_igameservice_core_file_args,
                 "string") == "True") {
   graphic_2d_feature_use_aps_igameservice_func = true
-  import("//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni")
   import("//foundation/graphic/graphic_2d_ext/aps_manager/config.gni")
+  import(
+      "//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni")
 }
-
 graphic_2d_delegator_configs = {
 }
 if (exec_script(check_graphic_ext_file_script,
