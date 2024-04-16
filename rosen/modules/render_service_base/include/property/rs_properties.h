@@ -37,6 +37,7 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
+#include "render/rs_motion_blur_filter.h"
 
 #include "property/rs_filter_cache_manager.h"
 
@@ -234,11 +235,13 @@ public:
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
+    void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::shared_ptr<EmitterUpdater>& GetEmitterUpdater() const;
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
+    const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
     bool NeedFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
@@ -517,6 +520,7 @@ private:
     float foregroundEffectRadius_ = 0.f;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
+    std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
     std::shared_ptr<EmitterUpdater> emitterUpdater_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
