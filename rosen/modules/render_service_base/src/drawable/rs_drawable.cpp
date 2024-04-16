@@ -16,11 +16,13 @@
 #include "drawable/rs_drawable.h"
 
 #include <limits>
+
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -243,9 +245,11 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     uint8_t result = 0;
     auto& properties = node.GetRenderProperties();
 
-    // color blend mode has implicit dependency on clipToBounds
-    if (properties.GetClipToBounds() || properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
-        properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE)) {
+    // ClipToBounds if either 1. is surface node, 2. has explicit clip properties, 3. has blend mode
+    bool shouldClipToBounds = node.IsInstanceOf<RSSurfaceRenderNode>() || properties.GetClipToBounds() ||
+                              properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
+                              properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE);
+    if (shouldClipToBounds) {
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
 
@@ -303,6 +307,7 @@ inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlo
 
 static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)
 {
+    // Erase existing save/clip/restore before re-generating
     constexpr static std::array boundsSlotsToErase = {
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
@@ -311,8 +316,6 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         RSDrawableSlot::FG_CLIP_TO_BOUNDS,
         RSDrawableSlot::FG_RESTORE_BOUNDS,
     };
-
-    // Erase existing save/clip/restore before re-generating
     for (auto& slot : boundsSlotsToErase) {
         drawableVec[static_cast<size_t>(slot)] = nullptr;
     }
@@ -424,31 +427,38 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     }
 
     // Step 1.2: expand dirty slots by rules
-    // planning: border etc. should be updated when border radius changed
-    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)]) {
-            dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
-        }
-    }
-
-    // Step 1.3: if bounds changed, every existing drawable needs to be updated
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS))) {
-        for (size_t i = 0; i < drawableVec.size(); i++) {
-            if (drawableVec[i]) {
-                dirtySlots.emplace(static_cast<RSDrawableSlot>(i));
+    // if bounds or cornerRadius changed, mark affected drawables as dirty
+    static constexpr std::array boundsDirtyTypes = {
+        RSDrawableSlot::MASK,
+        RSDrawableSlot::SHADOW,
+        RSDrawableSlot::OUTLINE,
+        RSDrawableSlot::CLIP_TO_BOUNDS,
+        RSDrawableSlot::BACKGROUND_COLOR,
+        RSDrawableSlot::BACKGROUND_SHADER,
+        RSDrawableSlot::BACKGROUND_IMAGE,
+        RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY,
+        RSDrawableSlot::FG_CLIP_TO_BOUNDS,
+        RSDrawableSlot::FOREGROUND_COLOR,
+        RSDrawableSlot::POINT_LIGHT,
+        RSDrawableSlot::BORDER,
+        RSDrawableSlot::PIXEL_STRETCH,
+    };
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS)) ||
+        dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
+        for (auto slot : boundsDirtyTypes) {
+            if (drawableVec[static_cast<size_t>(slot)]) {
+                dirtySlots.emplace(slot);
             }
         }
     }
 
-    // Step 1.4: if corner radius changed, update border and outline
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
-        // border may should be updated with corner radius
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::BORDER)]) {
-            dirtySlots.emplace(RSDrawableSlot::BORDER);
+    // if frame changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
+        if (drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)]) {
+            dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
         }
-
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::OUTLINE)]) {
-            dirtySlots.emplace(RSDrawableSlot::OUTLINE);
+        if (drawableVec[static_cast<size_t>(RSDrawableSlot::FOREGROUND_FILTER)]) {
+            dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
         }
     }
 
