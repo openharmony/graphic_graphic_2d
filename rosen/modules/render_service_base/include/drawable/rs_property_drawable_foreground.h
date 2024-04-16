@@ -32,6 +32,9 @@ class RuntimeShaderBuilder;
 } // namespace Drawing
 
 namespace DrawableV2 {
+namespace {
+constexpr int MAX_LIGHT_SOURCES = 12;
+}
 class RSBinarizationDrawable : public RSDrawable {
 public:
     RSBinarizationDrawable() = default;
@@ -174,9 +177,9 @@ private:
     void DrawLight(Drawing::Canvas* canvas) const;
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
     void DrawContentLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
-        Drawing::Brush& brush, const float lightIntensityArray[]) const;
+        Drawing::Brush& brush, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
     void DrawBorderLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
-        Drawing::Pen& pen, const float lightIntensityArray[]) const;
+        Drawing::Pen& pen, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
 };
 
 // ============================================================================

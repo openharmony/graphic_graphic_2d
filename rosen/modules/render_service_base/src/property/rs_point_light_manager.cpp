@@ -138,7 +138,7 @@ void RSPointLightManager::CheckIlluminated(
     auto illuminatedRootNodeId = illuminatedNode->GetInstanceRootNodeId();
     auto lightSourceRootNodeId = lightSourceNode->GetInstanceRootNodeId();
     if (inIlluminatedRange && illuminatedRootNodeId == lightSourceRootNodeId) {
-        auto lightPos = CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedAbsRect);
+        auto lightPos = CalculateLightPosForIlluminated(*lightSourcePtr, geoPtr->GetAbsRect());
         illuminatedNode->GetRenderProperties().GetIlluminated()->AddLightSourcesAndPos(lightSourcePtr, lightPos);
         illuminatedNode->SetDirty();
     }
