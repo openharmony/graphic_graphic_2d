@@ -2355,6 +2355,7 @@ bool RSRenderNode::NeedInitCacheCompletedSurface()
 
 void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
 {
+    RS_TRACE_NAME_FMT("InitCacheSurface");
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
         if (!clearCacheSurfaceFunc_) {
@@ -2425,23 +2426,27 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        cacheBackendTexture_ = MakeBackendTexture(width, height);
-        auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
-        if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
+        auto initCacheBackendTexture = MakeBackendTexture(width, height);
+        auto vkTextureInfo = initCacheBackendTexture.GetTextureInfo().GetVKTextureInfo();
+        if (!initCacheBackendTexture.IsValid() || !vkTextureInfo) {
             if (func) {
+                std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
                 func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
                     cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
                 ClearCacheSurface();
             }
             return;
         }
-        cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        auto initCacheCleanupHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
-        cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
-            gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
+        auto initCacheSurface = Drawing::Surface::MakeFromBackendTexture(
+            gpuContext, initCacheBackendTexture.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
-            NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
+            NativeBufferUtils::DeleteVkImage, initCacheCleanupHelper);
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        cacheBackendTexture_ = initCacheBackendTexture;
+        cacheCleanupHelper_ = initCacheCleanupHelper;
+        cacheSurface_ = initCacheSurface;
     }
 #endif
 #else
