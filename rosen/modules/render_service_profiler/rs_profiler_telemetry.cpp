@@ -13,126 +13,85 @@
  * limitations under the License.
  */
 
-#include <dirent.h>
-#include <format>
-#include <fstream>
-
-#include "battery_srv_client.h"
-#include "cpu_collector.h"
-#include "gpu_collector.h"
-#include "memory_collector.h"
 #include "rs_profiler_telemetry.h"
-#include "rs_profiler_utils.h"
 
-#include "platform/common/rs_log.h"
+#include "rs_profiler_settings.h"
 
 namespace OHOS::Rosen {
 
-static void GetCPUTemperature(CPUInfo& cpu)
-{
-    // temporary disabled
-    cpu.temperature = 0;
-}
+static const StringParameter TERMAL("paths.termal");
+static const StringParameter CURRENT("paths.current");
+static const StringParameter VOLTAGE("paths.voltage");
+static const StringParameter MEMORY("paths.memory");
+// cpu
+static const StringParameter CPU_USAGE("paths.cpu.time");
+static const StringParameter CPU_CORES("paths.cpu.cores");
+static const StringParameter CPU_FREQUENCY("paths.cpu.frequency");
+static const StringParameter CPU_FREQUENCY_POLICY("paths.cpu.frequency.policy");
+// gpu
+static const StringParameter GPU_FREQUENCY("paths.gpu.frequency");
+static const StringParameter GPU_FREQUENCY_MIN("paths.gpu.frequency.min");
+static const StringParameter GPU_FREQUENCY_MAX("paths.gpu.frequency.max");
+static const StringParameter GPU_LOAD("paths.gpu.load");
 
-static void GetCPUCurrent(CPUInfo& cpu)
-{
-    cpu.current = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetNowCurrent();
-}
+struct CpuTime final {
+    static const uint32_t COUNT = 7;
+    double times[COUNT] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    double total = 0;
+};
 
-static void GetCPUVoltage(CPUInfo& cpu)
+static std::string GetTemperaturePath()
 {
-    cpu.voltage = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetVoltage();
-}
-
-static void GetCPUMemory(CPUInfo& cpu)
-{
-    auto collector = HiviewDFX::UCollectUtil::MemoryCollector::Create();
-    if (!collector) {
-        return;
+    static std::string path;
+    if (!path.empty()) {
+        return path;
     }
 
-    auto freqResult = collector->CollectSysMemory();
-    if (freqResult.retCode == HiviewDFX::UCollect::SUCCESS) {
-        cpu.ramTotal = freqResult.data.memTotal;
-        cpu.ramFree = freqResult.data.memFree;
-    } else {
-        cpu.ramTotal = 0;
-        cpu.ramFree = 0;
-    }
-}
+    std::vector<std::string> directories;
+    Utils::IterateDirectory(*TERMAL, directories);
 
-static void GetCPUCores(CPUInfo& cpu)
-{
-    auto collector = HiviewDFX::UCollectUtil::CpuCollector::Create();
-    if (!collector) {
-        return;
-    }
-
-    auto freqResult = collector->CollectCpuFrequency();
-    if (freqResult.retCode == HiviewDFX::UCollect::SUCCESS) {
-        auto& cpuFreq = freqResult.data;
-        cpu.cores = std::min(CPUInfo::MAX_CORE_COUNT, static_cast<uint32_t>(cpuFreq.size()));
-        for (const auto& freqInfo : cpuFreq) {
-            if (freqInfo.cpuId < cpu.cores) {
-                cpu.coreFrequency[freqInfo.cpuId] = freqInfo.curFreq * Utils::MICRO;
-            }
+    std::string type;
+    for (const std::string& directory : directories) {
+        Utils::LoadContent(Utils::MakePath(directory, "type"), type);
+        if (type.find("soc_thermal") != std::string::npos) {
+            path = Utils::MakePath(directory, "temp");
+            break;
         }
     }
 
-    auto usageResult = collector->CollectSysCpuUsage(true);
-    if (usageResult.retCode != HiviewDFX::UCollect::SUCCESS) {
-        return;
-    }
-
-    auto& cpuUsage = usageResult.data.cpuInfos;
-    for (const auto& cpuInfo : cpuUsage) {
-        constexpr int cpuWordLen = 3;
-        const auto& cpuId = cpuInfo.cpuId;
-        // cpu IDs are: cpu, cpu0, cpu1, ..., cpu7  but nobody knows when would it change
-        if (cpuId.rfind("cpu", 0) == 0 && cpuId.size() > cpuWordLen) {
-            const uint32_t loadCpuId = std::atoi(cpuId.data() + cpuWordLen);
-            if (loadCpuId < cpu.cores) {
-                constexpr float maxPercents = 100.0f;
-                cpu.coreLoad[loadCpuId] =
-                    maxPercents * (cpuInfo.userUsage + cpuInfo.niceUsage + cpuInfo.systemUsage + cpuInfo.idleUsage +
-                                      cpuInfo.ioWaitUsage + cpuInfo.irqUsage + cpuInfo.softIrqUsage);
-            }
-        }
-    }
+    return path;
 }
 
-static void GetGPUFreqAndLoad(GPUInfo& gpu)
+// cpufreq
+static std::string GetCpuFrequencyPath(uint32_t cpu)
 {
-    auto collector = HiviewDFX::UCollectUtil::GpuCollector::Create();
-    if (!collector) {
-        return;
-    }
-
-    auto gpuFreq = collector->CollectGpuFrequency();
-    if (gpuFreq.retCode == HiviewDFX::UCollect::SUCCESS) {
-        gpu.frequency = gpuFreq.data.curFeq * Utils::NANO;
-    } else {
-        gpu.frequency = 0;
-    }
-
-    auto gpuLoad = collector->CollectSysGpuLoad();
-    if (gpuLoad.retCode == HiviewDFX::UCollect::SUCCESS) {
-        gpu.load = gpuLoad.data.gpuLoad;
-    } else {
-        gpu.load = 0;
-    }
+    return Utils::MakePath(*CPU_FREQUENCY + std::to_string(cpu), "cpufreq");
 }
 
-const DeviceInfo& RSTelemetry::GetDeviceInfo()
+static std::string GetCpuCurrentFrequencyPath(uint32_t cpu)
 {
-    static DeviceInfo info;
-    GetCPUTemperature(info.cpu);
-    GetCPUCurrent(info.cpu);
-    GetCPUVoltage(info.cpu);
-    GetCPUMemory(info.cpu);
-    GetCPUCores(info.cpu);
-    GetGPUFreqAndLoad(info.gpu);
-    return info;
+    return Utils::MakePath(GetCpuFrequencyPath(cpu), "scaling_cur_freq");
+}
+
+// cpupolicy
+static std::string GetCpuFrequencyPolicyPath(uint32_t cpu)
+{
+    return *CPU_FREQUENCY_POLICY + std::to_string(cpu);
+}
+
+static std::string GetCpuCurrentFrequencyPolicyPath(uint32_t cpu)
+{
+    return Utils::MakePath(GetCpuFrequencyPolicyPath(cpu), "scaling_cur_freq");
+}
+
+static std::string GetCpuMinFrequencyPolicyPath(uint32_t cpu)
+{
+    return Utils::MakePath(GetCpuFrequencyPolicyPath(cpu), "scaling_min_freq");
+}
+
+static std::string GetCpuMaxFrequencyPolicyPath(uint32_t cpu)
+{
+    return Utils::MakePath(GetCpuFrequencyPolicyPath(cpu), "scaling_max_freq");
 }
 
 static std::string TemperatureToString(float temperature)
@@ -155,26 +114,242 @@ static std::string MemoryToString(uint64_t memory)
     return std::to_string(memory * Utils::MICRO) + " GB";
 }
 
-static std::string FrequencyLoadToString(float frequency, float load)
+static std::string FrequencyToString(float frequency)
 {
-    return std::to_string(frequency) + " GHz (" + std::to_string(load) + " %)";
+    return std::to_string(frequency) + " GHz";
+}
+
+static std::string LoadToString(float load)
+{
+    return std::to_string(load) + " %";
+}
+
+static std::string FrequencyLoadToString(const FrequencyLoadInfo& info)
+{
+    return FrequencyToString(info.current) + "(min: " + FrequencyToString(info.min) +
+           " max: " + FrequencyToString(info.max) + " load: " + LoadToString(info.load) + ")";
+}
+
+static std::string GetMetric(const std::string& name)
+{
+    std::string metric("0");
+    Utils::LoadContent(name, metric);
+    return metric;
+}
+
+static float GetMetricFloat(const std::string& name)
+{
+    return Utils::ToFp32(GetMetric(name));
+}
+
+static void GetCPUTemperature(CPUInfo& cpu)
+{
+    cpu.temperature = GetMetricFloat(GetTemperaturePath()) * Utils::MILLI;
+}
+
+static void GetBattery(CPUInfo& cpu)
+{
+    cpu.current = GetMetricFloat(*CURRENT) * Utils::MICRO;
+    cpu.voltage = GetMetricFloat(*VOLTAGE) * Utils::MICRO;
+}
+
+static void GetValue(const std::string& name, const std::vector<std::string>& lines, uint64_t& value)
+{
+    for (const std::string& line : lines) {
+        if (line.find(name) != std::string::npos) {
+            value = Utils::ToUint64(Utils::ExtractNumber(line));
+            return;
+        }
+    }
+}
+
+static void GetCPUMemory(CPUInfo& cpu)
+{
+    std::vector<std::string> lines;
+    Utils::LoadLines(*MEMORY, lines);
+
+    if (!lines.empty()) {
+        GetValue("MemTotal", lines, cpu.ramTotal);
+        GetValue("MemFree", lines, cpu.ramFree);
+    }
+}
+
+static uint32_t GetCpuTime(const std::vector<std::string>& args, CpuTime& info)
+{
+    constexpr size_t cpuWordSize = 3;
+    if (args[0].size() == cpuWordSize) {
+        // this is cpu total line
+        return UINT_MAX;
+    }
+
+    info.total = 0;
+    for (uint32_t i = 0; i < CpuTime::COUNT; i++) {
+        info.times[i] = Utils::ToUint64(args[i + 1]);
+        info.total += info.times[i];
+    }
+
+    return Utils::ToUint64(args[0].data() + cpuWordSize);
+}
+
+static bool IsCpuLine(const std::vector<std::string>& args)
+{
+    constexpr size_t required = 11;
+    return (args.size() == required) && (args[0].find("cpu") == 0);
+}
+
+static void GetCpuTime(std::vector<CpuTime>& infos)
+{
+    std::vector<std::string> lines;
+    Utils::LoadLines(*CPU_USAGE, lines);
+    if (lines.empty()) {
+        return;
+    }
+
+    size_t processed = 0u;
+    for (const auto& line : lines) {
+        const std::vector<std::string> args = Utils::Split(line);
+        if (!IsCpuLine(args) || (processed == infos.size())) {
+            // either there are no more cpu lines in the file
+            // or all cpus were processed
+            return;
+        }
+
+        CpuTime info;
+        const size_t id = GetCpuTime(args, info);
+        if (id < infos.size()) {
+            infos[id] = info;
+            processed++;
+        }
+    }
+}
+
+static double GetCpuTotalUsage(const CpuTime& info, const CpuTime& lastInfo)
+{
+    const double deltaTotal = info.total - lastInfo.total;
+    if (deltaTotal <= 0.0) {
+        return 0.0;
+    }
+
+    double usage = 0.0;
+    for (uint32_t i = 0; i < CpuTime::COUNT; i++) {
+        usage += std::max(info.times[i] - lastInfo.times[i], 0.0);
+    }
+
+    constexpr double ratioToPercent = 100.0;
+    return usage * ratioToPercent / deltaTotal;
+}
+
+static uint32_t GetCoreCount()
+{
+    std::string line;
+    Utils::LoadLine(*CPU_CORES, line);
+
+    if (line.empty()) {
+        return 0;
+    }
+
+    if (line.size() == 1) {
+        return 1;
+    }
+
+    constexpr size_t multiCoreLineLength = 3;
+    if (line.size() >= multiCoreLineLength) {
+        constexpr uint32_t maxCoreIndex = 2;
+        return Utils::ToUint32(line.substr(maxCoreIndex)) + 1;
+    }
+
+    return 0;
+}
+
+static void GetCPUCores(CPUInfo& cpu)
+{
+    static const uint32_t CORE_COUNT = GetCoreCount();
+    cpu.cores = std::min(CPUInfo::MAX_CORES, CORE_COUNT);
+
+    for (uint32_t i = 0; i < cpu.cores; i++) {
+        cpu.coreFrequencyLoad[i].current = GetMetricFloat(GetCpuCurrentFrequencyPath(i)) * Utils::MICRO;
+    }
+
+    static std::vector<CpuTime> cpuTimeInfos;
+    if (cpuTimeInfos.empty()) {
+        cpuTimeInfos.resize(cpu.cores);
+    }
+
+    static std::vector<CpuTime> lastCpuTimeInfos;
+    if (lastCpuTimeInfos.empty()) {
+        lastCpuTimeInfos.resize(cpu.cores);
+    }
+
+    GetCpuTime(cpuTimeInfos);
+    for (size_t i = 0; i < cpu.cores; i++) {
+        cpu.coreFrequencyLoad[i].load = GetCpuTotalUsage(cpuTimeInfos[i], lastCpuTimeInfos[i]);
+    }
+    lastCpuTimeInfos = cpuTimeInfos;
+}
+
+static void GetGPUFrequencyLoad(GPUInfo& gpu)
+{
+    gpu.frequencyLoad.current = GetMetricFloat(*GPU_FREQUENCY) * Utils::NANO;
+    gpu.frequencyLoad.min = GetMetricFloat(*GPU_FREQUENCY_MIN) * Utils::NANO;
+    gpu.frequencyLoad.max = GetMetricFloat(*GPU_FREQUENCY_MAX) * Utils::NANO;
+    gpu.frequencyLoad.load = GetMetricFloat(*GPU_LOAD);
+}
+
+const DeviceInfo& RSTelemetry::GetDeviceInfo()
+{
+    static DeviceInfo info;
+    GetBattery(info.cpu);
+    GetCPUTemperature(info.cpu);
+    GetCPUMemory(info.cpu);
+    GetCPUCores(info.cpu);
+    GetGPUFrequencyLoad(info.gpu);
+    return info;
 }
 
 std::string RSTelemetry::GetDeviceInfoString()
 {
     const DeviceInfo info = GetDeviceInfo();
 
-    std::string string;
+    std::string out;
     for (size_t i = 0; i < info.cpu.cores; i++) {
-        string += +"\nCPU" + std::to_string(i) + ": " +
-                  FrequencyLoadToString(info.cpu.coreFrequency[i], info.cpu.coreLoad[i]);
+        out += +"\nCPU" + std::to_string(i) + ": " + FrequencyLoadToString(info.cpu.coreFrequencyLoad[i]);
     }
 
-    string += "\nTemperature: " + TemperatureToString(info.cpu.temperature) +
-              "\nCurrent: " + CurrentToString(info.cpu.current) + "\nVoltage: " + VoltageToString(info.cpu.voltage) +
-              "\nRAM Total: " + MemoryToString(info.cpu.ramTotal) + "\nRAM Free: " + MemoryToString(info.cpu.ramFree) +
-              "\nGPU: " + FrequencyLoadToString(info.gpu.frequency, info.gpu.load);
+    out += "\nTemperature: " + TemperatureToString(info.cpu.temperature) +
+           "\nCurrent: " + CurrentToString(info.cpu.current) + "\nVoltage: " + VoltageToString(info.cpu.voltage) +
+           "\nRAM Total: " + MemoryToString(info.cpu.ramTotal) + "\nRAM Free: " + MemoryToString(info.cpu.ramFree) +
+           "\nGPU: " + FrequencyLoadToString(info.gpu.frequencyLoad);
 
-    return string;
+    return out;
+}
+
+std::string RSTelemetry::GetDeviceFrequencyString()
+{
+    std::string out;
+
+    constexpr int32_t count = 3;
+    for (int32_t i = 0; i < count; i++) {
+        const auto current = GetMetricFloat(GetCpuCurrentFrequencyPolicyPath(i)) * Utils::MICRO;
+        const auto max = GetMetricFloat(GetCpuMaxFrequencyPolicyPath(i)) * Utils::MICRO;
+        const auto min = GetMetricFloat(GetCpuMinFrequencyPolicyPath(i)) * Utils::MICRO;
+        out += "CPU" + std::to_string(i) + ": " + FrequencyToString(current) + "(min=" + FrequencyToString(min) +
+               " max=" + FrequencyToString(max) + ")\n";
+    }
+
+    const DeviceInfo info = GetDeviceInfo();
+    out += "GPU: " + FrequencyLoadToString(info.gpu.frequencyLoad);
+
+    return out;
+}
+
+std::string RSTelemetry::GetCpuAffinityString()
+{
+    std::string out = "Cpu affinity mask: ";
+    const uint32_t cores = GetCoreCount();
+    for (uint32_t i = 0; i < cores; i++) {
+        out += Utils::GetCpuAffinity(i) ? "1" : "0";
+    }
+
+    return out;
 }
 } // namespace OHOS::Rosen
