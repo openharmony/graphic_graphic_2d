@@ -87,6 +87,7 @@
           "opengles",
           "node",
           "vulkan-headers",
+          "vulkan-loader",
           "hiview",
           "battery_manager",
           "cJSON",
