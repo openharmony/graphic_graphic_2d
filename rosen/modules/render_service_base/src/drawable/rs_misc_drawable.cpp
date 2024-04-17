@@ -45,7 +45,7 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
                 continue;
             }
             if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-                childDrawable->SetSkipShadow(false);
+                childDrawable->SetSkip(SkipType::NONE);
                 stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
             }
         }
@@ -63,7 +63,7 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
             stagingChildrenDrawableVec_.push_back(std::move(shadowDrawable));
         }
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-            childDrawable->SetSkipShadow(true);
+            childDrawable->SetSkip(SkipType::SKIP_SHADOW);
             pendingChildren.push_back(std::move(childDrawable));
         }
     }
@@ -107,7 +107,7 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
         // for higher hierarchy node, we add paired node (lower in hierarchy) first, then add it
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
             // NOTE: skip shared-transition shadow for now
-            childDrawable->SetSkipShadow(true);
+            childDrawable->SetSkip(SkipType::SKIP_SHADOW);
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     }

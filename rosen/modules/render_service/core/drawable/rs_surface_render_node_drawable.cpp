@@ -173,6 +173,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isSelfDrawingSurface && !surfaceParams->IsSpherizeValid()) {
+        SetSkip(surfaceParams->GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
         rscanvas->Save();
     }
 
@@ -299,6 +300,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
     if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
+        SetSkip(surfaceParams.GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
         canvas.Save();
     }
 
@@ -389,6 +391,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
     if (isSelfDrawingSurface) {
+        SetSkip(surfaceParams.GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
         canvas.Save();
     }
 

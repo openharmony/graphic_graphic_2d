@@ -129,13 +129,12 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
     const auto& drawCmdList_ = renderNode_->drawCmdList_;
 
-    if (UNLIKELY(skipShadow_)) {
-        auto shadowIndex = renderNode_->drawCmdIndex_.shadowIndex_;
-        if (shadowIndex != -1 || start <= shadowIndex || end > shadowIndex) {
-            for (auto i = start; i < shadowIndex; i++) {
+    if (UNLIKELY(skipIndex_ != -1)) {
+        if (start <= skipIndex_ || end > skipIndex_) {
+            for (auto i = start; i < skipIndex_; i++) {
                 drawCmdList_[i](&canvas, &rect);
             }
-            for (auto i = shadowIndex + 1; i < end; i++) {
+            for (auto i = skipIndex_ + 1; i < end; i++) {
                 drawCmdList_[i](&canvas, &rect);
             }
         }
@@ -325,5 +324,20 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return renderNode_->drawCmdIndex_.shadowIndex_ != -1 || renderNode_->drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            renderNode_->drawCmdIndex_.useEffectIndex_ != -1;
+}
+void RSRenderNodeDrawableAdapter::SetSkip(SkipType type)
+{
+    switch (type) {
+        case SkipType::SKIP_BACKGROUND_COLOR:
+            skipIndex_ = renderNode_->drawCmdIndex_.backgroundColorIndex_;
+            break;
+        case SkipType::SKIP_SHADOW:
+            skipIndex_ = renderNode_->drawCmdIndex_.shadowIndex_;
+            break;
+        case SkipType::NONE:
+        default:
+            skipIndex_ = -1;
+            break;
+    }
 }
 } // namespace OHOS::Rosen::DrawableV2
