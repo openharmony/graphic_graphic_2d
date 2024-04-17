@@ -38,6 +38,10 @@ config("bootanimation_config") {
   if (player_framework_enable) {
     defines += [ "PLAYER_FRAMEWORK_ENABLE" ]
   }
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ohos_executable("bootanimation") {

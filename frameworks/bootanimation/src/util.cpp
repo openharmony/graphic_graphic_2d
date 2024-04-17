@@ -21,7 +21,6 @@
 #include <sstream>
 #include <securec.h>
 #include <sys/time.h>
-#include <include/codec/SkCodec.h>
 
 namespace OHOS {
 int64_t GetNowTime()
@@ -119,15 +118,20 @@ bool GenImageData(const std::string& filename, std::shared_ptr<ImageStruct> imag
         LOGE("Json File buffer is null.");
         return false;
     }
-    auto skData = SkData::MakeFromMalloc(imagetruct->memPtr.memBuffer, bufferlen);
-    if (skData == nullptr) {
-        LOGE("skdata memory data is null. update data failed");
+    auto data = std::make_shared<Rosen::Drawing::Data>();
+    if (data == nullptr) {
+        LOGE("drawing data is null. make_shared failed");
         return false;
     }
-    imagetruct->memPtr.setOwnerShip(skData);
-    auto codec = SkCodec::MakeFromData(skData);
+    data->BuildFromMalloc(imagetruct->memPtr.memBuffer, bufferlen);
+    if (data->GetData() == nullptr) {
+        LOGE("data memory data is null. update data failed");
+        return false;
+    }
+    imagetruct->memPtr.setOwnerShip(data);
     imagetruct->fileName = filename;
-    imagetruct->imageData = SkImage::MakeFromEncoded(skData);
+    imagetruct->imageData = std::make_shared<Rosen::Drawing::Image>();
+    imagetruct->imageData->MakeFromEncoded(data);
     outBgImgVec.push_back(imagetruct);
     return true;
 }
