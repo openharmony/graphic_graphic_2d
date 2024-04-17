@@ -768,7 +768,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     displayHasSkipSurface_.emplace(currentVisitDisplay_, false);
     hasCaptureWindow_.emplace(currentVisitDisplay_, false);
-    dirtySurfaceNodeMap_.clear();
+    node.GetDirtySurfaceNodeMap().clear();
 
     RS_TRACE_NAME("RSUniRender:PrepareDisplay " + std::to_string(currentVisitDisplay_));
     curDisplayDirtyManager_ = node.GetDirtyManager();
@@ -2606,7 +2606,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     PrepareTypesOfSurfaceRenderNodeAfterUpdate(node);
     if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsCurrentFrameDirty())) {
-        dirtySurfaceNodeMap_.emplace(nodeId, node.ReinterpretCastTo<RSSurfaceRenderNode>());
+        curDisplayNode_->GetDirtySurfaceNodeMap().emplace(nodeId, node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     UpdateSurfaceRenderNodeScale(node);
     // Due to the alpha is updated in PrepareChildren, so PrepareChildren
@@ -3434,6 +3434,11 @@ std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
 
 void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
+    curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (!curDisplayNode_) {
+        ROSEN_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode, Current Display Node is nullptr.");
+        return;
+    }
     if (mirroredDisplays_.size() == 0) {
         node.SetCacheImgForCapture(nullptr);
         node.SetOffScreenCacheImgForCapture(nullptr);
@@ -3596,6 +3601,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RotateMirrorCanvasIfNeed(node, canvasRotation);
                 PrepareOffscreenRender(*mirrorNode);
                 canvas_->Save();
+                Drawing::Region clipRegion;
+                clipRegion.Clone(clipRegion_);
                 if (resetRotate_) {
                     Drawing::Matrix invertMatrix;
                     if (processor->GetScreenTransformMatrix().Invert(invertMatrix)) {
@@ -3603,11 +3610,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                         canvas_->ConcatMatrix(invertMatrix);
                         // If both canvas and clipRegion have rotated, we need to reset the clipRegion
                         Drawing::Path path;
-                        if (clipRegion_.GetBoundaryPath(&path)) {
+                        if (clipRegion.GetBoundaryPath(&path)) {
                             path.Transform(invertMatrix);
                             Drawing::Region clip;
                             clip.SetRect(Drawing::RectI(0, 0, canvas_->GetWidth(), canvas_->GetHeight()));
-                            clipRegion_.SetPath(path, clip);
+                            clipRegion.SetPath(path, clip);
                         }
                     }
                 }
@@ -3619,7 +3626,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->DetachBrush();
                 canvas_->Restore();
                 if (isOpDropped_ && !isDirtyRegionAlignedEnable_) {
-                    ClipRegion(canvas_, clipRegion_);
+                    ClipRegion(canvas_, clipRegion);
                 }
                 auto offScreenCacheImgForCapture = mirrorNode->GetOffScreenCacheImgForCapture();
                 if (offScreenCacheImgForCapture) {
@@ -3696,7 +3703,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             curDisplayDirtyManager_->UpdateDirty(isDirtyRegionAlignedEnable_);
             UpdateHardwareNodeStatusBasedOnFilterRegion(node);
         }
-        if (isOpDropped_ && dirtySurfaceNodeMap_.empty()
+        if (isOpDropped_ && curDisplayNode_->GetDirtySurfaceNodeMap().empty()
             && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
@@ -3848,7 +3855,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
         }
         if (isOpDropped_ && !isDirtyRegionAlignedEnable_) {
-            clipRegion_ = region;
+            clipRegion_.Clone(region);
             ClipRegion(canvas_, region);
             if (!region.IsEmpty()) {
                 canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -4161,7 +4168,8 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (isUIFirst_ && surfaceDirtyManager->IsCurrentFrameDirty()) {
-            dirtySurfaceNodeMap_.emplace(surfaceNode->GetId(), surfaceNode->ReinterpretCastTo<RSSurfaceRenderNode>());
+            curDisplayNode_->GetDirtySurfaceNodeMap().emplace(
+                surfaceNode->GetId(), surfaceNode->ReinterpretCastTo<RSSurfaceRenderNode>());
         }
         RectI surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
         if (surfaceNode->IsTransparent()) {
@@ -4239,7 +4247,7 @@ void RSUniRenderVisitor::MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNod
     if ((hwcNode->IsLastFrameHardwareEnabled() || hwcNode->IsCurrentFrameBufferConsumed()) &&
         appNode && appNode->GetDirtyManager()) {
         appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetDstRect());
-        dirtySurfaceNodeMap_.emplace(appNode->GetId(), appNode);
+        curDisplayNode_->GetDirtySurfaceNodeMap().emplace(appNode->GetId(), appNode);
     }
 }
 
