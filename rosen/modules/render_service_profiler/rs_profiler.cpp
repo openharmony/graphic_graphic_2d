@@ -334,7 +334,7 @@ void RSProfiler::OnFrameEnd()
     std::sort(std::begin(g_calcPerfNodeTime), std::end(g_calcPerfNodeTime));
     constexpr int middle = CALC_PERF_NODE_TIME_COUNT / 2;
     Respond("CALC_PERF_NODE_RESULT: " + std::to_string(g_calcPerfNode) + " " +
-            "cnt=" + std::to_string(g_mapNode2Count[g_calcPerfNode]) + " " + 
+            "cnt=" + std::to_string(g_mapNode2Count[g_calcPerfNode]) + " " +
             std::to_string(g_calcPerfNodeTime[middle]));
     Network::SendRSTreeSingleNodePerf(g_calcPerfNode, g_calcPerfNodeTime[middle]);
 
@@ -806,24 +806,23 @@ void RSProfiler::GetPerfTree(const ArgList& args)
         return;
     }
 
-    auto& nodeMap = g_renderServiceContext->GetMutableNodeMap();
-
     for (const auto& child : *rootNode->GetSortedChildren()) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
         if (displayNode) {
-            const auto& surfaces = displayNode->GetCurAllSurfaces();
-            for(auto& surface : surfaces) {
-                PerfTreeFlatten(*surface, g_nodeSetPerf, g_mapNode2Count);
+            const auto& nodes = displayNode->GetCurAllSurfaces();
+            for (auto& node : nodes) {
+                PerfTreeFlatten(*node, g_nodeSetPerf, g_mapNode2Count);
             }
         }
     }
 
     std::string outString;
+    auto& nodeMap = g_renderServiceContext->GetMutableNodeMap();
     for (auto it = g_nodeSetPerf.begin(); it != g_nodeSetPerf.end(); it++) {
-        auto node = nodeMap.GetRenderNode(*it); 
+        auto node = nodeMap.GetRenderNode(*it);
         std::string sNodeType;
         node->DumpNodeType(sNodeType);
-        outString += (it != g_nodeSetPerf.begin() ? ", " : "") + std::to_string(*it) + ":" + 
+        outString += (it != g_nodeSetPerf.begin() ? ", " : "") + std::to_string(*it) + ":" +
             std::to_string(g_mapNode2Count[*it]) + " [" + sNodeType + "]";
     }
 
@@ -881,8 +880,7 @@ void RSProfiler::CalcPerfNodeAllStep()
         g_calcPerfNode = 1;
         AwakeRenderServiceThread();
         return;
-    }
-    else if (g_nodeSetPerfCalcIndex - 1 < g_nodeSetPerf.size()) {
+    } else if (g_nodeSetPerfCalcIndex - 1 < g_nodeSetPerf.size()) {
         auto it = g_nodeSetPerf.begin();
         std::advance(it, g_nodeSetPerfCalcIndex - 1);
         g_calcPerfNode = *it;
