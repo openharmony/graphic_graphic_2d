@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MOTION_BLUR_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MOTION_BLUR_FILTER_H
 
-#include "render/rs_skia_filter.h"
+#include "common/rs_vector2.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
-#include "common/rs_vector2.h"
+#include "render/rs_skia_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -48,6 +49,7 @@ public:
     {
         return nullptr;
     }
+
     void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight) override
     {
         Drawing::Matrix mat = canvas.GetTotalMatrix();
