@@ -739,7 +739,7 @@ void RSSurfaceRenderNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
 {
     ancoForceDoDirect_ = ancoForceDoDirect;
 }
-bool RSSurfaceRenderNode::GetAncoForceDoDirect()
+bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 {
     return ancoForceDoDirect_;
 }
