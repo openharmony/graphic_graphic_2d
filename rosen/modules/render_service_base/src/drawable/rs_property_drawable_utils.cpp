@@ -256,6 +256,54 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     filter->PostProcess(*canvas);
 }
 
+void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds)
+{
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::BeginForegroundFilter");
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        return;
+    }
+    std::shared_ptr<Drawing::Surface> offscreenSurface = surface->MakeSurface(bounds.width_, bounds.height_);
+    if (!offscreenSurface) {
+        return;
+    }
+    auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+    canvas.ReplaceMainScreenData(offscreenSurface, offscreenCanvas);
+    offscreenCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    canvas.SavePCanvasList();
+    canvas.RemoveAll();
+    canvas.AddCanvas(offscreenCanvas.get());
+}
+
+void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSFilter>& rsFilter)
+{
+    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    auto surface = canvas.GetSurface();
+    std::shared_ptr<Drawing::Image> imageSnapshot = nullptr;
+    if (surface) {
+        imageSnapshot = surface->GetImageSnapshot();
+    } else {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter Surface null");
+    }
+
+    canvas.RestorePCanvasList();
+    canvas.SwapBackMainScreenData();
+
+    if (rsFilter == nullptr) {
+        return;
+    }
+
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter image null");
+        return;
+    }
+    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+
+    foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
+        imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+}
+
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 {
     auto blurCnt = g_blurCnt;

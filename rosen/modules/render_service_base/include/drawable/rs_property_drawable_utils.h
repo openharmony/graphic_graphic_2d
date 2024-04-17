@@ -32,6 +32,8 @@ public:
         Drawing::Path& drPath, Drawing::Matrix& matrix, RSColor& colorPicked);
     static void GetDarkColor(RSColor& color);
     static void CeilMatrixTrans(Drawing::Canvas* canvas);
+    static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
+    static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isForegroundFilter,
         bool shouldClearFilteredCache);
