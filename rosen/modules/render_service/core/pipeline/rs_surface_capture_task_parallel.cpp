@@ -95,13 +95,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         return false;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::shared_ptr<RenderContext> renderContext = nullptr;
-    if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-        renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-    } else {
-        RSMainThread::Instance()->GetRenderEngine()->InitCapture();
-        renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetCaptureRenderContext();
-    }
+    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     auto grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
     RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
 #endif
@@ -367,13 +361,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     } else {
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            std::shared_ptr<RenderContext> renderContext = nullptr;
-            if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-                renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-            } else {
-                RSMainThread::Instance()->GetRenderEngine()->InitCapture();
-                renderContext = RSMainThread::Instance()->GetRenderEngine()->GetCaptureRenderContext();
-            }
+            auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
             if (renderContext == nullptr) {
                 RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderContext is nullptr");
                 return nullptr;
@@ -385,14 +373,8 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
 #ifdef RS_ENABLE_VK
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-            if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-                return Drawing::Surface::MakeRenderTarget(
-                    RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), false, info);
-            } else {
-                RSMainThread::Instance()->GetRenderEngine()->InitCapture();
-                return Drawing::Surface::MakeRenderTarget(
-                    RSMainThread::Instance()->GetRenderEngine()->GetCaptureSkContext().get(), false, info);
-            }
+            return Drawing::Surface::MakeRenderTarget(
+                RSUniRenderThread::Instance().GetRenderEngine()->GetSkContext().get(), false, info);
         }
 #endif
     }
