@@ -44,6 +44,12 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
+namespace DrawableV2 {
+class RSBackgroundImageDrawable;
+class RSBackgroundFilterDrawable;
+class RSShadowDrawable;
+class RSFilterDrawable;
+}
 class RSB_EXPORT RSProperties final {
 public:
     RSProperties();
@@ -140,6 +146,13 @@ public:
     Vector2f GetSkew() const;
     float GetSkewX() const;
     float GetSkewY() const;
+
+    void SetPersp(Vector2f persp);
+    void SetPerspX(float perspX);
+    void SetPerspY(float perspY);
+    Vector2f GetPersp() const;
+    float GetPerspX() const;
+    float GetPerspY() const;
 
     void SetAlpha(float alpha);
     float GetAlpha() const;
@@ -360,8 +373,9 @@ public:
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
-    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
-        const std::optional<Drawing::Rect>& clipRect);
+    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset);
+    bool UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
+    RectF GetLocalBoundsAndFramesRect() const;
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
@@ -573,6 +587,7 @@ private:
     float frameOffsetY_ = 0.f;
     bool needFilter_ = false;
     RRect rrect_ = RRect{};
+    Drawing::Matrix prevAbsMatrix_;
 
     RSRenderParticleVector particles_;
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
@@ -580,14 +595,12 @@ private:
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
-    void CreateColorPickerTaskForShadow();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
     static const bool FilterCacheEnabled;
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTaskShadow_ = nullptr;
 
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;
@@ -596,6 +609,13 @@ private:
     friend class RSModifierDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
+    friend class RSEffectRenderNode;
+    friend class RSPropertyDrawableUtils;
+
+    friend class DrawableV2::RSBackgroundImageDrawable;
+    friend class DrawableV2::RSBackgroundFilterDrawable;
+    friend class DrawableV2::RSShadowDrawable;
+    friend class DrawableV2::RSFilterDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -34,6 +34,9 @@ void RSRenderPropertyBase::OnChange() const
         if (modifierType_ > RSModifierType::EXTENDED) {
             node->SetContentDirty();
         }
+        if (modifierType_ == RSModifierType::POSITION_Z) {
+            node->MarkParentNeedRegenerateChildren();
+        }
     }
 }
 

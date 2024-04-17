@@ -157,7 +157,7 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
         textStyle.ellipsis = Str8ToStr16(text);
     }
-    napi_get_named_property(env, argValue, "ellipsisModal", &tempValue);
+    napi_get_named_property(env, argValue, "ellipsisMode", &tempValue);
     uint32_t ellipsisModal = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &ellipsisModal)== napi_ok) {
         textStyle.ellipsisModal = EllipsisModal(ellipsisModal);

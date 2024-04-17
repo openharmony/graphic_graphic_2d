@@ -139,7 +139,6 @@ private:
     void OnVsync(uint64_t timestamp);
     void ProcessCommands();
     void Animate(uint64_t timestamp);
-    void ApplyModifiers();
     void Render();
     void SendCommands();
 

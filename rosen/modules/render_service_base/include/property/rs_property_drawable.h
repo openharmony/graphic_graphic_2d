@@ -124,8 +124,7 @@ public:
     // Generator Utilities
     static void InitializeSaveRestore(const RSRenderContent& content, DrawableVec& drawableVec);
     static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
-        const RSProperties& properties,
-        std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+        const RSProperties& properties, const ModifierDirtyTypes& dirtyTypes);
     static bool UpdateDrawableVec(const RSRenderContent& content, DrawableVec& drawableVec,
         std::unordered_set<RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(

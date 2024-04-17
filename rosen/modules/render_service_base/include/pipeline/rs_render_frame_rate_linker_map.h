@@ -33,7 +33,7 @@ public:
 
     const std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& Get() const
     {
-        return frameRateLikerMap_;
+        return frameRateLinkerMap_;
     }
 private:
     explicit RSRenderFrameRateLinkerMap();
@@ -44,7 +44,7 @@ private:
     RSRenderFrameRateLinkerMap& operator=(const RSRenderFrameRateLinkerMap&&) = delete;
 
 private:
-    std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>> frameRateLikerMap_;
+    std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>> frameRateLinkerMap_;
 
     friend class RSContext;
     friend class RSMainThread;

@@ -33,7 +33,7 @@ static constexpr int MAX_SPEED = 1000000;
 constexpr const char* ANIMATION_SCALE_NAME = "persist.sys.graphic.animationscale";
 } // namespace
 
-bool RSAnimationFraction::isInitialized_ = false;
+std::atomic<bool> RSAnimationFraction::isInitialized_ = false;
 std::atomic<float> RSAnimationFraction::animationScale_ = 1.0f;
 
 RSAnimationFraction::RSAnimationFraction()

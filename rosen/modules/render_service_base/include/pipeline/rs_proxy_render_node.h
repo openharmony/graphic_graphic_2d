@@ -32,6 +32,11 @@ public:
         return Type;
     }
 
+    bool GetUifirstSupportFlag() override
+    {
+        return false;
+    }
+
     explicit RSProxyRenderNode(NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId,
         const std::weak_ptr<RSContext>& context = {});
     ~RSProxyRenderNode() override;

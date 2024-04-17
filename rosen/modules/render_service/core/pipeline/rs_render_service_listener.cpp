@@ -19,7 +19,8 @@
 #include "pipeline/rs_main_thread.h"
 #include "frame_report.h"
 #include "sync_fence.h"
-
+#include "pipeline/rs_uni_render_thread.h"
+#include "rs_trace.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -98,8 +99,10 @@ void RSRenderServiceListener::OnGoBackground()
             return;
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
+        node->NeedClearBufferCache();
         node->ResetBufferAvailableCount();
         node->CleanCache();
+        node->UpdateBufferInfo(nullptr, nullptr, nullptr);
         node->SetNotifyRTBufferAvailable(false);
         node->SetContentDirty();
         node->ResetHardwareEnabledStates();

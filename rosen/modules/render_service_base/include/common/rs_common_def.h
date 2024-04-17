@@ -36,6 +36,7 @@ using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
 using SurfaceId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
+constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
 
@@ -81,10 +82,22 @@ enum class CacheType : uint8_t {
     ANIMATE_PROPERTY,
 };
 
+enum class DrawableCacheType : uint8_t {
+    NONE = 0,
+    CONTENT,
+};
+
 enum RSDrawingCacheType : uint8_t {
     DISABLED_CACHE = 0,
     FORCED_CACHE,    // must-to-do case
     TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+};
+
+enum class FilterCacheType : uint8_t {
+    NONE              = 0,
+    SNAPSHOT          = 1,
+    FILTERED_SNAPSHOT = 2,
+    BOTH              = SNAPSHOT | FILTERED_SNAPSHOT,
 };
 
 // priority for node, higher number means lower priority
@@ -109,6 +122,7 @@ enum class CacheProcessStatus : uint8_t {
     WAITING = 0, // waiting for process
     DOING, // processing
     DONE, // processed
+    UNKNOWN,
 };
 
 // the type of surfaceCapture

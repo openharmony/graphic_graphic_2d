@@ -313,9 +313,9 @@ bool HdiOutput::GetDirectClientCompEnableStatus() const
     return directClientCompositionEnabled_;
 }
 
-int32_t HdiOutput::PreProcessLayersComp(bool &needFlush)
+int32_t HdiOutput::PreProcessLayersComp()
 {
-    int32_t ret;
+    int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
     bool doClientCompositionDirectly;
     {
         std::unique_lock<std::mutex> lock(layerMutex_);
@@ -346,20 +346,13 @@ int32_t HdiOutput::PreProcessLayersComp(bool &needFlush)
         }
     }
 
-    CHECK_DEVICE_NULL(device_);
-    ret = device_->PrepareScreenLayers(screenId_, needFlush);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("PrepareScreenLayers failed, ret is %{public}d", ret);
-        return GRAPHIC_DISPLAY_FAILURE;
-    }
-
     if (doClientCompositionDirectly) {
         ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
         HLOGD("Direct client composition is enabled.");
         return GRAPHIC_DISPLAY_SUCCESS;
     }
 
-    return UpdateLayerCompType();
+    return ret;
 }
 
 int32_t HdiOutput::UpdateLayerCompType()
@@ -536,6 +529,12 @@ int32_t HdiOutput::Commit(sptr<SyncFence> &fbFence)
     return device_->Commit(screenId_, fbFence);
 }
 
+int32_t HdiOutput::CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t& skipState, bool& needFlush)
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->CommitAndGetReleaseFence(screenId_, fbFence, skipState, needFlush);
+}
+
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 {
     UpdatePrevLayerInfo();
@@ -599,7 +598,7 @@ int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
     return ret;
 }
 
-void HdiOutput::ReleaseSurfaceBuffer()
+void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
 {
     auto releaseBuffer = [](sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence,
         sptr<IConsumerSurface> cSurface) -> void {
@@ -640,11 +639,14 @@ void HdiOutput::ReleaseSurfaceBuffer()
             auto preBuffer = layer->GetPreBuffer();
             auto consumer = layer->GetSurface();
             releaseBuffer(preBuffer, fence, consumer);
+            if (layer->GetUniRenderFlag()) {
+                releaseFence = fence;
+            }
         }
     }
 }
 
-void HdiOutput::ReleaseLayers()
+void HdiOutput::ReleaseLayers(sptr<SyncFence>& releaseFence)
 {
     auto layerPresentTimestamp = [](const LayerInfoPtr& layer, const sptr<IConsumerSurface>& cSurface) -> void {
         if (!layer->IsSupportedPresentTimestamp()) {
@@ -669,7 +671,7 @@ void HdiOutput::ReleaseLayers()
             layerPresentTimestamp(layer->GetLayerInfo(), layer->GetLayerInfo()->GetSurface());
         }
     }
-    ReleaseSurfaceBuffer();
+    ReleaseSurfaceBuffer(releaseFence);
 }
 
 std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()

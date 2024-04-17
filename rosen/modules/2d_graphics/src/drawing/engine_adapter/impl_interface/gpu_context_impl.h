@@ -17,8 +17,11 @@
 #define GPU_CONTEXT_IMPL_H
 
 #include <chrono>
+#include <functional>
 #include <set>
+
 #include "base_impl.h"
+
 #include "image/trace_memory_dump.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/vk/GrVkBackendContext.h"
@@ -76,6 +79,8 @@ public:
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;
 #endif
+
+    virtual void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -85,32 +85,6 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkDrivenRenderTest
- * @tc.desc: MarkDrivenRender test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, MarkDrivenRenderTest, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = static_cast<NodeId>(1);
-    bool flag = false;
-    RSNodeCommandHelper::MarkDrivenRender(context, nodeId, flag);
-}
-
-/**
- * @tc.name: MarkContentChangedTest
- * @tc.desc: MarkContentChanged test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, MarkContentChangedTest, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = static_cast<NodeId>(1);
-    bool isChanged = false;
-    RSNodeCommandHelper::MarkContentChanged(context, nodeId, isChanged);
-}
-
-/**
  * @tc.name: SetDrawRegionTest
  * @tc.desc: SetDrawRegion test.
  * @tc.type: FUNC

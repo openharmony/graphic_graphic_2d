@@ -26,6 +26,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr static float FLOAT_DATA_INIT = 0.5f;
+
 class RSModifierTest : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -533,6 +535,48 @@ HWTEST_F(RSModifierTest, SkewModifier002, TestSize.Level1)
     value = Vector2f(0.5f, 0.5f);
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetSkew(), value);
+}
+
+/**
+ * @tc.name: PerspModifier001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, PerspModifier001, TestSize.Level1)
+{
+    auto value = Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+    auto modifier = std::make_shared<RSPerspModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    node->AddModifier(modifier);
+    ASSERT_TRUE(node != nullptr);
+    ASSERT_EQ(node->GetStagingProperties().GetPersp(), value);
+
+    node->RemoveModifier(modifier);
+    auto node1 = RSCanvasNode::Create();
+    ASSERT_EQ(node->GetStagingProperties().GetPersp(), node1->GetStagingProperties().GetPersp());
+}
+
+/**
+ * @tc.name: PerspModifier002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, PerspModifier002, TestSize.Level1)
+{
+    auto value = Vector2f();
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+    auto modifier = std::make_shared<RSPerspModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    node->AddModifier(modifier);
+    ASSERT_TRUE(node != nullptr);
+    ASSERT_EQ(node->GetStagingProperties().GetPersp(), value);
+
+    value = Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT);
+    prop->Set(value);
+    ASSERT_EQ(node->GetStagingProperties().GetPersp(), value);
 }
 
 /**

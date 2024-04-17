@@ -34,7 +34,7 @@ GEGreyShaderFilter::GEGreyShaderFilter(const Drawing::GEGreyShaderFilterParams& 
 
 GEGreyShaderFilter::~GEGreyShaderFilter() {};
 
-std::shared_ptr<Drawing::RuntimeEffect> GEGreyShaderFilter::greyAdjustEffect_ = nullptr;
+static std::shared_ptr<Drawing::RuntimeEffect> GREYADJUSTEFFECT;
 
 std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
@@ -44,11 +44,11 @@ std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas
         return image;
     }
 
-    if (!greyAdjustEffect_) {
+    if (!GREYADJUSTEFFECT) {
         LOGE("GEGreyShaderFilter::DrawGreyAdjustment greyAdjustEffect is null");
         return nullptr;
     }
-    Drawing::RuntimeShaderBuilder builder(greyAdjustEffect_);
+    Drawing::RuntimeShaderBuilder builder(GREYADJUSTEFFECT);
     Drawing::Matrix matrix;
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
@@ -108,12 +108,15 @@ bool GEGreyShaderFilter::InitGreyAdjustmentEffect()
             return vec4(color, 1.0);
         }
     )");
-    auto effect = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
-    if (!effect) {
-        LOGE("GEGreyShaderFilter::RuntimeShader GreyAdjustmentEffect create failed");
-        return false;
+
+    if (GREYADJUSTEFFECT == nullptr) {
+        GREYADJUSTEFFECT = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
+        if (GREYADJUSTEFFECT == nullptr) {
+            LOGE("GEKawaseBlurShaderFilter::RuntimeShader blurEffect create failed");
+            return false;
+        }
     }
-    greyAdjustEffect_ = effect;
+
     return true;
 }
 

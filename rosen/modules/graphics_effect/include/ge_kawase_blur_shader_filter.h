@@ -43,10 +43,10 @@ private:
     friend class RSMarshallingHelper;
 
     static Drawing::Matrix GetShaderTransform(
-        const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scale = 1.0f);
+        const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scaleW = 1.0f, float scaleH = 1.0f);
     bool InitBlurEffect();
     bool InitMixEffect();
-    // Advanced Filter
+
     bool InitBlurEffectForAdvancedFilter();
     void CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         std::shared_ptr<Drawing::Image>& checkedImage, const Drawing::Rect& src) const;
@@ -63,14 +63,14 @@ private:
         const Drawing::ImageInfo& scaledInfo, const int width, const int height);
     bool IsInputValid(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src,
         const Drawing::Rect& dst);
+    const OHOS::Rosen::Drawing::Matrix BuildMatrix(
+        const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo, const std::shared_ptr<Drawing::Image>& input);
 
-    std::shared_ptr<Drawing::RuntimeEffect> blurEffect_;
-    std::shared_ptr<Drawing::RuntimeEffect> mixEffect_;
     int radius_;
     float blurRadius_ = 0.0f;
     float blurScale_ = 0.25f;
-    std::shared_ptr<Drawing::RuntimeEffect> blurEffectAF_;
 };
+
 } // namespace Rosen
 } // namespace OHOS
 

@@ -28,20 +28,10 @@
 #include "platform/common/rs_system_properties.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
+
 namespace OHOS {
 namespace Rosen {
-[[maybe_unused]] static void DestroySemaphore(void *context)
-{
-    if (context == nullptr) {
-        return;
-    }
-    DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
-    --info->mRefs;
-    if (!info->mRefs) {
-        info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
-        delete info;
-    }
-}
+
 
 RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {
@@ -225,7 +215,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     drawingFlushInfo.backendSurfaceAccess = true;
     drawingFlushInfo.numSemaphores = 1;
     drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
-    drawingFlushInfo.finishedProc = DestroySemaphore;
+    drawingFlushInfo.finishedProc = [](void *context) {
+        DestroySemaphoreInfo::DestroySemaphore(context);
+    };
     drawingFlushInfo.finishedContext = destroyInfo;
     surface.drawingSurface->Flush(&drawingFlushInfo);
     mSkContext->Submit();
@@ -238,7 +230,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, surface.image, &fenceFd);
     if (err != VK_SUCCESS) {
-        DestroySemaphore(destroyInfo);
+        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
         destroyInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);
         return false;
@@ -246,13 +238,13 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
-        DestroySemaphore(destroyInfo);
+        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
         destroyInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan NativeWindowFlushBuffer failed");
         return false;
     }
     mSurfaceList.pop_front();
-    DestroySemaphore(destroyInfo);
+    DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
     destroyInfo = nullptr;
     surface.fence.reset();
     surface.lastPresentedCount = mPresentCount;

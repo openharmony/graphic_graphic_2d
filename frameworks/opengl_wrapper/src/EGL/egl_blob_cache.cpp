@@ -42,6 +42,9 @@ BlobCache::Blob::Blob(const void *dataIn, size_t size) :dataSize(size)
     if (size > 0) {
         data = malloc(size);
     }
+    if (data == nullptr) {
+        dataSize = 0;
+    }
     if (data != nullptr) {
         memcpy_s(data, size, const_cast<void *>(dataIn), size);
     }
@@ -107,34 +110,58 @@ void BlobCache::Init(EglWrapperDisplay* display)
 void BlobCache::setBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
-    BlobCache::Get()->setBlob(key, keySize, value, valueSize);
+    BlobCache::Get()->setBlobLock(key, keySize, value, valueSize);
 }
 EGLsizeiANDROID BlobCache::getBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
                                        EGLsizeiANDROID valueSize)
 {
-    return BlobCache::Get()->getBlob(key, keySize, value, valueSize);
+    return BlobCache::Get()->getBlobLock(key, keySize, value, valueSize);
+}
+
+void BlobCache::setBlobLock(const void* key, EGLsizeiANDROID keySize, const void* value,
+                            EGLsizeiANDROID valueSize)
+{
+    std::lock_guard<std::mutex> lock(blobmutex_);
+    setBlob(key, keySize, value, valueSize);
+}
+EGLsizeiANDROID BlobCache::getBlobLock(const void *key, EGLsizeiANDROID keySize, void *value,
+                                       EGLsizeiANDROID valueSize)
+{
+    std::lock_guard<std::mutex> lock(blobmutex_);
+    return getBlob(key, keySize, value, valueSize);
+}
+
+void BlobCache::MoveToFront(std::shared_ptr<Blob>& cur)
+{
+    head_->next_->prev_ = cur;
+    cur->next_ = head_->next_;
+    head_->next_ = cur;
+    cur->prev_ = head_;
 }
 
 void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
                         EGLsizeiANDROID valueSize)
 {
-    std::lock_guard<std::mutex> lock(blobmutex_);
-    if (keySize <= 0) {
+    if (keySize <= 0 || valueSize <= 0) {
         return;
+    }
+    if (!readStatus_) {
+        ReadFromDisk();
     }
     std::shared_ptr<Blob> keyBlob = std::make_shared<Blob>(key, (size_t)keySize);
     auto it = mBlobMap_.find(keyBlob);
     if (it != mBlobMap_.end()) {
         free(it->second->data);
-        if (valueSize < 0) {
+        it->second->data = malloc(valueSize);
+        if (it->second->data != nullptr) {
+            it->second->dataSize = valueSize;
+        } else {
+            it->second->dataSize = 0;
             return;
         }
-        it->second->data = malloc(valueSize);
         memcpy_s(it->second->data, valueSize, value, valueSize);
-        head_->next_->prev_ = it->first;
-        it->first->next_ = head_->next_;
-        head_->next_ = it->first;
-        it->first->prev_ = head_;
+        auto moveblob = it->first;
+        MoveToFront(moveblob);
         return;
     }
     if (blobSize_ >= blobSizeMax_) {
@@ -150,10 +177,7 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     }
     std::shared_ptr<Blob> valueBlob = std::make_shared<Blob>(value, (size_t)valueSize);
     mBlobMap_.emplace(keyBlob, valueBlob);
-    head_->next_->prev_ = keyBlob;
-    keyBlob->next_ = head_->next_;
-    head_->next_ = keyBlob;
-    keyBlob->prev_ = head_;
+    MoveToFront(keyBlob);
     ++blobSize_;
     if (!saveStatus_) {
         saveStatus_ = true;
@@ -171,10 +195,12 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
 EGLsizeiANDROID BlobCache::getBlob(const void *key, EGLsizeiANDROID keySize, void *value,
                                    EGLsizeiANDROID valueSize)
 {
-    std::lock_guard<std::mutex> lock(blobmutex_);
     EGLsizeiANDROID ret = 0;
     if (keySize <= 0) {
         return ret;
+    }
+    if (!readStatus_) {
+        ReadFromDisk();
     }
     std::shared_ptr<Blob> keyBlob = std::make_shared<Blob>(key, (size_t)keySize);
     auto it = mBlobMap_.find(keyBlob);
@@ -182,15 +208,14 @@ EGLsizeiANDROID BlobCache::getBlob(const void *key, EGLsizeiANDROID keySize, voi
         ret = (EGLsizeiANDROID)it->second->dataSize;
         if (valueSize < ret) {
             WLOGE("valueSize not enough");
+        } else if (ret == 0) {
+            WLOGE("shader not exist");
         } else {
             memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
             auto moveblob = it->first;
             moveblob->prev_->next_ = moveblob->next_;
             moveblob->next_->prev_ = moveblob->prev_;
-            head_->next_->prev_ = moveblob;
-            moveblob->next_ = head_->next_;
-            head_->next_ = moveblob;
-            moveblob->prev_ = head_;
+            MoveToFront(moveblob);
         }
     }
 
@@ -308,14 +333,12 @@ void BlobCache::WriteToDisk()
 
 void BlobCache::ReadFromDisk()
 {
-    struct stat dirStat;
-    if (stat(cacheDir_.c_str(), &dirStat) != 0) {
-        WLOGE("cacheDir_ not Create");
-        return;
-    }
+    readStatus_ = true;
     std::string storefile = cacheDir_ + fileName_;
     int fd = open(storefile.c_str(), O_RDONLY, 0);
     if (fd == -1) {
+        close(fd);
+        return;
     }
     struct stat bufstat;
     if (fstat(fd, &bufstat) == -1) {
@@ -325,6 +348,7 @@ void BlobCache::ReadFromDisk()
     size_t filesize = bufstat.st_size;
     if (filesize > maxShaderSize_ + maxShaderSize_ || filesize <= 0) {
         close(fd);
+        return;
     }
     uint8_t *buf = reinterpret_cast<uint8_t*>(mmap(nullptr, filesize, PROT_READ, MAP_PRIVATE, fd, 0));
     if (buf == MAP_FAILED) {

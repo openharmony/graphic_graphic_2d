@@ -50,17 +50,16 @@ void RSObjAbsGeometry::ConcatMatrix(const Drawing::Matrix& matrix)
  * @param offset The offset of the current view with respect to its parent.
  * @param clipRect The optional clipping rectangle of the current view.
  */
-void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent,
-    const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
+void RSObjAbsGeometry::UpdateMatrix(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset)
 {
     // Initialize the absolute matrix with the absolute matrix of the parent view if the parent view exists
-    if (parent == nullptr) {
+    if (parentMatrix == nullptr) {
         absMatrix_.reset();
     } else {
-        absMatrix_ = parent->GetAbsMatrix();
-    }
-    if (absMatrix_.has_value() && offset.has_value() && !offset.value().IsZero()) {
-        absMatrix_->PreTranslate(offset->GetX(), offset->GetY());
+        absMatrix_ = *parentMatrix;
+        if (offset.has_value()) {
+            absMatrix_->PreTranslate(offset->GetX(), offset->GetY());
+        }
     }
     // Reset the matrix of the current view
     matrix_.Reset();
@@ -83,28 +82,6 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
             absMatrix_->PreConcat(*contextMatrix_);
         }
         absMatrix_->PreConcat(matrix_);
-    }
-    // if clipRect is valid, update rect with clipRect
-    if (clipRect.has_value() && !clipRect.value().IsEmpty()) {
-        auto mappedClipRect = clipRect.value();
-        if (!matrix_.IsIdentity()) {
-            Drawing::Matrix invertMatrix;
-            if (matrix_.Invert(invertMatrix)) {
-                invertMatrix.MapRect(mappedClipRect, mappedClipRect);
-            }
-            // matrix_ already includes bounds offset, we need to revert it
-            mappedClipRect.Offset(GetX(), GetY());
-        }
-
-        if (!mappedClipRect.Intersect({ x_, y_, x_ + width_, y_ + height_ })) {
-            // No visible area
-            x_ = y_ = width_ = height_ = 0.0f;
-            return;
-        }
-        x_ = mappedClipRect.GetLeft();
-        y_ = mappedClipRect.GetTop();
-        width_ = mappedClipRect.GetWidth();
-        height_ = mappedClipRect.GetHeight();
     }
     // If the context matrix of the current view exists, update the current matrix with it
     if (contextMatrix_.has_value()) {
@@ -165,6 +142,37 @@ namespace {
             }
         }
     }
+
+    void ApplyPerspToMatrix(const Transform& trans, Drawing::Matrix& m, bool preConcat)
+    {
+        if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
+            Drawing::Matrix perspM {};
+            perspM.SetMatrix(1.f, 0.f, 0.f,
+                0.f, 1.f, 0.f,
+                trans.perspX_, trans.perspY_, 1.f);
+            if (preConcat) {
+                m = perspM * m;
+            } else {
+                m = m * perspM;
+            }
+        }
+    }
+
+    void ApplyPerspToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
+    {
+        if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
+            Drawing::Matrix44 perspM44 {};
+            perspM44.SetMatrix44RowMajor({1.f, 0.f, 0.f, 0.f,
+                0.f, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                trans.perspX_, trans.perspY_, 0.f, 1.f});
+            if (preConcat) {
+                m44 = perspM44 * m44;
+            } else {
+                m44 = m44 * perspM44;
+            }
+        }
+    }
 }
 
 void RSObjAbsGeometry::UpdateAbsMatrix2D()
@@ -172,6 +180,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix2D()
     if (!trans_) {
         matrix_.PreTranslate(x_, y_);
     } else {
+        // Persp
+        if (!ROSEN_EQ(trans_->perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans_->perspY_, 0.f, EPSILON)) {
+            matrix_.PreTranslate(trans_->pivotX_ * width_, trans_->pivotY_ * height_);
+            ApplyPerspToMatrix(trans_.value(), matrix_, false);
+            matrix_.PreTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_);
+        }
         // Translate
         if ((x_ + trans_->translateX_ != 0) || (y_ + trans_->translateY_ != 0)) {
             matrix_.PreTranslate(x_ + trans_->translateX_, y_ + trans_->translateY_);
@@ -199,9 +213,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
     // If the view has a non-identity quaternion, apply 3D transformations
     if (!trans_->quaternion_.IsIdentity()) {
         Drawing::Matrix44 matrix3D;
+        // Pivot
+        matrix3D.Translate(trans_->pivotX_ * width_, trans_->pivotY_ * height_, 0);
+        // Persp
+        ApplyPerspToMatrix44(trans_.value(), matrix3D, false);
         // Translate
-        matrix3D.Translate(trans_->pivotX_ * width_ + x_ + trans_->translateX_,
-            trans_->pivotY_ * height_ + y_ + trans_->translateY_, z_ + trans_->translateZ_);
+        matrix3D.PreTranslate(x_ + trans_->translateX_, y_ + trans_->translateY_, z_ + trans_->translateZ_);
         // Rotate
         float x = trans_->quaternion_[0];
         float y = trans_->quaternion_[1];
@@ -258,12 +275,17 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
             matrix3D.PreScale(trans_->scaleX_, trans_->scaleY_);
         }
-        // Translate
+        // Pivot
         matrix3D.PreTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_);
 
+        // Translate
+        matrix3D.PostTranslate(x_ + trans_->translateX_, y_ + trans_->translateY_);
+        // PostPersp
+        ApplyPerspToMatrix(trans_.value(), matrix3D, true);
+        // Pivot
+        matrix3D.PostTranslate(trans_->pivotX_ * width_, trans_->pivotY_ * height_);
+
         // Concatenate the 3D matrix with the 2D matrix
-        matrix3D.PostTranslate(
-            trans_->pivotX_ * width_ + x_ + trans_->translateX_, trans_->pivotY_ * height_ + y_ + trans_->translateY_);
         matrix_.PreConcat(matrix3D);
     }
 }
@@ -273,7 +295,14 @@ void RSObjAbsGeometry::SetAbsRect()
     absRect_ = MapAbsRect(RectF(0.f, 0.f, width_, height_));
 }
 
-RectI RSObjAbsGeometry::MapAbsRectWithMatrix(const RectF& rect, const Drawing::Matrix& matrix) const
+/**
+ * Map the rectangle with specific matrix
+ * [planning] replaced by Drawing::MapRect
+ * @param rect the rectangle to map
+ * @param matrix the specific to map
+ * @return the mapped absolute rectangle
+ */
+RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix) const
 {
     RectI absRect;
     // Check if the matrix has skew or negative scaling
@@ -320,8 +349,7 @@ RectI RSObjAbsGeometry::MapAbsRectWithMatrix(const RectF& rect, const Drawing::M
  */
 RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
 {
-    const auto& matrix = GetAbsMatrix();
-    return MapAbsRectWithMatrix(rect, matrix);
+    return MapRect(rect, GetAbsMatrix());
 }
 
 Vector2f RSObjAbsGeometry::GetDataRange(float d0, float d1, float d2, float d3) const

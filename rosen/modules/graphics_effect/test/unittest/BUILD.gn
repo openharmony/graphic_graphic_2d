@@ -19,7 +19,11 @@ module_output_path = "graphic_2d/rosen/modules/graphics_effect"
 ohos_unittest("GEVisualEffectTest") {
   module_out_path = module_output_path
 
-  sources = [ "ge_visual_effect_test.cpp" ]
+  sources = [
+    "ge_render_test.cpp",
+    "ge_visual_effect_container_test.cpp",
+    "ge_visual_effect_test.cpp",
+  ]
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/graphics_effect/include",

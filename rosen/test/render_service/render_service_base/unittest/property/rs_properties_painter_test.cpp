@@ -15,13 +15,14 @@
 
 #include <gtest/gtest.h>
 
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "property/rs_properties_painter.h"
-#include "property/rs_point_light_manager.h"
-#include "render/rs_foreground_effect_filter.h"
-#include "render/rs_skia_filter.h"
-#include "render/rs_shadow.h"
 #include "pipeline/rs_render_node.h"
+#include "property/rs_point_light_manager.h"
+#include "property/rs_properties_painter.h"
+#include "render/rs_foreground_effect_filter.h"
+#include "render/rs_shadow.h"
+#include "render/rs_skia_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -750,7 +751,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightInner001, TestSize.Level1)
     std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> lightSourcesAndPosVec;
     std::shared_ptr<RSObjAbsGeometry> geoPtr;
     auto instance = RSPointLightManager::Instance();
-    auto lightPos = instance->CalculateLightPosForIlluminated(newLightSource, geoPtr);
+    auto lightPos = instance->CalculateLightPosForIlluminated(*newLightSource, geoPtr->GetAbsRect());
     lightSourcesAndPosVec.push_back(std::make_pair(newLightSource, lightPos));
     RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
     EXPECT_TRUE(true);
@@ -966,50 +967,6 @@ HWTEST_F(RSPropertiesPainterTest, IsDangerousBlendMode001, TestSize.Level1)
     EXPECT_TRUE(true);
 
     RSPropertiesPainter::IsDangerousBlendMode(1, 1);
-    EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: BeginBlendMode001
- * @tc.desc: test results of BeginBlendMode
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, BeginBlendMode001, TestSize.Level1)
-{
-    RSProperties properties;
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
-    RSPropertiesPainter::BeginBlendMode(drCanvas, properties);
-    EXPECT_TRUE(true);
-
-    properties.SetColorBlendMode(2);
-    RSPropertiesPainter::BeginBlendMode(drCanvas, properties);
-    EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: EndBlendMode001
- * @tc.desc: test results of EndBlendMode
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, EndBlendMode001, TestSize.Level1)
-{
-    RSProperties properties;
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
-    RSPropertiesPainter::EndBlendMode(drCanvas, properties);
-    EXPECT_TRUE(true);
-
-    properties.SetColorBlendMode(2);
-    drCanvas.AddBlendOffscreenLayer(true);
-    RSPropertiesPainter::EndBlendMode(drCanvas, properties);
-    EXPECT_TRUE(true);
-
-    properties.SetColorBlendApplyType(1);
-    drCanvas.AddBlendOffscreenLayer(true);
-    RSPropertiesPainter::EndBlendMode(drCanvas, properties);
     EXPECT_TRUE(true);
 }
 

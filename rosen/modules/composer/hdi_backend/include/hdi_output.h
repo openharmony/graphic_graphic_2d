@@ -81,17 +81,18 @@ public:
     RosenError InitDevice();
     /* only used for mock tests */
     RosenError SetHdiOutputDevice(HdiDevice* device);
-    int32_t PreProcessLayersComp(bool &needFlush);
+    int32_t PreProcessLayersComp();
     int32_t UpdateLayerCompType();
     int32_t FlushScreen(std::vector<LayerPtr> &compClientLayers);
     int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry);
     int32_t Commit(sptr<SyncFence> &fbFence);
+    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush);
     int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
-    void ReleaseLayers();
+    void ReleaseLayers(sptr<SyncFence>& releaseFence);
 
 private:
     HdiDevice *device_ = nullptr;
@@ -125,7 +126,7 @@ private:
     void ResetLayerStatus();
     void ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
     void UpdatePrevLayerInfo();
-    void ReleaseSurfaceBuffer();
+    void ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence);
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);

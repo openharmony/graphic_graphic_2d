@@ -26,9 +26,6 @@
 #include "metadata_helper.h"
 
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-#include "pipeline/driven_render/rs_driven_surface_render_node.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -126,33 +123,6 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     return info;
 }
 
-ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
-    const RectI dstRect = node.GetDstRect();
-    const auto& srcRect = node.GetSrcRect();
-    ComposeInfo info {};
-    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
-    info.dstRect = GraphicIRect {dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_};
-    info.boundRect = info.dstRect;
-    info.visibleRect = info.dstRect;
-    info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
-    info.alpha.enGlobalAlpha = true;
-    info.alpha.gAlpha = GLOBAL_ALPHA_MAX;
-    SetPreBufferInfo(node, info);
-    info.buffer = buffer;
-    info.fence = node.GetAcquireFence();
-    info.blendType = GRAPHIC_BLEND_SRCOVER;
-    info.needClient = false;
-    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
-    info.gravity = static_cast<int32_t>(Gravity::RESIZE);
-    return info;
-#else
-    return {};
-#endif
-}
-
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
@@ -207,7 +177,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
     layer->SetGravity(info.gravity);
-    SetMetaDataInfoToLayer(layer, info, surface);
+    SetMetaDataInfoToLayer(layer, info.buffer, surface);
 }
 
 void RSUniRenderComposerAdapter::SetBufferColorSpace(RSDisplayRenderNode& node)
@@ -251,18 +221,18 @@ void RSUniRenderComposerAdapter::SetBufferColorSpace(RSDisplayRenderNode& node)
     }
 }
 
-void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const ComposeInfo& info,
+void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
                                                         const sptr<IConsumerSurface>& surface) const
 {
     HDRMetaDataType type;
-    if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
+    if (surface->QueryMetaDataType(buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGD("RSUniRenderComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
         return;
     }
     switch (type) {
         case HDRMetaDataType::HDR_META_DATA: {
             std::vector<GraphicHDRMetaData> metaData;
-            if (surface->GetMetaData(info.buffer->GetSeqNum(), metaData) != GSERROR_OK) {
+            if (surface->GetMetaData(buffer->GetSeqNum(), metaData) != GSERROR_OK) {
                 RS_LOGE("RSUniRenderComposerAdapter::SetComposeInfoToLayer: GetMetaData failed");
                 return;
             }
@@ -272,7 +242,7 @@ void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& laye
         case HDRMetaDataType::HDR_META_DATA_SET: {
             GraphicHDRMetadataKey key;
             std::vector<uint8_t> metaData;
-            if (surface->GetMetaDataSet(info.buffer->GetSeqNum(), key, metaData) != GSERROR_OK) {
+            if (surface->GetMetaDataSet(buffer->GetSeqNum(), key, metaData) != GSERROR_OK) {
                 RS_LOGE("RSUniRenderComposerAdapter::SetComposeInfoToLayer: GetMetaDataSet failed");
                 return;
             }
@@ -728,44 +698,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     RS_OPTIONAL_TRACE_END();
     // do not crop or scale down for displayNode's layer.
     return layer;
-}
-
-LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& node)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    if (output_ == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
-        return nullptr;
-    }
-
-    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer RSDrivenSurfaceRenderNode id:%{public}" PRIu64 " available"
-        " buffer:%{public}d", node.GetId(), node.GetAvailableBufferCount());
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
-        return nullptr;
-    }
-
-    if (node.GetBuffer() == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer buffer is nullptr!");
-        return nullptr;
-    }
-
-    ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGD("RSUniRenderComposerAdapter::ProcessDrivenSurface drivenSurfaceNode id:%{public}" PRIu64 " DstRect"
-        " [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d %{public}d %{public}d]"
-        " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z-Order:%{public}d,"
-        " blendType = %{public}d",
-        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
-        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
-    LayerRotate(layer, node);
-    return layer;
-#else
-    return nullptr;
-#endif
 }
 
 LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)

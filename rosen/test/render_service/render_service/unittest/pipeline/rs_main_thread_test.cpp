@@ -550,22 +550,6 @@ HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus02, TestSize
 }
 
 /**
- * @tc.name: WaitUtilDrivenRenderFinished
- * @tc.desc: Test WaitUtilDrivenRenderFinished, check if drivenRenderFinished_ is valid
- * @tc.type: FUNC
- * @tc.require: issueI6R34I
- */
-HWTEST_F(RSMainThreadTest, WaitUtilDrivenRenderFinished, TestSize.Level1)
-{
-#if defined(RS_ENABLE_DRIVEN_RENDER)
-    auto mainThread = RSMainThread::Instance();
-    mainThread->NotifyDrivenRenderFinish();
-    mainThread->WaitUtilDrivenRenderFinished();
-    ASSERT_EQ(mainThread->drivenRenderFinished_, true);
-#endif
-}
-
-/**
  * @tc.name: RecvRSTransactionData
  * @tc.desc: Test RecvRSTransactionData, when TransactionData is null
  * @tc.type: FUNC
@@ -1205,36 +1189,6 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->CheckIfHardwareForcedDisabled();
-}
-
-/**
- * @tc.name: CollectInfoForDrivenRender001
- * @tc.desc: CollectInfoForDrivenRender test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, CollectInfoForDrivenRender001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    bool isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = true;
-    mainThread->CollectInfoForHardwareComposer();
-    mainThread->isUniRender_ = isUniRender;
-}
-
-/**
- * @tc.name: CollectInfoForDrivenRender002
- * @tc.desc: CollectInfoForDrivenRender test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, CollectInfoForDrivenRender002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    bool isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = false;
-    mainThread->CollectInfoForHardwareComposer();
-    mainThread->isUniRender_ = isUniRender;
 }
 
 /**
@@ -2606,19 +2560,6 @@ HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus003, TestSiz
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->CheckAndUpdateInstanceContentStaticStatus(nullptr);
-}
-
-/**
- * @tc.name: ApplyModifiers
- * @tc.desc: ApplyModifiers Test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, ApplyModifiers, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->ApplyModifiers();
 }
 
 /**

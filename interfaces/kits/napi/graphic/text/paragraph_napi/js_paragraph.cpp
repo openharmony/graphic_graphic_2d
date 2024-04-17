@@ -20,6 +20,7 @@
 #include "js_text_utils.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "utils/log.h"
+#include "text_line_napi/js_text_line.h"
 
 namespace OHOS::Rosen {
 std::unique_ptr<Typography> g_Typography = nullptr;
@@ -56,7 +57,7 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("layout", JsParagraph::Layout),
+        DECLARE_NAPI_FUNCTION("layoutSync", JsParagraph::Layout),
         DECLARE_NAPI_FUNCTION("paint", JsParagraph::Paint),
         DECLARE_NAPI_FUNCTION("getMaxWidth", JsParagraph::GetMaxWidth),
         DECLARE_NAPI_FUNCTION("getHeight", JsParagraph::GetHeight),
@@ -73,6 +74,7 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getLineHeight", JsParagraph::GetLineHeight),
         DECLARE_NAPI_FUNCTION("getLineWidth", JsParagraph::GetLineWidth),
         DECLARE_NAPI_FUNCTION("didExceedMaxLines", JsParagraph::DidExceedMaxLines),
+        DECLARE_NAPI_FUNCTION("getTextLines", JsParagraph::GetTextLines),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
@@ -533,5 +535,45 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typogra
         }
     }
     return result;
+}
+
+napi_value JsParagraph::GetTextLines(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetTextLines(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
+{
+    if (!paragraph_) {
+        ROSEN_LOGE("JsParagraph::OnGetTextLines paragraph_ is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    std::vector<std::unique_ptr<TextLineBase>> textlineArr = paragraph_->GetTextLines();
+    if (textlineArr.empty()) {
+        ROSEN_LOGE("JsParagraph::OnGetTextLines textlineArr is empty");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value array = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &array));
+    uint32_t index = 0;
+    for (std::unique_ptr<TextLineBase>& item : textlineArr) {
+        napi_value itemObject = JsTextLine::CreateTextLine(env, info);
+        if (!itemObject) {
+            ROSEN_LOGE("JsParagraph::OnGetTextLines itemObject is null");
+            continue;
+        }
+        JsTextLine* jsTextLine = nullptr;
+        napi_unwrap(env, itemObject, reinterpret_cast<void**>(&jsTextLine));
+        if (!jsTextLine) {
+            ROSEN_LOGE("JsParagraph::OnGetTextLines napi_unwrap jsTextLine is null");
+            continue;
+        }
+        jsTextLine->SetTextLine(std::move(item));
+
+        napi_set_element(env, array, index++, itemObject);
+    }
+    return array;
 }
 } // namespace OHOS::Rosen

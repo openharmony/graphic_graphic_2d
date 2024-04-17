@@ -67,6 +67,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetCameraDistance(0.f); },            // CAMERA_DISTANCE
     [](RSProperties* prop) { prop->SetScale(Vector2f(1.f, 1.f)); },      // SCALE
     [](RSProperties* prop) { prop->SetSkew(Vector2f(0.f, 0.f)); },       // SKEW
+    [](RSProperties* prop) { prop->SetPersp(Vector2f(0.f, 0.f)); },      // PERSP
     [](RSProperties* prop) { prop->SetTranslate(Vector2f(0.f, 0.f)); },  // TRANSLATE
     [](RSProperties* prop) { prop->SetTranslateZ(0.f); },                // TRANSLATE_Z
     [](RSProperties* prop) { prop->SetSublayerTransform({}); },          // SUBLAYER_TRANSFORM
@@ -178,13 +179,13 @@ RSProperties::RSProperties()
 
 RSProperties::~RSProperties() = default;
 
-void RSProperties::ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes)
+void RSProperties::ResetProperty(const ModifierDirtyTypes& dirtyTypes)
 {
     if (dirtyTypes.none()) {
         return;
     }
     for (uint8_t type = 0; type < static_cast<size_t>(RSModifierType::CUSTOM); type++) {
-        if (dirtyTypes[type]) {
+        if (dirtyTypes.test(type)) {
             if (auto& resetFunc = g_propertyResetterLUT[type]) {
                 resetFunc(this);
             }
@@ -396,25 +397,37 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
-bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
-    const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
+bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
+    const std::optional<Drawing::Point>& offset)
 {
-    if (boundsGeo_ == nullptr) {
-        return false;
+    auto prevAbsMatrix = prevAbsMatrix_;
+    boundsGeo_->UpdateMatrix(parentMatrix, offset);
+    prevAbsMatrix_ = boundsGeo_->GetAbsMatrix();
+    if (!RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
+        return true;
     }
-    auto& boundsGeoPtr = (boundsGeo_);
+    const auto& rect = boundsGeo_->GetAbsRect();
+    if (!lastRect_.has_value()) {
+        lastRect_ = rect;
+        return true;
+    }
+    auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
+    lastRect_ = rect;
+    return dirtyFlag;
+}
 
+bool RSProperties::UpdateGeometry(
+    const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset)
+{
     if (!dirtyFlag && !geoDirty_) {
         return false;
     }
-    auto parentGeoPtr = parent == nullptr ? nullptr : (parent->boundsGeo_.get());
-    if (parentGeoPtr && sandbox_ && sandbox_->matrix_) {
-        auto parentGeo = std::make_shared<RSObjAbsGeometry>();
-        parentGeo->ConcatMatrix(*(sandbox_->matrix_));
-        boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
-    } else {
-        boundsGeoPtr->UpdateMatrix(parent == nullptr ? nullptr : (parent->boundsGeo_), offset, clipRect);
+    auto parentMatrix = parent == nullptr ? nullptr : &(parent->GetBoundsGeometry()->GetAbsMatrix());
+    if (parentMatrix && sandbox_ && sandbox_->matrix_) {
+        parentMatrix = &(sandbox_->matrix_.value());
     }
+    CheckEmptyBounds();
+    boundsGeo_->UpdateMatrix(parentMatrix, offset);
     if (lightSourcePtr_ && lightSourcePtr_->IsLightSourceValid()) {
         CalculateAbsLightPosition();
         RSPointLightManager::Instance()->AddDirtyLightSource(backref_);
@@ -423,7 +436,7 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
         RSPointLightManager::Instance()->AddDirtyIlluminated(backref_);
     }
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
-        auto rect = boundsGeoPtr->GetAbsRect();
+        auto rect = boundsGeo_->GetAbsRect();
         if (!lastRect_.has_value()) {
             lastRect_ = rect;
             return true;
@@ -636,6 +649,27 @@ void RSProperties::SetSkewY(float skewY)
     SetDirty();
 }
 
+void RSProperties::SetPersp(Vector2f persp)
+{
+    boundsGeo_->SetPersp(persp.x_, persp.y_);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetPerspX(float perspX)
+{
+    boundsGeo_->SetPerspX(perspX);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetPerspY(float perspY)
+{
+    boundsGeo_->SetPerspY(perspY);
+    geoDirty_ = true;
+    SetDirty();
+}
+
 void RSProperties::SetTranslate(Vector2f translate)
 {
     boundsGeo_->SetTranslateX(translate[0]);
@@ -718,6 +752,21 @@ float RSProperties::GetSkewY() const
 Vector2f RSProperties::GetSkew() const
 {
     return { boundsGeo_->GetSkewX(), boundsGeo_->GetSkewY() };
+}
+
+float RSProperties::GetPerspX() const
+{
+    return boundsGeo_->GetPerspX();
+}
+
+float RSProperties::GetPerspY() const
+{
+    return boundsGeo_->GetPerspY();
+}
+
+Vector2f RSProperties::GetPersp() const
+{
+    return { boundsGeo_->GetPerspX(), boundsGeo_->GetPerspY() };
 }
 
 Vector2f RSProperties::GetTranslate() const
@@ -1380,12 +1429,13 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
-    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE && colorPickerTaskShadow_ == nullptr) {
-        CreateColorPickerTaskForShadow();
-        colorPickerTaskShadow_->SetShadowColorStrategy(shadowColorStrategy);
+    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE &&
+        shadow_->GetColorPickerCacheTask() == nullptr) {
+        auto colorPickerTaskShadow = std::make_shared<RSColorPickerCacheTask>();
+        colorPickerTaskShadow->SetShadowColorStrategy(shadowColorStrategy);
+        shadow_->SetColorPickerCacheTask(colorPickerTaskShadow);
     }
 }
-
 
 const Color& RSProperties::GetShadowColor() const
 {
@@ -1545,6 +1595,15 @@ bool RSProperties::GetClipToFrame() const
     return clipToFrame_;
 }
 
+RectF RSProperties::GetLocalBoundsAndFramesRect() const
+{
+    auto rect = GetBoundsRect();
+    if (!clipToBounds_ && !std::isinf(GetFrameWidth()) && !std::isinf(GetFrameHeight())) {
+        rect = rect.JoinRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
+    }
+    return rect;
+}
+
 RectF RSProperties::GetBoundsRect() const
 {
     if (boundsGeo_->IsEmpty()) {
@@ -1648,15 +1707,8 @@ bool RSProperties::IsContentDirty() const
 
 RectI RSProperties::GetDirtyRect() const
 {
-    RectI dirtyRect;
     auto boundsGeometry = (boundsGeo_);
-    if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
-        dirtyRect = boundsGeometry->GetAbsRect();
-    } else {
-        auto frameRect =
-            boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
-        dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
-    }
+    RectI dirtyRect = boundsGeometry->MapAbsRect(GetLocalBoundsAndFramesRect());
     if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
         return dirtyRect;
     } else {
@@ -2567,8 +2619,30 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    errno_t ret;
+    if (clipToBounds_) {
+        // clipToBounds
+        ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+        if (ret != EOK) {
+            return "Failed to memset_s for clipToBounds, ret=" + std::to_string(ret);
+        }
+        if (sprintf_s(buffer, UINT8_MAX, ", ClipToBounds[True]") != -1) {
+            dumpInfo.append(buffer);
+        }
+    }
+    if (clipToFrame_) {
+        // clipToFrame
+        ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+        if (ret != EOK) {
+            return "Failed to memset_s for clipToFrame, ret=" + std::to_string(ret);
+        }
+        if (sprintf_s(buffer, UINT8_MAX, ", ClipToFrame[True]") != -1) {
+            dumpInfo.append(buffer);
+        }
+    }
+
     // PositionZ
-    auto ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
         return "Failed to memset_s for PositionZ, ret=" + std::to_string(ret);
     }
@@ -2577,16 +2651,6 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
-    // blendmode
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
-    }
-    if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
-        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]",
-        GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
-        dumpInfo.append(buffer);
-    }
     // Pivot
     std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
@@ -2705,7 +2769,7 @@ std::string RSProperties::Dump() const
         return "Failed to memset_s for Alpha, ret=" + std::to_string(ret);
     }
     if (!ROSEN_EQ(GetAlpha(), 1.f) &&
-        sprintf_s(buffer, UINT8_MAX, ", Alpha[%.1f]", GetAlpha()) != -1) {
+        sprintf_s(buffer, UINT8_MAX, ", Alpha[%.3f]", GetAlpha()) != -1) {
         dumpInfo.append(buffer);
     }
 
@@ -2716,6 +2780,17 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetSpherize(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Spherize[%.1f]", GetSpherize()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // blendmode
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
+    }
+    if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
+        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]",
+        GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
         dumpInfo.append(buffer);
     }
 
@@ -3009,6 +3084,7 @@ std::string RSProperties::Dump() const
     return dumpInfo;
 }
 
+// planning: need to delete, cachemanager moved to filter drawable
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
@@ -3022,9 +3098,6 @@ void RSProperties::CreateFilterCacheManagerIfNeed()
         }
         cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
-        if (backgroundFilterCacheManager_ != nullptr) {
-            backgroundFilterCacheManager_->ReleaseCacheOffTree();
-        }
         backgroundFilterCacheManager_.reset();
     }
     if (auto& filter = GetFilter()) {
@@ -3034,9 +3107,6 @@ void RSProperties::CreateFilterCacheManagerIfNeed()
         }
         cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
-        if (foregroundFilterCacheManager_ != nullptr) {
-            foregroundFilterCacheManager_->ReleaseCacheOffTree();
-        }
         foregroundFilterCacheManager_.reset();
     }
 }
@@ -3063,14 +3133,6 @@ void RSProperties::ClearFilterCache()
         filter->ReleaseColorPickerFilter();
     }
 }
-
-void RSProperties::CreateColorPickerTaskForShadow()
-{
-    if (colorPickerTaskShadow_ == nullptr) {
-        colorPickerTaskShadow_ = std::make_shared<RSColorPickerCacheTask>();
-    }
-}
-
 #endif
 
 void RSProperties::OnApplyModifiers()
@@ -3085,6 +3147,9 @@ void RSProperties::OnApplyModifiers()
         if (clipToFrame_ && clipToBounds_ && frameOffsetX_ == 0 && frameOffsetY_ == 0) {
             clipToFrame_ = false;
         }
+        // planning: temporary fix to calculate relative matrix in OnApplyModifiers, later RSRenderNode::Update will
+        // overwrite it.
+        boundsGeo_->UpdateByMatrixFromSelf();
         if (RSSystemProperties::IsPcType()) {
             frameGeo_->Round();
             boundsGeo_->Round();
@@ -3135,9 +3200,6 @@ void RSProperties::OnApplyModifiers()
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                       IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                       foregroundFilter_ != nullptr;
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-        CreateFilterCacheManagerIfNeed();
-#endif
         ApplyGreyCoef();
     }
     GenerateRRect();
@@ -3243,17 +3305,16 @@ int RSProperties::GetColorBlendApplyType() const
 
 const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const
 {
-    return colorPickerTaskShadow_;
+    return shadow_ ? shadow_->GetColorPickerCacheTask() : nullptr;
 }
 
 void RSProperties::ReleaseColorPickerTaskShadow() const
 {
-    if (colorPickerTaskShadow_ == nullptr) {
+    if (!shadow_ || shadow_->GetColorPickerCacheTask() == nullptr) {
         return;
     }
-    colorPickerTaskShadow_->ReleaseColorPicker();
+    shadow_->GetColorPickerCacheTask()->ReleaseColorPicker();
 }
-
 
 bool RSProperties::GetHaveEffectRegion() const
 {

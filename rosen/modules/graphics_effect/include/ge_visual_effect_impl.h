@@ -30,7 +30,7 @@ namespace Drawing {
 
 class GEVisualEffectImpl {
 public:
-    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, MAX };
+    enum class FilterType { NONE, KAWASE_BLUR, GREY, AIBAR, LINEAR_GRADIENT_BLUR, MAX };
 
     GEVisualEffectImpl(const std::string& name);
 
@@ -41,6 +41,12 @@ public:
     void SetParam(const std::string& tag, float param);
     void SetParam(const std::string& tag, double param);
     void SetParam(const std::string& tag, const char* const param);
+
+    void SetParam(const std::string& tag, const std::shared_ptr<Drawing::Image> param);
+    void SetParam(const std::string& tag, const std::shared_ptr<Drawing::ColorFilter> param);
+    void SetParam(const std::string& tag, const Drawing::Matrix param);
+    void SetParam(const std::string& tag, const std::vector<std::pair<float, float>>);
+    void SetParam(const std::string& tag, bool param);
 
     void SetFilterType(FilterType type)
     {
@@ -82,14 +88,29 @@ public:
         return greyParams_;
     }
 
+    void MakeLinearGradientBlurParams()
+    {
+        linearGradientBlurParams_ = std::make_shared<GELinearGradientBlurShaderFilterParams>();
+    }
+
+    const std::shared_ptr<GELinearGradientBlurShaderFilterParams>& GetLinearGradientBlurParams() const
+    {
+        return linearGradientBlurParams_;
+    }
+
 private:
     static std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> g_initialMap;
+
+    void SetAIBarParams(const std::string& tag, float param);
+    void SetGreyParams(const std::string& tag, float param);
+    void SetLinearGradientBlurParams(const std::string& tag, float param);
 
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
 
     std::shared_ptr<GEKawaseBlurShaderFilterParams> kawaseParams_ = nullptr;
     std::shared_ptr<GEAIBarShaderFilterParams> aiBarParams_ = nullptr;
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
+    std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
 };
 
 } // namespace Drawing

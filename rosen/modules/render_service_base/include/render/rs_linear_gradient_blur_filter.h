@@ -17,6 +17,7 @@
 
 #include "render/rs_skia_filter.h"
 #include "render/rs_gradient_blur_para.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
@@ -31,7 +32,7 @@ public:
     RSLinearGradientBlurFilter operator=(const RSLinearGradientBlurFilter&) = delete;
     ~RSLinearGradientBlurFilter() override;
 
-    void PostProcess(RSPaintFilterCanvas& canvas) override {};
+    void PostProcess(Drawing::Canvas& canvas) override {};
     std::string GetDescription() override;
     std::string GetDetailedDescription() override;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,

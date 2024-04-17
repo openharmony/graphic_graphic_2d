@@ -67,7 +67,7 @@ public:
     std::shared_ptr<RSFilter> TransformFilter(float fraction) const;
     bool IsValid() const override;
     void PreProcess(std::shared_ptr<Drawing::Image> image) override;
-    void PostProcess(RSPaintFilterCanvas& canvas) override;
+    void PostProcess(Drawing::Canvas& canvas) override;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
     std::string GetDescription() override;
     std::string GetDetailedDescription() override;

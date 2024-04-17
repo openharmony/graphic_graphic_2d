@@ -37,6 +37,12 @@ public:
     RSNodeVisitor& operator=(const RSNodeVisitor&&) = delete;
     virtual ~RSNodeVisitor() = default;
 
+    virtual void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) {};
+    virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) {};
+    virtual void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) {};
+    virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) {};
+    virtual void QuickPrepareChildren(RSRenderNode& node) {};
+
     virtual void PrepareChildren(RSRenderNode& node) = 0;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;
     virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) = 0;

@@ -245,14 +245,14 @@ typedef RectT<float> RectF;
     RectI_Hash_Func: provide hash value for rect comparing
 */
 struct RectIComparator {
-    bool operator()(const RectI& r1, const RectI& r2) const
+    bool operator()(const std::pair<NodeId, RectI>& p1, const std::pair<NodeId, RectI>& p2) const
     {
-        return r2.IsInsideOf(r1);
+        return p2.second.IsInsideOf(p1.second);
     }
 };
 
 struct RectI_Hash_Func {
-    size_t operator()(const RectI& _r) const
+    size_t operator()(const std::pair<NodeId, RectI>& p) const
     {
         // this is set for all rects can be compared
         int hash_value = 0;
@@ -260,7 +260,7 @@ struct RectI_Hash_Func {
     }
 };
 
-typedef std::unordered_set<RectI, RectI_Hash_Func, RectIComparator> OcclusionRectISet;
+typedef std::unordered_set<std::pair<NodeId, RectI>, RectI_Hash_Func, RectIComparator> OcclusionRectISet;
 
 template<typename T>
 class RRectT {

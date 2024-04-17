@@ -32,12 +32,13 @@ ohos_shared_library("librender_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_no_nvcall = true
     debug = false
   }
   if (enhanced_opt) {
     configs = [ ":render_service_link_config" ]
   }
-  defines = []
+  defines = [ "RS_PARALLEL" ]
   if (graphic_2d_feature_color_gamut_enable) {
     defines += [ "PADDING_HEIGHT_32" ]
   } else {
@@ -85,6 +86,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_base_render_util.cpp",
     "core/pipeline/rs_composer_adapter.cpp",
     "core/pipeline/rs_divided_render_util.cpp",
+    "core/pipeline/rs_draw_frame.cpp",
     "core/pipeline/rs_hardware_thread.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_physical_screen_processor.cpp",
@@ -97,10 +99,14 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_listener.cpp",
     "core/pipeline/rs_render_service_visitor.cpp",
     "core/pipeline/rs_surface_capture_task.cpp",
+    "core/pipeline/rs_surface_capture_task_parallel.cpp",
+    "core/pipeline/rs_uifirst_manager.cpp",
+    "core/pipeline/rs_uni_hwc_prevalidate_util.cpp",
     "core/pipeline/rs_uni_render_composer_adapter.cpp",
     "core/pipeline/rs_uni_render_engine.cpp",
     "core/pipeline/rs_uni_render_listener.cpp",
     "core/pipeline/rs_uni_render_processor.cpp",
+    "core/pipeline/rs_uni_render_thread.cpp",
     "core/pipeline/rs_uni_render_util.cpp",
     "core/pipeline/rs_uni_render_virtual_processor.cpp",
     "core/pipeline/rs_uni_render_visitor.cpp",
@@ -117,15 +123,24 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_render_service_stub.cpp",
   ]
 
-  if (rs_enable_driven_render) {
-    sources += [
-      "core/pipeline/driven_render/rs_driven_render_ext.cpp",
-      "core/pipeline/driven_render/rs_driven_render_listener.cpp",
-      "core/pipeline/driven_render/rs_driven_render_manager.cpp",
-      "core/pipeline/driven_render/rs_driven_render_visitor.cpp",
-      "core/pipeline/driven_render/rs_driven_surface_render_node.cpp",
-    ]
-  }
+  #drawable
+  sources += [
+    "core/drawable/rs_canvas_drawing_render_node_drawable.cpp",
+    "core/drawable/rs_canvas_render_node_drawable.cpp",
+    "core/drawable/rs_display_render_node_drawable.cpp",
+    "core/drawable/rs_effect_render_node_drawable.cpp",
+    "core/drawable/rs_render_node_drawable.cpp",
+    "core/drawable/rs_render_node_shadow_drawable.cpp",
+    "core/drawable/rs_root_render_node_drawable.cpp",
+    "core/drawable/rs_surface_render_node_drawable.cpp",
+    "core/drawable/rs_ui_first_surface_render_node_drawable.cpp",
+  ]
+
+  #dfx
+  sources += [
+    "core/drawable/dfx/rs_dirty_rects_dfx.cpp",
+    "core/drawable/dfx/rs_skp_capture_dfx.cpp",
+  ]
 
   if (rs_enable_eglimage) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
@@ -356,6 +371,7 @@ ohos_executable("render_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_no_nvcall = true
     debug = false
     if (rosen_is_ohos) {
       boundary_sanitize = true

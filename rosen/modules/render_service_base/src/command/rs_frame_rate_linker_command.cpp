@@ -18,6 +18,16 @@
 
 namespace OHOS {
 namespace Rosen {
+void RSFrameRateLinkerCommandHelper::Destroy(RSContext& context, FrameRateLinkerId id)
+{
+    auto& linkerMap = context.GetMutableFrameRateLinkerMap();
+    auto linker = linkerMap.GetFrameRateLinker(id);
+    if (linker == nullptr) {
+        return;
+    }
+    linkerMap.UnregisterFrameRateLinker(id);
+}
+
 void RSFrameRateLinkerCommandHelper::UpdateRange(RSContext& context, FrameRateLinkerId id, FrameRateRange range)
 {
     ROSEN_LOGD("RSFrameRateLinkerCommandHelper::UpdateRange %{public}" PRIu64 ", {%{public}d, %{public}d, %{public}d}",

@@ -721,7 +721,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     uint32_t colorsSize = 0;
     napi_get_array_length(env, colorsArray, &colorsSize);
     uint64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
-    if (colorsSize != tempColorsSize) {
+
+    if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colors are invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid colors params.");
     }

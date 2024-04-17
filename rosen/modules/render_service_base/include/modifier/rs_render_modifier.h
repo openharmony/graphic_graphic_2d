@@ -155,10 +155,6 @@ public:
         return isSingleFrameModifier_;
     }
 
-    // functions that are dedicated to driven render [start]
-    RectF GetCmdsClipRect() const;
-    void ApplyForDrivenContent(RSModifierContext& context) const;
-    // functions that are dedicated to driven render [end]
 protected:
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;

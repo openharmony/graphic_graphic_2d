@@ -40,6 +40,7 @@ enum SHADOW_COLOR_STRATEGY : int {
     COLOR_STRATEGY_MAIN = 2,           // use main color of the shadow area
 };
 
+class RSColorPickerCacheTask;
 class RSShadow {
 public:
     RSShadow();
@@ -54,6 +55,7 @@ public:
     void SetMask(bool imageMask);
     void SetIsFilled(bool isFilled);
     void SetColorStrategy(int colorStrategy);
+    void SetColorPickerCacheTask(const std::shared_ptr<RSColorPickerCacheTask>& task);
 
     const Color& GetColor() const;
     float GetOffsetX() const;
@@ -65,6 +67,7 @@ public:
     bool GetMask() const;
     bool GetIsFilled() const;
     int GetColorStrategy() const;
+    const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;
 
     bool IsValid() const;
 
@@ -78,6 +81,7 @@ private:
     bool imageMask_ = false;
     bool isFilled_ = false;
     int colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+    std::shared_ptr<RSColorPickerCacheTask> colorPickerCacheTask_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

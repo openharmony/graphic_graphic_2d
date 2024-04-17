@@ -69,21 +69,6 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory, Function | SmallTest | Level2)
 }
 
 /*
- * @tc.name: MergeVisibleDirtyRegion
- * @tc.desc: default value
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegion, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
-    (void)RSUniRenderUtil::MergeVisibleDirtyRegion(node, hasVisibleDirtyRegionSurfaceVec);
-}
-
-/*
  * @tc.name: SrcRectScaleDown_001
  * @tc.desc: default value
  * @tc.type: FUNC

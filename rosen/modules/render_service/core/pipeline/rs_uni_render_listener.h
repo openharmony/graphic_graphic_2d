@@ -16,21 +16,24 @@
 #ifndef RENDER_SERVICE_PIPELINE_RS_UNI_RENDER_LISTENER_H
 #define RENDER_SERVICE_PIPELINE_RS_UNI_RENDER_LISTENER_H
 
+#include <memory>
 #include <mutex>
 #include <ibuffer_consumer_listener.h>
+#include "common/rs_common_def.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"
+#include "pipeline/rs_surface_handler.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSUniRenderListener : public IBufferConsumerListener {
 public:
-    RSUniRenderListener(std::weak_ptr<RSDisplayRenderNode> displayRenderNode);
+    RSUniRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler);
     ~RSUniRenderListener() override;
     void OnBufferAvailable() override;
 
 private:
-    std::weak_ptr<RSDisplayRenderNode> displayRenderNode_;
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler_;
 };
 } // namespace Rosen
 } // namespace OHOS

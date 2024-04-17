@@ -128,7 +128,6 @@ HWTEST_F(RSDisplayRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     node->AddChild(childNode);
     childNode->SetBootAnimation(true);
     ASSERT_EQ(childNode->GetBootAnimation(), true);
-    ASSERT_EQ(node->GetContainBootAnimation(), true);
     node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
 }

@@ -16,13 +16,16 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
 
+#include <bitset>
 #include <cstdint>
 
 namespace OHOS {
 namespace Rosen {
 // NOTE:
-// 1. MUST update g_propertyResetterLUT in rs_properties.cpp when new properties are added
-// 2. property modifier MUST be added before CUSTOM, else wise it will be treated as draw modifier
+// 1. Following LUTs must be updated according when this enum is updated :
+//    a. g_propertyResetterLUT in rs_properties.cpp
+//    b. g_propertyToDrawableLut in rs_drawable_content.cpp
+// 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, else wise it will not work
 enum class RSModifierType : int16_t {
     INVALID = 0,                   // 0
     BOUNDS,                        // 1
@@ -37,108 +40,111 @@ enum class RSModifierType : int16_t {
     CAMERA_DISTANCE,               // 10
     SCALE,                         // 11
     SKEW,                          // 12
-    TRANSLATE,                     // 13
-    TRANSLATE_Z,                   // 14
-    SUBLAYER_TRANSFORM,            // 15
-    CORNER_RADIUS,                 // 16
-    ALPHA,                         // 17
-    ALPHA_OFFSCREEN,               // 18
-    FOREGROUND_COLOR,              // 19
-    BACKGROUND_COLOR,              // 20
-    BACKGROUND_SHADER,             // 21
-    BG_IMAGE,                      // 22
-    BG_IMAGE_INNER_RECT,           // 23
-    BG_IMAGE_WIDTH,                // 24
-    BG_IMAGE_HEIGHT,               // 25
-    BG_IMAGE_POSITION_X,           // 26
-    BG_IMAGE_POSITION_Y,           // 27
-    SURFACE_BG_COLOR,              // 28
-    BORDER_COLOR,                  // 29
-    BORDER_WIDTH,                  // 30
-    BORDER_STYLE,                  // 31
-    FILTER,                        // 32
-    BACKGROUND_FILTER,             // 33
-    LINEAR_GRADIENT_BLUR_PARA,     // 34
-    DYNAMIC_LIGHT_UP_RATE,         // 35
-    DYNAMIC_LIGHT_UP_DEGREE,       // 36
-    FRAME_GRAVITY,                 // 37
-    CLIP_RRECT,                    // 38
-    CLIP_BOUNDS,                   // 39
-    CLIP_TO_BOUNDS,                // 40
-    CLIP_TO_FRAME,                 // 41
-    VISIBLE,                       // 42
-    SHADOW_COLOR,                  // 43
-    SHADOW_OFFSET_X,               // 44
-    SHADOW_OFFSET_Y,               // 45
-    SHADOW_ALPHA,                  // 46
-    SHADOW_ELEVATION,              // 47
-    SHADOW_RADIUS,                 // 48
-    SHADOW_PATH,                   // 49
-    SHADOW_MASK,                   // 50
-    SHADOW_COLOR_STRATEGY,         // 51
-    MASK,                          // 52
-    SPHERIZE,                      // 53
-    LIGHT_UP_EFFECT,               // 54
-    PIXEL_STRETCH,                 // 55
-    PIXEL_STRETCH_PERCENT,         // 56
-    USE_EFFECT,                    // 57
-    COLOR_BLEND_MODE,              // 58
-    COLOR_BLEND_APPLY_TYPE,        // 59
-    SANDBOX,                       // 60
-    GRAY_SCALE,                    // 61
-    BRIGHTNESS,                    // 62
-    CONTRAST,                      // 63
-    SATURATE,                      // 64
-    SEPIA,                         // 65
-    INVERT,                        // 66
-    AIINVERT,                      // 67
-    SYSTEMBAREFFECT,               // 68
-    HUE_ROTATE,                    // 69
-    COLOR_BLEND,                   // 70
-    PARTICLE,                      // 71
-    SHADOW_IS_FILLED,              // 72
-    OUTLINE_COLOR,                 // 73
-    OUTLINE_WIDTH,                 // 74
-    OUTLINE_STYLE,                 // 75
-    OUTLINE_RADIUS,                // 76
-    USE_SHADOW_BATCHING,           // 77
-    GREY_COEF,                     // 78
-    LIGHT_INTENSITY,               // 79
-    LIGHT_COLOR,                   // 80
-    LIGHT_POSITION,                // 81
-    ILLUMINATED_BORDER_WIDTH,      // 82
-    ILLUMINATED_TYPE,              // 83
-    BLOOM,                         // 84
-    PARTICLE_EMITTER_UPDATER,      // 85
-    FOREGROUND_EFFECT_RADIUS,      // 86
-    DYNAMIC_DIM_DEGREE,            // 87
-    BACKGROUND_BLUR_RADIUS,        // 88
-    BACKGROUND_BLUR_SATURATION,    // 89
-    BACKGROUND_BLUR_BRIGHTNESS,    // 90
-    BACKGROUND_BLUR_MASK_COLOR,    // 91
-    BACKGROUND_BLUR_COLOR_MODE,    // 92
-    BACKGROUND_BLUR_RADIUS_X,      // 93
-    BACKGROUND_BLUR_RADIUS_Y,      // 94
-    FOREGROUND_BLUR_RADIUS,        // 95
-    FOREGROUND_BLUR_SATURATION,    // 96
-    FOREGROUND_BLUR_BRIGHTNESS,    // 97
-    FOREGROUND_BLUR_MASK_COLOR,    // 98
-    FOREGROUND_BLUR_COLOR_MODE,    // 99
-    FOREGROUND_BLUR_RADIUS_X,      // 100
-    FOREGROUND_BLUR_RADIUS_Y,      // 101
-    CUSTOM,                        // 102
-    EXTENDED,                      // 103
-    TRANSITION,                    // 104
-    BACKGROUND_STYLE,              // 105
-    CONTENT_STYLE,                 // 106
-    FOREGROUND_STYLE,              // 107
-    OVERLAY_STYLE,                 // 108
-    NODE_MODIFIER,                 // 109
-    ENV_FOREGROUND_COLOR,          // 110
-    ENV_FOREGROUND_COLOR_STRATEGY, // 111
-    GEOMETRYTRANS,                 // 112
+    PERSP,                         // 13
+    TRANSLATE,                     // 14
+    TRANSLATE_Z,                   // 15
+    SUBLAYER_TRANSFORM,            // 16
+    CORNER_RADIUS,                 // 17
+    ALPHA,                         // 18
+    ALPHA_OFFSCREEN,               // 19
+    FOREGROUND_COLOR,              // 20
+    BACKGROUND_COLOR,              // 21
+    BACKGROUND_SHADER,             // 22
+    BG_IMAGE,                      // 23
+    BG_IMAGE_INNER_RECT,           // 24
+    BG_IMAGE_WIDTH,                // 25
+    BG_IMAGE_HEIGHT,               // 26
+    BG_IMAGE_POSITION_X,           // 27
+    BG_IMAGE_POSITION_Y,           // 28
+    SURFACE_BG_COLOR,              // 29
+    BORDER_COLOR,                  // 30
+    BORDER_WIDTH,                  // 31
+    BORDER_STYLE,                  // 32
+    FILTER,                        // 33
+    BACKGROUND_FILTER,             // 34
+    LINEAR_GRADIENT_BLUR_PARA,     // 35
+    DYNAMIC_LIGHT_UP_RATE,         // 36
+    DYNAMIC_LIGHT_UP_DEGREE,       // 37
+    FRAME_GRAVITY,                 // 38
+    CLIP_RRECT,                    // 39
+    CLIP_BOUNDS,                   // 40
+    CLIP_TO_BOUNDS,                // 41
+    CLIP_TO_FRAME,                 // 42
+    VISIBLE,                       // 43
+    SHADOW_COLOR,                  // 44
+    SHADOW_OFFSET_X,               // 45
+    SHADOW_OFFSET_Y,               // 46
+    SHADOW_ALPHA,                  // 47
+    SHADOW_ELEVATION,              // 48
+    SHADOW_RADIUS,                 // 49
+    SHADOW_PATH,                   // 50
+    SHADOW_MASK,                   // 51
+    SHADOW_COLOR_STRATEGY,         // 52
+    MASK,                          // 53
+    SPHERIZE,                      // 54
+    LIGHT_UP_EFFECT,               // 55
+    PIXEL_STRETCH,                 // 56
+    PIXEL_STRETCH_PERCENT,         // 57
+    USE_EFFECT,                    // 58
+    COLOR_BLEND_MODE,              // 59
+    COLOR_BLEND_APPLY_TYPE,        // 60
+    SANDBOX,                       // 61
+    GRAY_SCALE,                    // 62
+    BRIGHTNESS,                    // 63
+    CONTRAST,                      // 64
+    SATURATE,                      // 65
+    SEPIA,                         // 66
+    INVERT,                        // 67
+    AIINVERT,                      // 68
+    SYSTEMBAREFFECT,               // 69
+    HUE_ROTATE,                    // 70
+    COLOR_BLEND,                   // 71
+    PARTICLE,                      // 72
+    SHADOW_IS_FILLED,              // 73
+    OUTLINE_COLOR,                 // 74
+    OUTLINE_WIDTH,                 // 75
+    OUTLINE_STYLE,                 // 76
+    OUTLINE_RADIUS,                // 77
+    USE_SHADOW_BATCHING,           // 78
+    GREY_COEF,                     // 79
+    LIGHT_INTENSITY,               // 80
+    LIGHT_COLOR,                   // 81
+    LIGHT_POSITION,                // 82
+    ILLUMINATED_BORDER_WIDTH,      // 83
+    ILLUMINATED_TYPE,              // 84
+    BLOOM,                         // 85
+    PARTICLE_EMITTER_UPDATER,      // 86
+    FOREGROUND_EFFECT_RADIUS,      // 87
+    DYNAMIC_DIM_DEGREE,            // 88
+    BACKGROUND_BLUR_RADIUS,        // 89
+    BACKGROUND_BLUR_SATURATION,    // 90
+    BACKGROUND_BLUR_BRIGHTNESS,    // 91
+    BACKGROUND_BLUR_MASK_COLOR,    // 92
+    BACKGROUND_BLUR_COLOR_MODE,    // 93
+    BACKGROUND_BLUR_RADIUS_X,      // 94
+    BACKGROUND_BLUR_RADIUS_Y,      // 95
+    FOREGROUND_BLUR_RADIUS,        // 96
+    FOREGROUND_BLUR_SATURATION,    // 97
+    FOREGROUND_BLUR_BRIGHTNESS,    // 98
+    FOREGROUND_BLUR_MASK_COLOR,    // 99
+    FOREGROUND_BLUR_COLOR_MODE,    // 100
+    FOREGROUND_BLUR_RADIUS_X,      // 101
+    FOREGROUND_BLUR_RADIUS_Y,      // 102
+    CUSTOM,                        // 103
+    EXTENDED,                      // 104
+    TRANSITION,                    // 105
+    BACKGROUND_STYLE,              // 106
+    CONTENT_STYLE,                 // 107
+    FOREGROUND_STYLE,              // 108
+    OVERLAY_STYLE,                 // 109
+    NODE_MODIFIER,                 // 110
+    ENV_FOREGROUND_COLOR,          // 111
+    ENV_FOREGROUND_COLOR_STRATEGY, // 112
+    GEOMETRYTRANS,                 // 113
+    CHILDREN,                      // 114, PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
+using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
 
 enum class RSRenderPropertyType : int16_t {
     INVALID = 0,
