@@ -20,6 +20,9 @@ namespace OHOS::Rosen {
 constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
 thread_local napi_ref JsFontCollection::constructor_ = nullptr;
 const std::string CLASS_NAME = "FontCollection";
+const std::string LOCAL_BIND_PATH = "/data/storage/el1/bundle/";
+const std::string HAP_POSTFIX = ".hap";
+const int32_t GLOBAL_ERROR = 10000;
 napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = 0;
@@ -35,7 +38,7 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
         JsFontCollection::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsFontCollection;
-        LOGE("Failed from napi_wrap");
+        LOGE("failed from napi_wrap");
         return nullptr;
     }
     return jsThis;
@@ -112,7 +115,7 @@ bool JsFontCollection::SpiltAbsoluteFontPath(std::string& absolutePath)
 {
     auto iter = absolutePath.find_first_of(':');
     if (iter == std::string::npos) {
-        LOGE("Font file directory is not absolute path");
+        LOGE("font file directory is not absolute path");
         return false;
     }
     std::string head = absolutePath.substr(0, iter);
@@ -123,6 +126,158 @@ bool JsFontCollection::SpiltAbsoluteFontPath(std::string& absolutePath)
     }
 
     return false;
+}
+
+Global::Resource::ResourceManager* JsFontCollection::GetResourManager(const std::string& moudleName)
+{
+    auto hapPath = LOCAL_BIND_PATH + moudleName + HAP_POSTFIX;
+    LOGE("LoadFontSyncTrac |enter the process of GetResourManager hapPath=%s",hapPath.c_str());
+    auto resManager = Global::Resource::CreateResourceManager();
+    if (!resManager) {
+        return nullptr;
+    }
+    resManager->AddResource(hapPath.c_str());
+    return resManager;
+}
+
+bool JsFontCollection::GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi,
+    napi_value bundleNameNApi, napi_value moduleNameNApi)
+{
+    napi_valuetype valueType = napi_undefined;
+    bool isArray = false;
+    if (napi_is_array(env, paramsNApi, &isArray) != napi_ok) {
+        return false;
+    }
+    if (!isArray) {
+        return false;
+    }
+
+    uint32_t arrayLength = 0;
+    napi_get_array_length(env, paramsNApi, &arrayLength);
+    for (uint32_t i = 0; i < arrayLength; i++) {
+        size_t ret = 0;
+        napi_value indexValue = nullptr;
+        napi_get_element(env, paramsNApi, i, &indexValue);
+        napi_typeof(env, indexValue, &valueType);
+        if (valueType == napi_string) {
+            size_t strLen = GetParamLen(env, indexValue) + 1;
+            std::unique_ptr<char[]> indexStr = std::make_unique<char[]>(strLen);
+            napi_get_value_string_utf8(env, indexValue, indexStr.get(), strLen, &ret);
+            info.params.emplace_back(indexStr.get());
+            LOGE("LoadFontSyncTrac |params =%s i=%d",indexStr.get(),i);
+        } else if (valueType == napi_number) {
+            int32_t num;
+            napi_get_value_int32(env, indexValue, &num);
+            LOGE("LoadFontSyncTrac |params(to_string) =%s i=%d",std::to_string(num).c_str(),i);
+            info.params.emplace_back(std::to_string(num));
+        }
+    }
+
+    napi_typeof(env, bundleNameNApi, &valueType);
+    if (valueType == napi_string) {
+        size_t ret = 0;
+        size_t strLen = GetParamLen(env, bundleNameNApi) + 1;
+        std::unique_ptr<char[]> bundleNameStr = std::make_unique<char[]>(strLen);
+        napi_get_value_string_utf8(env, bundleNameNApi, bundleNameStr.get(), strLen, &ret);
+        info.bundleName = bundleNameStr.get();
+        LOGE("LoadFontSyncTrac |bundleName =%s ",info.bundleName.c_str());
+    }
+    napi_typeof(env, moduleNameNApi, &valueType);
+    if (valueType == napi_string) {
+        size_t ret = 0;
+        size_t strLen = GetParamLen(env, moduleNameNApi) + 1;
+        std::unique_ptr<char[]> moduleNameStr = std::make_unique<char[]>(strLen);
+        napi_get_value_string_utf8(env, moduleNameNApi, moduleNameStr.get(), strLen, &ret);
+        info.moduleName = moduleNameStr.get();
+        LOGE("LoadFontSyncTrac |moduleNameStr =%s ",info.moduleName.c_str());
+    }
+    return true;
+}
+
+bool JsFontCollection::ParseResourceType(napi_env env, napi_value value, ResourceInfo& info)
+{
+    napi_value idNApi = nullptr;
+    napi_value typeNApi = nullptr;
+    napi_value paramsNApi = nullptr;
+    napi_value bundleNameNApi = nullptr;
+    napi_value moduleNameNApi = nullptr;
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, value, &valueType);
+    if (valueType == napi_object) {
+        napi_get_named_property(env, value, "id", &idNApi);
+        napi_get_named_property(env, value, "type", &typeNApi);
+        napi_get_named_property(env, value, "params", &paramsNApi);
+        napi_get_named_property(env, value, "bundleName", &bundleNameNApi);
+        napi_get_named_property(env, value, "moduleName", &moduleNameNApi);
+    } else {
+        return false;
+    }
+
+    napi_typeof(env, idNApi, &valueType);
+    if (valueType == napi_number) {
+        napi_get_value_int32(env, idNApi, &info.resId);
+    }
+    LOGE("LoadFontSyncTrac | info.resId =%zu",info.resId);
+    napi_typeof(env, typeNApi, &valueType);
+    if (valueType == napi_number) {
+        napi_get_value_int32(env, typeNApi, &info.type);
+    }
+    LOGE("LoadFontSyncTrac | info.type =%zu",info.type);
+    if (!GetResourcePartData(env, info, paramsNApi, bundleNameNApi, moduleNameNApi)) {
+        LOGE("LoadFontSyncTrac | enter failed of the process of GetResourcePartData");
+        return false;
+    }
+    return true;
+}
+
+bool JsFontCollection::ParseResourcePath(napi_env env, napi_value value, const std::string familyName)
+{
+    ResourceInfo info;
+    if (!ParseResourceType(env, value, info)) {
+        return false;
+    }
+    int32_t state = 0;
+    LOGE("LoadFontSyncTrac | Ready Into Type FInally info.type=%d ResourceStr=%d ResourRawfile=%d",
+        info.type,static_cast<int32_t>(ResourceType::STRING),static_cast<int32_t>(ResourceType::RAWFILE));
+
+    auto reSourceManager = GetResourManager(info.moduleName);
+    if (reSourceManager == nullptr) {
+        LOGE("LoadFontSyncTrac | faild in reSourceManager == nullptr");
+        return false;
+    }
+    if (info.type == static_cast<int32_t>(ResourceType::STRING)) {
+        std::string rPath;
+        if (info.resId < 0 && info.params[0].size() > 0) {
+            rPath = info.params[0];
+        } else {
+            state = reSourceManager->GetStringById(info.resId, rPath);
+            if (state >= GLOBAL_ERROR || state < 0) {
+                LOGE("LoadFontSyncTrac |false in $r file");
+                return false;
+            }
+
+            LOGE("LoadFontSyncTrac | RType rPath=%s state=%d", rPath.c_str(), state);
+        }
+    } else if (info.type == static_cast<int32_t>(ResourceType::RAWFILE)) {
+        size_t len;
+        std::unique_ptr<uint8_t[]> data;
+        state = reSourceManager->GetRawFileFromHap(info.params[0], len, data);
+        if (state >= GLOBAL_ERROR || state < 0) {
+            return false;
+        }
+        Drawing::Typeface* typeface = m_fontCollection->LoadFont(familyName.c_str(), data.get(), len);
+        if (typeface == nullptr) {
+            return false;
+        }
+        if (!AddTypefaceInformation(typeface, familyName)) {
+            return false;
+        }
+        return true;
+    } else {
+        LOGE("errorType:not font file");
+        return false;
+    }
+    return true;
 }
 
 Drawing::Typeface* JsFontCollection::GetFontFileProperties(const std::string path, const std::string familyName)
@@ -213,6 +368,11 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         }
         return NapiGetUndefined(env);
     }
+
+    if (!ParseResourcePath(env, argv[1], familyName)) {
+        return nullptr;
+    }
+
     return NapiGetUndefined(env);
 }
 } // namespace OHOS::Rosen

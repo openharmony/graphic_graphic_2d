@@ -36,6 +36,28 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr size_t ARGC_FIVE = 5;
 constexpr size_t ARGC_SIX = 6;
 
+struct ResourceInfo {
+    int32_t resId = 0;
+    int32_t type = 0;
+    std::vector<std::string> params;
+    std::string bundleName;
+    std::string moduleName;
+};
+
+enum class ResourceType {
+    COLOR = 10001,
+    FLOAT,
+    STRING,
+    PLURAL,
+    BOOLEAN,
+    INTARRAY,
+    INTEGER,
+    PATTERN,
+    STRARRAY,
+    MEDIA = 20000,
+    RAWFILE = 30000
+};
+
 enum class DrawingErrorCode : int32_t {
     OK = 0,
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
@@ -315,5 +337,6 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan);
 
+size_t GetParamLen(napi_env env, napi_value param);
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

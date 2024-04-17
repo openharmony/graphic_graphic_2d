@@ -19,37 +19,48 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
-#ifdef OHOS_PLATFORM
+//#ifdef OHOS_PLATFORM
 #include <hilog/log.h>
-#endif
+//#endif
 
 namespace OHOS {
 namespace Rosen {
-
-#ifndef LOGD
-#ifdef OHOS_PLATFORM
-
-#undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001402
-
-#undef LOG_TAG
-#define LOG_TAG "2DGraphics"
-
 #define LOGD(fmt, ...)               \
-    HILOG_DEBUG(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    ::OHOS::HiviewDFX::HiLog::Debug(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGI(fmt, ...)              \
-    HILOG_INFO(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    ::OHOS::HiviewDFX::HiLog::Info(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGW(fmt, ...)              \
-    HILOG_WARN(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    ::OHOS::HiviewDFX::HiLog::Warn(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGE(fmt, ...)               \
-    HILOG_ERROR(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#else
-#define LOGD(fmt, ...)
-#define LOGI(fmt, ...)
-#define LOGW(fmt, ...)
-#define LOGE(fmt, ...)
-#endif
-#endif
+    ::OHOS::HiviewDFX::HiLog::Error(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+// #ifndef LOGD
+// #ifdef OHOS_PLATFORM
+
+// #undef LOG_DOMAIN
+// #define LOG_DOMAIN 0xD001402
+
+// #undef LOG_TAG
+// #define LOG_TAG "2DGraphics"
+
+// #define LOGD(fmt, ...)               \
+//     HILOG_DEBUG(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+// #define LOGI(fmt, ...)              \
+//     HILOG_INFO(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+// #define LOGW(fmt, ...)              \
+//     HILOG_WARN(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+// #define LOGE(fmt, ...)               \
+//     HILOG_ERROR(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+// #else
+// #define LOGD(fmt, ...)
+// #define LOGI(fmt, ...)
+// #define LOGW(fmt, ...)
+// #define LOGE(fmt, ...)
+// #endif
+// #endif
 } // namespace Rosen
 } // namespace OHOS
 #endif
