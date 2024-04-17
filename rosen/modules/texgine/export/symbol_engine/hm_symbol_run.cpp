@@ -53,6 +53,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
 bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
     std::vector<RSRenderGroup>& renderGroups)
 {
+#if !defined(BUILD_SDK_ANDROID) && !defined(BUILD_SDK_IOS)
     RSAnimationSetting animationSetting;
     if (GetAnimationGroups(glyphId, effectStrategy, animationSetting)) {
         std::vector<RSRenderGroup> newRenderGroups;
@@ -70,6 +71,7 @@ bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrate
             return true;
         }
     }
+#endif
     return false;
 }
 

@@ -23,6 +23,7 @@ namespace Drawing {
 
 std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
 {
+#if !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
     SymbolLayersGroups* groups = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyphId);
     if (!groups) {
         return nullptr;
@@ -55,6 +56,8 @@ std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLaye
     drawingGroups->renderModeGroups = drawingRenderModeGroups;
 
     return drawingGroups;
+#endif
+    return nullptr;
 }
 
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)
@@ -123,6 +126,7 @@ static std::vector<DrawingPiecewiseParameter> ConvertPiecewiseParametersVec(cons
     return out;
 }
 
+#if !defined(ANDROID_PLATFORM) && !defined(IOS_PLATFORM)
 std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaHmSymbolConfigOhos::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode)
 {
@@ -140,6 +144,7 @@ std::shared_ptr<std::vector<std::vector<DrawingPiecewiseParameter>>> SkiaHmSymbo
     }
     return parameters;
 }
+#endif
 
 } // namespace Drawing
 } // namespace Rosen

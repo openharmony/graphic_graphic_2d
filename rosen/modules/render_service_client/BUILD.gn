@@ -29,8 +29,14 @@ config("render_service_client_config") {
     "//drivers/peripheral/base",
     "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
   defines = rs_common_define
+  if (defined(is_arkui_x) && is_arkui_x && ace_enable_gpu) {
+    defines += [ "ACE_ENABLE_GPU" ]
+  }
 }
 
 template("render_service_client_source_set") {
@@ -122,6 +128,7 @@ template("render_service_client_source_set") {
     if (is_cross_platform) {
       #ui
       sources -= [ "core/ui/rs_display_node.cpp" ]
+      defines += [ "CROSS_PLATFORM" ]
     }
 
     if (defined(graphic_2d_ext_configs.vendor_root)) {
