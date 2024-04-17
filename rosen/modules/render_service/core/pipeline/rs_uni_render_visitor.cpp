@@ -1673,8 +1673,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
     if (node.IsHardwareForcedDisabled()) {
         return;
     }
-    bool bgTransport =
-        static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX;
+    bool bgTransport = !node.GetAncoForceDoDirect() &&
+        (static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX);
     if (bgTransport) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by background color alpha < 1",
             node.GetName().c_str(), node.GetId());
@@ -1706,6 +1706,10 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
         return;
     }
     auto dst = hwcNode->GetDstRect();
+    if (hwcNode->GetAncoForceDoDirect()) {
+        hwcRects.emplace_back(dst);
+        return;
+    }
     for (auto rect : hwcRects) {
         if (dst.Intersect(rect)) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by hwc node above",
@@ -4274,6 +4278,39 @@ RectI RSUniRenderVisitor::UpdateHardwareEnableList(std::vector<RectI>& filterRec
     return filterDirty;
 }
 
+void RSUniRenderVisitor::UpdateHardwareChildNodeStatus(std::shared_ptr<RSSurfaceRenderNode>& node,
+    std::vector<SurfaceDirtyMgrPair>& curHwcEnabledNodes)
+{
+    // remove invisible surface since occlusion
+    auto visibleRegion = node->GetVisibleRegion();
+    for (auto subNode : node->GetChildHardwareEnabledNodes()) {
+        auto childNode = subNode.lock();
+        if (!childNode) {
+            continue;
+        }
+        // recover disabled state before update
+        childNode->SetHardwareForcedDisabledStateByFilter(false);
+        if (!visibleRegion.IsIntersectWith(Occlusion::Rect(childNode->GetOldDirtyInSurface()))) {
+            continue;
+        }
+        bool isIntersected = false;
+        if (!isPhone_ || childNode->GetAncoForceDoDirect()) {
+            curHwcEnabledNodes.emplace_back(std::make_pair(subNode, node));
+            continue;
+        }
+        for (auto &hwcNode: curHwcEnabledNodes) {
+            if (childNode->GetDstRect().Intersect(hwcNode.first->GetDstRect())) {
+                childNode->SetHardwareForcedDisabledStateByFilter(true);
+                isIntersected = true;
+                break;
+            }
+        }
+        if (!isIntersected) {
+            curHwcEnabledNodes.emplace_back(std::make_pair(subNode, node));
+        }
+    }
+}
+
 void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
     std::vector<SurfaceDirtyMgrPair>& prevHwcEnabledNodes,
     std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager)
@@ -4289,32 +4326,8 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
     auto filterRects = node->GetChildrenNeedFilterRects();
     // collect valid hwc surface which is not intersected with filterRects
     std::vector<SurfaceDirtyMgrPair> curHwcEnabledNodes;
-    // remove invisible surface since occlusion
-    auto visibleRegion = node->GetVisibleRegion();
-    for (auto subNode : node->GetChildHardwareEnabledNodes()) {
-        auto childNode = subNode.lock();
-        if (!childNode) {
-            continue;
-        }
-        // recover disabled state before update
-        childNode->SetHardwareForcedDisabledStateByFilter(false);
-        if (!visibleRegion.IsIntersectWith(Occlusion::Rect(childNode->GetOldDirtyInSurface()))) {
-            continue;
-        }
-        bool isIntersected = false;
-        if (isPhone_ && !childNode->GetAncoForceDoDirect()) {
-            for (auto &hwcNode: curHwcEnabledNodes) {
-                if (childNode->GetDstRect().Intersect(hwcNode.first->GetDstRect())) {
-                    childNode->SetHardwareForcedDisabledStateByFilter(true);
-                    isIntersected = true;
-                    break;
-                }
-            }
-        }
-        if (!isPhone_ || !isIntersected) {
-            curHwcEnabledNodes.emplace_back(std::make_pair(subNode, node));
-        }
-    }
+    UpdateHardwareChildNodeStatus(node, curHwcEnabledNodes);
+    
     // Within App: disable hwc if intersect with filterRects
     dirtyManager->MergeDirtyRect(UpdateHardwareEnableList(filterRects, curHwcEnabledNodes));
     // Among App: disable lower hwc layers if intersect with upper transparent appWindow
