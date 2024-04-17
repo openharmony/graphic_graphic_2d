@@ -275,6 +275,16 @@ RSMainThread::~RSMainThread() noexcept
     }
 }
 
+
+void RSMainThread::TryCleanResourceInBackGroundThd()
+{
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (RSBackgroundThread::Instance().GetGrResourceFinishFlag()) {
+        RSBackgroundThread::Instance().CleanGrResource();
+    }
+#endif
+}
+
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
@@ -339,6 +349,7 @@ void RSMainThread::Init()
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
         RSTypefaceCache::Instance().HandleDelayDestroyQueue();
+        TryCleanResourceInBackGroundThd();
         RS_PROFILER_ON_FRAME_END();
     };
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
