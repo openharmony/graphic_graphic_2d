@@ -248,6 +248,7 @@ public:
             storeMainCanvas_ = canvas_;
         }
     }
+
     Drawing::Canvas* GetOriginalCanvas()
     {
         return storeMainCanvas_;
