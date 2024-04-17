@@ -16,3 +16,5 @@ debug.graphic. = accessibility:accessibility:0777
 bootevent.bootanimation. = graphics:graphics:0775
 persist.rosen.sethgmrefreshratemode.enabled = graphics:graphics:0775
 persist.graphic.bootsound.enabled = graphics:servicectrl:0775
+rosen.dirtyregiondebug.enabled = graphics:servicectrl:0775
+rosen.drawingCache.enabledDfx = graphics:servicectrl:0775
