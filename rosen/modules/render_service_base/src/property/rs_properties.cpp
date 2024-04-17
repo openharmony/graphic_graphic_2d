@@ -3168,10 +3168,6 @@ void RSProperties::OnApplyModifiers()
         // planning: temporary fix to calculate relative matrix in OnApplyModifiers, later RSRenderNode::Update will
         // overwrite it.
         boundsGeo_->UpdateByMatrixFromSelf();
-        if (RSSystemProperties::IsPcType()) {
-            frameGeo_->Round();
-            boundsGeo_->Round();
-        }
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
