@@ -214,7 +214,8 @@ private:
     RSB_EXPORT static NodeId PatchPlainNodeId(const Parcel& parcel, NodeId id);
     RSB_EXPORT static pid_t PatchPlainPid(const Parcel& parcel, pid_t pid);
 
-    RSB_EXPORT static void PerfTreeFlatten(const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet);
+    RSB_EXPORT static int PerfTreeFlatten(
+        const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet, std::unordered_map<NodeId, int>& mapNode2Count);
 
     static bool IsRecording();
     static bool IsPlaying();
@@ -257,6 +258,7 @@ private:
     static void GetDeviceInfo(const ArgList& args);
     static void GetPerfTree(const ArgList& args);
     static void CalcPerfNode(const ArgList& args);
+    static void CalcPerfNodeAll(const ArgList& args);
 
     static void SaveSkp(const ArgList& args);
     static void SaveRdc(const ArgList& args);
@@ -278,6 +280,8 @@ private:
     static void TestSaveFrame(const ArgList& args);
     static void TestLoadFrame(const ArgList& args);
     static void TestSwitch(const ArgList& args);
+
+    static void CalcPerfNodeAllStep();
 };
 
 } // namespace OHOS::Rosen
