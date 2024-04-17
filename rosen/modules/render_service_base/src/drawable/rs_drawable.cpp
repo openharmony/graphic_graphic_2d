@@ -31,7 +31,7 @@ using namespace DrawableV2;
 // NOTE: This LUT should always the same size and order as RSModifierType
 // key = RSModifierType, value = RSDrawableSlot
 constexpr int DIRTY_LUT_SIZE = static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE);
-static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
+static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
     RSDrawableSlot::INVALID,                       // INVALID
     RSDrawableSlot::CLIP_TO_BOUNDS,                // BOUNDS
     RSDrawableSlot::FRAME_OFFSET,                  // FRAME
@@ -120,6 +120,7 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::POINT_LIGHT,                   // BLOOM
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_EMITTER_UPDATER
     RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
+    RSDrawableSlot::INVALID,                       // MOTION_BLUR_PARA
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_SATURATION
@@ -128,13 +129,13 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_COLOR_MODE
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_X
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_Y
-    RSDrawableSlot::COMPOSITING_FILTER,             // FOREGROUND_BLUR_RADIUS
-    RSDrawableSlot::COMPOSITING_FILTER,             // FOREGROUND_BLUR_SATURATION
-    RSDrawableSlot::COMPOSITING_FILTER,             // FOREGROUND_BLUR_BRIGHTNESS
-    RSDrawableSlot::COMPOSITING_FILTER,             // FOREGROUND_BLUR_MASK_COLOR
-    RSDrawableSlot::COMPOSITING_FILTER,             // FOREGROUND_BLUR_COLOR_MODE
-    RSDrawableSlot::COMPOSITING_FILTER,             // FOREGROUND_BLUR_RADIUS_X
-    RSDrawableSlot::COMPOSITING_FILTER,             // FOREGROUND_BLUR_RADIUS_Y
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_SATURATION
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_BRIGHTNESS
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_MASK_COLOR
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED
     RSDrawableSlot::TRANSITION,                    // TRANSITION
@@ -148,6 +149,21 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
     RSDrawableSlot::CHILDREN,                      // CHILDREN
 };
+
+// Check if g_propertyToDrawableLut size match and is fully initialized (the last element should not be default value)
+static_assert(g_propertyToDrawableLut.size() == static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE));
+static_assert(g_propertyToDrawableLut.back() != RSDrawableSlot {});
+
+// Randomly check some LUT index and value
+static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::USE_EFFECT)] == RSDrawableSlot::USE_EFFECT);
+static_assert(
+    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::FOREGROUND_COLOR)] == RSDrawableSlot::FOREGROUND_COLOR);
+static_assert(
+    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::CLIP_TO_FRAME)] == RSDrawableSlot::CLIP_TO_FRAME);
+static_assert(
+    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::USE_SHADOW_BATCHING)] == RSDrawableSlot::CHILDREN);
+static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::TRANSITION)] == RSDrawableSlot::TRANSITION);
+static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::CHILDREN)] == RSDrawableSlot::CHILDREN);
 
 template<RSModifierType type>
 static inline RSDrawable::Ptr ModifierGenerator(const RSRenderNode& node)

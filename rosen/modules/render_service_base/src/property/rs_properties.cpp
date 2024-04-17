@@ -53,7 +53,7 @@ constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
 // NOTE: alway add new resetter when adding new property modifier
-const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
+constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
     nullptr,                                                             // INVALID
     nullptr,                                                             // BOUNDS
     nullptr,                                                             // FRAME
@@ -159,6 +159,10 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusX(0.f); },     // FOREGROUND_BLUR_RADIUS_X
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusY(0.f); },     // FOREGROUND_BLUR_RADIUS_Y
 };
+
+// Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
+static_assert(g_propertyResetterLUT.size() == static_cast<size_t>(RSModifierType::CUSTOM));
+static_assert(g_propertyResetterLUT.back() != nullptr);
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
