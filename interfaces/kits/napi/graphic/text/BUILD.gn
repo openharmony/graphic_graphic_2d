@@ -76,6 +76,7 @@ ohos_shared_library("text_napi_impl") {
   ]
 
   external_deps = [
+    "graphic_surface:surface",
     "hilog:libhilog",
     "napi:ace_napi",
   ]
