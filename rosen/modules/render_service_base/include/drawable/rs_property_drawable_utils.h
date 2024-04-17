@@ -56,7 +56,7 @@ public:
     static void DrawUseEffect(RSPaintFilterCanvas* canvas);
 
     static void BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType);
-    static void EndBlendMode(RSPaintFilterCanvas& canvas);
+    static void EndBlendMode(RSPaintFilterCanvas& canvas, int blendModeApplyType);
 
     static Color CalculateInvertColor(const Color& backgroundColor);
     static Color GetInvertBackgroundColor(RSPaintFilterCanvas& canvas, bool needClipToBounds,

@@ -20,15 +20,9 @@
 
 namespace OHOS {
 namespace Rosen {
-RSListenedCanvas::RSListenedCanvas(Drawing::Canvas& canvas, float alpha)
-    : RSPaintFilterCanvas(&canvas, alpha)
-{
-}
+RSListenedCanvas::RSListenedCanvas(Drawing::Canvas& canvas) : RSPaintFilterCanvas(&canvas) {}
 
-RSListenedCanvas::RSListenedCanvas(Drawing::Surface& surface, float alpha)
-    : RSPaintFilterCanvas(&surface, alpha)
-{
-}
+RSListenedCanvas::RSListenedCanvas(Drawing::Surface& surface) : RSPaintFilterCanvas(&surface) {}
 
 void RSListenedCanvas::SetListener(const std::shared_ptr<RSCanvasListener> &listener)
 {

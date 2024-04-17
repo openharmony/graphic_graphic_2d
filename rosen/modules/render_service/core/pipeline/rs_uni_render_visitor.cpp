@@ -5215,10 +5215,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 bool backgroundTransparent = !node.GetAncoForceDoDirect() &&
                     (static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX);
                 node.SetHardwareForcedDisabledState(
-                    (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f ||
-                    backgroundTransparent || IsRosenWebHardwareDisabled(node, rotation) ||
+                    (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f || backgroundTransparent ||
+                    IsRosenWebHardwareDisabled(node, rotation) ||
                     RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0 ||
-                    canvas_->GetBlendOffscreenLayerCnt() > 0) &&
+                    canvas_->HasOffscreenLayer()) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
                 node.ResetHardwareForcedDisabledBySrcRect();
