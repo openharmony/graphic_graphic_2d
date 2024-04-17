@@ -125,9 +125,9 @@ public:
         repeatCount_ = repeatCount;
     }
 
-    void SetAminationStart(const bool aminationStart)
+    void SetAnimationStart(const bool animationStart)
     {
-        aminationStart_ = aminationStart;
+        animationStart_ = animationStart;
     }
 
     uint16_t GetAnimationMode() const
@@ -140,9 +140,9 @@ public:
         return repeatCount_;
     }
 
-    bool GetAminationStart() const
+    bool GetAnimationStart() const
     {
-        return aminationStart_;
+        return animationStart_;
     }
 
     void SetVisualMode(const VisualMode visual)
@@ -182,7 +182,7 @@ private:
     // variable_color : the 0 is the cumulative  effect and 1 is the iteratuve effect.
     uint16_t animationMode_ = 1;
     int repeatCount_ = 1;
-    bool aminationStart_ = true;
+    bool animationStart_ = true;
     std::map<std::string, int> visualMap_;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::UP;
 };
