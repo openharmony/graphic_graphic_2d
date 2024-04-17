@@ -565,13 +565,13 @@ Drawing::Point RSBorder::GetTLIP(const Drawing::RoundRect& rrect, const Drawing:
                 x = y / k;
             }
         } else {
-            x = 0.f;
-            y = std::max(y - height / 2.f, rrect.GetRect().GetHeight() / 2.f);
+            x = rrect.GetRect().GetLeft();
+            y = std::max(y - height / 2.f, rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f);
         }
     } else {
-        y = TOPW;
+        y = rrect.GetRect().GetTop() + TOPW;
     }
-    return Drawing::Point(rrect.GetRect().GetLeft() + x, rrect.GetRect().GetTop() + y);
+    return Drawing::Point(x, y);
 }
 
 // Return top right intersection pos for clipping
@@ -610,13 +610,13 @@ Drawing::Point RSBorder::GetTRIP(const Drawing::RoundRect& rrect, const Drawing:
                 x = rrect.GetRect().GetWidth() - y / k;
             }
         } else {
-            x = rrect.GetRect().GetWidth();
-            y = std::max(y - height / 2.f, rrect.GetRect().GetHeight() / 2.f);
+            x = rrect.GetRect().GetLeft() + rrect.GetRect().GetWidth();
+            y = std::max(y - height / 2.f, rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f);
         }
     } else {
-        y = TOPW;
+        y = rrect.GetRect().GetTop() + TOPW;
     }
-    return Drawing::Point(rrect.GetRect().GetLeft() + x, rrect.GetRect().GetTop() + y);
+    return Drawing::Point(x, y);
 }
 
 // Return bottom left intersection pos for clipping
@@ -655,13 +655,15 @@ Drawing::Point RSBorder::GetBLIP(const Drawing::RoundRect& rrect, const Drawing:
                 x = (rrect.GetRect().GetHeight() - y) / k;
             }
         } else {
-            x = 0.f;
-            y = std::min(y + height / 2.f, std::max(rrect.GetRect().GetHeight() / 2.f, TOPW));
+            x = rrect.GetRect().GetLeft();
+            y = std::min(y + height / 2.f,
+                         std::max(rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f,
+                                  rrect.GetRect().GetTop() + TOPW));
         }
     } else {
-        y = rrect.GetRect().GetHeight() - BOTTOMW;
+        y = rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() - BOTTOMW;
     }
-    return Drawing::Point(rrect.GetRect().GetLeft() + x, rrect.GetRect().GetTop() + y);
+    return Drawing::Point(x, y);
 }
 
 // Return bottom right intersection pos for clipping
@@ -700,13 +702,15 @@ Drawing::Point RSBorder::GetBRIP(const Drawing::RoundRect& rrect, const Drawing:
                 x = rrect.GetRect().GetWidth() - (rrect.GetRect().GetHeight() - y) / k;
             }
         } else {
-            x = rrect.GetRect().GetWidth();
-            y = std::min(y + height / 2.f, std::max(rrect.GetRect().GetHeight() / 2.f, TOPW));
+            x = rrect.GetRect().GetLeft() + rrect.GetRect().GetWidth();
+            y = std::min(y + height / 2.f,
+                         std::max(rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() / 2.f,
+                                  rrect.GetRect().GetTop() + TOPW));
         }
     } else {
-        y = rrect.GetRect().GetHeight() - BOTTOMW;
+        y = rrect.GetRect().GetTop() + rrect.GetRect().GetHeight() - BOTTOMW;
     }
-    return Drawing::Point(rrect.GetRect().GetLeft() + x, rrect.GetRect().GetTop() + y);
+    return Drawing::Point(x, y);
 }
 
 std::string RSBorder::ToString() const
