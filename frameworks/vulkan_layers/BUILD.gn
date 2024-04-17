@@ -68,6 +68,6 @@ ohos_prebuilt_etc("vulkan_swapchain_layer_json") {
   source = "swapchain_layer/VkLayer_swapchain.json"
   part_name = "graphic_2d"
   subsystem_name = "graphic"
-  module_install_dir = "etc/vulkan/implicit_layer.d"
+  module_install_dir = "etc/vulkan/swapchain/vulkan/implicit_layer.d"
 }
 ## Build VkLayer_swapchain.json }}}
