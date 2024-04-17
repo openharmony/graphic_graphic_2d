@@ -745,6 +745,41 @@ std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdL
 
     return imageFilter;
 }
+
+OpDataHandle CmdListHelper::AddBlurDrawLooperToCmdList(CmdList& cmdList,
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper)
+{
+    if (blurDrawLooper == nullptr) {
+        LOGD("blurDrawLooper is nullptr");
+        return { 0 };
+    }
+
+    auto data = blurDrawLooper->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGD("blurDrawLooper serialize failed!");
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize()};
+}
+
+std::shared_ptr<BlurDrawLooper> CmdListHelper::GetBlurDrawLooperFromCmdList(const CmdList& cmdList,
+    const OpDataHandle& blurDrawLooperHandle)
+{
+    if (blurDrawLooperHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(blurDrawLooperHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto blurData = std::make_shared<Data>();
+    blurData->BuildWithoutCopy(ptr, blurDrawLooperHandle.size);
+    return BlurDrawLooper::Deserialize(blurData);
+}
+
 #ifdef ROSEN_OHOS
 uint32_t CmdListHelper::AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& surfaceBuffer)
 {

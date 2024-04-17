@@ -18,6 +18,7 @@
 
 #include "draw/brush.h"
 #include "draw/color.h"
+#include "effect/blur_draw_looper.h"
 #include "effect/filter.h"
 #include "effect/path_effect.h"
 #include "utils/rect.h"
@@ -261,6 +262,16 @@ public:
      * Pen with the result of Pen().
      */
     void Reset();
+
+    /**
+     * @brief Sets BlurDrawLooper, it will generate two draw operations, which may affect performance.
+     */
+    void SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper);
+
+    /**
+     * @brief Gets BlurDrawLooper.
+     */
+    std::shared_ptr<BlurDrawLooper> GetLooper() const;;
 
     friend DRAWING_API bool operator==(const Pen& p1, const Pen& p2);
     friend DRAWING_API bool operator!=(const Pen& p1, const Pen& p2);
