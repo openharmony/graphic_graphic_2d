@@ -16,7 +16,6 @@ import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
-
 config("skia_libtxt_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
@@ -261,8 +260,8 @@ ohos_source_set("skia_shaper") {
   defines += [ "SKSHAPER_IMPLEMENTATION=1" ]
   sources = [
     "$skshaper_root/src/SkShaper.cpp",
-    "$skshaper_root/src/SkShaper_primitive.cpp",
     "$skshaper_root/src/SkShaper_harfbuzz.cpp",
+    "$skshaper_root/src/SkShaper_primitive.cpp",
   ]
 
   platform = current_os
