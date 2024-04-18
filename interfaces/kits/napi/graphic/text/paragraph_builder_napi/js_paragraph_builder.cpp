@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../drawing/js_drawing_utils.h"
+#include "js_drawing_utils.h"
 #include "fontcollection_napi/js_fontcollection.h"
 #include "js_paragraph_builder.h"
 #include "paragraph_napi/js_paragraph.h"
-#include "../text/js_text_utils.h"
+#include "js_text_utils.h"
 #include "utils/log.h"
 
 namespace OHOS::Rosen {

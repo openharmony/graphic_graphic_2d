@@ -18,7 +18,7 @@
 #include "font_napi/js_font.h"
 #include "js_text_utils.h"
 #include "utils/log.h"
-#include "../drawing/js_drawing_utils.h"
+#include "js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 thread_local napi_ref JsRun::constructor_ = nullptr;
