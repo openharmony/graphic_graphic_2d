@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "utils/log.h"
+#include "js_drawing_utils.h"
 #include "js_paragraphstyle.h"
 
 namespace OHOS::Rosen {
@@ -27,19 +27,19 @@ napi_value JsParagraphStyle::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
-        LOGE("Failed to define ParagraphStyle class");
+        ROSEN_LOGE("failed to define ParagraphStyle class");
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
-        LOGE("Failed to create reference of constructor");
+        ROSEN_LOGE("failed to create reference of constructor");
         return nullptr;
     }
 
     status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
-        LOGE("Failed to set constructor");
+        ROSEN_LOGE("failed to set constructor");
         return nullptr;
     }
 
@@ -48,7 +48,7 @@ napi_value JsParagraphStyle::Init(napi_env env, napi_value exportObj)
     };
     status = napi_define_properties(env, exportObj, 1, staticProperty);
     if (status != napi_ok) {
-        LOGE("Failed to define static function");
+        ROSEN_LOGE("failed to define static function");
         return nullptr;
     }
     return exportObj;
@@ -60,7 +60,7 @@ napi_value JsParagraphStyle::Constructor(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok) {
-        LOGE("failed to napi_get_cb_info");
+        ROSEN_LOGE("failed to napi_get_cb_info");
         return nullptr;
     }
 
@@ -71,7 +71,7 @@ napi_value JsParagraphStyle::Constructor(napi_env env, napi_callback_info info)
         JsParagraphStyle::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsParagraphStyle;
-        LOGE("Failed to wrap native instance");
+        ROSEN_LOGE("failed to wrap native instance");
         return nullptr;
     }
     return jsThis;
@@ -92,13 +92,13 @@ napi_value JsParagraphStyle::CreateJsParagraphStyle(napi_env env, napi_callback_
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
-        LOGE("Failed to get the representation of constructor object");
+        ROSEN_LOGE("failed to get the representation of constructor object");
         return nullptr;
     }
 
     status = napi_new_instance(env, constructor, 0, nullptr, &result);
     if (status != napi_ok) {
-        LOGE("Failed to instantiate JavaScript JsParagraphStyle instance");
+        ROSEN_LOGE("failed to instantiate JavaScript JsParagraphStyle instance");
         return nullptr;
     }
     return result;

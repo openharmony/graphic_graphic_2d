@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
+
+#include "js_drawing_utils.h"
 #include "js_run.h"
+#include "js_text_utils.h"
 #include "canvas_napi/js_canvas.h"
 #include "font_napi/js_font.h"
-#include "js_text_utils.h"
-#include "utils/log.h"
-#include "../drawing/js_drawing_utils.h"
+#include "recording/recording_canvas.h"
 
 namespace OHOS::Rosen {
 thread_local napi_ref JsRun::constructor_ = nullptr;
@@ -271,9 +272,15 @@ napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsRun::OnPaint Argv is invalid");
         return NapiGetUndefined(env);
     }
+    if (jsCanvas->GetCanvas()->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        Drawing::RecordingCanvas* recordingCanvas = (Drawing::RecordingCanvas*)jsCanvas->GetCanvas();
+        recordingCanvas->SetIsCustomTypeface(true);
+        recordingCanvas->SetIsCustomTextType(true);
+        run_->Paint(recordingCanvas, x, y);
+    } else {
+        run_->Paint(jsCanvas->GetCanvas(), x, y);
+    }
 
-    Drawing::Canvas* canvas =  jsCanvas->GetCanvas();
-    run_->Paint(canvas, x, y);
     return NapiGetUndefined(env);
 }
 } // namespace OHOS::Rosen
