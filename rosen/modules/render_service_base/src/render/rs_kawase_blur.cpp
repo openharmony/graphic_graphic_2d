@@ -231,7 +231,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
     int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
     float dilatedConvolutionFactor = supportLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
     if (abs(dilatedConvolutionFactor) <= 1e-6) {
-        return false;
+        dilatedConvolutionFactor = 4.6f; // 4.6 : radio between gauss and kawase
     }
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
     int numberOfPasses = std::min(maxPasses, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
@@ -242,10 +242,10 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
     int height = std::max(static_cast<int>(std::ceil(param.dst.GetHeight())), input->GetHeight());
     auto blurParams = BlurParams{numberOfPasses, width, height, radiusByPasses};
     auto blurImage = ExecutePingPongBlur(canvas, input, param, blurParams);
+    RS_OPTIONAL_TRACE_END();
     if (!blurImage) {
         return false;
     }
-    RS_OPTIONAL_TRACE_END();
     return ApplyBlur(canvas, input, blurImage, param);
 }
 
