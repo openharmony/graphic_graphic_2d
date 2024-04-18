@@ -13,9 +13,12 @@
 
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("frame_analyzer_test") {
   module_out_path = "graphic_2d/rosen/modules/frame_analyzer"
+
+  include_dirs = [ "$graphic_2d_root/rosen/modules/frame_analyzer/src" ]
 
   sources = [
     "frame_collector_test.cpp",

@@ -16,7 +16,7 @@
 #ifndef INTERFACES_INNERKITS_WM_WINDOW_MANAGER_COMMON_H
 #define INTERFACES_INNERKITS_WM_WINDOW_MANAGER_COMMON_H
 
-#include "../wmclient/wm_common.h"
+#include "wmclient/wm_common.h"
 
 namespace OHOS {
 typedef enum {

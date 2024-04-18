@@ -18,7 +18,7 @@
 #include "canvas_napi/js_canvas.h"
 #include "run_napi/js_run.h"
 #include "utils/log.h"
-#include "../drawing/js_drawing_utils.h"
+#include "js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 thread_local napi_ref JsTextLine::constructor_ = nullptr;

@@ -23,6 +23,7 @@ ohos_shared_library("libegl_effect") {
     "//third_party/openGLES/api",
     "$graphic_2d_root/utils/log",
     "include",
+    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
   ]
 
   cflags = [
