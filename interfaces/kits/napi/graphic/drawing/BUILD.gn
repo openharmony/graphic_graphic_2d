@@ -13,7 +13,6 @@
 
 import("//build/ohos.gni")
 
-
 group("drawingnapi") {
   deps = [
     ":drawing_napi",
