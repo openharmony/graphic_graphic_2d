@@ -50,6 +50,7 @@ ohos_executable("bootanimation") {
   sources = [
     "src/boot_animation.cpp",
     "src/boot_animationconfig.cpp",
+    "src/boot_compileprogress.cpp",
     "src/boot_videoplayer.cpp",
     "src/main.cpp",
     "src/util.cpp",

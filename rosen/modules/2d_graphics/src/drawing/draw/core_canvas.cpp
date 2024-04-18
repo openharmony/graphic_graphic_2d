@@ -270,8 +270,7 @@ void CoreCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
 
 void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
-    AttachPaint();
-    impl_->DrawTextBlob(blob, x, y);
+    ApplyDrawLooper([&]() { impl_->DrawTextBlob(blob, x, y); });
 }
 
 void CoreCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
@@ -465,6 +464,57 @@ float CoreCanvas::GetAlpha() const
 int CoreCanvas::GetAlphaSaveCount() const
 {
     return 0;
+}
+
+void CoreCanvas::ApplyDrawProc(const Paint& paint, const std::function<void()>& proc)
+{
+    impl_->AttachPaint(paint);
+    proc();
+}
+
+void CoreCanvas::ApplyBlurDrawProc(const Paint& paint, const std::function<void()>& proc)
+{
+    std::shared_ptr<BlurDrawLooper> looper = paint.GetLooper();
+    if (looper == nullptr) {
+        return;
+    }
+    Paint tmpPaint(paint);
+    tmpPaint.SetColor(looper->GetColor());
+    Filter filter = tmpPaint.GetFilter();
+    filter.SetMaskFilter(looper->GetMaskFilter());
+    tmpPaint.SetFilter(filter);
+    impl_->Save();
+    impl_->Translate(looper->GetXOffset(), looper->GetYOffset());
+    ApplyDrawProc(tmpPaint, proc);
+    impl_->Restore();
+}
+
+void CoreCanvas::ApplyDrawLooper(const std::function<void()> drawProc)
+{
+    bool brushValid = paintBrush_.IsValid();
+    bool penValid = paintPen_.IsValid();
+    if (!brushValid && !penValid) {
+        LOGD("Drawing CoreCanvas ApplyDrawLooper with Invalid Paint");
+        return;
+    }
+
+    if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+        ApplyBlurDrawProc(paintPen_, drawProc);
+        ApplyDrawProc(paintPen_, drawProc);
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);
+        return;
+    }
+
+    if (brushValid) {
+        ApplyBlurDrawProc(paintBrush_, drawProc);
+        ApplyDrawProc(paintBrush_, drawProc);
+    }
+
+    if (penValid) {
+        ApplyBlurDrawProc(paintPen_, drawProc);
+        ApplyDrawProc(paintPen_, drawProc);
+    }
 }
 
 void CoreCanvas::AttachPaint()

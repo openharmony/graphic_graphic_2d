@@ -56,6 +56,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_FOREGROUND,
     SURFACE_NODE_SET_SURFACE_ID,
     SURFACE_NODE_SET_FORCE_UIFIRST,
+    SURFACE_NODE_SET_ANCO_FORCE_DO_DIRECT,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -91,6 +92,7 @@ public:
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
+    static void SetAncoForceDoDirect(RSContext& context, NodeId nodeId, bool forceUIFirst);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -158,6 +160,9 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND, SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST, SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAncoForceDoDirect,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_FORCE_DO_DIRECT, SurfaceNodeCommandHelper::SetAncoForceDoDirect,
+    NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

@@ -204,6 +204,16 @@ void Pen::Reset()
     *this = Pen();
 }
 
+void Pen::SetLooper(std::shared_ptr<BlurDrawLooper> blurDrawLooper)
+{
+    brush_.SetLooper(blurDrawLooper);
+}
+
+std::shared_ptr<BlurDrawLooper> Pen::GetLooper() const
+{
+    return brush_.GetLooper();
+}
+
 bool operator==(const Pen& p1, const Pen& p2)
 {
     return p1.width_ == p2.width_ && p1.miterLimit_ == p2.miterLimit_ && p1.join_ == p2.join_ && p1.cap_ == p2.cap_ &&

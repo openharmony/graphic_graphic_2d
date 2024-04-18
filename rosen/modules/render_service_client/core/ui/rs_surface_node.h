@@ -139,6 +139,7 @@ public:
     void SetForeground(bool isForeground);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
+    void SetAncoForceDoDirect(bool ancoForceDoDirect);
 
 protected:
     bool NeedForcedSendToRemote() const override;

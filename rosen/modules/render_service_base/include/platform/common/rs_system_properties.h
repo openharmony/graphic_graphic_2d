@@ -173,6 +173,7 @@ public:
     static int GetFilterCacheSizeThreshold();
     static bool GetColorPickerPartialEnabled();
     static bool GetMaskLinearBlurEnabled();
+    static bool GetMotionBlurEnabled();
     static bool GetKawaseEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();

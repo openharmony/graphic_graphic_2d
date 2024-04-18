@@ -437,6 +437,9 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
+    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    bool GetAncoForceDoDirect() const;
+
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
@@ -1264,6 +1267,8 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
     bool lastFrameUifirstFlag_ = false;
+
+    bool ancoForceDoDirect_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

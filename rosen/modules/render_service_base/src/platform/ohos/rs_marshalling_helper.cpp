@@ -43,6 +43,7 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
+#include "render/rs_motion_blur_filter.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
 #include "render/rs_light_up_effect_filter.h"
@@ -584,6 +585,32 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterU
     success = success && Unmarshalling(parcel, emitRate);
     if (success) {
         val = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
+    }
+    return success;
+}
+
+// MotionBlurPara
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
+{
+    bool success = Marshalling(parcel, val->radius);
+    success = success && Marshalling(parcel, val->scaleAnchor[0]);
+    success = success && Marshalling(parcel, val->scaleAnchor[1]);
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBlurParam>& val)
+{
+    float radius;
+    float anchorX = 0.f;
+    float anchorY = 0.f;
+
+    bool success = Unmarshalling(parcel, radius);
+    success = success && Unmarshalling(parcel, anchorX);
+    success = success && Unmarshalling(parcel, anchorY);
+    Vector2f anchor(anchorX, anchorY);
+
+    if (success) {
+        val = std::make_shared<MotionBlurParam>(radius, anchor);
     }
     return success;
 }
@@ -1635,6 +1662,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)              \

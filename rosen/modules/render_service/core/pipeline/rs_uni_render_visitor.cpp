@@ -4304,7 +4304,7 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
             continue;
         }
         bool isIntersected = false;
-        if (isPhone_) {
+        if (isPhone_ && !childNode->GetAncoForceDoDirect()) {
             for (auto &hwcNode: curHwcEnabledNodes) {
                 if (childNode->GetDstRect().Intersect(hwcNode.first->GetDstRect())) {
                     childNode->SetHardwareForcedDisabledStateByFilter(true);
@@ -5213,8 +5213,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             int rotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
             if (node.IsHardwareEnabledType()) {
                 // since node has buffer, hwc disabledState could be reset by filter or surface cached
-                bool backgroundTransparent =
-                    static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX;
+                bool backgroundTransparent = !node.GetAncoForceDoDirect() &&
+                    (static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX);
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f ||
                     backgroundTransparent || IsRosenWebHardwareDisabled(node, rotation) ||
@@ -6125,7 +6125,7 @@ void RSUniRenderVisitor::ScaleMirrorIfNeedForWiredScreen(RSDisplayRenderNode& no
         float mirrorScaleX = boundsWidth / mainWidth;
         float mirrorScaleY = boundsHeight / mainHeight;
         float ratio = 0.5f;
-        if (mirrorScaleX < mirrorScaleY) {
+        if (mirrorScaleY < mirrorScaleX) {
             mirrorScale = mirrorScaleY;
             startX = (boundsWidth - (mirrorScale * mainWidth)) * ratio;
         } else {

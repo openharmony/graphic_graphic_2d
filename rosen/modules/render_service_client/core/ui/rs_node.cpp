@@ -1248,8 +1248,16 @@ void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
 
 void RSNode::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)
 {
-    SetProperty<RSLinearGradientBlurParaModifier, RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>>
-                                                                    (RSModifierType::LINEAR_GRADIENT_BLUR_PARA, para);
+    SetProperty<RSLinearGradientBlurParaModifier, RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>>(
+        RSModifierType::LINEAR_GRADIENT_BLUR_PARA, para);
+}
+
+void RSNode::SetMotionBlurPara(const float radius, const Vector2f& anchor)
+{
+    Vector2f anchor1 = {anchor[0], anchor[1]};
+    std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(radius, anchor1);
+    SetProperty<RSMotionBlurParaModifier, RSProperty<std::shared_ptr<MotionBlurParam>>>(
+        RSModifierType::MOTION_BLUR_PARA, para);
 }
 
 void RSNode::SetDynamicLightUpRate(const float rate)

@@ -115,33 +115,34 @@ enum class RSModifierType : int16_t {
     BLOOM,                         // 85
     PARTICLE_EMITTER_UPDATER,      // 86
     FOREGROUND_EFFECT_RADIUS,      // 87
-    DYNAMIC_DIM_DEGREE,            // 88
-    BACKGROUND_BLUR_RADIUS,        // 89
-    BACKGROUND_BLUR_SATURATION,    // 90
-    BACKGROUND_BLUR_BRIGHTNESS,    // 91
-    BACKGROUND_BLUR_MASK_COLOR,    // 92
-    BACKGROUND_BLUR_COLOR_MODE,    // 93
-    BACKGROUND_BLUR_RADIUS_X,      // 94
-    BACKGROUND_BLUR_RADIUS_Y,      // 95
-    FOREGROUND_BLUR_RADIUS,        // 96
-    FOREGROUND_BLUR_SATURATION,    // 97
-    FOREGROUND_BLUR_BRIGHTNESS,    // 98
-    FOREGROUND_BLUR_MASK_COLOR,    // 99
-    FOREGROUND_BLUR_COLOR_MODE,    // 100
-    FOREGROUND_BLUR_RADIUS_X,      // 101
-    FOREGROUND_BLUR_RADIUS_Y,      // 102
-    CUSTOM,                        // 103
-    EXTENDED,                      // 104
-    TRANSITION,                    // 105
-    BACKGROUND_STYLE,              // 106
-    CONTENT_STYLE,                 // 107
-    FOREGROUND_STYLE,              // 108
-    OVERLAY_STYLE,                 // 109
-    NODE_MODIFIER,                 // 110
-    ENV_FOREGROUND_COLOR,          // 111
-    ENV_FOREGROUND_COLOR_STRATEGY, // 112
-    GEOMETRYTRANS,                 // 113
-    CHILDREN,                      // 114, PLACEHOLDER, no such modifier, but we need a dirty flag
+    MOTION_BLUR_PARA,              // 88
+    DYNAMIC_DIM_DEGREE,            // 89
+    BACKGROUND_BLUR_RADIUS,        // 90
+    BACKGROUND_BLUR_SATURATION,    // 91
+    BACKGROUND_BLUR_BRIGHTNESS,    // 92
+    BACKGROUND_BLUR_MASK_COLOR,    // 93
+    BACKGROUND_BLUR_COLOR_MODE,    // 94
+    BACKGROUND_BLUR_RADIUS_X,      // 95
+    BACKGROUND_BLUR_RADIUS_Y,      // 96
+    FOREGROUND_BLUR_RADIUS,        // 97
+    FOREGROUND_BLUR_SATURATION,    // 98
+    FOREGROUND_BLUR_BRIGHTNESS,    // 99
+    FOREGROUND_BLUR_MASK_COLOR,    // 100
+    FOREGROUND_BLUR_COLOR_MODE,    // 101
+    FOREGROUND_BLUR_RADIUS_X,      // 102
+    FOREGROUND_BLUR_RADIUS_Y,      // 103
+    CUSTOM,                        // 104
+    EXTENDED,                      // 105
+    TRANSITION,                    // 106
+    BACKGROUND_STYLE,              // 107
+    CONTENT_STYLE,                 // 108
+    FOREGROUND_STYLE,              // 109
+    OVERLAY_STYLE,                 // 110
+    NODE_MODIFIER,                 // 111
+    ENV_FOREGROUND_COLOR,          // 112
+    ENV_FOREGROUND_COLOR_STRATEGY, // 113
+    GEOMETRYTRANS,                 // 114
+    CHILDREN,                      // 115, PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;

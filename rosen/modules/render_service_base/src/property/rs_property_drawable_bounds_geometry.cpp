@@ -800,6 +800,7 @@ void RSForegroundFilterDrawable::Draw(const RSRenderContent& content, RSPaintFil
         ROSEN_LOGD("RSForegroundFilterDrawable::Draw create offscreenCanvas fail.");
         return;
     }
+    canvas.StoreCanvas();
     canvas.ReplaceMainScreenData(offscreenSurface, offscreenCanvas);
     offscreenCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     canvas.SavePCanvasList();

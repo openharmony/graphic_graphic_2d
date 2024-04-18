@@ -683,6 +683,10 @@ protected:
     Paint paintPen_;
 
 private:
+    void ApplyDrawProc(const Paint& paint, const std::function<void()>& proc);
+    void ApplyBlurDrawProc(const Paint& paint, const std::function<void()>& proc);
+    void ApplyDrawLooper(const std::function<void()> drawProc);
+
     void AttachPaint();
     std::shared_ptr<CoreCanvasImpl> impl_;
 #ifdef ACE_ENABLE_GPU

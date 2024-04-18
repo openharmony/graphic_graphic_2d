@@ -142,6 +142,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
     [](RSProperties* prop) { prop->SetEmitterUpdater({}); },             // PARTICLE_EMITTER_UPDATER
     [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
+    [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
     [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
     [](RSProperties* prop) { prop->SetBackgroundBlurSaturation({}); },   // BACKGROUND_BLUR_SATURATION
@@ -1221,6 +1222,18 @@ void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
     contentDirty_ = true;
 }
 
+void RSProperties::SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para)
+{
+    motionBlurPara_ = para;
+
+    if (para && para->radius > 0.f) {
+        isDrawn_ = true;
+    }
+    SetDirty();
+    filterNeedUpdate_ = true;
+    contentDirty_ = true;
+}
+
 const std::shared_ptr<RSFilter>& RSProperties::GetBackgroundFilter() const
 {
     return backgroundFilter_;
@@ -1275,6 +1288,11 @@ bool RSProperties::IsDynamicDimValid() const
 const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
 {
     return filter_;
+}
+
+const std::shared_ptr<MotionBlurParam>& RSProperties::GetMotionBlurPara() const
+{
+    return motionBlurPara_;
 }
 
 bool RSProperties::IsDynamicLightUpValid() const
@@ -3210,10 +3228,14 @@ void RSProperties::OnApplyModifiers()
         if (!IsForegroundEffectRadiusValid()) {
             foregroundFilter_.reset();
         }
+        if (motionBlurPara_ && ROSEN_GE(motionBlurPara_->radius, 0.0)) {
+            auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
+            foregroundFilter_ = motionBlurFilter;
+        }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                       IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                      foregroundFilter_ != nullptr;
+                      foregroundFilter_ != nullptr || motionBlurPara_ != nullptr;
         ApplyGreyCoef();
     }
     GenerateRRect();
