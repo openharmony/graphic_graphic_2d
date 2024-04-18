@@ -255,5 +255,12 @@ void SurfaceNodeCommandHelper::SetForceUIFirst(RSContext& context, NodeId nodeId
         node->SetForceUIFirst(forceUIFirst);
     }
 }
+
+void SurfaceNodeCommandHelper::SetAncoForceDoDirect(RSContext& context, NodeId nodeId, bool ancoForceDoDirect)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetAncoForceDoDirect(ancoForceDoDirect);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

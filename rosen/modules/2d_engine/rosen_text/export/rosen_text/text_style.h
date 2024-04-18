@@ -37,12 +37,12 @@ class RS_EXPORT FontFeatures {
 public:
     void SetFeature(std::string tag, int value);
     std::string GetFeatureSettings() const;
-    const std::map<std::string, int> &GetFontFeatures() const;
+    const std::vector<std::pair<std::string, int>> &GetFontFeatures() const;
     bool operator ==(const FontFeatures& rhs) const;
     void Clear();
 
 private:
-    std::map<std::string, int> featureMap_;
+    std::vector<std::pair<std::string, int>> featureSet_;
 };
 
 class RS_EXPORT FontVariations {

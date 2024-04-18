@@ -142,7 +142,7 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
 
     std::vector<std::string> fontFamilies;
     napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
-    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies) == napi_ok) {
+    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
         textStyle.fontFamilies = fontFamilies;
     }
     GetDecorationFromJS(env, argValue, "decoration", textStyle);

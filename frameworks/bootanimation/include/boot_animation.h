@@ -37,6 +37,7 @@
 #include "boot_animationconfig.h"
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include "boot_videoplayer.h"
+#include "boot_compileprogress.h"
 #endif
 #include "draw/canvas.h"
 #include "event_handler.h"
@@ -57,6 +58,9 @@ public:
     void PlayVideo();
     void CloseVideoPlayer();
 #endif
+    void InitBootCompileProgress(Rosen::ScreenId screenId, int32_t height, int32_t width);
+    void ShowCompileProgress();
+    void DisplayCompileProgress();
     void Run(Rosen::ScreenId id, int screenWidth, int screenHeight);
     ~BootAnimation();
 private:
@@ -91,6 +95,7 @@ private:
 #ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> soundPlayer_;
     std::shared_ptr<BootVideoPlayer> bootVideoPlayer_;
+    std::shared_ptr<BootCompileProgress> bootCompileProgress_;
     OHOS::FrameCallback fcb_;
 #endif
     ImageStructVec imageVector_;
@@ -98,6 +103,7 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_;
     bool isAnimationEnd_ = false;
     BootAnimationConfig animationConfig_;
+    int32_t rotateDegree_;
 };
 } // namespace OHOS
 

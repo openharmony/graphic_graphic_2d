@@ -109,6 +109,9 @@
 #include "socperf_client.h"
 #endif
 
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+#include "chipset_vsync.h"
+#endif
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
@@ -275,6 +278,16 @@ RSMainThread::~RSMainThread() noexcept
     }
 }
 
+
+void RSMainThread::TryCleanResourceInBackGroundThd()
+{
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (RSBackgroundThread::Instance().GetGrResourceFinishFlag()) {
+        RSBackgroundThread::Instance().CleanGrResource();
+    }
+#endif
+}
+
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
@@ -339,6 +352,10 @@ void RSMainThread::Init()
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
         RSTypefaceCache::Instance().HandleDelayDestroyQueue();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+        ConnectChipsetVsyncSer();
+#endif
+        TryCleanResourceInBackGroundThd();
         RS_PROFILER_ON_FRAME_END();
     };
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
@@ -2190,6 +2207,9 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
     }
     mainLoop_();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    SetVsyncInfo(timestamp);
+#endif
     auto screenManager_ = CreateOrGetScreenManager();
     if (screenManager_ != nullptr) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -2230,6 +2250,30 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
         drawFrame_.PostDirectCompositionJankStats(rsParams);
     }
 }
+
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+void RSMainThread::ConnectChipsetVsyncSer()
+{
+    if (initVsyncServiceFlag_ && (OHOS::Camera::ChipsetVsyncClient::Instance().InitChipsetVsync() == -1)) {
+        initVsyncServiceFlag_ = true;
+    } else {
+        initVsyncServiceFlag_ = false;
+    }
+}
+#endif
+
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+void RSMainThread::SetVsyncInfo(uint64_t timestamp)
+{
+    int64_t vsyncPeriod = 0;
+    if (receiver_) {
+        receiver_->GetVSyncPeriod(vsyncPeriod);
+    }
+    OHOS::Camera::ChipsetVsyncHostCallback::GetInstance()->SetVsync(timestamp, vsyncPeriod);
+    RS_LOGD("UpdateVsyncTime = %{public}lld, period = %{public}lld",
+        static_cast<long long>(timestamp), static_cast<long long>(vsyncPeriod));
+}
+#endif
 
 void RSMainThread::Animate(uint64_t timestamp)
 {

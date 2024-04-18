@@ -242,6 +242,17 @@ public:
     void SwapBackMainScreenData();
     void SavePCanvasList();
     void RestorePCanvasList();
+    void StoreCanvas()
+    {
+        if (storeMainCanvas_ == nullptr) {
+            storeMainCanvas_ = canvas_;
+        }
+    }
+
+    Drawing::Canvas* GetOriginalCanvas()
+    {
+        return storeMainCanvas_;
+    }
 
     // canvas status relate
     struct CanvasStatus {
@@ -296,6 +307,7 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
+    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas_
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };

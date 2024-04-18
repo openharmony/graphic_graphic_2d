@@ -146,9 +146,9 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
     SetSrcRect(srcRect);
     // We allow 1px error value to avoid disable dss by mistake [this flag only used for YUV buffer format]
     if (IsYUVBufferFormat()) {
-        isHardwareForcedDisabledBySrcRect_ =  hasRotation ?
-            (width + 1 < static_cast<int>(properties.GetBoundsWidth())) :
-            (height + 1 < static_cast<int>(properties.GetBoundsHeight()));
+        isHardwareForcedDisabledBySrcRect_ = !GetAncoForceDoDirect() &&
+            (hasRotation ? (width + 1 < static_cast<int>(properties.GetBoundsWidth())) :
+            (height + 1 < static_cast<int>(properties.GetBoundsHeight())));
 #ifndef ROSEN_CROSS_PLATFORM
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateSrcRect hwcDisableBySrc:%d localClip:[%.2f, %.2f, %.2f, %.2f]" \
             " bounds:[%.2f, %.2f] hasRotation:%d name:%s id:%llu",
@@ -733,6 +733,15 @@ void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
 bool RSSurfaceRenderNode::GetForceUIFirstChanged()
 {
     return forceUIFirstChanged_;
+}
+
+void RSSurfaceRenderNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+{
+    ancoForceDoDirect_ = ancoForceDoDirect;
+}
+bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
+{
+    return ancoForceDoDirect_;
 }
 
 void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)

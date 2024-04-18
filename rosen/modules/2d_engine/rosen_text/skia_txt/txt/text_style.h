@@ -38,10 +38,10 @@ public:
 
     std::string GetFeatureSettings() const;
 
-    const std::map<std::string, int>& GetFontFeatures() const;
+    const std::vector<std::pair<std::string, int>>& GetFontFeatures() const;
 
 private:
-    std::map<std::string, int> features_;
+    std::vector<std::pair<std::string, int>> features_;
 };
 
 // Axis tags and values that can be applied in a text style to control the

@@ -21,17 +21,17 @@ namespace OHOS {
 namespace Rosen {
 void FontFeatures::SetFeature(std::string tag, int value)
 {
-    featureMap_[tag] = value;
+    featureSet_.emplace_back(std::make_pair(tag, value));
 }
 
 std::string FontFeatures::GetFeatureSettings() const
 {
-    if (featureMap_.empty()) {
+    if (featureSet_.empty()) {
         return "";
     }
 
     std::stringstream ss;
-    for (const auto &[tag, value] : featureMap_) {
+    for (const auto &[tag, value] : featureSet_) {
         if (ss.tellp()) {
             ss << ',';
         }
@@ -40,19 +40,19 @@ std::string FontFeatures::GetFeatureSettings() const
     return ss.str();
 }
 
-const std::map<std::string, int>& FontFeatures::GetFontFeatures() const
+const std::vector<std::pair<std::string, int>>& FontFeatures::GetFontFeatures() const
 {
-    return featureMap_;
+    return featureSet_;
 }
 
 bool FontFeatures::operator ==(const FontFeatures& rhs) const
 {
-    return featureMap_ == rhs.featureMap_;
+    return featureSet_ == rhs.featureSet_;
 }
 
 void FontFeatures::Clear()
 {
-    featureMap_.clear();
+    featureSet_.clear();
 }
 
 void FontVariations::SetAxisValue(const std::string& tag, float value)

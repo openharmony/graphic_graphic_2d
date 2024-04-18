@@ -140,6 +140,7 @@ private:
 #ifdef COMPOSER_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif
+    void PeriodCheckLocked(int64_t hardwareVsyncInterval);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_;
@@ -178,6 +179,8 @@ private:
     int64_t phaseRecord_ = 0;
     int64_t periodRecord_ = 0;
     sptr<VSyncDistributor> rsVSyncDistributor_;
+    int32_t periodCheckCounter_ = 0;
+    int64_t lastPeriod_ = 0;
 };
 } // impl
 } // namespace Rosen

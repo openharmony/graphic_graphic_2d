@@ -705,6 +705,9 @@ template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
     const std::shared_ptr<RSLinearGradientBlurPara>& value, PropertyUpdateType type) const;
 template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<MotionBlurParam>>::UpdateToRender(
+    const std::shared_ptr<MotionBlurParam>& value, PropertyUpdateType type) const;
+template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<EmitterUpdater>>::UpdateToRender(
     const std::shared_ptr<EmitterUpdater>& value, PropertyUpdateType type) const;
 template<>

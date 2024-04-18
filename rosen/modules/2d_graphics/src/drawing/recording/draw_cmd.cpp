@@ -172,6 +172,12 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
         paint.SetFilter(filter);
     }
 
+    if (paintHandle.blurDrawLooperHandle.size) {
+        auto blurDrawLooper = CmdListHelper::GetBlurDrawLooperFromCmdList(cmdList,
+            paintHandle.blurDrawLooperHandle);
+        paint.SetLooper(blurDrawLooper);
+    }
+
     if (!paint.HasStrokeStyle()) {
         return;
     }
@@ -207,6 +213,11 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
 
     if (paint.GetShaderEffect()) {
         paintHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, paint.GetShaderEffect());
+    }
+
+    if (paint.GetLooper()) {
+        paintHandle.blurDrawLooperHandle = CmdListHelper::AddBlurDrawLooperToCmdList(cmdList,
+            paint.GetLooper());
     }
 
     if (!paint.HasStrokeStyle()) {

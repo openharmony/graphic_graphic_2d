@@ -92,6 +92,7 @@ struct PaintHandle {
     FlattenableHandle imageFilterHandle;
     FlattenableHandle maskFilterHandle;
     FlattenableHandle pathEffectHandle;
+    OpDataHandle blurDrawLooperHandle;
 };
 
 struct BrushHandle {

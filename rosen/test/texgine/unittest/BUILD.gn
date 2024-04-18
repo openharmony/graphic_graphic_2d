@@ -93,6 +93,7 @@ ohos_unittest("texgine_unittest_part2") {
   }
   sources = [
     "dynamic_font_provider_test.cpp",
+    "system_font_load_test.cpp",
     "system_font_provider_test.cpp",
     "text_shaper_test.cpp",
     "typeface_test.cpp",

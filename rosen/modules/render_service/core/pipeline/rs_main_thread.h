@@ -380,10 +380,15 @@ private:
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
+    void TryCleanResourceInBackGroundThd();
     void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    void ConnectChipsetVsyncSer();
+    void SetVsyncInfo(uint64_t timestamp);
 #endif
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
@@ -565,6 +570,9 @@ private:
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
+#endif
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    bool initVsyncServiceFlag_ = true;
 #endif
     pid_t exitedPid_ = -1;
     std::set<pid_t> exitedPidSet_;
