@@ -172,12 +172,12 @@ int CmapParser::ParseFormat4(const CmapSubtable &subtable, const std::size_t siz
         if (idRangeOffset == 0) {
             int32_t delta = idDeltas[i].Get();
             ParseFormat4NoOffset(delta, start, end);
-        } else {
-            for (uint32_t j = start; j <= end; j++) {
-                const auto &gid = idRangeOffsets[idRangeOffset / 2 + i + j - start].Get();
-                if (gid) {
-                    ranges_.AddRange({j, j + 1, static_cast<int32_t>(gid)});
-                }
+            continue;
+        }
+        for (uint32_t j = start; j <= end; j++) {
+            const auto &gid = idRangeOffsets[idRangeOffset / 2 + i + j - start].Get();
+            if (gid) {
+                ranges_.AddRange({j, j + 1, static_cast<int32_t>(gid)});
             }
         }
     }

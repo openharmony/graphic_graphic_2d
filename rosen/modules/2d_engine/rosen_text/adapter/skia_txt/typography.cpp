@@ -251,7 +251,7 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
     if (paragraph_ == nullptr) {
         return false;
     }
-    if (lineNumber < 0 || lineNumber >= paragraph_->GetLineCount() || lineMetrics == nullptr) {
+    if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
         return false;
     }
 
@@ -334,7 +334,7 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
     if (paragraph_ == nullptr) {
         return false;
     }
-    if (lineNumber < 0 || lineNumber >= paragraph_->GetLineCount() || lineMetrics == nullptr) {
+    if (lineNumber < 0 || lineNumber >= static_cast<int>(paragraph_->GetLineCount()) || lineMetrics == nullptr) {
         return false;
     }
     skia::textlayout::LineMetrics skLineMetrics;

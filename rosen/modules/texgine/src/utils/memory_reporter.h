@@ -52,7 +52,8 @@ std::string GetTypeName()
 {
     std::string nameT = __PRETTY_FUNCTION__;
     nameT = nameT.substr(nameT.find("T = "));
-    nameT = nameT.substr(strlen("T = "), nameT.length() - strlen("T = ") - 1);
+    nameT = nameT.substr(strlen("T = "),
+        nameT.length() - strlen("T = ") - 1 >= 0 ? nameT.length() - strlen("T = ") - 1 >= 0 : 0);
     constexpr const char *str = "std::variant<std::shared_ptr<TextSpan>, std::shared_ptr<AnySpan> >";
     auto it = nameT.find(str);
     if (it != std::string::npos) {
