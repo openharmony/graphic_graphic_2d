@@ -407,8 +407,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(displayNodeSp, params, processor)) {
+        RSMainThread::Instance()->SetFrameIsRender(false);
+        RSUniRenderThread::Instance().DvsyncRequestNextVsync();
         return;
     }
+    RSMainThread::Instance()->SetFrameIsRender(true);
+    RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(displayNodeSp, *params, processor);

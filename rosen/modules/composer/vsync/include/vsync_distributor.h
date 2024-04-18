@@ -152,6 +152,7 @@ private:
 #ifdef COMPOSER_SCHED_ENABLE
     void SubScribeSystemAbility(const std::string& threadName);
 #endif
+    void NotifyMainThread();
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
