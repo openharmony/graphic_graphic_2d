@@ -175,6 +175,7 @@ public:
     static bool GetMaskLinearBlurEnabled();
     static bool GetMotionBlurEnabled();
     static bool GetKawaseEnabled();
+    static bool GetHpsBlurEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
     static bool GetKawaseOriginalEnabled();

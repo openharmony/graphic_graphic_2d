@@ -125,6 +125,8 @@ public:
     CoreCanvas& DetachBrush() override;
     CoreCanvas& DetachPaint() override;
 
+    bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+
 protected:
     virtual bool OnFilter() const = 0;
     virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
