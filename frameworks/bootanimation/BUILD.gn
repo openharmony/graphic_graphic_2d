@@ -68,7 +68,6 @@ ohos_executable("bootanimation") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/cJSON:cjson_static",
-    "//third_party/zlib:libz",
   ]
 
   deps += [ "//third_party/skia:skia_ohos" ]
@@ -84,6 +83,7 @@ ohos_executable("bootanimation") {
     "ipc:ipc_core",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "zlib:libz",
   ]
 
   if (player_framework_enable) {

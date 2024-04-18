@@ -37,11 +37,12 @@ ohos_static_library("raw_parser") {
 
   deps = [
     "..:libgslogger",
-    "//third_party/zlib:libz",
   ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [ "c_utils:utils",
+    "zlib:libz", 
+  ]
 }
 ## Build raw_parser.a }}}
