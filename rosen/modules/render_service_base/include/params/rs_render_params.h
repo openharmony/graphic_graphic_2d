@@ -133,6 +133,7 @@ public:
 
 protected:
     bool needSync_ = false;
+    std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
     NodeId id_;
