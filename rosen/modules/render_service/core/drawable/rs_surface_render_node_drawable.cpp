@@ -101,6 +101,38 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRen
     return resultRegion;
 }
 
+bool RSSurfaceRenderNodeDrawable::CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas)
+{
+    auto matrix = canvas.GetTotalMatrix();
+    int angle = RSUniRenderUtil::GetRotationFromMatrix(matrix);
+    constexpr int ROTATION_90 = 90;
+    return angle != 0 && angle % ROTATION_90 == 0;
+}
+
+NodeId RSSurfaceRenderNodeDrawable::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node)
+{
+    if (node == nullptr || node->GetParent().lock() == nullptr) {
+        return INVALID_NODEID;
+    } else if (node->GetParent().lock()->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+        return node->GetId();
+    } else {
+        return FindInstanceChildOfDisplay(node->GetParent().lock());
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::CacheImgForCapture(RSPaintFilterCanvas& canvas,
+    std::shared_ptr<RSDisplayRenderNode> curDisplayNode)
+{
+    if (!curDisplayNode->GetSecurityDisplay() && canvas.GetSurface() != nullptr) {
+        bool resetRotate = CheckIfNeedResetRotate(canvas);
+        auto cacheImgForCapture = canvas.GetSurface()->GetImageSnapshot();
+        auto mirrorNode = curDisplayNode->GetMirrorSource().lock() ?
+            curDisplayNode->GetMirrorSource().lock() : curDisplayNode;
+        mirrorNode->SetCacheImgForCapture(cacheImgForCapture);
+        mirrorNode->SetResetRotate(resetRotate);
+    }
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
@@ -138,6 +170,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
         return;
     }
+    // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
+    auto curDisplayNode = rscanvas->GetCurDisplayNode();
+    if (curDisplayNode && surfaceParams->GetName().find("CapsuleWindow") != std::string::npos) {
+        CacheImgForCapture(*rscanvas, curDisplayNode);
+        NodeId nodeId = FindInstanceChildOfDisplay(surfaceNode->GetParent().lock());
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetRootIdOfCaptureWindow(nodeId);
+    }
+    
     if (!isuifirstNode) {
         MergeDirtyRegionBelowCurSurface(uniParam, surfaceParams, surfaceNode, curSurfaceDrawRegion);
     }
@@ -273,12 +313,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
-    bool hasSpecialLayer = (surfaceParams->GetIsSecurityLayer() || surfaceParams->GetIsSkipLayer() ||
-        surfaceParams->GetName() == "CapsuleWindow");
-    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && hasSpecialLayer) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::OnCapture: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) Mirror screen not draw special layer.",
-            surfaceParams->GetId());
+    bool noSpecialLayer = (!surfaceParams->GetIsSecurityLayer() && !surfaceParams->GetIsSkipLayer());
+    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && noSpecialLayer &&
+        EnableRecordingOptimization(*surfaceParams)) {
         return;
     }
 
@@ -290,6 +327,26 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     } else {
         CaptureSurfaceInDisplay(*surfaceNode, *rscanvas, *surfaceParams);
     }
+}
+
+bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& params)
+{
+    auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (threadParams) {
+        NodeId nodeId = threadParams->GetRootIdOfCaptureWindow();
+        bool hasCaptureImg = threadParams->GetHasCaptureImg();
+        if (nodeId == params.GetId()) {
+            RS_LOGD("RSSurfaceRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "])",
+                params.GetId());
+            threadParams->SetStartVisit(true);
+        }
+        if (hasCaptureImg && !threadParams->GetStartVisit()) {
+            RS_LOGD("RSSurfaceRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "]) Skip layer.",
+                params.GetId());
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,

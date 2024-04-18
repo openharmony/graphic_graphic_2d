@@ -29,6 +29,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSDisplayRenderNode;
 
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:
@@ -144,6 +145,8 @@ public:
     void PopDirtyRegion();
     bool IsDirtyRegionStackEmpty();
     Drawing::Region& GetCurDirtyRegion();
+    std::shared_ptr<RSDisplayRenderNode> GetCurDisplayNode() const;
+    void SetCurDisplayNode(std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
 
     // alpha related
     void MultiplyAlpha(float alpha);
@@ -292,6 +295,7 @@ protected:
     }
 
 private:
+    std::shared_ptr<RSDisplayRenderNode> curDisplayNode_ = nullptr;
     Drawing::Surface* surface_ = nullptr;
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
