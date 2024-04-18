@@ -168,6 +168,8 @@ bool JsFontCollection::GetResourcePartData(napi_env env, ResourceInfo& info, nap
             int32_t num;
             napi_get_value_int32(env, indexValue, &num);
             info.params.emplace_back(std::to_string(num));
+        } else {
+            ROSEN_LOGE("invalid argument");
         }
     }
 
