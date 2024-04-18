@@ -189,7 +189,7 @@ std::string DrawCmdList::GetOpsWithDesc() const
         desc += typeOpDes[item->GetType()];
         desc += "\n";
     }
-    LOGI("DrawCmdList::GetOpsWithDesc %{public}s, opitem sz: %{public}zu", desc.c_str(), drawOpItems_.size());
+    LOGD("DrawCmdList::GetOpsWithDesc %{public}s, opitem sz: %{public}zu", desc.c_str(), drawOpItems_.size());
     return desc;
 }
 

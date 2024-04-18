@@ -36,15 +36,19 @@ std::shared_ptr<MaskCmdList> MaskCmdList::CreateFromData(const CmdListData& data
     return cmdList;
 }
 
-bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Brush& brush) const
+bool MaskCmdList::Playback(MaskPlayer &player) const
 {
     uint32_t offset = 0;
-    MaskPlayer player(path, brush, *this);
+    size_t totalSize = opAllocator_.GetSize();
     do {
+        if (totalSize < offset || totalSize - offset < sizeof(OpItem)) {
+            LOGD("MaskCmdList::Playback size error");
+            return false;
+        }
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
-            if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
+            if (!player.Playback(curOpItemPtr->GetType(), itemPtr, totalSize - offset)) {
                 LOGD("MaskCmdList::Playback failed!");
                 break;
             }
@@ -59,27 +63,16 @@ bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Brush& brush) const
     return true;
 }
 
+bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Brush& brush) const
+{
+    MaskPlayer player(path, brush, *this);
+    return Playback(player);
+}
+
 bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Pen& pen, Brush& brush) const
 {
-    uint32_t offset = 0;
     MaskPlayer player(path, brush, pen, *this);
-    do {
-        void* itemPtr = opAllocator_.OffsetToAddr(offset);
-        OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-        if (curOpItemPtr != nullptr) {
-            if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
-                LOGE("MaskCmdList::Playback failed!");
-                break;
-            }
-
-            offset = curOpItemPtr->GetNextOpItemOffset();
-        } else {
-            LOGE("MaskCmdList::Playback failed, opItem is nullptr");
-            break;
-        }
-    } while (offset != 0);
-
-    return true;
+    return Playback(player);
 }
 
 /* OpItem */
@@ -95,7 +88,7 @@ MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList&
 MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, Pen& pen, const CmdList& cmdList)
     : path_(path), brush_(brush), pen_(pen), cmdList_(cmdList) {}
 
-bool MaskPlayer::Playback(uint32_t type, const void* opItem)
+bool MaskPlayer::Playback(uint32_t type, const void* opItem, size_t leftOpAllocatorSize)
 {
     if (type == MaskOpItem::OPITEM_HEAD) {
         return true;
@@ -107,7 +100,7 @@ bool MaskPlayer::Playback(uint32_t type, const void* opItem)
     }
 
     auto func = it->second;
-    (*func)(*this, opItem);
+    (*func)(*this, opItem, leftOpAllocatorSize);
 
     return true;
 }
@@ -115,9 +108,9 @@ bool MaskPlayer::Playback(uint32_t type, const void* opItem)
 MaskBrushOpItem::MaskBrushOpItem(const BrushHandle& brushHandle)
     : MaskOpItem(MASK_BRUSH_OPITEM), brushHandle_(brushHandle) {}
 
-void MaskBrushOpItem::Playback(MaskPlayer& player, const void* opItem)
+void MaskBrushOpItem::Playback(MaskPlayer& player, const void* opItem, size_t leftOpAllocatorSize)
 {
-    if (opItem != nullptr) {
+    if (opItem != nullptr && leftOpAllocatorSize >= sizeof(MaskBrushOpItem)) {
         const auto* op = static_cast<const MaskBrushOpItem*>(opItem);
         op->Playback(player.brush_, player.cmdList_);
     }
@@ -155,9 +148,9 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
 MaskPathOpItem::MaskPathOpItem(const OpDataHandle& pathHandle)
     : MaskOpItem(MASK_PATH_OPITEM), pathHandle_(pathHandle) {}
 
-void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem)
+void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem, size_t leftOpAllocatorSize)
 {
-    if (opItem != nullptr) {
+    if (opItem != nullptr && leftOpAllocatorSize >= sizeof(MaskPathOpItem)) {
         const auto* op = static_cast<const MaskPathOpItem*>(opItem);
         op->Playback(player.path_, player.cmdList_);
     }
@@ -172,9 +165,9 @@ void MaskPathOpItem::Playback(std::shared_ptr<Path>& path, const CmdList& cmdLis
 MaskPenOpItem::MaskPenOpItem(const PenHandle& penHandle)
     : MaskOpItem(MASK_PEN_OPITEM), penHandle_(penHandle) {}
 
-void MaskPenOpItem::Playback(MaskPlayer &player, const void *opItem)
+void MaskPenOpItem::Playback(MaskPlayer &player, const void *opItem, size_t leftOpAllocatorSize)
 {
-    if (opItem != nullptr) {
+    if (opItem != nullptr && leftOpAllocatorSize >= sizeof(MaskPenOpItem)) {
         const auto* op = static_cast<const MaskPenOpItem*>(opItem);
         op->Playback(player.pen_, player.cmdList_);
     }
