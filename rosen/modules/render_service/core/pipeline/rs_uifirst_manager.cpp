@@ -425,12 +425,12 @@ void RSUifirstManager::AddReuseNode(NodeId id)
 bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
 {
     bool isDisplayRotation = false; // planning: for pc
-    bool isPhoneType = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
+    bool isUIFirstEnable = RSMainThread::Instance()->GetDeviceType() != DeviceType::PC;
     bool isNeedAssignToSubThread = false;
-    if (!isPhoneType) { // only enable on phone, disable PC
+    if (!isUIFirstEnable) { // only enable on phone and tablet, disable PC
         return false;
     }
-    if (isPhoneType && node.IsLeashWindow()) {
+    if (isUIFirstEnable && node.IsLeashWindow()) {
         isNeedAssignToSubThread = (node.IsScale() || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
             node.GetForceUIFirst()) && !node.HasFilter();
     }
@@ -444,9 +444,9 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
     if (needFilterSCB || node.IsSelfDrawingType()) {
         return false;
     }
-    if (isPhoneType) {
+    if (isUIFirstEnable) {
         return isNeedAssignToSubThread;
-    } else { // PC or TABLET
+    } else { // PC
         if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
             node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId())) &&
             node.GetHasSharedTransitionNode()) {
