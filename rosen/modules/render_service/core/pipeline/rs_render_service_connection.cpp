@@ -251,8 +251,12 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    mainThread_->ProcessDataBySingleFrameComposer(transactionData);
-    mainThread_->RecvRSTransactionData(transactionData);
+    bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
+    if (isProcessBySingleFrame) {
+        mainThread_->ProcessDataBySingleFrameComposer(transactionData);
+    } else {
+        mainThread_->RecvRSTransactionData(transactionData);
+    }
 }
 
 void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)

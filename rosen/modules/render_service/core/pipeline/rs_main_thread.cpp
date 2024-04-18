@@ -2379,18 +2379,57 @@ void RSMainThread::Animate(uint64_t timestamp)
     PerfAfterAnim(needRequestNextVsync);
 }
 
+bool RSMainThread::IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData)
+{
+    if (!isUniRender_ || !rsTransactionData) {
+        return false;
+    }
+
+    if (!RSSingleFrameComposer::IsShouldProcessByIpcThread(rsTransactionData->GetSendingPid()) &&
+        !RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        return false;
+    }
+
+    // animation node will call RequestNextVsync() in mainLoop_, here we simply ignore animation scenario
+    if (!context_->animatingNodeList_.empty()) {
+        return false;
+    }
+
+    // ignore mult-window scenario
+    auto currentVisibleLeashWindowCount = context_->GetNodeMap().GetVisibleLeashWindowCount();
+    if (currentVisibleLeashWindowCount >= MULTI_WINDOW_PERF_START_NUM) {
+        return false;
+    }
+
+    return true;
+}
+
 void RSMainThread::ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
-    if (!rsTransactionData || !RSSystemProperties::GetSingleFrameComposerEnabled() ||
-        !RSSingleFrameComposer::IsShouldProcessByIpcThread(rsTransactionData->GetSendingPid())) {
+    if (!rsTransactionData || !isUniRender_) {
         return;
     }
 
-    RSSingleFrameComposer::SetSingleFrameFlag(std::this_thread::get_id());
-    if (isUniRender_) {
+    if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        RSSingleFrameComposer::SetSingleFrameFlag(std::this_thread::get_id());
         context_->transactionTimestamp_ = rsTransactionData->GetTimestamp();
         rsTransactionData->ProcessBySingleFrameComposer(*context_);
     }
+
+    RecvAndProcessRSTransactionDataImmediately(rsTransactionData);
+}
+
+void RSMainThread::RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData)
+{
+    if (!rsTransactionData || !isUniRender_) {
+        return;
+    }
+    RS_TRACE_NAME("ProcessBySingleFrameComposer");
+    {
+        std::lock_guard<std::mutex> lock(transitionDataMutex_);
+        cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
+    }
+    ForceRefreshForUni();
 }
 
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)

@@ -87,7 +87,9 @@ public:
 
     void Init();
     void Start();
+    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    void RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync(const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0);
     void PostTask(RSTaskMessage::RSTask task);

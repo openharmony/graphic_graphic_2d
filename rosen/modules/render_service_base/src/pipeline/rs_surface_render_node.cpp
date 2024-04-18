@@ -556,6 +556,18 @@ bool RSSurfaceRenderNode::IsUIHidden() const
     return isUIHidden_;
 }
 
+bool RSSurfaceRenderNode::IsLeashWindowSurfaceNodeVisible()
+{
+    if (!IsLeashWindow()) {
+        return false;
+    }
+    auto nestedSurfaces = GetLeashWindowNestedSurfaces();
+    return std::any_of(nestedSurfaces.begin(), nestedSurfaces.end(),
+        [](const auto& node) -> bool {
+            return node && !node->IsUIHidden();
+        });
+}
+
 void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>& matrix, bool sendMsg)
 {
     if (contextMatrix_ == matrix) {
