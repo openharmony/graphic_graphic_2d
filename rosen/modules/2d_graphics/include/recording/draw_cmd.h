@@ -58,6 +58,7 @@ public:
         PATH_OPITEM,
         BACKGROUND_OPITEM,
         SHADOW_OPITEM,
+        SHADOW_STYLE_OPITEM,
         BITMAP_OPITEM,
         IMAGE_OPITEM,
         IMAGE_RECT_OPITEM,
@@ -151,6 +152,45 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override {}
 protected:
     Paint paint_;
+};
+
+class DrawShadowStyleOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& path, const Point3& planeParams, const Point3& devLightPos,
+            scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+            : OpItem(DrawOpItem::SHADOW_STYLE_OPITEM), path(path), planeParams(planeParams), devLightPos(devLightPos),
+            lightRadius(lightRadius), ambientColor(ambientColor), spotColor(spotColor), flag(flag), isShadowStyle(isShadowStyle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle path;
+        Point3 planeParams;
+        Point3 devLightPos;
+        scalar lightRadius;
+        Color ambientColor;
+        Color spotColor;
+        ShadowFlags flag;
+        bool isShadowStyle;
+    };
+    DrawShadowStyleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawShadowStyleOpItem(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
+        Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+        : DrawOpItem(DrawOpItem::SHADOW_STYLE_OPITEM), planeParams_(planeParams), devLightPos_(devLightPos),
+          lightRadius_(lightRadius), ambientColor_(ambientColor), spotColor_(spotColor), flag_(flag), isShadowStyle_(isShadowStyle),
+          path_(std::make_shared<Path>(path)) {}
+    ~DrawShadowStyleOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    Point3 planeParams_;
+    Point3 devLightPos_;
+    scalar lightRadius_;
+    Color ambientColor_;
+    Color spotColor_;
+    ShadowFlags flag_;
+    bool isShadowStyle_;
+    std::shared_ptr<Path> path_;
 };
 
 class DrawPointOpItem : public DrawWithPaintOpItem {

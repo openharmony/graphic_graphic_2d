@@ -271,6 +271,22 @@ void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planePa
 #endif
 }
 
+void RSPaintFilterCanvasBase::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); iter) {
+        if ((*iter) != nullptr && OnFilter()) {
+            (*iter)->DrawShadowStyle(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+        }
+    }
+#else
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawShadowStyle(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+    }
+#endif
+}
+
 void RSPaintFilterCanvasBase::DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode)
 {
 #ifdef ENABLE_RECORDING_DCL

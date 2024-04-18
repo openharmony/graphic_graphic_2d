@@ -576,8 +576,8 @@ void RSHardwareAccelerationShadowDrawable::Draw(const RSRenderContent& content, 
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
     Color spotColor = color_;
     spotColor.MultiplyAlpha(canvas.GetAlpha());
-    canvas.DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
-        Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
+    canvas.DrawShadowStyle(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
+        Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true);
 }
 
 RSColorfulShadowDrawable::RSColorfulShadowDrawable(const RSProperties& properties) : RSShadowBaseDrawable(properties)
