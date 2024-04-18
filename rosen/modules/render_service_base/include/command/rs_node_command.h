@@ -43,6 +43,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
     UPDATE_MODIFIER_MOTION_BLUR_PTR,
     UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
+    UPDATE_MODIFIER_NOISE_FIELD_PTR,
     UPDATE_MODIFIER_SHADER_PTR,
     UPDATE_MODIFIER_VECTOR2F,
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
@@ -183,6 +184,10 @@ ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<EmitterUpdater>>,
         NodeId, std::shared_ptr<EmitterUpdater>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyParticleNoiseField,
+    ARG(RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseField>>,
+        NodeId, std::shared_ptr<ParticleNoiseField>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(RS_NODE, UPDATE_MODIFIER_SHADER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, PropertyUpdateType))

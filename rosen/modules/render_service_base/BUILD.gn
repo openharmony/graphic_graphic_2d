@@ -80,6 +80,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_timing_protocol.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
+    "src/animation/rs_particle_noise_field.cpp",
     "src/animation/rs_render_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
     "src/animation/rs_render_interpolating_spring_animation.cpp",

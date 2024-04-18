@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr float DEGREE_TO_RADIAN = M_PI / 180;
 constexpr int RAND_PRECISION = 10000;
+constexpr float SIGMA = 3.f;
 
 int ParticleRenderParams::GetEmitRate() const
 {
@@ -53,16 +54,16 @@ int32_t ParticleRenderParams::GetParticleCount() const
 
 int64_t ParticleRenderParams::GetLifeTimeStartValue() const
 {
-    if (emitterConfig_.lifeTime_.start_ > std::numeric_limits<uint64_t>::max() / NS_PER_MS) {
-        return std::numeric_limits<uint64_t>::max();
+    if (emitterConfig_.lifeTime_.start_ > std::numeric_limits<int64_t>::max() / NS_PER_MS) {
+        return std::numeric_limits<int64_t>::max();
     }
     return emitterConfig_.lifeTime_.start_ * NS_PER_MS;
 }
 
 int64_t ParticleRenderParams::GetLifeTimeEndValue() const
 {
-    if (emitterConfig_.lifeTime_.end_ > std::numeric_limits<uint64_t>::max() / NS_PER_MS) {
-        return std::numeric_limits<uint64_t>::max();
+    if (emitterConfig_.lifeTime_.end_ > std::numeric_limits<int64_t>::max() / NS_PER_MS) {
+        return std::numeric_limits<int64_t>::max();
     }
     return emitterConfig_.lifeTime_.end_ * NS_PER_MS;
 }
@@ -165,6 +166,11 @@ const Color& ParticleRenderParams::GetColorStartValue()
 const Color& ParticleRenderParams::GetColorEndValue()
 {
     return color_.colorVal_.end_;
+}
+
+const DistributionType& ParticleRenderParams::GetColorDistribution()
+{
+    return color_.distribution_;
 }
 
 const ParticleUpdator& ParticleRenderParams::GetColorUpdator()
@@ -652,12 +658,7 @@ void RSRenderParticle::InitProperty()
 
     particleType_ = particleParams_->GetParticleType();
     if (particleType_ == ParticleType::POINTS) {
-        float colorRandomValue = GetRandomValue(0.0f, 1.0f);
-        color_ = Lerp(particleParams_->GetColorStartValue(), particleParams_->GetColorEndValue(), colorRandomValue);
-        redSpeed_ = GetRandomValue(particleParams_->GetRedRandomStart(), particleParams_->GetRedRandomEnd());
-        greenSpeed_ = GetRandomValue(particleParams_->GetGreenRandomStart(), particleParams_->GetGreenRandomEnd());
-        blueSpeed_ = GetRandomValue(particleParams_->GetBlueRandomStart(), particleParams_->GetBlueRandomEnd());
-        alphaSpeed_ = GetRandomValue(particleParams_->GetAlphaRandomStart(), particleParams_->GetAlphaRandomEnd());
+        SetColor();
         radius_ = particleParams_->GetParticleRadius();
     } else if (particleType_ == ParticleType::IMAGES) {
         image_ = particleParams_->GetParticleImage();
@@ -703,6 +704,36 @@ float RSRenderParticle::GetRandomValue(float min, float max)
     return rand_float;
 }
 
+void RSRenderParticle::SetColor()
+{
+    if (particleParams_->GetColorDistribution() == DistributionType::GAUSSIAN) {
+        color_.SetRed(GenerateColorComponent(0.0, SIGMA));
+        color_.SetGreen(GenerateColorComponent(0.0, SIGMA));
+        color_.SetBlue(GenerateColorComponent(0.0, SIGMA));
+    } else {
+        float colorRandomValue = GetRandomValue(0.0f, 1.0f);
+        color_ = Lerp(particleParams_->GetColorStartValue(), particleParams_->GetColorEndValue(), colorRandomValue);
+    }
+    redSpeed_ = GetRandomValue(particleParams_->GetRedRandomStart(), particleParams_->GetRedRandomEnd());
+    greenSpeed_ = GetRandomValue(particleParams_->GetGreenRandomStart(), particleParams_->GetGreenRandomEnd());
+    blueSpeed_ = GetRandomValue(particleParams_->GetBlueRandomStart(), particleParams_->GetBlueRandomEnd());
+    alphaSpeed_ = GetRandomValue(particleParams_->GetAlphaRandomStart(), particleParams_->GetAlphaRandomEnd());
+}
+
+// Generate color components that follow normal distribution
+int RSRenderParticle::GenerateColorComponent(double mean, double stddev)
+{
+    // Creates a random number engine and a normal distribution object.
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> dis(mean, stddev);
+
+    double number = dis(gen);
+    int component = static_cast<int>(std::round(std::abs(number)));
+    component = std::max(0, std::min(component, 255)); // 255 is RGB Component max.
+    return component;
+}
+
 Vector2f RSRenderParticle::CalculateParticlePosition(
     const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize)
 {
@@ -735,16 +766,6 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
         }
     }
     return Vector2f { positionX, positionY };
-}
-
-Color RSRenderParticle::Lerp(const Color& start, const Color& end, float t)
-{
-    Color result;
-    result.SetRed(start.GetRed() + static_cast<int>(std::round((end.GetRed() - start.GetRed()) * t)));
-    result.SetGreen(start.GetGreen() + static_cast<int>(std::round((end.GetGreen() - start.GetGreen()) * t)));
-    result.SetBlue(start.GetBlue() + static_cast<int>(std::round((end.GetBlue() - start.GetBlue()) * t)));
-    result.SetAlpha(start.GetAlpha() + static_cast<int>(std::round((end.GetAlpha() - start.GetAlpha()) * t)));
-    return result;
 }
 
 } // namespace Rosen
