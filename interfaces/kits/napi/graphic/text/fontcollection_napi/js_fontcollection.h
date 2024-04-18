@@ -21,6 +21,7 @@
 #include "resource_manager.h"
 #include "font_collection.h"
 #include "js_text_utils.h"
+#include <memory>
 
 namespace OHOS::Rosen {
 class JsFontCollection final {
@@ -38,7 +39,7 @@ private:
     static thread_local napi_ref constructor_;
     napi_value OnDisableFallback(napi_env env, napi_callback_info info);
     napi_value OnLoadFont(napi_env env, napi_callback_info info);
-    Global::Resource::ResourceManager* GetResourManager(const std::string& moudleName);
+    std::unique_ptr<Global::Resource::ResourceManager> GetResourManager(const std::string& moudleName);
     bool SpiltAbsoluteFontPath(std::string& absolutePath);
     bool ParseResourcePath(napi_env env, napi_value value, const std::string familyName);
     bool ParseResourceType(napi_env env, napi_value value, ResourceInfo& info);
