@@ -68,8 +68,8 @@ private:
         Vector2f& rectOffset, float radius);
 
     friend class RSMarshallingHelper;
-    inline static Drawing::Rect lastRect_ = Drawing::Rect(0, 0, 0, 0);
-    inline static Drawing::Rect curRect_ = Drawing::Rect(0, 0, 0, 0);
+    inline static Drawing::Rect lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
+    inline static Drawing::Rect curRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
 
     static std::shared_ptr<Drawing::RuntimeEffect> motionBlurShaderEffect_;

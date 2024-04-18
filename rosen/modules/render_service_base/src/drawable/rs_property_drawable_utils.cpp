@@ -267,6 +267,7 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
         return;
     }
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+    canvas.StoreCanvas();
     canvas.ReplaceMainScreenData(offscreenSurface, offscreenCanvas);
     offscreenCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     canvas.SavePCanvasList();
@@ -298,6 +299,11 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         return;
     }
     auto foregroundFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+
+    if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
+        auto canvasOriginal = canvas.GetOriginalCanvas();
+        foregroundFilter->SetGeometry(*canvasOriginal, 0.f, 0.f);
+    }
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
         imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
