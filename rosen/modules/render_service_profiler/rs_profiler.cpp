@@ -800,7 +800,6 @@ void RSProfiler::GetPerfTree(const ArgList& args)
 
     g_nodeSetPerf.clear();
     g_mapNode2Count.clear();
-    g_mapNode2ComplementTime.clear();
 
     auto& rootNode = g_renderServiceContext->GetGlobalRootRenderNode();
     auto rootNodeChildren = rootNode ? rootNode->GetSortedChildren() : nullptr;
@@ -815,7 +814,7 @@ void RSProfiler::GetPerfTree(const ArgList& args)
             continue;
         }
         const auto& nodes = displayNode->GetCurAllSurfaces();
-        for(auto& node : nodes) {
+        for (auto& node : nodes) {
             if (node) {
                 PerfTreeFlatten(*node, g_nodeSetPerf, g_mapNode2Count);
             }
@@ -831,7 +830,7 @@ void RSProfiler::GetPerfTree(const ArgList& args)
         }
         std::string sNodeType;
         node->DumpNodeType(sNodeType);
-        outString += (it != g_nodeSetPerf.begin() ? ", " : "") + std::to_string(*it) + ":" + 
+        outString += (it != g_nodeSetPerf.begin() ? ", " : "") + std::to_string(*it) + ":" +
             std::to_string(g_mapNode2Count[*it]) + " [" + sNodeType + "]";
     }
 
