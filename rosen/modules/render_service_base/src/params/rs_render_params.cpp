@@ -37,11 +37,9 @@ float RSRenderParams::GetAlpha() const
 
 void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 {
-    if (matrix_ == matrix) {
-        return;
-    }
     matrix_ = matrix;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::MATRIX_DIRTY);
 }
 const Drawing::Matrix& RSRenderParams::GetMatrix() const
 {
@@ -304,8 +302,12 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
+    if (dirtyType_.test(RSRenderParamsDirtyType::MATRIX_DIRTY)) {
+        target->matrix_.Swap(matrix_);
+        dirtyType_.reset(RSRenderParamsDirtyType::MATRIX_DIRTY);
+    }
+
     target->alpha_ = alpha_;
-    target->matrix_ = matrix_;
     target->boundsRect_ = boundsRect_;
     target->frameRect_ = frameRect_;
     target->shouldPaint_ = shouldPaint_;

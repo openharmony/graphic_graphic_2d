@@ -159,7 +159,8 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
 // dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
 void RSJankStats::SetRSJankStats(uint32_t /* dynamicRefreshRate */)
 {
-    const int64_t missedVsync = static_cast<int64_t>(GetEffectiveFrameTime(true) / VSYNC_PERIOD);
+    auto frameTime = GetEffectiveFrameTime(true);
+    const int64_t missedVsync = static_cast<int64_t>(frameTime / VSYNC_PERIOD);
     if (missedVsync <= 0) {
         return;
     }
@@ -191,6 +192,9 @@ void RSJankStats::SetRSJankStats(uint32_t /* dynamicRefreshRate */)
         ROSEN_LOGW("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
         return;
     }
+
+    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %d frameTime %f", missedVsync, frameTime);
+
     if (type != JANK_FRAME_6_FREQ) {
         RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, missedVsync);
         lastJankFrame6FreqTimeSteady_ = rtEndTimeSteady_;

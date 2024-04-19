@@ -76,6 +76,13 @@ enum class RSRenderNodeType : uint32_t {
     CANVAS_DRAWING_NODE = 0x2081u,
 };
 
+enum RSRenderParamsDirtyType {
+    NO_DIRTY = 0,
+    MATRIX_DIRTY,
+    LAYER_INFO_DIRTY,
+    MAX_DIRTY_TYPE,
+};
+
 enum class CacheType : uint8_t {
     NONE = 0,
     CONTENT,

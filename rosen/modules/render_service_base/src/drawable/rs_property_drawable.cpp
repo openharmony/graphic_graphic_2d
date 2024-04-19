@@ -33,7 +33,7 @@ void RSPropertyDrawable::OnSync()
     if (!needSync_) {
         return;
     }
-    drawCmdList_ = std::move(stagingDrawCmdList_);
+    std::swap(drawCmdList_, stagingDrawCmdList_);
     needSync_ = false;
 }
 
