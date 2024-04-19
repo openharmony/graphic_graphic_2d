@@ -30,7 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT GEKawaseBlurShaderFilter : public GEShaderFilter {
+class GEKawaseBlurShaderFilter : public GEShaderFilter {
 public:
     GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams& params);
     ~GEKawaseBlurShaderFilter() override;

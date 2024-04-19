@@ -23,6 +23,8 @@
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "platform/common/rs_system_properties.h"
+#include "ge_render.h"
+#include "ge_visual_effect.h"
 
 #if defined(NEW_SKIA)
 #include "include/effects/SkImageFilters.h"
@@ -301,7 +303,20 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
     // if kawase blur failed, use gauss blur
     std::shared_ptr<Drawing::Image> greyImage = image;
     if (greyCoef_.has_value()) {
-        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef_.value());
+        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+        if (!visualEffectContainer) {
+            return;
+        }
+        auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);
+        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]); // 模糊半径
+        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]); // 模糊半径
+        visualEffectContainer->AddToChainedFilter(greyFilter);
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        if (!geRender) {
+            return;
+        }
+        auto greyImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+            image, src, src, Drawing::SamplingOptions());
     }
     if (greyImage == nullptr) {
         greyImage = image;

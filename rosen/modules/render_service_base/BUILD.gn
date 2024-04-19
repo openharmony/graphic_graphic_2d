@@ -410,6 +410,7 @@ ohos_source_set("render_service_base_src") {
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
+    "$rosen_root/modules/graphics_effect:libgraphics_effect",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
