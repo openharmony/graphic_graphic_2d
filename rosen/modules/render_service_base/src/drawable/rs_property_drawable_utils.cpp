@@ -26,6 +26,7 @@ namespace {
 // when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD,
 // the snapshot should call outset before blur to shrink by 1px.
 constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f;
+constexpr int TRACE_LEVEL_TWO = 2;
 } // namespace
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationShaderEffect_ = nullptr;
@@ -206,7 +207,10 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         auto material = std::static_pointer_cast<RSMaterialFilter>(rsFilter);
         needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
     }
+    auto clipIBounds = canvas->GetDeviceClipBounds();
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + rsFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawFilter, filterType: %d, %s, bounds: %s",
+        rsFilter->GetFilterType(), rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     g_blurCnt++;
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
@@ -230,7 +234,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     }
 #endif
 
-    auto clipIBounds = canvas->GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
     if (needSnapshotOutset) {
         imageClipIBounds.MakeOutset(-1, -1);
@@ -336,6 +339,8 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     }
 #endif
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::DrawBackgroundEffect " + rsFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "EffectComponent, %s, bounds: %s",
+        rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     auto imageRect = clipIBounds;
     auto imageSnapshot = surface->GetImageSnapshot(imageRect);
     if (imageSnapshot == nullptr) {
@@ -609,6 +614,10 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     Drawing::Rect clipBounds(
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     Drawing::Rect fClipBounds(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetRight(), clipBounds.GetBottom());
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawPixelStretch, right: %f, bottom: %f", tmpBounds.GetRight(),
+        tmpBounds.GetBottom());
+
     if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch map rect failed.");
     }
@@ -702,6 +711,10 @@ Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(const std::shared_ptr<RS
 void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
     const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawShadow, ShadowElevation: %f, ShadowOffsetX: "
+        "%f, ShadowOffsetY: %f, bounds: %s",
+        elevation, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
     CeilMatrixTrans(canvas);
     if (!isFilled) {
@@ -764,6 +777,9 @@ void RSPropertyDrawableUtils::BeginBlendMode(RSPaintFilterCanvas& canvas, int bl
         canvas.SetBlendMode({ blendMode - 1 }); // map blendMode to SkBlendMode
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::BeginBlendMode, blendMode: %d, blendModeApplyType: %d", blendMode,
+        blendModeApplyType);
 
     // save layer mode
     CeilMatrixTrans(&canvas);
