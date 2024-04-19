@@ -1056,6 +1056,13 @@ void RSNode::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
         RSModifierType::PARTICLE_EMITTER_UPDATER, para);
 }
 
+// Set Particle Noise Field
+void RSNode::SetParticleNoiseField(const std::shared_ptr<ParticleNoiseField>& para)
+{
+    SetProperty<RSParticleNoiseFieldModifier, RSProperty<std::shared_ptr<ParticleNoiseField>>>(
+        RSModifierType::PARTICLE_NOISE_FIELD, para);
+}
+
 // foreground
 void RSNode::SetForegroundColor(uint32_t colorValue)
 {

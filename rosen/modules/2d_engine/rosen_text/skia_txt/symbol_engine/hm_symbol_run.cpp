@@ -127,7 +127,7 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
         RSEffectStrategy symbolEffect = symbolTxt.GetEffectStrategy();
         uint32_t symbolId = static_cast<uint32_t>(glyphId);
         std::pair<double, double> offsetXY(offset.GetX(), offset.GetY());
-        if (symbolEffect > 0) { // 0 > has animation
+        if (symbolEffect > 0 && symbolTxt.GetAnimationStart()) { // 0 > has animation
             if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt)) {
                 ClearSymbolAnimation(symbolData, symbolId, offsetXY);
                 canvas->DrawSymbol(symbolData, offset);
@@ -160,7 +160,7 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
     symbolNode.SetSymbolId(symbolId_);
     symbolNode.SetAnimationMode(animationMode);
     symbolNode.SetRepeatCount(symbolTxt.GetRepeatCount());
-    symbolNode.SetAminationStart(symbolTxt.GetAminationStart());
+    symbolNode.SetAnimationStart(symbolTxt.GetAnimationStart());
     symbolNode.SetCommonSubType(symbolTxt.GetCommonSubType());
     if (!symbolNode.DecomposeSymbolAndDraw()) {
         return false;

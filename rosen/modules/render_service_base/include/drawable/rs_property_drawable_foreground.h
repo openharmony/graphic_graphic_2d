@@ -96,10 +96,10 @@ private:
     float stagingDynamicDimDegree_ = 1.0f;
 };
 
-class RSForegroundFilterDrawable : public RSFilterDrawable {
+class RSCompositingFilterDrawable : public RSFilterDrawable {
 public:
-    RSForegroundFilterDrawable() = default;
-    ~RSForegroundFilterDrawable() override = default;
+    RSCompositingFilterDrawable() = default;
+    ~RSCompositingFilterDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
@@ -107,6 +107,39 @@ public:
     {
         return true;
     }
+};
+
+// foregroundFilter
+class RSForegroundFilterDrawable : public RSDrawable {
+public:
+    RSForegroundFilterDrawable() = default;
+    ~RSForegroundFilterDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    RectF boundsRect_;
+    RectF stagingBoundsRect_;
+};
+
+class RSForegroundFilterRestoreDrawable : public RSDrawable {
+public:
+    RSForegroundFilterRestoreDrawable() = default;
+    ~RSForegroundFilterRestoreDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    std::shared_ptr<RSFilter> foregroundFilter_;
+    std::shared_ptr<RSFilter> stagingForegroundFilter_;
 };
 
 class RSForegroundColorDrawable : public RSPropertyDrawable {

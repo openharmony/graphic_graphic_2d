@@ -114,7 +114,11 @@ public:
      * @param shader  The shader that fills the result image
      * @return    A shared pointer to ImageFilter that its type is shader.
      */
-    static std::shared_ptr<ImageFilter> CreateShaderImageFilter(std::shared_ptr<ShaderEffect> shader);
+    static std::shared_ptr<ImageFilter> CreateShaderImageFilter(std::shared_ptr<ShaderEffect> shader,
+        const Rect& rect = {
+            -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
+            std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+        });
 
     virtual ~ImageFilter() = default;
     FilterType GetType() const;
@@ -144,7 +148,7 @@ public:
     void InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y, ImageBlurType blurType);
     ImageFilter(FilterType t, BlendMode mode, std::shared_ptr<ImageFilter> background,
         std::shared_ptr<ImageFilter> foreground = nullptr) noexcept;
-    ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader) noexcept;
+    ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& rect) noexcept;
 protected:
     ImageFilter() noexcept;
 

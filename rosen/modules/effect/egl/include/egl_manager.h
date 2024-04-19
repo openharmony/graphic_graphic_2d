@@ -19,7 +19,7 @@
 #include <GLES3/gl32.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include "../../effectChain/include/ec_log.h"
+#include "ec_log.h"
 
 #ifdef __cplusplus
 extern "C" {

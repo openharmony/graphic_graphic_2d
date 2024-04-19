@@ -25,6 +25,35 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+
+/* OpItem */
+/**
+ * @brief  Helper class for mask playback.
+ *         Contains the playback context and a static mapping table: { OpItemType， OpItemPlaybackFunc }.
+ */
+class MaskPlayer {
+public:
+    MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList);
+    MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, Pen& pen, const CmdList& cmdList);
+    ~MaskPlayer() = default;
+
+    /**
+     * @brief  Obtain the corresponding func according to the type lookup mapping table
+     *         and then invoke the func to plays opItem back to mask which in context.
+     */
+    bool Playback(uint32_t type, const void* opItem, size_t leftOpAllocatorSize);
+
+    std::shared_ptr<Path>& path_;
+    Brush& brush_;
+    Pen& pen_;
+    const CmdList& cmdList_;
+
+    using MaskPlaybackFunc = void(*)(MaskPlayer& palyer, const void* opItem, size_t leftOpAllocatorSize);
+private:
+    static std::unordered_map<uint32_t, MaskPlaybackFunc> opPlaybackFuncLUT_;
+};
+
 class DRAWING_API MaskCmdList : public CmdList {
 public:
     MaskCmdList() = default;
@@ -48,33 +77,9 @@ public:
     bool Playback(std::shared_ptr<Path>& path, Brush& brush) const;
 
     bool Playback(std::shared_ptr<Path>& path, Pen& pen, Brush& brush) const;
-};
 
-/* OpItem */
-/**
- * @brief  Helper class for mask playback.
- *         Contains the playback context and a static mapping table: { OpItemType， OpItemPlaybackFunc }.
- */
-class MaskPlayer {
-public:
-    MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList);
-    MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, Pen& pen, const CmdList& cmdList);
-    ~MaskPlayer() = default;
-
-    /**
-     * @brief  Obtain the corresponding func according to the type lookup mapping table
-     *         and then invoke the func to plays opItem back to mask which in context.
-     */
-    bool Playback(uint32_t type, const void* opItem);
-
-    std::shared_ptr<Path>& path_;
-    Brush& brush_;
-    Pen& pen_;
-    const CmdList& cmdList_;
-
-    using MaskPlaybackFunc = void(*)(MaskPlayer& palyer, const void* opItem);
 private:
-    static std::unordered_map<uint32_t, MaskPlaybackFunc> opPlaybackFuncLUT_;
+    bool Playback(MaskPlayer &player) const;
 };
 
 class MaskOpItem : public OpItem {
@@ -95,7 +100,7 @@ public:
     explicit MaskBrushOpItem(const BrushHandle& brushHandle);
     ~MaskBrushOpItem() = default;
 
-    static void Playback(MaskPlayer& player, const void* opItem);
+    static void Playback(MaskPlayer& player, const void* opItem, size_t leftOpAllocatorSize);
 
     void Playback(Brush& brush, const CmdList& cmdList) const;
 private:
@@ -107,7 +112,7 @@ public:
     explicit MaskPenOpItem(const PenHandle& penHandle);
     ~MaskPenOpItem() = default;
 
-    static void Playback(MaskPlayer& player, const void* opItem);
+    static void Playback(MaskPlayer& player, const void* opItem, size_t leftOpAllocatorSize);
 
     void Playback(Pen& pen, const CmdList& cmdList) const;
 private:
@@ -119,7 +124,7 @@ public:
     explicit MaskPathOpItem(const OpDataHandle& pathHandle);
     ~MaskPathOpItem() = default;
 
-    static void Playback(MaskPlayer& player, const void* opItem);
+    static void Playback(MaskPlayer& player, const void* opItem, size_t leftOpAllocatorSize);
 
     void Playback(std::shared_ptr<Path>& path, const CmdList& cmdList) const;
 private:

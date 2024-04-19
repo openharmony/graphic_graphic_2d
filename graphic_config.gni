@@ -44,6 +44,7 @@ declare_args() {
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
   graphic_2d_feature_use_igraphics_extend_hooks = false
+  graphic_2d_feature_use_aps_igameservice_func = false
   graphic_2d_feature_enable_chipset_vsync = false
   graphic_2d_feature_enable_rspipeline = false
 
@@ -208,6 +209,15 @@ check_igraphics_core_file_args = [
   rebase_path(
       "//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni"),
 ]
+check_igameservice_core_file_args = [
+  "--filename",
+  rebase_path(
+      "//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni"),
+]
+check_aps_core_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/aps_manager/config.gni"),
+]
 check_delegator_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
@@ -238,6 +248,17 @@ if (exec_script(check_graphic_ext_file_script,
                 "string") == "True") {
   graphic_2d_feature_use_igraphics_extend_hooks = true
   import("//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni")
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_aps_core_file_args,
+                "string") == "True" &&
+    exec_script(check_graphic_ext_file_script,
+                check_igameservice_core_file_args,
+                "string") == "True") {
+  graphic_2d_feature_use_aps_igameservice_func = true
+  import("//foundation/graphic/graphic_2d_ext/aps_manager/config.gni")
+  import(
+      "//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni")
 }
 
 graphic_2d_delegator_configs = {

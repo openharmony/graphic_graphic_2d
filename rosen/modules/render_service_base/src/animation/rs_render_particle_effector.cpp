@@ -47,10 +47,9 @@ Vector4<int16_t> RSRenderParticleEffector::CalculateColorInt(const std::shared_p
     return colorInt;
 }
 
-float RSRenderParticleEffector::UpdateCurveValue(
-    const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& valChangeOverLife, int64_t activeTime)
+void RSRenderParticleEffector::UpdateCurveValue(
+    float& value, const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& valChangeOverLife, int64_t activeTime)
 {
-    float value = 0.f;
     for (size_t i = 0; i < valChangeOverLife.size(); i++) {
         int startTime = valChangeOverLife[i]->startMillis_;
         int endTime = valChangeOverLife[i]->endMillis_;
@@ -62,46 +61,37 @@ float RSRenderParticleEffector::UpdateCurveValue(
 #ifdef ENABLE_RUST
         value = generate_value(startValue, endValue, startTime, endTime, activeTime);
 #else
-        if (endTime - startTime != 0) {
+        if (endTime - startTime > 0) {
             float t = static_cast<float>(activeTime - startTime) / static_cast<float>(endTime - startTime);
             auto& interpolator = valChangeOverLife[i]->interpolator_;
             t = (interpolator != nullptr) ? interpolator->Interpolate(t) : t;
             value = startValue * (1.0f - t) + endValue * t;
-        } else {
-            value = startValue;
         }
 #endif
         break;
     }
-    return value;
 }
 
-Color RSRenderParticleEffector::UpdateColorCurveValue(
-    const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife, int64_t activeTime)
+void RSRenderParticleEffector::UpdateColorCurveValue(
+    Color& color, const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife, int64_t activeTime)
 {
-    Color color;
     for (size_t i = 0; i < valChangeOverLife.size(); i++) {
         int startTime = valChangeOverLife[i]->startMillis_;
         int endTime = valChangeOverLife[i]->endMillis_;
         if (activeTime < startTime || activeTime > endTime) {
             continue;
         }
-        Color startValue = valChangeOverLife[i]->fromValue_;
-        if (endTime - startTime != 0) {
+        if (endTime - startTime > 0) {
+            Color startValue = valChangeOverLife[i]->fromValue_;
             Color endValue = valChangeOverLife[i]->toValue_;
             float t = static_cast<float>(activeTime - startTime) / static_cast<float>(endTime - startTime);
             auto& interpolator = valChangeOverLife[i]->interpolator_;
             t = (interpolator != nullptr) ? interpolator->Interpolate(t) : t;
-            startValue *= (1.0f - t);
-            endValue *= t;
-            color = startValue + endValue;
-        } else {
-            color = startValue;
+            color = RSRenderParticle::Lerp(startValue, endValue, t);
         }
-        color = Color(color.AsArgbInt());
+        color = Color(color.AsRgbaInt());
         break;
     }
-    return color;
 }
 
 void RSRenderParticleEffector::UpdateColor(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime)
@@ -124,7 +114,7 @@ void RSRenderParticleEffector::UpdateColor(const std::shared_ptr<RSRenderParticl
     } else if (colorUpdator == ParticleUpdator::CURVE) {
         int64_t activeTime = particle->GetActiveTime() / NS_PER_MS;
         auto& valChangeOverLife = particle->GetColorChangeOverLife();
-        color = UpdateColorCurveValue(valChangeOverLife, activeTime);
+        UpdateColorCurveValue(color, valChangeOverLife, activeTime);
     }
     particle->SetColor(color);
 }
@@ -147,7 +137,7 @@ void RSRenderParticleEffector::UpdateOpacity(const std::shared_ptr<RSRenderParti
     } else if (opacityUpdator == ParticleUpdator::CURVE) {
         int64_t activeTime = particle->GetActiveTime() / NS_PER_MS;
         auto& valChangeOverLife = particle->GetOpacityChangeOverLife();
-        opacity = UpdateCurveValue(valChangeOverLife, activeTime);
+        UpdateCurveValue(opacity, valChangeOverLife, activeTime);
     }
     particle->SetOpacity(opacity);
 }
@@ -166,7 +156,7 @@ void RSRenderParticleEffector::UpdateScale(const std::shared_ptr<RSRenderParticl
     } else if (scaleUpdator == ParticleUpdator::CURVE) {
         int64_t activeTime = particle->GetActiveTime() / NS_PER_MS;
         auto& valChangeOverLife = particle->GetScaleChangeOverLife();
-        scale = UpdateCurveValue(valChangeOverLife, activeTime);
+        UpdateCurveValue(scale, valChangeOverLife, activeTime);
     }
     particle->SetScale(scale);
 }
@@ -181,7 +171,7 @@ void RSRenderParticleEffector::UpdateSpin(const std::shared_ptr<RSRenderParticle
     } else if (spinUpdator == ParticleUpdator::CURVE) {
         int64_t activeTime = particle->GetActiveTime() / NS_PER_MS;
         auto& valChangeOverLife = particle->GetSpinChangeOverLife();
-        spin = UpdateCurveValue(valChangeOverLife, activeTime);
+        UpdateCurveValue(spin, valChangeOverLife, activeTime);
     }
     particle->SetSpin(spin);
 }
@@ -197,7 +187,7 @@ void RSRenderParticleEffector::UpdateAccelerationAngle(
     } else if (acceAngleUpdator == ParticleUpdator::CURVE) {
         int64_t activeTime = particle->GetActiveTime() / NS_PER_MS;
         auto& valChangeOverLife = particle->GetAcceAngChangeOverLife();
-        accelerationAngle = UpdateCurveValue(valChangeOverLife, activeTime);
+        UpdateCurveValue(accelerationAngle, valChangeOverLife, activeTime);
     }
     particle->SetAccelerationAngle(accelerationAngle);
 }
@@ -213,18 +203,26 @@ void RSRenderParticleEffector::UpdateAccelerationValue(
     } else if (acceValueUpdator == ParticleUpdator::CURVE) {
         int64_t activeTime = particle->GetActiveTime() / NS_PER_MS;
         auto& valChangeOverLife = particle->GetAcceValChangeOverLife();
-        accelerationValue = UpdateCurveValue(valChangeOverLife, activeTime);
+        UpdateCurveValue(accelerationValue, valChangeOverLife, activeTime);
     }
     particle->SetAccelerationValue(accelerationValue);
 }
 
-void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime)
+void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
+    const std::shared_ptr<ParticleNoiseField>& particleNoiseField, float deltaTime)
 {
+    auto position = particle->GetPosition();
+    auto fieldForce = Vector2f(0.f, 0.f);
+    if (particleNoiseField != nullptr) {
+        fieldForce += particleNoiseField->ApplyField(position);
+        fieldForce += particleNoiseField->ApplyCurlNoise(position);
+    }
     auto accelerationValue = particle->GetAccelerationValue();
     auto accelerationAngle = particle->GetAccelerationAngle();
     accelerationAngle *= DEGREE_TO_RADIAN;
     auto acceleration =
         Vector2f { accelerationValue * std::cos(accelerationAngle), accelerationValue * std::sin(accelerationAngle) };
+    acceleration += fieldForce;
     particle->SetAcceleration(acceleration);
 
     Vector2f velocity = particle->GetVelocity();
@@ -234,7 +232,6 @@ void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderPart
         particle->SetVelocity(velocity);
     }
 
-    Vector2f position = particle->GetPosition();
     if (!(ROSEN_EQ(velocity.x_, 0.f) && ROSEN_EQ(velocity.y_, 0.f))) {
         position.x_ += velocity.x_ * deltaTime;
         position.y_ += velocity.y_ * deltaTime;
@@ -250,7 +247,8 @@ void RSRenderParticleEffector::UpdateActiveTime(const std::shared_ptr<RSRenderPa
 }
 
 // Apply effector to particle
-void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime)
+void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& particle,
+    const std::shared_ptr<ParticleNoiseField>& particleNoiseField, int64_t deltaTime)
 {
     float dt = static_cast<float>(deltaTime) / NS_TO_S;
     UpdateAccelerationValue(particle, dt);
@@ -259,7 +257,7 @@ void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& p
     UpdateOpacity(particle, dt);
     UpdateScale(particle, dt);
     UpdateSpin(particle, dt);
-    UpdatePosition(particle, dt);
+    UpdatePosition(particle, particleNoiseField, dt);
     UpdateActiveTime(particle, deltaTime);
 }
 

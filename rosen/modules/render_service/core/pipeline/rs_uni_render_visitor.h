@@ -280,6 +280,9 @@ private:
     void UpdateHardwareNodeStatusBasedOnFilterRegion(RSDisplayRenderNode& displayNode);
     void UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& prevHwcEnabledNodes);
+    void UpdateHardwareChildNodeStatus(std::shared_ptr<RSSurfaceRenderNode>& node,
+        std::vector<SurfaceDirtyMgrPair>& curHwcEnabledNodes);
+ 
     void UpdateHardwareEnableList(std::vector<RectI>& filterRects,
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& validHwcNodes);
     // remove functions above when dirty region is enabled for foldable device

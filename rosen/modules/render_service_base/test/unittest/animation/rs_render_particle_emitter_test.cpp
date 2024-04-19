@@ -17,7 +17,6 @@
 
 #include "gtest/gtest.h"
 
-#include "animation/rs_render_particle.h"
 #include "animation/rs_render_particle_animation.h"
 #include "animation/rs_render_particle_emitter.h"
 #include "common/rs_vector2.h"
@@ -74,6 +73,7 @@ void RSRenderParticleEmitterTest::SetColor()
     Color start = RSColor(200, 0, 0, 100);
     Color end = RSColor(255, 255, 255, 255);
     Range<Color> colorVal = Range<Color>(start, end);
+    DistributionType distribution = DistributionType::UNIFORM;
     ParticleUpdator colorUpdator = ParticleUpdator::RANDOM;
     Range<float> redRandom = Range<float>(0.1f, 1.f);
     Range<float> greenRandom = Range<float>(0.1f, 1.f);
@@ -81,7 +81,7 @@ void RSRenderParticleEmitterTest::SetColor()
     Range<float> alphaRandom = Range<float>(0.1f, 1.f);
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife = {};
     color_ = RenderParticleColorParaType(
-        colorVal, colorUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
+        colorVal, distribution, colorUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
 }
 
 void RSRenderParticleEmitterTest::SetOpacity()

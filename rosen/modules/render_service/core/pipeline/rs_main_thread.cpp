@@ -319,18 +319,10 @@ void RSMainThread::Init()
         }
         if (isUniRender_ && doDirectComposition_) {
             UpdateDisplayNodeScreenId();
-        }
-
-        if (!hasMark_) {
-            SetFrameIsRender(true);
-        }
-        hasMark_ = false;
-        // move rnv after mark rsnotrendering
-        if (needRequestNextVsyncAnimate_ || rsVSyncDistributor_->HasPendingUIRNV()) {
-            rsVSyncDistributor_->MarkRSAnimate();
-            RequestNextVSync("animate", timestamp_);
-        } else {
-            rsVSyncDistributor_->UnmarkRSAnimate();
+            if (!markRenderFlag_) {
+                SetFrameIsRender(true);
+            }
+            markRenderFlag_ = false;
         }
 
         InformHgmNodeInfo();
@@ -490,7 +482,9 @@ void RSMainThread::Init()
             RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
             RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
             RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
-            if (!this->rsVSyncDistributor_->IsDVsyncOn()) {
+            if (forceUpdate) {
+                RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+            } else {
                 RSMainThread::Instance()->RequestNextVSync();
             }
         });
@@ -1453,6 +1447,14 @@ void RSMainThread::SetSurfaceCapProcFinished(bool flag)
     surfaceCapProcFinished_ = flag;
 }
 
+bool RSMainThread::IsRequestedNextVSync()
+{
+    if (receiver_ != nullptr) {
+        return receiver_->IsRequestedNextVSync();
+    }
+    return false;
+}
+
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
@@ -1499,7 +1501,7 @@ bool RSMainThread::GetParallelCompositionEnabled()
 
 void RSMainThread::SetFrameIsRender(bool isRender)
 {
-    hasMark_ = true;
+    markRenderFlag_ = true;
     rsVSyncDistributor_->SetFrameIsRender(isRender);
 }
 
@@ -1709,6 +1711,7 @@ void RSMainThread::Render()
     if (isUniRender_) {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         renderThreadParams_->SetTimestamp(hgmCore.GetCurrentTimestamp());
+        renderThreadParams_->SetRequestNextVsyncFlag(needRequestNextVsyncAnimate_);
         renderThreadParams_->SetPendingScreenRefreshRate(hgmCore.GetPendingScreenRefreshRate());
         renderThreadParams_->SetForceCommitLayer(isHardwareEnabledBufferUpdated_ || forceUpdateUniRenderFlag_);
     }

@@ -529,10 +529,13 @@ int32_t HdiOutput::Commit(sptr<SyncFence> &fbFence)
     return device_->Commit(screenId_, fbFence);
 }
 
-int32_t HdiOutput::CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t& skipState, bool& needFlush)
+int32_t HdiOutput::CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t& skipState, bool& needFlush,
+    std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences)
 {
     CHECK_DEVICE_NULL(device_);
-    return device_->CommitAndGetReleaseFence(screenId_, fbFence, skipState, needFlush);
+    layersId_.clear();
+    fences_.clear();
+    return device_->CommitAndGetReleaseFence(screenId_, fbFence, skipState, needFlush, layers, fences);
 }
 
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
@@ -676,30 +679,18 @@ void HdiOutput::ReleaseLayers(sptr<SyncFence>& releaseFence)
 
 std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
 {
-    if (device_ == nullptr) {
-        return {};
-    }
-    std::vector<uint32_t> layersId;
-    std::vector<sptr<SyncFence>> fences;
-    int32_t ret = device_->GetScreenReleaseFence(screenId_, layersId, fences);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != fences.size()) {
-        HLOGE("GetScreenReleaseFence failed, ret is %{public}d, layerId size[%{public}d], fence size[%{public}d]",
-              ret, (int)layersId.size(), (int)fences.size());
-        return {};
-    }
-
     std::map<LayerInfoPtr, sptr<SyncFence>> res;
     std::unique_lock<std::mutex> lock(layerMutex_);
-    size_t layerNum = layersId.size();
+    size_t layerNum = layersId_.size();
     for (size_t i = 0; i < layerNum; i++) {
-        auto iter = layerIdMap_.find(layersId[i]);
+        auto iter = layerIdMap_.find(layersId_[i]);
         if (iter == layerIdMap_.end()) {
-            HLOGE("Invalid hdi layer id [%{public}u]", layersId[i]);
+            HLOGE("Invalid hdi layer id [%{public}u]", layersId_[i]);
             continue;
         }
 
         const LayerPtr &layer = iter->second;
-        layer->MergeWithLayerFence(fences[i]);
+        layer->MergeWithLayerFence(fences_[i]);
         res[layer->GetLayerInfo()] = layer->GetReleaseFence();
     }
     return res;

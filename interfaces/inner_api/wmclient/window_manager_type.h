@@ -23,7 +23,7 @@
 
 #include "wm_common.h"
 
-#include "../common/graphic_common.h"
+#include "common/graphic_common.h"
 
 #ifdef __cplusplus
 namespace OHOS {

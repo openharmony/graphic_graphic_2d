@@ -172,9 +172,8 @@ void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
     if (IsYUVBufferFormat()) {
         auto width = static_cast<int>(buffer->GetSurfaceBufferWidth());
         auto height = static_cast<int>(buffer->GetSurfaceBufferHeight());
-        isHardwareForcedDisabledBySrcRect_ =  hasRotation ?
-            srcRect_.width_ + 1 < width :
-            srcRect_.height_ + 1 < height;
+        isHardwareForcedDisabledBySrcRect_ =  !GetAncoForceDoDirect() &&
+            (hasRotation ? srcRect_.width_ + 1 < width : srcRect_.height_ + 1 < height);
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disableBySrc:%d src:[%d, %d]" \
             " buffer:[%d, %d] hasRotation:%d", GetName().c_str(), GetId(),
             isHardwareForcedDisabledBySrcRect_, srcRect_.width_, srcRect_.height_, width, height, hasRotation);

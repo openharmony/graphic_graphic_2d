@@ -16,11 +16,13 @@
 #include "drawable/rs_drawable.h"
 
 #include <limits>
+
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -29,7 +31,7 @@ using namespace DrawableV2;
 // NOTE: This LUT should always the same size and order as RSModifierType
 // key = RSModifierType, value = RSDrawableSlot
 constexpr int DIRTY_LUT_SIZE = static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE);
-static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
+static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
     RSDrawableSlot::INVALID,                       // INVALID
     RSDrawableSlot::CLIP_TO_BOUNDS,                // BOUNDS
     RSDrawableSlot::FRAME_OFFSET,                  // FRAME
@@ -63,9 +65,9 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::BORDER,                        // BORDER_COLOR
     RSDrawableSlot::BORDER,                        // BORDER_WIDTH
     RSDrawableSlot::BORDER,                        // BORDER_STYLE
-    RSDrawableSlot::FOREGROUND_FILTER,             // FILTER
+    RSDrawableSlot::COMPOSITING_FILTER,            // FILTER
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_FILTER
-    RSDrawableSlot::FOREGROUND_FILTER,             // LINEAR_GRADIENT_BLUR_PARA
+    RSDrawableSlot::COMPOSITING_FILTER,            // LINEAR_GRADIENT_BLUR_PARA
     RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_RATE
     RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_DEGREE
     RSDrawableSlot::FRAME_OFFSET,                  // FRAME_GRAVITY
@@ -117,7 +119,9 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_TYPE
     RSDrawableSlot::POINT_LIGHT,                   // BLOOM
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_EMITTER_UPDATER
-    RSDrawableSlot::INVALID,                       // FOREGROUND_EFFECT_RADIUS
+    RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_NOISE_FIELD
+    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
+    RSDrawableSlot::INVALID,                       // MOTION_BLUR_PARA
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_SATURATION
@@ -126,13 +130,13 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_COLOR_MODE
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_X
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_Y
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_BLUR_RADIUS
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_BLUR_SATURATION
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_BLUR_BRIGHTNESS
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_BLUR_MASK_COLOR
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_BLUR_COLOR_MODE
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_BLUR_RADIUS_X
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_BLUR_RADIUS_Y
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_SATURATION
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_BRIGHTNESS
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_MASK_COLOR
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED
     RSDrawableSlot::TRANSITION,                    // TRANSITION
@@ -146,6 +150,21 @@ static const std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut 
     RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
     RSDrawableSlot::CHILDREN,                      // CHILDREN
 };
+
+// Check if g_propertyToDrawableLut size match and is fully initialized (the last element should not be default value)
+static_assert(g_propertyToDrawableLut.size() == static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE));
+static_assert(g_propertyToDrawableLut.back() != RSDrawableSlot {});
+
+// Randomly check some LUT index and value
+static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::USE_EFFECT)] == RSDrawableSlot::USE_EFFECT);
+static_assert(
+    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::FOREGROUND_COLOR)] == RSDrawableSlot::FOREGROUND_COLOR);
+static_assert(
+    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::CLIP_TO_FRAME)] == RSDrawableSlot::CLIP_TO_FRAME);
+static_assert(
+    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::USE_SHADOW_BATCHING)] == RSDrawableSlot::CHILDREN);
+static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::TRANSITION)] == RSDrawableSlot::TRANSITION);
+static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::CHILDREN)] == RSDrawableSlot::CHILDREN);
 
 template<RSModifierType type>
 static inline RSDrawable::Ptr ModifierGenerator(const RSRenderNode& node)
@@ -164,6 +183,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     ModifierGenerator<RSModifierType::TRANSITION>, // TRANSITION,
     RSEnvFGColorDrawable::OnGenerate,              // ENV_FOREGROUND_COLOR,
     RSShadowDrawable::OnGenerate,                  // SHADOW,
+    RSForegroundFilterDrawable::OnGenerate,        // FOREGROUND_FILTER
     RSOutlineDrawable::OnGenerate,                 // OUTLINE,
 
     // BG properties in Bounds Clip
@@ -190,15 +210,15 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                             // RESTORE_FRAME,
 
     // FG properties in Bounds clip
-    nullptr,                                // FG_SAVE_BOUNDS,
-    nullptr,                                // FG_CLIP_TO_BOUNDS,
-    RSBinarizationDrawable::OnGenerate,     // BINARIZATION,
-    RSColorFilterDrawable::OnGenerate,      // COLOR_FILTER,
-    RSLightUpEffectDrawable::OnGenerate,    // LIGHT_UP_EFFECT,
-    RSDynamicDimDrawable::OnGenerate,       // DYNAMIC_DIM,
-    RSForegroundFilterDrawable::OnGenerate, // FOREGROUND_FILTER,
-    RSForegroundColorDrawable::OnGenerate,  // FOREGROUND_COLOR,
-    nullptr,                                // FG_RESTORE_BOUNDS,
+    nullptr,                                 // FG_SAVE_BOUNDS,
+    nullptr,                                 // FG_CLIP_TO_BOUNDS,
+    RSBinarizationDrawable::OnGenerate,      // BINARIZATION,
+    RSColorFilterDrawable::OnGenerate,       // COLOR_FILTER,
+    RSLightUpEffectDrawable::OnGenerate,     // LIGHT_UP_EFFECT,
+    RSDynamicDimDrawable::OnGenerate,        // DYNAMIC_DIM,
+    RSCompositingFilterDrawable::OnGenerate, // COMPOSITING_FILTER,
+    RSForegroundColorDrawable::OnGenerate,   // FOREGROUND_COLOR,
+    nullptr,                                 // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
     RSPointLightDrawable::OnGenerate,                 // POINT_LIGHT,
@@ -208,8 +228,9 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSPixelStretchDrawable::OnGenerate,               // PIXEL_STRETCH,
 
     // Restore state
-    RSEndBlendModeDrawable::OnGenerate, // RESTORE_BLEND_MODE,
-    nullptr,                            // RESTORE_ALL,
+    RSEndBlendModeDrawable::OnGenerate,             // RESTORE_BLEND_MODE,
+    RSForegroundFilterRestoreDrawable::OnGenerate,  // RESTORE_FOREGROUND_FILTER
+    nullptr,                                        // RESTORE_ALL,
 };
 
 enum DrawableVecStatus : uint8_t {
@@ -241,9 +262,11 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     uint8_t result = 0;
     auto& properties = node.GetRenderProperties();
 
-    // color blend mode has implicit dependency on clipToBounds
-    if (properties.GetClipToBounds() || properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
-        properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE)) {
+    // ClipToBounds if either 1. is surface node, 2. has explicit clip properties, 3. has blend mode
+    bool shouldClipToBounds = node.IsInstanceOf<RSSurfaceRenderNode>() || properties.GetClipToBounds() ||
+                              properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
+                              properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE);
+    if (shouldClipToBounds) {
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
 
@@ -301,6 +324,7 @@ inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlo
 
 static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)
 {
+    // Erase existing save/clip/restore before re-generating
     constexpr static std::array boundsSlotsToErase = {
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
@@ -309,8 +333,6 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         RSDrawableSlot::FG_CLIP_TO_BOUNDS,
         RSDrawableSlot::FG_RESTORE_BOUNDS,
     };
-
-    // Erase existing save/clip/restore before re-generating
     for (auto& slot : boundsSlotsToErase) {
         drawableVec[static_cast<size_t>(slot)] = nullptr;
     }
@@ -422,34 +444,44 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     }
 
     // Step 1.2: expand dirty slots by rules
-    // planning: border etc. should be updated when border radius changed
-    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)]) {
-            dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
-        }
-    }
-
-    // Step 1.3: if bounds changed, every existing drawable needs to be updated
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS))) {
-        for (size_t i = 0; i < drawableVec.size(); i++) {
-            if (drawableVec[i]) {
-                dirtySlots.emplace(static_cast<RSDrawableSlot>(i));
+    // if bounds or cornerRadius changed, mark affected drawables as dirty
+    static constexpr std::array boundsDirtyTypes = {
+        RSDrawableSlot::MASK,
+        RSDrawableSlot::SHADOW,
+        RSDrawableSlot::OUTLINE,
+        RSDrawableSlot::CLIP_TO_BOUNDS,
+        RSDrawableSlot::BACKGROUND_COLOR,
+        RSDrawableSlot::BACKGROUND_SHADER,
+        RSDrawableSlot::BACKGROUND_IMAGE,
+        RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY,
+        RSDrawableSlot::FG_CLIP_TO_BOUNDS,
+        RSDrawableSlot::FOREGROUND_COLOR,
+        RSDrawableSlot::POINT_LIGHT,
+        RSDrawableSlot::BORDER,
+        RSDrawableSlot::PIXEL_STRETCH,
+    };
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS)) ||
+        dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
+        for (auto slot : boundsDirtyTypes) {
+            if (drawableVec[static_cast<size_t>(slot)]) {
+                dirtySlots.emplace(slot);
             }
         }
     }
 
-    // Step 1.4: if corner radius changed, update border and outline
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
-        // border may should be updated with corner radius
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::BORDER)]) {
-            dirtySlots.emplace(RSDrawableSlot::BORDER);
+    // if frame changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
+        if (drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)]) {
+            dirtySlots.emplace(RSDrawableSlot::CLIP_TO_FRAME);
         }
-
-        if (drawableVec[static_cast<size_t>(RSDrawableSlot::OUTLINE)]) {
-            dirtySlots.emplace(RSDrawableSlot::OUTLINE);
+        if (drawableVec[static_cast<size_t>(RSDrawableSlot::FOREGROUND_FILTER)]) {
+            dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
         }
     }
 
+    if (dirtySlots.count(RSDrawableSlot::FOREGROUND_FILTER)) {
+        dirtySlots.emplace(RSDrawableSlot::RESTORE_FOREGROUND_FILTER);
+    }
     return dirtySlots;
 }
 

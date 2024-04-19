@@ -14,6 +14,8 @@
  */
 
 #include "transaction/rs_render_service_client.h"
+#include "surface_type.h"
+#include "surface_utils.h"
 
 #include "backend/rs_surface_ohos_gl.h"
 #include "backend/rs_surface_ohos_raster.h"
@@ -169,6 +171,21 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+    const Rect &srcRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return nullptr;
+    }
+    sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    return renderService->CreatePixelMapFromSurface(surface, srcRect);
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
@@ -444,7 +461,7 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 
     return renderService->GetShowRefreshRateEnabled();
 }
-    
+
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

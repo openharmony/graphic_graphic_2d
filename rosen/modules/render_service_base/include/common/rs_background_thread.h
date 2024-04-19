@@ -29,10 +29,11 @@ class RSB_EXPORT RSBackgroundThread final {
 public:
     static RSBackgroundThread& Instance();
     void PostTask(const std::function<void()>& task);
+    void PostSyncTask(const std::function<void()>& task);
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void InitRenderContext(RenderContext* context);
     void CleanGrResource();
-    void SetGrResourceFinishFlag(bool resourceFinish);
+    void SetGrResourceFinishFlag(const bool& resourceFinish);
     bool GetGrResourceFinishFlag();
     std::shared_ptr<Drawing::GPUContext> GetShareGPUContext() const;
 #endif

@@ -40,6 +40,7 @@ enum class RSDrawableSlot : int8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     SHADOW,
+    FOREGROUND_FILTER,
     OUTLINE,
 
     // BG properties in Bounds Clip
@@ -72,7 +73,7 @@ enum class RSDrawableSlot : int8_t {
     COLOR_FILTER,
     LIGHT_UP_EFFECT,
     DYNAMIC_DIM,
-    FOREGROUND_FILTER,
+    COMPOSITING_FILTER,
     FOREGROUND_COLOR,
     FG_RESTORE_BOUNDS,
 
@@ -85,6 +86,7 @@ enum class RSDrawableSlot : int8_t {
 
     // Restore state
     RESTORE_BLEND_MODE,
+    RESTORE_FOREGROUND_FILTER,
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.

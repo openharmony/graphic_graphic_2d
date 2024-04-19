@@ -92,7 +92,8 @@ public:
     MOCK_METHOD4(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t, uint32_t&));
     MOCK_METHOD2(CloseLayer, int32_t(uint32_t, uint32_t));
 
-    MOCK_METHOD4(CommitAndGetReleaseFence, int32_t(uint32_t, sptr<SyncFence>&, int32_t&, bool&));
+    MOCK_METHOD6(CommitAndGetReleaseFence, int32_t(uint32_t, sptr<SyncFence>&, int32_t&, bool&,
+        std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&));
     MOCK_METHOD0(Destroy, void());
 };
 } // namespace MockSys

@@ -33,6 +33,12 @@ class Canvas;
 }
 
 namespace DrawableV2 {
+enum class SkipType : uint8_t {
+    NONE = 0,
+    SKIP_SHADOW = 1,
+    SKIP_BACKGROUND_COLOR = 2
+};
+
 class RSB_EXPORT RSRenderNodeDrawableAdapter {
 public:
     explicit RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node);
@@ -55,10 +61,7 @@ public:
     static SharedPtr GetDrawableById(NodeId id);
     static SharedPtr OnGenerateShadowDrawable(const std::shared_ptr<const RSRenderNode>& node);
 
-    void SetSkipShadow(bool skip)
-    {
-        skipShadow_ = skip;
-    }
+    void SetSkip(SkipType type);
 
 protected:
     // Util functions
@@ -109,7 +112,7 @@ private:
     static Generator shadowGenerator_;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache;
     static inline std::mutex cacheMapMutex_;
-    bool skipShadow_ = false;
+    int8_t skipIndex_ = -1;
 };
 
 } // namespace DrawableV2

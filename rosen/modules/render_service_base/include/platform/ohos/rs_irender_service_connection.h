@@ -65,6 +65,9 @@ public:
                                                          uint64_t id = 0,
                                                          NodeId windowNodeId = 0) = 0;
 
+    virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
+        const Rect &srcRect) = 0;
+
     virtual int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) = 0;

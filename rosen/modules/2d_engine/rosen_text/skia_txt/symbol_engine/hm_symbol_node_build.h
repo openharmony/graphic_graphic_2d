@@ -66,9 +66,9 @@ public:
         repeatCount_ = repeatCount;
     }
 
-    void SetAminationStart(const bool aminationStart)
+    void SetAnimationStart(const bool animationStart)
     {
-        aminationStart_ = aminationStart;
+        animationStart_ = animationStart;
     }
 
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
@@ -84,7 +84,7 @@ private:
     double offsetY_;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
-    bool aminationStart_ = false;
+    bool animationStart_ = true;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::UP;
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
