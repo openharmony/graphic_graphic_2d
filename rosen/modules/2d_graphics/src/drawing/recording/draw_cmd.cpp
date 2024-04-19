@@ -600,17 +600,24 @@ void DrawBackgroundOpItem::Playback(Canvas* canvas, const Rect* rect)
 /* DrawShadowStyleOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawShadowStyle, DrawOpItem::SHADOW_STYLE_OPITEM, DrawShadowStyleOpItem::Unmarshalling);
 
-DrawShadowStyleOpItem::DrawShadowStyleOpItem(const DrawCmdList& cmdList, DrawShadowStyleOpItem::ConstructorHandle* handle)
-    : DrawOpItem(SHADOW_STYLE_OPITEM), planeParams_(handle->planeParams), devLightPos_(handle->devLightPos),
-    lightRadius_(handle->lightRadius), ambientColor_(handle->ambientColor),
-    spotColor_(handle->spotColor), flag_(handle->flag), isShadowStyle_(handle->isShadowStyle)
+DrawShadowStyleOpItem::DrawShadowStyleOpItem(
+    const DrawCmdList& cmdList, DrawShadowStyleOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SHADOW_STYLE_OPITEM),
+      planeParams_(handle->planeParams),
+      devLightPos_(handle->devLightPos),
+      lightRadius_(handle->lightRadius),
+      ambientColor_(handle->ambientColor),
+      spotColor_(handle->spotColor),
+      flag_(handle->flag),
+      isShadowStyle_(handle->isShadowStyle)
 {
     path_ = CmdListHelper::GetPathFromCmdList(cmdList, handle->path);
 }
 
 std::shared_ptr<DrawOpItem> DrawShadowStyleOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawShadowStyleOpItem>(cmdList, static_cast<DrawShadowStyleOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawShadowStyleOpItem>(
+        cmdList, static_cast<DrawShadowStyleOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawShadowStyleOpItem::Marshalling(DrawCmdList& cmdList)
@@ -626,8 +633,8 @@ void DrawShadowStyleOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGD("DrawShadowOpItem path is null!");
         return;
     }
-    canvas->DrawShadowStyle(*path_, planeParams_, devLightPos_, lightRadius_,
-                       ambientColor_, spotColor_, flag_, isShadowStyle_);
+    canvas->DrawShadowStyle(
+        *path_, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isShadowStyle_);
 }
 
 /* DrawShadowOpItem */

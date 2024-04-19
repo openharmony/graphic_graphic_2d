@@ -159,8 +159,16 @@ public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& path, const Point3& planeParams, const Point3& devLightPos,
             scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
-            : OpItem(DrawOpItem::SHADOW_STYLE_OPITEM), path(path), planeParams(planeParams), devLightPos(devLightPos),
-            lightRadius(lightRadius), ambientColor(ambientColor), spotColor(spotColor), flag(flag), isShadowStyle(isShadowStyle) {}
+            : OpItem(DrawOpItem::SHADOW_STYLE_OPITEM),
+              path(path),
+              planeParams(planeParams),
+              devLightPos(devLightPos),
+              lightRadius(lightRadius),
+              ambientColor(ambientColor),
+              spotColor(spotColor),
+              flag(flag),
+              isShadowStyle(isShadowStyle)
+        {}
         ~ConstructorHandle() override = default;
         OpDataHandle path;
         Point3 planeParams;
@@ -174,9 +182,16 @@ public:
     DrawShadowStyleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawShadowStyleOpItem(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
-        : DrawOpItem(DrawOpItem::SHADOW_STYLE_OPITEM), planeParams_(planeParams), devLightPos_(devLightPos),
-          lightRadius_(lightRadius), ambientColor_(ambientColor), spotColor_(spotColor), flag_(flag), isShadowStyle_(isShadowStyle),
-          path_(std::make_shared<Path>(path)) {}
+        : DrawOpItem(DrawOpItem::SHADOW_STYLE_OPITEM),
+          planeParams_(planeParams),
+          devLightPos_(devLightPos),
+          lightRadius_(lightRadius),
+          ambientColor_(ambientColor),
+          spotColor_(spotColor),
+          flag_(flag),
+          isShadowStyle_(isShadowStyle),
+          path_(std::make_shared<Path>(path))
+    {}
     ~DrawShadowStyleOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
