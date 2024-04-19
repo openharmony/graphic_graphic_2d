@@ -46,6 +46,9 @@ HWTEST_F(RSOcclusionConfigTest, IsAlphaWindow001, TestSize.Level1)
 {
     std::string win = "test";
     RSOcclusionConfig::GetInstance().IsAlphaWindow(win);
+
+    std::string winTwo = "StatusBar";
+    ASSERT_TRUE(RSOcclusionConfig::GetInstance().IsAlphaWindow(winTwo));
 }
 
 } // namespace Rosen
