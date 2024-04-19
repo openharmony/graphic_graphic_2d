@@ -38,13 +38,12 @@ ohos_static_library("raw_maker") {
 
   public_configs = [ ":raw_maker_public_config" ]
 
-  deps = [
-    "..:libgslogger",
-  ]
+  deps = [ "..:libgslogger" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
-  external_deps = [ "c_utils:utils",
+  external_deps = [
+    "c_utils:utils",
     "zlib:libz",
   ]
 }
