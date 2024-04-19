@@ -59,7 +59,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
         return nullptr;
     }
 
-
     sptr<SyncFence> tempFence = new SyncFence(frame->releaseFence_);
     int res = tempFence->Wait(3000);
     if (res < 0) {
