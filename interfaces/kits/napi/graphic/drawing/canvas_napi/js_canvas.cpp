@@ -25,12 +25,12 @@
 #include "draw/canvas.h"
 #include "draw/path.h"
 #include "image/image.h"
+#include "render/rs_pixel_map_shader.h"
 #include "text/text.h"
 #include "text/text_blob.h"
 #include "utils/point.h"
 #include "utils/rect.h"
 #include "utils/sampling_options.h"
-#include "utils/scalar.h"
 #include "utils/vertices.h"
 
 #include "brush_napi/js_brush.h"
@@ -119,21 +119,8 @@ static void PixelMapReleaseProc(const void* /* pixels */, void* context)
     }
 }
 
-std::shared_ptr<Drawing::Image> ExtractDrawingImage(napi_env env, napi_value argv)
+std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap)
 {
-    PixelMapNapi* pixelMapNapi = nullptr;
-    napi_unwrap(env, argv, reinterpret_cast<void**>(&pixelMapNapi));
-    if (pixelMapNapi == nullptr) {
-        ROSEN_LOGE("Drawing_napi::pixelMap pixelMapNapi is nullptr");
-        return nullptr;
-    }
-
-    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
-        ROSEN_LOGE("Drawing_napi::pixelMap pixelmap getPixelNapiInner is nullptr");
-        return nullptr;
-    }
-
-    std::shared_ptr<Media::PixelMap> pixelMap = pixelMapNapi->GetPixelNapiInner();
     if (!pixelMap) {
         ROSEN_LOGE("Drawing_napi::pixelMap fail");
         return nullptr;
@@ -171,6 +158,95 @@ bool ExtracetDrawingBitmap(std::shared_ptr<Media::PixelMap> pixelMap, Drawing::B
     bitmap.SetInfo(drawingImageInfo);
     bitmap.SetPixels(const_cast<void*>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
     return true;
+}
+
+void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, int row,
+    float* vertices, int* colors, Drawing::Canvas* m_canvas)
+{
+    const int vertCounts = (column + 1) * (row + 1);
+    int32_t size = 6; // triangle * 2
+    const int indexCount = column * row * size;
+    uint32_t flags = Drawing::BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG;
+    if (colors) {
+        flags |= Drawing::BuilderFlags::HAS_COLORS_BUILDER_FLAG;
+    }
+    Drawing::Vertices::Builder builder(Drawing::VertexMode::TRIANGLES_VERTEXMODE, vertCounts, indexCount, flags);
+    if (memcpy_s(builder.Positions(), vertCounts * sizeof(Drawing::Point),
+        vertices, vertCounts * sizeof(Drawing::Point)) != 0) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh memcpy points failed");
+        return;
+    }
+    int32_t colorSize = 4; // size of color
+    if (colors && (memcpy_s(builder.Colors(), vertCounts * colorSize, colors, vertCounts * colorSize) != 0)) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh memcpy colors failed");
+        return;
+    }
+    Drawing::Point* texsPoint = builder.TexCoords();
+    uint16_t* indices = builder.Indices();
+
+    const float height = static_cast<float>(pixelMap->GetHeight());
+    const float width = static_cast<float>(pixelMap->GetWidth());
+
+    if (column == 0 || row == 0) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh column or row is invalid");
+        return;
+    }
+    const float dy = height / row;
+    const float dx = width / column;
+
+    Drawing::Point* texsPit = texsPoint;
+    float y = 0;
+    for (int i = 0; i <= row; i++) {
+        if (i == row) {
+            y = height;
+        }
+        float x = 0;
+        for (int j = 0; j < column; j++) {
+            texsPit->Set(x, y);
+            texsPit += 1;
+            x += dx;
+        }
+        texsPit->Set(width, y);
+        texsPit += 1;
+        y += dy;
+    }
+
+    uint16_t* dexIndices = indices;
+    int indexIndices = 0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            *dexIndices++ = indexIndices;
+            *dexIndices++ = indexIndices + column + 1;
+            *dexIndices++ = indexIndices + column + 2; // 2 means the third index of the triangle
+
+            *dexIndices++ = indexIndices;
+            *dexIndices++ = indexIndices + column + 2; // 2 means the third index of the triangle
+            *dexIndices++ = indexIndices + 1;
+
+            indexIndices += 1;
+        }
+        indexIndices += 1;
+    }
+
+    if (!m_canvas->GetMutableBrush().IsValid()) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh paint is invalid");
+        return;
+    }
+    if (m_canvas->GetDrawingType() != Drawing::DrawingType::RECORDING) {
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
+        if (image == nullptr) {
+            ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh image is nullptr");
+            return;
+        }
+        auto shader = Drawing::ShaderEffect::CreateImageShader(*image,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
+        m_canvas->GetMutableBrush().SetShaderEffect(shader);
+    } else {
+        auto shader = Drawing::ShaderEffect::CreateExtendShader(std::make_shared<RSPixelMapShader>(pixelMap,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix()));
+        m_canvas->GetMutableBrush().SetShaderEffect(shader);
+    }
+    m_canvas->DrawVertices(*builder.Detach(), Drawing::BlendMode::MODULATE);
 }
 }
 #endif
@@ -449,14 +525,22 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    PixelMapNapi* pixelMapNapi = nullptr;
     double px = 0.0;
     double py = 0.0;
-    if (!(ConvertFromJsValue(env, argv[ARGC_ONE], px) && ConvertFromJsValue(env, argv[ARGC_TWO], py))) {
+    napi_unwrap(env, argv[0], reinterpret_cast<void**>(&pixelMapNapi));
+    if (pixelMapNapi == nullptr ||
+        !(ConvertFromJsValue(env, argv[ARGC_ONE], px) && ConvertFromJsValue(env, argv[ARGC_TWO], py))) {
         ROSEN_LOGE("JsCanvas::OnDrawImage Argv is invalid");
         return NapiGetUndefined(env);
     }
 
-    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(env, argv[0]);
+    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawImage pixelmap GetPixelNapiInner is nullptr");
+        return NapiGetUndefined(env);
+    }
+
+    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
     if (image == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
         return NapiGetUndefined(env);
@@ -673,12 +757,18 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh Argc is invalid: %{public}zu", argc);
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-
-    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(env, argv[0]);
-    if (image == nullptr) {
-        ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh image is nullptr");
-        return NapiGetUndefined(env);
+    PixelMapNapi* pixelMapNapi = nullptr;
+    napi_unwrap(env, argv[0], reinterpret_cast<void**>(&pixelMapNapi));
+    if (pixelMapNapi == nullptr) {
+        ROSEN_LOGE("Drawing_napi::pixelMap pixelMapNapi is nullptr");
+        return nullptr;
     }
+
+    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+        ROSEN_LOGE("Drawing_napi::pixelMap pixelmap getPixelNapiInner is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<Media::PixelMap> pixelMap = pixelMapNapi->GetPixelNapiInner();
 
     uint32_t column = 0;
     uint32_t row = 0;
@@ -741,91 +831,12 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     }
     int* colorsMesh = colorsSize ? (colors + colorOffset) : nullptr;
 
-    DrawingPixelMapMesh(*image, column, row, verticesMesh, colorsMesh);
+    DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, m_canvas);
 
     return NapiGetUndefined(env);
 #else
     return nullptr;
 #endif
-}
-
-void JsCanvas::DrawingPixelMapMesh(const Drawing::Image& image, int column, int row,
-    float* vertices, int* colors)
-{
-    const int vertCounts = (column + 1) * (row + 1);
-    int32_t size = 6; // triangle * 2
-    const int indexCount = column * row * size;
-    uint32_t flags = BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG;
-    if (colors) {
-        flags |= BuilderFlags::HAS_COLORS_BUILDER_FLAG;
-    }
-    Vertices::Builder builder(VertexMode::TRIANGLES_VERTEXMODE, vertCounts, indexCount, flags);
-    if (memcpy_s(builder.Positions(), vertCounts * sizeof(Point), vertices, vertCounts * sizeof(Point)) != 0) {
-        ROSEN_LOGE("JsCanvas::DrawingDrawPixelMapMesh memcpy points failed");
-        return;
-    }
-    int32_t colorSize = 4; // size of color
-    if (colors) {
-        if (memcpy_s(builder.Colors(), vertCounts * colorSize, colors, vertCounts * colorSize) != 0) {
-            ROSEN_LOGE("JsCanvas::DrawingDrawPixelMapMesh memcpy colors failed");
-            return;
-        }
-    }
-    Point* texsPoint = builder.TexCoords();
-    uint16_t* indices = builder.Indices();
-
-    const scalar height = static_cast<scalar>(image.GetHeight());
-    const scalar width = static_cast<scalar>(image.GetWidth());
-
-    if (column == 0 || row == 0) {
-        ROSEN_LOGE("JsCanvas::DrawingDrawPixelMapMesh column or row is invalid");
-        return;
-    }
-    const scalar dy = height / row;
-    const scalar dx = width / column;
-
-    Point* texsPit = texsPoint;
-    scalar y = 0;
-    for (int i = 0; i <= row; i++) {
-        if (i == row) {
-            y = height;
-        }
-        scalar x = 0;
-        for (int j = 0; j < column; j++) {
-            texsPit->Set(x, y);
-            texsPit += 1;
-            x += dx;
-        }
-        texsPit->Set(width, y);
-        texsPit += 1;
-        y += dy;
-    }
-
-    uint16_t* dexIndices = indices;
-    int indexIndices = 0;
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
-            *dexIndices++ = indexIndices;
-            *dexIndices++ = indexIndices + column + 1;
-            *dexIndices++ = indexIndices + column + 2; // triangle
-
-            *dexIndices++ = indexIndices;
-            *dexIndices++ = indexIndices + column + 2; // triangle
-            *dexIndices++ = indexIndices + 1;
-
-            indexIndices += 1;
-        }
-        indexIndices += 1;
-    }
-
-    if (!m_canvas->GetMutableBrush().IsValid()) {
-        ROSEN_LOGE("JsCanvas::DrawingDrawPixelMapMesh paint is invalid");
-        return;
-    }
-    auto shader = ShaderEffect::CreateImageShader(
-        image, TileMode::CLAMP, TileMode::CLAMP, SamplingOptions(), Matrix());
-    m_canvas->GetMutableBrush().SetShaderEffect(shader);
-    m_canvas->DrawVertices(*builder.Detach(), BlendMode::MODULATE);
 }
 
 napi_value JsCanvas::AttachPen(napi_env env, napi_callback_info info)
