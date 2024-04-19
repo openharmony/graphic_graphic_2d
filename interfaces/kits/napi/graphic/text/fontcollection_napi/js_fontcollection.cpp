@@ -48,7 +48,6 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("disableFallback", JsFontCollection::DisableFallback),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
     };
 
@@ -82,28 +81,12 @@ void JsFontCollection::Destructor(napi_env env, void* nativeObject, void* finali
 
 JsFontCollection::JsFontCollection()
 {
-    m_fontCollection = OHOS::Rosen::FontCollection::Create();
+    fontcollection_ = OHOS::Rosen::FontCollection::From(nullptr);
 }
 
 std::shared_ptr<FontCollection> JsFontCollection::GetFontCollection()
 {
-    return m_fontCollection;
-}
-
-napi_value JsFontCollection::DisableFallback(napi_env env, napi_callback_info info)
-{
-    JsFontCollection* me = CheckParamsAndGetThis<JsFontCollection>(env, info);
-    return (me != nullptr) ? me->OnDisableFallback(env, info) : nullptr;
-}
-
-napi_value JsFontCollection::OnDisableFallback(napi_env env, napi_callback_info info)
-{
-    if (m_fontCollection == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
-
-    m_fontCollection->DisableFallback();
-    return NapiGetUndefined(env);
+    return fontcollection_;
 }
 
 napi_value JsFontCollection::LoadFontSync(napi_env env, napi_callback_info info)
@@ -261,7 +244,7 @@ bool JsFontCollection::ParseResourcePath(napi_env env, napi_value value, const s
         if (state >= GLOBAL_ERROR || state < 0) {
             return false;
         }
-        Drawing::Typeface* typeface = m_fontCollection->LoadFont(familyName.c_str(), rawData.get(), dataLen);
+        Drawing::Typeface* typeface = fontcollection_->LoadFont(familyName.c_str(), rawData.get(), dataLen);
         if (typeface == nullptr || !AddTypefaceInformation(typeface, familyName)) {
             return false;
         }
@@ -313,7 +296,7 @@ Drawing::Typeface* JsFontCollection::GetFontFileProperties(const std::string pat
     ifs.close();
     const uint8_t* rawData = reinterpret_cast<uint8_t*>(buffer.get());
     Drawing::Typeface* typeface = nullptr;
-    typeface = m_fontCollection->LoadFont(familyName.c_str(), rawData, datalen);
+    typeface = fontcollection_->LoadFont(familyName.c_str(), rawData, datalen);
     if (typeface == nullptr) {
         return nullptr;
     }
@@ -330,7 +313,7 @@ bool JsFontCollection::AddTypefaceInformation(Drawing::Typeface* typeface, const
     if (name.empty()) {
         name = drawingTypeface->GetFamilyName();
     }
-    m_fontCollection->AddLoadedFamilyName(name);
+    fontcollection_->AddLoadedFamilyName(name);
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
         bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(drawingTypeface);
         if (!ret) {

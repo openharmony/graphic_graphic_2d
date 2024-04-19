@@ -21,6 +21,7 @@
 #include "js_text_utils.h"
 #include "text_line_base.h"
 #include "typography_style.h"
+#include "typography.h"
 
 namespace OHOS::Rosen {
 class JsTextLine final {
@@ -37,6 +38,7 @@ public:
     static napi_value GetTextRange(napi_env env, napi_callback_info info);
     static napi_value Paint(napi_env env, napi_callback_info info);
     std::unique_ptr<TextLineBase> GetTextLineBase();
+    void SetParagraph(std::shared_ptr<Typography> paragraph);
 
 private:
     napi_value OnGetGlyphCount(napi_env env, napi_callback_info info);
@@ -46,6 +48,7 @@ private:
 
     static thread_local napi_ref constructor_;
     std::unique_ptr<TextLineBase> textLine_ = nullptr;
+    std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_JS_TEXT_LINE_H

@@ -284,4 +284,9 @@ napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
 
     return NapiGetUndefined(env);
 }
+
+void JsRun::SetParagraph(std::shared_ptr<Typography> paragraph)
+{
+    paragraph_ = paragraph;
+}
 } // namespace OHOS::Rosen

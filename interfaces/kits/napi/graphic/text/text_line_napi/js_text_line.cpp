@@ -176,6 +176,7 @@ napi_value JsTextLine::OnGetGlyphRuns(napi_env env, napi_callback_info info)
             continue;
         }
         jsRun->SetRun(std::move(item));
+        jsRun->SetParagraph(paragraph_);
         napi_set_element(env, array, index++, itemObject);
     }
     return array;
@@ -241,5 +242,10 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
 std::unique_ptr<TextLineBase> JsTextLine::GetTextLineBase()
 {
     return std::move(textLine_);
+}
+
+void JsTextLine::SetParagraph(std::shared_ptr<Typography> paragraph)
+{
+    paragraph_ = paragraph;
 }
 } // namespace OHOS::Rosen
