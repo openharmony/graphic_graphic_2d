@@ -237,7 +237,7 @@ public:
     void SetParticleParams(
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
     void SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para);
-    void SetParticleNoiseField(const std::shared_ptr<ParticleNoiseField>& para);
+    void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);

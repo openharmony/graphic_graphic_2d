@@ -184,10 +184,10 @@ ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<EmitterUpdater>>,
         NodeId, std::shared_ptr<EmitterUpdater>, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyParticleNoiseField,
+ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
     ARG(RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseField>>,
-        NodeId, std::shared_ptr<ParticleNoiseField>, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseFields>>,
+        NodeId, std::shared_ptr<ParticleNoiseFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(RS_NODE, UPDATE_MODIFIER_SHADER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, PropertyUpdateType))

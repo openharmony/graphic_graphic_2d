@@ -711,8 +711,8 @@ template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<EmitterUpdater>>::UpdateToRender(
     const std::shared_ptr<EmitterUpdater>& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<ParticleNoiseField>>::UpdateToRender(
-    const std::shared_ptr<ParticleNoiseField>& value, PropertyUpdateType type) const;
+RSC_EXPORT void RSProperty<std::shared_ptr<ParticleNoiseFields>>::UpdateToRender(
+    const std::shared_ptr<ParticleNoiseFields>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
     const std::shared_ptr<RSShader>& value, PropertyUpdateType type) const;

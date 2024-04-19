@@ -47,12 +47,12 @@ public:
     void UpdateAccelerationValue(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
 
     void UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleNoiseField>& particleNoiseField, float deltaTime);
+        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, float deltaTime);
 
     void UpdateActiveTime(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime);
 
     void Update(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleNoiseField>& particleNoiseField, int64_t deltaTime);
+        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, int64_t deltaTime);
 };
 
 } // namespace Rosen

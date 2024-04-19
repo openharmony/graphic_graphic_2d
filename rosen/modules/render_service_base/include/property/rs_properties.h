@@ -232,7 +232,7 @@ public:
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para);
-    void SetParticleNoiseField(const std::shared_ptr<ParticleNoiseField>& para);
+    void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
@@ -241,7 +241,7 @@ public:
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::shared_ptr<EmitterUpdater>& GetEmitterUpdater() const;
-    const std::shared_ptr<ParticleNoiseField>& GetParticleNoiseField() const;
+    const std::shared_ptr<ParticleNoiseFields>& GetParticleNoiseFields() const;
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
@@ -525,7 +525,7 @@ private:
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
     std::shared_ptr<EmitterUpdater> emitterUpdater_ = nullptr;
-    std::shared_ptr<ParticleNoiseField> particleNoiseField_ = nullptr;
+    std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;

@@ -126,12 +126,15 @@ public:
 class RSB_EXPORT EmitterUpdater {
 public:
     uint32_t emitterIndex_;
-    Vector2f position_;
-    Vector2f emitSize_;
-    int emitRate_;
+    std::optional<Vector2f> position_;
+    std::optional<Vector2f> emitSize_;
+    std::optional<int> emitRate_;
 
     explicit EmitterUpdater(
-        const uint32_t& emitterIndex, const Vector2f& position, const Vector2f& emitSize, const int& emitRate)
+        uint32_t emitterIndex,
+        const std::optional<Vector2f>& position = std::nullopt,
+        const std::optional<Vector2f>& emitSize = std::nullopt,
+        const std::optional<int>& emitRate = std::nullopt)
         : emitterIndex_(emitterIndex), position_(position), emitSize_(emitSize), emitRate_(emitRate)
     {}
     EmitterUpdater(const EmitterUpdater& config) = default;

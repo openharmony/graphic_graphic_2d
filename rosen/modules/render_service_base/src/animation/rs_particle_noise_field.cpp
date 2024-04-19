@@ -23,8 +23,8 @@ bool ParticleNoiseField::isPointInField(
     const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height)
 {
     if (fieldShape == ShapeType::RECT) {
-        return (point.x_ > fieldCenter_.x_ - width * HALF && point.x_ < fieldCenter_.x_ + width * HALF &&
-                point.y_ >= fieldCenter_.y_ - height * HALF && point.y_ < fieldCenter_.y_ + height * HALF);
+        return ((point.x_ > fieldCenter_.x_ - width * HALF) && (point.x_ < fieldCenter_.x_ + width * HALF) &&
+                (point.y_ >= fieldCenter_.y_ - height * HALF) && (point.y_ < fieldCenter_.y_ + height * HALF));
     } else {
         double normX = (point.x_ - fieldCenter_.x_) * (point.x_ - fieldCenter_.x_);
         double normY = (point.y_ - fieldCenter_.y_) * (point.y_ - fieldCenter_.y_);
@@ -104,7 +104,7 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position)
                 edgeDistance = calculateEllipseEdgeDistance(direction);
             }
             if (edgeDistance != 0) {
-                forceMagnitude *= (1.0f - (float)fieldFeather_ / 100.0f * (distance / edgeDistance));
+                forceMagnitude *= (1.0f - ((float)fieldFeather_ / 100.0f) * (distance / edgeDistance));
             }
         }
         Vector2f force = direction.Normalized() * forceMagnitude;

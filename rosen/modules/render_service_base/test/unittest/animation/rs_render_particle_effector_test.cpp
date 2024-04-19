@@ -18,8 +18,8 @@
 
 #include "gtest/gtest.h"
 
-#include "animation/rs_render_particle_animation.h"
 #include "animation/rs_cubic_bezier_interpolator.h"
+#include "animation/rs_render_particle_animation.h"
 #include "common/rs_vector2.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -196,8 +196,8 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateEffect001, TestSize.Level1)
     Range<float> blueRandom = Range<float>(-1.0f, 0.f);
     Range<float> alphaRandom = Range<float>(-1.0f, 0.f);
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife = {};
-    RenderParticleColorParaType color = RenderParticleColorParaType(colorVal, DistributionType::UNIFORM,
-        randomUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
+    RenderParticleColorParaType color = RenderParticleColorParaType(colorVal, DistributionType::UNIFORM, randomUpdator,
+        redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
     Range<float> opacityVal = Range<float>(0.5f, 1.0f);
     Range<float> randomSpeed = Range<float>(0.1f, 1.f);
     Range<float> opacityRandom;
@@ -220,8 +220,8 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateEffect001, TestSize.Level1)
     Range<float> spinRandom = Range<float>(1.f, 0.1f);
     RenderParticleParaType<float> spin =
         RenderParticleParaType(opacityVal, curveUpdator, randomSpeed, valChangeOverLife);
-    params = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity_, acceleration_, color, opacity, scale, spin);
+    params =
+        std::make_shared<ParticleRenderParams>(emitterConfig_, velocity_, acceleration_, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
     std::vector<std::shared_ptr<RSRenderParticle>> particles;
     particles.push_back(particle);
@@ -333,9 +333,11 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationRandom001, TestSize.Lev
     float noiseScale = 8.f;
     float noiseFrequency = 2.f;
     float noiseAmplitude = 4.f;
-    auto particleNoiseField = std::make_shared<ParticleNoiseField>(fieldStrength, fieldShape, fieldSize,
-        fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
-    effector->Update(particle, particleNoiseField, activeTime);
+    auto noiseFiled = std::make_shared<ParticleNoiseField>(
+        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
+    auto noiseFileds = std::make_shared<ParticleNoiseFields>();
+    noiseFileds->AddField(noiseFiled);
+    effector->Update(particle, noiseFileds, activeTime);
     EXPECT_TRUE(particle->GetActiveTime() == 200000);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationRandom001 end";
 }
@@ -375,8 +377,8 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationCurve001, TestSize.Leve
     RenderParticleParaType<float> accelerationAngle =
         RenderParticleParaType(val, curveUpdator, randomSpeed, valChangeOverLife);
     acceleration = RenderParticleAcceleration(accelerationValue, accelerationAngle);
-    params = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity, acceleration, color, opacity, scale, spin);
+    params =
+        std::make_shared<ParticleRenderParams>(emitterConfig_, velocity, acceleration, color, opacity, scale, spin);
     particle = std::make_shared<RSRenderParticle>(params);
     particle->SetActiveTime(activeTime);
     std::vector<std::shared_ptr<RSRenderParticle>> particles;

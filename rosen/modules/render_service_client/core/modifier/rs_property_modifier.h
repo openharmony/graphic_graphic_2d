@@ -571,6 +571,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSParticleNoiseFieldsModifier : public RSForegroundModifier {
+public:
+    explicit RSParticleNoiseFieldsModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSParticleNoiseFieldsModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSDynamicDimDegreeModifier : public RSForegroundModifier {
 public:
     explicit RSDynamicDimDegreeModifier(const std::shared_ptr<RSPropertyBase>& property);
