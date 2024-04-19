@@ -597,6 +597,46 @@ void DrawBackgroundOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawBackground(brush_);
 }
 
+/* DrawShadowStyleOpItem */
+REGISTER_UNMARSHALLING_FUNC(DrawShadowStyle, DrawOpItem::SHADOW_STYLE_OPITEM, DrawShadowStyleOpItem::Unmarshalling);
+
+DrawShadowStyleOpItem::DrawShadowStyleOpItem(
+    const DrawCmdList& cmdList, DrawShadowStyleOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SHADOW_STYLE_OPITEM),
+      planeParams_(handle->planeParams),
+      devLightPos_(handle->devLightPos),
+      lightRadius_(handle->lightRadius),
+      ambientColor_(handle->ambientColor),
+      spotColor_(handle->spotColor),
+      flag_(handle->flag),
+      isShadowStyle_(handle->isShadowStyle)
+{
+    path_ = CmdListHelper::GetPathFromCmdList(cmdList, handle->path);
+}
+
+std::shared_ptr<DrawOpItem> DrawShadowStyleOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawShadowStyleOpItem>(
+        cmdList, static_cast<DrawShadowStyleOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawShadowStyleOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    auto pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    cmdList.AddOp<ConstructorHandle>(
+        pathHandle, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isShadowStyle_);
+}
+
+void DrawShadowStyleOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (path_ == nullptr) {
+        LOGD("DrawShadowOpItem path is null!");
+        return;
+    }
+    canvas->DrawShadowStyle(
+        *path_, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isShadowStyle_);
+}
+
 /* DrawShadowOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawShadow, DrawOpItem::SHADOW_OPITEM, DrawShadowOpItem::Unmarshalling);
 

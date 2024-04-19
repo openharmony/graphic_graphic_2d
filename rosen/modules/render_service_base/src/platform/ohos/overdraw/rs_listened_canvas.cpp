@@ -128,6 +128,17 @@ void RSListenedCanvas::DrawShadow(const Path& path, const Point3& planeParams, c
     }
 }
 
+void RSListenedCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+    RSPaintFilterCanvas::DrawShadowStyle(
+        path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+    if (listener_ != nullptr) {
+        listener_->DrawShadowStyle(
+            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+    }
+}
+
 void RSListenedCanvas::DrawRegion(const Drawing::Region& region)
 {
     RSPaintFilterCanvas::DrawRegion(region);

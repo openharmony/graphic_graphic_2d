@@ -166,6 +166,12 @@ void CoreCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     impl_->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
+void CoreCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+    impl_->DrawShadowStyle(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+}
+
 void CoreCanvas::DrawColor(ColorQuad color, BlendMode mode)
 {
     impl_->DrawColor(color, mode);
