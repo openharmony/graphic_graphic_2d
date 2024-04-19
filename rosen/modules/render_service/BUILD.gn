@@ -361,7 +361,6 @@ ohos_executable("render_service") {
   include_dirs = [
     "core",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "//commonlibrary/c_utils/base/include",
     "$graphic_2d_root/utils/color_manager/export",
   ]
 
