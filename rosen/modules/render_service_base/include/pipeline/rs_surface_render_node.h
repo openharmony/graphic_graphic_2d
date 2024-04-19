@@ -384,6 +384,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsNeedSetVSync();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
     void SetContextBounds(const Vector4f bounds);

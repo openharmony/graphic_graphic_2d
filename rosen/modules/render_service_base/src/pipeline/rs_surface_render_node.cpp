@@ -1142,6 +1142,14 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
 #endif
 }
 
+void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetLastFrameHardwareEnabled(!IsHardwareForcedDisabled());
+    SetHardwareForcedDisabledState(disabled);
+    surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
+    AddToPendingSyncList();
+}
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
