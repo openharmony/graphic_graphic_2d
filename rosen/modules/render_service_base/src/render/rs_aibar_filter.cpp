@@ -59,7 +59,7 @@ void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr
     aiBarFilter->SetParam("AIBAR_THRESHOLD", aiBarPara[2]); // 2 threshold
     aiBarFilter->SetParam("AIBAR_OPACITY", aiBarPara[3]); // 3 opacity
     aiBarFilter->SetParam("AIBAR_SATURATION", aiBarPara[4]); // 4 saturation
-    auto radius = aiBarPara[5];  // 5 模糊半径
+    auto radius = aiBarPara[5];  // 5 blur radius
     visualEffectContainer->AddToChainedFilter(aiBarFilter);
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
     if (!geRender) {
@@ -68,7 +68,7 @@ void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr
     static bool DDGR_ENABLED = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
     if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED) {
         auto kawaseFilter = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR", Drawing::DrawingPaintType::BRUSH);
-        kawaseFilter->SetParam("KAWASE_BLUR_RADIUS", (int)radius); // 5 模糊半径
+        kawaseFilter->SetParam("KAWASE_BLUR_RADIUS", (int)radius);
         visualEffectContainer->AddToChainedFilter(kawaseFilter);
         auto outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
             image, src, src, Drawing::SamplingOptions());

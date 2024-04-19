@@ -308,8 +308,8 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
             return;
         }
         auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);
-        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]); // 模糊半径
-        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]); // 模糊半径
+        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]);
+        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]);
         visualEffectContainer->AddToChainedFilter(greyFilter);
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         if (!geRender) {
