@@ -24,7 +24,6 @@ config("bootanimation_config") {
     "${graphic_2d_root}/rosen/modules/render_service_client",
     "${graphic_2d_root}/rosen/modules/render_service/core",
     "${graphic_2d_root}/rosen/modules/composer/hdi_backend/include",
-    "//third_party/cJSON",
   ]
 
   cflags = [
