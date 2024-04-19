@@ -238,18 +238,6 @@ bool RSMask::Marshalling(Parcel& parcel) const
         return false;
     }
 
-    if (IsSvgMask()) {
-        ROSEN_LOGD("SVG RSMask::Marshalling");
-        SkPictureRecorder recorder;
-        SkCanvas* recordingCanvas = recorder.beginRecording(SkRect::MakeSize(svgDom_->containerSize()));
-        svgDom_->render(recordingCanvas);
-        sk_sp<SkPicture> picture = recorder.finishRecordingAsPicture();
-        if (!RSMarshallingHelper::Marshalling(parcel, picture)) {
-            ROSEN_LOGE("RSMask::Marshalling SkPicture failed!");
-            return false;
-        }
-    }
-
     if (IsPixelMapMask() && !RSMarshallingHelper::Marshalling(parcel, pixelMap_)) {
         ROSEN_LOGE("RSMask::Marshalling Pixelmap failed!");
         return false;
@@ -320,14 +308,6 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
     }
     if (maskCmdList) {
         maskCmdList->Playback(rsMask->maskPath_, rsMask->maskPen_, rsMask->maskBrush_);
-    }
-
-    if (rsMask->IsSvgMask()) {
-        ROSEN_LOGD("SVG RSMask::Unmarshalling");
-        if (!RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgPicture_)) {
-            ROSEN_LOGE("RSMask::Unmarshalling SkPicture failed!");
-            return nullptr;
-        }
     }
 
     if (rsMask->IsPixelMapMask() && !RSMarshallingHelper::Unmarshalling(parcel, rsMask->pixelMap_)) {

@@ -1040,5 +1040,35 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable002, TestSize.Level2)
     
     ASSERT_EQ(node->QuerySubAssignable(false), false);
 }
+
+/**
+ * @tc.name: SetForceHardwareAndFixRotation001
+ * @tc.desc: Test SetForceHardwareAndFixRotation true
+ * @tc.type: FUNC
+ * @tc.require: issueI9HWLB
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetForceHardwareAndFixRotation001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetForceHardwareAndFixRotation(true);
+    ASSERT_EQ(node->isForceHardwareByUser_, true);
+}
+
+/**
+ * @tc.name: SetForceHardwareAndFixRotation002
+ * @tc.desc: Test SetForceHardwareAndFixRotation false
+ * @tc.type: FUNC
+ * @tc.require: issueI9HWLB
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetForceHardwareAndFixRotation002, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetForceHardwareAndFixRotation(false);
+    ASSERT_EQ(node->isForceHardwareByUser_, false);
+}
 } // namespace Rosen
 } // namespace OHOS

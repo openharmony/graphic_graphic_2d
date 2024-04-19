@@ -96,6 +96,9 @@ public:
     bool HasSkipLayer();
     bool HasCaptureWindow();
 
+    void SetRotationChanged(bool changed);
+    bool IsRotationChanged() const;
+
     // dfx
     std::string ToString() const override;
 
@@ -114,7 +117,8 @@ private:
     ScreenId mirroredId_;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
     bool isMainAndLeashSurfaceDirty_ = false;
-    
+    bool isRotationChanged_ = false;
+
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     

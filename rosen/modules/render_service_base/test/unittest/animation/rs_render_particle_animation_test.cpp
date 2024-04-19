@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "animation/rs_render_particle.h"
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_vector2.h"
 #include "modifier/rs_render_property.h"

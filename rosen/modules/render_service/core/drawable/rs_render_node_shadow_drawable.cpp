@@ -53,7 +53,7 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
         return;
     }
 
-    SetSkipShadow(false);
+    SetSkip(SkipType::NONE);
     DrawRangeImpl(canvas, rect, 0, shadowIndex + 1);
 }
 

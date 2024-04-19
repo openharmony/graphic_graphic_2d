@@ -407,8 +407,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(displayNodeSp, params, processor)) {
+        RSMainThread::Instance()->SetFrameIsRender(false);
+        RSUniRenderThread::Instance().DvsyncRequestNextVsync();
         return;
     }
+    RSMainThread::Instance()->SetFrameIsRender(true);
+    RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(displayNodeSp, *params, processor);
@@ -451,6 +455,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             ClipRegion(*curCanvas_, region);
         } else {
             curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        }
+        if (params->IsRotationChanged()) {
+            // draw black background in rotation for camera
+            curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
         }
         SetHighContrastIfEnabled(*curCanvas_);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);

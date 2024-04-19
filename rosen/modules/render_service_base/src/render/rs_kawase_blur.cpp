@@ -224,8 +224,6 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
         OutputOriginalImage(canvas, image, param);
         return true;
     }
-    auto src = param.src;
-    auto dst = param.dst;
     auto input = image;
     CheckInputImage(canvas, image, param, input);
     ComputeRadiusAndScale(param.radius);
@@ -233,21 +231,32 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
     int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
     float dilatedConvolutionFactor = supportLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
     if (abs(dilatedConvolutionFactor) <= 1e-6) {
-        return false;
+        dilatedConvolutionFactor = 4.6f; // 4.6 : radio between gauss and kawase
     }
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
     int numberOfPasses = std::min(maxPasses, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
     float radiusByPasses = tmpRadius / numberOfPasses;
     ROSEN_LOGD("KawaseBlurFilter::kawase radius : %{public}f, scale : %{public}f, pass num : %{public}d",
         blurRadius_, blurScale_, numberOfPasses);
+    int width = std::max(static_cast<int>(std::ceil(param.dst.GetWidth())), input->GetWidth());
+    int height = std::max(static_cast<int>(std::ceil(param.dst.GetHeight())), input->GetHeight());
+    auto blurParams = BlurParams{numberOfPasses, width, height, radiusByPasses};
+    auto blurImage = ExecutePingPongBlur(canvas, input, param, blurParams);
+    RS_OPTIONAL_TRACE_END();
+    if (!blurImage) {
+        return false;
+    }
+    return ApplyBlur(canvas, input, blurImage, param);
+}
 
-    auto width = std::max(static_cast<int>(std::ceil(dst.GetWidth())), input->GetWidth());
-    auto height = std::max(static_cast<int>(std::ceil(dst.GetHeight())), input->GetHeight());
+std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::Canvas& canvas,
+    const std::shared_ptr<Drawing::Image>& input, const KawaseParameter& inParam, const BlurParams& blur) const
+{
     auto originImageInfo = input->GetImageInfo();
-    auto scaledInfo = Drawing::ImageInfo(std::ceil(width * blurScale_), std::ceil(height * blurScale_),
+    auto scaledInfo = Drawing::ImageInfo(std::ceil(blur.width * blurScale_), std::ceil(blur.height * blurScale_),
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::Matrix blurMatrix;
-    blurMatrix.Translate(-src.GetLeft(), -src.GetTop());
+    blurMatrix.Translate(-inParam.src.GetLeft(), -inParam.src.GetTop());
     float scaleW = static_cast<float>(scaledInfo.GetWidth()) / input->GetWidth();
     float scaleH = static_cast<float>(scaledInfo.GetHeight()) / input->GetHeight();
     blurMatrix.PostScale(scaleW, scaleH);
@@ -261,20 +270,20 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
 
     if (isUsingAF) {
         SkV2 firstPassOffsets[BLUR_SAMPLE_COUNT];
-        OffsetInfo firstPassOffsetInfo = {radiusByPasses * blurScale_, radiusByPasses * blurScale_,
+        OffsetInfo firstPassOffsetInfo = {blur.radiusByPass * blurScale_, blur.radiusByPass * blurScale_,
             scaledInfo.GetWidth(), scaledInfo.GetHeight()};
         getNormalizedOffset(firstPassOffsets, BLUR_SAMPLE_COUNT, firstPassOffsetInfo);
         blurBuilder.SetUniform("in_blurOffset", firstPassOffsetInfo.offsetX, firstPassOffsetInfo.offsetY,
             firstPassOffsetInfo.width, firstPassOffsetInfo.height);
     } else {
-        blurBuilder.SetUniform("in_blurOffset", radiusByPasses * blurScale_, radiusByPasses * blurScale_);
-        blurBuilder.SetUniform("in_maxSizeXY", width * blurScale_, height * blurScale_);
+        blurBuilder.SetUniform("in_blurOffset", blur.radiusByPass * blurScale_, blur.radiusByPass * blurScale_);
+        blurBuilder.SetUniform("in_maxSizeXY", blur.width * blurScale_, blur.height * blurScale_);
     }
 
     std::shared_ptr<Drawing::Image> tmpBlur(blurBuilder.MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
     // And now we'll build our chain of scaled blur stages
-    for (auto i = 1; i < numberOfPasses; i++) {
+    for (auto i = 1; i < blur.numberOfPasses; i++) {
         const float stepScale = static_cast<float>(i) * blurScale_;
         blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur, Drawing::TileMode::CLAMP,
             Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
@@ -282,19 +291,18 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
         // Advanced Filter
         if (isUsingAF) {
             SkV2 offsets[BLUR_SAMPLE_COUNT];
-            OffsetInfo offsetInfo = {radiusByPasses * stepScale, radiusByPasses * stepScale,
+            OffsetInfo offsetInfo = {blur.radiusByPass * stepScale, blur.radiusByPass * stepScale,
                 scaledInfo.GetWidth(), scaledInfo.GetHeight()};
             getNormalizedOffset(offsets, BLUR_SAMPLE_COUNT, offsetInfo);
             blurBuilder.SetUniform("in_blurOffset", offsetInfo.offsetX, offsetInfo.offsetY, offsetInfo.width,
                 offsetInfo.height);
         } else {
-            blurBuilder.SetUniform("in_blurOffset", radiusByPasses * stepScale, radiusByPasses * stepScale);
-            blurBuilder.SetUniform("in_maxSizeXY", width * blurScale_, height * blurScale_);
+            blurBuilder.SetUniform("in_blurOffset", blur.radiusByPass * stepScale, blur.radiusByPass * stepScale);
+            blurBuilder.SetUniform("in_maxSizeXY", blur.width * blurScale_, blur.height * blurScale_);
         }
         tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
     }
-    RS_OPTIONAL_TRACE_END();
-    return ApplyBlur(canvas, input, tmpBlur, param);
+    return tmpBlur;
 }
 
 bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,

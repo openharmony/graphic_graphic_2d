@@ -77,9 +77,9 @@ public:
         repeatCount_ = repeatCount;
     }
 
-    void SetAminationStart(const bool aminationStart)
+    void SetAnimationStart(const bool animationStart)
     {
-        aminationStart_ = aminationStart;
+        animationStart_ = animationStart;
     }
 
     uint16_t GetAnimationMode() const
@@ -92,9 +92,9 @@ public:
         return repeatCount_;
     }
 
-    bool GetAminationStart() const
+    bool GetAnimationStart() const
     {
-        return aminationStart_;
+        return animationStart_;
     }
 
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
@@ -113,7 +113,7 @@ private:
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
-    bool aminationStart_ = false;
+    bool animationStart_ = true;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::UP;
 };
 }

@@ -17,12 +17,13 @@
 
 #include <memory>
 
+#include "rs_profiler.h"
+
 #include "animation/rs_value_estimator.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
-#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,6 +57,10 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
     if (particleSystem_ != nullptr) {
+        auto particleNoiseFields = target->GetRenderProperties().GetParticleNoiseFields();
+        if (particleNoiseFields) {
+            UpdateNoiseField(particleNoiseFields);
+        }
         particleSystem_->Emit(deltaTime, renderParticleVector_.renderParticleVector_);
         particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
     }
@@ -79,22 +84,32 @@ void RSRenderParticleAnimation::UpdateEmitter(const std::shared_ptr<EmitterUpdat
     if (index > particlesRenderParams_.size()) {
         return;
     }
-    const auto& emitterConfig = particlesRenderParams_[index]->emitterConfig_;
-    if (!ROSEN_EQ(emitterConfig.position_.x_, emitterUpdater->position_.x_) ||
-        !ROSEN_EQ(emitterConfig.position_.y_, emitterUpdater->position_.y_) ||
-        !ROSEN_EQ(emitterConfig.emitSize_.x_, emitterUpdater->emitSize_.x_) ||
-        !ROSEN_EQ(emitterConfig.emitSize_.y_, emitterUpdater->emitSize_.y_) ||
-        !ROSEN_EQ(emitterConfig.emitRate_, emitterUpdater->emitRate_)) {
-        particlesRenderParams_[index]->emitterConfig_.position_ = emitterUpdater->position_;
-        particlesRenderParams_[index]->emitterConfig_.emitSize_ = emitterUpdater->emitSize_;
-        particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_;
-        if (particleSystem_) {
-            particleSystem_->UpdateEmitter(
-                index, emitterUpdater->position_, emitterUpdater->emitSize_, emitterUpdater->emitRate_);
-        } else {
-            particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
-        }
+    if (emitterUpdater->position_.has_value()) {
+        particlesRenderParams_[index]->emitterConfig_.position_ = emitterUpdater->position_.value();
     }
+    if (emitterUpdater->emitSize_.has_value()) {
+        particlesRenderParams_[index]->emitterConfig_.emitSize_ = emitterUpdater->emitSize_.value();
+    }
+    if (emitterUpdater->emitRate_.has_value()) {
+        particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_.value();
+    }
+    if (particleSystem_) {
+        particleSystem_->UpdateEmitter(
+            index, emitterUpdater->position_, emitterUpdater->emitSize_, emitterUpdater->emitRate_);
+    } else {
+        particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
+    }
+}
+
+void RSRenderParticleAnimation::UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields)
+{
+    if (particleNoiseFields == nullptr) {
+        return;
+    } else if (particleNoiseFields_ != nullptr && *particleNoiseFields_ == *particleNoiseFields) {
+        return;
+    }
+    particleNoiseFields_ = particleNoiseFields;
+    particleSystem_->UpdateNoiseField(particleNoiseFields);
 }
 
 void RSRenderParticleAnimation::OnAttach()

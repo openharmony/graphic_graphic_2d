@@ -102,6 +102,7 @@ ohos_source_set("libtexgine_source") {
     configs = [
       ":libtexgine_config",
       "//build/config/compiler:exceptions",
+      "//build/config/compiler:rtti",
     ]
 
     public_configs = [ ":libtexgine_public_config" ]

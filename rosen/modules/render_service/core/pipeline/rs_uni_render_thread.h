@@ -87,6 +87,8 @@ public:
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 
+    void DvsyncRequestNextVsync();
+
     bool IsMainLooping() const
     {
         return mainLooping_.load();

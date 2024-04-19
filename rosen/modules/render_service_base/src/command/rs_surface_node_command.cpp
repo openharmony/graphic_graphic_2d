@@ -235,6 +235,13 @@ void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id,
 }
 #endif
 
+void SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(RSContext& context, NodeId nodeId, bool flag)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetForceHardwareAndFixRotation(flag);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetForeground(RSContext& context, NodeId nodeId, bool isForeground)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {

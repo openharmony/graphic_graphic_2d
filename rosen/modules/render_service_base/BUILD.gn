@@ -80,6 +80,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_timing_protocol.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
+    "src/animation/rs_particle_noise_field.cpp",
     "src/animation/rs_render_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
     "src/animation/rs_render_interpolating_spring_animation.cpp",
@@ -248,6 +249,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_material_filter.cpp",
     "src/render/rs_motion_blur_filter.cpp",
     "src/render/rs_path.cpp",
+    "src/render/rs_pixel_map_shader.cpp",
     "src/render/rs_pixel_map_util.cpp",
     "src/render/rs_resource_manager.cpp",
     "src/render/rs_shader.cpp",
@@ -408,6 +410,7 @@ ohos_source_set("render_service_base_src") {
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
+    "$rosen_root/modules/graphics_effect:libgraphics_effect",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]

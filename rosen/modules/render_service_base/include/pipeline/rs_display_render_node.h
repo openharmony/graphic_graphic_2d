@@ -29,6 +29,7 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "rs_surface_render_node.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -308,6 +309,11 @@ public:
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
+    {
+        return dirtySurfaceNodeMap_;
+    }
+
 protected:
     void OnSync() override;
 private:
@@ -357,6 +363,8 @@ private:
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
+
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

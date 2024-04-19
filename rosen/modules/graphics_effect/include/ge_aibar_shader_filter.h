@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT GEAIBarShaderFilter : public GEShaderFilter {
+class GEAIBarShaderFilter : public GEShaderFilter {
 public:
     GEAIBarShaderFilter(const Drawing::GEAIBarShaderFilterParams& params)
         : aiBarLow_(params.aiBarLow), aiBarHigh_(params.aiBarHigh), aiBarThreshold_(params.aiBarThreshold),

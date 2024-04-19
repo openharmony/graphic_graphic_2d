@@ -63,6 +63,9 @@ public:
     void DrawShadow(const Drawing::Path& path, const Drawing::Point3& planeParams,
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
+    void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
+        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
+        Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isShadowStyle) override;
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;
     void DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
@@ -137,7 +140,7 @@ class RSB_EXPORT RSPaintFilterCanvas : public RSPaintFilterCanvasBase {
 public:
     RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f);
     RSPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f);
-    ~RSPaintFilterCanvas() override {};
+    ~RSPaintFilterCanvas() override = default;;
 
     void CopyConfiguration(const RSPaintFilterCanvas& other);
     void PushDirtyRegion(Drawing::Region& resultRegion);
@@ -162,11 +165,10 @@ public:
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
 
+    // blendmode related
+    void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
-    int GetBlendOffscreenLayerCnt() const
-    {
-        return 0;
-    };
+    bool HasOffscreenLayer() const;
 
     // save/restore utils
     struct SaveStatus {
@@ -271,9 +273,8 @@ protected:
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
         std::optional<int> blendMode_;
+        bool hasOffscreenLayer_;
     };
-    const std::stack<float>& GetAlphaStack();
-    const std::stack<Env>& GetEnvStack();
 
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override

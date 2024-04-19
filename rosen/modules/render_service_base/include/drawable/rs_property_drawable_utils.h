@@ -32,6 +32,8 @@ public:
         Drawing::Path& drPath, Drawing::Matrix& matrix, RSColor& colorPicked);
     static void GetDarkColor(RSColor& color);
     static void CeilMatrixTrans(Drawing::Canvas* canvas);
+    static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
+    static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isForegroundFilter,
         bool shouldClearFilteredCache);
@@ -54,7 +56,7 @@ public:
     static void DrawUseEffect(RSPaintFilterCanvas* canvas);
 
     static void BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType);
-    static void EndBlendMode(RSPaintFilterCanvas& canvas);
+    static void EndBlendMode(RSPaintFilterCanvas& canvas, int blendModeApplyType);
 
     static Color CalculateInvertColor(const Color& backgroundColor);
     static Color GetInvertBackgroundColor(RSPaintFilterCanvas& canvas, bool needClipToBounds,

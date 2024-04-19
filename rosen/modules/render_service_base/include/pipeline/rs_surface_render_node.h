@@ -131,6 +131,10 @@ public:
         selfDrawingType_ = selfDrawingType;
     }
 
+    void SetForceHardwareAndFixRotation(bool flag);
+    bool GetForceHardwareByUser() const;
+    int32_t GetFixedRotationDegree() const;
+
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
         return selfDrawingType_;
@@ -236,6 +240,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
+        if (isForceHardwareByUser_) {
+            return false;
+        }
         return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
@@ -384,6 +391,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsNeedSetVSync();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
     void SetContextBounds(const Vector4f bounds);
@@ -467,6 +475,11 @@ public:
     const RectI& GetDstRect() const
     {
         return dstRect_;
+    }
+
+    const RectI& GetOriginalDstRect() const
+    {
+        return originalDstRect_;
     }
 
     Occlusion::Region& GetTransparentRegion()
@@ -1213,6 +1226,9 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool isForceHardwareByUser_ = false;
+    RectI originalDstRect_;
+    int32_t fixedRotationDegree_ = -90;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;

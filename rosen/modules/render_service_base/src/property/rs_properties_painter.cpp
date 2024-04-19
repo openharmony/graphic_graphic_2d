@@ -503,9 +503,9 @@ void RSPropertiesPainter::DrawShadowInner(
         Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
         ambientColor.MultiplyAlpha(canvas.GetAlpha());
         spotColor.MultiplyAlpha(canvas.GetAlpha());
-        canvas.DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
+        canvas.DrawShadowStyle(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
             Drawing::Color(ambientColor.AsArgbInt()), Drawing::Color(spotColor.AsArgbInt()),
-            Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
+            Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true);
     } else {
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color::ColorQuadSetARGB(

@@ -86,7 +86,8 @@ public:
     int32_t FlushScreen(std::vector<LayerPtr> &compClientLayers);
     int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry);
     int32_t Commit(sptr<SyncFence> &fbFence);
-    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush);
+    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush,
+        std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences);
     int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
@@ -120,6 +121,9 @@ private:
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
     std::mutex layerMutex_;
+
+    std::vector<uint32_t> layersId_;
+    std::vector<sptr<SyncFence>> fences_;
 
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();

@@ -53,7 +53,7 @@ constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
 // NOTE: alway add new resetter when adding new property modifier
-const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
+constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
     nullptr,                                                             // INVALID
     nullptr,                                                             // BOUNDS
     nullptr,                                                             // FRAME
@@ -141,6 +141,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
     [](RSProperties* prop) { prop->SetEmitterUpdater({}); },             // PARTICLE_EMITTER_UPDATER
+    [](RSProperties* prop) { prop->SetParticleNoiseFields({}); },         // PARTICLE_NOISE_FIELD
     [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
@@ -159,6 +160,10 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusX(0.f); },     // FOREGROUND_BLUR_RADIUS_X
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusY(0.f); },     // FOREGROUND_BLUR_RADIUS_Y
 };
+
+// Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
+static_assert(g_propertyResetterLUT.size() == static_cast<size_t>(RSModifierType::CUSTOM));
+static_assert(g_propertyResetterLUT.back() != nullptr);
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
@@ -1170,6 +1175,17 @@ void RSProperties::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para
     contentDirty_ = true;
 }
 
+void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para)
+{
+    particleNoiseFields_ = para;
+    if (particleNoiseFields_) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
 void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
 {
     dynamicLightUpRate_ = rate;
@@ -1247,6 +1263,11 @@ const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradient
 const std::shared_ptr<EmitterUpdater>& RSProperties::GetEmitterUpdater() const
 {
     return emitterUpdater_;
+}
+
+const std::shared_ptr<ParticleNoiseFields>& RSProperties::GetParticleNoiseFields() const
+{
+    return particleNoiseFields_;
 }
 
 void RSProperties::IfLinearGradientBlurInvalid()

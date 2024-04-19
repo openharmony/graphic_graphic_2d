@@ -271,6 +271,24 @@ void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planePa
 #endif
 }
 
+void RSPaintFilterCanvasBase::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr && OnFilter()) {
+            (*iter)->DrawShadowStyle(
+                path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+        }
+    }
+#else
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawShadowStyle(
+            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+    }
+#endif
+}
+
 void RSPaintFilterCanvasBase::DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode)
 {
 #ifdef ENABLE_RECORDING_DCL
@@ -902,17 +920,18 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
 }
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
-    : RSPaintFilterCanvasBase(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
-      // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
-{}
+    : RSPaintFilterCanvasBase(canvas), alphaStack_({ 1.0f }),
+      envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })
+{
+    (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
+}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
-    : RSPaintFilterCanvasBase(surface ? surface->GetCanvas().get() : nullptr), surface_(surface),
-      alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
-      // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
-{}
+    : RSPaintFilterCanvasBase(surface ? surface->GetCanvas().get() : nullptr), surface_(surface), alphaStack_({ 1.0f }),
+      envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })
+{
+    (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
+}
 
 Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
 {
@@ -1364,6 +1383,15 @@ void RSPaintFilterCanvas::SetRecordDrawable(bool enable)
 bool RSPaintFilterCanvas::GetRecordDrawable() const
 {
     return recordDrawable_;
+}
+bool RSPaintFilterCanvas::HasOffscreenLayer() const
+{
+    return envStack_.top().hasOffscreenLayer_;
+}
+void RSPaintFilterCanvas::SaveLayer(const Drawing::SaveLayerOps& saveLayerOps)
+{
+    envStack_.top().hasOffscreenLayer_ = true;
+    RSPaintFilterCanvasBase::SaveLayer(saveLayerOps);
 }
 } // namespace Rosen
 } // namespace OHOS

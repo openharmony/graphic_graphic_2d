@@ -204,13 +204,18 @@ private:
 
 class RSEndBlendModeDrawable : public RSDrawable {
 public:
-    RSEndBlendModeDrawable() = default;
+    RSEndBlendModeDrawable(int blendApplyType) : blendApplyType_(blendApplyType) {}
     ~RSEndBlendModeDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override {};
+    void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    int blendApplyType_;
+    int stagingBlendApplyType_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

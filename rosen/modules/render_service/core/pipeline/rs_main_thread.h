@@ -269,6 +269,15 @@ public:
     bool GetParallelCompositionEnabled();
     std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
     void SetFrameIsRender(bool isRender);
+    bool GetMarkRenderFlag() const
+    {
+        return markRenderFlag_;
+    }
+    void ResetMarkRenderFlag()
+    {
+        markRenderFlag_ = false;
+    }
+
     void PerfForBlurIfNeeded();
 
     bool IsOnVsync() const
@@ -295,6 +304,8 @@ public:
     {
         skipJankAnimatorFrame_.store(skipJankAnimatorFrame);
     }
+
+    bool IsRequestedNextVSync();
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -564,7 +575,7 @@ private:
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
-    bool hasMark_ = false;
+    bool markRenderFlag_ = false;
 
     bool forceUIFirstChanged_ = false;
 

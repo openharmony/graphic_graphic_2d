@@ -285,6 +285,20 @@ HWTEST_F(ImageFilterTest, CreateShaderImageFilterTest002, TestSize.Level1)
     auto imageFilter = ImageFilter::CreateShaderImageFilter(nullptr);
     EXPECT_TRUE(imageFilter != nullptr);
 }
+
+/*
+ * @tc.name: CreateShaderImageFilterTest003
+ * @tc.desc: test for creating a filter that with invalid input.
+ * @tc.type: FUNC
+ * @tc.require: I77M3W
+ */
+HWTEST_F(ImageFilterTest, CreateShaderImageFilterTest003, TestSize.Level1)
+{
+    std::shared_ptr<ShaderEffect> effect = ShaderEffect::CreateColorShader(0);
+    Rect rect {0, 0, 100.0f, 100.0f};
+    auto imageFilter = ImageFilter::CreateShaderImageFilter(effect, rect);
+    EXPECT_TRUE(imageFilter != nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

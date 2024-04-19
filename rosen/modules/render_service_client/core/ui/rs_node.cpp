@@ -980,6 +980,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     for (size_t i = 0; i < particleParams.size(); i++) {
         particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
+
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSPropertyBase>();
     auto propertyId = property->GetId();
@@ -1017,12 +1018,12 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         auto emitSize = particleParams[i].emitterConfig_.emitSize_;
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
-            auto radius = particleParams[i].emitterConfig_.radius_;
-            auto radiusMax = radius * scaleMax;
-            left = std::min(left - radiusMax, position.x_ - radiusMax);
-            top = std::min(top - radiusMax, position.y_ - radiusMax);
-            right = std::max(right + radiusMax + radiusMax, position.x_ + emitSize.x_ + radiusMax + radiusMax);
-            bottom = std::max(bottom + radiusMax + radiusMax, position.y_ + emitSize.y_ + radiusMax + radiusMax);
+            auto diameter = particleParams[i].emitterConfig_.radius_ * 2; // diameter = 2 * radius
+            auto diameMax = diameter * scaleMax;
+            left = std::min(left - diameMax, position.x_ - diameMax);
+            top = std::min(top - diameMax, position.y_ - diameMax);
+            right = std::max(right + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
+            bottom = std::max(bottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
         } else {
             float imageSizeWidth = 0.f;
             float imageSizeHeight = 0.f;
@@ -1054,6 +1055,13 @@ void RSNode::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
 {
     SetProperty<RSEmitterUpdaterModifier, RSProperty<std::shared_ptr<EmitterUpdater>>>(
         RSModifierType::PARTICLE_EMITTER_UPDATER, para);
+}
+
+// Set Particle Noise Field
+void RSNode::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para)
+{
+    SetProperty<RSParticleNoiseFieldsModifier, RSProperty<std::shared_ptr<ParticleNoiseFields>>>(
+        RSModifierType::PARTICLE_NOISE_FIELD, para);
 }
 
 // foreground

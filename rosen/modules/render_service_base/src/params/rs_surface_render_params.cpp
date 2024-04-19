@@ -81,11 +81,9 @@ bool RSSurfaceRenderParams::GetOccludedByFilterCache() const
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (layerInfo_ == layerInfo) {
-        return;
-    }
     layerInfo_ = layerInfo;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 #endif
 }
 
@@ -125,11 +123,9 @@ bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
 {
-    if (layerInfo_.buffer == buffer) {
-        return;
-    }
     layerInfo_.buffer = buffer;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 }
 
 sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
@@ -139,11 +135,9 @@ sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
 
 void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
 {
-    if (layerInfo_.preBuffer == preBuffer) {
-        return;
-    }
     layerInfo_.preBuffer = preBuffer;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 }
 
 sptr<SurfaceBuffer>& RSSurfaceRenderParams::GetPreBuffer()
@@ -153,11 +147,9 @@ sptr<SurfaceBuffer>& RSSurfaceRenderParams::GetPreBuffer()
 
 void RSSurfaceRenderParams::SetAcquireFence(const sptr<SyncFence>& acquireFence)
 {
-    if (layerInfo_.acquireFence == acquireFence) {
-        return;
-    }
     layerInfo_.acquireFence = acquireFence;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 }
 
 sptr<SyncFence> RSSurfaceRenderParams::GetAcquireFence() const
@@ -212,6 +204,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         RS_LOGE("RSSurfaceRenderParams::OnSync targetSurfaceParams is nullptr");
         return;
     }
+
+    if (dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY)) {
+        targetSurfaceParams->layerInfo_ = layerInfo_;
+        dirtyType_.reset(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
+    }
+
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
@@ -226,7 +224,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->visibleRegion_ = visibleRegion_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
-    targetSurfaceParams->layerInfo_ = layerInfo_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;

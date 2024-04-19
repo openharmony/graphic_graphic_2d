@@ -175,6 +175,40 @@ CmdListData CmdList::GetAllBitmapData() const
     return std::make_pair(bitmapAllocator_.GetData(), bitmapAllocator_.GetSize());
 }
 
+uint32_t CmdList::AddExtendObject(const std::shared_ptr<ExtendObject>& object)
+{
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    extendObjectVec_.emplace_back(object);
+    return static_cast<uint32_t>(extendObjectVec_.size()) - 1;
+}
+
+std::shared_ptr<ExtendObject> CmdList::GetExtendObject(uint32_t index)
+{
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    if (index >= extendObjectVec_.size()) {
+        return nullptr;
+    }
+    return extendObjectVec_[index];
+}
+
+uint32_t CmdList::GetAllExtendObject(std::vector<std::shared_ptr<ExtendObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    for (const auto &object : extendObjectVec_) {
+        objectList.emplace_back(object);
+    }
+    return objectList.size();
+}
+
+uint32_t CmdList::SetupExtendObject(const std::vector<std::shared_ptr<ExtendObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(extendObjectMutex_);
+    for (const auto &object : objectList) {
+        extendObjectVec_.emplace_back(object);
+    }
+    return extendObjectVec_.size();
+}
+
 uint32_t CmdList::AddImageObject(const std::shared_ptr<ExtendImageObject>& object)
 {
     std::lock_guard<std::mutex> lock(imageObjectMutex_);

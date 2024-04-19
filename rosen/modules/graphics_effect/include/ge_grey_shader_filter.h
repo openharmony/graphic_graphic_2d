@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT GEGreyShaderFilter : public GEShaderFilter {
+class GEGreyShaderFilter : public GEShaderFilter {
 public:
     GEGreyShaderFilter(const Drawing::GEGreyShaderFilterParams& params);
     ~GEGreyShaderFilter() override;

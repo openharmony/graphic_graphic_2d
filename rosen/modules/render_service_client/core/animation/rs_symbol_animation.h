@@ -45,14 +45,21 @@ public:
 
     // set symbol animation manager
     bool SetSymbolAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-    bool SetScaleUnitAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-    bool SetVariableColorAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
 
 private:
     // SetPublicAnimation is interface for animation that can be spliced by atomizated animations
     bool SetPublicAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    bool GetAnimationGroupParameters(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters);
     // choose the animation is a public animation or special animation
-    bool ChooseAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    bool ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
+        std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    bool SetKeyframeAlphaAnimation(const std::shared_ptr<RSNode>& rsNode,
+        std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    bool SetScaleUnitAnimation(const std::shared_ptr<RSNode>& rsNode,
+        std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
 
     void InitSupportAnimationTable();
 
@@ -85,7 +92,7 @@ private:
 
     void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, TextEngine::SymbolNode& symbolNode);
 
-    Vector4f CalculateOffset(const Drawing::Path& path, const float& offsetX, const float& offsetY);
+    Vector4f CalculateOffset(const Drawing::Path& path, const float offsetX, const float offsetY);
     void DrawSymbolOnCanvas(
         ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
     void DrawPathOnCanvas(
@@ -95,29 +102,29 @@ private:
 
     std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
         const Drawing::DrawingPiecewiseParameter& scaleUnitParas,
-        const Vector2f& scaleValueBegin = Vector2f { 0.f, 0.f }, const Vector2f& scaleValue = Vector2f { 0.f, 0.f },
         const Vector2f& scaleValueEnd = Vector2f { 0.f, 0.f });
     bool GetScaleUnitAnimationParas(
-        Drawing::DrawingPiecewiseParameter& scaleUnitParas, Vector2f& scaleValueBegin, Vector2f& scaleValue);
-    RSAnimationTimingCurve SetScaleSpringTimingCurve(const std::map<std::string, double_t>& curveArgs);
+        Drawing::DrawingPiecewiseParameter& scaleUnitParas, Vector2f& scaleValueBegin, Vector2f& scaleValueEnd);
 
-    std::shared_ptr<RSAnimation> VariableColorSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
-        const uint32_t& duration, const int& delay, const std::vector<float>& timePercents);
-    bool GetVariableColorAnimationParas(
-        const uint32_t index, uint32_t& totalDuration, int& delay, std::vector<float>& timePercents);
+    std::shared_ptr<RSAnimation> KeyframeAlphaSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
+        const Drawing::DrawingPiecewiseParameter& oneStageParas,
+        const uint32_t duration, const std::vector<float>& timePercents);
+    bool GetKeyframeAlphaAnimationParas(std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas,
+        uint32_t& totalDuration, std::vector<float>& timePercents);
 
     std::shared_ptr<RSNode> rsNode_ = nullptr;
 
     // scale symbol animation
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleStartProperty_ = nullptr;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_ = nullptr;
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleEndProperty_ = nullptr;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotProperty_ = nullptr;
 
     // variableColor symbol animation
-    std::vector<std::shared_ptr<RSAnimatableProperty<float>>> alphaPropertyPhases_;
+    std::vector<std::shared_ptr<RSAnimatableProperty<float>>> alphaPropertyStages_;
+
     // animation support splice base animation
     std::vector<TextEngine::SymbolAnimationEffectStrategy> publicSupportAnimations_ = {};
+    // animation support up&down interface
+    std::vector<TextEngine::SymbolAnimationEffectStrategy> upAndDownSupportAnimations_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -37,6 +37,11 @@ public:
     Region& operator=(const Region& other);
     virtual ~Region() = default;
 
+    void Clone(const Region& other)
+    {
+        impl_->Clone(other);
+    }
+
     virtual DrawingType GetDrawingType() const
     {
         return DrawingType::COMMON;

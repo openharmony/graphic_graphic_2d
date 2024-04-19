@@ -27,7 +27,7 @@ namespace Rosen {
 struct KawaseParameter {
     Drawing::Rect src;
     Drawing::Rect dst;
-    int radius;
+    int radius = 0;
     std::shared_ptr<Drawing::ColorFilter> colorFilter;
     float alpha = 0.f;
 
@@ -49,6 +49,13 @@ public:
     }
 
 private:
+    struct BlurParams {
+        int numberOfPasses = 1;
+        int width = 0;
+        int height = 0;
+        float radiusByPass = 0.f;
+    };
+
     KawaseBlurFilter();
     ~KawaseBlurFilter();
     KawaseBlurFilter(const KawaseBlurFilter& filter);
@@ -59,6 +66,8 @@ private:
         const KawaseParameter& param, std::shared_ptr<Drawing::Image>& checkedImage);
     void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const KawaseParameter& param);
+    std::shared_ptr<Drawing::Image> ExecutePingPongBlur(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& input, const KawaseParameter& kParam, const BlurParams& bParam) const;
     bool ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const std::shared_ptr<Drawing::Image>& blurImage, const KawaseParameter& param) const;
     void ComputeRadiusAndScale(int radius);

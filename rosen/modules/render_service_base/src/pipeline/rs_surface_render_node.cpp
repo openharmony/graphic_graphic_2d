@@ -15,7 +15,6 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
-
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 #include "rs_trace.h"
@@ -172,9 +171,8 @@ void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
     if (IsYUVBufferFormat()) {
         auto width = static_cast<int>(buffer->GetSurfaceBufferWidth());
         auto height = static_cast<int>(buffer->GetSurfaceBufferHeight());
-        isHardwareForcedDisabledBySrcRect_ =  hasRotation ?
-            srcRect_.width_ + 1 < width :
-            srcRect_.height_ + 1 < height;
+        isHardwareForcedDisabledBySrcRect_ =  !GetAncoForceDoDirect() &&
+            (hasRotation ? srcRect_.width_ + 1 < width : srcRect_.height_ + 1 < height);
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disableBySrc:%d src:[%d, %d]" \
             " buffer:[%d, %d] hasRotation:%d", GetName().c_str(), GetId(),
             isHardwareForcedDisabledBySrcRect_, srcRect_.width_, srcRect_.height_, width, height, hasRotation);
@@ -616,6 +614,24 @@ void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
 bool RSSurfaceRenderNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
+{
+    isForceHardwareByUser_ = flag;
+    if (isForceHardwareByUser_) {
+        originalDstRect_ = GetDstRect();
+    }
+}
+
+bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+{
+    return isForceHardwareByUser_;
+}
+
+int32_t RSSurfaceRenderNode::GetFixedRotationDegree() const
+{
+    return fixedRotationDegree_;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
@@ -1143,6 +1159,14 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
 #endif
 }
 
+void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetLastFrameHardwareEnabled(!IsHardwareForcedDisabled());
+    SetHardwareForcedDisabledState(disabled);
+    surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
+    AddToPendingSyncList();
+}
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,

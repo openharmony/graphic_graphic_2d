@@ -39,6 +39,7 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
+#include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -355,6 +356,22 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
         return nullptr;
     }
     return conn;
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect)
+{
+    OHOS::Media::Rect rect = {
+        .left = srcRect.x,
+        .top = srcRect.y,
+        .width = srcRect.w,
+        .height = srcRect.h,
+    };
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    RSBackgroundThread::Instance().PostSyncTask([this, surface, rect, &pixelmap]() {
+        pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+    });
+    return pixelmap;
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(

@@ -100,6 +100,8 @@ DECLARE_NOANIMATABLE_MODIFIER(MotionBlurPara, std::shared_ptr<MotionBlurParam>, 
 
 DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::shared_ptr<EmitterUpdater>, PARTICLE_EMITTER_UPDATER, Foreground)
 
+DECLARE_NOANIMATABLE_MODIFIER(ParticleNoiseFields, std::shared_ptr<ParticleNoiseFields>, PARTICLE_NOISE_FIELD, Foreground)
+
 DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, Appearance)
 
 DECLARE_ANIMATABLE_MODIFIER(ClipRRect, RRect, CLIP_RRECT, Replace, Appearance, MEDIUM)
