@@ -658,6 +658,15 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     }
 }
 
+void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(GetId(), flag);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
 void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
 {
     isBootAnimation_ = isBootAnimation;

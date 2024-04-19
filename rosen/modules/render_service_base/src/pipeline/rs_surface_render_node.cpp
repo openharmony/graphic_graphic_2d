@@ -15,7 +15,6 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
-
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 #include "rs_trace.h"
@@ -615,6 +614,24 @@ void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
 bool RSSurfaceRenderNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
+{
+    isForceHardwareByUser_ = flag;
+    if (isForceHardwareByUser_) {
+        originalDstRect_ = GetDstRect();
+    }
+}
+
+bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+{
+    return isForceHardwareByUser_;
+}
+
+int32_t RSSurfaceRenderNode::GetFixedRotationDegree() const
+{
+    return fixedRotationDegree_;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)

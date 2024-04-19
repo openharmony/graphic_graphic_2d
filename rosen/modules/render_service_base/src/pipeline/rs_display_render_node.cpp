@@ -298,6 +298,10 @@ bool RSDisplayRenderNode::IsRotationChanged() const
 
 void RSDisplayRenderNode::UpdateRotation()
 {
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    displayParams->SetRotationChanged(IsRotationChanged());
+    AddToPendingSyncList();
+
     auto boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr == nullptr) {
         return;

@@ -1594,7 +1594,8 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
             curSurfaceNode_->AddChildHardwareEnabledNode(node.ReinterpretCastTo<RSSurfaceRenderNode>());
         }
         node.SetHardwareForcedDisabledState(false);
-        if (!IsHardwareComposerEnabled() || curSurfaceNode_->GetVisibleRegion().IsEmpty() || !node.GetBuffer()) {
+        if ((!node.GetForceHardwareByUser() && !IsHardwareComposerEnabled()) ||
+            curSurfaceNode_->GetVisibleRegion().IsEmpty() || !node.GetBuffer()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by param/invisible/no buffer",
                 node.GetName().c_str(), node.GetId());
             node.SetHardwareForcedDisabledState(true);

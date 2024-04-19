@@ -44,6 +44,20 @@ bool RSDisplayRenderParams::GetMainAndLeashSurfaceDirty() const
     return isMainAndLeashSurfaceDirty_;
 }
 
+void RSDisplayRenderParams::SetRotationChanged(bool changed)
+{
+    if (isRotationChanged_ == changed) {
+        return;
+    }
+    isRotationChanged_ = changed;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::IsRotationChanged() const
+{
+    return isRotationChanged_;
+}
+
 void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
@@ -65,6 +79,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->mirrorSource_ = mirrorSource_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
+    targetDisplayParams->isRotationChanged_ = isRotationChanged_;
     RSRenderParams::OnSync(target);
 }
 

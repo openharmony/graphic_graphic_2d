@@ -456,6 +456,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         } else {
             curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
+        if (params->IsRotationChanged()) {
+            // draw black background in rotation for camera
+            curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+        }
         SetHighContrastIfEnabled(*curCanvas_);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
         DrawWatermarkIfNeed(*displayNodeSp, *curCanvas_);
