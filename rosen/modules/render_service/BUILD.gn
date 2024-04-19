@@ -32,7 +32,7 @@ ohos_shared_library("librender_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
     debug = false
   }
   if (enhanced_opt) {
@@ -388,7 +388,7 @@ ohos_executable("render_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
     debug = false
     if (rosen_is_ohos) {
       boundary_sanitize = true
