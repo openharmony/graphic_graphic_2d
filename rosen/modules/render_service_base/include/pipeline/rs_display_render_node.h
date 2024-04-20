@@ -306,6 +306,12 @@ public:
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
+    bool GetResetRotate() const {
+        return resetRotate_;
+    }
+    void SetResetRotate(bool resetRotate) {
+        resetRotate_ = resetRotate;
+    }
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
@@ -360,6 +366,7 @@ private:
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+    bool resetRotate_ = false;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;

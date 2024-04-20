@@ -178,7 +178,40 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
+    void SetStartVisit(bool startVisit)
+    {
+        startVisit_ = startVisit;
+    }
+
+    bool GetStartVisit() const
+    {
+        return startVisit_;
+    }
+
+    void SetHasCaptureImg(bool hasCaptureImg)
+    {
+        hasCaptureImg_ = hasCaptureImg;
+    }
+
+    bool GetHasCaptureImg() const
+    {
+        return hasCaptureImg_;
+    }
+
+    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
+    {
+        rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
+    }
+
+    NodeId GetRootIdOfCaptureWindow() const
+    {
+        return rootIdOfCaptureWindow_;
+    }
+
 private:
+    bool startVisit_ = false;
+    bool hasCaptureImg_ = false;
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     uint32_t pendingScreenRefreshRate_ = 0;
