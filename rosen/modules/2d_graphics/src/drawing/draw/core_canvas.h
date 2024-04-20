@@ -208,7 +208,7 @@ public:
     /**
      * @brief The shape of point drawn depends on pen. If pen is set to Pen::CapStyle::ROUND_CAP,
      * draw a circle of diameter pen stroke width. If pen is set to Pen::CapStyle::SQUAER_CAP,
-     * draw a square of width and height pen stroke width. 
+     * draw a square of width and height pen stroke width.
      * @param point top-left edge of circle or square
      */
     virtual void DrawPoint(const Point& point);
@@ -385,12 +385,12 @@ public:
      * fixed lattice elements never scale larger than their initial
      * size and shrink proportionately when all fixed elements exceed the bitmap
      * dimension. All other grid elements scale to fill the available space, if any.
-     * 
+     *
      * If brush is attached, apply ColorFilter, alpha, ImageFilter, and
      * BlendMode. If image is COLORTYPE_ALPHA_8, apply Shader.
      * If brush contains MaskFilter, generate mask from image bounds.
      * Any MaskFilter on paint is ignored as is paint anti-aliasing state.
-     * 
+     *
      * @param image   Image containing pixels, dimensions, and format
      * @param lattice division of bitmap into fixed and variable rectangles
      * @param dst     destination Rect of image to draw to
@@ -513,7 +513,7 @@ public:
     virtual bool QuickReject(const Rect& rect);
 
     // transform
-    /** 
+    /**
      * @brief Replaces RSMatrix with matrix. Unlike Concat(), any prior matrix state is overwritten.
      * @param matrix matrix to copy, replacing existing RSMatrix
      */
@@ -585,7 +585,7 @@ public:
     /**
      * @brief Triggers the immediate execution of all pending draw operations.
      * If Canvas is associated with GPU surface, resolves all pending GPU operations.
-     * If Canvas is associated with raster surface, has no effect; raster draw 
+     * If Canvas is associated with raster surface, has no effect; raster draw
      * operations are never deferred.
      */
     virtual void Flush();
@@ -607,8 +607,9 @@ public:
      * @param saveLayerOps Contains the option used to create the layer.
      */
     virtual void SaveLayer(const SaveLayerOps& saveLayerOps);
+
     /**
-     * @brief Removes changes to Matrix and clip since Canvas state was last saved. 
+     * @brief Removes changes to Matrix and clip since Canvas state was last saved.
      * The state is removed from the stack. Does nothing if the stack is empty.
      */
     virtual void Restore();
@@ -629,39 +630,39 @@ public:
     /**
      * @brief Attach pen to canvas and stroke something.
      * @param pen tool to stroke
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPen(const Pen& pen);
 
     /**
      * @brief Attach brush to canvas and fill something.
      * @param brush tool to fill
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachBrush(const Brush& brush);
 
     /**
      * @brief Attach paint to canvas to draw something.
      * @param paint tool to fill or stroke something
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPaint(const Paint& paint);
     
     /**
      * @brief Detach pen from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPen();
     
     /**
      * @brief Detach brush from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachBrush();
 
     /**
      * @brief Detach paint from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPaint();
 

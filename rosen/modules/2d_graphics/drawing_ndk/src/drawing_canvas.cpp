@@ -321,7 +321,7 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
     if (positionsPoint == nullptr) {
         return;
     }
-    for (uint32_t i = 0; i < vertexCount; ++i) {
+    for (int32_t i = 0; i < vertexCount; ++i) {
         positionsPoint[i] = CastToPoint(positions[i]);
     }
     Point* texsPoint = new Point[vertexCount];
@@ -329,7 +329,7 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         delete [] positionsPoint;
         return;
     }
-    for (uint32_t i = 0; i < vertexCount; ++i) {
+    for (int32_t i = 0; i < vertexCount; ++i) {
         texsPoint[i] = CastToPoint(texs[i]);
     }
     Vertices* vertices = new Vertices();

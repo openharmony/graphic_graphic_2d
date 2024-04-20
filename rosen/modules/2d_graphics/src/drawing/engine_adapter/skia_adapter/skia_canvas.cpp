@@ -205,14 +205,14 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
     if (shape.GetParaNum() > 0) {
         std::vector<float> para = shape.GetPara();
         std::vector<float> para1 = shape.GetTransPara();
-        int num1 = para1.size();
-        int num = para.size();
-        for (int i = 1; i <= num; i++) {
+        uint64_t num1 = para1.size();
+        uint64_t num = para.size();
+        for (uint64_t i = 1; i <= num; i++) {
             char buf[10] = {0}; // maximum length of string needed is 10.
             (void)sprintf_s(buf, sizeof(buf), "para%d", i);
             builder.uniform(buf) = para[i-1];
         }
-        for (int i = 1; i <= num1; i++) {
+        for (uint64_t i = 1; i <= num1; i++) {
             char buf[15] = {0}; // maximum length of string needed is 15.
             (void)sprintf_s(buf, sizeof(buf), "transpara%d", i);
             builder.uniform(buf) = para1[i-1];

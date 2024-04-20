@@ -3800,7 +3800,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         Occlusion::Region dirtyRegionTest;
         std::vector<RectI> rects;
 #ifdef RS_ENABLE_VK
-        int saveCountBeforeClip = 0;
+        uint32_t saveCountBeforeClip = 0;
         if (RSSystemProperties::IsUseVulkan()) {
             saveCountBeforeClip = canvas_->Save();
         }
@@ -3872,7 +3872,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (isUIFirst_) {
-            int saveCount = canvas_->Save();
+            uint32_t saveCount = canvas_->Save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
 
             bool displayNodeRotationChanged = node.IsRotationChanged();
@@ -5357,7 +5357,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessRootRenderNode, canvas is nullptr");
         return;
     }
-    int saveCount = canvas_->Save();
+    uint32_t saveCount = canvas_->Save();
     ProcessCanvasRenderNode(node);
     canvas_->RestoreToCount(saveCount);
 }

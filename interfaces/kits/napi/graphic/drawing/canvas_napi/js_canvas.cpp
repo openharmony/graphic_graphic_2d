@@ -161,7 +161,7 @@ bool ExtracetDrawingBitmap(std::shared_ptr<Media::PixelMap> pixelMap, Drawing::B
 }
 
 void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, int row,
-    float* vertices, int* colors, Drawing::Canvas* m_canvas)
+    float* vertices, uint32_t* colors, Drawing::Canvas* m_canvas)
 {
     const int vertCounts = (column + 1) * (row + 1);
     int32_t size = 6; // triangle * 2
@@ -817,7 +817,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid colors params.");
     }
 
-    int colors[colorsSize];
+    uint32_t colors[colorsSize];
     for (uint32_t i = 0; i < colorsSize; i++) {
         napi_value tempColor = nullptr;
         napi_get_element(env, colorsArray, i, &tempColor);
@@ -829,7 +829,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         }
         colors[i] = color;
     }
-    int* colorsMesh = colorsSize ? (colors + colorOffset) : nullptr;
+    uint32_t* colorsMesh = colorsSize ? (colors + colorOffset) : nullptr;
 
     DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, m_canvas);
 
