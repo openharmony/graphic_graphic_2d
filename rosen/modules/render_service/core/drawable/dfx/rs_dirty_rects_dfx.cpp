@@ -13,12 +13,20 @@
  * limitations under the License.
  */
 
+#include <cstdint>
+#include <sys/types.h>
+
 #include "rs_dirty_rects_dfx.h"
 #include "rs_trace.h"
 
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
+
+// fresh rate
+#include "hgm_core.h"
+
+#include "pipeline/rs_realtime_refresh_rate_manager.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -74,6 +82,65 @@ void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
     if (renderThreadParams->isVisibleRegionDfxEnabled_) {
         DrawTargetSurfaceVisibleRegionForDFX();
     }
+
+    if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
+        DrawCurrentRefreshRate();
+    }
+}
+
+void RSDirtyRectsDfx::DrawCurrentRefreshRate()
+{
+    RS_TRACE_NAME("RSUniRender::DrawCurrentRefreshRate");
+    auto displayParams = static_cast<RSDisplayRenderParams*>(targetNode_->GetRenderParams().get());
+    if (!displayParams) {
+        return;
+    }
+    auto screenId = displayParams->GetScreenId();
+    uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+    uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate();
+    if (realtimeRefreshRate > currentRefreshRate) {
+        realtimeRefreshRate = currentRefreshRate;
+    }
+
+    std::string info = std::to_string(currentRefreshRate) + " " + std::to_string(realtimeRefreshRate);
+    std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
+    Drawing::Font font;
+    font.SetSize(100); // 100:Scalar of setting font size
+    font.SetTypeface(tf);
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
+
+    Drawing::Brush brush;
+    brush.SetColor(currentRefreshRate <= 60 ? SK_ColorRED : SK_ColorGREEN); // low refresh rate 60
+    brush.SetAntiAlias(true);
+    RSAutoCanvasRestore acr(canvas_);
+    canvas_->AttachBrush(brush);
+    auto rotation = displayParams->GetScreenRotation();
+    if (RSSystemProperties::IsFoldScreenFlag() && screenId == 0) {
+        rotation =
+            (rotation == ScreenRotation::ROTATION_270 ? ScreenRotation::ROTATION_0
+                                                      : static_cast<ScreenRotation>(static_cast<int>(rotation) + 1));
+    }
+
+    if (rotation != ScreenRotation::ROTATION_0) {
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(screenId);
+        if (rotation == ScreenRotation::ROTATION_90) {
+            canvas_->Rotate(-90, 0, 0); // 90 degree for text draw
+            canvas_->Translate(-(static_cast<float>(mainScreenInfo.height)), 0);
+        } else if (rotation == ScreenRotation::ROTATION_180) {
+            // 180 degree for text draw
+            canvas_->Rotate(-180, static_cast<float>(mainScreenInfo.width) / 2, // 2 half of screen width
+                static_cast<float>(mainScreenInfo.height) / 2);                 // 2 half of screen height
+        } else if (rotation == ScreenRotation::ROTATION_270) {
+            canvas_->Rotate(-270, 0, 0); // 270 degree for text draw
+            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.width)));
+        } else {
+            return;
+        }
+    }
+    // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
+    canvas_->DrawTextBlob(textBlob.get(), 100.f, 200.f);
+    canvas_->DetachBrush();
 }
 
 void RSDirtyRectsDfx::DrawDirtyRectForDFX(
