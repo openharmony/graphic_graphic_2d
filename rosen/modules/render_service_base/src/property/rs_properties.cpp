@@ -1729,6 +1729,20 @@ void RSProperties::ResetDirty()
     contentDirty_ = false;
 }
 
+void RSProperties::RecordCurDirtyStatus()
+{
+    curIsDirty_ = false;
+    curGeoDirty_ = false;
+    curContentDirty_ = false;
+}
+
+void RSProperties::AccmulateDirtyStatus()
+{
+    isDirty_ = isDirty_ || curIsDirty_;
+    geoDirty_ = geoDirty_ || curGeoDirty_;
+    contentDirty_ = contentDirty_ || curContentDirty_;
+}
+
 bool RSProperties::IsDirty() const
 {
     return isDirty_;

@@ -1274,6 +1274,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
         UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
     }
     // 4. reset dirty status
+    RecordCurDirtyStatus();
     SetClean();
     properties.ResetDirty();
     isLastVisible_ = shouldPaint_;
@@ -1929,6 +1930,67 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
     // Drawing is not supported
 }
 
+void RSRenderNode::AccmulateDirtyInOcclusion(bool isOccluded)
+{
+    if (isOccluded) {
+        // accmulate dirtytypes for modifiers
+        AccmulateDirtyTypes();
+        // accmulate dirtystatus in rendernode
+        AccmulateDirtyStatus();
+        // accmulate dirtystatus in render properties(isDirty, geoDirty, contentDirty)
+        GetMutableRenderProperties().AccmulateDirtyStatus();
+        return;
+    }
+    ResetAccmulateDirtyTypes();
+    ResetAccmulateDirtyStatus();
+}
+
+void RSRenderNode::RecordCurDirtyStatus()
+{
+    curDirtyStatus_ = dirtyStatus_;
+    GetMutableRenderProperties().RecordCurDirtyStatus();
+}
+
+void RSRenderNode::AccmulateDirtyStatus()
+{
+    GetMutableRenderProperties().AccmulateDirtyStatus();
+    if (curDirtyStatus_ == NodeDirty::CLEAN) {
+        return;
+    }
+    SetDirty();
+}
+
+void RSRenderNode::ResetAccmulateDirtyStatus()
+{
+    dirtyStatus_ = NodeDirty::CLEAN;
+    GetMutableRenderProperties().ResetDirty();
+}
+
+void RSRenderNode::RecordCurDirtyTypes()
+{
+    for (int i = 0; i < (int)RSModifierType::MAX_RS_MODIFIER_TYPE; i++) {
+        if (dirtyTypes_.test(static_cast<size_t>(i))) {
+            continue;
+        }
+        curDirtyTypes_.set(static_cast<int>(i), true);
+    }
+}
+
+void RSRenderNode::AccmulateDirtyTypes()
+{
+    for (int i = 0; i < (int)RSModifierType::MAX_RS_MODIFIER_TYPE; i++) {
+        if (curDirtyTypes_.test(static_cast<size_t>(i))) {
+            continue;
+        }
+        dirtyTypes_.set(static_cast<int>(i), true);
+    }
+}
+
+void RSRenderNode::ResetAccmulateDirtyTypes()
+{
+    dirtyTypes_.reset();
+}
+
 void RSRenderNode::ApplyPositionZModifier()
 {
     constexpr auto positionZModifierType = static_cast<size_t>(RSModifierType::POSITION_Z);
@@ -1962,7 +2024,7 @@ void RSRenderNode::ApplyModifiers()
         // clean node, skip apply
         return;
     }
-
+    RecordCurDirtyTypes();
     // Reset and re-apply all modifiers
     RSModifierContext context = { GetMutableRenderProperties() };
 

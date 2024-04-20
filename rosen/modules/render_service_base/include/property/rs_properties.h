@@ -480,6 +480,8 @@ private:
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
+    void AccmulateDirtyStatus();
+    void RecordCurDirtyStatus();
 
     bool NeedClip() const;
 
@@ -495,6 +497,9 @@ private:
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
+    bool curIsDirty_ = false;
+    bool curGeoDirty_ = false;
+    bool curContentDirty_ = false;
     bool isDrawn_ = false;
     bool alphaNeedApply_ = false;
     bool systemBarEffect_ = false;

@@ -1169,7 +1169,9 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
                 "name:[%s] visibleRegionIsEmpty[%d]",
                 std::to_string(node.GetId()).c_str(), surfaceNode.GetName().c_str(),
                 surfaceNode.GetVisibleRegion().IsEmpty());
-            return surfaceNode.GetVisibleRegion().IsEmpty();
+            auto isOccluded = surfaceNode.GetVisibleRegion().IsEmpty();
+            surfaceNode.AccmulateDirtyInOcclusion(isOccluded);
+            return isOccluded;
         }
     }
     // step2.1 For partial visible surface, intersected region->rects in surface

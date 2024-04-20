@@ -585,6 +585,13 @@ public:
     const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const;
 
     void UpdatePointLightDirtySlot();
+    void AccmulateDirtyInOcclusion(bool isOccluded);
+    void RecordCurDirtyStatus();
+    void AccmulateDirtyStatus();
+    void ResetAccmulateDirtyStatus();
+    void RecordCurDirtyTypes();
+    void AccmulateDirtyTypes();
+    void ResetAccmulateDirtyTypes();
     void SetUifirstSyncFlag(bool needSync);
     void SetUifirstSkipPartialSync(bool skip)
     {
@@ -659,6 +666,7 @@ protected:
     bool needClearSurface_ = false;
 
     ModifierDirtyTypes dirtyTypes_;
+    ModifierDirtyTypes curDirtyTypes_;
     bool isBootAnimation_ = false;
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 
@@ -708,6 +716,7 @@ private:
 
     std::weak_ptr<RSContext> context_ = {};
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
+    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
     bool isNewOnTree_ = false;
     bool isOnlyBasicGeoTransform_ = true;
