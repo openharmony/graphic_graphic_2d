@@ -45,7 +45,7 @@ void RSColorPickerTest::TearDown()
  * @tc.name: CreateColorPickerTest
  * @tc.desc: Verify function CreateColorPicker
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, CreateColorPickerTest, TestSize.Level1)
 {
@@ -64,7 +64,7 @@ HWTEST_F(RSColorPickerTest, CreateColorPickerTest, TestSize.Level1)
  * @tc.name: CreateColorPickerTest002
  * @tc.desc: Verify function CreateColorPicker
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, CreateColorPickerTest002, TestSize.Level1)
 {
@@ -84,7 +84,7 @@ HWTEST_F(RSColorPickerTest, CreateColorPickerTest002, TestSize.Level1)
  * @tc.name: GetLargestProportionColorTest
  * @tc.desc: Verify function GetLargestProportionColor
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, GetLargestProportionColorTest, TestSize.Level1)
 {
@@ -104,7 +104,7 @@ HWTEST_F(RSColorPickerTest, GetLargestProportionColorTest, TestSize.Level1)
  * @tc.name: GetHighestSaturationColorTest
  * @tc.desc: Verify function GetHighestSaturationColor
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, GetHighestSaturationColorTest, TestSize.Level1)
 {
@@ -125,7 +125,7 @@ HWTEST_F(RSColorPickerTest, GetHighestSaturationColorTest, TestSize.Level1)
  * @tc.name: GetAverageColorTest
  * @tc.desc: Verify function GetAverageColor
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, GetAverageColorTest, TestSize.Level1)
 {
@@ -145,7 +145,7 @@ HWTEST_F(RSColorPickerTest, GetAverageColorTest, TestSize.Level1)
  * @tc.name: IsBlackOrWhiteOrGrayColorTest
  * @tc.desc: Verify function IsBlackOrWhiteOrGrayColor
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, IsBlackOrWhiteOrGrayColorTest, TestSize.Level1)
 {
@@ -158,7 +158,7 @@ HWTEST_F(RSColorPickerTest, IsBlackOrWhiteOrGrayColorTest, TestSize.Level1)
  * @tc.name: IsEqualsTest
  * @tc.desc: Verify function IsEquals
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, IsEqualsTest, TestSize.Level1)
 {
@@ -169,7 +169,7 @@ HWTEST_F(RSColorPickerTest, IsEqualsTest, TestSize.Level1)
  * @tc.name: RGB2HSVTest
  * @tc.desc: Verify function RGB2HSV
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, RGB2HSVTest, TestSize.Level1)
 {
@@ -184,7 +184,7 @@ HWTEST_F(RSColorPickerTest, RGB2HSVTest, TestSize.Level1)
  * @tc.name: AdjustHSVToDefinedItervalTest
  * @tc.desc: Verify function AdjustHSVToDefinedIterval
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, AdjustHSVToDefinedItervalTest, TestSize.Level1)
 {
@@ -205,7 +205,7 @@ HWTEST_F(RSColorPickerTest, AdjustHSVToDefinedItervalTest, TestSize.Level1)
  * @tc.name: HSVtoRGBTest
  * @tc.desc: Verify function HSVtoRGB
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorPickerTest, HSVtoRGBTest, TestSize.Level1)
 {
