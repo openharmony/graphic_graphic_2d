@@ -269,9 +269,7 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     int32_t skipState = 0;
     bool needFlush = false;
-    std::vector<uint32_t> layers;
-    std::vector<sptr<SyncFence>> fences;
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, layers, fences),
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush),
         GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace
