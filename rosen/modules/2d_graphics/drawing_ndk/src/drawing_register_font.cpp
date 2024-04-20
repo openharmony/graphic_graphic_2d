@@ -16,6 +16,7 @@
 #ifdef BUILD_NON_SDK_VER
 #include <filesystem>
 #endif
+#include <cstdlib>
 #include <fstream>
 #include "drawing_register_font.h"
 #ifndef USE_GRAPHIC_TEXT_GINE
@@ -108,6 +109,11 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, cons
     auto ret = StdFilesystemExists(path);
 #endif
     if (!ret) {
+        return ERROR_FILE_NOT_EXISTS;
+    }
+
+    char tmpPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), tmpPath) == nullptr) {
         return ERROR_FILE_NOT_EXISTS;
     }
 

@@ -23,20 +23,15 @@ namespace Rosen {
 namespace TextEngine {
 #define TEXGINE_EXCEPTION(name) te##name
 
-#define EXCEPTION_LIST(MACRO) \
-    MACRO(INVALID_ARGUMENT, "Invalid Argument") \
-    MACRO(API_FAILED, "API Failed") \
-    MACRO(ERROR_STATUS, "Error Status") \
-    MACRO(OUT_OF_RANGE, "Out Of Range") \
-    MACRO(INVALID_CHAR_GROUPS, "Invalid CharGroups") \
-    MACRO(NULLPTR, "Null Pointer")
-
 enum class ExceptionType {
     CUSTOM = -1,
     SUCCESS,
-#define DEFINE_ENUM_MACRO(name, str) name,
-    EXCEPTION_LIST(DEFINE_ENUM_MACRO)
-#undef DEFINE_ENUM_MACRO
+    INVALID_ARGUMENT,
+    API_FAILED,
+    ERROR_STATUS,
+    OUT_OF_RANGE,
+    INVALID_CHAR_GROUPS,
+    NULLPTR,
 };
 
 struct TexgineException {
@@ -44,11 +39,30 @@ struct TexgineException {
     std::string message = "";
 };
 
-#define DEFINE_CONSTVAR_MACRO(name, str) \
-    static inline const TexgineException TEXGINE_EXCEPTION(name) = {.code = ExceptionType::name, .message = str};
-EXCEPTION_LIST(DEFINE_CONSTVAR_MACRO);
-#undef DEFINE_CONSTVAR_MACRO
-#undef EXCEPTION_LIST
+static inline const TexgineException TEXGINE_EXCEPTION(INVALID_ARGUMENT) = {
+    .code = ExceptionType::INVALID_ARGUMENT,
+    .message = "Invalid Argument"
+};
+static inline const TexgineException TEXGINE_EXCEPTION(API_FAILED) = {
+    .code = ExceptionType::API_FAILED,
+    .message = "API Failed"
+};
+static inline const TexgineException TEXGINE_EXCEPTION(ERROR_STATUS) = {
+    .code = ExceptionType::ERROR_STATUS,
+    .message = "Error Status"
+};
+static inline const TexgineException TEXGINE_EXCEPTION(OUT_OF_RANGE) = {
+    .code = ExceptionType::OUT_OF_RANGE,
+    .message = "Out Of Range"
+};
+static inline const TexgineException TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS) = {
+    .code = ExceptionType::INVALID_CHAR_GROUPS,
+    .message = "Invalid CharGroups"
+};
+static inline const TexgineException TEXGINE_EXCEPTION(NULLPTR) = {
+    .code = ExceptionType::NULLPTR,
+    .message = "Null Pointer"
+};
 
 TexgineException CustomException(const char *msg);
 TexgineException APIFailedException(const char *msg);

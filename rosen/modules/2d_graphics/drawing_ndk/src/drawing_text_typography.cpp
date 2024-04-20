@@ -1348,6 +1348,7 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
             return (OH_Drawing_FontDescriptor*)descriptor;
         }
     }
+    delete descriptor;
     return nullptr;
 }
 
@@ -1470,12 +1471,10 @@ OH_Drawing_TextShadow* OH_Drawing_TextStyleGetShadowWithIndex(OH_Drawing_TextSty
     if (style == nullptr || index < 0) {
         return nullptr;
     }
-    TextShadow* elementShadow = new TextShadow;
-    if (index >= (ConvertToOriginalText<TextStyle>(style)->shadows.size())) {
+    if (index >= static_cast<int>(ConvertToOriginalText<TextStyle>(style)->shadows.size())) {
         return nullptr;
     }
-    elementShadow = &(ConvertToOriginalText<TextStyle>(style)->shadows.at(index));
-    return (OH_Drawing_TextShadow*)(elementShadow);
+    return (OH_Drawing_TextShadow*)(&(ConvertToOriginalText<TextStyle>(style)->shadows.at(index)));
 }
 
 void OH_Drawing_DestroyTextShadows(OH_Drawing_TextShadow* shadow)
@@ -1920,7 +1919,7 @@ void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature
     if (fontFeature == nullptr) {
         return;
     }
-    for (int i = 0; i < fontFeatureSize; i++) {
+    for (int i = 0; i < static_cast<int>(fontFeatureSize); i++) {
         if ((fontFeature + i)->tag == nullptr) {
             continue;
         }
@@ -3071,7 +3070,7 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
         return nullptr;
     }
     for (size_t i = 0; i < strutstyle->familiesSize; i++) {
-        int size = typographyStyle->lineStyleFontFamilies[i].size() + 1;
+        int size = static_cast<int>(typographyStyle->lineStyleFontFamilies[i].size()) + 1;
         strutstyle->families[i] = new char[size];
         if (!strutstyle->families[i]) {
             for (size_t j = 0; j < i ; j++) {
@@ -3141,6 +3140,9 @@ OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(OH_Drawing_Typo
 
     OH_Drawing_Font_Metrics* fontMetrics = new OH_Drawing_Font_Metrics[grabFontMetrics.size()];
     if (fontMetrics == nullptr || !grabFontMetrics.size()) {
+        if (fontMetrics != nullptr) {
+            delete[] fontMetrics;
+        }
         return nullptr;
     }
 
@@ -3335,7 +3337,8 @@ bool OH_Drawing_TextStyleIsEqual(const OH_Drawing_TextStyle* style, const OH_Dra
 {
     auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
     auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
-    if ((convertStyle != nullptr) ^ (convertComparedStyle != nullptr)) {
+    if ((convertStyle == nullptr && convertComparedStyle != nullptr) ||
+        (convertStyle != nullptr && convertComparedStyle == nullptr)) {
         return false;
     }
     if (convertStyle == nullptr && convertComparedStyle == nullptr) {
