@@ -62,7 +62,7 @@ HWTEST_F(RSFilterTest, CreateBlurFilter, TestSize.Level1)
  * @tc.name: GetDescriptionTest
  * @tc.desc: Verify function GetDescription
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSFilterTest, GetDescriptionTest, TestSize.Level1)
 {
@@ -75,7 +75,7 @@ HWTEST_F(RSFilterTest, GetDescriptionTest, TestSize.Level1)
  * @tc.name: CreateMaterialFilterTest001
  * @tc.desc: Verify function CreateMaterialFilter
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSFilterTest, CreateMaterialFilterTest001, TestSize.Level1)
 {
@@ -89,7 +89,7 @@ HWTEST_F(RSFilterTest, CreateMaterialFilterTest001, TestSize.Level1)
  * @tc.name: CreateMaterialFilterTest002
  * @tc.desc: Verify function CreateMaterialFilter
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSFilterTest, CreateMaterialFilterTest002, TestSize.Level1)
 {
@@ -102,7 +102,7 @@ HWTEST_F(RSFilterTest, CreateMaterialFilterTest002, TestSize.Level1)
  * @tc.name: operatorTest001
  * @tc.desc: Verify function operator+
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSFilterTest, operatorTest001, TestSize.Level1)
 {
@@ -119,7 +119,7 @@ HWTEST_F(RSFilterTest, operatorTest001, TestSize.Level1)
  * @tc.name: operatorTest002
  * @tc.desc: Verify function operator-
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSFilterTest, operatorTest002, TestSize.Level1)
 {
@@ -137,7 +137,7 @@ HWTEST_F(RSFilterTest, operatorTest002, TestSize.Level1)
  * @tc.name: operatorTest003
  * @tc.desc: Verify function operator*
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSFilterTest, operatorTest003, TestSize.Level1)
 {
