@@ -45,7 +45,7 @@ void RSColorExtractTest::TearDown()
  * @tc.name: QuantizedRedTest
  * @tc.desc: Verify function QuantizedRed
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, QuantizedRedTest, TestSize.Level1)
 {
@@ -58,7 +58,7 @@ HWTEST_F(RSColorExtractTest, QuantizedRedTest, TestSize.Level1)
  * @tc.name: QuantizedGreenTest
  * @tc.desc: Verify function QuantizedGreen
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, QuantizedGreenTest, TestSize.Level1)
 {
@@ -69,7 +69,7 @@ HWTEST_F(RSColorExtractTest, QuantizedGreenTest, TestSize.Level1)
  * @tc.name: QuantizedBlueTest
  * @tc.desc: Verify function QuantizedBlue
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, QuantizedBlueTest, TestSize.Level1)
 {
@@ -80,7 +80,7 @@ HWTEST_F(RSColorExtractTest, QuantizedBlueTest, TestSize.Level1)
  * @tc.name: ModifyWordWidthTest
  * @tc.desc: Verify function ModifyWordWidth
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, ModifyWordWidthTest, TestSize.Level1)
 {
@@ -92,7 +92,7 @@ HWTEST_F(RSColorExtractTest, ModifyWordWidthTest, TestSize.Level1)
  * @tc.name: GetARGB32ColorRTest
  * @tc.desc: Verify function GetARGB32ColorR
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, GetARGB32ColorRTest, TestSize.Level1)
 {
@@ -103,7 +103,7 @@ HWTEST_F(RSColorExtractTest, GetARGB32ColorRTest, TestSize.Level1)
  * @tc.name: GetARGB32ColorGTest
  * @tc.desc: Verify function GetARGB32ColorG
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, GetARGB32ColorGTest, TestSize.Level1)
 {
@@ -114,7 +114,7 @@ HWTEST_F(RSColorExtractTest, GetARGB32ColorGTest, TestSize.Level1)
  * @tc.name: GetARGB32ColorBTest
  * @tc.desc: Verify function GetARGB32ColorB
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, GetARGB32ColorBTest, TestSize.Level1)
 {
@@ -125,7 +125,7 @@ HWTEST_F(RSColorExtractTest, GetARGB32ColorBTest, TestSize.Level1)
  * @tc.name: QuantizeFromRGB888Test
  * @tc.desc: Verify function QuantizeFromRGB888
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, QuantizeFromRGB888Test, TestSize.Level1)
 {
@@ -136,7 +136,7 @@ HWTEST_F(RSColorExtractTest, QuantizeFromRGB888Test, TestSize.Level1)
  * @tc.name: ApproximateToRGB888Test
  * @tc.desc: Verify function ApproximateToRGB888
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, ApproximateToRGB888Test, TestSize.Level1)
 {
@@ -147,7 +147,7 @@ HWTEST_F(RSColorExtractTest, ApproximateToRGB888Test, TestSize.Level1)
  * @tc.name: ApproximateToRGB888Test002
  * @tc.desc: Verify function ApproximateToRGB888
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, ApproximateToRGB888Test002, TestSize.Level1)
 {
@@ -158,7 +158,7 @@ HWTEST_F(RSColorExtractTest, ApproximateToRGB888Test002, TestSize.Level1)
  * @tc.name: QuantizePixelsTest
  * @tc.desc: Verify function QuantizePixels
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, QuantizePixelsTest, TestSize.Level1)
 {
@@ -169,7 +169,7 @@ HWTEST_F(RSColorExtractTest, QuantizePixelsTest, TestSize.Level1)
  * @tc.name: SplitBoxesTest
  * @tc.desc: Verify function SplitBoxes
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, SplitBoxesTest, TestSize.Level1)
 {
@@ -188,7 +188,7 @@ HWTEST_F(RSColorExtractTest, SplitBoxesTest, TestSize.Level1)
  * @tc.name: cmpTest
  * @tc.desc: Verify function cmp
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, cmpTest, TestSize.Level1)
 {
@@ -202,7 +202,7 @@ HWTEST_F(RSColorExtractTest, cmpTest, TestSize.Level1)
  * @tc.name: GenerateAverageColorsTest
  * @tc.desc: Verify function GenerateAverageColors
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, GenerateAverageColorsTest, TestSize.Level1)
 {
@@ -219,7 +219,7 @@ HWTEST_F(RSColorExtractTest, GenerateAverageColorsTest, TestSize.Level1)
  * @tc.name: SetFeatureColorNumTest
  * @tc.desc: Verify function SetFeatureColorNum
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, SetFeatureColorNumTest, TestSize.Level1)
 {
@@ -231,7 +231,7 @@ HWTEST_F(RSColorExtractTest, SetFeatureColorNumTest, TestSize.Level1)
  * @tc.name: Rgb2GrayTest
  * @tc.desc: Verify function Rgb2Gray
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, Rgb2GrayTest, TestSize.Level1)
 {
@@ -242,7 +242,7 @@ HWTEST_F(RSColorExtractTest, Rgb2GrayTest, TestSize.Level1)
  * @tc.name: CalcGrayMsdTest
  * @tc.desc: Verify function CalcGrayMsd
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, CalcGrayMsdTest, TestSize.Level1)
 {
@@ -260,7 +260,7 @@ HWTEST_F(RSColorExtractTest, CalcGrayMsdTest, TestSize.Level1)
  * @tc.name: NormalizeRgbTest
  * @tc.desc: Verify function NormalizeRgb
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, NormalizeRgbTest, TestSize.Level1)
 {
@@ -274,7 +274,7 @@ HWTEST_F(RSColorExtractTest, NormalizeRgbTest, TestSize.Level1)
  * @tc.name: CalcRelativeLumTest
  * @tc.desc: Verify function CalcRelativeLum
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, CalcRelativeLumTest, TestSize.Level1)
 {
@@ -285,7 +285,7 @@ HWTEST_F(RSColorExtractTest, CalcRelativeLumTest, TestSize.Level1)
  * @tc.name: CalcContrastToWhiteTest
  * @tc.desc: Verify function CalcContrastToWhite
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, CalcContrastToWhiteTest, TestSize.Level1)
 {
@@ -303,7 +303,7 @@ HWTEST_F(RSColorExtractTest, CalcContrastToWhiteTest, TestSize.Level1)
  * @tc.name: GetNFeatureColorsTest
  * @tc.desc: Verify function GetNFeatureColors
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSColorExtractTest, GetNFeatureColorsTest, TestSize.Level1)
 {
