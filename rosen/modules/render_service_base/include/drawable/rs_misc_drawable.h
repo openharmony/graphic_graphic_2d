@@ -47,16 +47,14 @@ public:
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
-    bool childrenHasSharedTransition_ = false;
 private:
-    // Render properties
-    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
-    // Staging properties
-    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
-    // static inline std::set<NodeId> pendingSharedTransitionSet_;
-    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
-
     bool needSync_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
+
+    // Shared Transition related
+    bool childrenHasSharedTransition_ = false;
+    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
     friend class RSRenderNode;
     friend class RSRenderNodeDrawableAdapter;
 };
@@ -76,7 +74,6 @@ private:
     bool needSync_ = false;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
-    friend class RSCustomModifierDrawable;
 };
 
 // ============================================================================

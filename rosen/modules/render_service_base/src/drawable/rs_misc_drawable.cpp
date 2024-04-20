@@ -70,6 +70,7 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
     // merge pendingChildren into stagingChildrenDrawableVec_
     stagingChildrenDrawableVec_.insert(stagingChildrenDrawableVec_.end(), pendingChildren.begin(),
         pendingChildren.end());
+    const_cast<RSRenderNode&>(node).SetChildrenHasSharedTransition(childrenHasSharedTransition_);
     return !stagingChildrenDrawableVec_.empty();
 }
 

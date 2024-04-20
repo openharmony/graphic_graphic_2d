@@ -2103,10 +2103,6 @@ void RSRenderNode::UpdateDrawableVecV2()
         // Step 4: Generate drawCmdList from drawables
         UpdateDisplayList();
     }
-    if (auto childrenDrawable = drawableVec_[static_cast<int>(RSDrawableSlot::CHILDREN)]) {
-        auto castedChildrenDrawable = std::static_pointer_cast<DrawableV2::RSChildrenDrawable>(childrenDrawable);
-        childrenHasSharedTransition_ = castedChildrenDrawable->childrenHasSharedTransition_;
-    }
     // Merge dirty slots
     if (dirtySlots_.empty()) {
         dirtySlots_ = std::move(dirtySlots);
@@ -3779,6 +3775,11 @@ void RSRenderNode::AddToPendingSyncList()
         ROSEN_LOGE("RSRenderNode::AddToPendingSyncList context is null");
         OnSync();
     }
+}
+
+void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
+{
+    childrenHasSharedTransition_ = hasSharedTransition;
 }
 
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;
