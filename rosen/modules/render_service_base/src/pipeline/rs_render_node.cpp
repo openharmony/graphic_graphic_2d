@@ -1259,7 +1259,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
     }
     // 3. update dirtyRegion if needed
     if (properties.GetBackgroundFilter()) {
-        UpdateFilterCacheWithDirty(dirtyManager);
+        UpdateFilterCacheWithBelowDirty(dirtyManager);
     }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
@@ -1267,11 +1267,6 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
         UpdateDirtyRegionInfoForDFX(dirtyManager);
-    }
-
-    // compare self with cache after update node geo
-    if (properties.GetBackgroundFilter()) {
-        UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
     }
     // 4. reset dirty status
     SetClean();
@@ -1341,12 +1336,9 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_
     // region of all the nodes drawn before this node, this node, and the children of this node'
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
     if (GetRenderProperties().GetBackgroundFilter()) {
-        UpdateFilterCacheWithDirty(dirtyManager);
+        UpdateFilterCacheWithBelowDirty(dirtyManager);
     }
     UpdateDirtyRegion(dirtyManager, dirty, clipRect);
-    if (GetRenderProperties().GetBackgroundFilter()) {
-        UpdateFilterCacheManagerWithCacheRegion(dirtyManager);
-    }
     return dirty;
 }
 
@@ -1577,6 +1569,10 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
 
 bool RSRenderNode::IsBackgroundFilterCacheValid() const
 {
+    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::FilterCacheEnabled) {
+        ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
+        return false;
+    }
     auto filterDrawable = GetFilterDrawable(false);
     if (filterDrawable == nullptr) {
         return false;
@@ -1663,21 +1659,16 @@ std::shared_ptr<DrawableV2::RSFilterDrawable> RSRenderNode::GetFilterDrawable(bo
     return nullptr;
 }
 
-void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground)
+void RSRenderNode::UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground)
 {
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!RSProperties::FilterCacheEnabled) {
-        ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithDirty filter cache is disabled.");
-        return;
-    }
-
-    auto filterDrawable = GetFilterDrawable(isForeground);
-    if (filterDrawable == nullptr) {
+        ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
         return;
     }
     auto dirtyRegion = dirtyManager.GetCurrentFrameDirtyRegion();
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithDirty lastRect:%s, dirtyRegion:%s",
-        GetId(), lastFilterRegion_.ToString().c_str(), dirtyRegion.ToString().c_str());
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterCacheWithBelowDirty:node[%llu] foreground:%d, lastRect:%s, dirtyRegion:%s",
+        GetId(), isForeground, lastFilterRegion_.ToString().c_str(), dirtyRegion.ToString().c_str());
     if (!dirtyRegion.Intersect(lastFilterRegion_)) {
         return;
     }
@@ -1685,28 +1676,29 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
 #endif
 }
 
-void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect, bool isForeground)
+void RSRenderNode::UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect,
+    bool isInSkippedSubTree, const std::optional<RectI>& filterRectForceUpdated)
 {
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!RSProperties::FilterCacheEnabled) {
-        ROSEN_LOGE("RSRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
+        ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithSelfDirty filter cache is disabled.");
         return;
     }
-    auto filterDrawable = GetFilterDrawable(isForeground);
-    if (filterDrawable == nullptr) {
+    RectI filterRect = isInSkippedSubTree ? filterRectForceUpdated.value() : GetFilterRect();
+    if (!isInSkippedSubTree && clipRect.has_value()) {
+        filterRect = filterRect.IntersectRect(*clipRect);
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
+        GetId(), lastFilterRegion_.ToString().c_str(), filterRect.ToString().c_str());
+    if (filterRect.IsInsideOf(lastFilterRegion_)) {
         return;
     }
-    auto absRect = GetFilterRect();
-    if (clipRect.has_value()) {
-        absRect.IntersectRect(*clipRect);
+    if (GetRenderProperties().GetBackgroundFilter()) {
+        MarkFilterStatusChanged(false, true);
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheManagerWithCacheRegion lastRect:%s, currRegion:%s",
-        GetId(), lastFilterRegion_.ToString().c_str(), absRect.ToString().c_str());
-    if (absRect.IsInsideOf(lastFilterRegion_)) {
-        return;
+    if (GetRenderProperties().GetFilter()) {
+        MarkFilterStatusChanged(true, true);
     }
-    MarkFilterStatusChanged(isForeground, true);
 #endif
 }
 
@@ -1742,7 +1734,7 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelow
             return;
         }
         if (dirtyBelowContainsFilterNode) {
-            filterDrawable->MarkFilterBelowIsDirty();
+            filterDrawable->MarkFilterForceClearCache();
         }
         MarkFilterCacheFlagsAfterPrepare(filterDrawable, false);
     }
@@ -1752,7 +1744,7 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelow
             return;
         }
         if (dirtyBelowContainsFilterNode) {
-            filterDrawable->MarkFilterBelowIsDirty();
+            filterDrawable->MarkFilterForceClearCache();
         }
         MarkFilterCacheFlagsAfterPrepare(filterDrawable, true);
     }
@@ -1793,7 +1785,6 @@ void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
     }
 }
-
 
 void RSRenderNode::SetOccludedStatus(bool occluded)
 {

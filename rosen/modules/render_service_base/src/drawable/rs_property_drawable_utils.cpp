@@ -224,10 +224,19 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         return;
     }
 
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (paintFilterCanvas == nullptr) {
+        return;
+    }
+    RSAutoCanvasRestore autoCanvasStore(paintFilterCanvas, isForegroundFilter ?
+        RSPaintFilterCanvas::SaveType::kAlpha : RSPaintFilterCanvas::SaveType::kNone);
+    if (isForegroundFilter) {
+        paintFilterCanvas->SetAlpha(1.0);
+    }
+
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        !paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
+    if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
         cacheManager->DrawFilter(*paintFilterCanvas, filter, needSnapshotOutset);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         return;

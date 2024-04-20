@@ -230,7 +230,8 @@ private:
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
     void ResetDisplayDirtyRegionForColorFilterSwitch();
-    void CollectFilterInfoAndUpdateDirty(RSRenderNode& node);
+    void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
+        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, bool isInSkippedSubTree = false);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
 
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
@@ -404,7 +405,7 @@ private:
         return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
     }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
-    void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node);
+    void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
 
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render

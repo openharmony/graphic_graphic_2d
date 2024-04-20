@@ -459,9 +459,9 @@ public:
     void UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect);
     void UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
-    virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
-    virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
-        const std::optional<RectI>& clipRect = std::nullopt, bool isForeground = false);
+    virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
+    virtual void UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect = std::nullopt,
+        bool isInSkippedSubTree = false, const std::optional<RectI>& filterRectForceUpdated = std::nullopt);
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelowContainsFilterNode = false);
     bool IsBackgroundFilterCacheValid() const;
