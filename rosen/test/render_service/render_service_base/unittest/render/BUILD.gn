@@ -21,6 +21,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_aibar_filter_test.cpp",
     "rs_blur_filter_test.cpp",
     "rs_border_test.cpp",
     "rs_color_extract_test.cpp",
