@@ -108,6 +108,11 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+#ifdef RS_ENABLE_VK
+                if (RSSystemProperties::IsUseVulkan()) {
+                    RsVulkanContext::GetSingleton().SetIsProtected(true);
+                }
+#endif
                 uniRenderEngine_->Init(true);
                 hardwareTid_ = gettid();
             }).wait();
@@ -336,6 +341,20 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         RS_LOGE("RSHardwareThread::Redraw: surface is null.");
         return;
     }
+    bool isProtected = false;
+#ifdef RS_ENABLE_VK
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+        for (const auto& layer : layers) {
+            if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+                isProtected = true;
+                break;
+            }
+        }
+        if (RSSystemProperties::IsUseVulkan()) {
+            RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
+        }
+    }
+#endif
 
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer start");
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
@@ -345,15 +364,16 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
-    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, colorGamut, pixelFormat);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
+        true, isProtected, colorGamut, pixelFormat);
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
 #else
-    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, isProtected);
 #endif
     // override redraw frame buffer with physical screen resolution.
     renderFrameConfig.width = screenInfo.phyWidth;
     renderFrameConfig.height = screenInfo.phyHeight;
-    auto renderFrame = uniRenderEngine_->RequestFrame(surface, renderFrameConfig, forceCPU);
+    auto renderFrame = uniRenderEngine_->RequestFrame(surface, renderFrameConfig, forceCPU, true, isProtected);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread::Redraw failed to request frame.");
         return;

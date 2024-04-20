@@ -47,7 +47,7 @@ void RSSurfaceDarwin::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& fram
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
-    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
+    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (onRender_ == nullptr) {
         ROSEN_LOGE("RSSurfaceDarwin::RequestFrame, producer is nullptr");

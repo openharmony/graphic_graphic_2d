@@ -49,8 +49,9 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
     auto width = buffer->GetSurfaceBufferWidth();
     auto height = buffer->GetSurfaceBufferHeight();
     NativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    bool isProtected = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
-        width, height);
+        width, height, isProtected);
     if (!backendTexture.IsValid()) {
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
@@ -71,7 +72,7 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     WaitAcquireFence(acquireFence);
     std::lock_guard<std::mutex> lock(opMutex_);
     auto bufferId = buffer->GetSeqNum();
-    if (imageCacheSeqs_.count(bufferId) == 0) {
+    if (imageCacheSeqs_.find(bufferId) == imageCacheSeqs_.end() || (buffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
         return NewImageCacheFromBuffer(buffer, threadIndex);
     } else {
         return imageCacheSeqs_[bufferId];
@@ -105,6 +106,9 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     }
 
     imageCache->SetThreadIndex(threadIndex);
+    if (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) {
+        return imageCache;
+    }
     imageCacheSeqs_.emplace(bufferId, imageCache);
     cacheQueue_.push(bufferId);
     return imageCache;

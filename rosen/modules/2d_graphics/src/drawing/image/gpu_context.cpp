@@ -154,6 +154,11 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     impl_->SetCurrentGpuResourceTag(tag);
 }
 
+void GPUContext::ResetContext()
+{
+    impl_->ResetContext();
+}
+
 #ifdef RS_ENABLE_VK
 void GPUContext::StoreVkPipelineCacheData()
 {

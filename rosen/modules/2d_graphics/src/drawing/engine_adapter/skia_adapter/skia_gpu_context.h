@@ -92,6 +92,8 @@ public:
 
     void ReleaseByTag(const GPUResourceTag &tag) override;
 
+    void ResetContext() override;
+
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
 
     void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) override;

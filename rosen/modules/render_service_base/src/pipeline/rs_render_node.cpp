@@ -66,7 +66,7 @@ uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
         return UINT32_MAX;
     }
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
 
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -116,7 +116,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
