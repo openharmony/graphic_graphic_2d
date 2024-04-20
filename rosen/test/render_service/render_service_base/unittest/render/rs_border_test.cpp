@@ -156,7 +156,7 @@ HWTEST_F(RSBorderTest, HasBorderTest, TestSize.Level1)
  * @tc.name: SetColorTest
  * @tc.desc: Verify function SetColor
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, SetColorTest, TestSize.Level1)
 {
@@ -169,7 +169,7 @@ HWTEST_F(RSBorderTest, SetColorTest, TestSize.Level1)
  * @tc.name: SetWidthTest
  * @tc.desc: Verify function SetWidth
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, SetWidthTest, TestSize.Level1)
 {
@@ -182,7 +182,7 @@ HWTEST_F(RSBorderTest, SetWidthTest, TestSize.Level1)
  * @tc.name: SetStyleTest
  * @tc.desc: Verify function SetStyle
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, SetStyleTest, TestSize.Level1)
 {
@@ -195,7 +195,7 @@ HWTEST_F(RSBorderTest, SetStyleTest, TestSize.Level1)
  * @tc.name: GetColorTest
  * @tc.desc: Verify function GetColor
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, GetColorTest, TestSize.Level1)
 {
@@ -220,7 +220,7 @@ HWTEST_F(RSBorderTest, GetColorTest, TestSize.Level1)
  * @tc.name: GetWidthTest
  * @tc.desc: Verify function GetWidth
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, GetWidthTest, TestSize.Level1)
 {
@@ -239,7 +239,7 @@ HWTEST_F(RSBorderTest, GetWidthTest, TestSize.Level1)
  * @tc.name: GetStyleTest
  * @tc.desc: Verify function GetStyle
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, GetStyleTest, TestSize.Level1)
 {
@@ -258,7 +258,7 @@ HWTEST_F(RSBorderTest, GetStyleTest, TestSize.Level1)
  * @tc.name: SetColorFourTest
  * @tc.desc: Verify function SetColorFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, SetColorFourTest, TestSize.Level1)
 {
@@ -280,7 +280,7 @@ HWTEST_F(RSBorderTest, SetColorFourTest, TestSize.Level1)
  * @tc.name: SetWidthFourTest
  * @tc.desc: Verify function SetWidthFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, SetWidthFourTest, TestSize.Level1)
 {
@@ -299,7 +299,7 @@ HWTEST_F(RSBorderTest, SetWidthFourTest, TestSize.Level1)
  * @tc.name: SetStyleFourTest
  * @tc.desc: Verify function SetStyleFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, SetStyleFourTest, TestSize.Level1)
 {
@@ -318,7 +318,7 @@ HWTEST_F(RSBorderTest, SetStyleFourTest, TestSize.Level1)
  * @tc.name: SetRadiusFourTest
  * @tc.desc: Verify function SetRadiusFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, SetRadiusFourTest, TestSize.Level1)
 {
@@ -333,7 +333,7 @@ HWTEST_F(RSBorderTest, SetRadiusFourTest, TestSize.Level1)
  * @tc.name: GetColorFourTest
  * @tc.desc: Verify function GetColorFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, GetColorFourTest, TestSize.Level1)
 {
@@ -356,7 +356,7 @@ HWTEST_F(RSBorderTest, GetColorFourTest, TestSize.Level1)
  * @tc.name: GetWidthFourTest
  * @tc.desc: Verify function GetWidthFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, GetWidthFourTest, TestSize.Level1)
 {
@@ -375,7 +375,7 @@ HWTEST_F(RSBorderTest, GetWidthFourTest, TestSize.Level1)
  * @tc.name: GetStyleFourTest
  * @tc.desc: Verify function GetStyleFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, GetStyleFourTest, TestSize.Level1)
 {
@@ -394,7 +394,7 @@ HWTEST_F(RSBorderTest, GetStyleFourTest, TestSize.Level1)
  * @tc.name: GetRadiusFourTest
  * @tc.desc: Verify function GetRadiusFour
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, GetRadiusFourTest, TestSize.Level1)
 {
@@ -407,7 +407,7 @@ HWTEST_F(RSBorderTest, GetRadiusFourTest, TestSize.Level1)
  * @tc.name: ApplyFillStyleTest
  * @tc.desc: Verify function ApplyFillStyle
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, ApplyFillStyleTest, TestSize.Level1)
 {
@@ -433,7 +433,7 @@ HWTEST_F(RSBorderTest, ApplyFillStyleTest, TestSize.Level1)
  * @tc.name: ApplyPathStyleTest
  * @tc.desc: Verify function ApplyPathStyle
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, ApplyPathStyleTest, TestSize.Level1)
 {
@@ -452,7 +452,7 @@ HWTEST_F(RSBorderTest, ApplyPathStyleTest, TestSize.Level1)
  * @tc.name: ApplyFourLineTest
  * @tc.desc: Verify function ApplyFourLine
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, ApplyFourLineTest, TestSize.Level1)
 {
@@ -469,7 +469,7 @@ HWTEST_F(RSBorderTest, ApplyFourLineTest, TestSize.Level1)
  * @tc.name: ApplyLineStyleTest
  * @tc.desc: Verify function ApplyLineStyle
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, ApplyLineStyleTest, TestSize.Level1)
 {
@@ -487,7 +487,7 @@ HWTEST_F(RSBorderTest, ApplyLineStyleTest, TestSize.Level1)
  * @tc.name: PaintFourLineTest
  * @tc.desc: Verify function PaintFourLine
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, PaintFourLineTest, TestSize.Level1)
 {
@@ -503,7 +503,7 @@ HWTEST_F(RSBorderTest, PaintFourLineTest, TestSize.Level1)
  * @tc.name: PaintTopPathTest
  * @tc.desc: Verify function PaintTopPath
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, PaintTopPathTest, TestSize.Level1)
 {
@@ -524,7 +524,7 @@ HWTEST_F(RSBorderTest, PaintTopPathTest, TestSize.Level1)
  * @tc.name: PaintRightPathTest
  * @tc.desc: Verify function PaintRightPath
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, PaintRightPathTest, TestSize.Level1)
 {
@@ -545,7 +545,7 @@ HWTEST_F(RSBorderTest, PaintRightPathTest, TestSize.Level1)
  * @tc.name: PaintBottomPathTest
  * @tc.desc: Verify function PaintBottomPath
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, PaintBottomPathTest, TestSize.Level1)
 {
@@ -566,7 +566,7 @@ HWTEST_F(RSBorderTest, PaintBottomPathTest, TestSize.Level1)
  * @tc.name: PaintLeftPathTest
  * @tc.desc: Verify function PaintLeftPath
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, PaintLeftPathTest, TestSize.Level1)
 {
@@ -587,7 +587,7 @@ HWTEST_F(RSBorderTest, PaintLeftPathTest, TestSize.Level1)
  * @tc.name: ToStringTest
  * @tc.desc: Verify function ToString
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBorderTest, ToStringTest, TestSize.Level1)
 {
