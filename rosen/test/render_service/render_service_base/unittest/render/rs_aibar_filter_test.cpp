@@ -54,7 +54,7 @@ HWTEST_F(RSAIBarFilterTest, DrawImageRectTest, TestSize.Level1)
  * @tc.name: GetDescriptionTest
  * @tc.desc: Verify function GetDescription
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSAIBarFilterTest, GetDescriptionTest, TestSize.Level1)
 {
@@ -66,7 +66,7 @@ HWTEST_F(RSAIBarFilterTest, GetDescriptionTest, TestSize.Level1)
  * @tc.name: GetAiInvertCoefTest
  * @tc.desc: Verify function GetAiInvertCoef
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSAIBarFilterTest, GetAiInvertCoefTest, TestSize.Level1)
 {
@@ -80,7 +80,7 @@ HWTEST_F(RSAIBarFilterTest, GetAiInvertCoefTest, TestSize.Level1)
  * @tc.name: IsAiInvertCoefValidTest
  * @tc.desc: Verify function IsAiInvertCoefValid
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSAIBarFilterTest, IsAiInvertCoefValidTest, TestSize.Level1)
 {
@@ -94,7 +94,7 @@ HWTEST_F(RSAIBarFilterTest, IsAiInvertCoefValidTest, TestSize.Level1)
  * @tc.name: MakeBinarizationShaderTest
  * @tc.desc: Verify function MakeBinarizationShader
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSAIBarFilterTest, MakeBinarizationShaderTest, TestSize.Level1)
 {
