@@ -63,7 +63,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
 
 #if defined(RS_ENABLE_VK)
 Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt)
