@@ -71,7 +71,7 @@ HWTEST_F(RSBlurFilterTest, IsNearZero001, TestSize.Level1)
  * @tc.name: GetBlurRadiusXTest
  * @tc.desc: Verify function GetBlurRadiusX
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, GetBlurRadiusXTest, TestSize.Level1)
 {
@@ -86,7 +86,7 @@ HWTEST_F(RSBlurFilterTest, GetBlurRadiusXTest, TestSize.Level1)
  * @tc.name: GetBlurRadiusYTest
  * @tc.desc: Verify function GetBlurRadiusY
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, GetBlurRadiusYTest, TestSize.Level1)
 {
@@ -101,7 +101,7 @@ HWTEST_F(RSBlurFilterTest, GetBlurRadiusYTest, TestSize.Level1)
  * @tc.name: GetDescriptionTest
  * @tc.desc: Verify function GetDescription
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, GetDescriptionTest, TestSize.Level1)
 {
@@ -115,7 +115,7 @@ HWTEST_F(RSBlurFilterTest, GetDescriptionTest, TestSize.Level1)
  * @tc.name: IsValidTest
  * @tc.desc: Verify function IsValid
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, IsValidTest, TestSize.Level1)
 {
@@ -129,7 +129,7 @@ HWTEST_F(RSBlurFilterTest, IsValidTest, TestSize.Level1)
  * @tc.name: ComposeTest
  * @tc.desc: Verify function Compose
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, ComposeTest, TestSize.Level1)
 {
@@ -145,7 +145,7 @@ HWTEST_F(RSBlurFilterTest, ComposeTest, TestSize.Level1)
  * @tc.name: AddTest
  * @tc.desc: Verify function Add
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, AddTest, TestSize.Level1)
 {
@@ -168,7 +168,7 @@ HWTEST_F(RSBlurFilterTest, AddTest, TestSize.Level1)
  * @tc.name: SubTest
  * @tc.desc: Verify function Sub
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, SubTest, TestSize.Level1)
 {
@@ -191,7 +191,7 @@ HWTEST_F(RSBlurFilterTest, SubTest, TestSize.Level1)
  * @tc.name: MultiplyTest
  * @tc.desc: Verify function Multiply
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, MultiplyTest, TestSize.Level1)
 {
@@ -206,7 +206,7 @@ HWTEST_F(RSBlurFilterTest, MultiplyTest, TestSize.Level1)
  * @tc.name: NegateTest
  * @tc.desc: Verify function Negate
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, NegateTest, TestSize.Level1)
 {
@@ -221,7 +221,7 @@ HWTEST_F(RSBlurFilterTest, NegateTest, TestSize.Level1)
  * @tc.name: SetGreyCoefTest
  * @tc.desc: Verify function SetGreyCoef
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, SetGreyCoefTest, TestSize.Level1)
 {
@@ -238,7 +238,7 @@ HWTEST_F(RSBlurFilterTest, SetGreyCoefTest, TestSize.Level1)
  * @tc.name: CanSkipFrameTest
  * @tc.desc: Verify function CanSkipFrame
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I98H
  */
 HWTEST_F(RSBlurFilterTest, CanSkipFrameTest, TestSize.Level1)
 {
