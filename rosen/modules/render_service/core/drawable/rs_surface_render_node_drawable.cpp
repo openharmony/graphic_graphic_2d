@@ -307,6 +307,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
+        return;
+    }
 
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
@@ -353,7 +357,25 @@ bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& pa
 void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    uint32_t saveCount = canvas.GetSaveCount();
+    if (surfaceParams.GetIsSecurityLayer() || surfaceParams.GetIsSkipLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
+            surfaceParams.GetId());
+        canvas.Clear(Drawing::Color::COLOR_WHITE);
+        return;
+    }
+
+    auto uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if (!uniParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode uniParams is nullptr");
+        return;
+    }
+
+    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer()) &&
+        DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
+        return;
+    }
+
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
     if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
@@ -381,15 +403,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         RSUniRenderUtil::CeilTransXYInCanvasMatrix(canvas);
     }
 
-    if (surfaceParams.GetIsSecurityLayer() || surfaceParams.GetIsSkipLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
-            surfaceParams.GetId());
-        canvas.Clear(Drawing::Color::COLOR_WHITE);
-        canvas.RestoreToCount(saveCount);
-        return;
-    }
-
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
@@ -397,17 +410,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
 
     if (isSelfDrawingSurface) {
         canvas.Restore();
-    }
-
-    auto uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if (!uniParams) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay uniParams is nullptr");
-        return;
-    }
-
-    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer()) &&
-        DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
-        return;
     }
 
     // 3. Draw content of this node by the main canvas.
@@ -447,12 +449,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
 
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
-    if (isSelfDrawingSurface) {
+    if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
         SetSkip(surfaceParams.GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
         canvas.Save();
     }
 
     surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
+    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
+    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     auto bounds = surfaceParams.GetFrameRect();
 
@@ -462,8 +466,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::CeilTransXYInCanvasMatrix(canvas);
     }
-    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
-    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
@@ -499,14 +501,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     }
 
     RSAutoCanvasRestore arc(&canvas);
-    // Hwc nodes need to use LayerMatrix(totalMatrix) when doing capturing
-    if (RSUniRenderThread::GetCaptureParam().isInCaptureFlag_ &&
-        surfaceParams.GetHardwareEnabled()) {
-        auto matrix = surfaceParams.GetLayerInfo().matrix;
-        matrix.PostScale(RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
-        canvas.SetMatrix(matrix);
-    }
-    
     surfaceNode.SetGlobalAlpha(1.0f); // TO-DO
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadId, true);

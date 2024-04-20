@@ -861,12 +861,28 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
 
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ConcatMatrix(params.GetMatrix());
+    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (!rscanvas) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode, rscanvas us nullptr");
+        return;
+    }
     // draw hardware-composition nodes
     for (auto& surfaceNode : nodes) {
-            Drawing::AutoCanvasRestore acr(canvas, true);
-            std::unique_ptr<RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
-                std::make_unique<RSSurfaceRenderNodeDrawable>(surfaceNode);
-            surfaceNodeDrawable->OnCapture(canvas);
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        std::unique_ptr<RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
+            std::make_unique<RSSurfaceRenderNodeDrawable>(surfaceNode);
+
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGE("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode surfaceParams is nullptr");
+            continue;
+        }
+        // SelfDrawingNodes need to use LayerMatrix(totalMatrix) when doing capturing
+        auto matrix = surfaceParams->GetLayerInfo().matrix;
+        matrix.PostScale(RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
+        canvas.SetMatrix(matrix);
+
+        surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*surfaceNode, *rscanvas, *surfaceParams);
     }
 }
 
