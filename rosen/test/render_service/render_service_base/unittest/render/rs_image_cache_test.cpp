@@ -38,7 +38,7 @@ void RSImageCacheTest::TearDown() {}
  * @tc.name: InstanceTest
  * @tc.desc: Verify function Instance
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, InstanceTest, TestSize.Level1)
 {
@@ -49,7 +49,7 @@ HWTEST_F(RSImageCacheTest, InstanceTest, TestSize.Level1)
  * @tc.name: CacheDrawingImageTest
  * @tc.desc: Verify function CacheDrawingImage
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, CacheDrawingImageTest, TestSize.Level1)
 {
@@ -63,7 +63,7 @@ HWTEST_F(RSImageCacheTest, CacheDrawingImageTest, TestSize.Level1)
  * @tc.name: GetDrawingImageCacheTest
  * @tc.desc: Verify function GetDrawingImageCache
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, GetDrawingImageCacheTest, TestSize.Level1)
 {
@@ -78,7 +78,7 @@ HWTEST_F(RSImageCacheTest, GetDrawingImageCacheTest, TestSize.Level1)
  * @tc.name: IncreaseDrawingImageCacheRefCountTest
  * @tc.desc: Verify function IncreaseDrawingImageCacheRefCount
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, IncreaseDrawingImageCacheRefCountTest, TestSize.Level1)
 {
@@ -93,7 +93,7 @@ HWTEST_F(RSImageCacheTest, IncreaseDrawingImageCacheRefCountTest, TestSize.Level
  * @tc.name: ReleaseDrawingImageCacheTest
  * @tc.desc: Verify function ReleaseDrawingImageCache
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheTest, TestSize.Level1)
 {
@@ -108,7 +108,7 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheTest, TestSize.Level1)
  * @tc.name: GetPixelMapCacheTest
  * @tc.desc: Verify function GetPixelMapCache
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, GetPixelMapCacheTest, TestSize.Level1)
 {
@@ -123,7 +123,7 @@ HWTEST_F(RSImageCacheTest, GetPixelMapCacheTest, TestSize.Level1)
  * @tc.name: IncreasePixelMapCacheRefCountTest
  * @tc.desc: Verify function IncreasePixelMapCacheRefCount
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, IncreasePixelMapCacheRefCountTest, TestSize.Level1)
 {
@@ -138,7 +138,7 @@ HWTEST_F(RSImageCacheTest, IncreasePixelMapCacheRefCountTest, TestSize.Level1)
  * @tc.name: ReleasePixelMapCacheTest
  * @tc.desc: Verify function ReleasePixelMapCache
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest, TestSize.Level1)
 {
@@ -155,7 +155,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest, TestSize.Level1)
  * @tc.name: CacheRenderDrawingImageByPixelMapIdTest
  * @tc.desc: Verify function CacheRenderDrawingImageByPixelMapId
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, CacheRenderDrawingImageByPixelMapIdTest, TestSize.Level1)
 {
@@ -169,7 +169,7 @@ HWTEST_F(RSImageCacheTest, CacheRenderDrawingImageByPixelMapIdTest, TestSize.Lev
  * @tc.name: GetRenderDrawingImageCacheByPixelMapIdTest
  * @tc.desc: Verify function GetRenderDrawingImageCacheByPixelMapId
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, GetRenderDrawingImageCacheByPixelMapIdTest, TestSize.Level1)
 {
@@ -184,7 +184,7 @@ HWTEST_F(RSImageCacheTest, GetRenderDrawingImageCacheByPixelMapIdTest, TestSize.
  * @tc.name: ReleaseDrawingImageCacheByPixelMapIdTest
  * @tc.desc: Verify function ReleaseDrawingImageCacheByPixelMapId
  * @tc.type:FUNC
- * @tc.require:SR20240111372440
+ * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest, TestSize.Level1)
 {
