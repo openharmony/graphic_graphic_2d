@@ -52,6 +52,8 @@ private:
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
     void ProcessVirtualScreen(RSDisplayRenderNode& displayNodeSp, RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);
+    void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
+    void SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
     void ScaleMirrorIfNeed(RSDisplayRenderNode& node, std::shared_ptr<RSProcessor> processor);
     void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node);
     void DrawCurtainScreen(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
