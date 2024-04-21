@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr static float FLOAT_ZERO_THRESHOLD = 0.01f;
+constexpr static float FLOAT_ZERO_THRESHOLD = 0.01f; // 0.01f threshold
 } // namespace
 
 std::shared_ptr<Drawing::RuntimeEffect> RSMotionBlurFilter::motionBlurShaderEffect_ = nullptr;
@@ -113,20 +113,20 @@ std::shared_ptr<Drawing::ShaderEffect> RSMotionBlurFilter::MakeMotionBlurShader(
 
         half4 main(float2 coord)
         {
-            const float num = 8.0;
+            const float num = 8.0; // 8.0 sample times
             float2 scaleSizeStep = (scaleSize - 1.0) / num * radius;
             float2 rectOffsetStep = rectOffset / num * radius;
             float2 samplingOffset = (coord - scaleAnchor) * scaleSizeStep + rectOffsetStep;
 
-            half4 color = srcImageShader.eval(coord) * 0.18;
-            color += srcImageShader.eval(coord + samplingOffset) * 0.15;
-            color += srcImageShader.eval(coord + samplingOffset * 2) * 0.12;
-            color += srcImageShader.eval(coord + samplingOffset * 3) * 0.09;
-            color += srcImageShader.eval(coord + samplingOffset * 4) * 0.05;
-            color += srcImageShader.eval(coord + samplingOffset * 5) * 0.15;
-            color += srcImageShader.eval(coord + samplingOffset * 6) * 0.12;
-            color += srcImageShader.eval(coord + samplingOffset * 7) * 0.09;
-            color += srcImageShader.eval(coord + samplingOffset * 8) * 0.05;
+            half4 color = srcImageShader.eval(coord) * 0.18; // 0.18 alpha
+            color += srcImageShader.eval(coord + samplingOffset) * 0.15; // 0.15 alpha
+            color += srcImageShader.eval(coord + samplingOffset * 2) * 0.12; // 0.12 alpha, 2 times
+            color += srcImageShader.eval(coord + samplingOffset * 3) * 0.09; // 0.09 alpha, 3 times
+            color += srcImageShader.eval(coord + samplingOffset * 4) * 0.05; // 0.05 alpha, 4 times
+            color += srcImageShader.eval(coord + samplingOffset * 5) * 0.15; // 0.15 alpha, 5 times
+            color += srcImageShader.eval(coord + samplingOffset * 6) * 0.12; // 0.12 alpha, 6 times
+            color += srcImageShader.eval(coord + samplingOffset * 7) * 0.09; // 0.09 alpha, 7 times
+            color += srcImageShader.eval(coord + samplingOffset * 8) * 0.05; // 0.05 alpha, 8 times
 
             return color;
         }

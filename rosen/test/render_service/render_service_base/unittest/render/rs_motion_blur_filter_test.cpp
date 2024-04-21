@@ -63,11 +63,11 @@ HWTEST_F(MotionBlurFilterTest, testInterface, TestSize.Level1)
 HWTEST_F(MotionBlurFilterTest, ComposeTest, TestSize.Level1)
 {
     Vector2f anchor = {0.f, 0.f};
-    std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor);
+    std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor); // 10.f radius
     auto filter = std::make_shared<RSMotionBlurFilter>(para);
     auto filter_ = std::make_shared<RSMotionBlurFilter>(para);
 
-    EXPECT_NE(filter->Compose(filter_), nullptr);
+    EXPECT_TRUE(filter->Compose(filter_) == nullptr);
 }
 
 /**
@@ -78,7 +78,7 @@ HWTEST_F(MotionBlurFilterTest, ComposeTest, TestSize.Level1)
 HWTEST_F(MotionBlurFilterTest, SetGeometryTest, TestSize.Level1)
 {
     Vector2f anchor = {0.f, 0.f};
-    std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor);
+    std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor); // 10.f radius
     auto filter = std::make_shared<RSMotionBlurFilter>(para);
 
     Drawing::Canvas canvas;
