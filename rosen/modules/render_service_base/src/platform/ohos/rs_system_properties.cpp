@@ -248,6 +248,14 @@ bool RSSystemProperties::GetHighContrastStatus()
     return ConvertToInt(status, 0) != 0;
 }
 
+bool RSSystemProperties::GetDrmEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.enabled", "1");
+    int changed = 0;
+    const char *enabled = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enabled, 0) != 0;
+}
+
 bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_)
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.surfacenames", "0");

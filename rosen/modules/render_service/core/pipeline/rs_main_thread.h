@@ -531,6 +531,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     bool watermarkFlag_ = false;
     bool doParallelComposition_ = false;
+    bool hasProtectedLayer_ = false;
 
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
