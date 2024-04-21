@@ -1109,8 +1109,11 @@ void RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& no
     }
     RectI srcRect = { 0, 0, node.GetBuffer()->GetSurfaceBufferWidth(), node.GetBuffer()->GetSurfaceBufferHeight() };
     node.SetSrcRect(srcRect);
-    auto originalDstRect = node.GetOriginalDstRect();
     auto dstRect = node.GetDstRect();
+    auto originalDstRect = node.GetOriginalDstRect();
+    if (originalDstRect.IsEmpty()) {
+        originalDstRect = dstRect;
+    }
     dstRect.left_ += (dstRect.width_ - originalDstRect.width_) / 2;
     dstRect.top_ += (dstRect.height_ - originalDstRect.height_) / 2;
     dstRect.width_ = originalDstRect.width_;

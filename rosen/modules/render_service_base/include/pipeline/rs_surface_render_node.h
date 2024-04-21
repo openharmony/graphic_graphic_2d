@@ -218,6 +218,11 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
+    {
+        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
+    }
+
     void SetHardwareDisabledByCache(bool disabledByCache)
     {
         isHardwareDisabledByCache_ = disabledByCache;
@@ -240,10 +245,10 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isForceHardwareByUser_) {
+        if (isForceHardwareByUser_ && !isHardwareForcedDisabledByVisibility_) {
             return false;
         }
-        return isHardwareForcedDisabled_ ||
+        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -1223,6 +1228,7 @@ private:
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
     bool isForceHardwareByUser_ = false;
+    bool isHardwareForcedDisabledByVisibility_ = false;
     RectI originalDstRect_;
     int32_t fixedRotationDegree_ = -90;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
