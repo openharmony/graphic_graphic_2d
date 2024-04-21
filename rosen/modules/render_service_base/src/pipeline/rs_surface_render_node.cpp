@@ -209,7 +209,8 @@ bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
 
 void RSSurfaceRenderNode::StoreMustRenewedInfo()
 {
-    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || GetHasSecurityLayer() || GetHasSkipLayer();
+    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || GetHasSecurityLayer() ||
+        GetHasSkipLayer() || GetHasProtectedLayer();
 }
 
 std::string RSSurfaceRenderNode::DirtyRegionDump() const
@@ -393,6 +394,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     // sync skip & security info
     SyncSecurityInfoToFirstLevelNode();
     SyncSkipInfoToFirstLevelNode();
+    SyncProtectedInfoToFirstLevelNode();
 }
 
 void RSSurfaceRenderNode::OnResetParent()
@@ -670,6 +672,18 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
     SyncSkipInfoToFirstLevelNode();
 }
 
+void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
+{
+    isProtectedLayer_ = isProtectedLayer;
+    SetDirty();
+    if (isProtectedLayer) {
+        protectedLayerIds_.insert(GetId());
+    } else {
+        protectedLayerIds_.erase(GetId());
+    }
+    SyncProtectedInfoToFirstLevelNode();
+}
+
 bool RSSurfaceRenderNode::GetSecurityLayer() const
 {
     return isSecurityLayer_;
@@ -679,6 +693,11 @@ bool RSSurfaceRenderNode::GetSecurityLayer() const
 bool RSSurfaceRenderNode::GetSkipLayer() const
 {
     return isSkipLayer_;
+}
+
+bool RSSurfaceRenderNode::GetProtectedLayer() const
+{
+    return isProtectedLayer_;
 }
 
 bool RSSurfaceRenderNode::GetHasSecurityLayer() const
@@ -691,6 +710,10 @@ bool RSSurfaceRenderNode::GetHasSkipLayer() const
     return skipLayerIds_.size() != 0;
 }
 
+bool RSSurfaceRenderNode::GetHasProtectedLayer() const
+{
+    return protectedLayerIds_.size() != 0;
+}
 
 void RSSurfaceRenderNode::SyncSecurityInfoToFirstLevelNode()
 {
@@ -728,6 +751,23 @@ void RSSurfaceRenderNode::SyncSkipInfoToFirstLevelNode()
         auto parent = GetParent().lock();
         if (parent && GetFirstLevelNodeId() == parent->GetId()) {
             firstLevelNode->isSkipLayer_ = isSkipLayer_;
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SyncProtectedInfoToFirstLevelNode()
+{
+    if (isProtectedLayer_) {
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+        // firstLevelNode is the nearest app window / leash node
+        if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+            firstLevelNode->SetDirty();
+            // should always sync protectedLayerIds_ to firstLevelNode
+            if (isProtectedLayer_ && IsOnTheTree()) {
+                firstLevelNode->protectedLayerIds_.insert(GetId());
+            } else {
+                firstLevelNode->protectedLayerIds_.erase(GetId());
+            }
         }
     }
 }
@@ -2340,8 +2380,10 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
+    surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
+    surfaceParams->protectedLayerIds_= protectedLayerIds_;
     surfaceParams->name_= name_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
     surfaceParams->SetNeedSync(true);

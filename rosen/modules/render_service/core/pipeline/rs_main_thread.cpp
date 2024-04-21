@@ -1102,6 +1102,14 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
         }
 
+        const auto& surfaceBuffer = surfaceNode->GetBuffer();
+        if (deviceType_ == DeviceType::PHONE && surfaceBuffer &&
+            (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+            if (!surfaceNode->GetProtectedLayer()) {
+                surfaceNode->SetProtectedLayer(true);
+            }
+        }
+
         // still have buffer(s) to consume.
         if (surfaceHandler.GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
