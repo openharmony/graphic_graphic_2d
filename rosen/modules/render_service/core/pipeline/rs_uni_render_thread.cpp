@@ -191,6 +191,11 @@ void RSUniRenderThread::PostSyncTask(const std::function<void()>& task)
     handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
+bool RSUniRenderThread::IsIdle() const
+{
+    return handler_ ? handler_->IsIdle() : false;
+}
+
 void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams)
 {
     renderThreadParams_ = std::move(stagingRenderThreadParams);
