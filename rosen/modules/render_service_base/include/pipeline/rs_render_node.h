@@ -738,7 +738,7 @@ private:
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
 
-    void UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
+    bool UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
@@ -834,6 +834,13 @@ private:
     float boundsHeight_ = 0.0f;
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
+    // node region, only used in selfdrawing node dirty
+    bool isSelfDrawingNode_ = false;
+    RectF selfDrawingNodeDirtyRect_;
+    RectI selfDrawingNodeAbsDirtyRect_;
+    RectI oldAbsDrawRect_;
+    // used in old pipline
+    RectI oldRectFromRenderProperties_;
     // including enlarged draw region
     RectF selfDrawRect_;
     RectI localShadowRect_;
