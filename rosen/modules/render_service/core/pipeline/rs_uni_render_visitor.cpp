@@ -206,7 +206,8 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     isPc_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
     isCurtainScreenOn_ = RSMainThread::Instance()->IsCurtainScreenOn();
-    isPrevalidateHwcNodeEnable_ = RSSystemParameters::GetPrevalidateHwcNodeEnabled();
+    isPrevalidateHwcNodeEnable_ = RSSystemParameters::GetPrevalidateHwcNodeEnabled() &&
+                                  RSUniHwcPrevalidateUtil::GetInstance().IsLoadSuccess();
 }
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
