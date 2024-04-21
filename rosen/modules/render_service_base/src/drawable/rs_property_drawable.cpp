@@ -175,7 +175,6 @@ void RSFilterDrawable::OnSync()
     stagingForceUseCache_ = false;
     stagingClearFilteredCacheAfterDrawing_ = false;
     isOccluded_ = false;
-    belowFilterIsDirty_ = false;
 
     clearType_ = FilterCacheType::BOTH;
     isLargeArea_ = false;
@@ -239,14 +238,6 @@ void RSFilterDrawable::MarkHasEffectChildren()
     stagingHasEffectChildren_ = true;
 }
 
-void RSFilterDrawable::MarkFilterBelowIsDirty()
-{
-    if (filterType_ != RSFilter::AIBAR) {
-        forceClearCache_ = true;
-    }
-    belowFilterIsDirty_ = true;
-}
-
 void RSFilterDrawable::MarkNodeIsOccluded(bool isOccluded)
 {
     isOccluded_ = isOccluded;
@@ -258,11 +249,11 @@ void RSFilterDrawable::CheckClearFilterCache()
         return;
     }
 
-    stagingClearFilteredCacheAfterDrawing_ =
-        filterType_ != RSFilter::AIBAR ? (filterHashChanged_ && !filterRegionChanged_) : false;
+    stagingClearFilteredCacheAfterDrawing_ = filterType_ != RSFilter::AIBAR ? filterHashChanged_ : false;
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu], forceUseCache_:%d, "
+        "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,  currentClearAfterDrawing:%d, "
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, hasEffectChildren_:%d,"
-        "filterType_:%d, lastOccluded_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
+        "filterType_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
         filterRegionChanged_, filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
         cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_);
 
@@ -291,12 +282,12 @@ void RSFilterDrawable::CheckClearFilterCache()
 
     // background changed and last frame when skip-frame enabled
     if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ <= 0) {
-        UpdateFlags(FilterCacheType::BOTH, false, false);
+        UpdateFlags(FilterCacheType::BOTH, false);
         return;
     }
     // when blur filter changes, we need to clear filtered cache if it valid.
     UpdateFlags(filterHashChanged_ ?
-        FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true, false);
+        FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true);
 }
 
 bool RSFilterDrawable::IsFilterCacheValid() const
@@ -338,14 +329,10 @@ void RSFilterDrawable::ClearFilterCache()
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
 }
 
-void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid, bool forceResetInterval)
+void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
 {
     clearType_ = type;
     isFilterCacheValid_ = cacheValid;
-    if (forceResetInterval && !belowFilterIsDirty_) {
-        cacheUpdateInterval_ = 0;
-        return;
-    }
     if (cacheValid) {
         cacheUpdateInterval_--;
         return;

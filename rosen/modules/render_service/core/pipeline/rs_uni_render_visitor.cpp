@@ -1140,10 +1140,10 @@ void RSUniRenderVisitor::UpdateSecurityAndSkipLayerRecord(RSSurfaceRenderNode& n
 }
 
 void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node,
-    RSDirtyRegionManager& dirtyManager, bool isForegound)
+    RSDirtyRegionManager& dirtyManager, bool isForeground)
 {
-    node.UpdateFilterCacheWithDirty(dirtyManager, isForegound);
-    node.UpdateFilterCacheManagerWithCacheRegion(dirtyManager, prepareClipRect_, isForegound);
+    node.UpdateFilterCacheWithBelowDirty(dirtyManager, isForeground);
+    node.UpdateFilterCacheWithSelfDirty(prepareClipRect_);
 }
 
 void RSUniRenderVisitor::UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node)
@@ -2200,6 +2200,8 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
         }
         auto filterRegion = Occlusion::Region{ Occlusion::Rect{ it->second } };
         auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckMergeGlobalFilterForDisplay::filternode:%llu, filterRect:%s, dirtyRegion:%s",
+            filterNode->GetId(), it->second.ToString().c_str(), accumulatedDirtyRegion.GetRegionInfo().c_str());
         if (!filterDirtyRegion.IsEmpty()) {
             RS_LOGD("RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay merge "
                 "container filterRegion %{public}s", (it->second).ToString().c_str());
@@ -2213,14 +2215,7 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
         } else {
             globalFilter_.insert(*it);
         }
-        if (!it->second.IsInsideOf(filterNode->GetFilterCachedRegion())) {
-            if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
-                filterNode->MarkFilterStatusChanged(false, true); // 1. background 2. filterRegionChanged
-            }
-            if (filterNode->GetRenderProperties().GetFilter()) {
-                filterNode->MarkFilterStatusChanged(true, true); // 1. foreground 2. filterRegionChanged
-            }
-        }
+        filterNode->UpdateFilterCacheWithSelfDirty();
         filterNode->MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
     }
 
@@ -2248,12 +2243,15 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
 
 void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 {
+    auto curDirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     if (subTreeSkipped) {
-        CheckFilterNodeInSkippedSubTreeNeedClearCache(node);
+        CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
     }
     if (node.GetRenderProperties().NeedFilter()) {
         UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, node.GetOldDirtyInSurface());
-        CollectFilterInfoAndUpdateDirty(node);
+        auto globalFilterRect = (node.IsInstanceOf<RSEffectRenderNode>() && !node.IsEffectNodeNeedTakeSnapShot()) ?
+            GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
+        CollectFilterInfoAndUpdateDirty(node, *curDirtyManager, globalFilterRect);
         node.UpdateLastFilterCacheRegion(prepareClipRect_);
         node.SetGlobalAlpha(curAlpha_);
     }
@@ -2290,9 +2288,9 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     node.AddToPendingSyncList();
 }
 
-void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& rootNode)
+void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
+    const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager)
 {
-    auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto& child : rootNode.GetVisibleFilterChild()) {
         auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
@@ -2302,32 +2300,13 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSR
         if (auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode)) {
             UpdateRotationStatusForEffectNode(*effectNode);
         }
-        RS_TRACE_NAME_FMT("node[%lld] CheckFilterNodeInSkippedSubTreeNeedClearCache dirtyRegion:%s, lastRect:%s",
-            filterNode->GetId(), dirtyManager->GetCurrentFrameDirtyRegion().ToString().c_str(),
-            filterNode->GetFilterCachedRegion().ToString().c_str());
-        const auto& properties = filterNode->GetRenderProperties();
-        if (properties.GetBackgroundFilter() &&
-            dirtyManager->GetCurrentFrameDirtyRegion().Intersect(filterNode->GetFilterCachedRegion())) {
-            filterNode->MarkFilterStatusChanged(false, false); // 1. background 2. interact with dirty
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterNodeInSkippedSubTreeNeedClearCache node[%lld]", filterNode->GetId());
+        if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
+            filterNode->UpdateFilterCacheWithBelowDirty(dirtyManager, false);
         }
-        RectI filterRect ;
+        RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(rootNode, filterRect);
-        bool isIntersect = dirtyManager->GetCurrentFrameDirtyRegion().Intersect(filterRect);
-        if (isIntersect) {
-            dirtyManager->MergeDirtyRect(filterRect);
-            if (properties.GetFilter()) {
-                filterNode->MarkFilterStatusChanged(true, false); // 1. foreground 2. interact with dirty
-            }
-        }
-        if (!filterRect.IsInsideOf(filterNode->GetFilterCachedRegion())) {
-            if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
-                filterNode->MarkFilterStatusChanged(false, true); // 1. background 2. filterRegionChanged
-            }
-            if (filterNode->GetRenderProperties().GetFilter()) {
-                filterNode->MarkFilterStatusChanged(true, true); // 1. foreground 2. filterRegionChanged
-            }
-        }
-        filterNode->MarkAndUpdateFilterNodeDirtySlotsAfterPrepare();
+        CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect);
         filterNode->UpdateLastFilterCacheRegionInSkippedSubTree(filterRect);
     }
 }
@@ -2419,23 +2398,27 @@ RectI RSUniRenderVisitor::GetVisibleEffectDirty(RSRenderNode& node) const
     return childEffectRect;
 }
 
-void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node)
+void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
+    RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, bool isInSkippedSubTree)
 {
-    auto curDirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-    auto globalFilterRect = (node.IsInstanceOf<RSEffectRenderNode>() && !node.IsEffectNodeNeedTakeSnapShot()) ?
-        GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
     bool isNodeAddedToTransparentCleanFilters = false;
     if (curSurfaceNode_) {
-        bool isIntersect = curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
+        bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
         if (isIntersect) {
-            curDirtyManager->MergeDirtyRect(globalFilterRect);
-            UpdateForegroundFilterCacheWithDirty(node, *curDirtyManager, true);
+            dirtyManager.MergeDirtyRect(globalFilterRect);
         }
+        if (node.GetRenderProperties().GetFilter()) {
+            node.UpdateFilterCacheWithBelowDirty(dirtyManager, true);
+        }
+        isInSkippedSubTree ? node.UpdateFilterCacheWithSelfDirty(std::nullopt, isInSkippedSubTree, globalFilterRect) :
+            node.UpdateFilterCacheWithSelfDirty(prepareClipRect_);
         if (curSurfaceNode_->IsTransparent()) {
             globalFilterRects_.emplace_back(globalFilterRect);
             if (!isIntersect || (isIntersect && node.GetRenderProperties().GetBackgroundFilter() &&
                 !node.IsBackgroundInAppOrNodeSelfDirty())) {
                 // record nodes which has transparent clean filter
+                RS_OPTIONAL_TRACE_NAME_FMT("CollectFilterInfoAndUpdateDirty::surfaceNode:%s, add node[%lld] to "
+                    "transparentCleanFilter", curSurfaceNode_->GetName().c_str(), node.GetId());
                 transparentCleanFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalFilterRect});
                 isNodeAddedToTransparentCleanFilters = true;
             }

@@ -1432,9 +1432,13 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
                 effectNode->SetRotationChanged(isRotationChanged);
             }
         }
-        node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
-        node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
-        node->UpdateFilterCacheManagerWithCacheRegion(*dirtyManager_, clipRect);
+        if (node->GetRenderProperties().GetBackgroundFilter()) {
+            node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
+        }
+        if (node->GetRenderProperties().GetFilter()) {
+            node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
+        }
+        node->UpdateFilterCacheWithSelfDirty(clipRect);
     }
     SetFilterCacheFullyCovered(false);
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
