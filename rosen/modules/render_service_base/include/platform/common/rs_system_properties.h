@@ -203,6 +203,7 @@ public:
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSnapshotWithDMAEnabled();
+    static bool GetDrmEnabled();
     static bool IsPhoneType();
     static bool IsPcType();
     static bool GetSyncTransactionEnabled();

@@ -1057,6 +1057,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 {
     if (isUniRender_) {
         ResetHardwareEnabledState();
+        hasProtectedLayer_ = false;
     }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     bool needRequestNextVsync = false;
@@ -1103,10 +1104,14 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
 
         const auto& surfaceBuffer = surfaceNode->GetBuffer();
-        if (deviceType_ == DeviceType::PHONE && surfaceBuffer &&
+        if (RSSystemProperties::GetDrmEnabled() && deviceType_ == DeviceType::PHONE && surfaceBuffer &&
             (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
             if (!surfaceNode->GetProtectedLayer()) {
                 surfaceNode->SetProtectedLayer(true);
+            }
+            const auto& instanceNode = surfaceNode->GetInstanceRootNode();
+            if (instanceNode && instanceNode->IsOnTheTree()) {
+                hasProtectedLayer_ = true;
             }
         }
 
@@ -1247,7 +1252,8 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
 
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
-    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ || isMultiDisplay || hasColorFilter;
+    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ ||
+        (isMultiDisplay && !hasProtectedLayer_) || hasColorFilter;
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
         "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
         isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
@@ -3205,7 +3211,9 @@ void RSMainThread::UpdateUIFirstSwitch()
     auto screenManager_ = CreateOrGetScreenManager();
     uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
     if (deviceType_ != DeviceType::PC) {
-        if (isFoldScreenDevice_) {
+        if (deviceType_ == DeviceType::PHONE && hasProtectedLayer_) {
+            isUiFirstOn_ = false;
+        } else if (isFoldScreenDevice_) {
             isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
         } else {
             isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
