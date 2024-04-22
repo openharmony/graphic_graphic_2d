@@ -174,7 +174,7 @@ void RsFrameReport::RSRenderStart()
 void RsFrameReport::RenderEnd()
 {
     if (renderEndFunc_ == nullptr) {
-        renderEndFunc_ = reinterpret_cast<RenderEndFunc>(LoadSymbol("RenderEnd"));
+        renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
     }
 
     if (renderEndFunc_ != nullptr) {
@@ -187,7 +187,7 @@ void RsFrameReport::RenderEnd()
 void RsFrameReport::RSRenderEnd()
 {
     if (parallelRenderEndFunc_ == nullptr) {
-        parallelRenderEndFunc_ = (ParallelRenderEndFunc)LoadSymbol("RSRenderEnd");
+        parallelRenderEndFunc_ = reinterpret_cast<ParallelRenderEndFunc>(LoadSymbol("RSRenderEnd"));
     }
     if (parallelRenderEndFunc_ != nullptr) {
         parallelRenderEndFunc_();
