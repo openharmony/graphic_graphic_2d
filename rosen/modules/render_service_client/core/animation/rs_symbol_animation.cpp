@@ -224,26 +224,17 @@ bool RSSymbolAnimation::SetReplaceAppear(
 {
     auto nodeNum = symbolAnimationConfig->numNodes;
     if (nodeNum <= 0) {
-        ROSEN_LOGD("[%{public}s]::getNode or get symbolAnimationConfig:failed \n", __func__);
         return false;
     }
-
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
-
     auto& symbolFirstNode = symbolAnimationConfig->SymbolNodes[0]; // calculate offset by the first node
-
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_,
-        symbolFirstNode.nodeBoundary[0],
-        symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
-
+        symbolFirstNode.nodeBoundary[0], symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-
     TextEngine::SymbolAnimationEffectStrategy effectStrategy =
         TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters,
         effectStrategy);
-    int APPEAR_STATUS = 1 ;
-
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
@@ -253,31 +244,24 @@ bool RSSymbolAnimation::SetReplaceAppear(
         rsNode_->canvasNodesListMap[symbolSpanId].insert((std::make_pair(canvasNode->GetId(), canvasNode)));
         AnimationNodeConfig appearNodeConfig = {.symbolNode = symbolNode, .animationIndex = symbolNode.animationIndex};
         rsNode_->replaceNodesSwapMap[APPEAR_STATUS].insert((std::make_pair(canvasNode->GetId(), appearNodeConfig)));
-
         if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
             symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
-            return false;
+            continue;
         }
         rsNode_->AddChild(canvasNode, -1);
         GroupDrawing(canvasNode, symbolNode, offsets, nodeNum > 1);
-        if (!isStartAnimation) {
+        if (!isStartAnimation || !res || (symbolNode.animationIndex < 0)) {
             continue;
         }
-        if (!res || (symbolNode.animationIndex < 0)) {
-            continue;
-        }
-
         if (parameters.size() <= symbolNode.animationIndex || parameters[symbolNode.animationIndex].empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-
         auto oneGroupParas = parameters[int(symbolNode.animationIndex)];
         if (oneGroupParas.empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-
         SpliceAnimation(canvasNode, oneGroupParas, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR);
     }
     return true;
