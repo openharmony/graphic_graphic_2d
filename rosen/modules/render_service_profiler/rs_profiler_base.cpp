@@ -532,10 +532,6 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     const int32_t dataSize = parcel.GetDataSize();
     data.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
     data.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
-
-    const int32_t objectCount = parcel.GetOffsetsSize();
-    data.write(reinterpret_cast<const char*>(&objectCount), sizeof(objectCount));
-    data.write(reinterpret_cast<char*>(parcel.GetObjectOffsets()), objectCount * sizeof(binder_size_t));
 }
 
 void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data)
@@ -679,17 +675,10 @@ static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data)
     buffer.resize(bufferSize);
     data.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
 
-    uint32_t objectCount = 0;
-    data.read(reinterpret_cast<char*>(&objectCount), sizeof(objectCount));
-
-    binder_size_t objectOffsets[objectCount];
-    data.read(reinterpret_cast<char*>(objectOffsets), sizeof(objectOffsets));
-
     uint8_t parcelMemory[sizeof(Parcel) + 1];
     auto* parcel = new (parcelMemory + 1) Parcel;
     parcel->SetMaxCapacity(GetParcelMaxCapacity());
     parcel->WriteBuffer(buffer.data(), buffer.size());
-    parcel->InjectOffsets(reinterpret_cast<binder_size_t>(objectOffsets), objectCount);
 
     return RSRenderModifier::Unmarshalling(*parcel);
 }
@@ -818,6 +807,55 @@ void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
 void RSProfiler::SetReplayTimes(double replayStartTime, double recordStartTime)
 {
     g_transactionTimeCorrection = static_cast<int64_t>((replayStartTime - recordStartTime) * NS_TO_S);
+}
+
+int RSProfiler::PerfTreeFlatten(
+    const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet, std::unordered_map<NodeId, int>& mapNode2Count)
+{
+    if (node.renderContent_ == nullptr) {
+        return 0;
+    }
+
+    int nodeCmdListCount = 0;
+    for (auto& [type, modifiers] : node.renderContent_->drawCmdModifiers_) {
+        if (type >= RSModifierType::ENV_FOREGROUND_COLOR) {
+            continue;
+        }
+        for (auto& modifier : modifiers) {
+            auto propertyPtr =
+                modifier ? std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty())
+                         : nullptr;
+            auto propertyValue = propertyPtr ? propertyPtr->Get() : nullptr;
+            if (propertyValue && propertyValue->GetOpItemSize() > 0) {
+                nodeCmdListCount = 1;
+            }
+        }
+    }
+
+    int drawCmdListCount = nodeCmdListCount;
+    int valuableChildrenCount = 0;
+    if (node.GetSortedChildren()) {
+        for (auto& child : *node.GetSortedChildren()) {
+            if (child) {
+                drawCmdListCount += PerfTreeFlatten(*child, nodeSet, mapNode2Count);
+                valuableChildrenCount++;
+            }
+        }
+    }
+    for (auto& [child, pos] : node.disappearingChildren_) {
+        if (child) {
+            drawCmdListCount += PerfTreeFlatten(*child, nodeSet, mapNode2Count);
+            valuableChildrenCount++;
+        }
+    }
+
+    if (drawCmdListCount > 0) {
+        mapNode2Count[node.id_] = drawCmdListCount;
+        if (!(valuableChildrenCount == 1 && nodeCmdListCount == 0)) {
+            nodeSet.insert(node.id_);
+        }
+    }
+    return drawCmdListCount;
 }
 
 } // namespace OHOS::Rosen

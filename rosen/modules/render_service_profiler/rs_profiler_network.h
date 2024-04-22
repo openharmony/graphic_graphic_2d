@@ -20,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace OHOS::Rosen {
 
@@ -42,6 +43,8 @@ public:
     static void SendDclPath(const std::string& path);
     static void SendSkp(const void* data, size_t size);
     static void SendTelemetry(double startTime);
+    static void SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNodesList);
+    static void SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec);
 
     static void SendBinary(const void* data, size_t size);
     static void SendMessage(const std::string& message);
