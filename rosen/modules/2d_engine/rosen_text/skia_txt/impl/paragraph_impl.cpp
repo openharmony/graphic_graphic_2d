@@ -58,7 +58,7 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
 } // anonymous namespace
 
 ParagraphImpl::ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
-    : paragraph_(std::move(paragraph)), paints_(paints)
+    : paragraph_(std::move(paragraph)), paints_(std::move(paints))
 {}
 
 double ParagraphImpl::GetMaxWidth()
