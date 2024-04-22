@@ -162,7 +162,7 @@ void RsFrameReport::RenderStart(uint64_t timestamp)
 void RsFrameReport::RSRenderStart()
 {
     if (parallelRenderStartFunc_ == nullptr) {
-        parallelRenderStartFunc_ = (ParallelRenderStartFunc)LoadSymbol("RSRenderStart");
+        parallelRenderStartFunc_ = reinterpret_cast<ParallelRenderStartFunc>(LoadSymbol("RSRenderStart"));
     }
     if (parallelRenderStartFunc_ != nullptr) {
         parallelRenderStartFunc_();
@@ -174,7 +174,7 @@ void RsFrameReport::RSRenderStart()
 void RsFrameReport::RenderEnd()
 {
     if (renderEndFunc_ == nullptr) {
-        renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
+        renderEndFunc_ = reinterpret_cast<RenderEndFunc>(LoadSymbol("RenderEnd"));
     }
 
     if (renderEndFunc_ != nullptr) {
