@@ -30,8 +30,8 @@ static const unsigned int PROP_START = 0; // symbol animation property contains 
 static const unsigned int PROP_END = 1;   // symbol animation property contains two values, change from START to the END
 static const unsigned int WIDTH = 2;
 static const unsigned int HEIGHT = 3;
-static const unsigned int INVALID_STATUS = -1;  // invalid status
-static const unsigned int APPEAR_STATUS = 1 ;    // invalid status
+static const unsigned int INVALID_STATUS = -1;  // invalid status label
+static const unsigned int APPEAR_STATUS = 1 ;   // appear status label
 
 namespace SymbolAnimation {
 template<typename T>
@@ -128,6 +128,7 @@ void RSSymbolAnimation::NodeProcessBeforeAnimation(
     }
     
     if (rsNode_->canvasNodesListMap.count(symbolAnimationConfig->symbolSpanId) > 0) {
+        std::lock_guard<std::mutex> lock(m_);
         rsNode_->canvasNodesListMap.erase(symbolAnimationConfig->symbolSpanId);
     }
     return;
@@ -135,6 +136,7 @@ void RSSymbolAnimation::NodeProcessBeforeAnimation(
 
 void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
 {
+    std::lock_guard<std::mutex> lock(m_);
     if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
         rsNode_->canvasNodesListMap[symbolSpanId] = {};
     }
@@ -161,7 +163,6 @@ bool RSSymbolAnimation::SetReplaceAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
     SetReplaceDisappear(symbolAnimationConfig);
-    int INVALID_STATUS = -1;
     SetReplaceAppear(symbolAnimationConfig,
         rsNode_->replaceNodesSwapMap[INVALID_STATUS].size() > 0);
     return true;
@@ -182,25 +183,16 @@ bool RSSymbolAnimation::SetReplaceDisappear(
         TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_DISAPPEAR;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, effectStrategy);
     for (const auto& [id, config] : disappearNodes) {
+        m_.lock();
         rsNode_->replaceNodesSwapMap[INVALID_STATUS][id] = config;
         rsNode_->replaceNodesSwapMap[APPEAR_STATUS].erase(id);
         TextEngine::SymbolNode symbolNode = config.symbolNode;
-
+        m_.unlock();
         if (!res || (symbolNode.animationIndex < 0)) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
         auto canvasNode = rsNode_->canvasNodesListMap[symbolAnimationConfig->symbolSpanId][id];
-        Vector4f offsets =
-            CalculateOffset(symbolNode.symbolData.path_, symbolNode.nodeBoundary[0],
-                symbolNode.nodeBoundary[1]);
-        if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
-            symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
-            continue;
-        }
-        rsNode_->AddChild(canvasNode, -1);
-        RSCanvasNode* drawNode = static_cast<RSCanvasNode*>(canvasNode.get());
-        std::shared_ptr<RSCanvasNode> node = std::shared_ptr<RSCanvasNode>(drawNode);
 
         if (parameters.size() <= symbolNode.animationIndex ||
             parameters.at(symbolNode.animationIndex).empty()) {
@@ -238,12 +230,14 @@ bool RSSymbolAnimation::SetReplaceAppear(
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
+        m_.lock();
         if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
             rsNode_->canvasNodesListMap.insert({symbolSpanId, {}}) ;
         }
         rsNode_->canvasNodesListMap[symbolSpanId].insert((std::make_pair(canvasNode->GetId(), canvasNode)));
         AnimationNodeConfig appearNodeConfig = {.symbolNode = symbolNode, .animationIndex = symbolNode.animationIndex};
         rsNode_->replaceNodesSwapMap[APPEAR_STATUS].insert((std::make_pair(canvasNode->GetId(), appearNodeConfig)));
+        m_.unlock();
         if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
             symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
             continue;
@@ -358,14 +352,12 @@ bool RSSymbolAnimation::SetPublicAnimation(
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
-
+        m_.lock();
         if (!rsNode_->canvasNodesListMap.count(symbolSpanId)) {
             rsNode_->canvasNodesListMap[symbolSpanId] = {};
         }
         rsNode_->canvasNodesListMap[symbolSpanId][canvasNode->GetId()] = canvasNode;
-
-        Vector4f offsets =
-            CalculateOffset(symbolNode.symbolData.path_, symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]);
+        m_.unlock();
         if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
             symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
             return false;
