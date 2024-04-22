@@ -148,7 +148,7 @@ ADD_COMMAND(RSAnimationCreateParticle,
         std::shared_ptr<RSRenderParticleAnimation>))
 
 // create keyframe animation
-ADD_COMMAND(RSAnimationCreateKeyframe,ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME,
+ADD_COMMAND(RSAnimationCreateKeyframe, ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME,
     AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderKeyframeAnimation>))
 
 // create path animation
