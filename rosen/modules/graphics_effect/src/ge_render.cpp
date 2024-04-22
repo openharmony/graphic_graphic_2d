@@ -32,6 +32,10 @@ void GERender::DrawImageEffect(Drawing::Canvas& canvas, Drawing::GEVisualEffectC
     const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src, const Drawing::Rect& dst,
     const Drawing::SamplingOptions& sampling)
 {
+    if (!image) {
+        LOGE("GERender::DrawImageRect image is null");
+        return;
+    }
     std::vector<std::shared_ptr<GEShaderFilter>> geShaderFilters = GenerateShaderFilter(veContainer);
 
     auto resImage = image;
@@ -52,14 +56,17 @@ std::shared_ptr<Drawing::Image> GERender::ApplyImageEffect(Drawing::Canvas& canv
     Drawing::GEVisualEffectContainer& veContainer, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling)
 {
+    if (!image) {
+        LOGE("GERender::ApplyImageEffect image is null");
+        return image;
+    }
     std::vector<std::shared_ptr<GEShaderFilter>> geShaderFilters = GenerateShaderFilter(veContainer);
-
     auto resImage = image;
     for (auto geShaderFilter : geShaderFilters) {
         if (geShaderFilter != nullptr) {
             resImage = geShaderFilter->ProcessImage(canvas, resImage, src, dst);
         } else {
-            LOGD("GERender::DrawImageRect filter is null");
+            LOGD("GERender::ApplyImageEffect filter is null");
         }
     }
 
