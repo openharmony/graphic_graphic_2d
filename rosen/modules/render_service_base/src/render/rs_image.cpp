@@ -221,7 +221,6 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             if (canvas.GetGPUContext() == nullptr) {
                 return;
             }
-            RS_TRACE_NAME("make compress img");
             Media::ImageInfo imageInfo;
             pixelMap_->GetImageInfo(imageInfo);
             Media::Size realSize;
