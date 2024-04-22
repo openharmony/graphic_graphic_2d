@@ -37,7 +37,6 @@ config("libtexgine_public_config") {
   include_dirs = [
     "export",
     "texgine_drawing",
-    "//third_party/skia/third_party/externals/harfbuzz/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
