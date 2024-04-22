@@ -30,6 +30,8 @@ static const unsigned int PROP_START = 0; // symbol animation property contains 
 static const unsigned int PROP_END = 1;   // symbol animation property contains two values, change from START to the END
 static const unsigned int WIDTH = 2;
 static const unsigned int HEIGHT = 3;
+static const unsigned int INVALID_STATUS = -1;  // invalid status
+static const unsigned int APPEAR_STATUS = 1 ;    // invalid status
 
 namespace SymbolAnimation {
 template<typename T>
@@ -103,15 +105,182 @@ bool RSSymbolAnimation::SetSymbolAnimation(
         return false;
     }
 
-    if (rsNode_->canvasNodesListMap.count(symbolAnimationConfig->symbolSpanId) > 0) {
-        rsNode_->canvasNodesListMap.erase(symbolAnimationConfig->symbolSpanId);
-    }
-
+    NodeProcessBeforeAnimation(symbolAnimationConfig);
     if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_NONE) {
         return true; // pre code already clear nodes.
     }
     InitSupportAnimationTable();
+
+    if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR) {
+        return SetReplaceAnimation(symbolAnimationConfig);
+    }
+
     return SetPublicAnimation(symbolAnimationConfig);
+}
+
+void RSSymbolAnimation::NodeProcessBeforeAnimation(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
+{
+    if (symbolAnimationConfig->effectStrategy ==
+        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR) {
+        PopNodeFromReplaceList(symbolAnimationConfig->symbolSpanId);
+        return;
+    }
+    
+    if (rsNode_->canvasNodesListMap.count(symbolAnimationConfig->symbolSpanId) > 0) {
+        rsNode_->canvasNodesListMap.erase(symbolAnimationConfig->symbolSpanId);
+    }
+    return;
+}
+
+void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
+{
+    if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
+        rsNode_->canvasNodesListMap[symbolSpanId] = {};
+    }
+
+    if (rsNode_->replaceNodesSwapMap.find(INVALID_STATUS) == rsNode_->replaceNodesSwapMap.end()) {
+        rsNode_->replaceNodesSwapMap[INVALID_STATUS] = {};
+    } else {
+        std::unordered_map<NodeId,
+            OHOS::Rosen::AnimationNodeConfig> invalidNodes = rsNode_->replaceNodesSwapMap[INVALID_STATUS];
+        for (const auto& [id, config] : invalidNodes) {
+            if (rsNode_->canvasNodesListMap[symbolSpanId].count(id)>0) {
+                rsNode_->canvasNodesListMap[symbolSpanId].erase(id);
+            }
+        }
+        rsNode_->replaceNodesSwapMap[INVALID_STATUS].clear();
+    }
+
+    if (rsNode_->replaceNodesSwapMap.find(APPEAR_STATUS) == rsNode_->replaceNodesSwapMap.end()) {
+        rsNode_->replaceNodesSwapMap[APPEAR_STATUS] = {};
+    }
+}
+
+bool RSSymbolAnimation::SetReplaceAnimation(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
+{
+    SetReplaceDisappear(symbolAnimationConfig);
+    int INVALID_STATUS = -1;
+    SetReplaceAppear(symbolAnimationConfig,
+        rsNode_->replaceNodesSwapMap[INVALID_STATUS].size() > 0);
+    return true;
+}
+
+bool RSSymbolAnimation::SetReplaceDisappear(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
+{
+    if (symbolAnimationConfig->numNodes <= 0) {
+        ROSEN_LOGD("[%{public}s]::getNode or get symbolAnimationConfig:failed \n", __func__);
+        return false;
+    }
+
+    std::unordered_map<NodeId,
+        OHOS::Rosen::AnimationNodeConfig> disappearNodes = rsNode_->replaceNodesSwapMap[APPEAR_STATUS];
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
+    TextEngine::SymbolAnimationEffectStrategy effectStrategy =
+        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_DISAPPEAR;
+    bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, effectStrategy);
+    for (const auto& [id, config] : disappearNodes) {
+        rsNode_->replaceNodesSwapMap[INVALID_STATUS][id] = config;
+        rsNode_->replaceNodesSwapMap[APPEAR_STATUS].erase(id);
+        TextEngine::SymbolNode symbolNode = config.symbolNode;
+
+        if (!res || (symbolNode.animationIndex < 0)) {
+            ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
+            continue;
+        }
+        auto canvasNode = rsNode_->canvasNodesListMap[symbolAnimationConfig->symbolSpanId][id];
+        Vector4f offsets =
+            CalculateOffset(symbolNode.symbolData.path_, symbolNode.nodeBoundary[0],
+                symbolNode.nodeBoundary[1]);
+        if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
+            symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
+            continue;
+        }
+        rsNode_->AddChild(canvasNode, -1);
+        RSCanvasNode* drawNode = static_cast<RSCanvasNode*>(canvasNode.get());
+        std::shared_ptr<RSCanvasNode> node = std::shared_ptr<RSCanvasNode>(drawNode);
+
+        if (parameters.size() <= symbolNode.animationIndex ||
+            parameters.at(symbolNode.animationIndex).empty()) {
+            ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
+            continue;
+        }
+        auto oneGroupParas = parameters[int(symbolNode.animationIndex)];
+        if (oneGroupParas.empty()) {
+            ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
+            continue;
+        }
+        SpliceAnimation(canvasNode, oneGroupParas, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_DISAPPEAR);
+    }
+    return true;
+}
+
+
+bool RSSymbolAnimation::SetReplaceAppear(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+    bool isStartAnimation)
+{
+    auto nodeNum = symbolAnimationConfig->numNodes;
+    if (nodeNum <= 0) {
+        ROSEN_LOGD("[%{public}s]::getNode or get symbolAnimationConfig:failed \n", __func__);
+        return false;
+    }
+
+    auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
+
+    auto& symbolFirstNode = symbolAnimationConfig->SymbolNodes[0]; // calculate offset by the first node
+
+    Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_,
+        symbolFirstNode.nodeBoundary[0],
+        symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
+
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
+
+    TextEngine::SymbolAnimationEffectStrategy effectStrategy =
+        TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_APPEAR;
+    bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters,
+        effectStrategy);
+    int APPEAR_STATUS = 1 ;
+
+    for (uint32_t n = 0; n < nodeNum; n++) {
+        auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
+        auto canvasNode = RSCanvasNode::Create();
+        if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
+            rsNode_->canvasNodesListMap.insert({symbolSpanId, {}}) ;
+        }
+        rsNode_->canvasNodesListMap[symbolSpanId].insert((std::make_pair(canvasNode->GetId(), canvasNode)));
+        AnimationNodeConfig appearNodeConfig = {.symbolNode = symbolNode, .animationIndex = symbolNode.animationIndex};
+        rsNode_->replaceNodesSwapMap[APPEAR_STATUS].insert((std::make_pair(canvasNode->GetId(), appearNodeConfig)));
+
+        if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
+            symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
+            return false;
+        }
+        rsNode_->AddChild(canvasNode, -1);
+        GroupDrawing(canvasNode, symbolNode, offsets, nodeNum > 1);
+        if (!isStartAnimation) {
+            continue;
+        }
+        if (!res || (symbolNode.animationIndex < 0)) {
+            continue;
+        }
+
+        if (parameters.size() <= symbolNode.animationIndex || parameters[symbolNode.animationIndex].empty()) {
+            ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
+            continue;
+        }
+
+        auto oneGroupParas = parameters[int(symbolNode.animationIndex)];
+        if (oneGroupParas.empty()) {
+            ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
+            continue;
+        }
+
+        SpliceAnimation(canvasNode, oneGroupParas, TextEngine::SymbolAnimationEffectStrategy::SYMBOL_APPEAR);
+    }
+    return true;
 }
 
 void RSSymbolAnimation::InitSupportAnimationTable()
@@ -126,7 +295,8 @@ void RSSymbolAnimation::InitSupportAnimationTable()
 
 bool RSSymbolAnimation::GetAnimationGroupParameters(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
-    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters)
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
+    TextEngine::SymbolAnimationEffectStrategy& effectStrategy)
 {
     // count animation levels
     int animationLevelNum = -1;
@@ -141,16 +311,17 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
         return false;
     }
     animationLevelNum = animationLevelNum + 1;
+
     // get animation group paramaters
     if (std::count(upAndDownSupportAnimations_.begin(), upAndDownSupportAnimations_.end(),
-        symbolAnimationConfig->effectStrategy) != 0) {
+        effectStrategy) != 0) {
         parameters = Drawing::HmSymbolConfigOhos::GetGroupParameters(
-            Drawing::DrawingAnimationType(symbolAnimationConfig->effectStrategy),
+            Drawing::DrawingAnimationType(effectStrategy),
             static_cast<uint16_t>(animationLevelNum),
             symbolAnimationConfig->animationMode, symbolAnimationConfig->commonSubType);
     } else {
         parameters = Drawing::HmSymbolConfigOhos::GetGroupParameters(
-            Drawing::DrawingAnimationType(symbolAnimationConfig->effectStrategy),
+            Drawing::DrawingAnimationType(effectStrategy),
             static_cast<uint16_t>(animationLevelNum),
             symbolAnimationConfig->animationMode);
     }
@@ -198,7 +369,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
         symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
 
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-    bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters);
+    bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, symbolAnimationConfig->effectStrategy);
 
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
@@ -207,7 +378,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
         if (!rsNode_->canvasNodesListMap.count(symbolSpanId)) {
             rsNode_->canvasNodesListMap[symbolSpanId] = {};
         }
-        rsNode_->canvasNodesListMap[symbolSpanId].emplace_back(canvasNode);
+        rsNode_->canvasNodesListMap[symbolSpanId][canvasNode->GetId()] = canvasNode;
 
         Vector4f offsets =
             CalculateOffset(symbolNode.symbolData.path_, symbolNode.nodeBoundary[0], symbolNode.nodeBoundary[1]);

@@ -34,7 +34,8 @@ enum SymbolAnimationEffectStrategy {
     SYMBOL_DISAPPEAR = 4,
     SYMBOL_BOUNCE = 5,
     SYMBOL_PULSE = 6,
-    SYMBOL_REPLACE_APPEAR = 7
+    SYMBOL_REPLACE_APPEAR = 7,
+    SYMBOL_REPLACE_DISAPPEAR = 8
 };
 
 using SymbolNode = struct SymbolNode {
