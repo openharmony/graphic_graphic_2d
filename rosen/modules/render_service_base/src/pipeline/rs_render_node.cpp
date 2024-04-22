@@ -2863,10 +2863,6 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
 #endif
     }
     nodeGroupIncludeProperty_ = includeProperty;
-    if (type == NodeGroupType::GROUPED_BY_USER) {
-        dirtyTypes_.set(static_cast<int>(RSModifierType::ALPHA), true);
-        GetMutableRenderProperties().SetAlphaOffscreen(isNodeGroup);
-    }
 }
 
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
@@ -3666,6 +3662,7 @@ void RSRenderNode::UpdateRenderParams()
         GetRenderProperties().GetFrameHeight() });
     stagingRenderParams_->SetShouldPaint(shouldPaint_);
     stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
+    stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
