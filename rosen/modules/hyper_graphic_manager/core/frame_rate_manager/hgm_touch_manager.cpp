@@ -22,8 +22,9 @@
 
 namespace OHOS {
 namespace Rosen {
-void TouchStateMachine::TouchEventHandle(TouchEvent event)
+void TouchStateMachine::TouchEventHandle(TouchEvent event, const std::string& pkgName)
 {
+    pkgName_ = pkgName;
     switch (event) {
         case TouchEvent::DOWN:
             TouchDown();
@@ -48,6 +49,7 @@ void TouchStateMachine::TouchDown()
     StopTouchTimer(hgmCore.GetFrameRateMgr()->GetCurScreenId());
     std::lock_guard<std::mutex> lock(touchStateMutex_);
     currentState_ = TouchState::DOWN;
+    NotifyStateChange();
     HGM_LOGI("[touch machine] swicth to touch down status");
 }
 
@@ -60,6 +62,7 @@ void TouchStateMachine::TouchUp()
             TouchUpTimeout();
         });
         currentState_ = TouchState::UP;
+        NotifyStateChange();
         HGM_LOGI("[touch machine] down swicth to touch up status");
     } else {
         HGM_LOGD("[touch machine] not support to touch up status");
@@ -71,6 +74,7 @@ void TouchStateMachine::TouchUpTimeout()
     std::lock_guard<std::mutex> lock(touchStateMutex_);
     if (currentState_ == TouchState::UP) {
         currentState_ = TouchState::IDLE;
+        NotifyStateChange();
         if (idleEventCallback_ != nullptr) {
             idleEventCallback_();
         }
@@ -85,6 +89,7 @@ void TouchStateMachine::RSIdleTimeout()
     std::lock_guard<std::mutex> lock(touchStateMutex_);
     if (currentState_ == TouchState::UP) {
         currentState_ = TouchState::IDLE;
+        NotifyStateChange();
         if (idleEventCallback_ != nullptr) {
             idleEventCallback_();
         }
@@ -112,6 +117,15 @@ void TouchStateMachine::StopTouchTimer(ScreenId screenId)
     if (auto timer = touchTimerMap_.find(screenId); timer != touchTimerMap_.end()) {
         touchTimerMap_.erase(timer);
     }
+}
+
+void TouchStateMachine::NotifyStateChange()
+{
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    frameRateMgr->GetMultiAppStrategy().HandleTouchInfo(pkgName_, currentState_);
 }
 
 void HgmTouchManager::HandleRSFrameUpdate(bool idleTimerExpired)
