@@ -531,6 +531,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     displayNodeSp->SetGlobalZOrder(globalZOrder);
+    displayNodeSp->SetDamageRegion(damageRegionrects);
     processor->ProcessDisplaySurface(*displayNodeSp);
     processor->PostProcess();
     RS_TRACE_END();

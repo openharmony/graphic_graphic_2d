@@ -355,6 +355,9 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node, bool 
     info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_) * mirrorAdaptiveCoefficient_);
     info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_) * mirrorAdaptiveCoefficient_);
     info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    dirtyRects.emplace_back(info.srcRect);
+    info.dirtyRects = dirtyRects;
     if (!isTunnelCheck) {
         const auto& buffer = node.GetBuffer();
         info.buffer = buffer;
@@ -380,6 +383,9 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
         static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedHeight()) * mirrorAdaptiveCoefficient_)
     };
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
+    std::vector<GraphicIRect> dirtyRects;
+    dirtyRects.emplace_back(info.srcRect);
+    info.dirtyRects = dirtyRects;
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = false;
     info.buffer = buffer;
@@ -409,9 +415,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(info.visibleRect);
     layer->SetVisibleRegions(visibleRegions);
-    std::vector<GraphicIRect> dirtyRegions;
-    dirtyRegions.emplace_back(info.srcRect);
-    layer->SetDirtyRegions(dirtyRegions);
+    layer->SetDirtyRegions(info.dirtyRects);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     if (node -> GetTunnelHandleChange()) {
