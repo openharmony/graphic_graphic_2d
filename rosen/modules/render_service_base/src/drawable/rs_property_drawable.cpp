@@ -327,8 +327,9 @@ void RSFilterDrawable::ClearFilterCache()
     cacheManager_->SetFilterInvalid(needClearMemoryForGpu);
     lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (stagingClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d, isOccluded_:%d, lastCacheType:%d "
-        "needClearMemoryForGpu:%d", nodeId_, clearType_, isOccluded_, lastCacheType_, needClearMemoryForGpu);
+    RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache "
+        "nodeId[%llu], clearType:%d, isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d",
+        nodeId_, clearType_, isOccluded_, lastCacheType_, needClearMemoryForGpu);
 }
 
 void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
