@@ -49,6 +49,7 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
                 stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
             }
         }
+        const_cast<RSRenderNode&>(node).SetChildrenHasSharedTransition(childrenHasSharedTransition_);
         return !stagingChildrenDrawableVec_.empty();
     }
 
