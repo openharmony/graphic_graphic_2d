@@ -40,12 +40,6 @@ config("composer_public_config") {
 }
 
 ohos_shared_library("libcomposer") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
   sources = [
     "hdi_backend/src/hdi_backend.cpp",
     "hdi_backend/src/hdi_device.cpp",
