@@ -92,16 +92,23 @@ enum class RSDrawableSlot : int8_t {
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.
-    BG_PROPERTIES_BEGIN      = BLEND_MODE,
-    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY,
-    CONTENT_TRANSFORM_BEGIN  = FRAME_OFFSET,
-    CONTENT_TRANSFORM_END    = CLIP_TO_FRAME,
-    CONTENT_PROPERTIES_BEGIN = CONTENT_STYLE,
-    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE,
-    FG_PROPERTIES_BEGIN      = BINARIZATION,
-    FG_PROPERTIES_END        = FOREGROUND_COLOR,
-    EXTRA_PROPERTIES_BEGIN   = POINT_LIGHT,
-    EXTRA_PROPERTIES_END     = PIXEL_STRETCH,
+    // properties before Background, not clipped
+    TRANSITION_PROPERTIES_BEGIN = SHADOW,
+    TRANSITION_PROPERTIES_END   = OUTLINE,
+    // background properties, clipped by bounds by default
+    BG_PROPERTIES_BEGIN         = BLEND_MODE,
+    BG_PROPERTIES_END           = ENV_FOREGROUND_COLOR_STRATEGY,
+    // content properties, can be clipped by ClipToFrame and ClipToBounds
+    CONTENT_TRANSFORM_BEGIN     = FRAME_OFFSET,
+    CONTENT_TRANSFORM_END       = CLIP_TO_FRAME,
+    CONTENT_PROPERTIES_BEGIN    = CONTENT_STYLE,
+    CONTENT_PROPERTIES_END      = FOREGROUND_STYLE,
+    // foreground properties, clipped by bounds by default
+    FG_PROPERTIES_BEGIN         = BINARIZATION,
+    FG_PROPERTIES_END           = FOREGROUND_COLOR,
+    // post-foreground properties, can be clipped by ClipToBounds
+    EXTRA_PROPERTIES_BEGIN      = POINT_LIGHT,
+    EXTRA_PROPERTIES_END        = PIXEL_STRETCH,
 
     MAX = RESTORE_ALL + 1,
 };
