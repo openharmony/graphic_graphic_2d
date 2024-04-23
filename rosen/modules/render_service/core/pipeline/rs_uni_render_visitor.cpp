@@ -438,7 +438,7 @@ void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool n
 
     // [planning] merge removed child's rect instead
     if (needMap && curSurfaceNode_) {
-        if (auto geoPtr = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()) {
+        if (auto geoPtr = node.GetRenderProperties().GetBoundsGeometry()) {
             dirtyRect = geoPtr->MapAbsRect(dirtyRect.ConvertTo<float>());
         }
     } else {
@@ -1443,7 +1443,7 @@ bool RSUniRenderVisitor::NeedPrepareChindrenInReverseOrder(RSRenderNode& node) c
 
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
-    MergeRemovedChildDirtyRegion(node);
+    MergeRemovedChildDirtyRegion(node, true);
     bool animationBackup = ancestorNodeHasAnimation_;
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.HasAnimation();
     node.ResetChildRelevantFlags();
@@ -4335,7 +4335,7 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
     // collect valid hwc surface which is not intersected with filterRects
     std::vector<SurfaceDirtyMgrPair> curHwcEnabledNodes;
     UpdateHardwareChildNodeStatus(node, curHwcEnabledNodes);
-    
+
     // Within App: disable hwc if intersect with filterRects
     dirtyManager->MergeDirtyRect(UpdateHardwareEnableList(filterRects, curHwcEnabledNodes));
     // Among App: disable lower hwc layers if intersect with upper transparent appWindow
