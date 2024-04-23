@@ -273,7 +273,7 @@ static inline void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region)
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode,
     RSDisplayRenderParams* params, std::shared_ptr<RSProcessor> processor)
 {
-    if (!displayNode->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty() ||
+    if (displayNode->GetSyncDirtyManager()->IsCurrentFrameDirty() ||
         (params->GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode())) {
         return false;
     }

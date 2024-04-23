@@ -1956,6 +1956,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     CheckAndUpdateFilterCacheOcclusion(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     ResetDisplayDirtyRegionForColorFilterSwitch();
+    CheckMergeDebugRectforRefreshRate();
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
 }
@@ -6273,6 +6274,17 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegionForColorFilterSwitch()
         return;
     }
     curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
+}
+
+void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate()
+{
+    // Debug dirtyregion of show current refreshRation
+    if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
+        RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
+        auto geoPtr = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
+        tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);  // true：debugRect for dislplayNode skip
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

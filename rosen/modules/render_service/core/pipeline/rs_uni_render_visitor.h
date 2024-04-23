@@ -264,6 +264,7 @@ private:
     // If reusable filter cache covers whole screen, mark lower layer to skip process
     void CheckAndUpdateFilterCacheOcclusion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces) const;
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
+    void CheckMergeDebugRectforRefreshRate();
 
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
     void ClipRegion(std::shared_ptr<Drawing::Canvas> canvas, const Drawing::Region& region) const;
