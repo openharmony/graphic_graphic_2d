@@ -383,7 +383,8 @@ private:
     bool IsFirstVisitedCacheForced() const;
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
-    bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node, bool isProtected = false); // return if srcRect is allowed by dss restriction
+    // return if srcRect is allowed by dss restriction
+    bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node, bool isProtected = false);
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 
     void SwitchColorFilterDrawing(int currentSaveCount);
