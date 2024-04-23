@@ -91,25 +91,25 @@ public:
     static BlobCache* Get();
 
     //used by ddk
-    static void setBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
+    static void SetBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize);
 
     //used by ddk
-    static EGLsizeiANDROID getBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
+    static EGLsizeiANDROID GetBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
                             EGLsizeiANDROID valueSize);
 
     //inner set func
-    void setBlobLock(const void *key, EGLsizeiANDROID keySize, const void *value,
+    void SetBlobLock(const void *key, EGLsizeiANDROID keySize, const void *value,
                 EGLsizeiANDROID valueSize);
 
     //inner get func
-    EGLsizeiANDROID getBlobLock(const void *key, EGLsizeiANDROID keySize, void *value,
+    EGLsizeiANDROID GetBlobLock(const void *key, EGLsizeiANDROID keySize, void *value,
                             EGLsizeiANDROID valueSize);
 
-    void setBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
+    void SetBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
                 EGLsizeiANDROID valueSize);
 
-    EGLsizeiANDROID getBlob(const void *key, EGLsizeiANDROID keySize, void *value,
+    EGLsizeiANDROID GetBlob(const void *key, EGLsizeiANDROID keySize, void *value,
                             EGLsizeiANDROID valueSize);
 
     void Init(EglWrapperDisplay* display);

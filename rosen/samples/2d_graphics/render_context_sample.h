@@ -65,7 +65,6 @@ private:
 
     std::unordered_map<uint64_t, sptr<SurfaceBuffer>> prevBufferMap_;
     std::unordered_map<uint64_t, sptr<SyncFence>> prevFenceMap_;
-
     void Init();
     void InitEGL();
     void Draw();

@@ -100,35 +100,35 @@ void BlobCache::Init(EglWrapperDisplay* display)
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
         table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
-                                               BlobCache::setBlobFunc, BlobCache::getBlobFunc);
+                                               BlobCache::SetBlobFunc, BlobCache::GetBlobFunc);
         ReadFromDisk();
     } else {
         WLOGE("eglSetBlobCacheFuncsANDROID not found.");
     }
 }
 
-void BlobCache::setBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
+void BlobCache::SetBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
-    BlobCache::Get()->setBlobLock(key, keySize, value, valueSize);
+    BlobCache::Get()->SetBlobLock(key, keySize, value, valueSize);
 }
-EGLsizeiANDROID BlobCache::getBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
+EGLsizeiANDROID BlobCache::GetBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
                                        EGLsizeiANDROID valueSize)
 {
-    return BlobCache::Get()->getBlobLock(key, keySize, value, valueSize);
+    return BlobCache::Get()->GetBlobLock(key, keySize, value, valueSize);
 }
 
-void BlobCache::setBlobLock(const void* key, EGLsizeiANDROID keySize, const void* value,
+void BlobCache::SetBlobLock(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
     std::lock_guard<std::mutex> lock(blobmutex_);
-    setBlob(key, keySize, value, valueSize);
+    SetBlob(key, keySize, value, valueSize);
 }
-EGLsizeiANDROID BlobCache::getBlobLock(const void *key, EGLsizeiANDROID keySize, void *value,
+EGLsizeiANDROID BlobCache::GetBlobLock(const void *key, EGLsizeiANDROID keySize, void *value,
                                        EGLsizeiANDROID valueSize)
 {
     std::lock_guard<std::mutex> lock(blobmutex_);
-    return getBlob(key, keySize, value, valueSize);
+    return GetBlob(key, keySize, value, valueSize);
 }
 
 void BlobCache::MoveToFront(std::shared_ptr<Blob>& cur)
@@ -139,7 +139,7 @@ void BlobCache::MoveToFront(std::shared_ptr<Blob>& cur)
     cur->prev_ = head_;
 }
 
-void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
+void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
                         EGLsizeiANDROID valueSize)
 {
     if (keySize <= 0 || valueSize <= 0) {
@@ -192,7 +192,7 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     }
 }
 
-EGLsizeiANDROID BlobCache::getBlob(const void *key, EGLsizeiANDROID keySize, void *value,
+EGLsizeiANDROID BlobCache::GetBlob(const void *key, EGLsizeiANDROID keySize, void *value,
                                    EGLsizeiANDROID valueSize)
 {
     EGLsizeiANDROID ret = 0;
@@ -205,7 +205,7 @@ EGLsizeiANDROID BlobCache::getBlob(const void *key, EGLsizeiANDROID keySize, voi
     std::shared_ptr<Blob> keyBlob = std::make_shared<Blob>(key, (size_t)keySize);
     auto it = mBlobMap_.find(keyBlob);
     if (it != mBlobMap_.end()) {
-        ret = (EGLsizeiANDROID)it->second->dataSize;
+        ret = static_cast<EGLsizeiANDROID>(it->second->dataSize);
         if (valueSize < ret) {
             WLOGE("valueSize not enough");
         } else if (ret == 0) {
@@ -374,7 +374,7 @@ void BlobCache::ReadFromDisk()
             break;
         }
         const uint8_t *value = eheader->mData + keysize;
-        setBlob(key, (EGLsizeiANDROID)keysize, value, (EGLsizeiANDROID)valuesize);
+        SetBlob(key, static_cast<EGLsizeiANDROID>(keysize), value, static_cast<EGLsizeiANDROID>(valuesize));
         size_t innerSize = headsize + keysize + valuesize;
         byteoffset += Formatfile(innerSize);
     }
