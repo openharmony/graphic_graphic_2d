@@ -2156,20 +2156,17 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
 void RSUniRenderVisitor::UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto filterVecIter = transparentCleanFilter_.find(surfaceNode->GetId());
-    if (filterVecIter != transparentCleanFilter_.end()) {
-        for (auto it = filterVecIter->second.begin(); it != filterVecIter->second.end(); ++it) {
-            auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(it->first);
-            if (filterNode == nullptr) {
-                continue;
-            }
-            RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateOccludedStatusWithFilterNode "
-                "surfaceNode: %s, filterNode:[%lld], IsOccludedByFilterCache:%d", surfaceNode->GetName().c_str(),
-                filterNode->GetId(), surfaceNode->IsOccludedByFilterCache());
-            if (filterNode->GetRenderProperties().GetBackgroundFilter() ||
-                filterNode->GetRenderProperties().GetFilter()) {
-                filterNode->SetOccludedStatus(surfaceNode->IsOccludedByFilterCache());
-            }
+    for (auto& child : surfaceNode->GetVisibleFilterChild()) {
+        auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
+        if (filterNode == nullptr) {
+            continue;
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateOccludedStatusWithFilterNode "
+            "surfaceNode: %s, filterNode:[%lld], IsOccludedByFilterCache:%d", surfaceNode->GetName().c_str(),
+            filterNode->GetId(), surfaceNode->IsOccludedByFilterCache());
+        if (filterNode->GetRenderProperties().GetBackgroundFilter() ||
+            filterNode->GetRenderProperties().GetFilter()) {
+            filterNode->SetOccludedStatus(surfaceNode->IsOccludedByFilterCache());
         }
     }
 }
