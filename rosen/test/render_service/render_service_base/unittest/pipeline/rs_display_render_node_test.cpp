@@ -98,6 +98,7 @@ HWTEST_F(RSDisplayRenderNodeTest, CreateSurfaceTest, TestSize.Level1)
 HWTEST_F(RSDisplayRenderNodeTest, GetRotationTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
     node->UpdateRotation();
     node->GetRotation();
 }
@@ -111,6 +112,7 @@ HWTEST_F(RSDisplayRenderNodeTest, GetRotationTest, TestSize.Level1)
 HWTEST_F(RSDisplayRenderNodeTest, IsRotationChangedTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
     node->UpdateRotation();
     ASSERT_FALSE(node->IsRotationChanged());
 }
