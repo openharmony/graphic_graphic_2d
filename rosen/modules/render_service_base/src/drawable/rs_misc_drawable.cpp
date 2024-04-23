@@ -123,6 +123,7 @@ void RSChildrenDrawable::OnSync()
         return;
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
+    stagingChildrenDrawableVec_.clear();
     needSync_ = false;
 }
 
@@ -189,6 +190,7 @@ void RSCustomModifierDrawable::OnSync()
         return;
     }
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
+    stagingDrawCmdListVec_.clear();
     needSync_ = false;
 }
 
