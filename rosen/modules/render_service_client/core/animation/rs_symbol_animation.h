@@ -127,8 +127,6 @@ private:
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     // pop invalid node before replace animation, replace animation have special rsnode lifecycle.
     void PopNodeFromReplaceList(uint64_t symbolSpanId);
-    std::mutex m_; // lock for map operation
-    std::shared_ptr<RSNode> rsNode_ = nullptr;
     std::shared_ptr<RSNode> rsNode_ = nullptr;
     // scale symbol animation
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_ = nullptr;

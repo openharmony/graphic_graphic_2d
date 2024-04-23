@@ -128,7 +128,7 @@ void RSSymbolAnimation::NodeProcessBeforeAnimation(
     }
     
     if (rsNode_->canvasNodesListMap.count(symbolAnimationConfig->symbolSpanId) > 0) {
-        std::lock_guard<std::mutex> lock(m_);
+        std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
         rsNode_->canvasNodesListMap.erase(symbolAnimationConfig->symbolSpanId);
     }
     return;
@@ -136,7 +136,7 @@ void RSSymbolAnimation::NodeProcessBeforeAnimation(
 
 void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
 {
-    std::lock_guard<std::mutex> lock(m_);
+    std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
     if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
         rsNode_->canvasNodesListMap[symbolSpanId] = {};
     }
@@ -183,11 +183,11 @@ bool RSSymbolAnimation::SetReplaceDisappear(
         TextEngine::SymbolAnimationEffectStrategy::SYMBOL_REPLACE_DISAPPEAR;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, effectStrategy);
     for (const auto& [id, config] : disappearNodes) {
-        m_.lock();
+        rsNode_->childrenNodeLock_.lock();
         rsNode_->replaceNodesSwapMap[INVALID_STATUS][id] = config;
         rsNode_->replaceNodesSwapMap[APPEAR_STATUS].erase(id);
         TextEngine::SymbolNode symbolNode = config.symbolNode;
-        m_.unlock();
+        rsNode_->childrenNodeLock_.unlock();
         if (!res || (symbolNode.animationIndex < 0)) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
@@ -230,14 +230,14 @@ bool RSSymbolAnimation::SetReplaceAppear(
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
-        m_.lock();
+        rsNode_->childrenNodeLock_.lock();
         if (rsNode_->canvasNodesListMap.count(symbolSpanId) < 1) {
             rsNode_->canvasNodesListMap.insert({symbolSpanId, {}}) ;
         }
         rsNode_->canvasNodesListMap[symbolSpanId].insert((std::make_pair(canvasNode->GetId(), canvasNode)));
         AnimationNodeConfig appearNodeConfig = {.symbolNode = symbolNode, .animationIndex = symbolNode.animationIndex};
         rsNode_->replaceNodesSwapMap[APPEAR_STATUS].insert((std::make_pair(canvasNode->GetId(), appearNodeConfig)));
-        m_.unlock();
+        rsNode_->childrenNodeLock_.unlock();
         if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
             symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
             continue;
@@ -352,12 +352,12 @@ bool RSSymbolAnimation::SetPublicAnimation(
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
-        m_.lock();
+        rsNode_->childrenNodeLock_.lock();
         if (!rsNode_->canvasNodesListMap.count(symbolSpanId)) {
             rsNode_->canvasNodesListMap[symbolSpanId] = {};
         }
         rsNode_->canvasNodesListMap[symbolSpanId][canvasNode->GetId()] = canvasNode;
-        m_.unlock();
+        rsNode_->childrenNodeLock_.unlock();
         if (!SetSymbolGeometry(canvasNode, Vector4f(offsets[0], offsets[1], // 0: offsetX of newNode 1: offsetY
             symbolNode.nodeBoundary[WIDTH], symbolNode.nodeBoundary[HEIGHT]))) {
             return false;

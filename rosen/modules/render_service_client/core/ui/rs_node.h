@@ -403,6 +403,7 @@ public:
         return isTextureExportNode_;
     }
 
+    std::mutex childrenNodeLock_; // lock for map operation
     // key: symbolSpanID, value:nodeid and symbol animation node list
     std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
 
