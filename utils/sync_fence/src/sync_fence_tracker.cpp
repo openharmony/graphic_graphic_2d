@@ -95,7 +95,7 @@ inline int32_t SyncFenceTracker::GetFrameRate()
     if (frameNum > 0) {
         frameRate = FRAME_PERIOD * frameNum / (frameStartTimes->back() - frameStartTimes->front());
     }
-    HILOG_DEBUG(LOG_CORE, "frameNum: %{public}" PRID32 ", frameRate: %{public}" PRID32,
+    HILOG_DEBUG(LOG_CORE, "frameNum: %{public}" PRId32 ", frameRate: %{public}" PRId32,
         frameNum, frameRate);
     return frameRate;
 }
