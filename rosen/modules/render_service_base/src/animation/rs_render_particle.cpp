@@ -708,9 +708,21 @@ float RSRenderParticle::GetRandomValue(float min, float max)
 void RSRenderParticle::SetColor()
 {
     if (particleParams_->GetColorDistribution() == DistributionType::GAUSSIAN) {
-        color_.SetRed(GenerateColorComponent(0.0, SIGMA));
-        color_.SetGreen(GenerateColorComponent(0.0, SIGMA));
-        color_.SetBlue(GenerateColorComponent(0.0, SIGMA));
+        auto& colorStart = particleParams_->GetColorStartValue();
+        auto& colorEnd = particleParams_->GetColorEndValue();
+        auto redScale = std::abs(colorEnd.GetRed() - colorStart.GetRed());
+        auto greenScale = std::abs(colorEnd.GetGreen() - colorStart.GetGreen());
+        auto blueScale = std::abs(colorEnd.GetBlue() - colorStart.GetBlue());
+        auto alphaScale = std::abs(colorEnd.GetAlpha() - colorStart.GetAlpha());
+        auto meanRed = (colorStart.GetRed() + colorEnd.GetRed()) / 2;
+        auto meanGreen = (colorStart.GetGreen() + colorEnd.GetGreen()) / 2;
+        auto meanBlue = (colorStart.GetBlue() + colorEnd.GetBlue()) / 2;
+        auto meanAlpha = (colorStart.GetAlpha() + colorEnd.GetAlpha()) / 2;
+
+        color_.SetRed(GenerateColorComponent(meanRed, SIGMA * redScale));
+        color_.SetGreen(GenerateColorComponent(meanGreen, SIGMA * greenScale));
+        color_.SetBlue(GenerateColorComponent(meanBlue, SIGMA * blueScale));
+        color_.SetAlpha(GenerateColorComponent(meanAlpha, SIGMA * alphaScale));
     } else {
         float colorRandomValue = GetRandomValue(0.0f, 1.0f);
         color_ = Lerp(particleParams_->GetColorStartValue(), particleParams_->GetColorEndValue(), colorRandomValue);

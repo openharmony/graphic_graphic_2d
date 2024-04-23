@@ -187,8 +187,8 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<EmitterUpdater>>,
-        NodeId, std::shared_ptr<EmitterUpdater>, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,
+        NodeId, std::vector<std::shared_ptr<EmitterUpdater>>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
     ARG(RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseFields>>,

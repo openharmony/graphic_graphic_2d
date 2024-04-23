@@ -49,18 +49,9 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
         return true;
     }
 
-    auto emitterUpdater = target->GetRenderProperties().GetEmitterUpdater();
-    if (emitterUpdater) {
-        UpdateEmitter(emitterUpdater);
-    }
-
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
     if (particleSystem_ != nullptr) {
-        auto particleNoiseFields = target->GetRenderProperties().GetParticleNoiseFields();
-        if (particleNoiseFields) {
-            UpdateNoiseField(particleNoiseFields);
-        }
         particleSystem_->Emit(deltaTime, renderParticleVector_.renderParticleVector_);
         particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
     }
@@ -78,24 +69,36 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     return false;
 }
 
-void RSRenderParticleAnimation::UpdateEmitter(const std::shared_ptr<EmitterUpdater>& emitterUpdater)
+void RSRenderParticleAnimation::UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdaters)
 {
-    uint32_t index = emitterUpdater->emitterIndex_;
-    if (index > particlesRenderParams_.size()) {
+    if (emitterUpdaters.empty()) {
         return;
     }
-    if (emitterUpdater->position_.has_value()) {
-        particlesRenderParams_[index]->emitterConfig_.position_ = emitterUpdater->position_.value();
-    }
-    if (emitterUpdater->emitSize_.has_value()) {
-        particlesRenderParams_[index]->emitterConfig_.emitSize_ = emitterUpdater->emitSize_.value();
-    }
-    if (emitterUpdater->emitRate_.has_value()) {
-        particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_.value();
+    for (auto emitterUpdater : emitterUpdaters) {
+        if (emitterUpdater) {
+            uint32_t index = emitterUpdater->emitterIndex_;
+            if (index >= particlesRenderParams_.size()) {
+                continue;
+            }
+            if (particlesRenderParams_[index] == nullptr) {
+                continue;
+            }
+            if (emitterUpdater->position_.has_value() &&
+                emitterUpdater->position_.value() != particlesRenderParams_[index]->emitterConfig_.position_) {
+                particlesRenderParams_[index]->emitterConfig_.position_ = emitterUpdater->position_.value();
+            }
+            if (emitterUpdater->emitSize_.has_value() &&
+                emitterUpdater->emitSize_.value() != particlesRenderParams_[index]->emitterConfig_.emitSize_) {
+                particlesRenderParams_[index]->emitterConfig_.emitSize_ = emitterUpdater->emitSize_.value();
+            }
+            if (emitterUpdater->emitRate_.has_value() &&
+                emitterUpdater->emitRate_.value() != particlesRenderParams_[index]->emitterConfig_.emitRate_) {
+                particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_.value();
+            }
+        }
     }
     if (particleSystem_) {
-        particleSystem_->UpdateEmitter(
-            index, emitterUpdater->position_, emitterUpdater->emitSize_, emitterUpdater->emitRate_);
+        particleSystem_->UpdateEmitter(particlesRenderParams_);
     } else {
         particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
     }

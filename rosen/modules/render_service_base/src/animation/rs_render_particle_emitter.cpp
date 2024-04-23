@@ -113,18 +113,5 @@ const std::vector<std::shared_ptr<RSRenderParticle>>& RSRenderParticleEmitter::G
     return particles_;
 }
 
-void RSRenderParticleEmitter::UpdateEmitter(const std::optional<Vector2f>& position,
-    const std::optional<Vector2f>& emitSize, const std::optional<int>& emitRate)
-{
-    if (position.has_value()) {
-        particleParams_->emitterConfig_.position_ = position.value();
-    }
-    if (emitSize.has_value()) {
-        particleParams_->emitterConfig_.emitSize_ = emitSize.value();
-    }
-    if (emitRate.has_value()) {
-        particleParams_->emitterConfig_.emitRate_ = emitRate.value();
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

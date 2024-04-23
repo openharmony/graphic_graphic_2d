@@ -237,7 +237,7 @@ public:
     void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
     void SetParticleParams(
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
-    void SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para);
+    void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);

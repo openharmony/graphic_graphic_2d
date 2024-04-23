@@ -17,7 +17,9 @@
 
 #include <algorithm>
 #include <securec.h>
+#include "platform/common/rs_log.h"
 
+#include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
@@ -1169,11 +1171,15 @@ void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradi
     contentDirty_ = true;
 }
 
-void RSProperties::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para)
 {
     emitterUpdater_ = para;
-    if (emitterUpdater_) {
+    if (!emitterUpdater_.empty()) {
         isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        particleAnimation->UpdateEmitter(emitterUpdater_);
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1185,6 +1191,10 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
     particleNoiseFields_ = para;
     if (particleNoiseFields_) {
         isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        particleAnimation->UpdateNoiseField(particleNoiseFields_);
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1337,7 +1347,7 @@ const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradient
     return linearGradientBlurPara_;
 }
 
-const std::shared_ptr<EmitterUpdater>& RSProperties::GetEmitterUpdater() const
+const std::vector<std::shared_ptr<EmitterUpdater>>& RSProperties::GetEmitterUpdater() const
 {
     return emitterUpdater_;
 }

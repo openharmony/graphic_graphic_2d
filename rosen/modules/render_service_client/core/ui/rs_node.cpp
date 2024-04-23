@@ -1062,10 +1062,10 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
     }
 }
 
-// Update Particle Emitter Position and Size
-void RSNode::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+// Update Particle Emitter
+void RSNode::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para)
 {
-    SetProperty<RSEmitterUpdaterModifier, RSProperty<std::shared_ptr<EmitterUpdater>>>(
+    SetProperty<RSEmitterUpdaterModifier, RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>>(
         RSModifierType::PARTICLE_EMITTER_UPDATER, para);
 }
 
