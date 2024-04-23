@@ -62,7 +62,6 @@ void RSDrawFrame::NotifyClearGpuCache()
 {
     if (RSFilterCacheManager::GetFilterInvalid()) {
         unirenderInstance_.ClearMemoryCache(ClearMemoryMoment::FILTER_INVALID, true);
-        RSFilterCacheManager::SetFilterInvalid(false);
     }
 }
 

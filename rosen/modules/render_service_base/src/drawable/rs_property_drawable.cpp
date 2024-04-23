@@ -322,11 +322,13 @@ void RSFilterDrawable::ClearFilterCache()
             cacheManager_ != nullptr, filter_ == nullptr);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d, isOccluded_:%d",
-        nodeId_, clearType_, isOccluded_);
     cacheManager_->InvalidateFilterCache(clearType_);
+    bool needClearMemoryForGpu = filterRegionChanged_ && cacheManager_->GetCachedType() == FilterCacheType::NONE;
+    cacheManager_->SetFilterInvalid(needClearMemoryForGpu);
     lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (stagingClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
+    RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d, isOccluded_:%d, lastCacheType:%d "
+        "needClearMemoryForGpu:%d", nodeId_, clearType_, isOccluded_, lastCacheType_, needClearMemoryForGpu);
 }
 
 void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
