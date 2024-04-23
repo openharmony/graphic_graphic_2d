@@ -920,11 +920,14 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
+bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
+    RSSurfaceHandler& surfaceHandler, bool isDisplaySurface, uint64_t vsyncTimestamp)
 {
-    auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
-    if (availableBufferCnt <= 0) {
-        // this node has no new buffer, try use old buffer.
+    if (surfaceHandler.GetAvailableBufferCount() <= 0) {
+        // this node has no new buffer, try use cache.
+        // if don't have cache, will not update and use old buffer.
+        // display surface don't have cache, always use old buffer.
+        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
         return true;
     }
     auto& consumer = surfaceHandler.GetConsumer();
@@ -933,30 +936,32 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
     }
 
     DropFrameProcess(surfaceHandler);
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp = 0;
+
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
     std::vector<Rect> damages;
-    auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damages);
-    if (buffer == nullptr || ret != SURFACE_ERROR_OK) {
+    auto ret = consumer->AcquireBuffer(buffer.buffer, buffer.acquireFence, buffer.timestamp, damages);
+    if (buffer.buffer == nullptr || ret != SURFACE_ERROR_OK) {
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
             surfaceHandler.GetNodeId(), ret);
         return false;
     }
     // The damages of buffer will be merged here, only single damage is supported so far
-    Rect damageAfterMerge = MergeBufferDamages(damages);
-    if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
+    buffer.damageRect = MergeBufferDamages(damages);
+    if (buffer.damageRect.h <= 0 || buffer.damageRect.w <= 0) {
         RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
             surfaceHandler.GetNodeId());
     }
-
-#ifndef ROSEN_CROSS_PLATFORM
-    surfaceHandler.SetBufferSizeChanged(buffer);
-#endif
-    surfaceHandler.SetBuffer(buffer, acquireFence, damageAfterMerge, timestamp);
-    surfaceHandler.SetCurrentFrameBufferConsumed();
-    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, timestamp = %{public}" PRId64 ".",
-        surfaceHandler.GetNodeId(), timestamp);
+    
+    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
+        "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRIu64 " .",
+        surfaceHandler.GetNodeId(), vsyncTimestamp, static_cast<uint64_t>(buffer.timestamp));
+    
+    if (isDisplaySurface) {
+        surfaceHandler.ConsumeAndUpdateBuffer(buffer);
+    } else {
+        surfaceHandler.CacheBuffer(buffer);
+        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
+    }
     surfaceHandler.ReduceAvailableBuffer();
     return true;
 }
