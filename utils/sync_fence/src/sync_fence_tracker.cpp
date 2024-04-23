@@ -80,16 +80,24 @@ bool SyncFenceTracker::CheckGpuSubhealthEventLimit()
     return false;
 }
 
-inline int32_t SyncFenceTracker::GetValue(const std::string& fileName)
+inline void SyncFenceTracker::UpdateFrameQueue(int32_t startTime)
 {
-    std::string content;
-    OHOS::LoadStringFromFile(fileName, content);
-    int32_t parseVal = 0;
-    std::stringstream ss(content);
-    HILOG_DEBUG(LOG_CORE, "GetValue content is %{public}s", ss.str().c_str());
-    ss >> parseVal;
-    HILOG_DEBUG(LOG_CORE, "GetValue parseVal is %{public}" PRId32, parseVal);
-    return parseVal;
+    if (frameStartTimes->size() >= FRAME_QUEUE_SIZE_LIMIT) {
+        frameStartTimes->pop();
+    }
+    frameStartTimes->push(startTime);
+}
+
+inline int32_t SyncFenceTracker::GetFrameRate()
+{
+    int32_t frameRate = 0;
+    int32_t frameNum = frameStartTimes->size() - 1;
+    if (frameNum > 0) {
+        frameRate = FRAME_PERIOD * frameNum / (frameStartTimes->back() - frameStartTimes->front());
+    }
+    HILOG_DEBUG(LOG_CORE, "frameNum: %{public}" PRID32 ", frameRate: %{public} PRID32,
+        frameNum, frameRate);
+    return frameRate;
 }
 
 void SyncFenceTracker::ReportEventGpuSubhealth(int32_t duration)
@@ -98,7 +106,7 @@ void SyncFenceTracker::ReportEventGpuSubhealth(int32_t duration)
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventGpuSubhealth");
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "WAIT_ACQUIRE_FENCE_TIME", duration,
-        "GPU_LOAD", GetValue(GPU_LOAD));
+        "FRAME_RATE", GetFrameRate());
 }
 
 void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
@@ -113,6 +121,7 @@ void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
             int32_t startTimestamp = static_cast<int32_t>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
+            UpdateFrameQueue(startTimeStamp);
             result = fence->Wait(SYNC_TIME_OUT);
             int32_t endTimestamp = static_cast<int32_t>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(
