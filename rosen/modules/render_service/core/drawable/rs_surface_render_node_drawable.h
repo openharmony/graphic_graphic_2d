@@ -70,7 +70,7 @@ public:
     {
         std::string res = "pid_";
         res.append("_name_");
-        res.append(std::static_pointer_cast<const RSSurfaceRenderNode>(renderNode_)->GetName());
+        res.append(name_);
         return res;
     }
 

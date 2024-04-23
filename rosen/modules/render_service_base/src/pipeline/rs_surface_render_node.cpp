@@ -1983,8 +1983,11 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetGlobalDirtyRegion(const RectI& rect, bool renderParallel)
 {
+    if (!renderDrawable_ || !renderDrawable_->GetRenderParams()) {
+        return;
+    }
     auto visibleRegion = renderParallel
-        ? static_cast<RSSurfaceRenderParams*>(renderParams_.get())->GetVisibleRegion()
+        ? static_cast<RSSurfaceRenderParams*>(renderDrawable_->GetRenderParams().get())->GetVisibleRegion()
         : visibleRegion_;
     Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
     Occlusion::Region region { tmpRect };
@@ -2358,8 +2361,11 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
 void RSSurfaceRenderNode::InitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
-    renderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
-    uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
+    if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::InitRenderParams failed");
+        return;
+    }
 }
 
 void RSSurfaceRenderNode::UpdateRenderParams()

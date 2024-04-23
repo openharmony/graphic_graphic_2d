@@ -152,7 +152,7 @@ void RSUifirstManager::PurgePendingPostNodes()
             if (drawable->HasCachedTexture() && drawable->IsCurFrameStatic(deviceType) &&
                 (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end())) {
                 auto surfaceParams = static_cast<RSSurfaceRenderParams*>(
-                    drawable->GetRenderNode()->GetRenderParams().get());
+                    drawable->GetRenderParams().get());
                 if (!surfaceParams) {
                     RS_LOGE("PurgePendingPostNodes params is nullptr");
                     ++it;
@@ -344,12 +344,12 @@ void RSUifirstManager::SortSubThreadNodesPriority()
                 "this should not happen");
             return false;
         }
-        auto surfaceParams1 = static_cast<RSSurfaceRenderParams*>(drawable1->GetRenderNode()->GetRenderParams().get());
+        auto surfaceParams1 = static_cast<RSSurfaceRenderParams*>(drawable1->GetRenderParams().get());
         if (!surfaceParams1) {
             RS_LOGE("RSSurfaceRenderNodeDrawable::sortsubthread params1 is nullptr");
             return false;
         }
-        auto surfaceParams2 = static_cast<RSSurfaceRenderParams*>(drawable2->GetRenderNode()->GetRenderParams().get());
+        auto surfaceParams2 = static_cast<RSSurfaceRenderParams*>(drawable2->GetRenderParams().get());
         if (!surfaceParams2) {
             RS_LOGE("RSSurfaceRenderNodeDrawable::sortsubthread params2 is nullptr");
             return false;

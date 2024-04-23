@@ -165,8 +165,11 @@ bool RSDisplayRenderNode::GetBootAnimation() const
 void RSDisplayRenderNode::InitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(GetId());
-    renderParams_ = std::make_unique<RSDisplayRenderParams>(GetId());
-    uifirstRenderParams_ = std::make_unique<RSDisplayRenderParams>(GetId());
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
+    if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::InitRenderParams failed");
+        return;
+    }
 }
 
 void RSDisplayRenderNode::OnSync()

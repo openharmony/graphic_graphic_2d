@@ -317,7 +317,7 @@ void RSProfiler::OnFrameEnd()
     if (g_calcPerfNode == 0) {
         return;
     }
-        
+
     g_calcPerfNodeTime[g_calcPerfNodeTry] = Utils::RawNowNano() - g_frameBeginTimestamp;
     g_calcPerfNodeTry++;
     if (g_calcPerfNodeTry < CALC_PERF_NODE_TIME_COUNT) {
@@ -823,7 +823,7 @@ void RSProfiler::GetPerfTree(const ArgList& args)
             continue;
         }
         std::string sNodeType;
-        node->DumpNodeType(sNodeType);
+        RSRenderNode::DumpNodeType(node->GetType(), sNodeType);
         outString += (it != g_nodeSetPerf.begin() ? ", " : "") + std::to_string(*it) + ":" +
             std::to_string(g_mapNode2Count[*it]) + " [" + sNodeType + "]";
     }
@@ -1084,7 +1084,7 @@ void RSProfiler::PlaybackUpdate()
     if (!IsPlaying()) {
         return;
     }
-    
+
     const double deltaTime = Utils::Now() - g_playbackStartTime;
 
     std::vector<uint8_t> data;
