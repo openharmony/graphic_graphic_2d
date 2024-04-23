@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "pipeline/parallel_render/rs_sub_thread.h"
 using namespace testing;
 using namespace testing::ext;
@@ -44,9 +45,9 @@ HWTEST_F(RsSubThreadTest, PostTaskTest, TestSize.Level1)
     ASSERT_TRUE(renderContext != nullptr);
     renderContext->InitializeEglContext();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
-    curThread->PostTask([]{});
+    curThread->PostTask([] {});
     curThread->Start();
-    curThread->PostTask([]{});
+    curThread->PostTask([] {});
     delete renderContext;
     renderContext = nullptr;
     usleep(1000 * 1000); // 1000 * 1000us
@@ -125,8 +126,7 @@ HWTEST_F(RsSubThreadTest, ResetGrContext, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, AddToReleaseQueue, TestSize.Level1)
 {
-    const Drawing::ImageInfo info =
-    Drawing::ImageInfo{200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
+    const Drawing::ImageInfo info = Drawing::ImageInfo { 200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
     auto surface(Drawing::Surface::MakeRaster(info));
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     ASSERT_TRUE(curThread != nullptr);
@@ -145,10 +145,113 @@ HWTEST_F(RsSubThreadTest, RenderCache, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
     const std::shared_ptr<RSSuperRenderTask> threadTask_ = std::make_shared<RSSuperRenderTask>(rsDisplayRenderNode);
-    
+
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     ASSERT_TRUE(curThread != nullptr);
     curThread->Start();
     curThread->RenderCache(threadTask_);
 }
+
+/**
+ * @tc.name: PostSyncTaskTest001
+ * @tc.desc: Verify function PostSyncTask
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, PostSyncTaskTest001, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->PostSyncTask([] {});
+    curThread->Start();
+    curThread->PostSyncTask([] {});
+    EXPECT_TRUE(curThread->handler_);
+}
+
+/**
+ * @tc.name: RemoveTaskTest001
+ * @tc.desc: Verify function RemoveTask
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, RemoveTaskTest001, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->RemoveTask("1");
+    curThread->Start();
+    curThread->RemoveTask("2");
+    EXPECT_TRUE(curThread->handler_);
+}
+
+/**
+ * @tc.name: DumpMemTest001
+ * @tc.desc: Verify function DumpMem
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, DumpMemTest001, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    DfxString log;
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    curThread->DumpMem(log);
+    EXPECT_TRUE(curThread->grContext_);
+}
+
+/**
+ * @tc.name: GetAppGpuMemoryInMBTest001
+ * @tc.desc: Verify function GetAppGpuMemoryInMB
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, GetAppGpuMemoryInMBTest001, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    curThread->GetAppGpuMemoryInMB();
+    EXPECT_TRUE(curThread->grContext_);
+}
+
+/**
+ * @tc.name: ThreadSafetyReleaseTextureTest001
+ * @tc.desc: Verify function ThreadSafetyReleaseTexture
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, ThreadSafetyReleaseTextureTest001, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    curThread->ThreadSafetyReleaseTexture();
+    EXPECT_TRUE(curThread->grContext_);
+}
+
+/**
+ * @tc.name: ReleaseSurfaceTest001
+ * @tc.desc: Verify function ReleaseSurface
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, ReleaseSurfaceTest001, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto graphicsSurface = std::make_shared<Drawing::Surface>();
+    curThread->AddToReleaseQueue(std::move(graphicsSurface));
+    curThread->ReleaseSurface();
+    EXPECT_TRUE(curThread->tmpSurfaces_.empty());
+}
+
+/**
+ * @tc.name: CountSubMemTest001
+ * @tc.desc: Verify function CountSubMem
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, CountSubMemTest001, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    curThread->CountSubMem(1);
+    EXPECT_TRUE(curThread->grContext_);
+}
+
 } // namespace OHOS::Rosen
