@@ -550,7 +550,6 @@ void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
         if (touchCnt_ == LAST_TOUCH_DOWN_CNT) {
             DeliverRefreshRateVote(0, "VOTER_TOUCH", ADD_VOTE, touchFps_, touchFps_);
             HGM_LOGI("[touch manager] update to target %{public}d fps", touchFps_);
-            StopScreenTimer(curScreenId_);
             touchMgr_->StopRSTimer(curScreenId_);
             touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::DOWN);
         }
@@ -558,9 +557,6 @@ void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
         touchCnt_--;
         if (touchCnt_ == 0) {
             HGM_LOGI("[touch manager] touch up detect");
-            StartScreenTimer(curScreenId_, TOUCH_UP_TIMEOUT_TIMER_EXPIRED, nullptr, [this]() {
-                forceUpdateCallback_(true, false);
-            });
             touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::UP);
             touchMgr_->StartRSTimer(curScreenId_, TOUCH_RS_IDLE_TIMER_EXPIRED, nullptr, [this]() {
                 touchMgr_->rsIdleUpdateCallback_(true);

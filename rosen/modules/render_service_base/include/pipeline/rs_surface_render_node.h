@@ -218,6 +218,11 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
+    {
+        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
+    }
+
     void SetHardwareDisabledByCache(bool disabledByCache)
     {
         isHardwareDisabledByCache_ = disabledByCache;
@@ -240,10 +245,10 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isForceHardwareByUser_) {
+        if (isForceHardwareByUser_ && !isHardwareForcedDisabledByVisibility_) {
             return false;
         }
-        return isHardwareForcedDisabled_ ||
+        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -337,6 +342,8 @@ public:
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
 
+    bool IsLeashWindowSurfaceNodeVisible();
+
     const std::string& GetName() const
     {
         return name_;
@@ -424,17 +431,21 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
+    void SetProtectedLayer(bool isProtectedLayer);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetProtectedLayer() const;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
+    bool GetHasProtectedLayer() const;
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
+    void SyncProtectedInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -1086,8 +1097,10 @@ private:
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isProtectedLayer_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
+    std::set<NodeId> protectedLayerIds_= {};
 
     bool hasFingerprint_ = false;
     RectI srcRect_;
@@ -1227,6 +1240,7 @@ private:
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
     bool isForceHardwareByUser_ = false;
+    bool isHardwareForcedDisabledByVisibility_ = false;
     RectI originalDstRect_;
     int32_t fixedRotationDegree_ = -90;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;

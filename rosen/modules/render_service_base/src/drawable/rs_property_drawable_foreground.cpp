@@ -453,7 +453,7 @@ RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
 bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    auto& outline = properties.GetBorder();
+    auto& outline = properties.GetOutline();
     if (!outline || !outline->HasBorder()) {
         return false;
     }

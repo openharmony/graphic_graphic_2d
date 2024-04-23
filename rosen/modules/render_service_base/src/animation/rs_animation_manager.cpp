@@ -56,6 +56,12 @@ void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& 
         ROSEN_LOGE("RSAnimationManager::AddAnimation, The animation already exists when is added");
         return;
     }
+    auto it = std::find(pendingCancelAnimation_.begin(), pendingCancelAnimation_.end(), key);
+    if (it != pendingCancelAnimation_.end()) {
+        pendingCancelAnimation_.erase(it);
+        ROSEN_LOGE("RSAnimationManager::AddAnimation, animation is a pendingCancelAnimation");
+        return;
+    }
     animations_.emplace(key, animation);
 }
 
@@ -80,6 +86,22 @@ void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
         }
         return false;
     });
+}
+
+void RSAnimationManager::AttemptCancelAnimationByAnimationId(const std::vector<AnimationId>& animations)
+{
+    for (auto& animationId : animations) {
+        bool isErased = EraseIf(animations_, [animationId, this](const auto& pair) {
+            if (pair.second && (pair.first == animationId)) {
+                OnAnimationFinished(pair.second);
+                return true;
+            }
+            return false;
+        });
+        if (!isErased) {
+            pendingCancelAnimation_.emplace_back(animationId);
+        }
+    }
 }
 
 void RSAnimationManager::FilterAnimationByPid(pid_t pid)

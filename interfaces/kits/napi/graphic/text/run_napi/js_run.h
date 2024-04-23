@@ -19,6 +19,7 @@
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
 #include "run.h"
+#include "typography.h"
 
 namespace OHOS::Rosen {
 class JsRun final {
@@ -36,6 +37,7 @@ public:
     static napi_value GetOffsets(napi_env env, napi_callback_info info);
     static napi_value GetFont(napi_env env, napi_callback_info info);
     static napi_value Paint(napi_env env, napi_callback_info info);
+    void SetParagraph(std::shared_ptr<Typography> paragraph);
 
 private:
     static thread_local napi_ref constructor_;
@@ -47,6 +49,7 @@ private:
     napi_value OnPaint(napi_env env, napi_callback_info info);
 
     std::unique_ptr<Run> run_;
+    std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_JS_RUN_H

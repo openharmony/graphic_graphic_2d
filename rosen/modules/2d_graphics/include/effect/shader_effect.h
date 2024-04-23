@@ -47,7 +47,7 @@ public:
         EXTEND_SHADER,
     };
 
-    /** 
+    /**
      * @brief Create a ShaderEffect that ignores the color in the paint, and uses the
      * specified color. Note: like all shaders, at draw time the paint's alpha
      * will be respected, and is applied to the specified color.

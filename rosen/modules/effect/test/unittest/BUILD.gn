@@ -67,6 +67,7 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root/utils/color_manager:color_manager_public_config",
   ]
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
   ]

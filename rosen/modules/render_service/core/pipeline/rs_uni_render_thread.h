@@ -51,6 +51,7 @@ public:
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::HIGH);
     void PostSyncTask(const std::function<void()>& task);
+    bool IsIdle() const;
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
@@ -115,6 +116,10 @@ public:
     }
     void UpdateDisplayNodeScreenId();
     uint32_t GetDynamicRefreshRate() const;
+    pid_t GetTid() const
+    {
+        return tid_;
+    }
 
 private:
     RSUniRenderThread();

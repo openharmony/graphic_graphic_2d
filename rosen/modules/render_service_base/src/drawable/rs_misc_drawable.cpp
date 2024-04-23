@@ -49,6 +49,7 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
                 stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
             }
         }
+        const_cast<RSRenderNode&>(node).SetChildrenHasSharedTransition(childrenHasSharedTransition_);
         return !stagingChildrenDrawableVec_.empty();
     }
 
@@ -70,6 +71,7 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
     // merge pendingChildren into stagingChildrenDrawableVec_
     stagingChildrenDrawableVec_.insert(stagingChildrenDrawableVec_.end(), pendingChildren.begin(),
         pendingChildren.end());
+    const_cast<RSRenderNode&>(node).SetChildrenHasSharedTransition(childrenHasSharedTransition_);
     return !stagingChildrenDrawableVec_.empty();
 }
 
@@ -121,7 +123,6 @@ void RSChildrenDrawable::OnSync()
         return;
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
-    stagingChildrenDrawableVec_.clear();
     needSync_ = false;
 }
 
@@ -188,7 +189,6 @@ void RSCustomModifierDrawable::OnSync()
         return;
     }
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
-    stagingDrawCmdListVec_.clear();
     needSync_ = false;
 }
 
@@ -339,6 +339,79 @@ Drawing::RecordingCanvas::DrawFunc RSEndBlendModeDrawable::CreateDrawFunc() cons
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         RSPropertyDrawableUtils::EndBlendMode(*paintFilterCanvas, ptr->blendApplyType_);
+    };
+}
+
+RSDrawable::Ptr RSBeginBlenderDrawable::OnGenerate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (!properties.IsFgBrightnessValid()) {
+        return nullptr;
+    }
+    auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
+        properties.GetFgBrightnessParams().value(), properties.GetFgBrightnessFract());
+
+    return std::make_shared<RSBeginBlenderDrawable>(blender);
+}
+
+bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (!properties.IsFgBrightnessValid()) {
+        return false;
+    }
+
+    auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
+        properties.GetFgBrightnessParams().value(), properties.GetFgBrightnessFract());
+    stagingBlender_ = blender;
+    needSync_ = true;
+
+    return true;
+}
+
+void RSBeginBlenderDrawable::OnSync()
+{
+    if (needSync_ == false) {
+        return;
+    }
+    blender_ = stagingBlender_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_);
+    };
+}
+
+RSDrawable::Ptr RSEndBlenderDrawable::OnGenerate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (!properties.IsFgBrightnessValid()) {
+        return nullptr;
+    }
+
+    return std::make_shared<RSEndBlenderDrawable>();
+};
+
+bool RSEndBlenderDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (!properties.IsFgBrightnessValid()) {
+        return false;
+    }
+
+    return true;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSEndBlenderDrawable::CreateDrawFunc() const
+{
+    return [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RSPropertyDrawableUtils::EndBlender(*paintFilterCanvas);
     };
 }
 

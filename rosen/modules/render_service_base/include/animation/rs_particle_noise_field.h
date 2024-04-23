@@ -81,6 +81,57 @@ public:
     Vector2f curl(float x, float y);
 };
 
+class ParticleNoiseFields {
+public:
+    std::vector<std::shared_ptr<ParticleNoiseField>> fields_;
+
+    ParticleNoiseFields() = default;
+
+    void AddField(const std::shared_ptr<ParticleNoiseField>& field)
+    {
+        fields_.push_back(field);
+    }
+
+    void RemoveField(size_t index)
+    {
+        if (index < fields_.size()) {
+            fields_.erase(fields_.begin() + index);
+        }
+    }
+
+    std::shared_ptr<ParticleNoiseField> GetField(size_t index)
+    {
+        if (index >= fields_.size()) {
+            return nullptr;
+        }
+        return fields_[index];
+    }
+
+    size_t GetFieldCount() const
+    {
+        return fields_.size();
+    }
+
+    Vector2f ApplyAllFields(const Vector2f& position)
+    {
+        Vector2f totalEffect = { 0.0f, 0.0f };
+        for (auto& field : fields_) {
+            totalEffect = totalEffect + field->ApplyField(position) + field->ApplyCurlNoise(position);
+        }
+        return totalEffect;
+    }
+
+    void ClearFields()
+    {
+        fields_.clear();
+    }
+
+    bool operator==(const ParticleNoiseFields& rhs) const
+    {
+        return fields_ == rhs.fields_;
+    }
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

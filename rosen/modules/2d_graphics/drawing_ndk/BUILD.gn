@@ -81,6 +81,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_round_rect.cpp",
       "$drawing_ndk_src_dir/drawing_sampling_options.cpp",
       "$drawing_ndk_src_dir/drawing_shader_effect.cpp",
+      "$drawing_ndk_src_dir/drawing_shadow_layer.cpp",
       "$drawing_ndk_src_dir/drawing_surface.cpp",
       "$drawing_ndk_src_dir/drawing_text_blob.cpp",
       "$drawing_ndk_src_dir/drawing_text_typography.cpp",

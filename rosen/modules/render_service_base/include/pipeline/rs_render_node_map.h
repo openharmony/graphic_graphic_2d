@@ -63,6 +63,8 @@ public:
     NodeId GetScreenLockWindowNodeId() const;
     void ObtainScreenLockWindowNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+
+    uint32_t GetVisibleLeashWindowCount() const;
 private:
     explicit RSRenderNodeMap();
     void EraseAbilityComponentNumsInProcess(NodeId id);

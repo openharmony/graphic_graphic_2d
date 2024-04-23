@@ -68,6 +68,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->allMainAndLeashSurfaces_ = allMainAndLeashSurfaces_;
     targetDisplayParams->displayHasSecSurface_ = displayHasSecSurface_;
     targetDisplayParams->displayHasSkipSurface_ = displayHasSkipSurface_;
+    targetDisplayParams->displayHasProtectedSurface_ = displayHasProtectedSurface_;
     targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;
     targetDisplayParams->offsetX_ = offsetX_;
     targetDisplayParams->offsetY_ = offsetY_;
@@ -117,6 +118,16 @@ bool RSDisplayRenderParams::HasSkipLayer()
         hasSkipLayerFlag = iter->second;
     }
     return hasSkipLayerFlag;
+}
+
+bool RSDisplayRenderParams::HasProtectedLayer()
+{
+    bool hasProtectedLayerFlag = false;
+    auto iter = displayHasProtectedSurface_.find(screenId_);
+    if (iter != displayHasProtectedSurface_.end()) {
+        hasProtectedLayerFlag = iter->second;
+    }
+    return hasProtectedLayerFlag;
 }
 
 bool RSDisplayRenderParams::HasCaptureWindow()

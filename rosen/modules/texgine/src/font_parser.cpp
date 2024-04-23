@@ -386,7 +386,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
         return nullptr;
     }
 
-    int systemFontSize = systemFontList->size();
+    int systemFontSize = static_cast<int>(systemFontList->size());
     for (auto font : fontSet_) {
         for (int i = 0; i < systemFontSize; i++) {
             if (systemFontSize <= 0) {
@@ -402,7 +402,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
         systemFontList->push_back(font);
     }
 
-    for (int i = systemFontList->size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(systemFontList->size()) - 1; i >= 0; --i) {
         FontParser::FontDescriptor fontDescriptor;
         fontDescriptor.requestedLid = languageId;
         fontDescriptor.path = (*systemFontList)[i];

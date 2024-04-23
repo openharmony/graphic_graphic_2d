@@ -49,6 +49,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
+class RSChildrenDrawable;
 class RSRenderNodeDrawableAdapter;
 class RSRenderNodeShadowDrawable;
 }
@@ -459,9 +460,9 @@ public:
     void UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect);
     void UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
-    virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
-    virtual void UpdateFilterCacheManagerWithCacheRegion(RSDirtyRegionManager& dirtyManager,
-        const std::optional<RectI>& clipRect = std::nullopt, bool isForeground = false);
+    virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
+    virtual void UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect = std::nullopt,
+        bool isInSkippedSubTree = false, const std::optional<RectI>& filterRectForceUpdated = std::nullopt);
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelowContainsFilterNode = false);
     bool IsBackgroundFilterCacheValid() const;
@@ -585,6 +586,13 @@ public:
     const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const;
 
     void UpdatePointLightDirtySlot();
+    void AccmulateDirtyInOcclusion(bool isOccluded);
+    void RecordCurDirtyStatus();
+    void AccmulateDirtyStatus();
+    void ResetAccmulateDirtyStatus();
+    void RecordCurDirtyTypes();
+    void AccmulateDirtyTypes();
+    void ResetAccmulateDirtyTypes();
     void SetUifirstSyncFlag(bool needSync);
     void SetUifirstSkipPartialSync(bool skip)
     {
@@ -608,7 +616,7 @@ public:
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
     bool IsEffectNodeNeedTakeSnapShot() const;
-
+    void SetChildrenHasSharedTransition(bool hasSharedTransition);
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -659,6 +667,7 @@ protected:
     bool needClearSurface_ = false;
 
     ModifierDirtyTypes dirtyTypes_;
+    ModifierDirtyTypes curDirtyTypes_;
     bool isBootAnimation_ = false;
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 
@@ -708,6 +717,7 @@ private:
 
     std::weak_ptr<RSContext> context_ = {};
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
+    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
     bool isNewOnTree_ = false;
     bool isOnlyBasicGeoTransform_ = true;
@@ -728,7 +738,7 @@ private:
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
 
-    void UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
+    bool UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
@@ -824,6 +834,13 @@ private:
     float boundsHeight_ = 0.0f;
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
+    // node region, only used in selfdrawing node dirty
+    bool isSelfDrawingNode_ = false;
+    RectF selfDrawingNodeDirtyRect_;
+    RectI selfDrawingNodeAbsDirtyRect_;
+    RectI oldAbsDrawRect_;
+    // used in old pipline
+    RectI oldRectFromRenderProperties_;
     // including enlarged draw region
     RectF selfDrawRect_;
     RectI localShadowRect_;

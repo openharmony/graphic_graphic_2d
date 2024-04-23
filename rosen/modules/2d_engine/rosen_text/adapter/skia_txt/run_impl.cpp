@@ -27,7 +27,7 @@ RunImpl::RunImpl(std::unique_ptr<SPText::Run> run): run_(std::move(run))
 Drawing::Font RunImpl::GetFont() const
 {
     if (!run_) {
-        return font_;
+        return {};
     }
     return run_->GetFont();
 }

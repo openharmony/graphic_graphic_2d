@@ -485,6 +485,18 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
+std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
+{
+    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::vector<AnimationId> animations;
+    for (auto& [animateId, animation] : animations_) {
+        if (animation->GetPropertyId() == id) {
+            animations.push_back(animateId);
+        }
+    }
+    return animations;
+}
+
 template<typename ModifierName, typename PropertyName, typename T>
 void RSNode::SetProperty(RSModifierType modifierType, T value)
 {
@@ -980,6 +992,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     for (size_t i = 0; i < particleParams.size(); i++) {
         particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
+
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSPropertyBase>();
     auto propertyId = property->GetId();
@@ -1017,12 +1030,12 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         auto emitSize = particleParams[i].emitterConfig_.emitSize_;
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
-            auto radius = particleParams[i].emitterConfig_.radius_;
-            auto radiusMax = radius * scaleMax;
-            left = std::min(left - radiusMax, position.x_ - radiusMax);
-            top = std::min(top - radiusMax, position.y_ - radiusMax);
-            right = std::max(right + radiusMax + radiusMax, position.x_ + emitSize.x_ + radiusMax + radiusMax);
-            bottom = std::max(bottom + radiusMax + radiusMax, position.y_ + emitSize.y_ + radiusMax + radiusMax);
+            auto diameter = particleParams[i].emitterConfig_.radius_ * 2; // diameter = 2 * radius
+            auto diameMax = diameter * scaleMax;
+            left = std::min(left - diameMax, position.x_ - diameMax);
+            top = std::min(top - diameMax, position.y_ - diameMax);
+            right = std::max(right + diameMax + diameMax, position.x_ + emitSize.x_ + diameMax + diameMax);
+            bottom = std::max(bottom + diameMax + diameMax, position.y_ + emitSize.y_ + diameMax + diameMax);
         } else {
             float imageSizeWidth = 0.f;
             float imageSizeHeight = 0.f;
@@ -1057,9 +1070,9 @@ void RSNode::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
 }
 
 // Set Particle Noise Field
-void RSNode::SetParticleNoiseField(const std::shared_ptr<ParticleNoiseField>& para)
+void RSNode::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para)
 {
-    SetProperty<RSParticleNoiseFieldModifier, RSProperty<std::shared_ptr<ParticleNoiseField>>>(
+    SetProperty<RSParticleNoiseFieldsModifier, RSProperty<std::shared_ptr<ParticleNoiseFields>>>(
         RSModifierType::PARTICLE_NOISE_FIELD, para);
 }
 
@@ -1278,6 +1291,30 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
         RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
 }
 
+void RSNode::SetFgBrightnessParams(const RSDynamicBrightnessPara& params)
+{
+    SetProperty<RSFgBrightnessParamsModifier,
+        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::FG_BRIGHTNESS_PARAMS, params);
+}
+
+void RSNode::SetFgBrightnessFract(const float& fract)
+{
+    SetProperty<RSFgBrightnessFractModifier,
+        RSAnimatableProperty<float>>(RSModifierType::FG_BRIGHTNESS_FRACTION, fract);
+}
+
+void RSNode::SetBgBrightnessParams(const RSDynamicBrightnessPara& params)
+{
+    SetProperty<RSBgBrightnessParamsModifier,
+        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::BG_BRIGHTNESS_PARAMS, params);
+}
+
+void RSNode::SetBgBrightnessFract(const float& fract)
+{
+    SetProperty<RSBgBrightnessFractModifier,
+        RSAnimatableProperty<float>>(RSModifierType::BG_BRIGHTNESS_FRACTION, fract);
+}
+
 void RSNode::SetDynamicDimDegree(const float dimDegree)
 {
     SetProperty<RSDynamicDimDegreeModifier,
@@ -1415,9 +1452,11 @@ void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
         RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
 }
 
-void RSNode::SetPixelStretch(const Vector4f& stretchSize)
+void RSNode::SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode)
 {
     SetProperty<RSPixelStretchModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
+    SetProperty<RSPixelStretchTileModeModifier, RSProperty<int>>(
+        RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
 }
 
 void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent)
@@ -2039,7 +2078,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         children_.insert(children_.begin() + index, childId);
     }
     child->SetParent(id_);
-    if (isTextureExportNode_) {
+    if (isTextureExportNode_ != child->isTextureExportNode_) {
         child->SyncTextureExport(isTextureExportNode_);
     }
     child->OnAddChildren();

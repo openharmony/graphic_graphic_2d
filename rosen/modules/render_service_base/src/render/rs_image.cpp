@@ -53,7 +53,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
-    if (!isDrawn_ || rect != lastRect_) {
+    if (!isDrawn_ || rect != lastRect_ || RSPixelMapUtil::IsYUVFormat(pixelMap_)) {
         UpdateNodeIdToPicture(nodeId_);
         Drawing::AutoCanvasRestore acr(canvas, HasRadius());
         frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
@@ -221,7 +221,6 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             if (canvas.GetGPUContext() == nullptr) {
                 return;
             }
-            RS_TRACE_NAME("make compress img");
             Media::ImageInfo imageInfo;
             pixelMap_->GetImageInfo(imageInfo);
             Media::Size realSize;
@@ -240,6 +239,9 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             }
             compressData_ = nullptr;
         }
+    }
+    if (RSPixelMapUtil::IsYUVFormat(pixelMap_)) {
+        ProcessYUVImage(canvas.GetGPUContext());
     }
 #endif
 }

@@ -25,6 +25,7 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
 {
     rsUiDirector_ = RSUIDirector::Create();
     rootNode_ = rootNode;
+    rootNode_->SyncTextureExport(true);
     surfaceId_ = surfaceId;
     RSSurfaceNodeConfig config = {
         .SurfaceNodeName = "textureExportSurfaceNode",

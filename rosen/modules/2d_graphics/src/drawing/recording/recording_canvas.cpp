@@ -202,6 +202,19 @@ void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, co
         pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
+void RecordingCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawShadowStyleOpItem>(
+            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle));
+        return;
+    }
+    auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
+    cmdList_->AddDrawOp<DrawShadowStyleOpItem::ConstructorHandle>(
+        pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+}
+
 void RecordingCanvas::DrawRegion(const Region& region)
 {
     if (!addDrawOpImmediate_) {

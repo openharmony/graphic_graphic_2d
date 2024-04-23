@@ -236,7 +236,8 @@ public:
     virtual void RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy);
 
     /**
-     * @brief Adds cubic from last point towards vector (dx1, dy1), then towards vector (dx2, dy2), to vector (dx3, dy3).
+     * @brief Adds cubic from last point towards vector (dx1, dy1), then towards vector (dx2, dy2),
+     * to vector (dx3, dy3).
      *
      * @param dx1 offset from last point to first cubic control on x-axis
      * @param dy1 offset from last point to first cubic control on y-axis

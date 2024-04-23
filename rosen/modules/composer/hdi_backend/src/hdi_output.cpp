@@ -529,13 +529,16 @@ int32_t HdiOutput::Commit(sptr<SyncFence> &fbFence)
     return device_->Commit(screenId_, fbFence);
 }
 
-int32_t HdiOutput::CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t& skipState, bool& needFlush,
-    std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences)
+int32_t HdiOutput::CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t& skipState, bool& needFlush)
 {
     CHECK_DEVICE_NULL(device_);
     layersId_.clear();
     fences_.clear();
-    return device_->CommitAndGetReleaseFence(screenId_, fbFence, skipState, needFlush, layers, fences);
+    int32_t ret = device_->CommitAndGetReleaseFence(screenId_, fbFence, skipState, needFlush, layersId_, fences_);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        skipState_ = skipState;
+    }
+    return ret;
 }
 
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
@@ -679,6 +682,18 @@ void HdiOutput::ReleaseLayers(sptr<SyncFence>& releaseFence)
 
 std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
 {
+    if (skipState_ != GRAPHIC_DISPLAY_SUCCESS) {
+        if (device_ == nullptr) {
+            HLOGE("GetLayersReleaseFence failed, device is nullptr");
+            return {};
+        }
+        int32_t ret = device_->GetScreenReleaseFence(screenId_, layersId_, fences_);
+        if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId_.size() != fences_.size()) {
+            HLOGE("GetScreenReleaseFence failed, ret is %{public}d, layerId size[%{public}d], fence size[%{public}d]",
+                  ret, (int)layersId_.size(), (int)fences_.size());
+            return {};
+        }
+    }
     std::map<LayerInfoPtr, sptr<SyncFence>> res;
     std::unique_lock<std::mutex> lock(layerMutex_);
     size_t layerNum = layersId_.size();

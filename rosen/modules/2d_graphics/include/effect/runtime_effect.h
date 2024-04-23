@@ -54,7 +54,7 @@ public:
      * @brief Blend SkSL requires an entry point that looks like:
      * vec4 main(vec4 srcColor, vec4 dstColor) { ... }
      *
-     * @param sl 
+     * @param sl
      * @return A shared pointer to RuntimeEffect
      */
     static std::shared_ptr<RuntimeEffect> CreateForBlender(const std::string& sl);

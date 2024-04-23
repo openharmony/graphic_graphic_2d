@@ -183,6 +183,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     return {};
 }
 
+// ParticleNoiseFields
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleNoiseFields>& val)
+{
+    return {};
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleNoiseFields>& val)
+{
+    return {};
+}
+
 // MotionBlurPara
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
 {
@@ -414,6 +424,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, float)                                              \
     EXPLICIT_INSTANTIATION(TEMPLATE, int)                                                \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSDynamicBrightnessPara)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                           \
@@ -427,6 +438,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseField>)                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)               \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<std::vector<ParticleRenderParams>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \

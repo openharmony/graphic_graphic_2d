@@ -1107,17 +1107,24 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
     rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
-    auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
-
     bool ifSupported = false;
-    for (auto rateIter : supportedRates) {
-        if (rateIter < 0) {
-            continue;
-        }
-        if (static_cast<uint32_t>(rateIter) == rateToSet) {
-            ifSupported = true;
+
+    if (currentRate == rateToSet) {
+        ifSupported = true;
+    } else {
+        auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
+        for (auto rateIter : supportedRates) {
+            if (rateIter < 0) {
+                continue;
+            }
+            if (static_cast<uint32_t>(rateIter) == rateToSet) {
+                ifSupported = true;
+                currentRate = rateToSet;
+                break;
+            }
         }
     }
+    
     if (ifSupported) {
         EXPECT_GE(currentRate, rateToSet);
     } else {

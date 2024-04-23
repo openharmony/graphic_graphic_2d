@@ -101,6 +101,38 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRen
     return resultRegion;
 }
 
+bool RSSurfaceRenderNodeDrawable::CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas)
+{
+    auto matrix = canvas.GetTotalMatrix();
+    int angle = RSUniRenderUtil::GetRotationFromMatrix(matrix);
+    constexpr int ROTATION_90 = 90;
+    return angle != 0 && angle % ROTATION_90 == 0;
+}
+
+NodeId RSSurfaceRenderNodeDrawable::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node)
+{
+    if (node == nullptr || node->GetParent().lock() == nullptr) {
+        return INVALID_NODEID;
+    } else if (node->GetParent().lock()->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+        return node->GetId();
+    } else {
+        return FindInstanceChildOfDisplay(node->GetParent().lock());
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::CacheImgForCapture(RSPaintFilterCanvas& canvas,
+    std::shared_ptr<RSDisplayRenderNode> curDisplayNode)
+{
+    if (!curDisplayNode->GetSecurityDisplay() && canvas.GetSurface() != nullptr) {
+        bool resetRotate = CheckIfNeedResetRotate(canvas);
+        auto cacheImgForCapture = canvas.GetSurface()->GetImageSnapshot();
+        auto mirrorNode = curDisplayNode->GetMirrorSource().lock() ?
+            curDisplayNode->GetMirrorSource().lock() : curDisplayNode;
+        mirrorNode->SetCacheImgForCapture(cacheImgForCapture);
+        mirrorNode->SetResetRotate(resetRotate);
+    }
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
@@ -138,6 +170,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
         return;
     }
+    // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
+    auto curDisplayNode = rscanvas->GetCurDisplayNode();
+    if (curDisplayNode && surfaceParams->GetName().find("CapsuleWindow") != std::string::npos) {
+        CacheImgForCapture(*rscanvas, curDisplayNode);
+        NodeId nodeId = FindInstanceChildOfDisplay(surfaceNode->GetParent().lock());
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetRootIdOfCaptureWindow(nodeId);
+    }
+    
     if (!isuifirstNode) {
         MergeDirtyRegionBelowCurSurface(uniParam, surfaceParams, surfaceNode, curSurfaceDrawRegion);
     }
@@ -267,6 +307,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
+        return;
+    }
 
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
@@ -274,12 +318,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
-    bool hasSpecialLayer = (surfaceParams->GetIsSecurityLayer() || surfaceParams->GetIsSkipLayer() ||
-        surfaceParams->GetName() == "CapsuleWindow");
-    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && hasSpecialLayer) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::OnCapture: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) Mirror screen not draw special layer.",
-            surfaceParams->GetId());
+    bool noSpecialLayer = (!surfaceParams->GetIsSecurityLayer() && !surfaceParams->GetIsSkipLayer());
+    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && noSpecialLayer &&
+        EnableRecordingOptimization(*surfaceParams)) {
         return;
     }
 
@@ -293,10 +334,48 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 }
 
+bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& params)
+{
+    auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (threadParams) {
+        NodeId nodeId = threadParams->GetRootIdOfCaptureWindow();
+        bool hasCaptureImg = threadParams->GetHasCaptureImg();
+        if (nodeId == params.GetId()) {
+            RS_LOGD("RSSurfaceRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "])",
+                params.GetId());
+            threadParams->SetStartVisit(true);
+        }
+        if (hasCaptureImg && !threadParams->GetStartVisit()) {
+            RS_LOGD("RSSurfaceRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "]) Skip layer.",
+                params.GetId());
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    uint32_t saveCount = canvas.GetSaveCount();
+    if (surfaceParams.GetIsSecurityLayer() || surfaceParams.GetIsSkipLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
+            surfaceParams.GetId());
+        canvas.Clear(Drawing::Color::COLOR_WHITE);
+        return;
+    }
+
+    auto uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    if (!uniParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode uniParams is nullptr");
+        return;
+    }
+
+    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer()) &&
+        DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
+        return;
+    }
+
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
     if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
@@ -312,6 +391,23 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
     } else {
         surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
     }
+
+    if (surfaceParams.GetIsProtectedLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear black since it is protected layer.",
+            surfaceParams.GetId());
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
+        canvas.AttachBrush(rectBrush);
+        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
+            surfaceParams.GetBounds().GetHeight()));
+        canvas.DetachBrush();
+        if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
+            canvas.Restore();
+        }
+        return;
+    }
+
     auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
     RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
@@ -324,15 +420,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         RSUniRenderUtil::CeilTransXYInCanvasMatrix(canvas);
     }
 
-    if (surfaceParams.GetIsSecurityLayer() || surfaceParams.GetIsSkipLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
-            surfaceParams.GetId());
-        canvas.Clear(Drawing::Color::COLOR_WHITE);
-        canvas.RestoreToCount(saveCount);
-        return;
-    }
-
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
@@ -340,17 +427,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
 
     if (isSelfDrawingSurface) {
         canvas.Restore();
-    }
-
-    auto uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if (!uniParams) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay uniParams is nullptr");
-        return;
-    }
-
-    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer()) &&
-        DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
-        return;
     }
 
     // 3. Draw content of this node by the main canvas.
@@ -383,19 +459,38 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
         return;
     }
 
-    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer()) &&
+    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer()) &&
         DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
         return;
     }
 
     auto nodeType = surfaceParams.GetSurfaceNodeType();
     bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
-    if (isSelfDrawingSurface) {
+    if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
         SetSkip(surfaceParams.GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
         canvas.Save();
     }
 
     surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
+
+    if (surfaceParams.GetIsProtectedLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear black since it is protected layer.",
+            surfaceParams.GetId());
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
+        canvas.AttachBrush(rectBrush);
+        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
+            surfaceParams.GetBounds().GetHeight()));
+        canvas.DetachBrush();
+        if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
+            canvas.Restore();
+        }
+        return;
+    }
+
+    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
+    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     auto bounds = surfaceParams.GetFrameRect();
 
@@ -405,8 +500,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& s
     if (isSelfDrawingSurface) {
         RSUniRenderUtil::CeilTransXYInCanvasMatrix(canvas);
     }
-    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
-    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
 
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
@@ -442,14 +535,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
     }
 
     RSAutoCanvasRestore arc(&canvas);
-    // Hwc nodes need to use LayerMatrix(totalMatrix) when doing capturing
-    if (RSUniRenderThread::GetCaptureParam().isInCaptureFlag_ &&
-        surfaceParams.GetHardwareEnabled()) {
-        auto matrix = surfaceParams.GetLayerInfo().matrix;
-        matrix.PostScale(RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
-        canvas.SetMatrix(matrix);
-    }
-    
     surfaceNode.SetGlobalAlpha(1.0f); // TO-DO
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceNode, false, threadId, true);

@@ -75,7 +75,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, idx, 0);
     };
     auto threadId = paintFilterCanvas->GetIsParallelCanvas() ?
-        RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx] : 0;
+        RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx] : RSUniRenderThread::Instance().GetTid();
     SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
 
     auto& bounds = params->GetBounds();
@@ -125,6 +125,12 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 {
     DrawContent(*canvas_, rect);
 
+    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+    auto canvasDrawingNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
+    if (canvasDrawingNode == nullptr) {
+        return;
+    }
+    canvasDrawingNode->SetNeedProcess(false);
     Rosen::Drawing::Matrix mat;
     const auto& params = renderNode_->GetRenderParams();
     auto& frameRect = params->GetFrameRect();
@@ -171,7 +177,13 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         if (!surface_ || !canvas_) {
             return;
         }
-        // planning: clear op
+        auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
+        auto canvasDrawingNode = std::static_pointer_cast<RSCanvasDrawingRenderNode>(nodeSp);
+        if (canvasDrawingNode == nullptr) {
+            return;
+        }
+        DrawContent(*canvas_, rect);
+        canvasDrawingNode->SetNeedProcess(false);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }

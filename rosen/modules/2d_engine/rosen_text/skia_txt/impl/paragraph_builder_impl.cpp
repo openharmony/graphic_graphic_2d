@@ -146,7 +146,7 @@ std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
 {
     paints_.push_back(paint);
-    return paints_.size() - 1;
+    return static_cast<int>(paints_.size()) - 1;
 }
 
 skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)

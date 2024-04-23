@@ -18,6 +18,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_physical_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_uni_render_engine.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -77,8 +78,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Init, TestSize.Level1)
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
-    auto mainThread = RSMainThread::Instance();
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, rsHardwareProcessor);
     ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 }

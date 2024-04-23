@@ -23,6 +23,7 @@
 #include "draw/path.h"
 #include "draw/surface.h"
 #include "image/pixmap.h"
+#include "image/yuv_info.h"
 #include "text/font_style_set.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
@@ -54,6 +55,7 @@ public:
             std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
 #endif
     static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
     static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);
@@ -77,7 +79,7 @@ public:
     static DrawingSymbolLayersGroups GetSymbolLayersGroups(uint32_t glyphId);
     static std::vector<std::vector<DrawingPiecewiseParameter>> GetGroupParameters(
         DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
-        DrawingCommonSubType commonSubType = DrawingCommonSubType::UP);
+        DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static FontStyleSet* CreateEmpty();
 };
 } // namespace Drawing

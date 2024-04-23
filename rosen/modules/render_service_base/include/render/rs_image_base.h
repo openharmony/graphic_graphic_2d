@@ -58,6 +58,9 @@ public:
 
 protected:
     void GenUniqueId(uint32_t id);
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
+#endif
     static bool UnmarshallingDrawingImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useDrawingImage,
         std::shared_ptr<Drawing::Image>& img, std::shared_ptr<Media::PixelMap>& pixelMap, void*& imagepixelAddr);
     static void IncreaseCacheRefCount(uint64_t uniqueId,

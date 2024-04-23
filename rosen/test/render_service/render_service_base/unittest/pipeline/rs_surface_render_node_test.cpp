@@ -395,7 +395,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest001, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> rsBaseRenderNode;
     std::vector<RSBaseRenderNode::SharedPtr> vec;
     bool isUniRender = true;
-    node->IsStartingWindow();
+    node->nodeType_ = RSSurfaceNodeType::STARTING_WINDOW_NODE;
     node->CollectSurface(rsBaseRenderNode, vec, isUniRender, false);
     ASSERT_FALSE(vec.empty());
 }
@@ -412,8 +412,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest002, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> rsBaseRenderNode;
     std::vector<RSBaseRenderNode::SharedPtr> vec;
     bool isUniRender = true;
-    node->IsLeashWindow();
-    node->CollectSurface(rsBaseRenderNode, vec, isUniRender, false);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    node->CollectSurface(rsBaseRenderNode, vec, isUniRender, true);
     ASSERT_FALSE(vec.empty());
 }
 
@@ -878,8 +878,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo001, TestSize.Level2)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
-
-    node->SetHasFilter(true);
+    node->InitRenderParams();
+    node->SetChildHasVisibleFilter(true);
     node->RSRenderNode::StoreMustRenewedInfo();
     node->StoreMustRenewedInfo();
     ASSERT_TRUE(node->HasMustRenewedInfo());

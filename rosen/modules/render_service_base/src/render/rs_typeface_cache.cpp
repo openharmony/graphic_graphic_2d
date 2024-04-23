@@ -53,7 +53,7 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
 {
     if (typeface && uniqueId > 0) {
         // 32 for 64-bit unsignd number shift
-        pid_t pid = static_cast<uint32_t>(uniqueId >> 32);
+        pid_t pid = static_cast<pid_t>(uniqueId >> 32);
         uint32_t typefaceId = static_cast<uint32_t>(0xFFFFFFFF & uniqueId);
         std::lock_guard<std::mutex> lock(mapMutex_);
         drawingTypefaceCache_[pid][typefaceId] = typeface;

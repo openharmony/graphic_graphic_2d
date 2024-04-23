@@ -125,7 +125,6 @@ public:
     void MarkRotationChanged();
     void MarkHasEffectChildren();
     void MarkNodeIsOccluded(bool isOccluded);
-    void MarkFilterBelowIsDirty();
     void CheckClearFilterCache();
 
     bool IsFilterCacheValid() const;
@@ -137,7 +136,7 @@ public:
 
 private:
     void ClearFilterCache();
-    void UpdateFlags(FilterCacheType type, bool cacheValid, bool forceResetInterval = true);
+    void UpdateFlags(FilterCacheType type, bool cacheValid);
  
 protected:
     void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
@@ -149,7 +148,6 @@ protected:
     // flags for clearing filter cache
     bool forceUseCache_ = false;
     bool forceClearCache_ = false;
-    bool belowFilterIsDirty_ = false;
     uint32_t cachedFilterHash_ = 0;
     bool filterHashChanged_ = false;
     bool filterRegionChanged_ = false;

@@ -307,10 +307,16 @@ HWTEST_F(RSDirtyRegionManagerTest, GetRectFlipWithinSurface, Function | SmallTes
     bool ret = rsDirtyManager->SetSurfaceSize(surfaceWidth, surfaceHeight);
     EXPECT_EQ(ret, true);
     RectI oriRect = RectI(31, 31, 32, 65);
-    RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
-    int32_t flippedTop = surfaceHeight - oriRect.top_ - oriRect.height_;
-    RectI expectedRect = RectI(oriRect.left_, flippedTop, oriRect.width_, oriRect.height_);
-    EXPECT_EQ(flippedRect, expectedRect);
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
+        int32_t flippedTop = surfaceHeight - oriRect.top_ - oriRect.height_;
+        RectI expectedRect = RectI(oriRect.left_, flippedTop, oriRect.width_, oriRect.height_);
+        EXPECT_EQ(flippedRect, expectedRect);
+    }
+    else {
+        RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
+        EXPECT_EQ(flippedRect, oriRect);
+    }
 }
 
 /*

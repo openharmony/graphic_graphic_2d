@@ -209,20 +209,18 @@ void RSRenderParticleEffector::UpdateAccelerationValue(
 }
 
 void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
-    const std::shared_ptr<ParticleNoiseField>& particleNoiseField, float deltaTime)
+    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, float deltaTime)
 {
     auto position = particle->GetPosition();
     auto fieldForce = Vector2f(0.f, 0.f);
-    if (particleNoiseField != nullptr) {
-        fieldForce += particleNoiseField->ApplyField(position);
-        fieldForce += particleNoiseField->ApplyCurlNoise(position);
+    if (particleNoiseFields != nullptr) {
+        fieldForce = particleNoiseFields->ApplyAllFields(position);
     }
     auto accelerationValue = particle->GetAccelerationValue();
     auto accelerationAngle = particle->GetAccelerationAngle();
     accelerationAngle *= DEGREE_TO_RADIAN;
     auto acceleration =
         Vector2f { accelerationValue * std::cos(accelerationAngle), accelerationValue * std::sin(accelerationAngle) };
-    acceleration += fieldForce;
     particle->SetAcceleration(acceleration);
 
     Vector2f velocity = particle->GetVelocity();
@@ -231,7 +229,7 @@ void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderPart
         velocity.y_ += acceleration.y_ * deltaTime;
         particle->SetVelocity(velocity);
     }
-
+    velocity += fieldForce * 10.f; // 10 is tenfold fieldForce applied to the velocity
     if (!(ROSEN_EQ(velocity.x_, 0.f) && ROSEN_EQ(velocity.y_, 0.f))) {
         position.x_ += velocity.x_ * deltaTime;
         position.y_ += velocity.y_ * deltaTime;
@@ -248,7 +246,7 @@ void RSRenderParticleEffector::UpdateActiveTime(const std::shared_ptr<RSRenderPa
 
 // Apply effector to particle
 void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& particle,
-    const std::shared_ptr<ParticleNoiseField>& particleNoiseField, int64_t deltaTime)
+    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, int64_t deltaTime)
 {
     float dt = static_cast<float>(deltaTime) / NS_TO_S;
     UpdateAccelerationValue(particle, dt);
@@ -257,7 +255,7 @@ void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& p
     UpdateOpacity(particle, dt);
     UpdateScale(particle, dt);
     UpdateSpin(particle, dt);
-    UpdatePosition(particle, particleNoiseField, dt);
+    UpdatePosition(particle, particleNoiseFields, dt);
     UpdateActiveTime(particle, deltaTime);
 }
 

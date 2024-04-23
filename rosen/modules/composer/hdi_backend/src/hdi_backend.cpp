@@ -129,15 +129,13 @@ void HdiBackend::Repaint(const OutputPtr &output)
 
     bool needFlush = false;
     int32_t skipState = INT32_MAX;
-    std::vector<uint32_t> layers;
-    std::vector<sptr<SyncFence>> fences;
     int32_t ret = output->PreProcessLayersComp();
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         return;
     }
 
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
-    ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, layers, fences);
+    ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
     }

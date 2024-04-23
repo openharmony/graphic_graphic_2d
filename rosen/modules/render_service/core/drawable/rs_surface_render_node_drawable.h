@@ -41,6 +41,7 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
+    bool EnableRecordingOptimization(RSRenderParams& params);
 
 #ifdef RS_PARALLEL
     void SubDraw(Drawing::Canvas& canvas);
@@ -135,9 +136,11 @@ public:
         return priority_;
     }
 #endif
-private:
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+
+private:
+    void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
     bool DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
 
@@ -157,6 +160,8 @@ private:
 #ifdef RS_PARALLEL
     std::string name_;
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas);
+    bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
+    NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
 
     // UIFIRST
     UIFirstParams uiFirstParams;

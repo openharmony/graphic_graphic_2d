@@ -57,6 +57,7 @@ static const std::vector<struct JsEnumInt> g_fontWeight = {
 static const std::vector<struct JsEnumInt> g_fontStyle = {
     { "NORMAL", static_cast<size_t>(FontStyle::NORMAL) },
     { "ITALIC", static_cast<size_t>(FontStyle::ITALIC) },
+    { "OBLIQUE", static_cast<size_t>(FontStyle::OBLIQUE) },
 };
 
 static const std::vector<struct JsEnumInt> g_textBaseline = {
@@ -114,7 +115,12 @@ static const std::vector<struct JsEnumInt> g_rectHeightStyle = {
     { "INCLUDE_LINE_SPACE_MIDDLE", static_cast<size_t>(TextRectHeightStyle::COVER_HALF_TOP_AND_BOTTOM) },
     { "INCLUDE_LINE_SPACE_TOP", static_cast<size_t>(TextRectHeightStyle::COVER_TOP) },
     { "INCLUDE_LINE_SPACE_BOTTOM", static_cast<size_t>(TextRectHeightStyle::COVER_BOTTOM) },
-    { "STRUCT", static_cast<size_t>(TextRectHeightStyle::FOLLOW_BY_STRUT) },
+    { "STRUT", static_cast<size_t>(TextRectHeightStyle::FOLLOW_BY_STRUT) },
+};
+
+static const std::vector<struct JsEnumInt> g_affinity = {
+    { "UPSTREAM", static_cast<size_t>(Affinity::PREV) },
+    { "DOWNSTREAM", static_cast<size_t>(Affinity::NEXT) },
 };
 
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
@@ -131,6 +137,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "PlaceholderAlignment", g_placeholderVerticalAlignment },
     { "RectWidthStyle", g_rectWidthStyle},
     { "RectHeightStyle", g_rectHeightStyle},
+    { "Affinity", g_affinity},
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
