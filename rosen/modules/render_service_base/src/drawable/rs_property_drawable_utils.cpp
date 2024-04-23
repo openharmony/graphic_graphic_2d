@@ -315,7 +315,12 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
 
     if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
         auto canvasOriginal = canvas.GetOriginalCanvas();
-        foregroundFilter->SetGeometry(*canvasOriginal, 0.f, 0.f);
+        if (canvas.GetDisableFilterCache()) {
+            foregroundFilter->IsOffscreenCanvas(true);
+        } else {
+            foregroundFilter->IsOffscreenCanvas(false);
+            foregroundFilter->SetGeometry(*canvasOriginal, 0.f, 0.f);
+        }
     }
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
