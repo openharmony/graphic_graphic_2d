@@ -695,7 +695,8 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->Restore();
     }
 
-    if (!node.GetHasSecurityLayer() && !node.GetHasSkipLayer() &&
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
+    if (firstLevelNode && !firstLevelNode->GetHasSecurityLayer() && !firstLevelNode->GetHasSkipLayer() &&
         isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
             process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
