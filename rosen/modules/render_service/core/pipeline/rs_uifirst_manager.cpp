@@ -692,13 +692,13 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
     }
     // 1: Planning: support multi appwindows
     if (isUIFirstEnable && node.IsLeashWindow() && (GetChildrenAppWindowNum(node) <= 1)) {
-        isNeedAssignToSubThread = (node.IsScale() || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
+        isNeedAssignToSubThread = (animation || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
             node.GetForceUIFirst()) && !node.HasFilter();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("Assign info: name[%s] id[%lu]"
         " filter:%d animation:%d forceUIFirst:%d isNeedAssign:%d",
         node.GetName().c_str(), node.GetId(),
-        node.HasFilter(), node.IsScale(), node.GetForceUIFirst(), isNeedAssignToSubThread);
+        node.HasFilter(), animation, node.GetForceUIFirst(), isNeedAssignToSubThread);
     std::string surfaceName = node.GetName();
     bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
         surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
