@@ -410,13 +410,13 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         }
         node.SetChildHasVisibleEffect(false);
         for (auto& child : *children) {
-            SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+            SaveCurSurface();
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
             if (child->ChildHasVisibleEffect()) {
                 node.SetChildHasVisibleEffect(true);
             }
-            RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+            RestoreCurSurface();
         }
         // Reset delay flag
         node.ResetGeoUpdateDelay();
@@ -462,7 +462,7 @@ bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
     // since this function only called by drawing group root
     // if cache valid, cacheRenderNodeMapCnt > 0
     // check all dirtynodes of app instance if there's any in cache subtree
-    if (curContentDirty_ || node.GetDrawingCacheChanged() || !node.IsCacheSurfaceValid() ||
+    if (curContentDirty_ || node.GetDrawingCacheChanged() || !node.IsCacheCompletedSurfaceValid() ||
         curSurfaceNode_ == nullptr || curSurfaceNode_->GetId() != node.GetInstanceRootNodeId() ||
         RSMainThread::Instance()->IsDrawingGroupChanged(node)) {
         return false;
@@ -573,24 +573,22 @@ bool RSUniRenderVisitor::IsFirstVisitedCacheForced() const
     return false;
 }
 
-void RSUniRenderVisitor::SaveCurSurface(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+void RSUniRenderVisitor::SaveCurSurface()
 {
     if (!isSubSurfaceEnabled_) {
         return;
     }
-    surfaceDirtyManager_.push(dirtyManager);
-    surfaceNode_.push(surfaceNode);
+    surfaceDirtyManager_.push(curSurfaceDirtyManager_);
+    surfaceNode_.push(curSurfaceNode_);
 }
 
-void RSUniRenderVisitor::RestoreCurSurface(std::shared_ptr<RSDirtyRegionManager> &dirtyManager,
-    std::shared_ptr<RSSurfaceRenderNode> &surfaceNode)
+void RSUniRenderVisitor::RestoreCurSurface()
 {
     if (!isSubSurfaceEnabled_) {
         return;
     }
-    dirtyManager = surfaceDirtyManager_.top();
-    surfaceNode = surfaceNode_.top();
+    curSurfaceDirtyManager_ = surfaceDirtyManager_.top();
+    curSurfaceNode_ = surfaceNode_.top();
     surfaceDirtyManager_.pop();
     surfaceNode_.pop();
 }
@@ -604,9 +602,9 @@ void RSUniRenderVisitor::PrepareSubSurfaceNodes(RSSurfaceRenderNode& node)
         for (auto &node : nodes.second) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.lock());
             if (surfaceNode != nullptr) {
-                SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+                SaveCurSurface();
                 PrepareSurfaceRenderNode(*surfaceNode);
-                RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+                RestoreCurSurface();
             }
         }
     }
@@ -621,9 +619,9 @@ void RSUniRenderVisitor::ProcessSubSurfaceNodes(RSSurfaceRenderNode& node)
         for (auto &node : nodes.second) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.lock());
             if (surfaceNode != nullptr) {
-                SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+                SaveCurSurface();
                 ProcessSurfaceRenderNode(*surfaceNode);
-                RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+                RestoreCurSurface();
             }
         }
     }
@@ -824,8 +822,10 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         mirroredDisplays_.insert(mirrorNode->GetScreenId());
     }
 
-    node.GetCurAllSurfaces().clear();
-    node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), true, false);
+    node.GetCurAllSurfaces(false).clear();
+    node.GetCurAllSurfaces(true).clear();
+    node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(false), true, false);
+    node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(true), true, true);
 
     HandleColorGamuts(node, screenManager);
     HandlePixelFormat(node, screenManager);
@@ -3382,11 +3382,11 @@ void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNod
     if (node.GetDrawingCacheRootId() != INVALID_NODEID) {
         child->SetDrawingCacheRootId(node.GetDrawingCacheRootId());
     }
-    SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+    SaveCurSurface();
     UpdateVirtualScreenFilterAppRootId(child);
     child->Process(shared_from_this());
     UpdateVirtualScreenFilterAppRootId(child);
-    RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+    RestoreCurSurface();
 }
 
 void RSUniRenderVisitor::UpdateVirtualScreenFilterAppRootId(const RSRenderNode::SharedPtr& node)

@@ -350,6 +350,7 @@ public:
         bool needCheckThread = true, bool releaseAfterGet = false);
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
+    bool IsCacheCompletedSurfaceValid() const;
     bool IsCacheSurfaceValid() const;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

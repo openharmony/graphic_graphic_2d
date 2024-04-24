@@ -257,6 +257,10 @@ public:
     {
         return curAllSurfaces_;
     }
+    std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
+    {
+        return onlyFirstLevel ? curAllFirstLevelSurfaces_ : curAllSurfaces_;
+    }
 
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
@@ -361,6 +365,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
     std::mutex mtx_;
 
     // Use in screen recording optimization

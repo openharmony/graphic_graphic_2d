@@ -2526,6 +2526,12 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 bool RSRenderNode::IsCacheSurfaceValid() const
 {
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+    return  (cacheSurface_ != nullptr);
+}
+
+bool RSRenderNode::IsCacheCompletedSurfaceValid() const
+{
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     return  (cacheCompletedSurface_ != nullptr);
 }
 
@@ -3105,12 +3111,7 @@ void RSRenderNode::GenerateFullChildrenList()
             "child(id %{public}" PRIu64 ")"" into disappearingChild", GetId(), disappearingChild->GetId());
             return;
         }
-        const auto& origPos = pair.second;
-        if (origPos < fullChildrenList->size()) {
-            fullChildrenList->emplace(std::next(fullChildrenList->begin(), origPos), disappearingChild);
-        } else {
-            fullChildrenList->emplace_back(disappearingChild);
-        }
+        fullChildrenList->emplace_back(disappearingChild);
     });
 
     // temporary fix for wrong z-order
