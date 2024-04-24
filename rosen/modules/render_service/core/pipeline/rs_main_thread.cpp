@@ -1419,6 +1419,13 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
     if (!isUniRender_) {
         return;
     }
+    if (!needWaitUnmarshalFinished_) {
+        /* if needWaitUnmarshalFinished_ is false, it means UnmarshallingTask is finished, no need to wait.
+         * reset needWaitUnmarshalFinished_ to true, maybe it need to wait next time.
+         */
+        needWaitUnmarshalFinished_ = true;
+        return;
+    }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUnmarshallingTaskFinished");
     std::unique_lock<std::mutex> lock(unmarshalMutex_);
     unmarshalTaskCond_.wait(lock, [this]() { return unmarshalFinishedCount_ > 0; });
@@ -2252,7 +2259,12 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     frameCount_++;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
-        RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        if (RSUnmarshalThread::Instance().CachedTransactionDataEmpty()) {
+            // set needWaitUnmarshalFinished_ to false, it means mainLoop do not wait unmarshalBarrierTask_
+            needWaitUnmarshalFinished_ = false;
+        } else {
+            RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        }
     }
     mainLoop_();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
