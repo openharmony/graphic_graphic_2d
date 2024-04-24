@@ -11,10 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("preview_common.gni")
-
 # linux platform defines and configs
-defines += [
+defines = [
   "LINUX_PLATFORM",
   "GPU_DISABLED",
   "SK_BUILD_FONT_MGR_FOR_PREVIEW_LINUX",

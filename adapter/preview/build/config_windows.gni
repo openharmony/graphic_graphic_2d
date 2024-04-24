@@ -11,10 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("preview_common.gni")
-
 # windows platform defines and configs
-defines += [
+defines = [
   "WINDOWS_PLATFORM",
   "_USE_MATH_DEFINES",
   "NOGDI",
@@ -23,7 +21,7 @@ defines += [
   "SK_BUILD_FONT_MGR_FOR_PREVIEW_WIN",
 ]
 
-cflags_cc += [
+cflags_cc = [
   "-DWINVER=0x0601",
   "-Wno-inconsistent-dllimport",
   "-Wno-macro-redefined",

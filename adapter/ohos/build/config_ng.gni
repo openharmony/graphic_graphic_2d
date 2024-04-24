@@ -11,12 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("common.gni")
-
 form_components_support = false
 plugin_components_support = false
 
-defines += [ "NG_BUILD" ]
+defines = [ "NG_BUILD" ]
 
 platform_deps = [
   "//foundation/arkui/ace_engine/adapter/ohos/entrance:ace_ohos_standard_entrance_ohos_ng",
