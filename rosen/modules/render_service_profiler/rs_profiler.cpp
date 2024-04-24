@@ -508,6 +508,8 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
 
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
     UnmarshalNodes(*g_renderServiceContext, stream);
+    stream.seekg(0);
+    UnmarshalNodes(*g_renderServiceContext, stream);
     RSMarshallingHelper::EndNoSharedMem();
 
     SetMode(Mode::NONE);
