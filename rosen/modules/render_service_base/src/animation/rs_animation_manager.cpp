@@ -280,7 +280,7 @@ const std::unordered_map<PropertyId, AnimationId>& RSAnimationManager::GetPartic
     return particleAnimations_;
 }
 
-const std::shared_ptr<RSRenderAnimation>& RSAnimationManager::GetParticleAnimation()
+std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetParticleAnimation()
 {
     if (particleAnimations_.empty()) {
         return nullptr;
