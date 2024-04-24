@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 
+#include <string>
 #include "gtest/gtest.h"
+#include "animation/rs_render_animation.h"
 #include "pipeline/rs_render_result.h"
+#include "modifier/rs_modifier_manager.h"
 #include "surface.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
@@ -38,6 +41,7 @@ public:
     static constexpr uint64_t g_normalUInt64_1 = 123;
     static constexpr uint64_t g_normalUInt64_2 = 34342;
     static constexpr uint64_t g_normalUInt64_3 = 3245;
+    static constexpr uint64_t g_vsyncPeriod = 11718750;
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -197,6 +201,7 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
      * @tc.steps: step1. set parentSize, childSize and alignment
      */
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::string cacheDir = "/data/log";
     director->SetAbilityBGAlpha(0);
     director->SetContainerWindow(true, 1.f);
     director->SetAppFreeze(true);
@@ -208,6 +213,7 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
     director->SetAppFreeze(true);
     director->FlushAnimation(10);
     director->FlushModifier();
+    director->SetCacheDir(cacheDir);
 }
 
 /**
@@ -246,5 +252,32 @@ HWTEST_F(RSUIDirectorTest, setflushEmptyCallbackTest, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     director->SetFlushEmptyCallback(nullptr);
+}
+
+/**
+ * @tc.name: GetAnimateExpectedRate
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetAnimateExpectedRate, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ASSERT_EQ(director->GetAnimateExpectedRate(), 0);
+}
+
+
+/**
+ * @tc.name: FlushAnimation
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, FlushAnimation, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool hasRunningAnimation = director->FlushAnimation(g_normalUInt64_2, g_vsyncPeriod);
+    director->PostFrameRateTask([](){return;});
+    ASSERT_EQ(hasRunningAnimation, false);
 }
 } // namespace OHOS::Rosen
