@@ -446,6 +446,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::OnRemoteRequest no permission to access SET_SCREEN_POWER_STATUS");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             uint32_t status = data.ReadUint32();
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
@@ -818,6 +823,46 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             securityUtils_.IncreaseAccessCounter(code);
 #endif
             reply.WriteRemoteObject(conn->AsObject());
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE): {
+            if (data.ReadInterfaceToken() != RSIRenderServiceConnection::GetDescriptor()) {
+                reply.WriteInt32(0);
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                reply.WriteInt32(0);
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+            sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+            if (surface == nullptr) {
+                reply.WriteInt32(0);
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            auto x = data.ReadInt32();
+            auto y = data.ReadInt32();
+            auto w = data.ReadInt32();
+            auto h = data.ReadInt32();
+            auto srcRect = Rect {
+                .x = x,
+                .y = y,
+                .w = w,
+                .h = h
+            };
+            std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMapFromSurface(surface, srcRect);
+            if (pixelMap) {
+                reply.WriteBool(true);
+                if (!pixelMap->Marshalling(reply)) {
+                    RS_LOGE("pixelMap Marshalling fail");
+                }
+            } else {
+                reply.WriteBool(false);
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY): {

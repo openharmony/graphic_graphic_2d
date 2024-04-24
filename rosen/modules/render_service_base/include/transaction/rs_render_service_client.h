@@ -122,6 +122,8 @@ public:
         uint64_t id = 0,
         NodeId windowNodeId = 0);
 
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
+
     bool TakeSurfaceCapture(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
         SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE, bool isSync = false);

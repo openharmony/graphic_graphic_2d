@@ -23,16 +23,39 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "recording/recording_canvas.h"
+#include "pipeline/rs_render_content.h"
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSRenderParams;
+class RSDisplayRenderNode;
+class RSSurfaceRenderNode;
 namespace Drawing {
 class Canvas;
 }
 
+struct DrawCmdIndex {
+    int8_t shadowIndex_           = -1;
+    int8_t renderGroupBeginIndex_ = -1;
+    int8_t backgroundFilterIndex_ = -1;
+    int8_t backgroundColorIndex_  = -1;
+    int8_t useEffectIndex_        = -1;
+    int8_t backgroundEndIndex_    = -1;
+    int8_t childrenIndex_         = -1;
+    int8_t contentIndex_          = -1;
+    int8_t foregroundBeginIndex_  = -1;
+    int8_t renderGroupEndIndex_   = -1;
+    int8_t endIndex_              = -1;
+};
 namespace DrawableV2 {
+enum class SkipType : uint8_t {
+    NONE = 0,
+    SKIP_SHADOW = 1,
+    SKIP_BACKGROUND_COLOR = 2
+};
+
 class RSB_EXPORT RSRenderNodeDrawableAdapter {
 public:
     explicit RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node);
@@ -55,11 +78,17 @@ public:
     static SharedPtr GetDrawableById(NodeId id);
     static SharedPtr OnGenerateShadowDrawable(const std::shared_ptr<const RSRenderNode>& node);
 
-    void SetSkipShadow(bool skip)
+    void SetSkip(SkipType type);
+
+    inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
     {
-        skipShadow_ = skip;
+        return renderParams_;
     }
 
+    inline const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const
+    {
+        return uifirstRenderParams_;
+    }
 protected:
     // Util functions
     std::string DumpDrawableVec() const;
@@ -102,14 +131,29 @@ protected:
         }
     };
 
-    std::shared_ptr<const RSRenderNode> renderNode_;
+    const RSRenderNodeType nodeType_;
+    // deprecated
+    std::weak_ptr<const RSRenderNode> renderNode_;
+    NodeId nodeId_;
 
+    DrawCmdIndex uifirstDrawCmdIndex_;
+    DrawCmdIndex drawCmdIndex_;
+    std::unique_ptr<RSRenderParams> renderParams_;
+    std::unique_ptr<RSRenderParams> uifirstRenderParams_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
 private:
+    static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
+                            std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static Generator shadowGenerator_;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache;
     static inline std::mutex cacheMapMutex_;
-    bool skipShadow_ = false;
+    int8_t skipIndex_ = -1;
+
+    friend class OHOS::Rosen::RSRenderNode;
+    friend class OHOS::Rosen::RSDisplayRenderNode;
+    friend class OHOS::Rosen::RSSurfaceRenderNode;
 };
 
 } // namespace DrawableV2

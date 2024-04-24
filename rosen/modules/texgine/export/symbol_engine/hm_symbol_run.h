@@ -34,7 +34,7 @@ namespace Rosen {
 namespace TextEngine {
 class HMSymbolRun {
 public:
-    HMSymbolRun() {}
+    HMSymbolRun() : animationFunc_(nullptr), symbolId_(0) {}
     ~HMSymbolRun() {}
 
     RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);

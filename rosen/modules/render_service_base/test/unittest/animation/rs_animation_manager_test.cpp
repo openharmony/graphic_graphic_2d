@@ -254,5 +254,77 @@ HWTEST_F(RSAnimationManagerTest, RegisterParticleAnimation001, TestSize.Level1)
     EXPECT_TRUE(animations.size() == 0);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterParticleAnimation001 end";
 }
+
+/**
+ * @tc.name: GetAnimationsSize001
+ * @tc.desc: Verify the GetAnimationsSize
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, GetAnimationsSize001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest GetAnimationsSize001 start";
+    RSAnimationManager animationManager;
+    auto result = animationManager.GetAnimationsSize();
+    EXPECT_TRUE(result == 0);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animationManager.AddAnimation(renderCurveAnimation);
+    result = animationManager.GetAnimationsSize();
+    EXPECT_TRUE(result == 1);
+
+    animationManager.RemoveAnimation(ANIMATION_ID);
+    result = animationManager.GetAnimationsSize();
+    EXPECT_TRUE(result == 0);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest GetAnimationsSize001 end";
+}
+
+/**
+ * @tc.name: GetAnimationPid001
+ * @tc.desc: Verify the GetAnimationPid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, GetAnimationPid001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest GetAnimationPid001 start";
+    RSAnimationManager animationManager;
+    auto result = animationManager.GetAnimationPid();
+    EXPECT_TRUE(result == 0);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animationManager.AddAnimation(renderCurveAnimation);
+    result = animationManager.GetAnimationPid();
+    EXPECT_TRUE(result == 0);
+
+    animationManager.RemoveAnimation(ANIMATION_ID);
+    result = animationManager.GetAnimationPid();
+    EXPECT_TRUE(result == 0);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest GetAnimationPid001 end";
+}
+
+/**
+ * @tc.name: RateDeciderTest001
+ * @tc.desc: Verify the RateDeciderTest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, RateDeciderTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest RateDeciderTest001 start";
+    RSAnimationManager animationManager;
+    animationManager.SetRateDeciderEnable(true, nullptr);
+    animationManager.SetRateDeciderScaleSize(1.0f, 1.0f);
+    auto result = animationManager.GetDecideFrameRateRange();
+    EXPECT_TRUE(result.IsZero());
+    result = animationManager.GetDecideFrameRateRange();
+    EXPECT_TRUE(result.IsZero());
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest RateDeciderTest001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

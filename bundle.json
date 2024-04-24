@@ -88,11 +88,13 @@
           "opengles",
           "node",
           "vulkan-headers",
+          "vulkan-loader",
           "hiview",
           "battery_manager",
           "cJSON",
           "jsoncpp",
-          "openssl"
+          "openssl",
+          "zlib"
         ],
         "third_party": [
           "flutter",

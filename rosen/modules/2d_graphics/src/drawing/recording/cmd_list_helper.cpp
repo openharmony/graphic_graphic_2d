@@ -550,6 +550,14 @@ FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList,
         return { 0 };
     }
     ShaderEffect::ShaderEffectType type = shaderEffect->GetType();
+    if (type == ShaderEffect::ShaderEffectType::EXTEND_SHADER) {
+        std::shared_ptr<ExtendObject> object = shaderEffect->GetExtendObject();
+        if (!object) {
+            return { 0 };
+        }
+        uint32_t offset = AddExtendObjectToCmdList(cmdList, object);
+        return { offset, 1, static_cast<uint32_t>(type) };
+    }
     auto data = shaderEffect->Serialize();
     if (data == nullptr || data->GetSize() == 0) {
         LOGD("shaderEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -565,6 +573,20 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
     if (shaderEffectHandle.size == 0) {
         return nullptr;
     }
+    ShaderEffect::ShaderEffectType type = static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type);
+    if (type == ShaderEffect::ShaderEffectType::EXTEND_SHADER) {
+        std::shared_ptr<ExtendObject> object = GetExtendObjectFromCmdList(cmdList, shaderEffectHandle.offset);
+        if (!object) {
+            return nullptr;
+        }
+        void* baseObject = object->GenerateBaseObject();
+        if (!baseObject) {
+            return nullptr;
+        }
+        std::shared_ptr<ShaderEffect> shaderEffect;
+        shaderEffect.reset(reinterpret_cast<ShaderEffect*>(baseObject));
+        return shaderEffect;
+    }
 
     const void* ptr = cmdList.GetImageData(shaderEffectHandle.offset);
     if (ptr == nullptr) {
@@ -573,8 +595,7 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
 
     auto shaderEffectData = std::make_shared<Data>();
     shaderEffectData->BuildWithoutCopy(ptr, shaderEffectHandle.size);
-    auto shaderEffect = std::make_shared<ShaderEffect>
-        (static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type));
+    auto shaderEffect = std::make_shared<ShaderEffect>(type);
     if (shaderEffect->Deserialize(shaderEffectData) == false) {
         LOGD("shaderEffect deserialize failed!");
         return nullptr;
@@ -745,6 +766,41 @@ std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdL
 
     return imageFilter;
 }
+
+OpDataHandle CmdListHelper::AddBlurDrawLooperToCmdList(CmdList& cmdList,
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper)
+{
+    if (blurDrawLooper == nullptr) {
+        LOGD("blurDrawLooper is nullptr");
+        return { 0 };
+    }
+
+    auto data = blurDrawLooper->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGD("blurDrawLooper serialize failed!");
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize()};
+}
+
+std::shared_ptr<BlurDrawLooper> CmdListHelper::GetBlurDrawLooperFromCmdList(const CmdList& cmdList,
+    const OpDataHandle& blurDrawLooperHandle)
+{
+    if (blurDrawLooperHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(blurDrawLooperHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto blurData = std::make_shared<Data>();
+    blurData->BuildWithoutCopy(ptr, blurDrawLooperHandle.size);
+    return BlurDrawLooper::Deserialize(blurData);
+}
+
 #ifdef ROSEN_OHOS
 uint32_t CmdListHelper::AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& surfaceBuffer)
 {
@@ -767,6 +823,16 @@ std::shared_ptr<ExtendDrawFuncObj> CmdListHelper::GetDrawFuncObjFromCmdList(
     const CmdList& cmdList, uint32_t objectHandle)
 {
     return (const_cast<CmdList&>(cmdList)).GetDrawFuncObj(objectHandle);
+}
+
+uint32_t CmdListHelper::AddExtendObjectToCmdList(CmdList& cmdList, std::shared_ptr<ExtendObject> object)
+{
+    return cmdList.AddExtendObject(object);
+}
+
+std::shared_ptr<ExtendObject> CmdListHelper::GetExtendObjectFromCmdList(const CmdList& cmdList, uint32_t index)
+{
+    return (const_cast<CmdList&>(cmdList)).GetExtendObject(index);
 }
 } // namespace Drawing
 } // namespace Rosen

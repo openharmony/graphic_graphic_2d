@@ -77,7 +77,10 @@ ohos_shared_library("drawing_napi_impl") {
   configs = [ ":local_drawing_config" ]
   public_configs = [ ":drawing_config" ]
 
-  deps = [ "../../../../../rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "../../../../../rosen/modules/2d_graphics:2d_graphics",
+    "../../../../../rosen/modules/render_service_base:librender_service_base",
+  ]
 
   external_deps = [ "napi:ace_napi" ]
 

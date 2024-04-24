@@ -92,6 +92,7 @@ public:
     static void SetNeedClient(bool flag);
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
     static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true,
+        bool isProtected = false,
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 

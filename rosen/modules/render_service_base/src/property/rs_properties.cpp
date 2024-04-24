@@ -17,7 +17,9 @@
 
 #include <algorithm>
 #include <securec.h>
+#include "platform/common/rs_log.h"
 
+#include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
@@ -53,7 +55,7 @@ constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
 // NOTE: alway add new resetter when adding new property modifier
-const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
+constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
     nullptr,                                                             // INVALID
     nullptr,                                                             // BOUNDS
     nullptr,                                                             // FRAME
@@ -92,6 +94,10 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetLinearGradientBlurPara({}); },     // LINEAR_GRADIENT_BLUR_PARA
     [](RSProperties* prop) { prop->SetDynamicLightUpRate({}); },         // DYNAMIC_LIGHT_UP_RATE
     [](RSProperties* prop) { prop->SetDynamicLightUpDegree({}); },       // DYNAMIC_LIGHT_UP_DEGREE
+    [](RSProperties* prop) { prop->SetFgBrightnessParams({}); },         // FG_BRIGHTNESS_PARAMS
+    [](RSProperties* prop) { prop->SetFgBrightnessFract(1.0); },         // FG_BRIGHTNESS_FRACTION
+    [](RSProperties* prop) { prop->SetBgBrightnessParams({}); },         // BG_BRIGHTNESS_PARAMS
+    [](RSProperties* prop) { prop->SetBgBrightnessFract(1.0); },         // BG_BRIGHTNESS_FRACTION
     [](RSProperties* prop) { prop->SetFrameGravity(Gravity::DEFAULT); }, // FRAME_GRAVITY
     [](RSProperties* prop) { prop->SetClipRRect({}); },                  // CLIP_RRECT
     [](RSProperties* prop) { prop->SetClipBounds({}); },                 // CLIP_BOUNDS
@@ -112,6 +118,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH
     [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
+    [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
     [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
@@ -141,6 +148,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
     [](RSProperties* prop) { prop->SetEmitterUpdater({}); },             // PARTICLE_EMITTER_UPDATER
+    [](RSProperties* prop) { prop->SetParticleNoiseFields({}); },         // PARTICLE_NOISE_FIELD
     [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
@@ -159,6 +167,10 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusX(0.f); },     // FOREGROUND_BLUR_RADIUS_X
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusY(0.f); },     // FOREGROUND_BLUR_RADIUS_Y
 };
+
+// Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
+static_assert(g_propertyResetterLUT.size() == static_cast<size_t>(RSModifierType::CUSTOM));
+static_assert(g_propertyResetterLUT.back() != nullptr);
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
@@ -1159,11 +1171,30 @@ void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradi
     contentDirty_ = true;
 }
 
-void RSProperties::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para)
 {
     emitterUpdater_ = para;
-    if (emitterUpdater_) {
+    if (!emitterUpdater_.empty()) {
         isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        particleAnimation->UpdateEmitter(emitterUpdater_);
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para)
+{
+    particleNoiseFields_ = para;
+    if (particleNoiseFields_) {
+        isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        particleAnimation->UpdateNoiseField(particleNoiseFields_);
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1190,6 +1221,78 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& lightUpDe
     filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
+}
+
+void RSProperties::SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params)
+{
+    fgBrightnessParams_ = params;
+    if (params.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<RSDynamicBrightnessPara> RSProperties::GetFgBrightnessParams() const
+{
+    return fgBrightnessParams_;
+}
+
+void RSProperties::SetFgBrightnessFract(float fraction)
+{
+    fgBrightnessFract_ = fraction;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetFgBrightnessFract() const
+{
+    return fgBrightnessFract_;
+}
+
+void RSProperties::SetBgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params)
+{
+    bgBrightnessParams_ = params;
+    if (params.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<RSDynamicBrightnessPara> RSProperties::GetBgBrightnessParams() const
+{
+    return bgBrightnessParams_;
+}
+
+void RSProperties::SetBgBrightnessFract(float fraction)
+{
+    bgBrightnessFract_ = fraction;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetBgBrightnessFract() const
+{
+    return bgBrightnessFract_;
+}
+
+bool RSProperties::IsFgBrightnessValid() const
+{
+    return fgBrightnessParams_.has_value() && ROSEN_GE(fgBrightnessFract_, 0.0) &&
+        ROSEN_LE(fgBrightnessFract_, 1.0);
+}
+
+bool RSProperties::IsBgBrightnessValid() const
+{
+    return bgBrightnessParams_.has_value() && ROSEN_GE(bgBrightnessFract_, 0.0) &&
+        ROSEN_LE(bgBrightnessFract_, 1.0);
 }
 
 void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
@@ -1244,9 +1347,14 @@ const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradient
     return linearGradientBlurPara_;
 }
 
-const std::shared_ptr<EmitterUpdater>& RSProperties::GetEmitterUpdater() const
+const std::vector<std::shared_ptr<EmitterUpdater>>& RSProperties::GetEmitterUpdater() const
 {
     return emitterUpdater_;
+}
+
+const std::shared_ptr<ParticleNoiseFields>& RSProperties::GetParticleNoiseFields() const
+{
+    return particleNoiseFields_;
 }
 
 void RSProperties::IfLinearGradientBlurInvalid()
@@ -1706,6 +1814,20 @@ void RSProperties::ResetDirty()
     isDirty_ = false;
     geoDirty_ = false;
     contentDirty_ = false;
+}
+
+void RSProperties::RecordCurDirtyStatus()
+{
+    curIsDirty_ = false;
+    curGeoDirty_ = false;
+    curContentDirty_ = false;
+}
+
+void RSProperties::AccmulateDirtyStatus()
+{
+    isDirty_ = isDirty_ || curIsDirty_;
+    geoDirty_ = geoDirty_ || curGeoDirty_;
+    contentDirty_ = contentDirty_ || curContentDirty_;
 }
 
 bool RSProperties::IsDirty() const
@@ -2174,6 +2296,20 @@ void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretch
     if (pixelStretchPercent_.has_value() && pixelStretchPercent_->IsZero()) {
         pixelStretchPercent_ = std::nullopt;
     }
+}
+
+void RSProperties::SetPixelStretchTileMode(int stretchTileMode)
+{
+    pixelStretchTileMode_ = std::clamp<int>(stretchTileMode, static_cast<int>(Drawing::TileMode::CLAMP),
+        static_cast<int>(Drawing::TileMode::DECAL));
+    SetDirty();
+    pixelStretchNeedUpdate_ = true;
+    contentDirty_ = true;
+}
+
+int RSProperties::GetPixelStretchTileMode() const
+{
+    return pixelStretchTileMode_;
 }
 
 // Image effect properties
@@ -3168,10 +3304,6 @@ void RSProperties::OnApplyModifiers()
         // planning: temporary fix to calculate relative matrix in OnApplyModifiers, later RSRenderNode::Update will
         // overwrite it.
         boundsGeo_->UpdateByMatrixFromSelf();
-        if (RSSystemProperties::IsPcType()) {
-            frameGeo_->Round();
-            boundsGeo_->Round();
-        }
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
@@ -3221,7 +3353,9 @@ void RSProperties::OnApplyModifiers()
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                       IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                      foregroundFilter_ != nullptr || motionBlurPara_ != nullptr;
+                      foregroundFilter_ != nullptr || motionBlurPara_ != nullptr || IsFgBrightnessValid() ||
+                      IsBgBrightnessValid();
+
         ApplyGreyCoef();
     }
     GenerateRRect();

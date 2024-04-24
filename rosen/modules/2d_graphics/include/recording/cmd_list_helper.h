@@ -218,6 +218,10 @@ public:
     static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& imageFilterHandle);
 
+    static OpDataHandle AddBlurDrawLooperToCmdList(CmdList& cmdList, std::shared_ptr<BlurDrawLooper> blurDrawLooper);
+    static std::shared_ptr<BlurDrawLooper> GetBlurDrawLooperFromCmdList(const CmdList& cmdList,
+        const OpDataHandle& blurDrawLooperHandle);
+
     static SymbolOpHandle AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol);
     static DrawingHMSymbolData GetSymbolFromCmdList(const CmdList& cmdList, const SymbolOpHandle& symbolHandle);
 
@@ -236,6 +240,8 @@ public:
     static sptr<SurfaceBuffer> GetSurfaceBufferFromCmdList(
         const CmdList& cmdList, uint32_t imageFilterHandle);
 #endif
+    static uint32_t AddExtendObjectToCmdList(CmdList& cmdList, std::shared_ptr<ExtendObject>);
+    static std::shared_ptr<ExtendObject> GetExtendObjectFromCmdList(const CmdList& cmdList, uint32_t index);
 };
 } // namespace Drawing
 } // namespace Rosen

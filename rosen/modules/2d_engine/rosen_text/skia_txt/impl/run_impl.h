@@ -39,7 +39,6 @@ public:
 private:
     std::unique_ptr<skia::textlayout::RunBase> runBase_;
     const std::vector<PaintRecord>& paints_;
-    Drawing::Font font_;
 };
 } // namespace SPText
 } // namespace Rosen

@@ -264,7 +264,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         }
     }
 
-    auto& param = nodeDrawable->GetRenderNode()->GetRenderParams();
+    const auto& param = nodeDrawable->GetRenderParams();
     if (!param) {
         return;
     }
@@ -325,7 +325,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        auto& vkContext = RsVulkanContext::GetSingleton();
+        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
 
         VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
         exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;

@@ -167,8 +167,7 @@ void SkiaBitmap::ClearWithColor(const ColorQuad& color) const
 
 ColorQuad SkiaBitmap::GetColor(int x, int y) const
 {
-    SkColor color;
-    color = skiaBitmap_.getColor(x, y);
+    SkColor color = skiaBitmap_.getColor(x, y);
     return static_cast<ColorQuad>(color);
 }
 

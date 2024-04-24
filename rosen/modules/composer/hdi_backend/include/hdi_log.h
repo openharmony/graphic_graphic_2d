@@ -31,13 +31,13 @@ namespace {
 #define LOG_TAG "Composer"
 }
 
-#define __HLOG(func, fmt, ...) \
+#define C_HLOG(func, fmt, ...) \
     func(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
-#define HLOGD(fmt, ...) __HLOG(HILOG_DEBUG, fmt, ##__VA_ARGS__)
-#define HLOGI(fmt, ...) __HLOG(HILOG_INFO, fmt, ##__VA_ARGS__)
-#define HLOGW(fmt, ...) __HLOG(HILOG_WARN, fmt, ##__VA_ARGS__)
-#define HLOGE(fmt, ...) __HLOG(HILOG_ERROR, fmt, ##__VA_ARGS__)
+#define HLOGD(fmt, ...) C_HLOG(HILOG_DEBUG, fmt, ##__VA_ARGS__)
+#define HLOGI(fmt, ...) C_HLOG(HILOG_INFO, fmt, ##__VA_ARGS__)
+#define HLOGW(fmt, ...) C_HLOG(HILOG_WARN, fmt, ##__VA_ARGS__)
+#define HLOGE(fmt, ...) C_HLOG(HILOG_ERROR, fmt, ##__VA_ARGS__)
 
 #define HLOG_SUCCESS(fmt, ...) HLOGI("Success, Way: " fmt, ##__VA_ARGS__)
 #define HLOG_FAILURE(fmt, ...) HLOGE("Failure, Reason: " fmt, ##__VA_ARGS__)

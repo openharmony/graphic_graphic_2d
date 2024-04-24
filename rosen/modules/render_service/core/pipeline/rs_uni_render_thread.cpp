@@ -191,6 +191,11 @@ void RSUniRenderThread::PostSyncTask(const std::function<void()>& task)
     handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
+bool RSUniRenderThread::IsIdle() const
+{
+    return handler_ ? handler_->IsIdle() : false;
+}
+
 void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams)
 {
     renderThreadParams_ = std::move(stagingRenderThreadParams);
@@ -205,6 +210,12 @@ void RSUniRenderThread::Render()
     Drawing::Canvas canvas;
     rootNodeDrawable_->OnDraw(canvas);
     RSMainThread::Instance()->PerfForBlurIfNeeded();
+
+    if (RSMainThread::Instance()->GetMarkRenderFlag() == false) {
+        RSMainThread::Instance()->SetFrameIsRender(true);
+        DvsyncRequestNextVsync();
+    }
+    RSMainThread::Instance()->ResetMarkRenderFlag();
 }
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
@@ -457,6 +468,17 @@ void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
         return;
     }
     rootNodeDrawable_->DumpDrawableTree(0, dumpString);
+}
+
+void RSUniRenderThread::DvsyncRequestNextVsync()
+{
+    if ((renderThreadParams_ && renderThreadParams_->GetRequestNextVsyncFlag()) ||
+        RSMainThread::Instance()->rsVSyncDistributor_->HasPendingUIRNV()) {
+        RSMainThread::Instance()->rsVSyncDistributor_->MarkRSAnimate();
+        RSMainThread::Instance()->RequestNextVSync("animate", renderThreadParams_->GetCurrentTimestamp());
+    } else {
+        RSMainThread::Instance()->rsVSyncDistributor_->UnmarkRSAnimate();
+    }
 }
 
 void RSUniRenderThread::UpdateDisplayNodeScreenId()

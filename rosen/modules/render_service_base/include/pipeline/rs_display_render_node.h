@@ -29,6 +29,7 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "rs_surface_render_node.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -260,7 +261,8 @@ public:
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams(ScreenInfo& screenInfo, std::map<ScreenId, bool>& displayHasSecSurface,
-        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& hasCaptureWindow);
+        std::map<ScreenId, bool>& displayHasSkipSurface, std::map<ScreenId, bool>& displayHasProtectedSurface,
+        std::map<ScreenId, bool>& hasCaptureWindow);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
@@ -305,8 +307,19 @@ public:
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {
         rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
     }
+    bool GetResetRotate() const {
+        return resetRotate_;
+    }
+    void SetResetRotate(bool resetRotate) {
+        resetRotate_ = resetRotate;
+    }
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
+
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
+    {
+        return dirtySurfaceNodeMap_;
+    }
 
 protected:
     void OnSync() override;
@@ -354,9 +367,12 @@ private:
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+    bool resetRotate_ = false;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
+
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

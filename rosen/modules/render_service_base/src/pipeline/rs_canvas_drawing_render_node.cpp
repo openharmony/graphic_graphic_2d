@@ -145,7 +145,6 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
-    ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
     isNeedProcess_ = false;
 
     Rosen::Drawing::Matrix mat;
@@ -205,7 +204,6 @@ void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
         }
         RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
         ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
-        ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
         isNeedProcess_ = false;
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);

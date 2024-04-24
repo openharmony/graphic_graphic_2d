@@ -60,6 +60,7 @@ enum class PointMode;
 enum class QuadAAFlags;
 struct Lattice;
 class Canvas;
+struct HpsBlurParameter;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -96,6 +97,8 @@ public:
     virtual void DrawBackground(const Brush& brush) = 0;
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
+    virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle) = 0;
     virtual void DrawRegion(const Region& region) = 0;
     virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
         const Point texCoords[4], BlendMode mode) = 0;
@@ -172,6 +175,8 @@ public:
     virtual void BuildNoDraw(int32_t width, int32_t height) = 0;
 
     virtual void Reset(int32_t width, int32_t height) = 0;
+
+    virtual bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

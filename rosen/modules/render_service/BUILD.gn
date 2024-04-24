@@ -32,7 +32,7 @@ ohos_shared_library("librender_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
     debug = false
   }
   if (enhanced_opt) {
@@ -183,18 +183,12 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/utils",
-    "//commonlibrary/c_utils/base/include",
-    "//utils/system/safwk/native/include",
     "$graphic_2d_root/utils/log",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
@@ -209,6 +203,7 @@ ohos_shared_library("librender_service") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -386,7 +381,7 @@ ohos_executable("render_service") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
-    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
     debug = false
     if (rosen_is_ohos) {
       boundary_sanitize = true
@@ -399,7 +394,6 @@ ohos_executable("render_service") {
   include_dirs = [
     "core",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "//commonlibrary/c_utils/base/include",
     "$graphic_2d_root/utils/color_manager/export",
   ]
 

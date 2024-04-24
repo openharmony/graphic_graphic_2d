@@ -43,6 +43,9 @@ public:
     void SetAlpha(float alpha);
     float GetAlpha() const;
 
+    void SetAlphaOffScreen(bool alphaOffScreen);
+    bool GetAlphaOffScreen() const;
+
     void SetMatrix(const Drawing::Matrix& matrix);
     const Drawing::Matrix& GetMatrix() const;
 
@@ -133,6 +136,7 @@ public:
 
 protected:
     bool needSync_ = false;
+    std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
     NodeId id_;
@@ -155,6 +159,7 @@ private:
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     bool canvasDrawingNodeSurfaceChanged_ = false;
+    bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;

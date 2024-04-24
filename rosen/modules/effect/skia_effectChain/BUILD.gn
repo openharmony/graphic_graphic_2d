@@ -36,7 +36,6 @@ config("effect_SKeffectChian_public_config") {
   include_dirs = [
     "../effectChain/include",
     "../egl/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     "$graphic_2d_root/utils/log",
     "include",
   ]

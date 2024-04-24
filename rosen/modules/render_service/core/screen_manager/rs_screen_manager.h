@@ -186,6 +186,7 @@ public:
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
 #endif
+    virtual void ForceRefreshOneFrameIfNoRNV() = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -353,6 +354,7 @@ public:
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void HandlePostureData(const SensorEvent * const event) override;
 #endif
+    void ForceRefreshOneFrameIfNoRNV() override;
 
 private:
     RSScreenManager();

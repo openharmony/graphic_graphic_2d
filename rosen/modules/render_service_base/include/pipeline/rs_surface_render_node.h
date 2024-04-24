@@ -131,6 +131,10 @@ public:
         selfDrawingType_ = selfDrawingType;
     }
 
+    void SetForceHardwareAndFixRotation(bool flag);
+    bool GetForceHardwareByUser() const;
+    int32_t GetFixedRotationDegree() const;
+
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
         return selfDrawingType_;
@@ -214,6 +218,11 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
+    {
+        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
+    }
+
     void SetHardwareDisabledByCache(bool disabledByCache)
     {
         isHardwareDisabledByCache_ = disabledByCache;
@@ -236,7 +245,10 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_ ||
+        if (isForceHardwareByUser_ && !isHardwareForcedDisabledByVisibility_) {
+            return false;
+        }
+        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -282,16 +294,6 @@ public:
         calcRectInPrepare_ = calc;
     }
 
-    void SetIntersectByFilterInApp(bool intersect)
-    {
-        intersectByFilterInApp_ = intersect;
-    }
-
-    bool GetIntersectByFilterInApp() const
-    {
-        return intersectByFilterInApp_;
-    }
-
     bool IsSelfDrawingType() const
     {
         // self drawing surfacenode has its own buffer, and rendered in its own progress/thread
@@ -329,6 +331,8 @@ public:
 
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
+
+    bool IsLeashWindowSurfaceNodeVisible();
 
     const std::string& GetName() const
     {
@@ -384,6 +388,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsNeedSetVSync();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
     void SetContextBounds(const Vector4f bounds);
@@ -416,17 +421,21 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
+    void SetProtectedLayer(bool isProtectedLayer);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetProtectedLayer() const;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
+    bool GetHasProtectedLayer() const;
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
+    void SyncProtectedInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -436,6 +445,9 @@ public:
 
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
+
+    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    bool GetAncoForceDoDirect() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
@@ -464,6 +476,11 @@ public:
     const RectI& GetDstRect() const
     {
         return dstRect_;
+    }
+
+    const RectI& GetOriginalDstRect() const
+    {
+        return originalDstRect_;
     }
 
     Occlusion::Region& GetTransparentRegion()
@@ -1070,8 +1087,10 @@ private:
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isProtectedLayer_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
+    std::set<NodeId> protectedLayerIds_= {};
 
     bool hasFingerprint_ = false;
     RectI srcRect_;
@@ -1210,6 +1229,10 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool isForceHardwareByUser_ = false;
+    bool isHardwareForcedDisabledByVisibility_ = false;
+    RectI originalDstRect_;
+    int32_t fixedRotationDegree_ = -90;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -1264,6 +1287,8 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
     bool lastFrameUifirstFlag_ = false;
+
+    bool ancoForceDoDirect_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

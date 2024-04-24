@@ -230,6 +230,11 @@ public:
     void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const;
 
     /**
+     * @brief                   Reset GPU contect cache.
+     */
+    void ResetContext();
+
+    /**
      * @brief                   Set current resource tag for gpu cache recycle.
      * @param tag               GPU resource tag used to set current GPU resource tag.
      */

@@ -107,7 +107,7 @@ void TextReverser::ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, con
 
     bool isConDirection = false;
     int index = 0;
-    ReverseConDirectionText(lineSpans, 0, lineSpans.size() - 1);
+    ReverseConDirectionText(lineSpans, 0, static_cast<int>(lineSpans.size()) - 1);
 
     for (auto i = 0; i < static_cast<int>(lineSpans.size()) - 1; i++) {
         if (lineSpans[i].GetVisibleWidth() == 0 || lineSpans[i + 1].GetVisibleWidth() == 0 ||
@@ -126,7 +126,7 @@ void TextReverser::ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, con
     }
 
     if (isConDirection) {
-        ReverseConDirectionText(lineSpans, index, lineSpans.size() - 1);
+        ReverseConDirectionText(lineSpans, index, static_cast<int>(lineSpans.size()) - 1);
     }
 }
 } // namespace TextEngine

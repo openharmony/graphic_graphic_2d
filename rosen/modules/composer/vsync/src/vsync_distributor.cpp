@@ -239,6 +239,7 @@ VSyncDistributor::~VSyncDistributor()
 #if defined(RS_ENABLE_DVSYNC)
         {
             std::unique_lock<std::mutex> locker(mutex_);
+            dvsync_->MarkPendingRNVIsProcess(false);
             dvsync_->RNVNotify();
         }
 #endif
@@ -322,9 +323,8 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
 
     // before con_ wait, notify the rnv_con.
 #if defined(RS_ENABLE_DVSYNC)
-    if (IsDVsyncOn()) {
-        dvsync_->RNVNotify();
-    }
+    dvsync_->MarkPendingRNVIsProcess(false);
+    dvsync_->RNVNotify();
 #endif
     con_.wait(locker);
 
@@ -342,8 +342,8 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
                 ScopedBytrace func(name_ + "_EnableVsync");
                 EnableVSync();
             }
-            lockExecute_ = true;
         }
+        pendingRNVInDVsync_ = false;
     }
 #endif
 }
@@ -389,9 +389,8 @@ void VSyncDistributor::ThreadMain()
                 if (waitForVSync == true && vsyncEnabled_ == false) {
                     EnableVSync();
 #if defined(RS_ENABLE_DVSYNC)
-                    if (IsDVsyncOn()) {
-                        dvsync_->RNVNotify();
-                    }
+                    dvsync_->MarkPendingRNVIsProcess(false);
+                    dvsync_->RNVNotify();
 #endif
                     if (con_.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD)) ==
                         std::cv_status::timeout) {
@@ -446,7 +445,7 @@ void VSyncDistributor::ThreadMain()
         {
             std::unique_lock<std::mutex> locker(mutex_);
             pendingRNVInVsync_ = false;
-            pendingRNVInDVsync_ = false;
+            lockExecute_ = true;
         }
 #endif
         PostVSyncEvent(conns, timestamp);
@@ -477,9 +476,9 @@ void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refres
     dvsync_->RuntimeSwitch();
 #endif
     if (IsDVsyncOn()) {
-        ScopedBytrace func("VSyncD onVSyncEvent, now" + std::to_string(now));
+        ScopedBytrace func("VSyncD onVSyncEvent, now:" + std::to_string(now));
     } else {
-        ScopedBytrace func("VSync onVSyncEvent, now" + std::to_string(now));
+        ScopedBytrace func("VSync onVSyncEvent, now:" + std::to_string(now));
     }
 
 #if defined(RS_ENABLE_DVSYNC)
@@ -658,6 +657,13 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         VLOGE("connection is nullptr");
         return VSYNC_ERROR_NULLPTR;
     }
+
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn() && fromWhom == "ltpoForceUpdate") {
+        return VSYNC_ERROR_OK;
+    }
+#endif
+
     ScopedBytrace func(connection->info_.name_ + "_RequestNextVSync");
     std::unique_lock<std::mutex> locker(mutex_);
 
@@ -689,11 +695,19 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         connection->rate_ = 0;
     }
     connection->triggerThisTime_ = true;
+    NotifyMainThread();
+    VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
+    return VSYNC_ERROR_OK;
+}
+
+void VSyncDistributor::NotifyMainThread()
+{
 #if defined(RS_ENABLE_DVSYNC)
     if (IsDVsyncOn()) {
         if (!lockExecute_) {
             con_.notify_all();
         } else {
+            ScopedBytrace func("set pendingRNVInDVsync_ = true");
             pendingRNVInDVsync_ = true;
             dvsync_->RNVNotify();
         }
@@ -703,8 +717,6 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
 #else
     con_.notify_all();
 #endif
-    VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
-    return VSYNC_ERROR_OK;
 }
 
 VsyncError VSyncDistributor::SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection)
@@ -888,6 +900,7 @@ void VSyncDistributor::SetFrameIsRender(bool isRender)
     lockExecute_ = false;
     if (IsDVsyncOn() && pendingRNVInDVsync_) {
         ScopedBytrace func("pendingRNVInDVsync_ is true, notify");
+        dvsync_->MarkPendingRNVIsProcess(true);
         con_.notify_all();
     }
 #endif

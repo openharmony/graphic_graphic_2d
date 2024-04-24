@@ -31,6 +31,12 @@ enum class WordBreakType {
     BREAK_WORD, // break only occur after word.
 };
 
+enum class BreakStrategy {
+    GREEDY = 0,
+    HIGH_QUALITY = 1,
+    BALANCED = 2
+};
+
 class ParagraphStyle {
 public:
     TextStyle ConvertToTextStyle() const;
@@ -68,6 +74,7 @@ public:
     bool customSpTextStyle = false;
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
     bool hintingIsOn = false;
+    BreakStrategy breakStrategy = BreakStrategy::GREEDY;
 };
 } // namespace SPText
 } // namespace Rosen

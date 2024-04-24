@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "../src/frame_saver.h"
+#include "frame_saver.h"
 #include "frame_collector.h"
 #include "frame_painter.h"
 using namespace testing;

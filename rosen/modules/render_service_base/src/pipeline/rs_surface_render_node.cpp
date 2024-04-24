@@ -15,7 +15,6 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
-
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 #include "rs_trace.h"
@@ -146,9 +145,9 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
     SetSrcRect(srcRect);
     // We allow 1px error value to avoid disable dss by mistake [this flag only used for YUV buffer format]
     if (IsYUVBufferFormat()) {
-        isHardwareForcedDisabledBySrcRect_ =  hasRotation ?
-            (width + 1 < static_cast<int>(properties.GetBoundsWidth())) :
-            (height + 1 < static_cast<int>(properties.GetBoundsHeight()));
+        isHardwareForcedDisabledBySrcRect_ = !GetAncoForceDoDirect() &&
+            (hasRotation ? (width + 1 < static_cast<int>(properties.GetBoundsWidth())) :
+            (height + 1 < static_cast<int>(properties.GetBoundsHeight())));
 #ifndef ROSEN_CROSS_PLATFORM
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateSrcRect hwcDisableBySrc:%d localClip:[%.2f, %.2f, %.2f, %.2f]" \
             " bounds:[%.2f, %.2f] hasRotation:%d name:%s id:%llu",
@@ -172,9 +171,8 @@ void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
     if (IsYUVBufferFormat()) {
         auto width = static_cast<int>(buffer->GetSurfaceBufferWidth());
         auto height = static_cast<int>(buffer->GetSurfaceBufferHeight());
-        isHardwareForcedDisabledBySrcRect_ =  hasRotation ?
-            srcRect_.width_ + 1 < width :
-            srcRect_.height_ + 1 < height;
+        isHardwareForcedDisabledBySrcRect_ =  !GetAncoForceDoDirect() &&
+            (hasRotation ? srcRect_.width_ + 1 < width : srcRect_.height_ + 1 < height);
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disableBySrc:%d src:[%d, %d]" \
             " buffer:[%d, %d] hasRotation:%d", GetName().c_str(), GetId(),
             isHardwareForcedDisabledBySrcRect_, srcRect_.width_, srcRect_.height_, width, height, hasRotation);
@@ -211,7 +209,8 @@ bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
 
 void RSSurfaceRenderNode::StoreMustRenewedInfo()
 {
-    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || GetHasSecurityLayer() || GetHasSkipLayer();
+    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || GetHasSecurityLayer() ||
+        GetHasSkipLayer() || GetHasProtectedLayer();
 }
 
 std::string RSSurfaceRenderNode::DirtyRegionDump() const
@@ -395,6 +394,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     // sync skip & security info
     SyncSecurityInfoToFirstLevelNode();
     SyncSkipInfoToFirstLevelNode();
+    SyncProtectedInfoToFirstLevelNode();
 }
 
 void RSSurfaceRenderNode::OnResetParent()
@@ -556,6 +556,18 @@ bool RSSurfaceRenderNode::IsUIHidden() const
     return isUIHidden_;
 }
 
+bool RSSurfaceRenderNode::IsLeashWindowSurfaceNodeVisible()
+{
+    if (!IsLeashWindow()) {
+        return false;
+    }
+    auto nestedSurfaces = GetLeashWindowNestedSurfaces();
+    return std::any_of(nestedSurfaces.begin(), nestedSurfaces.end(),
+        [](const auto& node) -> bool {
+            return node && !node->IsUIHidden();
+        });
+}
+
 void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>& matrix, bool sendMsg)
 {
     if (contextMatrix_ == matrix) {
@@ -618,6 +630,24 @@ bool RSSurfaceRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
+void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
+{
+    isForceHardwareByUser_ = flag;
+    if (isForceHardwareByUser_) {
+        originalDstRect_ = GetDstRect();
+    }
+}
+
+bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+{
+    return isForceHardwareByUser_;
+}
+
+int32_t RSSurfaceRenderNode::GetFixedRotationDegree() const
+{
+    return fixedRotationDegree_;
+}
+
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 {
     isSecurityLayer_ = isSecurityLayer;
@@ -642,6 +672,18 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
     SyncSkipInfoToFirstLevelNode();
 }
 
+void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
+{
+    isProtectedLayer_ = isProtectedLayer;
+    SetDirty();
+    if (isProtectedLayer) {
+        protectedLayerIds_.insert(GetId());
+    } else {
+        protectedLayerIds_.erase(GetId());
+    }
+    SyncProtectedInfoToFirstLevelNode();
+}
+
 bool RSSurfaceRenderNode::GetSecurityLayer() const
 {
     return isSecurityLayer_;
@@ -651,6 +693,11 @@ bool RSSurfaceRenderNode::GetSecurityLayer() const
 bool RSSurfaceRenderNode::GetSkipLayer() const
 {
     return isSkipLayer_;
+}
+
+bool RSSurfaceRenderNode::GetProtectedLayer() const
+{
+    return isProtectedLayer_;
 }
 
 bool RSSurfaceRenderNode::GetHasSecurityLayer() const
@@ -663,6 +710,10 @@ bool RSSurfaceRenderNode::GetHasSkipLayer() const
     return skipLayerIds_.size() != 0;
 }
 
+bool RSSurfaceRenderNode::GetHasProtectedLayer() const
+{
+    return protectedLayerIds_.size() != 0;
+}
 
 void RSSurfaceRenderNode::SyncSecurityInfoToFirstLevelNode()
 {
@@ -704,6 +755,23 @@ void RSSurfaceRenderNode::SyncSkipInfoToFirstLevelNode()
     }
 }
 
+void RSSurfaceRenderNode::SyncProtectedInfoToFirstLevelNode()
+{
+    if (isProtectedLayer_) {
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+        // firstLevelNode is the nearest app window / leash node
+        if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+            firstLevelNode->SetDirty();
+            // should always sync protectedLayerIds_ to firstLevelNode
+            if (isProtectedLayer_ && IsOnTheTree()) {
+                firstLevelNode->protectedLayerIds_.insert(GetId());
+            } else {
+                firstLevelNode->protectedLayerIds_.erase(GetId());
+            }
+        }
+    }
+}
+
 void RSSurfaceRenderNode::SetFingerprint(bool hasFingerprint)
 {
     hasFingerprint_ = hasFingerprint;
@@ -733,6 +801,15 @@ void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
 bool RSSurfaceRenderNode::GetForceUIFirstChanged()
 {
     return forceUIFirstChanged_;
+}
+
+void RSSurfaceRenderNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+{
+    ancoForceDoDirect_ = ancoForceDoDirect;
+}
+bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
+{
+    return ancoForceDoDirect_;
 }
 
 void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
@@ -1110,6 +1187,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.gravity = static_cast<int32_t>(properties.GetFrameGravity());
     layer.blendType = GetBlendType();
     layer.matrix = totalMatrix_;
+    isHardwareForcedDisabled_ = isProtectedLayer_ ? false : isHardwareForcedDisabled_;
     RS_LOGD("RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: node: %{public}s-%{public}" PRIu64 ","
         " src: %{public}s, dst: %{public}s, bounds: [%{public}d, %{public}d]"
         " transform: %{public}d, zOrder: %{public}d, cur: %{public}d, last: %{public}d",
@@ -1134,6 +1212,14 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
 #endif
 }
 
+void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetLastFrameHardwareEnabled(!IsHardwareForcedDisabled());
+    SetHardwareForcedDisabledState(disabled);
+    surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
+    AddToPendingSyncList();
+}
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
@@ -1387,9 +1473,13 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
                 effectNode->SetRotationChanged(isRotationChanged);
             }
         }
-        node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
-        node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
-        node->UpdateFilterCacheManagerWithCacheRegion(*dirtyManager_, clipRect);
+        if (node->GetRenderProperties().GetBackgroundFilter()) {
+            node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
+        }
+        if (node->GetRenderProperties().GetFilter()) {
+            node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
+        }
+        node->UpdateFilterCacheWithSelfDirty(clipRect);
     }
     SetFilterCacheFullyCovered(false);
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
@@ -1893,8 +1983,11 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetGlobalDirtyRegion(const RectI& rect, bool renderParallel)
 {
+    if (!renderDrawable_ || !renderDrawable_->GetRenderParams()) {
+        return;
+    }
     auto visibleRegion = renderParallel
-        ? static_cast<RSSurfaceRenderParams*>(renderParams_.get())->GetVisibleRegion()
+        ? static_cast<RSSurfaceRenderParams*>(renderDrawable_->GetRenderParams().get())->GetVisibleRegion()
         : visibleRegion_;
     Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
     Occlusion::Region region { tmpRect };
@@ -2268,8 +2361,11 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
 void RSSurfaceRenderNode::InitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
-    renderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
-    uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
+    if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::InitRenderParams failed");
+        return;
+    }
 }
 
 void RSSurfaceRenderNode::UpdateRenderParams()
@@ -2291,8 +2387,10 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
+    surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
+    surfaceParams->protectedLayerIds_= protectedLayerIds_;
     surfaceParams->name_= name_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
     surfaceParams->SetNeedSync(true);

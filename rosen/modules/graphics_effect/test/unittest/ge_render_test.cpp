@@ -56,8 +56,8 @@ HWTEST_F(GERenderTest, DrawImageEffect001, TestSize.Level1)
 
     Drawing::Canvas canvas;
     const std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
-    const Drawing::Rect src(1.0f, 1.0f, 2.0f, 2.0f);
-    const Drawing::Rect dst(1.0f, 1.0f, 2.0f, 2.0f);
+    const Drawing::Rect src(1.0f, 1.0f, 1.0f, 1.0f);
+    const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
     const Drawing::SamplingOptions sampling;
     auto geRender = std::make_shared<GERender>();
     geRender->DrawImageEffect(canvas, *veContainer, image, src, dst, sampling);
@@ -82,8 +82,8 @@ HWTEST_F(GERenderTest, ApplyImageEffect001, TestSize.Level1)
 
     Drawing::Canvas canvas;
     const std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
-    const Drawing::Rect src(1.0f, 1.0f, 2.0f, 2.0f);
-    const Drawing::Rect dst(1.0f, 1.0f, 2.0f, 2.0f);
+    const Drawing::Rect src(1.0f, 1.0f, 1.0f, 1.0f);
+    const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
     const Drawing::SamplingOptions sampling;
     auto geRender = std::make_shared<GERender>();
     auto outImage = geRender->ApplyImageEffect(canvas, *veContainer, image, src, dst, sampling);

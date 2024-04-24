@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT GELinearGradientBlurShaderFilter : public GEShaderFilter {
+class GELinearGradientBlurShaderFilter : public GEShaderFilter {
 public:
     GELinearGradientBlurShaderFilter(const Drawing::GELinearGradientBlurShaderFilterParams& params);
     GELinearGradientBlurShaderFilter(const GELinearGradientBlurShaderFilter&) = delete;

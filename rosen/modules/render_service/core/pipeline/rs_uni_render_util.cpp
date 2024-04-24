@@ -865,7 +865,7 @@ uint32_t RSUniRenderUtil::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFl
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
         return UINT32_MAX;
     }
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
 
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -914,7 +914,7 @@ Drawing::BackendTexture RSUniRenderUtil::MakeBackendTexture(uint32_t width, uint
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -1057,6 +1057,8 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const float boundsWidth = property.GetBoundsWidth();
     const float boundsHeight = property.GetBoundsHeight();
     const Gravity frameGravity = property.GetFrameGravity();
+
+    CheckForceHardwareAndUpdateDstRect(node);
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
     if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
         (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
@@ -1099,6 +1101,25 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     node.SetDstRect({newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()});
     node.SetSrcRect({left, top, width, height});
 }
+
+void RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node)
+{
+    if (!node.GetForceHardwareByUser()) {
+        return;
+    }
+    RectI srcRect = { 0, 0, node.GetBuffer()->GetSurfaceBufferWidth(), node.GetBuffer()->GetSurfaceBufferHeight() };
+    node.SetSrcRect(srcRect);
+    auto dstRect = node.GetDstRect();
+    auto originalDstRect = node.GetOriginalDstRect();
+    if (originalDstRect.IsEmpty()) {
+        originalDstRect = dstRect;
+    }
+    dstRect.left_ += (dstRect.width_ - originalDstRect.width_) / 2;
+    dstRect.top_ += (dstRect.height_ - originalDstRect.height_) / 2;
+    dstRect.width_ = originalDstRect.width_;
+    dstRect.height_ = originalDstRect.height_;
+    node.SetDstRect(dstRect);
+}
  
 void RSUniRenderUtil::LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
@@ -1132,7 +1153,8 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     if (!consumer) {
         return GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
-    int surfaceNodeRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
+    int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * node.GetFixedRotationDegree() :
+        RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     int totalRotation = (RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform()))) % 360;
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,

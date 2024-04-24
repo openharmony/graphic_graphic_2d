@@ -29,7 +29,7 @@ RunImpl::RunImpl(std::unique_ptr<skt::RunBase> runBase, const std::vector<PaintR
 Drawing::Font RunImpl::GetFont() const
 {
     if (!runBase_) {
-        return font_;
+        return {};
     }
     return runBase_->font();
 }

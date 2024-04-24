@@ -41,6 +41,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::PATH_OPITEM,              "PATH_OPITEM" },
     { DrawOpItem::BACKGROUND_OPITEM,        "BACKGROUND_OPITEM" },
     { DrawOpItem::SHADOW_OPITEM,            "SHADOW_OPITEM" },
+    { DrawOpItem::SHADOW_STYLE_OPITEM,      "SHADOW_STYLE_OPITEM" },
     { DrawOpItem::COLOR_OPITEM,             "COLOR_OPITEM" },
     { DrawOpItem::IMAGE_NINE_OPITEM,        "IMAGE_NINE_OPITEM" },
     { DrawOpItem::IMAGE_LATTICE_OPITEM,     "IMAGE_LATTICE_OPITEM" },
@@ -189,7 +190,7 @@ std::string DrawCmdList::GetOpsWithDesc() const
         desc += typeOpDes[item->GetType()];
         desc += "\n";
     }
-    LOGI("DrawCmdList::GetOpsWithDesc %{public}s, opitem sz: %{public}zu", desc.c_str(), drawOpItems_.size());
+    LOGD("DrawCmdList::GetOpsWithDesc %{public}s, opitem sz: %{public}zu", desc.c_str(), drawOpItems_.size());
     return desc;
 }
 

@@ -345,6 +345,11 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
     return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId);
 }
 
+std::shared_ptr<Media::PixelMap> RSInterfaces::CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect)
+{
+    return renderServiceClient_->CreatePixelMapFromSurfaceId(surfaceId, srcRect);
+}
+
 int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
 {
     return renderServiceClient_->GetScreenHDRCapability(id, screenHdrCapability);

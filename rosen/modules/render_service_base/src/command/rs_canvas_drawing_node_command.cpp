@@ -16,13 +16,15 @@
 #include "command/rs_canvas_drawing_node_command.h"
 
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS {
 namespace Rosen {
 
 void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(id, context.weak_from_this(), isTextureExportNode);
+    auto node = std::shared_ptr<RSCanvasDrawingRenderNode>(new RSCanvasDrawingRenderNode(id,
+        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

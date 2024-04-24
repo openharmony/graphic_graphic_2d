@@ -30,9 +30,6 @@ config("buffer_handle_public_config") {
   include_dirs = [
     "export",
     "../../../../../drivers/peripheral/base",
-    "../../../../../commonlibrary/c_utils/base/include",
-    "../../../../../base/hiviewdfx/hilog/interfaces/native/innerkits",
-    "../../../../../base/notification/eventhandler/interfaces/inner_api",
     "../../../../../foundation/graphic/graphic_2d/utils/log",
   ]
 }

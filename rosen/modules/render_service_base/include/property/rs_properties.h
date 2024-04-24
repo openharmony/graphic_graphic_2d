@@ -22,9 +22,11 @@
 #include <vector>
 
 #include "animation/rs_render_particle.h"
+#include "animation/rs_particle_noise_field.h"
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "effect/runtime_blender_builder.h"
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_color_picker_cache_task.h"
@@ -230,15 +232,28 @@ public:
     // filter properties
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
-    void SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para);
+    void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
+    void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
+
+    void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
+    std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
+    void SetFgBrightnessFract(float fraction);
+    float GetFgBrightnessFract() const;
+
+    void SetBgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
+    std::optional<RSDynamicBrightnessPara> GetBgBrightnessParams() const;
+    void SetBgBrightnessFract(float fraction);
+    float GetBgBrightnessFract() const;
+
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
-    const std::shared_ptr<EmitterUpdater>& GetEmitterUpdater() const;
+    const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
+    const std::shared_ptr<ParticleNoiseFields>& GetParticleNoiseFields() const;
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
@@ -368,6 +383,9 @@ public:
         return pixelStretchPercent_;
     }
 
+    void SetPixelStretchTileMode(int stretchTileMode);
+    int GetPixelStretchTileMode() const;
+
     void SetAiInvert(const std::optional<Vector4f>& aiInvert);
     const std::optional<Vector4f>& GetAiInvert() const;
     void SetSystemBarEffect(bool systemBarEffect);
@@ -393,6 +411,8 @@ public:
     bool IsLightUpEffectValid() const;
     bool IsDynamicLightUpValid() const;
     bool IsDynamicDimValid() const;
+    bool IsFgBrightnessValid() const;
+    bool IsBgBrightnessValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -477,6 +497,8 @@ private:
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
+    void AccmulateDirtyStatus();
+    void RecordCurDirtyStatus();
 
     bool NeedClip() const;
 
@@ -492,6 +514,9 @@ private:
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
+    bool curIsDirty_ = false;
+    bool curGeoDirty_ = false;
+    bool curContentDirty_ = false;
     bool isDrawn_ = false;
     bool alphaNeedApply_ = false;
     bool systemBarEffect_ = false;
@@ -503,6 +528,11 @@ private:
 
     int colorBlendMode_ = 0;
     int colorBlendApplyType_ = 0;
+
+    std::optional<RSDynamicBrightnessPara> fgBrightnessParams_ = std::nullopt;
+    float fgBrightnessFract_ = -1.0;
+    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_ = std::nullopt;
+    float bgBrightnessFract_ = -1.0;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
@@ -521,7 +551,8 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
-    std::shared_ptr<EmitterUpdater> emitterUpdater_ = nullptr;
+    std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
+    std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
@@ -557,6 +588,8 @@ private:
 
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;
+    int pixelStretchTileMode_ = 0;
+
     std::optional<Vector4f> aiInvert_;
     std::optional<RRect> clipRRect_;
 

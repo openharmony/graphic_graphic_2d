@@ -168,7 +168,7 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest007, TestSize.Level1)
 
 /*
  * @tc.name: OHHmSymbolTxtTest
- * @tc.desc: test for symbol SetAminationStart
+ * @tc.desc: test for symbol SetAnimationStart
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest008, TestSize.Level1)
@@ -176,9 +176,9 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest008, TestSize.Level1)
     TextStyle style;
     style.isSymbolGlyph = true;
     SPText::TextStyle textStyle;
-    style.symbol.SetAminationStart(true);
+    style.symbol.SetAnimationStart(true);
     textStyle = AdapterTxt::Convert(style);
-    EXPECT_EQ(textStyle.symbol.GetAminationStart(), true);
+    EXPECT_EQ(textStyle.symbol.GetAnimationStart(), true);
 }
 
 /*

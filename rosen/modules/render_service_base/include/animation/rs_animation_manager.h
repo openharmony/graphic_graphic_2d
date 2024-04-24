@@ -19,6 +19,7 @@
 #include <list>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -47,6 +48,7 @@ public:
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void RemoveAnimation(AnimationId keyId);
     void CancelAnimationByPropertyId(PropertyId id);
+    void AttemptCancelAnimationByAnimationId(const std::vector<AnimationId>& animations);
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void FilterAnimationByPid(pid_t pid);
     uint32_t GetAnimationsSize();
@@ -66,6 +68,7 @@ public:
     void RegisterParticleAnimation(PropertyId propertyId, AnimationId animId);
     void UnregisterParticleAnimation(PropertyId propertyId, AnimationId animId);
     const std::unordered_map<PropertyId, AnimationId>& GetParticleAnimations();
+    const std::shared_ptr<RSRenderAnimation>& GetParticleAnimation();
 
     const FrameRateRange& GetFrameRateRange() const;
     const FrameRateRange& GetDecideFrameRateRange() const;
@@ -80,6 +83,7 @@ private:
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
     std::unordered_map<PropertyId, AnimationId> pathAnimations_;
     std::unordered_map<PropertyId, AnimationId> particleAnimations_;
+    std::vector<AnimationId> pendingCancelAnimation_;
     friend class RSRenderNode;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

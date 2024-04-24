@@ -280,12 +280,16 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #ifdef NEW_RENDER_CONTEXT
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
 #else
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
 #endif
 {
+#ifdef RS_ENABLE_VK
+    skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    renderContext_->SetUpGpuContext(skContext_);
+#endif
     if (rsSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
         return nullptr;
@@ -305,6 +309,9 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 #else
     bufferUsage |= BUFFER_USAGE_CPU_WRITE;
 #endif
+    if (isProtected) {
+        bufferUsage |= BUFFER_USAGE_PROTECTED;
+    }
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
@@ -340,7 +347,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
     }
 #endif
 #endif
-    auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC);
+    auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC, isProtected);
     RS_OPTIONAL_TRACE_END();
     if (surfaceFrame == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
@@ -354,7 +361,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 }
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(targetSurface)");
     if (targetSurface == nullptr) {
@@ -389,7 +396,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     }
 #endif
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurface, config, forceCPU, useAFBC);
+    return RequestFrame(rsSurface, config, forceCPU, useAFBC, isProtected);
 }
 
 #ifdef NEW_RENDER_CONTEXT

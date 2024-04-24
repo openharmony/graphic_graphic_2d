@@ -121,6 +121,11 @@ private:
     uint32_t bufferCacheCountMax_ = 0;
     std::mutex layerMutex_;
 
+    std::vector<uint32_t> layersId_;
+    std::vector<sptr<SyncFence>> fences_;
+
+    int32_t skipState_ = -1;
+
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();
     void ResetLayerStatus();

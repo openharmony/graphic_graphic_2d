@@ -20,15 +20,9 @@
 
 namespace OHOS {
 namespace Rosen {
-RSListenedCanvas::RSListenedCanvas(Drawing::Canvas& canvas, float alpha)
-    : RSPaintFilterCanvas(&canvas, alpha)
-{
-}
+RSListenedCanvas::RSListenedCanvas(Drawing::Canvas& canvas) : RSPaintFilterCanvas(&canvas) {}
 
-RSListenedCanvas::RSListenedCanvas(Drawing::Surface& surface, float alpha)
-    : RSPaintFilterCanvas(&surface, alpha)
-{
-}
+RSListenedCanvas::RSListenedCanvas(Drawing::Surface& surface) : RSPaintFilterCanvas(&surface) {}
 
 void RSListenedCanvas::SetListener(const std::shared_ptr<RSCanvasListener> &listener)
 {
@@ -131,6 +125,17 @@ void RSListenedCanvas::DrawShadow(const Path& path, const Point3& planeParams, c
     RSPaintFilterCanvas::DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
     if (listener_ != nullptr) {
         listener_->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
+    }
+}
+
+void RSListenedCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle)
+{
+    RSPaintFilterCanvas::DrawShadowStyle(
+        path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
+    if (listener_ != nullptr) {
+        listener_->DrawShadowStyle(
+            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag, isShadowStyle);
     }
 }
 

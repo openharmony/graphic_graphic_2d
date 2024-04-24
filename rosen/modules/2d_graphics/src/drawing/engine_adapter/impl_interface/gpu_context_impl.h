@@ -70,6 +70,8 @@ public:
 
     virtual void ReleaseByTag(const GPUResourceTag &tag) = 0;
 
+    virtual void ResetContext() = 0;
+
     virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
 
     virtual void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) = 0;

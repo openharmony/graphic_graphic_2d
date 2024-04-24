@@ -44,7 +44,7 @@ private:
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node,
         bool isUniRender = false, bool hasSecurityOrSkipLayer = false);
 
-    bool FindSecurityOrSkipLayer();
+    bool FindSecurityOrSkipOrProtectedLayer();
 
     // It is currently only used on folding screen.
     int32_t ScreenCorrection(ScreenRotation screenRotation);

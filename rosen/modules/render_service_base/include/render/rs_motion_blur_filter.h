@@ -58,6 +58,11 @@ public:
         curRect_ = Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
     }
 
+    void IsOffscreenCanvas(bool isOffscreenCanvas) override
+    {
+        isOffscreenCanvas_ = isOffscreenCanvas;
+    }
+
 private:
     static bool RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2);
     static void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -68,8 +73,9 @@ private:
         Vector2f& rectOffset, float radius);
 
     friend class RSMarshallingHelper;
-    inline static Drawing::Rect lastRect_ = Drawing::Rect(0, 0, 0, 0);
-    inline static Drawing::Rect curRect_ = Drawing::Rect(0, 0, 0, 0);
+    inline static Drawing::Rect lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
+    inline static Drawing::Rect curRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
+    inline static bool isOffscreenCanvas_ = false;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
 
     static std::shared_ptr<Drawing::RuntimeEffect> motionBlurShaderEffect_;

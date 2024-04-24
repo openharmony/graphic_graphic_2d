@@ -19,6 +19,7 @@
 #include "drawing/engine_adapter/impl_interface/shader_effect_impl.h"
 #include "include/core/SkShader.h"
 #include "utils/drawing_macros.h"
+#include "utils/extend_object.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,7 +35,7 @@ class DRAWING_API ShaderEffect {
 public:
     enum class ShaderEffectType {
         NO_TYPE,
-        COLOR_EFFECT,
+        COLOR_SHADER,
         BLEND,
         IMAGE,
         PICTURE,
@@ -43,9 +44,10 @@ public:
         CONICAL_GRADIENT,
         SWEEP_GRADIENT,
         LIGHT_UP,
+        EXTEND_SHADER,
     };
 
-    /** 
+    /**
      * @brief Create a ShaderEffect that ignores the color in the paint, and uses the
      * specified color. Note: like all shaders, at draw time the paint's alpha
      * will be respected, and is applied to the specified color.
@@ -73,6 +75,7 @@ public:
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
         scalar endAngle, const Matrix* matrix);
     static std::shared_ptr<ShaderEffect> CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader);
+    static std::shared_ptr<ShaderEffect> CreateExtendShader(std::shared_ptr<ExtendObject>);
 
     virtual ~ShaderEffect() = default;
     ShaderEffectType GetType() const;
@@ -105,8 +108,11 @@ public:
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
         const Matrix *matrix) noexcept;
     ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEffect& imageShader) noexcept;
+    ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept;
     ShaderEffect(ShaderEffectType t) noexcept;
     ShaderEffect() noexcept;
+
+    std::shared_ptr<ExtendObject> GetExtendObject() { return object_; }
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
@@ -116,6 +122,7 @@ public:
 private:
     ShaderEffectType type_;
     std::shared_ptr<ShaderEffectImpl> impl_;
+    std::shared_ptr<ExtendObject> object_;
 };
 } // namespace Drawing
 } // namespace Rosen

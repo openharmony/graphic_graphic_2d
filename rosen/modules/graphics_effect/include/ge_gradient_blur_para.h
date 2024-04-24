@@ -38,7 +38,7 @@ enum class GEGradientDirection {
     END_TO_START,
 };
 
-class RSB_EXPORT GELinearGradientBlurPara {
+class GELinearGradientBlurPara {
 public:
     float blurRadius_;
     // Each pair in fractionStops_ represents <blur degree, position scale>

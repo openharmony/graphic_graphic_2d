@@ -229,6 +229,12 @@ void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyPath, value, type);
 }
 template<>
+void RSProperty<RSDynamicBrightnessPara>::UpdateToRender(
+    const RSDynamicBrightnessPara& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyDynamicBrightness, value, type);
+}
+template<>
 void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
     const std::shared_ptr<RSLinearGradientBlurPara>& value, PropertyUpdateType type) const
 {
@@ -241,10 +247,16 @@ void RSProperty<std::shared_ptr<MotionBlurParam>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyMotionBlurPara, value, type);
 }
 template<>
-void RSProperty<std::shared_ptr<EmitterUpdater>>::UpdateToRender(
-    const std::shared_ptr<EmitterUpdater>& value, PropertyUpdateType type) const
+void RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::UpdateToRender(
+    const std::vector<std::shared_ptr<EmitterUpdater>>& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyEmitterUpdater, value, type);
+}
+template<>
+void RSProperty<std::shared_ptr<ParticleNoiseFields>>::UpdateToRender(
+    const std::shared_ptr<ParticleNoiseFields>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyParticleNoiseFields, value, type);
 }
 template<>
 void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(

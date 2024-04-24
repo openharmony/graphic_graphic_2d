@@ -59,7 +59,6 @@ ohos_shared_library("text_napi_impl") {
     "js_text_utils.cpp",
     "paragraph_builder_napi/js_paragraph_builder.cpp",
     "paragraph_napi/js_paragraph.cpp",
-    "paragraph_style_napi/js_paragraphstyle.cpp",
     "run_napi/js_run.cpp",
     "text_line_napi/js_text_line.cpp",
   ]
@@ -79,6 +78,7 @@ ohos_shared_library("text_napi_impl") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "napi:ace_napi",
+    "resource_management:global_resmgr",
   ]
 
   if (current_os == "ohos" || current_os == "ohos_ng") {

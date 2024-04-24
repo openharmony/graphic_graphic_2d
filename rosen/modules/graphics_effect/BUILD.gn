@@ -14,6 +14,11 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
+config("export_config") {
+  include_dirs = [ "include" ]
+  cflags_cc = [ "-std=c++17" ]
+}
+
 ohos_shared_library("libgraphics_effect") {
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -36,14 +41,11 @@ ohos_shared_library("libgraphics_effect") {
     "-D_FORTIFY_SOURCE=2",
   ]
 
+  public_configs = [ ":export_config" ]
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/graphics_effect/src",
     "$graphic_2d_root/rosen/modules/utils",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/utils/color_manager/export",
-    "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/interfaces/inner_api/surface",
   ]
 
   sources = [
@@ -58,21 +60,14 @@ ohos_shared_library("libgraphics_effect") {
     "src/ge_visual_effect_impl.cpp",
   ]
 
-  deps = [
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/rosen/modules/platform:eventhandler",
-    "$graphic_2d_root/rosen/modules/platform:hilog",
-    "$graphic_2d_root/rosen/modules/platform:ipc_core",
-    "$graphic_2d_root/utils/sandbox:sandbox_utils",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [ "hilog:libhilog" ]
-  external_deps += [
-    "c_utils:utils",
-    "hitrace:hitrace_meter",
-    "init:libbeget_proxy",
-    "init:libbegetutil",
-  ]
+
+  if (current_os == "ohos") {
+    defines = [ "GE_OHOS" ]
+    external_deps += [ "init:libbegetutil" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

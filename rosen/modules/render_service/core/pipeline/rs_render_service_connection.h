@@ -81,6 +81,8 @@ private:
                                                  uint64_t id,
                                                  NodeId windowNodeId = 0) override;
 
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
+
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) override;
@@ -297,7 +299,7 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
-    
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

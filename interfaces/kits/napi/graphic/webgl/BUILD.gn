@@ -43,8 +43,6 @@ ohos_source_set("webgl_src") {
   ]
 
   if (ace_enable_gpu) {
-    include_dirs += [ "//third_party/openGLES/api" ]
-
     sources += [
       "src/egl_manager.cpp",
       "src/module.cpp",

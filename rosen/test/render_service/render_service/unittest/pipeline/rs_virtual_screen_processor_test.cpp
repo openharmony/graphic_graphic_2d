@@ -16,8 +16,9 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_virtual_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_virtual_screen_processor.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -79,8 +80,9 @@ HWTEST_F(RSVirtualScreenProcessorTest, Init, TestSize.Level1)
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         SOFTWARE_COMPOSITE);
-    auto mainThread = RSMainThread::Instance();
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, rsSoftwareProcessor);
     ASSERT_EQ(false, rsSoftwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 

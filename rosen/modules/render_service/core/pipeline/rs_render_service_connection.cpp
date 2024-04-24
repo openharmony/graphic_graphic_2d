@@ -39,6 +39,7 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
+#include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -251,8 +252,12 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    mainThread_->ProcessDataBySingleFrameComposer(transactionData);
-    mainThread_->RecvRSTransactionData(transactionData);
+    bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
+    if (isProcessBySingleFrame) {
+        mainThread_->ProcessDataBySingleFrameComposer(transactionData);
+    } else {
+        mainThread_->RecvRSTransactionData(transactionData);
+    }
 }
 
 void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
@@ -355,6 +360,22 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
         return nullptr;
     }
     return conn;
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect)
+{
+    OHOS::Media::Rect rect = {
+        .left = srcRect.x,
+        .top = srcRect.y,
+        .width = srcRect.w,
+        .height = srcRect.h,
+    };
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    RSBackgroundThread::Instance().PostSyncTask([this, surface, rect, &pixelmap]() {
+        pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+    });
+    return pixelmap;
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
@@ -1070,6 +1091,9 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         }
         mainThread_->PostSyncTask(getPixelmapTask);
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
+        if (!renderThread_.IsIdle()) {
+            return false;
+        }
         renderThread_.PostSyncTask(getDrawablePixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(

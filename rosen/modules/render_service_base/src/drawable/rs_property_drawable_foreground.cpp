@@ -29,6 +29,8 @@ constexpr int PARAM_TWO = 2;
 constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
+const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
+
 // ====================================
 // Binarization
 RSDrawable::Ptr RSBinarizationDrawable::OnGenerate(const RSRenderNode& node)
@@ -200,15 +202,15 @@ bool RSForegroundColorDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSForegroundFilterDrawable>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSCompositingFilterDrawable>(); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
 }
 
-bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
+bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     nodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetFilter();
@@ -223,6 +225,100 @@ bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
         stagingFrameHeight_ = node.GetRenderProperties().GetFrameHeight();
     }
     return true;
+}
+
+// foregroundFilter
+RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (!BLUR_ENABLED) {
+        ROSEN_LOGD("RSForegroundFilterDrawable::OnGenerate close blur.");
+        return nullptr;
+    }
+    auto& rsFilter = node.GetRenderProperties().GetForegroundFilter();
+    if (rsFilter == nullptr) {
+        return nullptr;
+    }
+
+    if (auto ret = std::make_shared<RSForegroundFilterDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
+{
+    auto& rsFilter = node.GetRenderProperties().GetForegroundFilter();
+    if (rsFilter == nullptr) {
+        return false;
+    }
+    needSync_ = true;
+    stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
+    return true;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSForegroundFilterDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSForegroundFilterDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RSPropertyDrawableUtils::BeginForegroundFilter(*paintFilterCanvas, ptr->boundsRect_);
+    };
+}
+
+void RSForegroundFilterDrawable::OnSync()
+{
+    if (needSync_ == false) {
+        return;
+    }
+    boundsRect_ = stagingBoundsRect_;
+    needSync_ = false;
+}
+
+// Restore RSForegroundFilter
+RSDrawable::Ptr RSForegroundFilterRestoreDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (!BLUR_ENABLED) {
+        ROSEN_LOGD("RSForegroundFilterRestoreDrawable::OnGenerate close blur.");
+        return nullptr;
+    }
+    auto& rsFilter = node.GetRenderProperties().GetForegroundFilter();
+    if (rsFilter == nullptr) {
+        return nullptr;
+    }
+
+    if (auto ret = std::make_shared<RSForegroundFilterRestoreDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
+{
+    auto& rsFilter = node.GetRenderProperties().GetForegroundFilter();
+    if (rsFilter == nullptr) {
+        return false;
+    }
+    needSync_ = true;
+    stagingForegroundFilter_ = rsFilter;
+    return true;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSForegroundFilterRestoreDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSForegroundFilterRestoreDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, ptr->foregroundFilter_);
+    };
+}
+
+void RSForegroundFilterRestoreDrawable::OnSync()
+{
+    if (needSync_ == false) {
+        return;
+    }
+    foregroundFilter_ = std::move(stagingForegroundFilter_);
+    needSync_ = false;
 }
 
 RSDrawable::Ptr RSPixelStretchDrawable::OnGenerate(const RSRenderNode& node)
@@ -357,7 +453,7 @@ RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
 bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    auto& outline = properties.GetBorder();
+    auto& outline = properties.GetOutline();
     if (!outline || !outline->HasBorder()) {
         return false;
     }

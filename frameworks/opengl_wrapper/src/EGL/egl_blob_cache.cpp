@@ -142,7 +142,7 @@ void BlobCache::MoveToFront(std::shared_ptr<Blob>& cur)
 void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *value,
                         EGLsizeiANDROID valueSize)
 {
-    if (keySize <= 0 || valueSize <= 0) {
+    if (keySize <= 0 || valueSize <= 0 || key == nullptr || value == nullptr) {
         return;
     }
     if (!readStatus_) {
@@ -160,8 +160,6 @@ void BlobCache::setBlob(const void *key, EGLsizeiANDROID keySize, const void *va
             return;
         }
         memcpy_s(it->second->data, valueSize, value, valueSize);
-        auto moveblob = it->first;
-        MoveToFront(moveblob);
         return;
     }
     if (blobSize_ >= blobSizeMax_) {
@@ -196,7 +194,7 @@ EGLsizeiANDROID BlobCache::getBlob(const void *key, EGLsizeiANDROID keySize, voi
                                    EGLsizeiANDROID valueSize)
 {
     EGLsizeiANDROID ret = 0;
-    if (keySize <= 0) {
+    if (keySize <= 0 || key == nullptr) {
         return ret;
     }
     if (!readStatus_) {

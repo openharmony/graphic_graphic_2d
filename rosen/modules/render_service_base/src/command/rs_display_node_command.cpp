@@ -16,6 +16,7 @@
 #include "command/rs_display_node_command.h"
 
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -23,8 +24,8 @@ namespace Rosen {
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
-    std::shared_ptr<RSDisplayRenderNode> node =
-        std::make_shared<RSDisplayRenderNode>(id, config, context.weak_from_this());
+    auto node = std::shared_ptr<RSDisplayRenderNode>(new RSDisplayRenderNode(id,
+        config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterDisplayRenderNode(node);
     context.GetGlobalRootRenderNode()->AddChild(node);

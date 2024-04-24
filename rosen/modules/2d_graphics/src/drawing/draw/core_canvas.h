@@ -21,6 +21,7 @@
 #include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/core_canvas_impl.h"
 #include "utils/drawing_macros.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,6 +29,17 @@ namespace Drawing {
 enum class SrcRectConstraint {
     STRICT_SRC_RECT_CONSTRAINT,
     FAST_SRC_RECT_CONSTRAINT,
+};
+
+struct HpsBlurParameter {
+    Rect src;
+    Rect dst;
+    scalar sigma { 1E-6 };
+    float saturation { 1.0 };
+    float brightness { 1.0 };
+    HpsBlurParameter(const Rect& s, const Rect& d, const scalar& sgm,
+        float satura, float bright)
+        : src(s), dst(d), sigma(sgm), saturation(satura), brightness(bright) {}
 };
 
 /**
@@ -196,7 +208,7 @@ public:
     /**
      * @brief The shape of point drawn depends on pen. If pen is set to Pen::CapStyle::ROUND_CAP,
      * draw a circle of diameter pen stroke width. If pen is set to Pen::CapStyle::SQUAER_CAP,
-     * draw a square of width and height pen stroke width. 
+     * draw a square of width and height pen stroke width.
      * @param point top-left edge of circle or square
      */
     virtual void DrawPoint(const Point& point);
@@ -303,6 +315,9 @@ public:
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag);
 
+    virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isShadowStyle);
+
     // color
     /**
      * @brief Fills clip with color color. Mode determines how ARGB is combined with destination.
@@ -370,12 +385,12 @@ public:
      * fixed lattice elements never scale larger than their initial
      * size and shrink proportionately when all fixed elements exceed the bitmap
      * dimension. All other grid elements scale to fill the available space, if any.
-     * 
+     *
      * If brush is attached, apply ColorFilter, alpha, ImageFilter, and
      * BlendMode. If image is COLORTYPE_ALPHA_8, apply Shader.
      * If brush contains MaskFilter, generate mask from image bounds.
      * Any MaskFilter on paint is ignored as is paint anti-aliasing state.
-     * 
+     *
      * @param image   Image containing pixels, dimensions, and format
      * @param lattice division of bitmap into fixed and variable rectangles
      * @param dst     destination Rect of image to draw to
@@ -498,7 +513,7 @@ public:
     virtual bool QuickReject(const Rect& rect);
 
     // transform
-    /** 
+    /**
      * @brief Replaces RSMatrix with matrix. Unlike Concat(), any prior matrix state is overwritten.
      * @param matrix matrix to copy, replacing existing RSMatrix
      */
@@ -570,7 +585,7 @@ public:
     /**
      * @brief Triggers the immediate execution of all pending draw operations.
      * If Canvas is associated with GPU surface, resolves all pending GPU operations.
-     * If Canvas is associated with raster surface, has no effect; raster draw 
+     * If Canvas is associated with raster surface, has no effect; raster draw
      * operations are never deferred.
      */
     virtual void Flush();
@@ -592,8 +607,9 @@ public:
      * @param saveLayerOps Contains the option used to create the layer.
      */
     virtual void SaveLayer(const SaveLayerOps& saveLayerOps);
+
     /**
-     * @brief Removes changes to Matrix and clip since Canvas state was last saved. 
+     * @brief Removes changes to Matrix and clip since Canvas state was last saved.
      * The state is removed from the stack. Does nothing if the stack is empty.
      */
     virtual void Restore();
@@ -614,39 +630,39 @@ public:
     /**
      * @brief Attach pen to canvas and stroke something.
      * @param pen tool to stroke
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPen(const Pen& pen);
 
     /**
      * @brief Attach brush to canvas and fill something.
      * @param brush tool to fill
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachBrush(const Brush& brush);
 
     /**
      * @brief Attach paint to canvas to draw something.
      * @param paint tool to fill or stroke something
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& AttachPaint(const Paint& paint);
     
     /**
      * @brief Detach pen from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPen();
     
     /**
      * @brief Detach brush from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachBrush();
 
     /**
      * @brief Detach paint from canvas.
-     * @return CoreCanvas& 
+     * @return CoreCanvas&
      */
     virtual CoreCanvas& DetachPaint();
 
@@ -675,6 +691,8 @@ public:
         return paintPen_;
     }
 
+    virtual bool DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams);
+
 protected:
     CoreCanvas(int32_t width, int32_t height);
     void BuildNoDraw(int32_t width, int32_t height);
@@ -683,6 +701,10 @@ protected:
     Paint paintPen_;
 
 private:
+    void ApplyDrawProc(const Paint& paint, const std::function<void()>& proc);
+    void ApplyBlurDrawProc(const Paint& paint, const std::function<void()>& proc);
+    void ApplyDrawLooper(const std::function<void()> drawProc);
+
     void AttachPaint();
     std::shared_ptr<CoreCanvasImpl> impl_;
 #ifdef ACE_ENABLE_GPU

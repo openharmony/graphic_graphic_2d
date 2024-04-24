@@ -97,6 +97,18 @@ void RSRenderNodeMap::CalCulateAbilityComponentNumsInProcess(NodeId id)
     abilityComponentNumsInProcess_[ExtractPid(id)]++;
 }
 
+uint32_t RSRenderNodeMap::GetVisibleLeashWindowCount() const
+{
+    if (surfaceNodeMap_.empty()) {
+        return 0;
+    }
+
+    return std::count_if(surfaceNodeMap_.begin(), surfaceNodeMap_.end(),
+        [](const auto& pair) -> bool {
+            return pair.second && pair.second->IsLeashWindowSurfaceNodeVisible();
+        });
+}
+
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
 {
     auto nodePid = ExtractPid(id);

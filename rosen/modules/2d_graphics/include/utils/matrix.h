@@ -274,6 +274,8 @@ public:
     bool GetMinMaxScales(scalar scaleFactors[2]);
     bool HasPerspective() const;
 
+    void Swap(Matrix& target);
+
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;
 };

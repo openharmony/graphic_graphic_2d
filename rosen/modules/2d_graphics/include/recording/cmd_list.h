@@ -25,6 +25,7 @@
 #include "recording/mem_allocator.h"
 #include "recording/recording_handle.h"
 #include "utils/drawing_macros.h"
+#include "utils/extend_object.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #endif
@@ -128,6 +129,26 @@ public:
     CmdListData GetAllBitmapData() const;
 
     /*
+     * @brief  return ExtendObject index. UINT32_MAX is error.
+     */
+    uint32_t AddExtendObject(const std::shared_ptr<ExtendObject>& object);
+
+    /*
+     * @brief  get ExtendObject by index.
+     */
+    std::shared_ptr<ExtendObject> GetExtendObject(uint32_t index);
+
+    /*
+     * @brief  return ExtendObject size, 0 is no ExtendObject.
+     */
+    uint32_t GetAllExtendObject(std::vector<std::shared_ptr<ExtendObject>>& objectList);
+
+    /*
+     * @brief  return real setup ExtendObject size.
+     */
+    uint32_t SetupExtendObject(const std::vector<std::shared_ptr<ExtendObject>>& objectList);
+
+    /*
      * @brief  return imageObject index, negative is error.
      */
     uint32_t AddImageObject(const std::shared_ptr<ExtendImageObject>& object);
@@ -228,6 +249,8 @@ protected:
     std::mutex imageObjectMutex_;
     std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
     std::mutex imageBaseObjMutex_;
+    std::vector<std::shared_ptr<ExtendObject>> extendObjectVec_;
+    std::mutex extendObjectMutex_;
 #ifdef ROSEN_OHOS
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
     std::mutex surfaceBufferMutex_;

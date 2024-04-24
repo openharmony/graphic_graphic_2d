@@ -304,6 +304,14 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
             }
         }
     }
+    Drawing::RectI srcRect(
+        info.srcRect.x, info.srcRect.y, info.srcRect.w + info.srcRect.x, info.srcRect.h + info.srcRect.y);
+    Drawing::RectI bufferRect(0, 0, bufferWidth, bufferHeight);
+    srcRect.Intersect(bufferRect);
+    info.srcRect.x = srcRect.GetLeft();
+    info.srcRect.y = srcRect.GetTop();
+    info.srcRect.w = srcRect.GetWidth();
+    info.srcRect.h = srcRect.GetHeight();
     RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
             "srcRect [%{public}d %{public}d %{public}d %{public}d]",
             node.GetId(), info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h);

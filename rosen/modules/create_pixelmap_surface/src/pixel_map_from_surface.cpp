@@ -20,19 +20,19 @@
 #endif
 
 #include "pixel_map_from_surface.h"
-#include <string>
 #include <scoped_bytrace.h>
+#include <string>
+#include "common/rs_background_thread.h"
+#include "image/image.h"
 #include "native_window.h"
-#include "sync_fence.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "image/image.h"
 #if defined(RS_ENABLE_VK)
 #include "platform/ohos/backend/native_buffer_utils.h"
 #endif
-#include "common/rs_background_thread.h"
-#include "surface_buffer.h"
 #include "skia_adapter/skia_gpu_context.h"
+#include "surface_buffer.h"
+#include "sync_fence.h"
 
 #if defined(RS_ENABLE_GL)
 #include "EGL/egl.h"
@@ -63,6 +63,9 @@ static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_
     RS_LOGE("Unsupport dma mem alloc");
     return nullptr;
 #else
+    if (pixelmap == nullptr) {
+        return nullptr;
+    }
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
     BufferRequestConfig requestConfig = {
         .width = width,

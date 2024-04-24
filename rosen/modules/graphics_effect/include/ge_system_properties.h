@@ -17,14 +17,15 @@
 
 #include <atomic>
 #include <cstdlib>
-#include <parameter.h>
-#include <parameters.h>
 #include <string>
 #include <vector>
 
+#ifdef GE_OHOS
+#include <parameter.h>
+#include <parameters.h>
 #include "param/sys_param.h"
-
 #include "utils/system_properties.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

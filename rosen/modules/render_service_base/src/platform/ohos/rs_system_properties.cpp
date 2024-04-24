@@ -156,7 +156,7 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 {
-    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "1") != "0";
+    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "0") != "0";
     return isNeedScreenRCD;
 }
 
@@ -217,10 +217,9 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
 bool RSSystemProperties::GetAFBCEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");
-    static const bool isBra = (system::GetParameter("const.build.product", "0").compare("BRA") == 0);
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0 && !isBra;
+    return ConvertToInt(enable, 1) != 0;
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
@@ -246,6 +245,14 @@ bool RSSystemProperties::GetHighContrastStatus()
     int changed = 0;
     const char *status = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(status, 0) != 0;
+}
+
+bool RSSystemProperties::GetDrmEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.enabled", "1");
+    int changed = 0;
+    const char *enabled = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enabled, 0) != 0;
 }
 
 bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_)
@@ -464,6 +471,13 @@ bool RSSystemProperties::GetKawaseEnabled()
     static bool kawaseBlurEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "1")).c_str()) != 0;
     return kawaseBlurEnabled;
+}
+
+bool RSSystemProperties::GetHpsBlurEnabled()
+{
+    static bool hpsBlurEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.HpsBlurEnable", "1")).c_str()) != 0;
+    return hpsBlurEnabled;
 }
 
 float RSSystemProperties::GetKawaseRandomColorFactor()

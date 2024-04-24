@@ -165,8 +165,11 @@ bool RSDisplayRenderNode::GetBootAnimation() const
 void RSDisplayRenderNode::InitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(GetId());
-    renderParams_ = std::make_unique<RSDisplayRenderParams>(GetId());
-    uifirstRenderParams_ = std::make_unique<RSDisplayRenderParams>(GetId());
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
+    if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::InitRenderParams failed");
+        return;
+    }
 }
 
 void RSDisplayRenderNode::OnSync()
@@ -206,7 +209,7 @@ void RSDisplayRenderNode::UpdateRenderParams()
 
 void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
     std::map<ScreenId, bool>& displayHasSecSurface, std::map<ScreenId, bool>& displayHasSkipSurface,
-    std::map<ScreenId, bool>& hasCaptureWindow)
+    std::map<ScreenId, bool>& displayHasProtectedSurface, std::map<ScreenId, bool>& hasCaptureWindow)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
@@ -219,6 +222,7 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenInfo& screenInfo,
     displayParams->screenInfo_ = std::move(screenInfo);
     displayParams->displayHasSecSurface_ = std::move(displayHasSecSurface);
     displayParams->displayHasSkipSurface_ = std::move(displayHasSkipSurface);
+    displayParams->displayHasProtectedSurface_ = std::move(displayHasProtectedSurface);
     displayParams->hasCaptureWindow_ = std::move(hasCaptureWindow);
 }
 
@@ -252,7 +256,7 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     consumerListener_ = listener;
     auto producer = consumer_->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-    surface->SetQueueSize(4); // 4 Buffer rotation
+    surface->SetQueueSize(5); // 5 Buffer rotation
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     surface_ = client->CreateRSSurface(surface);
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");
@@ -298,6 +302,10 @@ bool RSDisplayRenderNode::IsRotationChanged() const
 
 void RSDisplayRenderNode::UpdateRotation()
 {
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    displayParams->SetRotationChanged(IsRotationChanged());
+    AddToPendingSyncList();
+
     auto boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr == nullptr) {
         return;

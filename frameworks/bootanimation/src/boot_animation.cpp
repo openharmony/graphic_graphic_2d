@@ -62,10 +62,14 @@ void BootAnimation::Draw()
 {
     if (picCurNo_ < (imgVecSize_ - 1)) {
         picCurNo_ = picCurNo_ + 1;
+        if (picCurNo_ == (imgVecSize_ - 1)) {
+            ShowCompileProgress();
+        }
     } else {
         CheckExitAnimation();
         return;
     }
+
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw RequestFrame");
     auto frame = rsSurface_->RequestFrame(windowWidth_, windowHeight_);
     if (frame == nullptr) {
@@ -147,6 +151,17 @@ void BootAnimation::Init(Rosen::ScreenId defaultId, int32_t width, int32_t heigh
     }
 }
 
+void BootAnimation::InitBootCompileProgress(Rosen::ScreenId screenId, int32_t height, int32_t width)
+{
+    bootCompileProgress_ = std::make_shared<BootCompileProgress>();
+    bool ret = bootCompileProgress_->Init(screenId, height, width);
+    if (!ret) {
+        LOGE("Init Boot Compile Progress failed.");
+        return;
+    }
+    bootCompileProgress_->CheckNeedOatCompile();
+}
+
 void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
 {
     LOGI("Run enter");
@@ -169,6 +184,7 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
         interface.SetScreenPowerStatus(id, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
     }
 
+    InitBootCompileProgress(id, screenHeight, screenWidth);
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     mainHandler_->PostTask(std::bind(&BootAnimation::Init, this, id, screenWidth, screenHeight));
@@ -202,6 +218,7 @@ void BootAnimation::InitRsSurfaceNode()
     int32_t rotateScreenId = animationConfig_.GetRotateScreenId();
     if (rotateScreenId >= 0 && (Rosen::ScreenId)rotateScreenId == defaultId_) {
         LOGI("SurfaceNode set rotation degree: %{public}d", animationConfig_.GetRotateDegree());
+        rotateDegree_ = animationConfig_.GetRotateDegree();
         rsSurfaceNode_->SetRotation(animationConfig_.GetRotateDegree());
     }
     rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
@@ -288,6 +305,16 @@ void BootAnimation::OnVsync()
 
 bool BootAnimation::CheckExitAnimation()
 {
+    if (bootCompileProgress_ != nullptr && bootCompileProgress_->NeedUpdate()) {
+        if (!bootCompileProgress_->IsUpdateDone()) {
+            return false;
+        } else {
+            LOGI("aot compile is done.");
+        }
+    } else {
+        LOGI("aot compile is disabled.");
+    }
+
     if (!isAnimationEnd_) {
         LOGI("Boot animation is end");
         system::SetParameter("bootevent.bootanimation.finished", "true");
@@ -357,12 +384,25 @@ void BootAnimation::PlayVideo()
 void BootAnimation::CloseVideoPlayer()
 {
     LOGI("Close video player.");
+
+    ShowCompileProgress();
+
     while (!CheckExitAnimation()) {
         usleep(SLEEP_TIME_US);
     }
     LOGI("Check Exit Animation end.");
 }
 #endif
+
+void BootAnimation::ShowCompileProgress()
+{
+    if (!bootCompileProgress_->IsStarted()) {
+        if (bootCompileProgress_->NeedUpdate()) {
+            bootCompileProgress_->SetStart(true);
+            mainHandler_->PostTask(std::bind(&BootAnimation::DisplayCompileProgress, this));
+        }
+    }
+}
 
 void BootAnimation::InitRsDisplayNode()
 {
@@ -383,4 +423,21 @@ void BootAnimation::InitRsDisplayNode()
         transactionProxy->FlushImplicitTransaction();
     }
     LOGD("InitRsDisplayNode success");
+}
+
+void BootAnimation::DisplayCompileProgress()
+{
+    bool ret = bootCompileProgress_->CreateCanvasNode(rotateDegree_, MAX_ZORDER + 1);
+    if (!ret) {
+        LOGE("Create Canvas Node failed.");
+        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
+        return;
+    }
+
+    ret = bootCompileProgress_->RegisterVsyncAndStart();
+    if (!ret) {
+        LOGE("Boot Compile Progress Register Vsync failed.");
+        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
+        return;
+    }
 }

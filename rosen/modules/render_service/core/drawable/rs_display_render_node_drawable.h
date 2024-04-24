@@ -24,6 +24,7 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_surface_handler.h"
+#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
@@ -49,18 +50,26 @@ private:
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes,
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
-    void ProcessVirtualScreen(RSDisplayRenderNode& displayNodeSp, RSDisplayRenderParams& params,
+    void DrawMirrorScreen(RSDisplayRenderNode& displayNodeSp, RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);
-    void ScaleMirrorIfNeed(RSDisplayRenderNode& node, bool canvasRotation,
-        std::shared_ptr<RSProcessor> processor);
-    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node, bool canvasRotation);
+    void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
+    void SetVirtualScreenType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
+    void ScaleMirrorIfNeed(RSDisplayRenderNode& node, std::shared_ptr<RSProcessor> processor);
+    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node);
     void DrawCurtainScreen(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas) const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
+    std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(
+        std::shared_ptr<RSDisplayRenderNode> mirrorNode);
+    void processCacheImage(Drawing::Image& cacheImageProcessed,
+        RSDisplayRenderNode& mirroredNode, RSUniRenderVirtualProcessor& mirroredProcessor);
+    void SetCanvasBlack(RSProcessor& processor);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
+    Drawing::Region clipRegion_;
+    bool canvasRotation_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

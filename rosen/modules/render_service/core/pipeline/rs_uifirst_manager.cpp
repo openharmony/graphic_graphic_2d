@@ -152,7 +152,7 @@ void RSUifirstManager::PurgePendingPostNodes()
             if (drawable->HasCachedTexture() && drawable->IsCurFrameStatic(deviceType) &&
                 (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end())) {
                 auto surfaceParams = static_cast<RSSurfaceRenderParams*>(
-                    drawable->GetRenderNode()->GetRenderParams().get());
+                    drawable->GetRenderParams().get());
                 if (!surfaceParams) {
                     RS_LOGE("PurgePendingPostNodes params is nullptr");
                     ++it;
@@ -344,12 +344,12 @@ void RSUifirstManager::SortSubThreadNodesPriority()
                 "this should not happen");
             return false;
         }
-        auto surfaceParams1 = static_cast<RSSurfaceRenderParams*>(drawable1->GetRenderNode()->GetRenderParams().get());
+        auto surfaceParams1 = static_cast<RSSurfaceRenderParams*>(drawable1->GetRenderParams().get());
         if (!surfaceParams1) {
             RS_LOGE("RSSurfaceRenderNodeDrawable::sortsubthread params1 is nullptr");
             return false;
         }
-        auto surfaceParams2 = static_cast<RSSurfaceRenderParams*>(drawable2->GetRenderNode()->GetRenderParams().get());
+        auto surfaceParams2 = static_cast<RSSurfaceRenderParams*>(drawable2->GetRenderParams().get());
         if (!surfaceParams2) {
             RS_LOGE("RSSurfaceRenderNodeDrawable::sortsubthread params2 is nullptr");
             return false;
@@ -405,6 +405,24 @@ CacheProcessStatus RSUifirstManager::GetNodeStatus(NodeId id)
     return CacheProcessStatus::UNKNOWN;
 }
 
+static int GetChildrenAppWindowNum(RSRenderNode& node)
+{
+    int num = 0;
+    for (auto& child : *(node.GetChildren())) {
+        if (!child) {
+            continue;
+        }
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceChild) {
+            continue;
+        }
+        if (surfaceChild->IsAppWindow()) {
+            ++num;
+        }
+    }
+    return num;
+}
+
 void RSUifirstManager::UpdateCompletedSurface(NodeId id)
 {
     DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
@@ -425,12 +443,13 @@ void RSUifirstManager::AddReuseNode(NodeId id)
 bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
 {
     bool isDisplayRotation = false; // planning: for pc
-    bool isPhoneType = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
+    bool isUIFirstEnable = RSMainThread::Instance()->GetDeviceType() != DeviceType::PC;
     bool isNeedAssignToSubThread = false;
-    if (!isPhoneType) { // only enable on phone, disable PC
+    if (!isUIFirstEnable) { // only enable on phone and tablet, disable PC
         return false;
     }
-    if (isPhoneType && node.IsLeashWindow()) {
+    // 1: Planning: support multi appwindows
+    if (isUIFirstEnable && node.IsLeashWindow() && (GetChildrenAppWindowNum(node) <= 1)) {
         isNeedAssignToSubThread = (node.IsScale() || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
             node.GetForceUIFirst()) && !node.HasFilter();
     }
@@ -444,9 +463,9 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
     if (needFilterSCB || node.IsSelfDrawingType()) {
         return false;
     }
-    if (isPhoneType) {
+    if (isUIFirstEnable) {
         return isNeedAssignToSubThread;
-    } else { // PC or TABLET
+    } else { // PC
         if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
             node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId())) &&
             node.GetHasSharedTransitionNode()) {

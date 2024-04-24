@@ -51,11 +51,13 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_IS_TEXTURE_EXPORT_NODE,
     SURFACE_NODE_ATTACH_TO_DISPLAY,
     SURFACE_NODE_DETACH_TO_DISPLAY,
+    SURFACE_NODE_SET_FORCE_HARDWARE_AND_FIX_ROTATION,
     SURFACE_NODE_SET_BOOT_ANIMATION,
     SURFACE_NODE_CREATE_SURFACE_EXT,
     SURFACE_NODE_SET_FOREGROUND,
     SURFACE_NODE_SET_SURFACE_ID,
     SURFACE_NODE_SET_FORCE_UIFIRST,
+    SURFACE_NODE_SET_ANCO_FORCE_DO_DIRECT,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -85,12 +87,14 @@ public:
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
+    static void SetForceHardwareAndFixRotation(RSContext& context, NodeId nodeId, bool flag);
 #ifdef USE_SURFACE_TEXTURE
     static void CreateSurfaceExt(RSContext& context, NodeId id, const std::shared_ptr<RSSurfaceTexture>& surfaceExt);
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
+    static void SetAncoForceDoDirect(RSContext& context, NodeId nodeId, bool forceUIFirst);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -104,6 +108,8 @@ ADD_COMMAND(RSSurfaceNodeSetContextAlpha,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_ALPHA, SurfaceNodeCommandHelper::SetContextAlpha, NodeId, float))
 ADD_COMMAND(RSSurfaceNodeSetContextClipRegion, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
     SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, std::optional<Drawing::Rect>))
+ADD_COMMAND(RSSurfaceNodeSetHardwareAndFixRotation, ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_HARDWARE_AND_FIX_ROTATION,
+    SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetBootAnimation,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_BOOT_ANIMATION, SurfaceNodeCommandHelper::SetBootAnimation, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
@@ -158,6 +164,9 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND, SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST, SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAncoForceDoDirect,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_FORCE_DO_DIRECT, SurfaceNodeCommandHelper::SetAncoForceDoDirect,
+    NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

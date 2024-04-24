@@ -101,6 +101,7 @@ public:
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT);
+    void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
     void SetTextureExport(bool isTextureExportNode) override;
@@ -139,6 +140,7 @@ public:
     void SetForeground(bool isForeground);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
+    void SetAncoForceDoDirect(bool ancoForceDoDirect);
 
 protected:
     bool NeedForcedSendToRemote() const override;
