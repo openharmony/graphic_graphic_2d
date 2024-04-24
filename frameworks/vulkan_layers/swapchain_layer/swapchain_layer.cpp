@@ -48,6 +48,10 @@ enum Extension {
     KHR_SURFACE,
     KHR_SWAPCHAIN,
     EXT_SWAPCHAIN_COLOR_SPACE,
+    KHR_GET_SURFACE_CAPABILITIES_2,
+    KHR_SHARED_PRESENTABLE_IMAGE,
+    EXT_HDR_METADATA,
+    EXT_SWAPCHAIN_MAINTENANCE_1,
     EXTENSION_COUNT,
     EXTENSION_UNKNOWN,
 };
@@ -224,13 +228,31 @@ static const VkExtensionProperties instanceExtensions[] = {
     {
         .extensionName = VK_OHOS_SURFACE_EXTENSION_NAME,
         .specVersion = 1,
+    },
+    {
+        .extensionName = VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME,
+        .specVersion = 4,
+    },
+    {
+        .extensionName = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
+        .specVersion = 1,
     }
 };
 
-static const VkExtensionProperties deviceExtensions[] = {{
-    .extensionName = VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    .specVersion = 70,
-}};
+static const VkExtensionProperties deviceExtensions[] = {
+    {
+        .extensionName = VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        .specVersion = 70,
+    },
+    {
+        .extensionName = VK_EXT_HDR_METADATA_EXTENSION_NAME,
+        .specVersion = 2,
+    },
+    {
+        .extensionName = VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME,
+        .specVersion = 1,
+    }
+};
 
 constexpr VkLayerProperties swapchainLayer = {
     SWAPCHAIN_SURFACE_NAME,
@@ -249,7 +271,7 @@ struct Swapchain {
     Swapchain(Surface &surface, uint32_t numImages, VkPresentModeKHR presentMode,
         OH_NativeBuffer_TransformType preTransform)
         : surface(surface), numImages(numImages), mailboxMode(presentMode == VK_PRESENT_MODE_MAILBOX_KHR),
-          preTransform(preTransform), frameTimestampsEnabled(false),
+          preTransform(preTransform),
           shared(presentMode == VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR ||
                  presentMode == VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR) {}
 
@@ -257,7 +279,6 @@ struct Swapchain {
     uint32_t numImages;
     bool mailboxMode;
     OH_NativeBuffer_TransformType preTransform;
-    bool frameTimestampsEnabled;
     bool shared;
 
     struct Image {
@@ -1208,6 +1229,67 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilitiesKHR(
     return VK_SUCCESS;
 }
 
+
+/*
+    VK_EXT_hdr_metadata
+*/
+VKAPI_ATTR void VKAPI_CALL SetHdrMetadataEXT(
+    VkDevice device, uint32_t swapchainCount, const VkSwapchainKHR* pSwapchains, const VkHdrMetadataEXT* pMetadata)
+{
+    SWLOGE("NativeWindow Not Support Set HdrMetaData[TODO]");
+}
+
+/*
+    VK_EXT_swapchain_maintenance1
+*/
+
+VKAPI_ATTR VkResult VKAPI_CALL ReleaseSwapchainImagesEXT(
+    VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo)
+{
+    Swapchain& swapchain = *SwapchainFromHandle(pReleaseInfo->swapchain);
+    if (swapchain.shared) {
+        return VK_SUCCESS;
+    }
+    NativeWindow* window = swapchain.surface.window;
+
+    for (uint32_t i = 0; i < pReleaseInfo->imageIndexCount; i++) {
+        Swapchain::Image& img = swapchain.images[pReleaseInfo->pImageIndices[i]];
+        NativeWindowCancelBuffer(window, img.buffer);
+        img.requestFence = -1;
+        img.requested = false;
+
+        if (img.releaseFence >= 0) {
+           close(img.releaseFence);
+           img.releaseFence = -1;
+        }
+    }
+
+    return VK_SUCCESS;
+}
+
+
+
+VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilities2KHR(
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+    VkSurfaceCapabilities2KHR* pSurfaceCapabilities)
+{
+    VkResult result = GetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, pSurfaceInfo->surface,
+                                                              &pSurfaceCapabilities->surfaceCapabilities);
+
+    VkSurfaceCapabilities2KHR* caps = pSurfaceCapabilities;
+    while(caps->pNext != nullptr) {
+        caps = reinterpret_cast<VkSurfaceCapabilities2KHR*>(caps->pNext);
+        if (caps->sType == VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR) {
+            reinterpret_cast<VkSharedPresentSurfaceCapabilitiesKHR*>(caps)->sharedPresentSupportedUsageFlags = 
+                pSurfaceCapabilities->surfaceCapabilities.supportedUsageFlags;
+        } else if (caps->sType == VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR) {
+            reinterpret_cast<VkSurfaceProtectedCapabilitiesKHR*>(caps)->supportsProtected= VK_TRUE;
+        }
+    }
+    return result;
+}
+
+
 VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceFormatsKHR(
     VkPhysicalDevice physicalDevice, const VkSurfaceKHR surface, uint32_t* count, VkSurfaceFormatKHR* formats)
 {
@@ -1251,6 +1333,30 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceFormatsKHR(
     }
 
     return result;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceFormats2KHR(
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+    uint32_t* pSurfaceFormatCount, VkSurfaceFormat2KHR* pSurfaceFormats)
+{
+    // Get pSurfaceFormatCount
+    if (pSurfaceFormats == nullptr) {
+        return GetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount, nullptr);
+    }
+    // Get pSurfaceFormats
+    uint32_t formatCount = *pSurfaceFormatCount;
+
+    std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+    VkResult res = GetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount,
+        surfaceFormats.data());
+
+    if (res == VK_SUCCESS || res == VK_INCOMPLETE) {
+        for (uint32_t i = 0; i < formatCount; i++) {
+            pSurfaceFormats[i].surfaceFormat = surfaceFormats[i];
+        }
+    }
+
+    return res;
 }
 
 void QueryPresentationProperties(
@@ -1327,6 +1433,10 @@ Extension GetExtensionBitFromName(const char* name)
     }
     if (strcmp(name, VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME) == 0) {
         return Extension::EXT_SWAPCHAIN_COLOR_SPACE;
+    }
+
+    if (strcmp(name, VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME) == 0) {
+        return Extension::KHR_GET_SURFACE_CAPABILITIES_2;
     }
     return Extension::EXTENSION_UNKNOWN;
 }
@@ -1668,6 +1778,20 @@ static inline PFN_vkVoidFunction GetSurfaceKHRProc(const char* name)
     return nullptr;
 }
 
+static inline PFN_vkVoidFunction GetSurfaceCapabilities2Proc(const char* name)
+{
+    if (name == nullptr) {
+        return nullptr;
+    }
+    if (strcmp("vkGetPhysicalDeviceSurfaceCapabilities2KHR", name) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(GetPhysicalDeviceSurfaceCapabilities2KHR);
+    }
+    if (strcmp("vkGetPhysicalDeviceSurfaceFormats2KHR", name) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(GetPhysicalDeviceSurfaceFormats2KHR);
+    }
+    return nullptr;
+}
+
 static inline PFN_vkVoidFunction LayerInterceptInstanceProc(
     std::bitset<Extension::EXTENSION_COUNT>& enabledExtensions, const char* name)
 {
@@ -1684,12 +1808,24 @@ static inline PFN_vkVoidFunction LayerInterceptInstanceProc(
         if (addr != nullptr) {
             return addr;
         }
+        if (enabledExtensions.test(Extension::KHR_GET_SURFACE_CAPABILITIES_2)) {
+            PFN_vkVoidFunction addr = GetSurfaceCapabilities2Proc(name);
+            if (addr != nullptr) {
+                return addr;
+            }
+        }
     }
 
     if (enabledExtensions.test(Extension::KHR_SWAPCHAIN)) {
         PFN_vkVoidFunction addr = GetSwapchainProc(name);
         if (addr != nullptr) {
             return addr;
+        }
+    }
+
+    if (enabledExtensions.test(Extension::EXT_SWAPCHAIN_MAINTENANCE_1)) {
+        if (strcmp("vkReleaseSwapchainImagesEXT", name) == 0) {
+            return reinterpret_cast<PFN_vkVoidFunction>(ReleaseSwapchainImagesEXT);
         }
     }
 
