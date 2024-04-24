@@ -406,7 +406,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         if (mirroredNode) {
-            ProcessVirtualScreen(*displayNodeSp, *params, processor);
+            DrawMirrorScreen(*displayNodeSp, *params, processor);
         } else {
             auto expandProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
             DrawExpandScreen(*expandProcessor);
@@ -514,7 +514,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_TRACE_END();
 }
 
-void RSDisplayRenderNodeDrawable::ProcessVirtualScreen(RSDisplayRenderNode& displayNodeSp,
+void RSDisplayRenderNodeDrawable::DrawMirrorScreen(RSDisplayRenderNode& displayNodeSp,
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
     auto mirroredNode = params.GetMirrorSource().lock();
@@ -531,7 +531,7 @@ void RSDisplayRenderNodeDrawable::ProcessVirtualScreen(RSDisplayRenderNode& disp
         mirroredProcessor && hasSpicalLayer) {
         curCanvas_ = mirroredProcessor->GetCanvas();
         if (curCanvas_ == nullptr) {
-            RS_LOGE("RSDisplayRenderNodeDrawable::ProcessVirtualScreen failed to get canvas.");
+            RS_LOGE("RSDisplayRenderNodeDrawable::DrawMirrorScreen failed to get canvas.");
             return;
         }
         curCanvas_->SetDisableFilterCache(true);
@@ -547,7 +547,7 @@ void RSDisplayRenderNodeDrawable::ProcessVirtualScreen(RSDisplayRenderNode& disp
         bool noSpecialLayer = (!hasSecSurface[mirroredNode->GetScreenId()] &&
             !hasSkipSurface[mirroredNode->GetScreenId()] && params.GetScreenInfo().filteredAppSet.empty());
         if (cacheImageProcessed && noSpecialLayer) {
-            RS_LOGD("RSDisplayRenderNodeDrawable::ProcessVirtualScreen, Enable recording optimization.");
+            RS_LOGD("RSDisplayRenderNodeDrawable::DrawMirrorScreen, Enable recording optimization.");
             RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(true);
             processCacheImage(*cacheImageProcessed, *mirroredNode, *mirroredProcessor);
         }
@@ -614,6 +614,7 @@ void RSDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
 void RSDisplayRenderNodeDrawable::processCacheImage(Drawing::Image& cacheImageProcessed,
     RSDisplayRenderNode& mirroredNode, RSUniRenderVirtualProcessor& mirroredProcessor)
 {
+    curCanvas_->Save();
     if (mirroredNode.GetResetRotate()) {
         Drawing::Matrix invertMatrix;
         if (mirroredProcessor.GetScreenTransformMatrix().Invert(invertMatrix)) {
@@ -627,6 +628,7 @@ void RSDisplayRenderNodeDrawable::processCacheImage(Drawing::Image& cacheImagePr
     auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
     curCanvas_->DrawImage(cacheImageProcessed, 0, 0, sampling);
     curCanvas_->DetachBrush();
+    curCanvas_->Restore();
 }
 
 std::shared_ptr<Drawing::Image> RSDisplayRenderNodeDrawable::GetCacheImageFromMirrorNode(
