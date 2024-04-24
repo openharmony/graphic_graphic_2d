@@ -45,7 +45,7 @@ public:
         return renderParticleVector_;
     }
     bool Animate(int64_t time) override;
-    void UpdateEmitter(const std::shared_ptr<EmitterUpdater>& emitterUpdater);
+    void UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdater);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
     const std::shared_ptr<RSRenderParticleSystem>& GetParticleSystem()
     {

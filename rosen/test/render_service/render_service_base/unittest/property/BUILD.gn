@@ -25,6 +25,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
     "rs_point_light_manager_test.cpp",
     "rs_properties_painter_test.cpp",
     "rs_properties_test.cpp",
+    "rs_property_drawable_bounds_geometry_test.cpp",
     "rs_property_trace_test.cpp",
   ]
 

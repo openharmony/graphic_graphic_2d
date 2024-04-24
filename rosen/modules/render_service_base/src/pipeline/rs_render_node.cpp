@@ -606,7 +606,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += "  ";
     }
     out += "| ";
-    DumpNodeType(out);
+    DumpNodeType(GetType(), out);
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
     if (sharedTransitionParam_) {
@@ -653,9 +653,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
 }
 
-void RSRenderNode::DumpNodeType(std::string& out) const
+void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
 {
-    switch (GetType()) {
+    switch (nodeType) {
         case RSRenderNodeType::DISPLAY_NODE: {
             out += "DISPLAY_NODE";
             break;
@@ -1096,12 +1096,7 @@ std::unique_ptr<RSRenderParams>& RSRenderNode::GetStagingRenderParams()
 
 const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
 {
-    return renderParams_;
-}
-
-const std::unique_ptr<RSRenderParams>& RSRenderNode::GetUifirstRenderParams() const
-{
-    return uifirstRenderParams_;
+    return renderDrawable_->renderParams_;
 }
 
 void RSRenderNode::CollectAndUpdateLocalShadowRect()
@@ -2168,16 +2163,13 @@ void RSRenderNode::UpdateDisplayList()
 {
 #ifndef ROSEN_ARKUI_X
     // Planning: use the mask from DrawableVecStatus in rs_drawable.cpp
-    constexpr auto BG_BOUNDS_PROPERTY = 1 << 1;
-    constexpr auto FG_BOUNDS_PROPERTY = 1 << 2;
-    constexpr auto FRAME_PROPERTY = 1 << 4;
-    constexpr auto EXTRA_PROPERTY = 1 << 5;
-    constexpr auto CONTENT_MASK = BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY | FRAME_PROPERTY | EXTRA_PROPERTY;
+    constexpr auto FRAME_EMPTY = 1 << 5;
+    constexpr auto ALL_EMPTY = 1 << 6;
 
     stagingDrawCmdList_.clear();
     drawCmdListNeedSync_ = true;
 
-    if ((drawableVecStatus_ & CONTENT_MASK) == 0) {
+    if (drawableVecStatus_ & ALL_EMPTY) {
         // Nothing to draw
         stagingRenderParams_->SetContentEmpty(IsInstanceOf<RSCanvasRenderNode>());
         return;
@@ -2215,7 +2207,7 @@ void RSRenderNode::UpdateDisplayList()
 
     AppendDrawFunc(RSDrawableSlot::BG_RESTORE_BOUNDS);
 
-    if (drawableVecStatus_ & FRAME_PROPERTY) {
+    if (!(drawableVecStatus_ & FRAME_EMPTY)) {
         // Update index of CONTENT_STYLE
         stagingDrawCmdIndex_.contentIndex_ = AppendDrawFunc(RSDrawableSlot::CONTENT_STYLE);
 
@@ -3638,8 +3630,11 @@ void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThre
 void RSRenderNode::InitRenderParams()
 {
     stagingRenderParams_ = std::make_unique<RSRenderParams>(GetId());
-    renderParams_ = std::make_unique<RSRenderParams>(GetId());
-    uifirstRenderParams_ = std::make_unique<RSRenderParams>(GetId());
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
+    if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSRenderNode::InitRenderParams failed");
+        return;
+    }
 }
 
 void RSRenderNode::UpdateRenderParams()
@@ -3700,23 +3695,27 @@ void RSRenderNode::OnSync()
 {
     addedToPendingSyncList_ = false;
 
+    if (renderDrawable_ == nullptr) {
+        return;
+    }
     if (drawCmdListNeedSync_) {
-        std::swap(stagingDrawCmdList_, drawCmdList_);
+        std::swap(stagingDrawCmdList_, renderDrawable_->drawCmdList_);
         stagingDrawCmdList_.clear();
-        drawCmdIndex_ = stagingDrawCmdIndex_;
+        renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
     }
 
     if (stagingRenderParams_->NeedSync()) {
-        stagingRenderParams_->OnSync(renderParams_);
+        stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
 
     // copy newest for uifirst root node, now force sync done nodes
     if (uifirstNeedSync_ && !uifirstSkipPartialSync_) {
         RS_TRACE_NAME_FMT("uifirst_sync %lx", GetId());
-        uifirstDrawCmdList_.assign(drawCmdList_.begin(), drawCmdList_.end());
-        uifirstDrawCmdIndex_ = drawCmdIndex_;
-        renderParams_->OnSync(uifirstRenderParams_);
+        renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
+                                                    renderDrawable_->drawCmdList_.end());
+        renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
+        renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
         uifirstNeedSync_ = false;
     }
 

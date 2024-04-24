@@ -954,6 +954,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo005, TestSize.Level2)
 }
 
 /**
+ * @tc.name: StoreMustRenewedInfo006
+ * @tc.desc: Test StoreMustRenewedInfo while is protected layer
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo006, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetProtectedLayer(true);
+    node->RSRenderNode::StoreMustRenewedInfo();
+    node->StoreMustRenewedInfo();
+    ASSERT_TRUE(node->HasMustRenewedInfo());
+}
+
+/**
  * @tc.name: GetFirstLevelNodeId001
  * @tc.desc: Test GetFirstLevelNode for single app window node
  * @tc.type: FUNC
@@ -1069,6 +1086,70 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetForceHardwareAndFixRotation002, TestSize.Le
 
     node->SetForceHardwareAndFixRotation(false);
     ASSERT_EQ(node->isForceHardwareByUser_, false);
+}
+
+/**
+ * @tc.name: ProtectedLayer001
+ * @tc.desc: Test ProtectedLayer when SetProtectedLayer is true.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ProtectedLayer001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetProtectedLayer(true);
+    bool result = node->GetProtectedLayer();
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProtectedLayer002
+ * @tc.desc: Test ProtectedLayer when SetProtectedLayer is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ProtectedLayer002, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetProtectedLayer(false);
+    bool result = node->GetProtectedLayer();
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: GetHasProtectedLayer001
+ * @tc.desc: Test GetHasProtectedLayer when SetProtectedLayer is true.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetHasProtectedLayer001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetProtectedLayer(true);
+    bool result = node->GetHasProtectedLayer();
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: GetHasProtectedLayer002
+ * @tc.desc: Test GetHasProtectedLayer when SetProtectedLayer is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetHasProtectedLayer002, TestSize.Level2)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetProtectedLayer(false);
+    bool result = node->GetHasProtectedLayer();
+    ASSERT_EQ(result, false);
 }
 } // namespace Rosen
 } // namespace OHOS

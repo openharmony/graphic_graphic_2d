@@ -279,5 +279,13 @@ const std::unordered_map<PropertyId, AnimationId>& RSAnimationManager::GetPartic
 {
     return particleAnimations_;
 }
+
+const std::shared_ptr<RSRenderAnimation>& RSAnimationManager::GetParticleAnimation()
+{
+    if (particleAnimations_.empty()) {
+        return nullptr;
+    }
+    return GetAnimation(particleAnimations_.begin()->second);
+}
 } // namespace Rosen
 } // namespace OHOS

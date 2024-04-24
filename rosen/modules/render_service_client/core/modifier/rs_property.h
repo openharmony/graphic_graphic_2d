@@ -711,8 +711,8 @@ template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<MotionBlurParam>>::UpdateToRender(
     const std::shared_ptr<MotionBlurParam>& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<EmitterUpdater>>::UpdateToRender(
-    const std::shared_ptr<EmitterUpdater>& value, PropertyUpdateType type) const;
+RSC_EXPORT void RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::UpdateToRender(
+    const std::vector<std::shared_ptr<EmitterUpdater>>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<ParticleNoiseFields>>::UpdateToRender(
     const std::shared_ptr<ParticleNoiseFields>& value, PropertyUpdateType type) const;

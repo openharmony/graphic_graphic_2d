@@ -14,7 +14,10 @@
  */
 
 #include "gtest/gtest.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_thread_visitor.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -38,7 +41,7 @@ void RSDisplayRenderNodeTest::TearDown() {}
 
 /**
  * @tc.name: PrepareTest
- * @tc.desc:
+ * @tc.desc: test results of Prepare
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -47,12 +50,15 @@ HWTEST_F(RSDisplayRenderNodeTest, PrepareTest, TestSize.Level1)
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     node->Prepare(visitor);
-}
 
+    visitor = std::make_shared<RSRenderThreadVisitor>();
+    node->Prepare(visitor);
+    ASSERT_TRUE(true);
+}
 
 /**
  * @tc.name: SkipFrameTest
- * @tc.desc:
+ * @tc.desc: test results of SkipFrame
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -61,11 +67,15 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest, TestSize.Level1)
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
     uint32_t skipFrameInterval = 0;
     node->SkipFrame(skipFrameInterval);
+    skipFrameInterval = 10;
+    node->frameCount_ = 0;
     ASSERT_FALSE(node->SkipFrame(skipFrameInterval));
+    node->frameCount_ = 6;
+    ASSERT_TRUE(node->SkipFrame(skipFrameInterval));
 }
 /**
  * @tc.name: SetMirrorSourceTest
- * @tc.desc:
+ * @tc.desc: test results of SetMirrorSource
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -74,11 +84,18 @@ HWTEST_F(RSDisplayRenderNodeTest, SetMirrorSourceTest, TestSize.Level1)
     std::shared_ptr<RSDisplayRenderNode> rsDisplayRenderNode = nullptr;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
     node->SetMirrorSource(rsDisplayRenderNode);
+
+    node->isMirroredDisplay_ = true;
+    node->SetMirrorSource(rsDisplayRenderNode);
+
+    rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
+    node->SetMirrorSource(rsDisplayRenderNode);
+    ASSERT_NE(node->mirrorSource_.lock(), nullptr);
 }
 
 /**
  * @tc.name: CreateSurfaceTest
- * @tc.desc:
+ * @tc.desc: test results of CreateSurface
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -86,12 +103,13 @@ HWTEST_F(RSDisplayRenderNodeTest, CreateSurfaceTest, TestSize.Level1)
 {
     sptr<IBufferConsumerListener> listener;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    node->CreateSurface(listener);
+    ASSERT_TRUE(node->CreateSurface(listener));
+    ASSERT_TRUE(node->CreateSurface(listener));
 }
 
 /**
  * @tc.name: GetRotationTest
- * @tc.desc:
+ * @tc.desc: test results of GetRotation
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -101,11 +119,15 @@ HWTEST_F(RSDisplayRenderNodeTest, GetRotationTest, TestSize.Level1)
     node->InitRenderParams();
     node->UpdateRotation();
     node->GetRotation();
+    RSProperties& properties = const_cast<RSProperties&>(node->GetRenderProperties());
+    properties.boundsGeo_.reset(new RSObjAbsGeometry());
+    node->GetRotation();
+    ASSERT_TRUE(true);
 }
 
 /**
  * @tc.name: IsRotationChangedTest
- * @tc.desc:
+ * @tc.desc: test results of IsRotationChanged
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -115,11 +137,15 @@ HWTEST_F(RSDisplayRenderNodeTest, IsRotationChangedTest, TestSize.Level1)
     node->InitRenderParams();
     node->UpdateRotation();
     ASSERT_FALSE(node->IsRotationChanged());
+    RSProperties& properties = const_cast<RSProperties&>(node->GetRenderProperties());
+    properties.boundsGeo_.reset(new RSObjAbsGeometry());
+    node->IsRotationChanged();
+    ASSERT_TRUE(true);
 }
 
 /**
  * @tc.name: SetBootAnimationTest
- * @tc.desc: SetBootAnimation
+ * @tc.desc:  test results of SetBootAnimation
  * @tc.type:FUNC
  * @tc.require:SR000HSUII
  */
@@ -131,12 +157,13 @@ HWTEST_F(RSDisplayRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     childNode->SetBootAnimation(true);
     ASSERT_EQ(childNode->GetBootAnimation(), true);
     node->SetBootAnimation(false);
+    childNode->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
 }
 
 /**
  * @tc.name: GetBootAnimationTest
- * @tc.desc: GetBootAnimation
+ * @tc.desc:  test results of GetBootAnimation
  * @tc.type:FUNC
  * @tc.require:SR000HSUII
  */
@@ -151,7 +178,7 @@ HWTEST_F(RSDisplayRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
 
 /**
  * @tc.name: SetRootIdOfCaptureWindow
- * @tc.desc: Test SetRootIdOfCaptureWindow
+ * @tc.desc:  test results of SetRootIdOfCaptureWindow
  * @tc.type:FUNC
  * @tc.require:issueI981R9
  */
@@ -167,21 +194,38 @@ HWTEST_F(RSDisplayRenderNodeTest, SetRootIdOfCaptureWindow, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetRenderWindowsNames
- * @tc.desc: Test SetRenderWindowsNames
+ * @tc.name: CollectSurface
+ * @tc.desc:  test results of CollectSurface
  * @tc.type:FUNC
  * @tc.require:issueI981R9
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetRenderWindowsNames, TestSize.Level2)
+HWTEST_F(RSDisplayRenderNodeTest, CollectSurface, TestSize.Level2)
 {
-    auto childNode = std::make_shared<RSRenderNode>(id, context);
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
-    ASSERT_NE(childNode, nullptr);
-    ASSERT_NE(displayNode, nullptr);
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    RSContext* rsContext = new RSContext();
+    std::shared_ptr<RSContext> sharedContext(rsContext);
+    std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSRenderNode>(1, sharedContext);
+    std::vector<RSBaseRenderNode::SharedPtr> vec;
+    bool isUniRender = true;
+    bool onlyFirstLevel = true;
+    displayNode->CollectSurface(node, vec, isUniRender, onlyFirstLevel);
+    ASSERT_TRUE(true);
+}
 
-    std::vector<std::string> windowsName;
-    windowsName.push_back("aaa");
-    displayNode->SetRenderWindowsName(windowsName);
-    ASSERT_EQ(displayNode->GetRenderWindowName().empty(), false);
+/**
+ * @tc.name: ProcessTest
+ * @tc.desc: test results of Process
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, ProcessTest, TestSize.Level1)
+{
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->Process(visitor);
+
+    visitor = std::make_shared<RSRenderThreadVisitor>();
+    displayNode->Process(visitor);
+    ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

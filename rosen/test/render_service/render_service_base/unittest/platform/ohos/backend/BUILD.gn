@@ -35,6 +35,11 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",

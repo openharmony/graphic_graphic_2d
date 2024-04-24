@@ -294,16 +294,6 @@ public:
         calcRectInPrepare_ = calc;
     }
 
-    void SetIntersectByFilterInApp(bool intersect)
-    {
-        intersectByFilterInApp_ = intersect;
-    }
-
-    bool GetIntersectByFilterInApp() const
-    {
-        return intersectByFilterInApp_;
-    }
-
     bool IsSelfDrawingType() const
     {
         // self drawing surfacenode has its own buffer, and rendered in its own progress/thread
