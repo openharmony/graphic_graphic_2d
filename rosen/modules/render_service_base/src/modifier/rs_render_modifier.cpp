@@ -228,9 +228,8 @@ void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RS
 
 void RSGeometryTransRenderModifier::Apply(RSModifierContext& context) const
 {
-    auto geoPtr = (context.properties_.GetBoundsGeometry());
-    auto property = property_->Get();
-    geoPtr->ConcatMatrix(property);
+    auto& geoPtr = (context.properties_.GetBoundsGeometry());
+    geoPtr->ConcatMatrix(property_->Get());
 }
 
 void RSGeometryTransRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)

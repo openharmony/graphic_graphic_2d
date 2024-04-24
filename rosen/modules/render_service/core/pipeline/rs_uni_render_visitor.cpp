@@ -798,7 +798,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
     SendRcdMessage(node);
     parentSurfaceNodeMatrix_ = Drawing::Matrix();
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr != nullptr) {
         geoPtr->UpdateByMatrixFromSelf();
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
@@ -1504,7 +1504,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     }
 
     // 4. check isHardwareForcedDisabled
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGE("RSUniRenderVisitor::InitDisplayInfo geoPtr is nullptr");
         return false;
@@ -1575,7 +1575,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
 bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
 {
     // 1 update surface info
-    auto geoPtr = node.GetMutableRenderProperties().GetBoundsGeometry();
+    auto& geoPtr = node.GetMutableRenderProperties().GetBoundsGeometry();
     if (geoPtr == nullptr) {
         return false;
     }
@@ -1649,7 +1649,7 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
 
 void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
-    auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+    auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     if (geoPtr == nullptr) {
         return;
     }
@@ -2500,7 +2500,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     // update geoptr with ContextMatrix
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     auto& property = node.GetMutableRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
+    auto& geoPtr = (property.GetBoundsGeometry());
     if (geoPtr == nullptr) {
         return;
     }
@@ -2646,7 +2646,7 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
         return;
     }
     auto& property = node.GetMutableRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
+    auto& geoPtr = (property.GetBoundsGeometry());
     if (geoPtr == nullptr) {
         return;
     }
@@ -2697,7 +2697,7 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
         return;
     }
     auto& property = rsParent->GetMutableRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
+    auto& geoPtr = (property.GetBoundsGeometry());
 
     // Context matrix should be relative to the parent surface node, so we need to revert the parentSurfaceNodeMatrix_.
     Drawing::Matrix invertMatrix;
@@ -2737,7 +2737,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     auto nodeParent = (node.GetParent().lock());
     const auto& property = node.GetRenderProperties();
     bool geoDirty = property.IsGeoDirty();
-    auto geoPtr = (property.GetBoundsGeometry());
+    auto& geoPtr = (property.GetBoundsGeometry());
     auto prevAlpha = curAlpha_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
 
@@ -3141,7 +3141,7 @@ void RSUniRenderVisitor::DrawEffectRenderNodeForDFX()
         if (!node) {
             continue;
         }
-        auto geoPtr = node->GetRenderProperties().GetBoundsGeometry();
+        auto& geoPtr = node->GetRenderProperties().GetBoundsGeometry();
         if (geoPtr == nullptr) {
             continue;
         }
@@ -3882,7 +3882,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (needOffscreen) {
                 ClearTransparentBeforeSaveLayer(); // clear transparent before concat display node's matrix
             }
-            auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+            auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
             if (geoPtr != nullptr) {
                 canvas_->ConcatMatrix(geoPtr->GetMatrix());
             }
@@ -5134,7 +5134,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     const auto& property = node.GetRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
+    auto& geoPtr = (property.GetBoundsGeometry());
     if (!geoPtr) {
         RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%{public}" PRIu64 ", get geoPtr failed",
             node.GetId());

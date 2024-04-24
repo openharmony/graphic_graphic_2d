@@ -1550,7 +1550,7 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
 
 void RSRenderNode::MapAndUpdateChildrenRect()
 {
-    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
     if (!shouldPaint_ || geoPtr == nullptr) {
         return;
     }
@@ -2993,7 +2993,7 @@ bool RSRenderNode::IsFilterRectsInCache() const
 RectI RSRenderNode::GetFilterRect() const
 {
     auto& properties = GetRenderProperties();
-    auto geoPtr = (properties.GetBoundsGeometry());
+    auto& geoPtr = (properties.GetBoundsGeometry());
     if (!geoPtr) {
         return {};
     }

@@ -427,7 +427,7 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
         return false;
     }
 
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGW("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%{public}" PRIu64 ")'s"
             " geoPtr is nullptr!", node.GetId());

@@ -206,7 +206,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode009, TestSize.Level
     property.SetBounds({ 0, 0, 400, 600 });
     property.SetFrameWidth(0);
     property.SetFrameHeight(0);
-    auto absGeo = (property.GetBoundsGeometry());
+    auto& absGeo = (property.GetBoundsGeometry());
     absGeo->SetRotation(90);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(node);
 }
@@ -228,7 +228,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode010, TestSize.Level
     property.SetBounds({ 0, 0, 400, 600 });
     property.SetFrameWidth(0);
     property.SetFrameHeight(0);
-    auto absGeo = (property.GetBoundsGeometry());
+    auto& absGeo = (property.GetBoundsGeometry());
     absGeo->SetRotation(270);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(node);
 }
