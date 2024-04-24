@@ -110,6 +110,10 @@ public:
     {
         return isSkipLayer_;
     }
+    bool GetIsProtectedLayer() const
+    {
+        return isProtectedLayer_;
+    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -125,6 +129,10 @@ public:
     bool HasSkipLayer()
     {
         return skipLayerIds_.size() != 0;
+    }
+    bool HasProtectedLayer()
+    {
+        return protectedLayerIds_.size() != 0;
     }
 
     std::string GetName() const
@@ -259,8 +267,10 @@ private:
     bool isLastFrameHardwareEnabled_ = false;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isProtectedLayer_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
+    std::set<NodeId> protectedLayerIds_= {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
 

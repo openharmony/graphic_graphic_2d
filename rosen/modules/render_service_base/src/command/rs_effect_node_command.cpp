@@ -16,6 +16,7 @@
 #include "command/rs_effect_node_command.h"
 
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -23,7 +24,8 @@ namespace Rosen {
 
 void EffectNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSEffectRenderNode>(id, context.weak_from_this(), isTextureExportNode);
+    auto node = std::shared_ptr<RSEffectRenderNode>(new RSEffectRenderNode(id,
+        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

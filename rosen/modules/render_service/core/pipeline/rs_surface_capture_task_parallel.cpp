@@ -80,9 +80,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         pixelmap = CreatePixelMapBySurfaceNode(curNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        visitor_->SetHasingSecurityOrSkipLayer(FindSecurityOrSkipLayer());
+        visitor_->SetHasingSecurityOrSkipOrProtectedLayer(FindSecurityOrSkipOrProtectedLayer());
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(),
-            visitor_->GetHasingSecurityOrSkipLayer());
+            visitor_->GetHasingSecurityOrSkipOrProtectedLayer());
         visitor_->IsDisplayNode(true);
         displayNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
@@ -381,22 +381,22 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
-bool RSSurfaceCaptureTaskParallel::FindSecurityOrSkipLayer()
+bool RSSurfaceCaptureTaskParallel::FindSecurityOrSkipOrProtectedLayer()
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    bool hasSecurityOrSkipLayer = false;
+    bool hasSecurityOrSkipOrProtectedLayer = false;
     nodeMap.TraverseSurfaceNodes([this,
-        &hasSecurityOrSkipLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+        &hasSecurityOrSkipOrProtectedLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
         mutable {
         if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
             return;
         }
-        if (surfaceNode->GetSecurityLayer() || surfaceNode->GetSkipLayer()) {
-            hasSecurityOrSkipLayer = true;
+        if (surfaceNode->GetSecurityLayer() || surfaceNode->GetSkipLayer() || surfaceNode->GetProtectedLayer()) {
+            hasSecurityOrSkipOrProtectedLayer = true;
             return;
         }
     });
-    return hasSecurityOrSkipLayer;
+    return hasSecurityOrSkipOrProtectedLayer;
 }
 
 } // namespace Rosen

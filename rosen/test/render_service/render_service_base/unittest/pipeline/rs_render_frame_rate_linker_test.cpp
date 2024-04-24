@@ -65,4 +65,19 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetFrameRate, TestSize.Level1)
     frameRateLinker->SetFrameRate(rate);
     EXPECT_EQ(frameRateLinker->GetFrameRate(), rate);
 }
+
+/**
+ * @tc.name: GenerateId
+ * @tc.desc: Test GenerateId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, GenerateId, TestSize.Level1)
+{
+    FrameRateLinkerId id = 1;
+    std::shared_ptr<RSRenderFrameRateLinker> frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id);
+    auto id1 = frameRateLinker->GenerateId();
+    auto id2 = frameRateLinker->GenerateId();
+    EXPECT_LT(id1, id2);
+}
 } // namespace OHOS::Rosen

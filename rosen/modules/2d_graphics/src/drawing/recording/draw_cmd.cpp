@@ -1062,50 +1062,57 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGD("canvas is null");
         return;
     }
-    Drawing::RectI globalClipBounds = canvas->GetDeviceClipBounds();
-    if ((globalClipBounds.GetWidth() == 1 || globalClipBounds.GetHeight() == 1) && !callFromCacheFunc_) {
-        // if the ClipBound's width == 1, the textblob will draw outside of the clip,
-        // this is a workround for this case
-        if (!cacheImage_) {
-            cacheImage_ = GenerateCachedOpItem(canvas);
-        }
-        if (cacheImage_) {
-            cacheImage_->Playback(canvas, rect);
-        }
-        return;
+    RectI globalClipBounds = canvas->GetDeviceClipBounds();
+    bool saveFlag = false;
+    if (globalClipBounds.GetWidth() == 1 || globalClipBounds.GetHeight() == 1) {
+        // In this case, the clip area for textblob must have AA.
+        Matrix m = canvas->GetTotalMatrix();
+        canvas->Save();
+        canvas->SetMatrix(m);
+        auto bounds = textBlob_->Bounds();
+        canvas->ClipRect(*bounds, ClipOp::INTERSECT, true);
+        saveFlag = true;
     }
     if (canvas->isHighContrastEnabled()) {
         LOGD("DrawTextBlobOpItem::Playback highContrastEnabled, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
-        if (Color::ColorQuadGetA(colorQuad) == 0 || paint_.HasFilter()) {
-            canvas->AttachPaint(paint_);
-            canvas->DrawTextBlob(textBlob_.get(), x_, y_);
-            return;
-        }
-        if (canvas->GetAlphaSaveCount() > 0 && canvas->GetAlpha() < 1.0f) {
-            std::shared_ptr<Drawing::Surface> offScreenSurface;
-            std::shared_ptr<Canvas> offScreenCanvas;
-            if (GetOffScreenSurfaceAndCanvas(*canvas, offScreenSurface, offScreenCanvas)) {
-                DrawHighContrast(offScreenCanvas.get());
-                offScreenCanvas->Flush();
-                Drawing::Brush paint;
-                paint.SetAntiAlias(true);
-                canvas->AttachBrush(paint);
-                Drawing::SamplingOptions sampling =
-                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
-                canvas->Save();
-                canvas->ResetMatrix();
-                canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(), 0, 0, sampling);
-                canvas->DetachBrush();
-                canvas->Restore();
-                return;
-            }
-        }
-        DrawHighContrast(canvas);
+        DrawHighContrastEnabled(canvas);
     } else {
         canvas->AttachPaint(paint_);
         canvas->DrawTextBlob(textBlob_.get(), x_, y_);
     }
+    if (saveFlag) {
+        canvas->Restore();
+    }
+}
+
+void DrawTextBlobOpItem::DrawHighContrastEnabled(Canvas* canvas) const
+{
+    ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
+    if (Color::ColorQuadGetA(colorQuad) == 0 || paint_.HasFilter()) {
+        canvas->AttachPaint(paint_);
+        canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+        return;
+    }
+    if (canvas->GetAlphaSaveCount() > 0 && canvas->GetAlpha() < 1.0f) {
+        std::shared_ptr<Drawing::Surface> offScreenSurface;
+        std::shared_ptr<Canvas> offScreenCanvas;
+        if (GetOffScreenSurfaceAndCanvas(*canvas, offScreenSurface, offScreenCanvas)) {
+            DrawHighContrast(offScreenCanvas.get());
+            offScreenCanvas->Flush();
+            Drawing::Brush paint;
+            paint.SetAntiAlias(true);
+            canvas->AttachBrush(paint);
+            Drawing::SamplingOptions sampling =
+                Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+            canvas->Save();
+            canvas->ResetMatrix();
+            canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(), 0, 0, sampling);
+            canvas->DetachBrush();
+            canvas->Restore();
+            return;
+        }
+    }
+    DrawHighContrast(canvas);
 }
 
 void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas) const
@@ -1270,9 +1277,7 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
         offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
     }
 
-    callFromCacheFunc_ = true;
     Playback(offscreenCanvas, nullptr);
-    callFromCacheFunc_ = false;
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());

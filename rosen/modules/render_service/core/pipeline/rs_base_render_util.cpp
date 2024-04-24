@@ -843,7 +843,7 @@ bool RSBaseRenderUtil::IsForceClient()
 }
 
 BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical,
-    GraphicColorGamut colorGamut, GraphicPixelFormat pixelFormat)
+    bool isProtected, GraphicColorGamut colorGamut, GraphicPixelFormat pixelFormat)
 {
     BufferRequestConfig config {};
     const auto width = isPhysical ? screenInfo.width : screenInfo.GetRotatedWidth();
@@ -854,6 +854,9 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     config.colorGamut = isPhysical ? colorGamut : static_cast<GraphicColorGamut>(screenInfo.colorGamut);
     config.format = isPhysical ? pixelFormat : screenInfo.pixelFormat;
     config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
+    if (isProtected) {
+        config.usage |= BUFFER_USAGE_PROTECTED;
+    }
     config.timeout = 0;
     return config;
 }
@@ -1035,7 +1038,8 @@ bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
         return false;
     }
     auto addr = buffer->GetVirAddr();
-    if (addr == nullptr) {
+    // DRM buffers addr is nullptr
+    if (addr == nullptr && !(buffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
         RS_LOGE("RSBaseRenderUtil: buffer has no vir addr");
         return false;
     }

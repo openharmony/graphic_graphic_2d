@@ -176,7 +176,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     int targetLine = static_cast<int>(FindGlyphTargetLine(y));
     if (targetLine == static_cast<int>(lineMetrics_.size())) {
         // process y more than typography, (lineMetrics_.size() - 1) is the last line
-        targetLine = static_cast<int>(lineMetrics_.size() - 1);
+        targetLine = static_cast<int>(lineMetrics_.size()) - 1;
     }
 
     // count glyph before targetLine
@@ -201,7 +201,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     auto affinity = Affinity::PREV;
     if (targetIndex == widths.size()) {
         // process right part, (count - 1) is the index of last chargroup
-        return {count - 1, affinity};
+        return {count - 1 >= 0 ? count - 1 : 0, affinity};
     }
 
     // calc affinity
@@ -722,13 +722,13 @@ void TypographyImpl::ComputeSpans(int lineIndex, double baseline, const CalcResu
         }
 
         bool isJustify = typographyStyle_.GetEquivalentAlign() == TextAlign::JUSTIFY &&
-            lineIndex != static_cast<int>(lineMetrics_.size() - 1) &&
+            lineIndex != static_cast<int>(lineMetrics_.size()) - 1 &&
             !lineMetrics_[lineIndex].lineSpans.back().IsHardBreak() &&
             lineMetrics_[lineIndex].lineSpans.size() > 1;
         double spanGapWidth = 0.0;
         if (isJustify) {
             spanGapWidth = (maxWidth_ - lineMetrics_[lineIndex].width) /
-                (lineMetrics_[lineIndex].lineSpans.size() - 1);
+                (static_cast<int>(lineMetrics_[lineIndex].lineSpans.size()) - 1);
         }
         if (auto ts = span.TryToTextSpan(); ts != nullptr) {
             std::vector<TextRect> boxes = GenTextRects(ts, offsetX, offsetY, spanGapWidth);
@@ -759,7 +759,7 @@ std::vector<TextRect> TypographyImpl::GenTextRects(std::shared_ptr<TextSpan> &ts
         // If is emoji, don`t need process ligature, so set chars size to 1
         int charsSize = cg.IsEmoji() ? 1 : static_cast<int>(cg.chars.size());
         double spanWidth = ts->glyphWidths_[i] / charsSize;
-        if (i == static_cast<int>(ts->glyphWidths_.size() - 1)) {
+        if (i == static_cast<int>(ts->glyphWidths_.size()) - 1) {
             spanWidth += spanGapWidth;
         }
         for (int j = 0; j < charsSize; j++) {
@@ -846,11 +846,12 @@ void TypographyImpl::ApplyAlignment()
             }
         } else {
             // lineMetrics_.size() - 1 is last line index
-            isJustify = align_ == TextAlign::JUSTIFY && lineIndex != lineMetrics_.size() - 1 &&
+            isJustify = align_ == TextAlign::JUSTIFY &&
+                lineIndex != (lineMetrics_.size() - 1 >= 0 ? lineMetrics_.size() - 1 : 0) &&
                 !line.lineSpans.back().IsHardBreak() && line.lineSpans.size() > 1;
             if (isJustify) {
                 // line.lineSpans.size() - 1 is gap count
-                spanGapWidth = (maxWidth_ - line.width) / (line.lineSpans.size() - 1);
+                spanGapWidth = (maxWidth_ - line.width) / (static_cast<int>(line.lineSpans.size()) - 1);
             }
         }
 

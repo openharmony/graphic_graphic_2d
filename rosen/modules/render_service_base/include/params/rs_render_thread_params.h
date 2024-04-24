@@ -127,7 +127,7 @@ public:
         watermarkFlag_ = watermarkFlag;
         watermarkImg_ = std::move(watermarkImg);
     }
-    
+
     void SetForceCommitLayer(bool forceCommit)
     {
         isForceCommitLayer_ = forceCommit;
@@ -178,7 +178,49 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
+    void SetStartVisit(bool startVisit)
+    {
+        startVisit_ = startVisit;
+    }
+
+    bool GetStartVisit() const
+    {
+        return startVisit_;
+    }
+
+    void SetHasCaptureImg(bool hasCaptureImg)
+    {
+        hasCaptureImg_ = hasCaptureImg;
+    }
+
+    bool GetHasCaptureImg() const
+    {
+        return hasCaptureImg_;
+    }
+
+    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
+    {
+        rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
+    }
+
+    NodeId GetRootIdOfCaptureWindow() const
+    {
+        return rootIdOfCaptureWindow_;
+    }
+
+    void SetContext(std::shared_ptr<RSContext> context)
+    {
+        context_ = context;
+    }
+
+    const std::shared_ptr<RSContext>& GetContext() const
+    {
+        return context_.lock();
+    }
 private:
+    bool startVisit_ = false;
+    bool hasCaptureImg_ = false;
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     uint32_t pendingScreenRefreshRate_ = 0;
@@ -207,6 +249,7 @@ private:
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
     bool isUniRenderAndOnVsync_ = false;
+    std::weak_ptr<RSContext> context_;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

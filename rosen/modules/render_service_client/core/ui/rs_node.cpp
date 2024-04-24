@@ -485,6 +485,18 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
+std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
+{
+    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::vector<AnimationId> animations;
+    for (auto& [animateId, animation] : animations_) {
+        if (animation->GetPropertyId() == id) {
+            animations.push_back(animateId);
+        }
+    }
+    return animations;
+}
+
 template<typename ModifierName, typename PropertyName, typename T>
 void RSNode::SetProperty(RSModifierType modifierType, T value)
 {
@@ -1050,10 +1062,10 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
     }
 }
 
-// Update Particle Emitter Position and Size
-void RSNode::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+// Update Particle Emitter
+void RSNode::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para)
 {
-    SetProperty<RSEmitterUpdaterModifier, RSProperty<std::shared_ptr<EmitterUpdater>>>(
+    SetProperty<RSEmitterUpdaterModifier, RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>>(
         RSModifierType::PARTICLE_EMITTER_UPDATER, para);
 }
 
@@ -1279,6 +1291,30 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
         RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
 }
 
+void RSNode::SetFgBrightnessParams(const RSDynamicBrightnessPara& params)
+{
+    SetProperty<RSFgBrightnessParamsModifier,
+        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::FG_BRIGHTNESS_PARAMS, params);
+}
+
+void RSNode::SetFgBrightnessFract(const float& fract)
+{
+    SetProperty<RSFgBrightnessFractModifier,
+        RSAnimatableProperty<float>>(RSModifierType::FG_BRIGHTNESS_FRACTION, fract);
+}
+
+void RSNode::SetBgBrightnessParams(const RSDynamicBrightnessPara& params)
+{
+    SetProperty<RSBgBrightnessParamsModifier,
+        RSProperty<RSDynamicBrightnessPara>>(RSModifierType::BG_BRIGHTNESS_PARAMS, params);
+}
+
+void RSNode::SetBgBrightnessFract(const float& fract)
+{
+    SetProperty<RSBgBrightnessFractModifier,
+        RSAnimatableProperty<float>>(RSModifierType::BG_BRIGHTNESS_FRACTION, fract);
+}
+
 void RSNode::SetDynamicDimDegree(const float dimDegree)
 {
     SetProperty<RSDynamicDimDegreeModifier,
@@ -1416,9 +1452,11 @@ void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
         RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
 }
 
-void RSNode::SetPixelStretch(const Vector4f& stretchSize)
+void RSNode::SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode)
 {
     SetProperty<RSPixelStretchModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
+    SetProperty<RSPixelStretchTileModeModifier, RSProperty<int>>(
+        RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
 }
 
 void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent)
@@ -2040,7 +2078,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         children_.insert(children_.begin() + index, childId);
     }
     child->SetParent(id_);
-    if (isTextureExportNode_) {
+    if (isTextureExportNode_ != child->isTextureExportNode_) {
         child->SyncTextureExport(isTextureExportNode_);
     }
     child->OnAddChildren();

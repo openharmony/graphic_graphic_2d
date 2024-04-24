@@ -30,8 +30,6 @@ public:
     void EmitParticle(int64_t deltaTime);
     const std::vector<std::shared_ptr<RSRenderParticle>>& GetParticles();
     bool IsEmitterFinish();
-    void UpdateEmitter(const std::optional<Vector2f>& position, const std::optional<Vector2f>& emitSize,
-        const std::optional<int>& emitRate);
     const std::shared_ptr<ParticleRenderParams>& GetParticleParams()
     {
         return particleParams_;

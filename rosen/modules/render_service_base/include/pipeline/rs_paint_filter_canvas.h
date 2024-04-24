@@ -29,6 +29,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSDisplayRenderNode;
 
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:
@@ -128,6 +129,8 @@ public:
     CoreCanvas& DetachBrush() override;
     CoreCanvas& DetachPaint() override;
 
+    bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+
 protected:
     virtual bool OnFilter() const = 0;
     virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
@@ -147,6 +150,8 @@ public:
     void PopDirtyRegion();
     bool IsDirtyRegionStackEmpty();
     Drawing::Region& GetCurDirtyRegion();
+    std::shared_ptr<RSDisplayRenderNode> GetCurDisplayNode() const;
+    void SetCurDisplayNode(std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
 
     // alpha related
     void MultiplyAlpha(float alpha);
@@ -169,6 +174,11 @@ public:
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
     bool HasOffscreenLayer() const;
+
+    // blender related
+    void SetBlender(std::optional<std::shared_ptr<Drawing::Blender>> blender);
+    std::optional<std::shared_ptr<Drawing::Blender>> GetBlender() const;
+    void RestoreBlender();
 
     // save/restore utils
     struct SaveStatus {
@@ -293,6 +303,7 @@ protected:
     }
 
 private:
+    std::shared_ptr<RSDisplayRenderNode> curDisplayNode_ = nullptr;
     Drawing::Surface* surface_ = nullptr;
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
@@ -300,6 +311,10 @@ private:
     // save every dirty region of the current surface for quick reject
     std::stack<Drawing::Region> dirtyRegionStack_;
     
+    // blendmode related
+    std::stack<std::optional<int>> blendModeStack_;
+    std::optional<std::shared_ptr<Drawing::Blender>> blenderSave_ = std::nullopt;
+    std::optional<std::shared_ptr<Drawing::Blender>> blender_ = std::nullopt;
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;
 

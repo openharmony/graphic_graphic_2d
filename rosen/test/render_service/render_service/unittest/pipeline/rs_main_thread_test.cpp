@@ -550,6 +550,112 @@ HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus02, TestSize
 }
 
 /**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest001
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when TransactionData is null
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+    transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest002
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when SingleFrameComposer enabled by app process
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    pid_t pid = 1;
+    transactionData->SetSendingPid(pid);
+    RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
+    ASSERT_TRUE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest003
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when animation node exists
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    pid_t pid = 1;
+    transactionData->SetSendingPid(pid);
+    RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
+    
+    NodeId id = 1;
+    auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
+    mainThread->context_->RegisterAnimatingRenderNode(node);
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: IsNeedProcessBySingleFrameComposerTest004
+ * @tc.desc: Test IsNeedProcessBySingleFrameComposerTest when multi-window shown on screen
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = true;
+    pid_t pid = 1;
+    transactionData->SetSendingPid(pid);
+    RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
+    
+    NodeId firstWindowNodeId = 2;
+    auto firstWindowNode = std::make_shared<RSSurfaceRenderNode>(firstWindowNodeId, mainThread->context_);
+    firstWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    NodeId firstWindowChildNodeId = 3;
+    auto firstWindowChildNode = std::make_shared<RSSurfaceRenderNode>(firstWindowChildNodeId, mainThread->context_);
+    firstWindowChildNode->MarkUIHidden(false);
+    firstWindowNode->AddChild(firstWindowChildNode);
+    firstWindowNode->GenerateFullChildrenList();
+    mainThread->context_->nodeMap.RegisterRenderNode(firstWindowNode);
+    
+    NodeId secondWindowNodeId = 2;
+    auto secondWindowNode = std::make_shared<RSSurfaceRenderNode>(secondWindowNodeId, mainThread->context_);
+    secondWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    NodeId secondWindowChildNodeId = 3;
+    auto secondWindowChildNode = std::make_shared<RSSurfaceRenderNode>(secondWindowChildNodeId, mainThread->context_);
+    secondWindowChildNode->MarkUIHidden(false);
+    secondWindowNode->AddChild(secondWindowChildNode);
+    secondWindowNode->GenerateFullChildrenList();
+    mainThread->context_->nodeMap.RegisterRenderNode(secondWindowNode);
+    ASSERT_FALSE(mainThread->IsNeedProcessBySingleFrameComposer(transactionData));
+}
+
+/**
+ * @tc.name: RecvAndProcessRSTransactionDataImmediatelyTest
+ * @tc.desc: Test ecvAndProcessRSTransactionDataImmediately when transactionData is null
+ * @tc.type: FUNC
+ * @tc.require: issueI9HPBS
+ */
+HWTEST_F(RSMainThreadTest, RecvAndProcessRSTransactionDataImmediatelyTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    mainThread->RecvAndProcessRSTransactionDataImmediately(transactionData);
+    ASSERT_EQ(transactionData, nullptr);
+}
+
+
+/**
  * @tc.name: RecvRSTransactionData
  * @tc.desc: Test RecvRSTransactionData, when TransactionData is null
  * @tc.type: FUNC

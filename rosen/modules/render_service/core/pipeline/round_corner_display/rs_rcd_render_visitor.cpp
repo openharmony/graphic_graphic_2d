@@ -114,7 +114,9 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
         return;
     }
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    node.GetConsumer()->SetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode);
+    if (node.GetConsumer()) {
+        node.GetConsumer()->SetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode);
+    }
 
     uniProcessor_->ProcessRcdSurface(node);
 }

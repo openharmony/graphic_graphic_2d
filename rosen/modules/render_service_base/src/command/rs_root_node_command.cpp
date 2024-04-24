@@ -24,13 +24,15 @@
 #else
 #include "platform/drawing/rs_surface.h"
 #endif
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS {
 namespace Rosen {
 
 void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSRootRenderNode>(id, context.weak_from_this(), isTextureExportNode);
+    auto node = std::shared_ptr<RSRootRenderNode>(new RSRootRenderNode(id,
+        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

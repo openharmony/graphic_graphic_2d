@@ -295,6 +295,12 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Brush brush;
     brush.SetAntiAlias(antiAlias);
     brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+    if (properties.IsBgBrightnessValid()) {
+        auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
+            properties.GetBgBrightnessParams().value(), properties.GetBgBrightnessFract());
+        brush.SetBlender(blender);
+    }
+
     canvas.AttachBrush(brush);
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType()) {

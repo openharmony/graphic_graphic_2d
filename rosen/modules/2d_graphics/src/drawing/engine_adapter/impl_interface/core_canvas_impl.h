@@ -60,6 +60,7 @@ enum class PointMode;
 enum class QuadAAFlags;
 struct Lattice;
 class Canvas;
+struct HpsBlurParameter;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -174,6 +175,8 @@ public:
     virtual void BuildNoDraw(int32_t width, int32_t height) = 0;
 
     virtual void Reset(int32_t width, int32_t height) = 0;
+
+    virtual bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

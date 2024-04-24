@@ -276,6 +276,15 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
     grContext_->releaseByTag(grTag);
 }
 
+void SkiaGPUContext::ResetContext()
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::ResetContext, grContext_ is nullptr");
+        return;
+    }
+    grContext_->resetContext();
+}
+
 void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag)
 {
     if (!grContext_) {

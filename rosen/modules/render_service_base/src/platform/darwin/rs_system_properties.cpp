@@ -242,6 +242,11 @@ bool RSSystemProperties::GetKawaseEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetHpsBlurEnabled()
+{
+    return false;
+}
+
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
     return 0.f;

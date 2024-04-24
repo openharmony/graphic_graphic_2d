@@ -16,6 +16,7 @@
 #ifndef SKIACANVAS_H
 #define SKIACANVAS_H
 
+#include "draw/canvas.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/HMSymbol.h"
@@ -171,6 +172,8 @@ public:
     void Reset(int32_t width, int32_t height) override;
 
     void SetGrContextToSkiaImage(SkiaImage* skiaImage);
+
+    bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) override;
 
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;

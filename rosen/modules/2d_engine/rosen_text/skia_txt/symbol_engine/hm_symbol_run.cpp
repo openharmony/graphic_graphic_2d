@@ -20,6 +20,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
+    RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
+    RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR};
 
 RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText)
 {
@@ -153,6 +156,11 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
     if (animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
         if (!GetAnimationGroups(glyphid, effectMode, animationSetting)) {
             return false;
+        }
+
+        if (std::count(COMMON_ANIMATION_TYPES.begin(), COMMON_ANIMATION_TYPES.end(), effectMode) != 0 &&
+            animationSetting.groupSettings.size() == 1) {
+            animationMode = 1; // the 1 is wholeSymbol effect
         }
     }
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);

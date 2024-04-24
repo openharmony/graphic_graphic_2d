@@ -46,7 +46,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
     mNativeWindow = nullptr;
 }
 
-void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC)
+void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected)
 {
     if (width != mWidth || height != mHeight) {
         for (auto &[key, val] : mSurfaceMap) {
@@ -56,7 +56,7 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
     }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
-    if (RSSystemProperties::GetAFBCEnabled()) {
+    if (RSSystemProperties::GetAFBCEnabled() && !isProtected) {
         int32_t format = 0;
         NativeWindowHandleOpt(mNativeWindow, GET_FORMAT, &format);
         if (format == GRAPHIC_PIXEL_FMT_RGBA_8888 && useAFBC) {
@@ -66,6 +66,11 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
     }
 #endif
 
+    if (isProtected) {
+        bufferUsage_ |= BUFFER_USAGE_PROTECTED;
+    } else {
+        bufferUsage_ &= (~BUFFER_USAGE_PROTECTED);
+    }
     NativeWindowHandleOpt(mNativeWindow, SET_USAGE, bufferUsage_);
     NativeWindowHandleOpt(mNativeWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mNativeWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
@@ -74,13 +79,14 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
 
 
 void RSSurfaceOhosVulkan::CreateVkSemaphore(
-    VkSemaphore* semaphore, const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
+    VkSemaphore* semaphore, RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
 {
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = nullptr;
     semaphoreInfo.flags = 0;
-    vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, semaphore);
+    auto& vkInterface = vkContext.GetRsVulkanInterface();
+    vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, semaphore);
 
     VkImportSemaphoreFdInfoKHR importSemaphoreFdInfo;
     importSemaphoreFdInfo.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR;
@@ -89,13 +95,13 @@ void RSSurfaceOhosVulkan::CreateVkSemaphore(
     importSemaphoreFdInfo.flags = VK_SEMAPHORE_IMPORT_TEMPORARY_BIT;
     importSemaphoreFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
     importSemaphoreFdInfo.fd = nativeSurface.fence->Dup();
-    vkContext.vkImportSemaphoreFdKHR(vkContext.GetDevice(), &importSemaphoreFdInfo);
+    vkInterface.vkImportSemaphoreFdKHR(vkInterface.GetDevice(), &importSemaphoreFdInfo);
 }
 
-int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(
-    NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd, bool useAFBC)
+int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,
+    int32_t width, int32_t height, int& fenceFd, bool useAFBC, bool isProtected)
 {
-    SetNativeWindowInfo(width, height, useAFBC);
+    SetNativeWindowInfo(width, height, useAFBC, isProtected);
     struct timespec curTime = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
@@ -111,11 +117,18 @@ int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
-    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
+    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     if (mNativeWindow == nullptr) {
         mNativeWindow = CreateNativeWindowFromSurface(&producer_);
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
+    }
+    if (isProtected && mNativeWindow) {
+        mNativeWindow->config.usage |= BUFFER_USAGE_PROTECTED;
+        bufferUsage_ |= BUFFER_USAGE_PROTECTED;
+    } else {
+        mNativeWindow->config.usage &= (~BUFFER_USAGE_PROTECTED);
+        bufferUsage_ &= (~BUFFER_USAGE_PROTECTED);
     }
 
     if (!mSkContext) {
@@ -125,7 +138,8 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC) != OHOS::GSERROR_OK) {
+    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height,
+        fenceFd, useAFBC, isProtected) != OHOS::GSERROR_OK) {
         return nullptr;
     }
 
@@ -136,7 +150,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         nativeSurface.window = mNativeWindow;
         nativeSurface.graphicColorGamut = colorSpace_;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
-            mSkContext, nativeWindowBuffer, nativeSurface, width, height)) {
+            mSkContext, nativeWindowBuffer, nativeSurface, width, height, isProtected)) {
             ROSEN_LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
             mSurfaceList.pop_back();
             NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
@@ -161,7 +175,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         nativeSurface.fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface.fence->GetStatus();
         if (status != SIGNALED) {
-            auto const& vkContext = RsVulkanContext::GetSingleton();
+            auto& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore;
             CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
             nativeSurface.drawingSurface->Wait(1, semaphore);
@@ -188,7 +202,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     if (mSurfaceList.empty()) {
         return false;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
 
     VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
     exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;

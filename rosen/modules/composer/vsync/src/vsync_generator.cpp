@@ -691,7 +691,6 @@ VsyncError VSyncGenerator::RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator
     if (!removeFlag) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    con_.notify_all();
     return VSYNC_ERROR_OK;
 }
 

@@ -19,6 +19,7 @@
 #include "src/core/SkOpts.h"
 
 #include "common/rs_common_def.h"
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -78,6 +79,7 @@ static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> KAWASE_MATER
 } // namespace
 
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
+const bool HPS_BLUR_ENABLED = RSSystemProperties::GetHpsBlurEnabled();
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
     : RSDrawingFilter(nullptr), colorMode_(mode)
@@ -308,19 +310,27 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
             return;
         }
         auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);
-        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]); // 模糊半径
-        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]); // 模糊半径
+        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]);
+        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]);
         visualEffectContainer->AddToChainedFilter(greyFilter);
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         if (!geRender) {
             return;
         }
-        auto greyImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+        greyImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
             image, src, src, Drawing::SamplingOptions());
     }
     if (greyImage == nullptr) {
         greyImage = image;
     }
+
+    // if hps blur failed, use kawase blur
+    if (HPS_BLUR_ENABLED &&
+        canvas.DrawBlurImage(*greyImage, Drawing::HpsBlurParameter(src, dst, GetRadius(), saturation_, brightness_))) {
+        RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(GetRadius()));
+        return;
+    }
+
     static bool DDGR_ENABLED = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
     KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, brush.GetColor().GetAlphaF());
     if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED &&

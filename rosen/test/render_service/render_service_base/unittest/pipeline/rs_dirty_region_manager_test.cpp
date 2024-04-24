@@ -307,10 +307,16 @@ HWTEST_F(RSDirtyRegionManagerTest, GetRectFlipWithinSurface, Function | SmallTes
     bool ret = rsDirtyManager->SetSurfaceSize(surfaceWidth, surfaceHeight);
     EXPECT_EQ(ret, true);
     RectI oriRect = RectI(31, 31, 32, 65);
-    RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
-    int32_t flippedTop = surfaceHeight - oriRect.top_ - oriRect.height_;
-    RectI expectedRect = RectI(oriRect.left_, flippedTop, oriRect.width_, oriRect.height_);
-    EXPECT_EQ(flippedRect, expectedRect);
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
+        int32_t flippedTop = surfaceHeight - oriRect.top_ - oriRect.height_;
+        RectI expectedRect = RectI(oriRect.left_, flippedTop, oriRect.width_, oriRect.height_);
+        EXPECT_EQ(flippedRect, expectedRect);
+    }
+    else {
+        RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
+        EXPECT_EQ(flippedRect, oriRect);
+    }
 }
 
 /*
@@ -423,5 +429,174 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDebugRegionTypeEnableTest001, TestSize.
     auto dirtyDebugType06 = DirtyRegionDebugType::EGL_DAMAGE;
     fun.UpdateDebugRegionTypeEnable(dirtyDebugType06);
     EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::EGL_DAMAGE));
+}
+
+/**
+ * @tc.name: MergeDirtyRectAfterMergeHistory
+ * @tc.desc: test results of MergeDirtyRectAfterMergeHistory
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectAfterMergeHistory, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI rect = { 0, 0, 100, 100 };
+    fun.MergeDirtyRectAfterMergeHistory(rect);
+
+    fun.MergeDirtyRectAfterMergeHistory(RectI());
+
+    fun.MergeDirtyRect(rect);
+    fun.isDisplayDirtyManager_ = true;
+    fun.MergeDirtyRect(rect, true);
+    EXPECT_FALSE(fun.dirtyRegion_.IsEmpty());
+}
+
+/**
+ * @tc.name: UpdateVisitedDirtyRects
+ * @tc.desc: test results of UpdateVisitedDirtyRects
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateVisitedDirtyRects, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    std::vector<RectI> rects;
+    fun.UpdateVisitedDirtyRects(rects);
+    RectI rect = { 1, 1, 1, 1 };
+    rects.push_back(rect);
+    fun.UpdateVisitedDirtyRects(rects);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetIntersectedVisitedDirtyRect
+ * @tc.desc: test results of GetIntersectedVisitedDirtyRect
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetIntersectedVisitedDirtyRect, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI absRect;
+    fun.GetIntersectedVisitedDirtyRect(absRect);
+    RectI rect = { 1, 1, 1, 1 };
+    fun.GetIntersectedVisitedDirtyRect(rect);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateCacheableFilterRect
+ * @tc.desc: test results of UpdateCacheableFilterRect
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateCacheableFilterRect, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI Rect;
+    fun.UpdateCacheableFilterRect(Rect);
+    RectI rectTwo = { 1, 1, 1, 1 };
+    fun.UpdateCacheableFilterRect(rectTwo);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: IfCacheableFilterRectFullyCover
+ * @tc.desc: test results of IfCacheableFilterRectFullyCover
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, IfCacheableFilterRectFullyCover, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI Rect;
+    fun.cacheableFilterRects_.push_back(Rect);
+    EXPECT_TRUE(fun.IfCacheableFilterRectFullyCover(Rect));
+    fun.cacheableFilterRects_.clear();
+    fun.cacheableFilterRects_.push_back(RectI(1, 1, 1, 1));
+    EXPECT_FALSE(fun.IfCacheableFilterRectFullyCover(Rect));
+}
+
+/**
+ * @tc.name: GetDirtyRegionFlipWithinSurface
+ * @tc.desc: test results of GetDirtyRegionFlipWithinSurface
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetDirtyRegionFlipWithinSurface, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI Rect;
+    fun.GetDirtyRegionFlipWithinSurface();
+
+    fun.isDirtyRegionAlignedEnable_ = true;
+    fun.GetDirtyRegionFlipWithinSurface();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetLatestDirtyRegion
+ * @tc.desc: test results of GetLatestDirtyRegion
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetLatestDirtyRegion, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI Rect;
+    fun.GetLatestDirtyRegion();
+
+    fun.historyHead_ = 1;
+    fun.GetLatestDirtyRegion();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDirty
+ * @tc.desc: test results of UpdateDirty
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateDirty, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI Rect;
+    fun.UpdateDirty(true);
+
+    fun.isDirtyRegionAlignedEnable_ = true;
+    fun.UpdateDirty(true);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetHistory
+ * @tc.desc: test results of GetHistory
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetHistory, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    unsigned int i = 1;
+    fun.GetHistory(i);
+
+    i = 10;
+    fun.historySize_ = 10;
+    fun.GetHistory(i);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: AlignHistory
+ * @tc.desc: test results of AlignHistory
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDirtyRegionManagerTest, AlignHistory, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    fun.dirtyHistory_.push_back(RectI(1, 1, 1, 1));
+    fun.AlignHistory();
+    EXPECT_TRUE(true);
 }
 } // namespace OHOS::Rosen

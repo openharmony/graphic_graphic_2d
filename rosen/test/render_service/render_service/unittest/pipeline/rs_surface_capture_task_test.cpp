@@ -431,18 +431,18 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Leve
 }
 
 /*
- * @tc.name: FindSecurityOrSkipLayer001
+ * @tc.name: FindSecurityOrSkipOrProtectedLayer001
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreateSurface002
  * @tc.type: FUNC
  * @tc.require: issueI794H6
 */
-HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipLayer001, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipOrProtectedLayer001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
     float scaleX = 0.f;
     float scaleY = 0.f;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    EXPECT_EQ(false, task.FindSecurityOrSkipLayer());
+    EXPECT_EQ(false, task.FindSecurityOrSkipOrProtectedLayer());
 }
 
 /*
@@ -978,13 +978,13 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode002, Function | Small
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode003, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
-    auto hasSecurityOrSkipLayer = visitor_->hasSecurityOrSkipLayer_;
-    visitor_->hasSecurityOrSkipLayer_ = true;
+    auto hasSecurityOrSkipOrProtectedLayer = visitor_->hasSecurityOrSkipOrProtectedLayer_;
+    visitor_->hasSecurityOrSkipOrProtectedLayer_ = true;
     NodeId id = 1;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(id, config);
     visitor_->ProcessDisplayRenderNode(node);
-    visitor_->hasSecurityOrSkipLayer_ = hasSecurityOrSkipLayer;
+    visitor_->hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
 }
 
 /*
@@ -996,8 +996,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode003, Function | Small
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
-    auto hasSecurityOrSkipLayer = visitor_->hasSecurityOrSkipLayer_;
-    visitor_->hasSecurityOrSkipLayer_ = true;
+    auto hasSecurityOrSkipOrProtectedLayer = visitor_->hasSecurityOrSkipOrProtectedLayer_;
+    visitor_->hasSecurityOrSkipOrProtectedLayer_ = true;
     NodeId id = 1;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(id, config);
@@ -1009,7 +1009,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | Small
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     node.SetBuffer(buffer, acquireFence, damage, timestamp);
     visitor_->ProcessDisplayRenderNode(node);
-    visitor_->hasSecurityOrSkipLayer_ = hasSecurityOrSkipLayer;
+    visitor_->hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
 }
 
 /*
@@ -1066,12 +1066,12 @@ HWTEST_F(RSSurfaceCaptureTaskTest, AdjustZOrderAndDrawSurfaceNode, Function | Sm
 }
 
 /*
- * @tc.name: FindSecurityOrSkipLayer
- * @tc.desc: Test RSSurfaceCaptureTaskTest.FindSecurityOrSkipLayer
+ * @tc.name: FindSecurityOrSkipOrProtectedLayer
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.FindSecurityOrSkipOrProtectedLayer
  * @tc.type: FUNC
  * @tc.require: issueI7G9F0
  */
-HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipLayer, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipOrProtectedLayer, Function | SmallTest | Level2)
 {
     float scaleX = 0.f;
     float scaleY = 0.f;
@@ -1090,7 +1090,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipLayer, Function | SmallTest
     node3->SetIsOnTheTree(true);
     node3->isSecurityLayer_ = true;
     nodeMap.surfaceNodeMap_[3] = node3;
-    ASSERT_TRUE(task.FindSecurityOrSkipLayer());
+    ASSERT_TRUE(task.FindSecurityOrSkipOrProtectedLayer());
     nodeMap.surfaceNodeMap_.clear();
 }
 

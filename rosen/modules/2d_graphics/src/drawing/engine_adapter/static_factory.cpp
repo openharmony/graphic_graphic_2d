@@ -138,6 +138,11 @@ std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
 #endif
     return EngineStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
 }
+
+std::shared_ptr<Image> StaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    return EngineStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+}
 #endif
 
 std::shared_ptr<Surface> StaticFactory::MakeRaster(const ImageInfo& imageInfo)

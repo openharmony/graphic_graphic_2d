@@ -1038,6 +1038,19 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
     auto& properties = content.GetRenderProperties();
     const auto& image = properties.GetBgImage();
 
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto pixelMap = image->GetPixelMap();
+    if (pixelMap && pixelMap->IsAstc()) {
+        const void* data = pixelMap->GetPixels();
+        std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
+        const int seekSize = 16;
+        if (pixelMap->GetCapacity() > seekSize) {
+            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
+        }
+        image->SetCompressData(fileData);
+    }
+#endif
+
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     canvas.AttachBrush(brush_);

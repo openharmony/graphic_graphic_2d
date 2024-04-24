@@ -32,13 +32,13 @@ RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<c
 
 void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
+    RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, nodeId_);
     RSCanvasRenderNodeDrawable::OnDraw(canvas);
 }
 
 void RSRootRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    RS_LOGD("RSRootRenderNodeDrawable::OnCapture node: %{public}" PRIu64, renderNode_->GetId());
+    RS_LOGD("RSRootRenderNodeDrawable::OnCapture node: %{public}" PRIu64, nodeId_);
 
     RSCanvasRenderNodeDrawable::OnCapture(canvas);
 }

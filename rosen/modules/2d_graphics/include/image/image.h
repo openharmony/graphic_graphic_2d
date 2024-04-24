@@ -23,6 +23,8 @@
 #include "vulkan/vulkan.h"
 #endif
 
+#include "yuv_info.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -255,6 +257,15 @@ public:
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
                                                  size_t rowBytes);
 #ifdef ACE_ENABLE_GPU
+    /**
+     * @brief             Create YUV Image from pixelmap.
+     * @param gpuContext  GPU context.
+     * @param info        YUV Info.
+     * @param memory      A pointer of pixelmap memory.
+     * @return            A shared pointer to Image.
+     */
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
+
     /**
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
      * @param gpuContext  GPU context.

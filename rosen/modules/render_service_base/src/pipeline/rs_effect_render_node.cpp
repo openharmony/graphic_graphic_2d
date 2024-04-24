@@ -123,20 +123,24 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
     GetMutableRenderProperties().SetHaveEffectRegion(true);
 }
 
-void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
-    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect, bool isForeground)
+void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect,
+    bool isInSkippedSubTree, const std::optional<RectI>& filterRectForceUpdated)
 {
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
-    auto filterRect = GetFilterRect();
-    if (clipRect.has_value()) {
-        filterRect.IntersectRect(*clipRect);
+    RectI filterRect = isInSkippedSubTree ? filterRectForceUpdated.value() : GetFilterRect();
+    if (!isInSkippedSubTree && clipRect.has_value()) {
+        filterRect = filterRect.IntersectRect(*clipRect);
     }
-    if (filterRect != GetFilterCachedRegion()) {
-        MarkFilterStatusChanged(isForeground, true);
+    RS_OPTIONAL_TRACE_NAME_FMT("effectNode[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
+        GetId(), GetFilterCachedRegion().ToString().c_str(), filterRect.ToString().c_str());
+    if (filterRect == GetFilterCachedRegion()) {
+        return;
     }
+    // effect render node  only support background filter
+    MarkFilterStatusChanged(false, true);
 }
 
 void RSEffectRenderNode::MarkFilterCacheFlagsAfterPrepare(

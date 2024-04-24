@@ -189,6 +189,14 @@ typedef struct OH_Drawing_Matrix OH_Drawing_Matrix;
 typedef struct OH_Drawing_ShaderEffect OH_Drawing_ShaderEffect;
 
 /**
+ * @brief Defines a shadowLayer, which is used to draw shaded parts.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_ShadowLayer OH_Drawing_ShadowLayer;
+
+/**
  * @brief Defines a filter, which is used to store maskFilter and colorFilter.
  *
  * @since 11

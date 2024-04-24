@@ -99,5 +99,35 @@ HWTEST_F(RSRenderAnimationTest, FinishOnCurrentPosition001, TestSize.Level1)
     EXPECT_TRUE(renderAnimation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderAnimationTest FinishOnCurrentPosition001 end";
 }
+
+/**
+ * @tc.name: IsFinished001
+ * @tc.desc: Verify the IsFinished
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, IsFinished001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest IsFinished001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    auto result = renderAnimation->IsFinished();
+    EXPECT_TRUE(result == false);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest IsFinished001 end";
+}
+
+/**
+ * @tc.name: SetReversed001
+ * @tc.desc: Verify the SetReversed
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, SetReversed001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest SetReversed001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    renderAnimation->SetReversed(true);
+    renderAnimation->Start();
+    renderAnimation->SetReversed(true);
+    EXPECT_TRUE(renderAnimation != nullptr);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest SetReversed001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

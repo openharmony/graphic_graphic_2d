@@ -564,6 +564,11 @@ void CoreCanvas::Reset(int32_t width, int32_t height)
 {
     impl_->Reset(width, height);
 }
+
+bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams)
+{
+    return impl_->DrawBlurImage(image, blurParams);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

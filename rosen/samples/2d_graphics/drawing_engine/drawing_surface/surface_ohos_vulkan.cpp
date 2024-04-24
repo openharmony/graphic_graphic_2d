@@ -122,13 +122,14 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
 }
 
 void SurfaceOhosVulkan::CreateVkSemaphore(
-    VkSemaphore* semaphore, const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
+    VkSemaphore* semaphore, RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
 {
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = nullptr;
     semaphoreInfo.flags = 0;
-    vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, semaphore);
+    auto& rsInterface = vkContext.GetRsVulkanInterface();
+    rsInterface.vkCreateSemaphore(rsInterface.GetDevice(), &semaphoreInfo, nullptr, semaphore);
 
     VkImportSemaphoreFdInfoKHR importSemaphoreFdInfo;
     importSemaphoreFdInfo.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR;
@@ -137,7 +138,7 @@ void SurfaceOhosVulkan::CreateVkSemaphore(
     importSemaphoreFdInfo.flags = VK_SEMAPHORE_IMPORT_TEMPORARY_BIT;
     importSemaphoreFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
     importSemaphoreFdInfo.fd = nativeSurface.fence->Dup();
-    vkContext.vkImportSemaphoreFdKHR(vkContext.GetDevice(), &importSemaphoreFdInfo);
+    rsInterface.vkImportSemaphoreFdKHR(rsInterface.GetDevice(), &importSemaphoreFdInfo);
 }
 
 int32_t SurfaceOhosVulkan::RequestNativeWindowBuffer(
@@ -205,7 +206,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
         nativeSurface.fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface.fence->GetStatus();
         if (status != SIGNALED) {
-            const auto& vkContext = RsVulkanContext::GetSingleton();
+            auto& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore;
             CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
             nativeSurface.drawingSurface->Wait(1, semaphore);
@@ -255,7 +256,7 @@ bool SurfaceOhosVulkan::NativeFlushFrame(std::unique_ptr<SurfaceFrame> &frame)
         LOGE("RSSurfaceOhosVulkan: FlushFrame mSkContext is nullptr");
         return false;
     }
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
 
     VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
     exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;

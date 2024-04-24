@@ -25,11 +25,7 @@ config("socketpair_config") {
 }
 
 config("socketpair_public_config") {
-  include_dirs = [
-    "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include/message_parcel.h",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits",
-  ]
+  include_dirs = []
 }
 
 config("socketpair_all_dependent_config") {

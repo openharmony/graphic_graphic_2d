@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -101,10 +101,10 @@ public:
 
     std::shared_ptr<ParticleNoiseField> GetField(size_t index)
     {
-        if (index >= fields_.size()) {
-            return nullptr;
+        if (index < fields_.size()) {
+            return fields_[index];
         }
-        return fields_[index];
+        return nullptr;
     }
 
     size_t GetFieldCount() const
@@ -114,7 +114,7 @@ public:
 
     Vector2f ApplyAllFields(const Vector2f& position)
     {
-        Vector2f totalEffect = { 0.0f, 0.0f };
+        Vector2f totalEffect = {0.0f, 0.0f};
         for (auto& field : fields_) {
             totalEffect = totalEffect + field->ApplyField(position) + field->ApplyCurlNoise(position);
         }
