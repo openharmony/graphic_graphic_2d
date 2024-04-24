@@ -15,10 +15,9 @@
 
 #include "ge_grey_shader_filter.h"
 
-#include "ge_log.h"
-
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
+#include "ge_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,9 +31,7 @@ GEGreyShaderFilter::GEGreyShaderFilter(const Drawing::GEGreyShaderFilterParams& 
     }
 }
 
-GEGreyShaderFilter::~GEGreyShaderFilter() {};
-
-static std::shared_ptr<Drawing::RuntimeEffect> GREYADJUSTEFFECT;
+static std::shared_ptr<Drawing::RuntimeEffect> g_greyAdjustEffect;
 
 std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
@@ -44,11 +41,11 @@ std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas
         return image;
     }
 
-    if (!GREYADJUSTEFFECT) {
+    if (!g_greyAdjustEffect) {
         LOGE("GEGreyShaderFilter::DrawGreyAdjustment greyAdjustEffect is null");
         return nullptr;
     }
-    Drawing::RuntimeShaderBuilder builder(GREYADJUSTEFFECT);
+    Drawing::RuntimeShaderBuilder builder(g_greyAdjustEffect);
     Drawing::Matrix matrix;
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
@@ -109,10 +106,10 @@ bool GEGreyShaderFilter::InitGreyAdjustmentEffect()
         }
     )");
 
-    if (GREYADJUSTEFFECT == nullptr) {
-        GREYADJUSTEFFECT = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
-        if (GREYADJUSTEFFECT == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::RuntimeShader blurEffect create failed");
+    if (g_greyAdjustEffect == nullptr) {
+        g_greyAdjustEffect = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
+        if (g_greyAdjustEffect == nullptr) {
+            LOGE("GEGreyShaderFilter::InitGreyAdjustmentEffect blurEffect create failed");
             return false;
         }
     }

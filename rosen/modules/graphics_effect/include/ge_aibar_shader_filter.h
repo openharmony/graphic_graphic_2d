@@ -26,18 +26,15 @@ namespace Rosen {
 
 class GEAIBarShaderFilter : public GEShaderFilter {
 public:
-    GEAIBarShaderFilter(const Drawing::GEAIBarShaderFilterParams& params)
-        : aiBarLow_(params.aiBarLow), aiBarHigh_(params.aiBarHigh), aiBarThreshold_(params.aiBarThreshold),
-          aiBarOpacity_(params.aiBarOpacity), aiBarSaturation_(params.aiBarSaturation)
-    {}
+    GEAIBarShaderFilter(const Drawing::GEAIBarShaderFilterParams& params);
     GEAIBarShaderFilter(const GEAIBarShaderFilter&) = delete;
     GEAIBarShaderFilter operator=(const GEAIBarShaderFilter&) = delete;
-    ~GEAIBarShaderFilter() override;
+    ~GEAIBarShaderFilter() override = default;
 
     std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst) override;
 
-    std::string GetDescription();
+    const std::string GetDescription() const;
 
 private:
     float aiBarLow_;
