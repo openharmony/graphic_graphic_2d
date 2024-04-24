@@ -611,6 +611,16 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data)
     for (uint32_t i = 0; i < count; i++) {
         UnmarshalTree(context, data);
     }
+
+    auto& nodeMap = context.GetMutableNodeMap();
+    nodeMap.TraversalNodes([](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+        if (Utils::IsNodeIdPatched(node->GetId())) {
+            node->SetContentDirty();
+        }
+    });
 }
 
 void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data)
