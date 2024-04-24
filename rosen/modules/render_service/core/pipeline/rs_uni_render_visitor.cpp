@@ -1621,9 +1621,6 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         UpdateHwcNodeByTransform(node);
         UpdateHwcNodeEnableByBackgroundAlpha(node);
         UpdateHwcNodeEnableBySrcRect(node);
-        if (!node.IsHardwareForcedDisabled()) {
-            node.SetIntersectByFilterInApp(true);
-        }
     }
 }
 
@@ -1902,7 +1899,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             continue;
         }
         UpdateHwcNodeDirtyRegionForApp(node, hwcNodePtr);
-        hwcNodePtr->SetIntersectByFilterInApp(false);
         hwcNodePtr->SetCalcRectInPrepare(false);
         auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo_);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
@@ -2333,7 +2329,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(
     // [planning]: Has opaque control exists between the filter and hwc.
     for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
-        if (!hwcNodePtr || !hwcNodePtr->GetIntersectByFilterInApp()) {
+        if (!hwcNodePtr) {
             continue;
         }
         auto dstRect = hwcNodePtr->GetDstRect();
