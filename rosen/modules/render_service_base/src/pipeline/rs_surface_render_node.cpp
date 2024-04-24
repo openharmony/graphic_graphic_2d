@@ -1372,7 +1372,7 @@ void RSSurfaceRenderNode::CheckValidFilterCacheFullyCoverTarget(const RSRenderNo
     if (filterNode.IsInstanceOf<RSEffectRenderNode>()) {
         return;
     }
-    if (isFilterCacheFullyCovered_ || !filterNode.IsBackgroundFilterCacheValid()) {
+    if (isFilterCacheFullyCovered_ || !filterNode.IsFilterCacheValid()) {
         return;
     }
     // [planning] need to replace absRect with filterRect

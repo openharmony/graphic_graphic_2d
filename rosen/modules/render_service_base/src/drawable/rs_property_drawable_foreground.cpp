@@ -220,10 +220,6 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
-    if (filterType_ == RSFilter::LINEAR_GRADIENT_BLUR) {
-        stagingFrameWidth_ = node.GetRenderProperties().GetFrameWidth();
-        stagingFrameHeight_ = node.GetRenderProperties().GetFrameHeight();
-    }
     return true;
 }
 

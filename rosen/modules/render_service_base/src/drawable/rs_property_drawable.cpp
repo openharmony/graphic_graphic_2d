@@ -163,10 +163,6 @@ void RSFilterDrawable::OnSync()
     forceUseCache_ = stagingForceUseCache_;
     clearFilteredCacheAfterDrawing_ = stagingClearFilteredCacheAfterDrawing_;
 
-    if (filterType_ == RSFilter::LINEAR_GRADIENT_BLUR) {
-        frameWidth_ = stagingFrameWidth_;
-        frameHeight_ = stagingFrameHeight_;
-    }
     filterHashChanged_ = false;
     filterRegionChanged_ = false;
     filterInteractWithDirty_ = false;

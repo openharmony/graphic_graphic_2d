@@ -1590,19 +1590,16 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
     }
 }
 
-bool RSRenderNode::IsBackgroundFilterCacheValid() const
+bool RSRenderNode::IsFilterCacheValid() const
 {
     if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::FilterCacheEnabled) {
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
-    auto filterDrawable = GetFilterDrawable(false);
+    auto filterDrawable = GetRenderProperties().GetFilter() != nullptr ?
+        GetFilterDrawable(true) : GetFilterDrawable(false);
     if (filterDrawable == nullptr) {
         return false;
-    }
-    // effect node should not paint when has no visible effect child
-    if (IsInstanceOf<RSEffectRenderNode>() && !ChildHasVisibleEffect()) {
-        return true;
     }
     return filterDrawable->IsFilterCacheValid();
 }
