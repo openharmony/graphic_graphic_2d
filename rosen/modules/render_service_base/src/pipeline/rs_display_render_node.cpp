@@ -280,7 +280,7 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
 
 ScreenRotation RSDisplayRenderNode::GetRotation() const
 {
-    auto boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
+    auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr == nullptr) {
         return ScreenRotation::ROTATION_0;
     }
@@ -290,7 +290,7 @@ ScreenRotation RSDisplayRenderNode::GetRotation() const
 
 bool RSDisplayRenderNode::IsRotationChanged() const
 {
-    auto boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
+    auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr == nullptr) {
         return false;
     }
@@ -306,7 +306,7 @@ void RSDisplayRenderNode::UpdateRotation()
     displayParams->SetRotationChanged(IsRotationChanged());
     AddToPendingSyncList();
 
-    auto boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
+    auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr == nullptr) {
         return;
     }
