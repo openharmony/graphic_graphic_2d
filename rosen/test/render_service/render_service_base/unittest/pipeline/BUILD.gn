@@ -28,6 +28,7 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_base_render_node_test.cpp",
     "rs_canvas_drawing_render_node_test.cpp",
     "rs_canvas_render_node_test.cpp",
+    "rs_context_test.cpp",
     "rs_dirty_region_manager_test.cpp",
     "rs_display_render_node_test.cpp",
     "rs_draw_cmd_list_test.cpp",
@@ -37,6 +38,7 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_paint_filter_canvas_test.cpp",
     "rs_proxy_render_node_test.cpp",
     "rs_recording_canvas_test.cpp",
+    "rs_render_content_test.cpp",
     "rs_render_display_sync_test.cpp",
     "rs_render_frame_rate_linker_map_test.cpp",
     "rs_render_frame_rate_linker_test.cpp",
@@ -44,6 +46,8 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_render_node_test.cpp",
     "rs_root_render_node_test.cpp",
     "rs_surface_render_node_test.cpp",
+    "rs_task_dispatcher_test.cpp",
+    "rs_uni_render_judgement_test.cpp",
   ]
 
   cflags = [
