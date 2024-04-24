@@ -213,7 +213,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
     }
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end(); it++) {
         RS_TRACE_NAME_FMT("doning%lx", it->first);
-        
+
         DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(it->first);
         if (!drawable) {
             continue;
