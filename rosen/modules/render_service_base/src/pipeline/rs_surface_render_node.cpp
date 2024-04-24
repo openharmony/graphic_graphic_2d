@@ -1897,6 +1897,23 @@ const std::vector<std::shared_ptr<RSRenderNode>>& RSSurfaceRenderNode::GetChildr
     return childrenFilterNodes_;
 }
 
+std::vector<RectI> RSSurfaceRenderNode::GetChildrenNeedFilterRectsWithoutCacheValid()
+{
+    std::vector<RectI> childrenFilterRectsWithoutCacheValid;
+    std::vector<RectI> filterRects = GetChildrenNeedFilterRects();
+    std::vector<bool> validList = GetChildrenNeedFilterRectsCacheValid();
+    for (size_t i = 0; i < validList.size(); i++) {
+        if (!validList[i]) {
+            if (filterRects.size() > i) {
+                childrenFilterRectsWithoutCacheValid.emplace_back(filterRects[i]);
+            } else {
+                RS_LOGE("GetChildrenNeedFilterRectsWithoutCacheValid out of index");
+            }
+        }
+    }
+    return childrenFilterRectsWithoutCacheValid;
+};
+
 // manage abilities' nodeid info
 void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
 {

@@ -4332,7 +4332,7 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
         return;
     }
     auto dirtyManager = node->GetDirtyManager();
-    auto filterRects = node->GetChildrenNeedFilterRects();
+    auto filterRects = node->GetChildrenNeedFilterRectsWithoutCacheValid();
     // collect valid hwc surface which is not intersected with filterRects
     std::vector<SurfaceDirtyMgrPair> curHwcEnabledNodes;
     UpdateHardwareChildNodeStatus(node, curHwcEnabledNodes);
