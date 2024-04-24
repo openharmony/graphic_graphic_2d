@@ -72,12 +72,14 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostSyncTask([this]() {
                 unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.RunImageReleaseTask();
                 unirenderInstance_.SetMainLooping(false);
             });
             break;
         }
         case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
             RenderFrame();
+            unirenderInstance_.RunImageReleaseTask();
             break;
         }
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
@@ -87,6 +89,7 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostTask([this]() {
                 unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.RunImageReleaseTask();
                 unirenderInstance_.SetMainLooping(false);
             });
 
