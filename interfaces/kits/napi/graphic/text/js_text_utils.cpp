@@ -183,6 +183,7 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
         Drawing::Point offset;
         double runTimeRadius = 0;
         if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
+            ROSEN_LOGE("The parameter of as private text-shadow is unvaild");
             return;
         }
         SetTextStyleColor(env, element, "color", colorSrc);
@@ -205,7 +206,8 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
 
     uint32_t arrayLength = 0;
     if (napi_get_array_length(env, allShadowValue, &arrayLength) != napi_ok) {
-        return;        
+        ROSEN_LOGE("The parameter of text shadow is not array");
+        return;
     }
     ScanShadowValue(env, allShadowValue, arrayLength, textStyle);
     return;
