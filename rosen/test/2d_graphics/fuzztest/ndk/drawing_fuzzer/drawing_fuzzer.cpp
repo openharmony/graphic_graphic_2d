@@ -29,6 +29,7 @@
 #include "drawing_font_collection.h"
 #include "drawing_path.h"
 #include "drawing_pen.h"
+#include "drawing_shadow_layer.h"
 #include "drawing_text_declaration.h"
 #include "drawing_text_typography.h"
 #include "drawing_types.h"
@@ -391,6 +392,28 @@ void NativeDrawingPenTest(const uint8_t* data, size_t size)
     OH_Drawing_PenGetJoin(pen);
     OH_Drawing_PenDestroy(pen);
 }
+
+void NativeDrawingShadowLayerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    float blurRadius = GetObject<float>();
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+    uint32_t color = GetObject<uint32_t>();
+    OH_Drawing_ShadowLayer* shadowLayer = OH_Drawing_ShadowLayerCreate(blurRadius, x, y, color);
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_BrushSetShadowLayer(brush, shadowLayer);
+    OH_Drawing_PenSetShadowLayer(pen, shadowLayer);
+    OH_Drawing_ShadowLayerDestroy(shadowLayer);
+    OH_Drawing_PenDestroy(pen);
+    OH_Drawing_BrushDestroy(brush);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -418,6 +441,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathCloseTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTypographyTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPenTest(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingShadowLayerTest(data, size);
 
     return 0;
 }
