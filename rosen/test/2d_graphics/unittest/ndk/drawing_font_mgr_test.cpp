@@ -157,7 +157,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest007, TestSize.Level1)
 
 /*
  * @tc.name: OH_Drawing_FontMgrTest008
- * @tc.desc: test for getting font style set.
+ * @tc.desc: test for matching family style.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest008, TestSize.Level1)
@@ -178,7 +178,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest008, TestSize.Level1)
 
 /*
  * @tc.name: OH_Drawing_FontMgrTest009
- * @tc.desc: test for getting font style set.
+ * @tc.desc: test for matching family style character.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest009, TestSize.Level1)
@@ -195,11 +195,9 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest009, TestSize.Level1)
     EXPECT_TRUE(CharTypeface == nullptr);
 }
 
-///////////////////////////////////////////
-
 /*
  * @tc.name: OH_Drawing_FontMgrTest010
- * @tc.desc: test for create a typeface for the given index..
+ * @tc.desc: test for create a typeface for the given index.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest010, TestSize.Level1)
@@ -217,7 +215,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest010, TestSize.Level1)
 
 /*
  * @tc.name: OH_Drawing_FontMgrTest011
- * @tc.desc: test for create a typeface for the given index..
+ * @tc.desc: test for get font style struct.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
@@ -235,7 +233,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
 
 /*
  * @tc.name: OH_Drawing_FontMgrTest012
- * @tc.desc: test for create a typeface for the given index..
+ * @tc.desc: test for get typeface by match style.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest012, TestSize.Level1)
@@ -258,7 +256,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest012, TestSize.Level1)
 
 /*
  * @tc.name: OH_Drawing_FontMgrTest013
- * @tc.desc: test for create a typeface for the given index.
+ * @tc.desc: test for get font style set.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest013, TestSize.Level1)
