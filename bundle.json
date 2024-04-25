@@ -79,7 +79,7 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin",
+          "memmgr_override",
           "sensor",
           "qos_manager",
           "video_processing_engine",

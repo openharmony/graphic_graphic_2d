@@ -341,7 +341,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (use_memmgr_plugin) {
-    external_deps += [ "memmgr_plugin:memmgrclient" ]
+    external_deps += [ "memmgr_override:memmgrclient" ]
   } else if (use_memmgr) {
     external_deps += [ "memmgr:memmgrclient" ]
   }
