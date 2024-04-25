@@ -17,7 +17,6 @@
 
 #include <algorithm>
 #include <securec.h>
-#include "platform/common/rs_log.h"
 
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
@@ -1177,9 +1176,17 @@ void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUp
     if (!emitterUpdater_.empty()) {
         isDrawn_ = true;
         auto renderNode = backref_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
         auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        if (animation == nullptr) {
+            return;
+        }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        particleAnimation->UpdateEmitter(emitterUpdater_);
+        if (particleAnimation) {
+            particleAnimation->UpdateEmitter(emitterUpdater_);
+        }
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1192,9 +1199,17 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
     if (particleNoiseFields_) {
         isDrawn_ = true;
         auto renderNode = backref_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
         auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        if (animation == nullptr) {
+            return;
+        }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        particleAnimation->UpdateNoiseField(particleNoiseFields_);
+        if (particleAnimation) {
+            particleAnimation->UpdateNoiseField(particleNoiseFields_);
+        }
     }
     filterNeedUpdate_ = true;
     SetDirty();

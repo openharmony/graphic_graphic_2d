@@ -17,8 +17,9 @@
 
 namespace OHOS {
 namespace Rosen {
-const float EPSILON = 1e-3;
-const float HALF = 0.5f;
+constexpr float EPSILON = 1e-3;
+constexpr float HALF = 0.5f;
+constexpr float FEATHERMAX = 100.f;
 bool ParticleNoiseField::isPointInField(
     const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height)
 {
@@ -109,8 +110,8 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position)
             } else if (fieldShape_ == ShapeType::ELLIPSE) {
                 edgeDistance = calculateEllipseEdgeDistance(direction);
             }
-            if (edgeDistance != 0) {
-                forceMagnitude *= (1.0f - ((float)fieldFeather_ / 100.0f) * (distance / fieldSize_.GetLength()));
+            if (edgeDistance != 0 && !ROSEN_EQ(fieldSize_.GetLength(), 0.f)) {
+                forceMagnitude *= (1.0f - ((float)fieldFeather_ / FEATHERMAX) * (distance / fieldSize_.GetLength()));
             }
         }
         Vector2f force = direction.Normalized() * forceMagnitude;
