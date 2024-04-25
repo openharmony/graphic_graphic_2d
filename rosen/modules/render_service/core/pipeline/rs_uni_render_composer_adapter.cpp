@@ -118,7 +118,13 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
     info.needClient = RSBaseRenderUtil::IsForceClient();
-    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+    auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+    auto matrix = geoPtr ? geoPtr->GetMatrix() : Drawing::Matrix();
+    info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),
+        matrix.Get(Drawing::Matrix::Index::SKEW_X), matrix.Get(Drawing::Matrix::Index::TRANS_X),
+        matrix.Get(Drawing::Matrix::Index::SKEW_Y), matrix.Get(Drawing::Matrix::Index::SCALE_Y),
+        matrix.Get(Drawing::Matrix::Index::TRANS_Y), matrix.Get(Drawing::Matrix::Index::PERSP_0),
+        matrix.Get(Drawing::Matrix::Index::PERSP_1), matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     info.gravity = static_cast<int32_t>(Gravity::RESIZE);
     return info;
 }
