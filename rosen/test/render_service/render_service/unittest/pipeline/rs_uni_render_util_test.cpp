@@ -77,6 +77,7 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory, Function | SmallTest | Level2)
 HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    rsSurfaceRenderNode->InitRenderParams();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
@@ -139,6 +140,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_001, Function | SmallTest | 
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    node.InitRenderParams();
     bool forceCPU = false;
     RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU);
 }

@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
-#include "pipeline/rs_egl_image_manager.h"
+#include "rs_test_util.h"
+#include "surface_buffer_impl.h"
 
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_egl_image_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "render_context/render_context.h"
-#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -76,8 +77,17 @@ HWTEST_F(RSEglImageManagerTest, CreateInvalidImageCache001, TestSize.Level1)
  */
 HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize.Level1)
 {
-    NodeId displayId = 0;
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(displayId);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    node->InitRenderParams();
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    node->SetConsumer(consumer);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    Rect damage;
+    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    node->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(node, nullptr);
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         sptr<OHOS::SurfaceBuffer> buffer = displayNode->GetBuffer();
@@ -107,8 +117,17 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
  */
 HWTEST_F(RSEglImageManagerTest, MapEglImageFromSurfaceBuffer001, TestSize.Level1)
 {
-    NodeId displayId = 0;
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(displayId);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    node->InitRenderParams();
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    node->SetConsumer(consumer);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    Rect damage;
+    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    node->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(node, nullptr);
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         sptr<OHOS::SurfaceBuffer> buffer = displayNode->GetBuffer();
