@@ -1488,6 +1488,7 @@ void RSNode::SetTakeSurfaceForUIFlag()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->FlushImplicitTransaction();
     }
 }
 
