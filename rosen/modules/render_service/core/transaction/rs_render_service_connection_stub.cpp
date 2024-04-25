@@ -548,6 +548,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::OnRemoteRequest no permission to access GET_MEMORY_GRAPHICS");
+                return ERR_INVALID_STATE;
+            }
             std::vector<MemoryGraphic> memoryGraphics = GetMemoryGraphics();
             reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()));
             for (uint32_t index = 0; index < memoryGraphics.size(); index++) {

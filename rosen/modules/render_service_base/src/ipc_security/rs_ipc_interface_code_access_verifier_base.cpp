@@ -21,6 +21,7 @@ namespace Rosen {
 const std::unordered_map<PermissionType, std::string> PERMISSION_MAP {
     { PermissionType::CAPTURE_SCREEN, "ohos.permission.CAPTURE_SCREEN" },
     { PermissionType::UPDATE_CONFIGURATION, "ohos.permission.UPDATE_CONFIGURATION" },
+    { PermissionType::GET_RUNNING_INFO, "ohos.permission.GET_RUNNING_INFO" },
 };
 
 bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlyingType code)
