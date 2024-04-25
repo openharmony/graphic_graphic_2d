@@ -83,37 +83,37 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
     bool isLower = sharedTransitionParam->UpdateHierarchyAndReturnIsLower(nodeId);
 
     auto pairedNode = sharedTransitionParam->GetPairedNode(nodeId);
-    if (!pairedNode) {
-        // clear invalid shared transition param
-        node->SetSharedTransitionParam(nullptr);
+    if (!pairedNode || !pairedNode->IsOnTheTree()) {
+        sharedTransitionParam->paired_ = false;
         return false;
     }
-    if (!pairedNode->IsOnTheTree()) {
-        // clear invalid shared transition param
-        node->SetSharedTransitionParam(nullptr);
-        pairedNode->SetSharedTransitionParam(nullptr);
-        return false;
-    }
+
+    childrenHasSharedTransition_ = true;
     auto& unpairedShareTransitions = SharedTransitionParam::unpairedShareTransitions_;
     if (auto it = unpairedShareTransitions.find(sharedTransitionParam->inNodeId_);
         it != unpairedShareTransitions.end()) {
         // remove successfully paired share transition
         unpairedShareTransitions.erase(it);
+        sharedTransitionParam->paired_ = true;
     } else {
         // add unpaired share transition
         unpairedShareTransitions.emplace(sharedTransitionParam->inNodeId_, sharedTransitionParam);
     }
+    // Skip if the shared transition is not paired (Note: this may cause the lower node to be drawn twice)
+    if (!sharedTransitionParam->paired_) {
+        return false;
+    }
+
     if (isLower) {
-        // for lower hierarchy node, we skip it here, and add to unpaired share transitions
+        // for lower hierarchy node, we skip it here
+        return true;
     } else {
         // for higher hierarchy node, we add paired node (lower in hierarchy) first, then add it
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
-            // NOTE: skip shared-transition shadow for now
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
+        return false;
     }
-    childrenHasSharedTransition_ = true;
-    return isLower;
 }
 
 void RSChildrenDrawable::OnSync()

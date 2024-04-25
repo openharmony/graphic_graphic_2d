@@ -3067,11 +3067,11 @@ void RSRenderNode::OnTreeStateChanged()
         SetDirty(true);
         SetParentSubTreeDirty();
     } else if (sharedTransitionParam_) {
-        // clear shared transition param
+        // Mark shared transition unpaired, and mark paired node dirty
+        sharedTransitionParam_->paired_ = false;
         if (auto pairedNode = sharedTransitionParam_->GetPairedNode(id_)) {
-            pairedNode->SetSharedTransitionParam(nullptr);
+            pairedNode->SetDirty(true);
         }
-        SetSharedTransitionParam(nullptr);
     }
     if (!isOnTheTree_) { // force clear blur cache
         MarkForceClearFilterCacheWhenWithInvisible();

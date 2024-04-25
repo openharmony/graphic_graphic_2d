@@ -117,39 +117,41 @@ public:
     RSDrawable() = default;
     virtual ~RSDrawable() = default;
 
-    // not copyable and moveable
+    // Not copyable and moveable
     RSDrawable(const RSDrawable&) = delete;
     RSDrawable(const RSDrawable&&) = delete;
     RSDrawable& operator=(const RSDrawable&) = delete;
     RSDrawable& operator=(const RSDrawable&&) = delete;
 
-    // =================type definition==================
+    // Type definitions
     using Ptr = std::shared_ptr<RSDrawable>;
     using Vec = std::array<Ptr, static_cast<size_t>(RSDrawableSlot::MAX)>;
     using Generator = std::function<Ptr(const RSRenderNode&)>;
 
-    // =================virtual functions==================
-
-    // Call on property change, return true if update succeed, false if need destroy
+    // UI methods: OnUpdate and OnGenerate (static method defined in every subclass) can only access the UI (staging)
+    // members, else may cause crash.
+    // OnUpdate and OnGenerate will be invoked if related property has changed, if false is returned, the drawable will
+    // be erased.
     virtual bool OnUpdate(const RSRenderNode& content)
     {
         return true;
     }
 
-    // Call on thread sync
-    virtual void OnSync() = 0;
-
-    // DrawFunc can only access the RT members variables, accessing staging members will cause a crash
+    // Render helper methods: This func is called in UI thread, but the generated DrawFunc will be called in RT thread,
+    // they can only access the RT members, else may cause crash
     virtual Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const = 0;
 
-    // =================Generate & Update helper methods==================
-    // Step 1, generate DirtySlots from dirty Modifiers
+    // Sync methods, then can access all members and do UI->RT sync
+    virtual void OnSync() = 0;
+
+    // static generate & update helper methods
+    // Step 1, calculate dirtySlots based on dirty modifiers
     static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(
         const ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
-    // Step 2, for every DirtySlot, generate DrawableContent
+    // Step 2, for every dirtySlot, update or generate RSDrawable
     static bool UpdateDirtySlots(
         const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots);
-    // Step 3, add necessary Clip/Save/Restore
+    // Step 3, insert necessary Clip/Save/Restore into drawableVec
     static void UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus);
 };
 } // namespace OHOS::Rosen
