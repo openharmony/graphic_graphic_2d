@@ -92,6 +92,7 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromPosText(const void* text, size
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromPosText(text, byteLength,
         pts, font, static_cast<TextEncoding>(cTextEncoding));
     if (textBlob == nullptr) {
+        delete [] pts;
         return nullptr;
     }
     std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
