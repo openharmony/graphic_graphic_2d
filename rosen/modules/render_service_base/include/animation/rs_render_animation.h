@@ -188,6 +188,8 @@ protected:
 
     virtual void OnAnimate(float fraction) {}
 
+    virtual void DumpFraction(float fraction, int64_t time) {}
+
     virtual void OnRemoveOnCompletion() {}
 
     virtual void RecordLastAnimateValue() {}

@@ -154,6 +154,12 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
     return isNeedTrace;
 }
 
+bool RSSystemProperties::GetAnimationTraceEnabled()
+{
+    static bool isNeedTrace = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
+    return isNeedTrace;
+}
+
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 {
     static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "0") != "0";

@@ -78,6 +78,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
+    "src/animation/rs_animation_trace_utils.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_particle_noise_field.cpp",
