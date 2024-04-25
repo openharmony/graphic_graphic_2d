@@ -294,11 +294,6 @@ void Network::SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec)
     packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_SINGLE_NODE_PERF));
     packet.Write(id);
     packet.Write(nanosec);
-void Network::SendRSTreeDumpJSON(const std::string& jsonstr)
-{
-    Packet packet { Packet::BINARY };
-    packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_DUMP_JSON));
-    packet.Write(jsonstr);
     const std::lock_guard<std::mutex> guard(outgoingMutex_);
     outgoing_.emplace(packet.Release());
 }
