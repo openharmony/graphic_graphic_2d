@@ -137,6 +137,142 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest006, TestSize.Level1)
 
     OH_Drawing_FontMgrDestroy(mgr);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest007
+ * @tc.desc: test for getting family name.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest007, TestSize.Level1)
+{
+    int count = OH_Drawing_FontMgrGetFamilyCount(nullptr);
+    EXPECT_TRUE(count == 0);
+    OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
+    EXPECT_NE(mgr, nullptr);
+    char *familyName = OH_Drawing_FontMgrGetFamilyName(nullptr, 0);
+    EXPECT_TRUE(familyName == nullptr);
+    OH_Drawing_FontMgrDestroyFamilyName(familyName);
+    OH_Drawing_FontMgrDestroy(mgr);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest008
+ * @tc.desc: test for getting font style set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest008, TestSize.Level1)
+{
+    OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(nullptr, 0);
+    EXPECT_TRUE(fontStyleSet == nullptr);
+    const char* matchFamilyName = "HarmonyOS-Sans";
+    fontStyleSet = OH_Drawing_FontMgrMatchFamily(nullptr, matchFamilyName);
+    EXPECT_TRUE(fontStyleSet == nullptr);
+
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
+    OH_Drawing_Typeface *typeface = OH_Drawing_FontMgrMatchFamilyStyle(nullptr, matchFamilyName, normalStyle);
+    EXPECT_TRUE(typeface == nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest009
+ * @tc.desc: test for getting font style set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest009, TestSize.Level1)
+{
+    const char* matchFamilyName = "HarmonyOS-Sans";
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
+
+    const char *bcp47[] = {"zh-Hans", "zh-CN"};
+    OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(nullptr, matchFamilyName,
+                                                                                    normalStyle, bcp47, 1, ' ');
+    EXPECT_TRUE(CharTypeface == nullptr);
+}
+
+///////////////////////////////////////////
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest010
+ * @tc.desc: test for create a typeface for the given index..
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest010, TestSize.Level1)
+{
+    OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
+    OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
+    OH_Drawing_Typeface *typeface = OH_Drawing_FontStyleSetCreateTypeface(fontStyleSet, 0);
+    EXPECT_NE(typeface, nullptr);
+    typeface = OH_Drawing_FontStyleSetCreateTypeface(nullptr, 0);
+    EXPECT_TRUE(typeface == nullptr);
+    OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
+    OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_FontMgrDestroy(mgr);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest011
+ * @tc.desc: test for create a typeface for the given index..
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
+{
+    OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
+    OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
+    OH_Drawing_FontStyleStruct normalStyle;
+    char** styleName = nullptr;
+    normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0, styleName);
+    EXPECT_TRUE(normalStyle.weight == FONT_WEIGHT_400);
+    OH_Drawing_FontStyleSetFreeStyleName(styleName);
+    OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
+    OH_Drawing_FontMgrDestroy(mgr);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest012
+ * @tc.desc: test for create a typeface for the given index..
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest012, TestSize.Level1)
+{
+    OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
+    OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_400;
+    normalStyle.width = FONT_WIDTH_NORMAL;
+    normalStyle.slant = FONT_STYLE_NORMAL;
+    OH_Drawing_Typeface* typeface = OH_Drawing_FontStyleSetMatchStyle(fontStyleSet, normalStyle);
+    EXPECT_NE(typeface, nullptr);
+
+    typeface = OH_Drawing_FontStyleSetMatchStyle(nullptr, normalStyle);
+    EXPECT_TRUE(typeface == nullptr);
+    OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
+    OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_FontMgrDestroy(mgr);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest013
+ * @tc.desc: test for create a typeface for the given index.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest013, TestSize.Level1)
+{
+    OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
+    OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
+    int count = OH_Drawing_FontStyleSetCount(fontStyleSet);
+    EXPECT_TRUE(count > 0);
+    
+    count = OH_Drawing_FontStyleSetCount(nullptr);
+    EXPECT_TRUE(count == 0);
+    OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
+    OH_Drawing_FontMgrDestroy(mgr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
