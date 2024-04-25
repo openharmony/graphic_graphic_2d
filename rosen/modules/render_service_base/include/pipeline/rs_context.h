@@ -153,6 +153,9 @@ private:
 
     friend class RSRenderThread;
     friend class RSMainThread;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
     friend class RSDrawFrame;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

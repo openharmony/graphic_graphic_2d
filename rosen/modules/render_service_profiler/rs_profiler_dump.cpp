@@ -30,7 +30,11 @@ namespace OHOS::Rosen {
 void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out)
 {
     std::string type;
+#ifdef RS_PIPELINE
     node.DumpNodeType(node.GetType(), type);
+#else
+    node.DumpNodeType(type);
+#endif
 
     out.PushObject();
     out["type"] = type;
