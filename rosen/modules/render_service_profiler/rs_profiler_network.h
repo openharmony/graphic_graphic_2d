@@ -46,7 +46,6 @@ public:
     static void SendRSTreeDumpJSON(const std::string& jsonstr);
     static void SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNodesList);
     static void SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec);
-    static void SendRSTreeDumpJSON(const std::string& jsonstr);
 
     static void SendBinary(const void* data, size_t size);
     static void SendMessage(const std::string& message);
