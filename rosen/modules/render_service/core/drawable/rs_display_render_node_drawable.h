@@ -31,7 +31,6 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSDisplayRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -41,6 +40,7 @@ public:
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
 
 private:
+    explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(std::shared_ptr<RSDisplayRenderNode> displayNode, RSDisplayRenderParams* params,
         std::shared_ptr<RSProcessor> processor);
     std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSDisplayRenderNode> displayNodeSp,

@@ -33,7 +33,6 @@ struct UIFirstParams {
 };
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSSurfaceRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -137,6 +136,7 @@ public:
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
 private:
+    explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
     bool DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
