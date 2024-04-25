@@ -63,7 +63,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
 
 #if defined(RS_ENABLE_VK)
 Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt)
@@ -353,6 +353,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         if (RSSystemProperties::IsUseVulkan()) {
             RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
         }
+    } else {
+        RsVulkanContext::GetSingleton().SetIsProtected(false);
     }
 #endif
 

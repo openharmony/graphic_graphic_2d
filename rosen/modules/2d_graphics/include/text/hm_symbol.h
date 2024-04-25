@@ -49,8 +49,8 @@ enum DrawingCurveType {
 };
 
 enum DrawingCommonSubType {
-    UP = 0,
-    DOWN = 1,
+    DOWN = 0,
+    UP = 1,
 };
 
 struct DrawingPiecewiseParameter {
@@ -63,7 +63,7 @@ struct DrawingPiecewiseParameter {
 
 struct DrawingAnimationPara {
     uint32_t animationMode = 0; // 0 is default value, is byLayer effect
-    DrawingCommonSubType commonSubType = DrawingCommonSubType::UP;
+    DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN;
     std::vector<std::vector<DrawingPiecewiseParameter>> groupParameters;
 };
 

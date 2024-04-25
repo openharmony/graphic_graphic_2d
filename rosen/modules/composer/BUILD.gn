@@ -40,12 +40,6 @@ config("composer_public_config") {
 }
 
 ohos_shared_library("libcomposer") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
   sources = [
     "hdi_backend/src/hdi_backend.cpp",
     "hdi_backend/src/hdi_device.cpp",
@@ -63,10 +57,7 @@ ohos_shared_library("libcomposer") {
   defines = []
   defines += gpu_defines
 
-  public_configs = [
-    ":composer_public_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  public_configs = [ ":composer_public_config" ]
 
   public_deps = [
     "$graphic_2d_root/utils:scoped_bytrace",
@@ -74,12 +65,12 @@ ohos_shared_library("libcomposer") {
   ]
 
   public_external_deps = [
+    "c_utils:utils",
     "graphic_surface:buffer_handle",
     "graphic_surface:sync_fence",
   ]
 
   external_deps = [
-    "c_utils:utils",
     "drivers_interface_display:display_buffer_idl_headers",
     "drivers_interface_display:display_commontype_idl_headers",
     "drivers_interface_display:display_composer_idl_headers_1.1",

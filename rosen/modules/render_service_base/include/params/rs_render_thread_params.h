@@ -127,7 +127,7 @@ public:
         watermarkFlag_ = watermarkFlag;
         watermarkImg_ = std::move(watermarkImg);
     }
-    
+
     void SetForceCommitLayer(bool forceCommit)
     {
         isForceCommitLayer_ = forceCommit;
@@ -208,6 +208,15 @@ public:
         return rootIdOfCaptureWindow_;
     }
 
+    void SetContext(std::shared_ptr<RSContext> context)
+    {
+        context_ = context;
+    }
+
+    const std::shared_ptr<RSContext>& GetContext() const
+    {
+        return context_.lock();
+    }
 private:
     bool startVisit_ = false;
     bool hasCaptureImg_ = false;
@@ -240,6 +249,7 @@ private:
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
     bool isUniRenderAndOnVsync_ = false;
+    std::weak_ptr<RSContext> context_;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

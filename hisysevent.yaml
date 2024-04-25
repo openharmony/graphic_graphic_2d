@@ -153,4 +153,4 @@ HGM_VOTER_INFO:
 GPU_SUBHEALTH_MONITORING:
   __BASE: {type: STATISTIC, level: MINOR, desc: GPU subhealth monitoring statistics}
   WAIT_ACQUIRE_FENCE_TIME: {type: UINT64, desc: wait acquire fence time}
-  GPU_LOAD: {type: DOUBLE, desc: gpu load}
+  FRAME_RATE: {type: INT32, desc: real frame rate}

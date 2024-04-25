@@ -140,7 +140,7 @@ public:
         return name_;
     }
 
-    void SetUifirstNodeEnableParam(bool isUifirst)
+    void SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
             return;
@@ -149,7 +149,7 @@ public:
         needSync_ = true;
     }
 
-    bool GetUifirstNodeEnableParam()
+    MultiThreadCacheType GetUifirstNodeEnableParam()
     {
         return uiFirstFlag_;
     }
@@ -246,7 +246,7 @@ private:
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool needBilinearInterpolation_ = false;
-    bool uiFirstFlag_ = false;
+    MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
 

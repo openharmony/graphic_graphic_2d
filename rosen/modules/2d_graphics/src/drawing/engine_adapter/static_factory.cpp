@@ -329,6 +329,16 @@ FontStyleSet* StaticFactory::CreateEmpty()
 #endif
     return EngineStaticFactory::CreateEmpty();
 }
+
+std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::CreateWithBlendMode(mode);
+    }
+#endif
+    return EngineStaticFactory::CreateWithBlendMode(mode);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

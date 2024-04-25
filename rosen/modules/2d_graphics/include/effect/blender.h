@@ -20,6 +20,7 @@
 
 #include "drawing/engine_adapter/impl_interface/blender_impl.h"
 #include "utils/drawing_macros.h"
+#include "draw/blend_mode.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,6 +41,8 @@ public:
     }
 
     void SetSkBlender(sk_sp<SkBlender> blender);
+
+    static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
 
 private:
     std::shared_ptr<BlenderImpl> impl_;

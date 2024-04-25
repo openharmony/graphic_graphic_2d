@@ -68,7 +68,8 @@ public:
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+        NodeId uifirstRootNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -292,16 +293,6 @@ public:
     void SetCalcRectInPrepare(bool calc)
     {
         calcRectInPrepare_ = calc;
-    }
-
-    void SetIntersectByFilterInApp(bool intersect)
-    {
-        intersectByFilterInApp_ = intersect;
-    }
-
-    bool GetIntersectByFilterInApp() const
-    {
-        return intersectByFilterInApp_;
     }
 
     bool IsSelfDrawingType() const
@@ -1019,16 +1010,16 @@ public:
         ancestorDisplayNode_ = ancestorDisplayNode;
     }
 
-    void SetUifirstNodeEnableParam(bool b);
+    void SetUifirstNodeEnableParam(MultiThreadCacheType b);
 
     void SetIsParentUifirstNodeEnableParam(bool b);
 
-    bool GetLastFrameUifirstFlag()
+    MultiThreadCacheType GetLastFrameUifirstFlag()
     {
         return lastFrameUifirstFlag_;
     }
 
-    void SetLastFrameUifirstFlag(bool b)
+    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
     {
         lastFrameUifirstFlag_ = b;
     }
@@ -1296,7 +1287,7 @@ private:
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
-    bool lastFrameUifirstFlag_ = false;
+    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
 
     bool ancoForceDoDirect_ = false;
 

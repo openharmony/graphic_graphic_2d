@@ -28,6 +28,7 @@ constexpr const char* ENTRY_VIEW = "SCBDesktop";
 constexpr const char* WALLPAPER_VIEW = "SCBWallpaper";
 constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock";
 constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
+constexpr const char* NEGATIVE_SCREEN = "SCBNegativeScreen";
 constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
 RSRenderNodeMap::RSRenderNodeMap()
@@ -51,6 +52,9 @@ void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRender
     }
     if (surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos) {
         wallpaperViewNodeId_ = surfaceNode->GetId();
+    }
+    if (surfaceNode->GetName().find(NEGATIVE_SCREEN) != std::string::npos) {
+        negativeScreenNodeId_ = surfaceNode->GetId();
     }
 }
 
@@ -77,6 +81,11 @@ NodeId RSRenderNodeMap::GetWallPaperViewNodeId() const
 NodeId RSRenderNodeMap::GetScreenLockWindowNodeId() const
 {
     return screenLockWindowNodeId_;
+}
+
+NodeId RSRenderNodeMap::GetNegativeScreenNodeId() const
+{
+    return negativeScreenNodeId_;
 }
 
 static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)

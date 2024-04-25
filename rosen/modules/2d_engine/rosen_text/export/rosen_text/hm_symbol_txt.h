@@ -117,7 +117,7 @@ public:
 
     void SetAnimationMode(const uint16_t animationMode)
     {
-        animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
+        animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or iteratuve, 0 is hierarchical or cumulative
     }
 
     void SetRepeatCount(const int repeatCount)
@@ -178,13 +178,13 @@ private:
     Drawing::DrawingEffectStrategy effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
 
     // animationMode_ is the implementation mode of the animation effect:
-    // common_animations: the 0 is the wholeSymbol effect and 1 is the byLayer effect;
+    // common_animations: the 0 is the byLayer effect and 1 is the wholeSymbol effect;
     // variable_color : the 0 is the cumulative  effect and 1 is the iteratuve effect.
-    uint16_t animationMode_ = 1;
+    uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool animationStart_ = true;
     std::map<std::string, int> visualMap_;
-    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::UP;
+    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 };
 }
 }

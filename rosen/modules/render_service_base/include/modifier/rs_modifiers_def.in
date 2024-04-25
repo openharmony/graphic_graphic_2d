@@ -98,7 +98,7 @@ DECLARE_NOANIMATABLE_MODIFIER(LinearGradientBlurPara, std::shared_ptr<RSLinearGr
 
 DECLARE_NOANIMATABLE_MODIFIER(MotionBlurPara, std::shared_ptr<MotionBlurParam>, MOTION_BLUR_PARA, Foreground)
 
-DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::shared_ptr<EmitterUpdater>, PARTICLE_EMITTER_UPDATER, Foreground)
+DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::vector<std::shared_ptr<EmitterUpdater>>, PARTICLE_EMITTER_UPDATER, Foreground)
 
 DECLARE_NOANIMATABLE_MODIFIER(ParticleNoiseFields, std::shared_ptr<ParticleNoiseFields>, PARTICLE_NOISE_FIELD, Foreground)
 
@@ -143,6 +143,8 @@ DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Fore
 DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geometry, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(PixelStretchPercent, Vector4f, PIXEL_STRETCH_PERCENT, Replace, Geometry, FINE)
+
+DECLARE_NOANIMATABLE_MODIFIER(PixelStretchTileMode, int, PIXEL_STRETCH_TILE_MODE, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(GrayScale, float, GRAY_SCALE, Add, Foreground, COARSE)
 

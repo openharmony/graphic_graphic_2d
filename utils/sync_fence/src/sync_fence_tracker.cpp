@@ -22,6 +22,11 @@
 #include "hisysevent.h"
 #include "file_ex.h"
 
+#ifdef FENCE_SCHED_ENABLE
+#include "res_sched_client.h"
+#include "res_type.h"
+#endif
+
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
 namespace {
@@ -29,6 +34,10 @@ namespace {
 #define LOG_DOMAIN 0xD001400
 #undef LOG_TAG
 #define LOG_TAG "SyncFence"
+
+#ifdef FENCE_SCHED_ENABLE
+    const uint32_t RS_SUB_QOS_LEVEL = 7;
+#endif
 }
 
 SyncFenceTracker::SyncFenceTracker(const std::string threadName)
@@ -38,6 +47,23 @@ SyncFenceTracker::SyncFenceTracker(const std::string threadName)
 {
     runner_ = OHOS::AppExecFwk::EventRunner::Create(threadName_);
     handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
+
+#ifdef FENCE_SCHED_ENABLE
+    if (handler_) {
+        handler_->PostTask([]() {
+            std::string strPid = std::to_string(getpid());
+            std::string strTid = std::to_string(gettid());
+            std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
+            std::unordered_map<std::string, std::string> mapPayload;
+            mapPayload["pid"] = strPid;
+            mapPayload[strTid] = strQos;
+            mapPayload["bundleName"] = "SyncFenceTracker";
+            uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
+            int64_t value = 0;
+            OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+        });
+    }
+#endif
 }
 
 void SyncFenceTracker::TrackFence(const sptr<SyncFence>& fence)
@@ -80,16 +106,24 @@ bool SyncFenceTracker::CheckGpuSubhealthEventLimit()
     return false;
 }
 
-inline int32_t SyncFenceTracker::GetValue(const std::string& fileName)
+inline void SyncFenceTracker::UpdateFrameQueue(int32_t startTime)
 {
-    std::string content;
-    OHOS::LoadStringFromFile(fileName, content);
-    int32_t parseVal = 0;
-    std::stringstream ss(content);
-    HILOG_DEBUG(LOG_CORE, "GetValue content is %{public}s", ss.str().c_str());
-    ss >> parseVal;
-    HILOG_DEBUG(LOG_CORE, "GetValue parseVal is %{public}" PRId32, parseVal);
-    return parseVal;
+    if (frameStartTimes->size() >= FRAME_QUEUE_SIZE_LIMIT) {
+        frameStartTimes->pop();
+    }
+    frameStartTimes->push(startTime);
+}
+
+inline int32_t SyncFenceTracker::GetFrameRate()
+{
+    int32_t frameRate = 0;
+    int32_t frameNum = frameStartTimes->size() - 1;
+    if (frameNum > 0) {
+        frameRate = FRAME_PERIOD * frameNum / (frameStartTimes->back() - frameStartTimes->front());
+    }
+    HILOG_DEBUG(LOG_CORE, "frameNum: %{public}" PRId32 ", frameRate: %{public}" PRId32,
+        frameNum, frameRate);
+    return frameRate;
 }
 
 void SyncFenceTracker::ReportEventGpuSubhealth(int32_t duration)
@@ -98,7 +132,7 @@ void SyncFenceTracker::ReportEventGpuSubhealth(int32_t duration)
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventGpuSubhealth");
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "WAIT_ACQUIRE_FENCE_TIME", duration,
-        "GPU_LOAD", GetValue(GPU_LOAD));
+        "FRAME_RATE", GetFrameRate());
 }
 
 void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
@@ -113,6 +147,7 @@ void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
             int32_t startTimestamp = static_cast<int32_t>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
+            UpdateFrameQueue(startTimestamp);
             result = fence->Wait(SYNC_TIME_OUT);
             int32_t endTimestamp = static_cast<int32_t>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(

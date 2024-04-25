@@ -407,7 +407,7 @@ void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_pt
     auto imageInfo = image->GetImageInfo();
     auto srcRect = Drawing::Rect(0, 0, imageInfo.GetWidth(), imageInfo.GetHeight());
     blurFilter->DrawImageRect(canvas, image, srcRect, dst);
-    
+
     Drawing::Matrix inputMatrix;
     inputMatrix.Translate(dst.GetLeft(), dst.GetTop());
     inputMatrix.PostScale(dst.GetWidth() / imageInfo.GetWidth(), dst.GetHeight() / imageInfo.GetHeight());

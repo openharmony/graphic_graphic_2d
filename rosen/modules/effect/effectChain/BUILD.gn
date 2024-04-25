@@ -43,7 +43,6 @@ ohos_shared_library("libeffectchain") {
 
   external_deps = [
     "cJSON:cjson",
-    "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "image_framework:image_native",
@@ -74,10 +73,9 @@ ohos_shared_library("libeffectchain") {
 
   configs = [ ":effect_config" ]
 
-  public_configs = [
-    ":effect_public_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  public_configs = [ ":effect_public_config" ]
+
+  public_external_deps = [ "c_utils:utils" ]
 
   cflags_cc = [ "-std=c++17" ]
 

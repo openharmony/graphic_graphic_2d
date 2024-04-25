@@ -22,6 +22,7 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_particle_params.h"
+#include "animation/rs_symbol_node_config.h"
 #include "animation/rs_transition_effect.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_vector2.h"
@@ -236,7 +237,7 @@ public:
     void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
     void SetParticleParams(
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
-    void SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para);
+    void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
@@ -308,7 +309,7 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
-    void SetPixelStretch(const Vector4f& stretchSize);
+    void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent);
 
     void SetPaintOrder(bool drawContentLast);
@@ -402,8 +403,14 @@ public:
         return isTextureExportNode_;
     }
 
-    // key: symbolSpanID, value:symbol animation node list
-    std::unordered_map<uint64_t, std::list<SharedPtr>> canvasNodesListMap;
+    std::mutex childrenNodeLock_; // lock for map operation
+    // key: symbolSpanID, value:nodeid and symbol animation node list
+    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
+
+    // key: status : 1 appear, -1 invalid, value:symbol node animation config
+    std::unordered_map<int,
+        std::unordered_map<NodeId,
+            OHOS::Rosen::AnimationNodeConfig>> replaceNodesSwapMap;
 
     void SetInstanceId(int32_t instanceId);
     int32_t GetInstanceId() const
@@ -469,6 +476,7 @@ private:
     
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
+    std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);

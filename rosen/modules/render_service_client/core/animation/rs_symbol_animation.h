@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "animation/rs_animation_timing_curve.h"
+#include "animation/rs_symbol_node_config.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "draw/path.h"
@@ -50,7 +51,8 @@ private:
     // SetPublicAnimation is interface for animation that can be spliced by atomizated animations
     bool SetPublicAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     bool GetAnimationGroupParameters(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
-        std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters);
+        std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
+        TextEngine::SymbolAnimationEffectStrategy& effectStrategy);
     // choose the animation is a public animation or special animation
     bool ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
         std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
@@ -112,8 +114,20 @@ private:
     bool GetKeyframeAlphaAnimationParas(std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas,
         uint32_t& totalDuration, std::vector<float>& timePercents);
 
-    std::shared_ptr<RSNode> rsNode_ = nullptr;
+    // Set Replace Animation which include disappear stage and appear stage
+    bool SetReplaceAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    // Set Disappear stage of replace animation
+    bool SetReplaceDisappear(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    // Set appear stage of replace animation
+    bool SetReplaceAppear(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        bool isStartAnimation=true);
 
+    // process node before animation include clean invalid node and config info
+    void NodeProcessBeforeAnimation(
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    // pop invalid node before replace animation, replace animation have special rsnode lifecycle.
+    void PopNodeFromReplaceList(uint64_t symbolSpanId);
+    std::shared_ptr<RSNode> rsNode_ = nullptr;
     // scale symbol animation
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_ = nullptr;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotProperty_ = nullptr;

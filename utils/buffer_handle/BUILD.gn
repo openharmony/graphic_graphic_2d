@@ -37,10 +37,7 @@ config("buffer_handle_public_config") {
 ohos_static_library("buffer_handle") {
   sources = [ "src/buffer_handle.cpp" ]
 
-  configs = [
-    ":buffer_handle_config",
-    "../../../../../commonlibrary/c_utils/base:utils_config",
-  ]
+  configs = [ ":buffer_handle_config" ]
 
   public_configs = [ ":buffer_handle_public_config" ]
 

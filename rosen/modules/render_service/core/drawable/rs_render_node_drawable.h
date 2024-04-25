@@ -42,7 +42,6 @@ namespace DrawableV2 {
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
 public:
-    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -51,9 +50,10 @@ public:
     virtual void OnDraw(Drawing::Canvas& canvas);
     virtual void OnCapture(Drawing::Canvas& canvas);
 
+    // deprecated
     inline std::shared_ptr<const RSRenderNode> GetRenderNode()
     {
-        return renderNode_;
+        return renderNode_.lock();
     }
 
     inline bool GetOpDropped() const
@@ -63,11 +63,11 @@ public:
 
     inline bool ShouldPaint() const
     {
-        const auto& params = renderNode_->GetRenderParams();
-        return LIKELY(params != nullptr) && params->GetShouldPaint();
+        return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
     }
 
 protected:
+    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 

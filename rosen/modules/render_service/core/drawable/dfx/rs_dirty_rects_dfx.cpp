@@ -120,7 +120,7 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
             (rotation == ScreenRotation::ROTATION_270 ? ScreenRotation::ROTATION_0
                                                       : static_cast<ScreenRotation>(static_cast<int>(rotation) + 1));
     }
-
+    auto saveCount = canvas_->Save();
     if (rotation != ScreenRotation::ROTATION_0) {
         auto screenManager = CreateOrGetScreenManager();
         auto mainScreenInfo = screenManager->QueryScreenInfo(screenId);
@@ -140,6 +140,7 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas_->DrawTextBlob(textBlob.get(), 100.f, 200.f);
+    canvas_->RestoreToCount(saveCount);
     canvas_->DetachBrush();
 }
 

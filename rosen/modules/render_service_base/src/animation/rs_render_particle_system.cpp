@@ -80,10 +80,10 @@ bool RSRenderParticleSystem::IsFinish(const std::vector<std::shared_ptr<RSRender
     return finish;
 }
 
-void RSRenderParticleSystem::UpdateEmitter(const uint32_t& emitterIndex, const std::optional<Vector2f>& position,
-    const std::optional<Vector2f>& emitSize, const std::optional<int>& emitRate)
+void RSRenderParticleSystem::UpdateEmitter(
+    const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams)
 {
-    emitters_[emitterIndex]->UpdateEmitter(position, emitSize, emitRate);
+    particlesRenderParams_ = particlesRenderParams;
 }
 
 void RSRenderParticleSystem::UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields)

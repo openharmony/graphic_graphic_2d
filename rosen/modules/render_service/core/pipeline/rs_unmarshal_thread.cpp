@@ -83,7 +83,15 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
             RSMainThread::Instance()->RequestNextVSync();
         }
     };
-    PostTask(task);
+    {
+        PostTask(task);
+        /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
+         * so set willHaveCachedData_ to true
+         */
+        std::lock_guard<std::mutex> lock(transactionDataMutex_);
+        willHaveCachedData_ = true;
+    }
+
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
     }
@@ -95,7 +103,17 @@ TransactionDataMap RSUnmarshalThread::GetCachedTransactionData()
     {
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         std::swap(transactionData, cachedTransactionDataMap_);
+        willHaveCachedData_ = false;
     }
     return transactionData;
+}
+
+bool RSUnmarshalThread::CachedTransactionDataEmpty()
+{
+    std::lock_guard<std::mutex> lock(transactionDataMutex_);
+    /* we need consider both whether cachedTransactionDataMap_ is empty now
+     * and whether cachedTransactionDataMap_ will be empty later
+     */
+    return cachedTransactionDataMap_.empty() && !willHaveCachedData_;
 }
 }

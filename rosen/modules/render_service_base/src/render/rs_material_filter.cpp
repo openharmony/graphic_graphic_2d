@@ -317,7 +317,7 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
         if (!geRender) {
             return;
         }
-        auto greyImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+        greyImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
             image, src, src, Drawing::SamplingOptions());
     }
     if (greyImage == nullptr) {

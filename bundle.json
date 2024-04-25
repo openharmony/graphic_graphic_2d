@@ -79,7 +79,7 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin",
+          "memmgr_override",
           "sensor",
           "qos_manager",
           "video_processing_engine",
@@ -93,7 +93,12 @@
           "battery_manager",
           "cJSON",
           "jsoncpp",
-          "openssl"
+          "openssl",
+          "zlib",
+          "libuv",
+          "icu",
+          "libpng",
+          "libxml2"
         ],
         "third_party": [
           "flutter",

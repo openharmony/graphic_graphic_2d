@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,9 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FUZZTEST_FONT_FEATURES_FUZZER_H
-#define TEST_FUZZTEST_FONT_FEATURES_FUZZER_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_SYMBOL_NODE_CONFIG_H
+#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_SYMBOL_NODE_CONFIG_H
 
-#define FUZZ_PROJECT_NAME "fontfeatures_fuzzer"
+#include "symbol_animation_config.h"
 
-#endif // TEST_FUZZTEST_FONT_FEATURES_FUZZER_H
+namespace OHOS {
+namespace Rosen {
+
+using AnimationNodeConfig = struct AnimationNodeConfig {
+    TextEngine::SymbolNode symbolNode;
+    int animationIndex = -1;
+};
+}
+}
+
+#endif

@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <string>
 
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
@@ -56,6 +57,12 @@ void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& 
         ROSEN_LOGE("RSAnimationManager::AddAnimation, The animation already exists when is added");
         return;
     }
+    auto it = std::find(pendingCancelAnimation_.begin(), pendingCancelAnimation_.end(), key);
+    if (it != pendingCancelAnimation_.end()) {
+        pendingCancelAnimation_.erase(it);
+        ROSEN_LOGE("RSAnimationManager::AddAnimation, animation is a pendingCancelAnimation");
+        return;
+    }
     animations_.emplace(key, animation);
 }
 
@@ -80,6 +87,22 @@ void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
         }
         return false;
     });
+}
+
+void RSAnimationManager::AttemptCancelAnimationByAnimationId(const std::vector<AnimationId>& animations)
+{
+    for (auto& animationId : animations) {
+        bool isErased = EraseIf(animations_, [animationId, this](const auto& pair) {
+            if (pair.second && (pair.first == animationId)) {
+                OnAnimationFinished(pair.second);
+                return true;
+            }
+            return false;
+        });
+        if (!isErased) {
+            pendingCancelAnimation_.emplace_back(animationId);
+        }
+    }
 }
 
 void RSAnimationManager::FilterAnimationByPid(pid_t pid)
@@ -190,6 +213,7 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
     NodeId targetId = animation->GetTargetId();
     AnimationId animationId = animation->GetAnimationId();
 
+    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(targetId, animationId);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(targetId, animationId, FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
@@ -256,6 +280,14 @@ void RSAnimationManager::UnregisterParticleAnimation(PropertyId propertyId, Anim
 const std::unordered_map<PropertyId, AnimationId>& RSAnimationManager::GetParticleAnimations()
 {
     return particleAnimations_;
+}
+
+const std::shared_ptr<RSRenderAnimation>& RSAnimationManager::GetParticleAnimation()
+{
+    if (particleAnimations_.empty()) {
+        return nullptr;
+    }
+    return GetAnimation(particleAnimations_.begin()->second);
 }
 } // namespace Rosen
 } // namespace OHOS

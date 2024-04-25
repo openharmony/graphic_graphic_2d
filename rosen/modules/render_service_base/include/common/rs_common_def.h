@@ -179,6 +179,12 @@ enum class RSSurfaceNodeType : uint8_t {
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
 };
 
+enum class MultiThreadCacheType : uint8_t {
+    NONE = 0,
+    LEASH_WINDOW,
+    ARKTS_CARD,
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,

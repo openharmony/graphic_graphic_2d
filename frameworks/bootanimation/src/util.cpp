@@ -120,7 +120,7 @@ bool GenImageData(const std::string& filename, std::shared_ptr<ImageStruct> imag
     }
     auto data = std::make_shared<Rosen::Drawing::Data>();
     data->BuildFromMalloc(imagetruct->memPtr.memBuffer, bufferlen);
-    if (data == nullptr) {
+    if (data->GetData() == nullptr) {
         LOGE("data memory data is null. update data failed");
         return false;
     }

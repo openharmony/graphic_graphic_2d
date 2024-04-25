@@ -17,7 +17,9 @@
 
 #include <algorithm>
 #include <securec.h>
+#include "platform/common/rs_log.h"
 
+#include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
@@ -116,6 +118,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH
     [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
+    [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
     [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
@@ -1168,11 +1171,15 @@ void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradi
     contentDirty_ = true;
 }
 
-void RSProperties::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para)
 {
     emitterUpdater_ = para;
-    if (emitterUpdater_) {
+    if (!emitterUpdater_.empty()) {
         isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        particleAnimation->UpdateEmitter(emitterUpdater_);
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1184,6 +1191,10 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
     particleNoiseFields_ = para;
     if (particleNoiseFields_) {
         isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        particleAnimation->UpdateNoiseField(particleNoiseFields_);
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1336,7 +1347,7 @@ const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradient
     return linearGradientBlurPara_;
 }
 
-const std::shared_ptr<EmitterUpdater>& RSProperties::GetEmitterUpdater() const
+const std::vector<std::shared_ptr<EmitterUpdater>>& RSProperties::GetEmitterUpdater() const
 {
     return emitterUpdater_;
 }
@@ -2285,6 +2296,20 @@ void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretch
     if (pixelStretchPercent_.has_value() && pixelStretchPercent_->IsZero()) {
         pixelStretchPercent_ = std::nullopt;
     }
+}
+
+void RSProperties::SetPixelStretchTileMode(int stretchTileMode)
+{
+    pixelStretchTileMode_ = std::clamp<int>(stretchTileMode, static_cast<int>(Drawing::TileMode::CLAMP),
+        static_cast<int>(Drawing::TileMode::DECAL));
+    SetDirty();
+    pixelStretchNeedUpdate_ = true;
+    contentDirty_ = true;
+}
+
+int RSProperties::GetPixelStretchTileMode() const
+{
+    return pixelStretchTileMode_;
 }
 
 // Image effect properties

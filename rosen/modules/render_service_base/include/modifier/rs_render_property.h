@@ -163,6 +163,7 @@ private:
     template<typename T>
     friend class RSSpringModel;
     friend class RSTransitionCustom;
+    friend class RSAnimationTraceUtils;
 };
 
 template<typename T>

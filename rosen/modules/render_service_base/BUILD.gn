@@ -78,6 +78,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
+    "src/animation/rs_animation_trace_utils.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_particle_noise_field.cpp",
@@ -201,6 +202,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_frame_rate_linker.cpp",
     "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
+    "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
     "src/pipeline/rs_single_frame_composer.cpp",
@@ -541,11 +543,12 @@ ohos_shared_library("librender_service_base") {
     configs = [ ":render_service_base_link_config" ]
   }
 
-  deps = [ "$rosen_root/modules/platform:eventhandler" ]
-  public_deps = [
-    ":render_service_base_src",
+  deps = [
+    "$rosen_root/modules/platform:eventhandler",
     "src/platform:platform",
   ]
+
+  public_deps = [ ":render_service_base_src" ]
 
   external_deps = [ "hilog:libhilog" ]
 

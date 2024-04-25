@@ -220,10 +220,6 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
-    if (filterType_ == RSFilter::LINEAR_GRADIENT_BLUR) {
-        stagingFrameWidth_ = node.GetRenderProperties().GetFrameWidth();
-        stagingFrameHeight_ = node.GetRenderProperties().GetFrameHeight();
-    }
     return true;
 }
 
@@ -453,7 +449,7 @@ RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
 bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    auto& outline = properties.GetBorder();
+    auto& outline = properties.GetOutline();
     if (!outline || !outline->HasBorder()) {
         return false;
     }
