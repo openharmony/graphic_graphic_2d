@@ -45,6 +45,7 @@ ohos_shared_library("windowanimationmanager_napi") {
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "input:libmmi-client",
     "ipc:ipc_core",
     "napi:ace_napi",
     "samgr:samgr_proxy",

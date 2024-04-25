@@ -69,6 +69,7 @@
           "eventhandler",
           "config_policy",
           "init",
+          "input",
           "hicollie",
           "image_framework",
           "ipc",
