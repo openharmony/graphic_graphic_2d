@@ -88,7 +88,7 @@ GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurSh
     : radius_(params.radius)
 {
     if (!InitBlurEffect()) {
-        LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed initializing BlurEffect.");
+        LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed when initializing BlurEffect.");
         return;
     }
     // Advanced Filter
@@ -96,9 +96,20 @@ GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurSh
         LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed when initializing BlurEffectAF.");
         return;
     }
+
     if (!InitMixEffect()) {
         LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed when initializing MixEffect.");
         return;
+    }
+
+    if (radius_ < 1) {
+        LOGI("GEKawaseBlurShaderFilter radius(%{public}d) should be [1, 8k], ignore blur.", radius_);
+        radius_ = 0;
+    }
+
+    if (radius_ > 8000) { // 8000 experienced value
+        LOGI("GEKawaseBlurShaderFilter radius(%{public}d) should be [1, 8k], change to 8k.", radius_);
+        radius_ = 8000; // 8000 experienced value
     }
 }
 
