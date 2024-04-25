@@ -1047,8 +1047,6 @@ RSRenderNode::~RSRenderNode()
         ROSEN_LOGE("Invalid context");
         return;
     }
-    // post task to destroy renderContent_ in RenderThread
-    context->PostRTTask([context = std::move(renderContent_)]() {});
 }
 
 void RSRenderNode::FallbackAnimationsToRoot()

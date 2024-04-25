@@ -597,6 +597,13 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return openDebugTrace;
 }
 
+bool RSSystemProperties::GetImageReleaseUsingPostTask()
+{
+    static bool flag =
+        std::atoi((system::GetParameter("persist.sys.graphic.iamgeReleasePostTask", "0")).c_str()) != 0;
+    return flag;
+}
+
 int RSSystemProperties::GetDebugTraceLevel()
 {
     static int openDebugTraceLevel =
