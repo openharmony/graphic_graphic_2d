@@ -115,7 +115,7 @@ public:
         return colorSpace_;
     }
 
-    std::string GetName() const
+    inline std::string GetName() const
     {
         return name_;
     }

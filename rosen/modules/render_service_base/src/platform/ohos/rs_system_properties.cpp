@@ -66,7 +66,8 @@ static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
 
 bool RSSystemProperties::IsSceneBoardEnabled()
 {
-    return SceneBoardJudgement::IsSceneBoardEnabled();
+    static bool isSCBEnabled =  SceneBoardJudgement::IsSceneBoardEnabled();
+    return isSCBEnabled;
 }
 
 // used by clients
@@ -720,11 +721,12 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
 
 bool RSSystemProperties::GetSnapshotWithDMAEnabled()
 {
-    static bool isSupportDma = system::GetParameter("const.product.devicetype", "pc") == "phone" ||
+    static bool isSupportDma = (system::GetParameter("const.product.devicetype", "pc") == "phone" ||
         system::GetParameter("const.product.devicetype", "pc") == "tablet" ||
         system::GetParameter("const.product.devicetype", "pc") == "pc" ||
-        system::GetParameter("const.product.devicetype", "pc") == "2in1";
-    return isSupportDma && system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+        system::GetParameter("const.product.devicetype", "pc") == "2in1") &&
+        system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+    return isSupportDma;
 }
 
 bool RSSystemProperties::IsPhoneType()

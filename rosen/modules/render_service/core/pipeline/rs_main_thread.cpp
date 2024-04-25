@@ -957,10 +957,12 @@ void RSMainThread::ProcessCommandForUniRender()
             }
         }
     }
-    RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
-        RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
-        transactionDataEffective->clear();
-    });
+    if (!transactionDataEffective->empty()) {
+        RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
+            RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
+            transactionDataEffective->clear();
+        });
+    }
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
@@ -2005,8 +2007,7 @@ void RSMainThread::CalcOcclusion()
         }
         curSurfaceIds.emplace_back(surface->GetId());
     }
-    bool winDirty = (lastSurfaceIds_ != curSurfaceIds || isDirty_ ||
-        lastFocusNodeId_ != focusNodeId_);
+    bool winDirty = (isDirty_ || lastFocusNodeId_ != focusNodeId_ || lastSurfaceIds_ != curSurfaceIds);
     lastSurfaceIds_ = std::move(curSurfaceIds);
     lastFocusNodeId_ = focusNodeId_;
     if (!winDirty) {
