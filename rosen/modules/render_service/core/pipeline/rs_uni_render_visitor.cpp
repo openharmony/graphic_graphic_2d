@@ -339,7 +339,7 @@ void RSUniRenderVisitor::UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode
             UpdateForegroundFilterCacheWithDirty(*child, *curSurfaceDirtyManager_);
             if (curSurfaceNode_ && curSurfaceNode_->GetId() == child->GetInstanceRootNodeId()) {
                 curSurfaceNode_->UpdateChildrenFilterRects(child, child->GetOldDirtyInSurface(),
-                    child->IsBackgroundFilterCacheValid());
+                    child->IsFilterCacheValid());
             }
         }
         UpdateSubTreeInCache(child, *child->GetSortedChildren());
@@ -366,7 +366,7 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
         UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
         if (curSurfaceNode_ && curSurfaceNode_->GetId() == effectNode->GetInstanceRootNodeId()) {
             curSurfaceNode_->UpdateChildrenFilterRects(effectNode, effectNode->GetOldDirtyInSurface(),
-                effectNode->IsBackgroundFilterCacheValid());
+                effectNode->IsFilterCacheValid());
         }
     }
 }
@@ -2112,7 +2112,7 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
         RS_LOGD("RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay surface:%{public}s "
             "has transparentCleanFilter", surfaceNode->GetName().c_str());
         // check accumulatedDirtyRegion influence filter nodes which in the current surface
-        for (auto it = filterVecIter->second.rbegin(); it != filterVecIter->second.rend(); ++it) {
+        for (auto it = filterVecIter->second.begin(); it != filterVecIter->second.end(); ++it) {
             auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(it->first);
             if (filterNode == nullptr) {
                 continue;
@@ -2137,7 +2137,7 @@ void RSUniRenderVisitor::CheckMergeTransparentFilterForDisplay(
                 globalFilter_.insert(*it);
             }
             filterNode->MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(dirtyBelowContainsFilterNode);
-            if (filterNode->ShouldPaint() && !filterNode->IsBackgroundFilterCacheValid() &&
+            if (filterNode->ShouldPaint() && !filterNode->IsFilterCacheValid() &&
                 (filterNode->GetRenderProperties().GetBackgroundFilter() ||
                 filterNode->GetRenderProperties().GetFilter())) {
                 dirtyBelowContainsFilterNode = true;
@@ -2877,7 +2877,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         }
         if (curSurfaceNode_) {
             curSurfaceNode_->UpdateChildrenFilterRects(node.shared_from_this(), node.GetOldDirtyInSurface(),
-                node.IsBackgroundFilterCacheValid());
+                node.IsFilterCacheValid());
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
         }
         UpdateForegroundFilterCacheWithDirty(node, *dirtyManager);
@@ -2935,7 +2935,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
             RectI filterRect(effectRegion_->GetLeft(), effectRegion_->GetTop(),
                 effectRegion_->GetWidth(), effectRegion_->GetHeight());
             curSurfaceNode_->UpdateChildrenFilterRects(node.shared_from_this(), filterRect,
-                node.IsBackgroundFilterCacheValid());
+                node.IsFilterCacheValid());
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
         }
         UpdateForegroundFilterCacheWithDirty(node, *curSurfaceDirtyManager_);
@@ -4436,7 +4436,7 @@ void RSUniRenderVisitor::CalcChildFilterNodeDirtyRegion(std::shared_ptr<RSSurfac
     if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
         needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
         for (size_t i = 0; i < filterNodes.size(); i++) {
-            auto filterRectsCacheValidNow = filterNodes[i]->IsBackgroundFilterCacheValid();
+            auto filterRectsCacheValidNow = filterNodes[i]->IsFilterCacheValid();
             // if child filter node has filter cache, no need to be added into dirtyregion
             // only support background filter cache valid and no pixelstretch node now
             if (isCacheBlurPartialRenderEnabled_ && filterRectsCacheValidNow &&
