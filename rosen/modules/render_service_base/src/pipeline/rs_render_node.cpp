@@ -204,6 +204,7 @@ const std::set<RSModifierType> CACHEABLE_ANIMATION_TYPE = {
 const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
     RSModifierType::SCALE,
+    RSModifierType::ALPHA,
 };
 }
 
