@@ -724,6 +724,11 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
         }
         newColorSpace_ = static_cast<GraphicColorGamut>(screenColorGamut);
     }
+
+    auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
+    if (stagingDisplayParams) {
+        stagingDisplayParams->SetNewColorSpace(newColorSpace_);
+    }
 }
 
 void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
@@ -766,6 +771,10 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
         if (screenManager->GetPixelFormat(node.GetScreenId(), newPixelFormat_) != SUCCESS) {
             RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.");
         }
+    }
+    auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
+    if (stagingDisplayParams) {
+        stagingDisplayParams->SetNewPixelFormat(newPixelFormat_);
     }
 }
 
@@ -1241,6 +1250,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         RSUifirstManager::Instance().DisableUifirstNode(node);
         return;
     }
+
+    CheckColorSpace(node);
+    CheckPixelFormat(node);
 
     // 1. Update matrix and collect dirty region
     if (node.GetBuffer() != nullptr) {

@@ -209,7 +209,8 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame No RSSurface found");
         return nullptr;
     }
-    auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(params.GetScreenInfo(), true);
+    auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(params.GetScreenInfo(), true, false,
+        params.GetNewColorSpace(), params.GetNewPixelFormat());
     auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig);
     if (!renderFrame) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame renderEngine requestFrame is null");
