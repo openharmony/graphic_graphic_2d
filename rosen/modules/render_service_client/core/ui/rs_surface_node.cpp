@@ -208,7 +208,9 @@ void RSSurfaceNode::MarkUIHidden(bool isHidden)
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeMarkUIHidden>(GetId(), isHidden);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    transactionProxy->FlushImplicitTransaction();
+    if (!isTextureExportNode_) {
+        transactionProxy->FlushImplicitTransaction();
+    }
 }
 
 void RSSurfaceNode::OnBoundsSizeChanged() const
