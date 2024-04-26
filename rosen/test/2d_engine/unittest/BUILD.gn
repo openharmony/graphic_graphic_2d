@@ -19,6 +19,7 @@ group("unittest") {
     "rosen_text/properties:unittest",
     "rosen_text/texgine:2d_engine_rosen_text_texgine_test",
     "rosen_text/texgine:hm_symbol_test",
+    "rosen_text/adapter/skia_txt:unittest",
     "rosen_text/ui:unittest",
   ]
 }
