@@ -3888,4 +3888,20 @@ HWTEST_F(RSNodeTest, SyncTextureExport, TestSize.Level1)
     rsNode->AddChild(canvasNode, -1);
     rsNode->SyncTextureExport(true);
 }
+
+/**
+ * @tc.name: CalcExpectedFrameRate
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CalcExpectedFrameRate, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create();
+    rsNode->AddChild(canvasNode, -1);
+    auto scene = "test_scene";
+    float speed = 0;
+    ASSERT_EQ(rsNode->CalcExpectedFrameRate(scene, speed), 0);
+}
+
 } // namespace OHOS::Rosen

@@ -203,7 +203,7 @@ HWTEST_F(RSAnimationManagerTest, Animate001, TestSize.Level1)
     
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
-
+    EXPECT_TRUE(animationManager.GetFrameRateRange().preferred_ == 0);
     renderCurveAnimation->SetRepeatCount(-1);
     animationManager.Animate(0, false);
 
