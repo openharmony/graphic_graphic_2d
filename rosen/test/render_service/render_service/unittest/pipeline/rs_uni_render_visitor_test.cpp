@@ -68,12 +68,15 @@ void RSUniRenderVisitorTest::SetUpTestCase()
 {
     matrixMock_ = Mock::MatrixMock::GetInstance();
     EXPECT_CALL(*matrixMock_, GetMinMaxScales(_)).WillOnce(testing::Return(false));
-    if (RSUniRenderJudgement::IsUniRender()) {
-        RSUniRenderThread::Instance().InitGrContext();
-    }
 }
 void RSUniRenderVisitorTest::TearDownTestCase() {}
-void RSUniRenderVisitorTest::SetUp() {}
+void RSUniRenderVisitorTest::SetUp()
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto& uniRenderThread = RSUniRenderThread::Instance();
+        uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    }
+}
 void RSUniRenderVisitorTest::TearDown()
 {
     system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
@@ -1181,8 +1184,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     std::shared_ptr<RSDisplayRenderNode> node = nullptr;
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
@@ -1206,8 +1207,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1237,8 +1236,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1265,8 +1262,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1293,8 +1288,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1320,8 +1313,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode006, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1349,8 +1340,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode007, TestSize.Level1)
 
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1378,8 +1367,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode008, TestSize.Level1)
 
     rsUniRenderVisitor->isUIFirst_ = true;
     rsUniRenderVisitor->isSubThread_ = true;
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1404,8 +1391,6 @@ HWTEST_F(RSUniRenderVisitorTest, GenerateNodeContentCache001, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
@@ -1423,8 +1408,6 @@ HWTEST_F(RSUniRenderVisitorTest, GenerateNodeContentCache002, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
@@ -1658,8 +1641,6 @@ HWTEST_F(RSUniRenderVisitorTest, AfterDrawCacheTest01, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     auto node = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(node, nullptr);
@@ -1696,8 +1677,6 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAutoCacheTest01, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
     NodeId id = 0;
     auto node = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(node, nullptr);
@@ -1965,7 +1944,7 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessEffectRenderNode001, TestSize.Level1)
 {
     NodeId id = 0;
     RSEffectRenderNode node(id);
-    node.InitRenderParams();
+    node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->ProcessEffectRenderNode(node);
@@ -2287,6 +2266,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareEnableList004, TestSize.Level2)
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
     rsUniRenderVisitor->UpdateHardwareEnableList(filterRects, validHwcNodes);
 }
 
@@ -2306,7 +2288,6 @@ HWTEST_F(RSUniRenderVisitorTest, AddContainerDirtyToGlobalDirty001, TestSize.Lev
     ASSERT_NE(displayNode, nullptr);
     ASSERT_NE(surfaceNode, nullptr);
     displayNode->InitRenderParams();
-    surfaceNode->InitRenderParams();
     displayNode->GetCurAllSurfaces().push_back(surfaceNode);
     surfaceNode->containerConfig_.hasContainerWindow_ = true;
     Occlusion::Rect rect = Occlusion::Rect(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
@@ -2547,8 +2528,6 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent001, Tes
     auto upperSurfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     ASSERT_NE(upperSurfaceNode, nullptr);
-    upperSurfaceNode->InitRenderParams();
-    surfaceNode->InitRenderParams();
     surfaceNode->SetParent(upperSurfaceNode);
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -2576,8 +2555,6 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent002, Tes
     auto upperSurfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     ASSERT_NE(upperSurfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
-    upperSurfaceNode->InitRenderParams();
     upperSurfaceNode->instanceRootNodeId_ = upperSurfaceNode->GetId();
     ASSERT_EQ(upperSurfaceNode->GetInstanceRootNode(), nullptr);
     surfaceNode->SetParent(std::weak_ptr<RSSurfaceRenderNode>(upperSurfaceNode));
@@ -2605,7 +2582,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
     surfaceNode->SetSecurityLayer(true);
     surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -2638,7 +2614,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level2)
     surfaceNode->SetSkipLayer(true);
     surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    surfaceNode->InitRenderParams();
 
     NodeId id = 0;
     RSDisplayNodeConfig config;
@@ -2665,7 +2640,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
     surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     surfaceNode->name_ = CAPTURE_WINDOW_NAME;
@@ -2694,7 +2668,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(surfaceNode->GetId());
     surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->SetProtectedLayer(true);
 
@@ -2702,7 +2676,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level2)
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(displayNode, nullptr);
-
+    displayNode->InitRenderParams();
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isQuickSkipPreparationEnabled_ = true;
@@ -2729,7 +2703,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode005, TestSize.Level2)
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(displayNode, nullptr);
-
+    displayNode->InitRenderParams();
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isQuickSkipPreparationEnabled_ = true;
@@ -2748,7 +2722,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareDisplayRenderNode001, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
     surfaceNode->SetSecurityLayer(true);
     surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -2783,7 +2756,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareDisplayRenderNode002, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
     surfaceNode->SetSkipLayer(true);
     surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -2818,7 +2790,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareDisplayRenderNode003, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
     surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     surfaceNode->name_ = CAPTURE_WINDOW_NAME;
@@ -3555,9 +3526,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessShadowFirst001, TestSize.Level1)
     ASSERT_NE(drawingCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
 
-    rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
-    rsUniRenderVisitor->renderEngine_->Init();
-
     NodeId id = 0;
     auto node = std::make_shared<RSCanvasRenderNode>(id);
     ASSERT_NE(node, nullptr);
@@ -4012,7 +3980,6 @@ HWTEST_F(RSUniRenderVisitorTest, IsNotDirtyHardwareEnabledTopSurface, TestSize.L
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto node = RSTestUtil::CreateSurfaceNode();
-    node->InitRenderParams();
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     node->name_ = "pointer window";
     // run
@@ -4139,7 +4106,6 @@ HWTEST_F(RSUniRenderVisitorTest, SetHasSharedTransitionNode003, TestSize.Level2)
 {
     auto parentNode = RSTestUtil::CreateSurfaceNode();
     auto node = RSTestUtil::CreateSurfaceNode();
-    node->InitRenderParams();
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(node, nullptr);
     parentNode->AddChild(node);
@@ -4162,7 +4128,6 @@ HWTEST_F(RSUniRenderVisitorTest, SetHasSharedTransitionNode004, TestSize.Level2)
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(node, nullptr);
-    node->InitRenderParams();
     parentNode->AddChild(node);
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
 

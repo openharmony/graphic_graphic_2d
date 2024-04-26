@@ -197,6 +197,7 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams001, TestSize.Level1)
         }
         auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
         auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+        param.useCPU = true;
         renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
     }
 }
