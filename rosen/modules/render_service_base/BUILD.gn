@@ -490,6 +490,7 @@ ohos_source_set("render_service_base_src") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_dump.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
     ]
   }

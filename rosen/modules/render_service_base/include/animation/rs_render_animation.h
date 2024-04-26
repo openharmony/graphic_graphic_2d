@@ -231,6 +231,9 @@ private:
 
     friend class RSAnimation;
     friend class RSModifierManager;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS
