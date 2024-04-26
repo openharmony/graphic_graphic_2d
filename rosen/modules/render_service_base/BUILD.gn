@@ -408,8 +408,6 @@ ohos_source_set("render_service_base_src") {
     "$graphic_2d_root/utils/log",
   ]
 
-  include_dirs += [ "//third_party/skia/src" ]
-
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/graphics_effect:libgraphics_effect",
