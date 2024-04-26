@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,8 +39,11 @@ public:
     }
 
     void SetEdging(FontEdging edging) override;
+    void SetBaselineSnap(bool baselineSnap) override;
+    void SetForceAutoHinting(bool isForceAutoHinting) override;
     void SetSubpixel(bool isSubpixel) override;
     void SetHinting(FontHinting hintingLevel) override;
+    void SetEmbeddedBitmaps(bool embeddedBitmaps) override;
     void SetTypeface(std::shared_ptr<Typeface> typeface) override;
     void SetSize(scalar textSize) override;
     void SetEmbolden(bool isEmbolden) override;
@@ -56,9 +59,14 @@ public:
 
     FontEdging GetEdging() const override;
     FontHinting GetHinting() const override;
+    bool IsEmbeddedBitmaps() const override;
     scalar GetScaleX() const override;
     scalar GetSkewX() const override;
+    bool IsBaselineSnap() const override;
+    bool IsForceAutoHinting() const override;
     bool IsSubpixel() const override;
+    bool IsLinearMetrics() const override;
+    bool IsEmbolden() const override;
 
     uint16_t UnicharToGlyph(int32_t uni) const override;
     int TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,

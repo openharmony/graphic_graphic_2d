@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,16 @@ void SkiaFont::SetEdging(FontEdging edging)
     skFont_.setEdging(static_cast<SkFont::Edging>(edging));
 }
 
+void SkiaFont::SetBaselineSnap(bool baselineSnap)
+{
+    skFont_.setBaselineSnap(baselineSnap);
+}
+
+void SkiaFont::SetForceAutoHinting(bool isForceAutoHinting)
+{
+    skFont_.setForceAutoHinting(isForceAutoHinting);
+}
+
 void SkiaFont::SetSubpixel(bool isSubpixel)
 {
     skFont_.setSubpixel(isSubpixel);
@@ -57,6 +67,11 @@ void SkiaFont::SetSubpixel(bool isSubpixel)
 void SkiaFont::SetHinting(FontHinting hintingLevel)
 {
     skFont_.setHinting(static_cast<SkFontHinting>(hintingLevel));
+}
+
+void SkiaFont::SetEmbeddedBitmaps(bool embeddedBitmaps)
+{
+    skFont_.setEmbeddedBitmaps(embeddedBitmaps);
 }
 
 void SkiaFont::SetTypeface(std::shared_ptr<Typeface> typeface)
@@ -147,6 +162,11 @@ FontEdging SkiaFont::GetEdging() const
     return static_cast<FontEdging>(skFont_.getEdging());
 }
 
+bool SkiaFont::IsEmbeddedBitmaps() const
+{
+    return skFont_.isEmbeddedBitmaps();
+}
+
 FontHinting SkiaFont::GetHinting() const
 {
     return static_cast<FontHinting>(skFont_.getHinting());
@@ -162,9 +182,29 @@ scalar SkiaFont::GetSkewX() const
     return skFont_.getSkewX();
 }
 
+bool SkiaFont::IsBaselineSnap() const
+{
+    return skFont_.isBaselineSnap();
+}
+
+bool SkiaFont::IsForceAutoHinting() const
+{
+    return skFont_.isForceAutoHinting();
+}
+
 bool SkiaFont::IsSubpixel() const
 {
     return skFont_.isSubpixel();
+}
+
+bool SkiaFont::IsLinearMetrics() const
+{
+    return skFont_.isLinearMetrics();
+}
+
+bool SkiaFont::IsEmbolden() const
+{
+    return skFont_.isEmbolden();
 }
 
 uint16_t SkiaFont::UnicharToGlyph(int32_t uni) const
