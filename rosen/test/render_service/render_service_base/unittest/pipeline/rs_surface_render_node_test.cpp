@@ -537,7 +537,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SubNodeNeedDraw001, TestSize.Level1)
     RectI rect = RectI(0, 0, 100, 100);
     subnode->oldDirtyInSurface_ = rect;
     node->visibleRegion_ = Occlusion::Region(rect);
-    node->SetGlobalDirtyRegion(rect);
+    node->globalDirtyRegion_ = Occlusion::Region(rect);
     bool needDraw = node->SubNodeNeedDraw(subnode->GetOldDirtyInSurface(), partialRenderType);
     ASSERT_EQ(needDraw, true);
 }

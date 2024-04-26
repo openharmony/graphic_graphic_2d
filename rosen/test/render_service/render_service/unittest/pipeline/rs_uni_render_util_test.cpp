@@ -64,6 +64,7 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory, Function | SmallTest | Level2)
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    node->InitRenderParams();
     int32_t bufferAge = 0;
     RSUniRenderUtil::MergeDirtyHistory(node, bufferAge);
 }
@@ -77,7 +78,6 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory, Function | SmallTest | Level2)
 HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    rsSurfaceRenderNode->InitRenderParams();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
