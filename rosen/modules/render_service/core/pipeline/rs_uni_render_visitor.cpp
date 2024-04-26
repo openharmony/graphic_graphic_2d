@@ -2021,7 +2021,7 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
     RectI lastFrameSurfacePos = curDisplayNode_->GetLastFrameSurfacePos(surfaceNode->GetId());
     RectI currentFrameSurfacePos = curDisplayNode_->GetCurrentFrameSurfacePos(surfaceNode->GetId());
     if (surfaceNode->GetAnimateState() || lastFrameSurfacePos != currentFrameSurfacePos) {
-        RS_LOGD("CheckMergeSurfaceDirtysForDisplay merge global surface pos changed "
+        RS_LOGD("CheckMergeSurfaceDirtysForDisplay global merge surface pos changed "
             "%{public}s lastFrameRect %{public}s currentFrameRect %{public}s",
             surfaceNode->GetName().c_str(), lastFrameSurfacePos.ToString().c_str(),
             currentFrameSurfacePos.ToString().c_str());
@@ -2220,7 +2220,7 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
         RS_OPTIONAL_TRACE_NAME_FMT("CheckMergeGlobalFilterForDisplay::filternode:%llu, filterRect:%s, dirtyRegion:%s",
             filterNode->GetId(), it->second.ToString().c_str(), accumulatedDirtyRegion.GetRegionInfo().c_str());
         if (!filterDirtyRegion.IsEmpty()) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay merge "
+            RS_LOGD("RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay global merge "
                 "container filterRegion %{public}s", (it->second).ToString().c_str());
             if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
                 filterNode->MarkFilterStatusChanged(false, false); // background filter affected by below dirty
@@ -2243,7 +2243,7 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
         auto lastGlobalDirtyRegion = Occlusion::Region{ Occlusion::Rect{ lastGlobalDirtyRect } };
         auto filterDirtyRegion = filterRegion.And(lastGlobalDirtyRegion);
         if (!filterDirtyRegion.IsEmpty()) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay merge "
+            RS_LOGD("RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay global merge "
                 "filterRegion %{public}s", (it->second).ToString().c_str());
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(it->second);
             it = globalFilter_.erase(it);
@@ -2314,6 +2314,7 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         if (filterNode == nullptr) {
             continue;
         }
+        UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, filterNode->GetOldDirtyInSurface());
         if (auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode)) {
             UpdateRotationStatusForEffectNode(*effectNode);
         }
