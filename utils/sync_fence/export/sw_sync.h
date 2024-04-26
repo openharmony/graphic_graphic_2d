@@ -51,7 +51,11 @@ static inline bool IsSupportSoftwareSync(void)
 static inline int CreateSyncTimeline(void)
 {
     int timeline = open("/sys/kernel/debug/sync/sw_sync", O_RDWR);
+    if (timeline < 0) {
+        return -1;
+    }
     if (fcntl(timeline, F_GETFD, 0) < 0) {
+        close(timeline);
         return -1;
     }
     return timeline;
