@@ -61,10 +61,6 @@ color_space_object_convertor_source_set("color_space_object_convertor_source") {
 if (current_os == "ohos") {
   ohos_shared_library("color_space_object_convertor") {
     public_deps = [ ":color_space_object_convertor_source" ]
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-    ]
     innerapi_tags = [ "platformsdk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
@@ -120,10 +116,6 @@ colorspacemanager_napi_source_set("colorspacemanager_napi_source") {
 if (current_os == "ohos") {
   ohos_shared_library("colorspacemanager_napi") {
     public_deps = [ ":colorspacemanager_napi_source" ]
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-    ]
     deps = [
       ":color_space_object_convertor",
       "$graphic_2d_root/utils/color_manager:color_manager",
