@@ -23,6 +23,10 @@
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
+static const int DRAWING_WIDTH = 1200;
+static const int DRAWING_HEIGHT = 800;
+static const int SYNC_WAIT_TIMEOUT = 100;
+
 void RenderContextSample::Run()
 {
     std::cout << "start to HdiBackend::GetInstance" << std::endl;
@@ -92,11 +96,11 @@ void RenderContextSample::InitEGL()
 
 void RenderContextSample::Init()
 {
-    backGroundWidth = 2560;
-    backGroundHeight = 1600;
+    backGroundWidth = BACKGROUND_WIDTH;
+    backGroundHeight = BACKGROUND_HEIGHT;
 
-    drawingWidth = 1200;
-    drawingHeight = 800;
+    drawingWidth = DRAWING_WIDTH;
+    drawingHeight = DRAWING_HEIGHT;
 
     CreateBackGroundSurface();
 
@@ -179,7 +183,7 @@ SurfaceError RenderContextSample::ProduceBackGroundBuffer(uint32_t width, uint32
     }
 
     sptr<SyncFence> tempFence = new SyncFence(releaseFence);
-    tempFence->Wait(100);
+    tempFence->Wait(SYNC_WAIT_TIMEOUT);
 
     if (buffer == nullptr) {
         std::cout << "buffer is nullptr" << std::endl;
@@ -213,15 +217,24 @@ SurfaceError RenderContextSample::ProduceBackGroundBuffer(uint32_t width, uint32
 
 SurfaceError RenderContextSample::ProduceDrawingBuffer(uint32_t width, uint32_t height)
 {
+    const int CENTER_X = 128;
+    const int CENTER_Y = 128;
+    const int BIG_CIRCLE_RADIUS = 90;
+    const int SMALL_CIRCLE_RADIUS = 20;
+    const int MEDIUM_CIRCLE_RADIUS = 35;
+    const int SMALL_CIRCLE1_X = 86;
+    const int SMALL_CIRCLE1_Y = 86;
+    const int SMALL_CIRCLE2_X = 160;
+    const int SMALL_CIRCLE2_Y = 76;
+    const int MEDIUM_CIRCLE_X = 140;
+    const int MEDIUM_CIRCLE_Y = 150;
     std::cout << "ProduceDrawingBuffer start" << std::endl;
 
     if (nwindow == nullptr) {
         nwindow = CreateNativeWindowFromSurface(&drawingPSurface);
         eglSurface = renderContext->CreateEGLSurface((EGLNativeWindowType)nwindow);
     }
-
     NativeWindowHandleOpt(nwindow, SET_BUFFER_GEOMETRY, width, height);
-
     renderContext->MakeCurrent(eglSurface);
 
     SkCanvas* canvas = renderContext->AcquireSkCanvas(width, height);
@@ -230,12 +243,11 @@ SurfaceError RenderContextSample::ProduceDrawingBuffer(uint32_t width, uint32_t 
     SkPaint paint;
     paint.setColor(SK_ColorRED);
     paint.setAntiAlias(true);
-    canvas->drawCircle(128, 128, 90, paint);
+    canvas->drawCircle(CENTER_X, CENTER_Y, BIG_CIRCLE_RADIUS, paint);
     paint.setColor(SK_ColorGREEN);
-    canvas->drawCircle(86, 86, 20, paint);
-    canvas->drawCircle(160, 76, 20, paint);
-    canvas->drawCircle(140, 150, 35, paint);
-
+    canvas->drawCircle(SMALL_CIRCLE1_X, SMALL_CIRCLE1_Y, SMALL_CIRCLE_RADIUS, paint);
+    canvas->drawCircle(SMALL_CIRCLE2_X, SMALL_CIRCLE2_Y, SMALL_CIRCLE_RADIUS, paint);
+    canvas->drawCircle(MEDIUM_CIRCLE_X, MEDIUM_CIRCLE_Y, MEDIUM_CIRCLE_RADIUS, paint);
     renderContext->RenderFrame();
     renderContext->SwapBuffers(eglSurface);
 
@@ -251,8 +263,8 @@ bool RenderContextSample::DrawBackgroundLayer(std::shared_ptr<HdiLayerInfo> &lay
 
     dstRect.x = 0;  // Absolute coordinates, with offset
     dstRect.y = 0;
-    dstRect.w = 2560;
-    dstRect.h = 1600;
+    dstRect.w = BACKGROUND_WIDTH;
+    dstRect.h = BACKGROUND_HEIGHT;
 
     if (!FillBackGroundLayer(layer, zorder, dstRect)) {
         return false;
@@ -268,8 +280,8 @@ bool RenderContextSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     dstRect.x = 0;  // Absolute coordinates, with offset
     dstRect.y = 0;
 
-    dstRect.w = 1200;
-    dstRect.h = 800;
+    dstRect.w = DRAWING_WIDTH;
+    dstRect.h = DRAWING_HEIGHT;
 
     if (!FillDrawingLayer(layer, 0, zorder, dstRect)) {
         return false;
@@ -314,7 +326,7 @@ void RenderContextSample::Draw()
             int32_t releaseFence = -1;
             sptr<SyncFence> tempFence = new SyncFence(releaseFence);
             layerI->GetSurface()->ReleaseBuffer(layerI->GetBuffer(), tempFence);
-            tempFence->Wait(100); // 100 ms
+            tempFence->Wait(SYNC_WAIT_TIMEOUT); // 100 ms
         }
         std::cout << "------ draw count " << count << std::endl;
         count++;
@@ -469,7 +481,7 @@ void RenderContextSample::OnHotPlugEvent(const std::shared_ptr<HdiOutput> &outpu
     if (connected) {
         CreatePhysicalScreen();
     }
- }
+}
 
 void RenderContextSample::DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param)
 {
@@ -496,10 +508,8 @@ void RenderContextSample::DoPrepareCompleted(sptr<Surface> surface, const struct
     }
 
     sptr<SyncFence> tempFence = new SyncFence(releaseFence);
-    tempFence->Wait(100);
-
-
-    auto addr = static_cast<uint8_t *>(fbBuffer->GetVirAddr());
+    tempFence->Wait(SYNC_WAIT_TIMEOUT);
+    auto addr = static_cast<uint8_t*>(fbBuffer->GetVirAddr());
     int32_t ret2 = memset_s(addr, fbBuffer->GetSize(), 0, fbBuffer->GetSize());
     if (ret2 != 0) {
         std::cout << "memset_s failed" << std::endl;

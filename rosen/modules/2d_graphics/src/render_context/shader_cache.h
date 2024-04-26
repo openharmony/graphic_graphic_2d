@@ -29,19 +29,19 @@ public:
     static ShaderCache& Instance();
 
     struct OptionalLockGuard {
-        explicit OptionalLockGuard(std::mutex& m): mtx_(m), status(m.try_lock()) {}
+        explicit OptionalLockGuard(std::mutex& m): mtx(m), status(m.try_lock()) {}
 
         ~OptionalLockGuard()
         {
             if (status) {
-                mtx_.unlock();
+                mtx.unlock();
             }
         }
 
         OptionalLockGuard(const OptionalLockGuard&) = delete;
         OptionalLockGuard& operator=(const OptionalLockGuard&) = delete;
 
-        std::mutex& mtx_;
+        std::mutex& mtx;
         bool status = false;
     };
 
