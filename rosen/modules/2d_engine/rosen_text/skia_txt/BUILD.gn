@@ -108,6 +108,10 @@ template("skia_libtxt") {
       "//third_party/skia:skia_$platform",
     ]
 
+    if (is_cross_platform) {
+      deps += [ "//third_party/bounds_checking_function:libsec_static" ]
+    }
+
     external_deps += [ "hilog:libhilog" ]
 
     if (!is_cross_platform) {
@@ -153,6 +157,11 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules",
     "//third_party/skia/modules/skparagraph",
   ]
+  if (is_arkui_x) {
+    include_dirs += [
+      "//foundation/multimedia/image_framework/mock/native/include/log",
+    ]
+  }
   defines = []
 
   sources = [
@@ -209,14 +218,17 @@ ohos_source_set("skia_unicode") {
     "//third_party/skia/modules/skunicode",
   ]
   defines = []
+  sources = []
 
   public = skia_unicode_public
   defines += [ "SKUNICODE_IMPLEMENTATION=1" ]
-  sources = skia_unicode_sources
   defines += [ "SK_UNICODE_AVAILABLE" ]
-  sources += skia_unicode_icu_sources
   defines += [ "SK_UNICODE_ICU_IMPLEMENTATION" ]
-  sources += skia_unicode_builtin_icu_sources
+  if (!is_arkui_x) {
+    sources += skia_unicode_sources
+    sources += skia_unicode_icu_sources
+    sources += skia_unicode_builtin_icu_sources
+  }
 
   platform = current_os
   if (platform == "mingw") {
