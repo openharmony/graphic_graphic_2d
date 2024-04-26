@@ -40,37 +40,37 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
     stagingChildrenDrawableVec_.clear();
 
     if (LIKELY(!node.GetRenderProperties().GetUseShadowBatching())) {
+        // Non-ShadowBatching mode (default), draw all children in order
         for (const auto& child : *children) {
             if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
                 continue;
             }
             if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-                childDrawable->SetSkip(SkipType::NONE);
                 stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
             }
         }
-        const_cast<RSRenderNode&>(node).SetChildrenHasSharedTransition(childrenHasSharedTransition_);
-        return !stagingChildrenDrawableVec_.empty();
-    }
-
-    // ShadowBatching mode, draw all shadows, then draw all children
-    decltype(stagingChildrenDrawableVec_) pendingChildren;
-    for (const auto& child : *children) {
-        if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
-            continue;
-        }
-        // Generate shadow only drawable
-        if (auto shadowDrawable = RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(child)) {
+    } else {
+        // ShadowBatching mode, draw all shadows, then draw all children
+        decltype(stagingChildrenDrawableVec_) pendingChildren;
+        for (const auto& child : *children) {
+            if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
+                continue;
+            }
+            auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child);
+            if (!childDrawable) {
+                continue;
+            }
+            auto shadowDrawable = RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(child, childDrawable);
+            if (!shadowDrawable) {
+                continue;
+            }
             stagingChildrenDrawableVec_.push_back(std::move(shadowDrawable));
-        }
-        if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-            childDrawable->SetSkip(SkipType::SKIP_SHADOW);
             pendingChildren.push_back(std::move(childDrawable));
         }
+        // merge two vectors, shadow drawables first, render node drawables second
+        stagingChildrenDrawableVec_.insert(
+            stagingChildrenDrawableVec_.end(), pendingChildren.begin(), pendingChildren.end());
     }
-    // merge pendingChildren into stagingChildrenDrawableVec_
-    stagingChildrenDrawableVec_.insert(stagingChildrenDrawableVec_.end(), pendingChildren.begin(),
-        pendingChildren.end());
     const_cast<RSRenderNode&>(node).SetChildrenHasSharedTransition(childrenHasSharedTransition_);
     return !stagingChildrenDrawableVec_.empty();
 }
@@ -109,7 +109,6 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
         // for higher hierarchy node, we add paired node (lower in hierarchy) first, then add it
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
             // NOTE: skip shared-transition shadow for now
-            childDrawable->SetSkip(SkipType::SKIP_SHADOW);
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     }

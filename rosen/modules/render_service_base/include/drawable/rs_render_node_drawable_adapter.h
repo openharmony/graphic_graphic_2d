@@ -76,9 +76,8 @@ public:
 
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
-    static SharedPtr OnGenerateShadowDrawable(const std::shared_ptr<const RSRenderNode>& node);
-
-    void SetSkip(SkipType type);
+    static SharedPtr OnGenerateShadowDrawable(
+        const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
     inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
     {
@@ -89,6 +88,7 @@ public:
     {
         return uifirstRenderParams_;
     }
+
 protected:
     // Util functions
     std::string DumpDrawableVec() const;
@@ -111,6 +111,7 @@ protected:
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
+    void SetSkip(SkipType type) { skipType_ = type; }
 
     // Register utils
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
@@ -120,14 +121,6 @@ protected:
         RenderNodeDrawableRegistrar()
         {
             RSRenderNodeDrawableAdapter::GeneratorMap.emplace(type, generator);
-        }
-    };
-    template<Generator generator>
-    class RenderNodeShadowDrawableRegistrar {
-    public:
-        RenderNodeShadowDrawableRegistrar()
-        {
-            RSRenderNodeDrawableAdapter::shadowGenerator_ = generator;
         }
     };
 
@@ -142,18 +135,20 @@ protected:
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
+
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
                             std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
-    static Generator shadowGenerator_;
-    static std::map<NodeId, WeakPtr> RenderNodeDrawableCache;
+    static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
-    int8_t skipIndex_ = -1;
+    SkipType skipType_ = SkipType::NONE;
+    int8_t GetSkipIndex() const;
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
     friend class OHOS::Rosen::RSSurfaceRenderNode;
+    friend class RSRenderNodeShadowDrawable;
 };
 
 } // namespace DrawableV2
