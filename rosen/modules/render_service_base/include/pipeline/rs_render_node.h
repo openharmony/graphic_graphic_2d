@@ -459,7 +459,8 @@ public:
     // for blur filter cache
     void UpdateLastFilterCacheRegion(const std::optional<RectI>& clipRect = std::nullopt);
     void UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect);
-    void UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect);
+    void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect = std::nullopt,

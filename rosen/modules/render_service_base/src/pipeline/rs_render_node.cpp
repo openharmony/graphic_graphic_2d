@@ -1633,25 +1633,38 @@ inline static Drawing::Rect Rect2DrawingRect(const RectF& r)
     return Drawing::Rect(r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_);
 }
 
-void RSRenderNode::UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect)
+void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
+    const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect)
 {
     auto& rootProperties = subTreeRoot.GetRenderProperties();
     auto rootGeo = rootProperties.GetBoundsGeometry();
-    if (!rootGeo) {
+    auto selfGeo = GetRenderProperties().GetBoundsGeometry();
+    if (!rootGeo || !selfGeo) {
         return;
     }
-    Drawing::Matrix absMatrix;
+    Drawing::Matrix absMatrix = selfGeo->GetMatrix();
     auto directParent = GetParent().lock();
     while (directParent && directParent->GetId() != subTreeRoot.GetId()) {
         if (auto parentGeo = directParent->GetRenderProperties().GetBoundsGeometry()) {
-            absMatrix.PreConcat(parentGeo->GetMatrix());
+            absMatrix.PostConcat(parentGeo->GetMatrix());
         }
         directParent = directParent->GetParent().lock();
     }
-    absMatrix.PreConcat(rootGeo->GetMatrix());
+    if (!directParent) {
+        return;
+    }
+    absMatrix.PostConcat(rootGeo->GetAbsMatrix());
     Drawing::RectF absRect;
     absMatrix.MapRect(absRect, Rect2DrawingRect(GetRenderProperties().GetBoundsRect()));
     filterRect = RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight());
+    if (clipRect.has_value()) {
+        filterRect = filterRect.IntersectRect(*clipRect);
+    }
+    if (filterRect == lastFilterRegion_) {
+        return;
+    }
+    dirtyManager.MergeDirtyRect(filterRect);
+    isDirtyRegionUpdated_ = true;
 }
 
 void RSRenderNode::MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged)
@@ -1753,7 +1766,10 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelow
         if (filterDrawable == nullptr) {
             return;
         }
-        if (dirtyBelowContainsFilterNode) {
+        auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
+            dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
+            dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE);
+        if (dirtyBelowContainsFilterNode || bgDirty) {
             filterDrawable->MarkFilterForceClearCache();
         }
         MarkFilterCacheFlagsAfterPrepare(filterDrawable, false);
@@ -1763,7 +1779,7 @@ void RSRenderNode::MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelow
         if (filterDrawable == nullptr) {
             return;
         }
-        if (dirtyBelowContainsFilterNode) {
+        if (dirtyBelowContainsFilterNode || !dirtySlots_.empty()) {
             filterDrawable->MarkFilterForceClearCache();
         }
         MarkFilterCacheFlagsAfterPrepare(filterDrawable, true);
