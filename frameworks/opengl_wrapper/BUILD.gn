@@ -53,7 +53,7 @@ if (current_os != "ohos") {
   group("EGL") {
     public_external_deps = [
       "egl:libEGL",
-      "opengles:libGLES"
+      "opengles:libGLES",
     ]
   }
 } else {
@@ -85,7 +85,7 @@ if (current_os != "ohos") {
 
     public_external_deps = [
       "egl:libEGL",
-      "opengles:libGLES"
+      "opengles:libGLES",
     ]
     external_deps = [
       "c_utils:utils",
@@ -139,9 +139,9 @@ ohos_shared_library("GLESv1") {
   public_configs = [ ":glesv1_public_config" ]
 
   public_external_deps = [
-      "egl:libEGL",
-      "opengles:libGLES"
-    ]
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -179,9 +179,9 @@ ohos_shared_library("GLESv2") {
   public_configs = [ ":glesv2_public_config" ]
 
   public_external_deps = [
-      "egl:libEGL",
-      "opengles:libGLES"
-    ]
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
 
   external_deps = [ "hilog:libhilog" ]
 
@@ -213,7 +213,7 @@ if (current_os != "ohos") {
   group("GLESv3") {
     public_external_deps = [
       "egl:libEGL",
-      "opengles:libGLES"
+      "opengles:libGLES",
     ]
   }
 } else {
@@ -225,7 +225,7 @@ if (current_os != "ohos") {
 
     public_external_deps = [
       "egl:libEGL",
-      "opengles:libGLES"
+      "opengles:libGLES",
     ]
 
     external_deps = [ "hilog:libhilog" ]
