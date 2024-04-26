@@ -51,6 +51,7 @@ ohos_shared_library("windowanimationmanager_napi") {
     "samgr:samgr_proxy",
     "window_manager:libwm",
     "window_manager:libwmutil",
+    "window_manager:libwmutil_base",
   ]
 
   defines = []
