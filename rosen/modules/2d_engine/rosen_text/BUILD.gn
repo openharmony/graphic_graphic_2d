@@ -37,7 +37,7 @@ if (enable_text_gine) {
 
   ohos_shared_library("rosen_text") {
     include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
-    public_deps = [ ":rosen_text_inner" ]
+    deps = [ ":rosen_text_inner" ]
     public_configs =
         [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_config" ]
     platform = current_os
@@ -46,9 +46,9 @@ if (enable_text_gine) {
     }
 
     if (platform == "ohos") {
-      deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
     } else {
-      deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
+      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
     }
 
     part_name = "graphic_2d"

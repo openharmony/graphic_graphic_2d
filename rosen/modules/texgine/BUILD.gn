@@ -129,7 +129,7 @@ ohos_source_set("libtexgine_source") {
 }
 
 ohos_shared_library("libtexgine") {
-  public_deps = [ ":libtexgine_source" ]
+  deps = [ ":libtexgine_source" ]
 
   platform = current_os
   if (platform == "mingw") {
@@ -139,9 +139,9 @@ ohos_shared_library("libtexgine") {
   #the texengine process is only enabled_ Text_ Engine is valid if it is true
   if (enable_text_gine) {
     if (platform == "ohos") {
-      deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
     } else {
-      deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
+      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
     }
     deps += [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
   }

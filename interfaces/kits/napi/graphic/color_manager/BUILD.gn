@@ -29,10 +29,13 @@ config("color_space_object_config") {
   ]
 }
 
-template("color_space_object_convertor_source_set") {
-  forward_variables_from(invoker, "*")
+config("color_space_object_convertor_public_config") {
+  include_dirs = [ "color_space_object_convertor" ]
+}
 
-  ohos_source_set(target_name) {
+if (current_os == "ohos") {
+  ohos_shared_library("color_space_object_convertor") {
+    public_configs = [ ":color_space_object_convertor_public_config" ]
     sources = [
       "color_space_object_convertor/color_space_object_convertor.cpp",
       "color_space_object_convertor/js_color_space.cpp",
@@ -50,29 +53,26 @@ template("color_space_object_convertor_source_set") {
     ]
 
     cflags_cc = [ "-std=c++17" ]
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
-  }
-}
-
-color_space_object_convertor_source_set("color_space_object_convertor_source") {
-}
-
-config("color_space_object_convertor_public_config") {
-  include_dirs = [ "color_space_object_convertor" ]
-}
-
-if (current_os == "ohos") {
-  ohos_shared_library("color_space_object_convertor") {
-    public_configs = [ ":color_space_object_convertor_public_config" ]
-    public_deps = [ ":color_space_object_convertor_source" ]
     innerapi_tags = [ "platformsdk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 } else {
   ohos_source_set("color_space_object_convertor") {
-    public_deps = [ ":color_space_object_convertor_source" ]
+    sources = [
+      "color_space_object_convertor/color_space_object_convertor.cpp",
+      "color_space_object_convertor/js_color_space.cpp",
+      "color_space_object_convertor/js_color_space_utils.cpp",
+    ]
+
+    include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
+    configs = [
+      ":color_space_object_config",
+      "$arkui_root/napi:ace_napi_config",
+      "$graphic_2d_root/utils/color_manager:color_manager_public_config",
+    ]
+
+    cflags_cc = [ "-std=c++17" ]
     deps = [ "$graphic_2d_root/utils/color_manager:color_manager" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
