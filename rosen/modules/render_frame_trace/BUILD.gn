@@ -27,13 +27,21 @@ ohos_source_set("render_frame_trace") {
       cflags += [ "-fwhole-program-vtables" ]
     }
   }
-  external_deps = [ "jsoncpp:jsoncpp" ]
+  
+  external_deps = []
+  if (is_arkui_x) {
+    deps = [ "//third_party/jsoncpp:jsoncpp_static" ]
+  } else {
+    external_deps += [ "jsoncpp:jsoncpp" ]
+  }
   if (!build_ohos_sdk) {
     external_deps += [
       "ipc:ipc_single",
       "qos_manager:concurrent_task_client",
     ]
-    defines = [ "QOS_MANAGER" ]
+    if (!is_arkui_x) {
+      defines = [ "QOS_MANAGER" ]
+    }
   }
   if (defined(global_parts_info)) {
     if (defined(global_parts_info.resourceschedule_frame_aware_sched)) {

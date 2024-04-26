@@ -27,8 +27,14 @@ config("render_service_client_config") {
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
     "$graphic_2d_root/rosen/modules/2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
   defines = rs_common_define
+  if (defined(is_arkui_x) && is_arkui_x && ace_enable_gpu) {
+    defines += [ "ACE_ENABLE_GPU" ]
+  }
 }
 
 template("render_service_client_source_set") {
@@ -59,6 +65,10 @@ template("render_service_client_source_set") {
       "$graphic_2d_root/utils/log",
       "$graphic_2d_root/utils/sandbox",
     ]
+
+    if (is_arkui_x) {
+      include_dirs += [ "//foundation/graphic/graphic_surface/interfaces/inner_api/surface", ]
+    }
 
     sources = [
       #animation
@@ -126,6 +136,7 @@ template("render_service_client_source_set") {
     if (is_cross_platform) {
       #ui
       sources -= [ "core/ui/rs_display_node.cpp" ]
+      defines += [ "CROSS_PLATFORM" ]
     }
 
     if (defined(graphic_2d_ext_configs.vendor_root)) {
@@ -135,7 +146,7 @@ template("render_service_client_source_set") {
 
     if (rosen_is_ohos) {
       sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
-    } else {
+    } else if (!is_arkui_x) {
       sources +=
           [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
     }

@@ -54,6 +54,9 @@ ohos_source_set("impl_eventhandler") {
     ":utils",
     "//third_party/libuv:uv",
   ]
+  if(is_arkui_x) {
+    defines += ["CROSSPLATFORM"]
+  }
   external_deps = [ "hilog:libhilog" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"

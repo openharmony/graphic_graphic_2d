@@ -300,8 +300,6 @@ ohos_source_set("render_service_base_src") {
 
       "src/pipeline/rs_display_render_node.cpp",
       "src/pipeline/rs_occlusion_config.cpp",
-      "src/pipeline/rs_uni_render_judgement.cpp",
-      "src/pipeline/sk_resource_manager.cpp",
 
       #transaction
       "src/transaction/rs_hgm_config_data.cpp",
@@ -395,6 +393,10 @@ ohos_source_set("render_service_base_src") {
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
+
+  if (is_arkui_x) {
+    include_dirs += [ "//foundation/graphic/graphic_surface/interfaces/inner_api/surface", ]
+  }
 
   external_deps = [
     "graphic_surface:surface_headers",
