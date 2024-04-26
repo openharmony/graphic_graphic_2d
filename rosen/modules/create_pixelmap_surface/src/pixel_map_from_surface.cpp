@@ -544,7 +544,8 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     int bufferHeight = surfaceBuffer_->GetHeight();
     if (pixelFormat == GRAPHIC_PIXEL_FMT_BGRA_8888) {
         colorType = kBGRA_8888_SkColorType;
-    } else if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+    } else if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
+        pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
         colorType = kRGBA_1010102_SkColorType;
         glType = GL_RGB10_A2;
     }

@@ -649,15 +649,6 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
     return true;
 }
 
-Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer)
-{
-    Drawing::ColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-        Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
-    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
-    Drawing::BitmapFormat format { colorType, alphaType };
-    return format;
-}
-
 // YUV to RGBA: Pixel value conversion table
 static int Table_fv1[256] = { -180, -179, -177, -176, -174, -173, -172, -170, -169, -167, -166, -165, -163, -162,
     -160, -159, -158, -156, -155, -153, -152, -151, -149, -148, -146, -145, -144, -142, -141, -139,
@@ -898,6 +889,24 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
     }
 
     return OHOS::GSERROR_OK;
+}
+
+Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelFmt)
+{
+    switch (pixelFmt) {
+        case GRAPHIC_PIXEL_FMT_RGBA_8888:
+            return Drawing::ColorType::COLORTYPE_RGBA_8888;
+        case GRAPHIC_PIXEL_FMT_BGRA_8888 :
+            return Drawing::ColorType::COLORTYPE_BGRA_8888;
+        case GRAPHIC_PIXEL_FMT_RGB_565:
+            return Drawing::ColorType::COLORTYPE_RGB_565;
+        case GRAPHIC_PIXEL_FMT_YCBCR_P010:
+        case GRAPHIC_PIXEL_FMT_YCRCB_P010:
+        case GRAPHIC_PIXEL_FMT_RGBA_1010102:
+            return Drawing::ColorType::COLORTYPE_RGBA_1010102;
+        default:
+            return Drawing::ColorType::COLORTYPE_RGBA_8888;
+    }
 }
 
 Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
@@ -1205,10 +1214,22 @@ bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, s
 
 bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap)
 {
-    Drawing::BitmapFormat format = Detail::GenerateDrawingBitmapFormat(buffer);
+    Drawing::BitmapFormat format = GenerateDrawingBitmapFormat(buffer);
     bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride());
     bitmap.SetPixels(buffer->GetVirAddr());
     return true;
+}
+
+Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer)
+{
+    Drawing::BitmapFormat format;
+    if (buffer == nullptr) {
+        return format;
+    }
+    Drawing::ColorType colorType = GetColorTypeFromBufferFormat(buffer->GetFormat());
+    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
+    format = { colorType, alphaType };
+    return format;
 }
 
 bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
@@ -1218,7 +1239,7 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
     bool convertRes = Detail::ConvertBufferColorGamut(newBuffer, buffer, srcGamut, dstGamut, metaDatas);
     if (convertRes) {
         RS_LOGW("CreateNewColorGamutBitmap: convert color gamut succeed, use new buffer to create bitmap.");
-        Drawing::BitmapFormat format = Detail::GenerateDrawingBitmapFormat(buffer);
+        Drawing::BitmapFormat format = GenerateDrawingBitmapFormat(buffer);
         bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride());
         bitmap.SetPixels(newBuffer.data());
         return true;
