@@ -24,7 +24,6 @@ class RSRootRenderNode;
 namespace DrawableV2 {
 class RSRootRenderNodeDrawable : public RSCanvasRenderNodeDrawable {
 public:
-    explicit RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSRootRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -32,6 +31,7 @@ public:
     void OnCapture(Drawing::Canvas& canvas) override;
 
 private:
+    explicit RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::ROOT_NODE, OnGenerate>;
     static Registrar instance_;
 };

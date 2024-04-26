@@ -22,6 +22,7 @@
 #include "draw/brush.h"
 #include "draw/path.h"
 #include "draw/surface.h"
+#include "effect/blender.h"
 #include "image/pixmap.h"
 #include "image/yuv_info.h"
 #include "text/font_style_set.h"
@@ -81,6 +82,7 @@ public:
         DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static FontStyleSet* CreateEmpty();
+    static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
 };
 } // namespace Drawing
 } // namespace Rosen

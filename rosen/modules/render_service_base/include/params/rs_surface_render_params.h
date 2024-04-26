@@ -140,7 +140,7 @@ public:
         return name_;
     }
 
-    void SetUifirstNodeEnableParam(bool isUifirst)
+    void SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
             return;
@@ -149,7 +149,7 @@ public:
         needSync_ = true;
     }
 
-    bool GetUifirstNodeEnableParam()
+    MultiThreadCacheType GetUifirstNodeEnableParam()
     {
         return uiFirstFlag_;
     }
@@ -202,8 +202,8 @@ public:
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const;
 
-    void SetIsTransparent(bool isTransparent);
-    bool GetIsTransparent() const;
+    void SetTransparentRegion(const Occlusion::Region& transparentRegion);
+    const Occlusion::Region& GetTransparentRegion() const;
 
     void SetOldDirtyInSurface(const RectI& oldDirtyInSurface);
     RectI GetOldDirtyInSurface() const;
@@ -246,7 +246,7 @@ private:
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool needBilinearInterpolation_ = false;
-    bool uiFirstFlag_ = false;
+    MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
 
@@ -254,6 +254,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    Occlusion::Region transparentRegion_;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;

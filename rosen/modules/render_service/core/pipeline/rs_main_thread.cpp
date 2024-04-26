@@ -66,7 +66,6 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -310,6 +309,7 @@ void RSMainThread::Init()
         ProcessCommand();
         Animate(timestamp_);
         CollectInfoForHardwareComposer();
+        RSUifirstManager::Instance().PrepareCurrentFrameEvent();
         ProcessHgmFrameRate(timestamp_);
         RS_PROFILER_ON_RENDER_BEGIN();
         // may mark rsnotrendering
@@ -957,10 +957,12 @@ void RSMainThread::ProcessCommandForUniRender()
             }
         }
     }
-    RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
-        RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
-        transactionDataEffective->clear();
-    });
+    if (!transactionDataEffective->empty()) {
+        RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
+            RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
+            transactionDataEffective->clear();
+        });
+    }
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
@@ -1048,16 +1050,14 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     if (syncTransactionData_.count(pid) == 0) {
         syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
     }
+    syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
     if (isNeedCloseSync) {
-        syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
-        syncTransactionCount_ += syncTransactionCountExt_;
-        syncTransactionCountExt_ = 0;
+        isNeedCloseSync_ = true;
     } else {
         syncTransactionCount_ -= 1;
-        syncTransactionCountExt_ += rsTransactionData->GetSyncTransactionNum();
     }
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
-    if (syncTransactionCount_ == 0) {
+    if (syncTransactionCount_ == 0 && isNeedCloseSync_) {
         ProcessAllSyncTransactionData();
     }
 }
@@ -1073,7 +1073,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
     }
     syncTransactionData_.clear();
     syncTransactionCount_ = 0;
-    syncTransactionCountExt_ = 0;
+    isNeedCloseSync_ = false;
     RequestNextVSync();
 }
 
@@ -1417,6 +1417,13 @@ bool RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
 {
     if (!isUniRender_) {
+        return;
+    }
+    if (!needWaitUnmarshalFinished_) {
+        /* if needWaitUnmarshalFinished_ is false, it means UnmarshallingTask is finished, no need to wait.
+         * reset needWaitUnmarshalFinished_ to true, maybe it need to wait next time.
+         */
+        needWaitUnmarshalFinished_ = true;
         return;
     }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUnmarshallingTaskFinished");
@@ -1998,8 +2005,7 @@ void RSMainThread::CalcOcclusion()
         }
         curSurfaceIds.emplace_back(surface->GetId());
     }
-    bool winDirty = (lastSurfaceIds_ != curSurfaceIds || isDirty_ ||
-        lastFocusNodeId_ != focusNodeId_);
+    bool winDirty = (isDirty_ || lastFocusNodeId_ != focusNodeId_ || lastSurfaceIds_ != curSurfaceIds);
     lastSurfaceIds_ = std::move(curSurfaceIds);
     lastFocusNodeId_ = focusNodeId_;
     if (!winDirty) {
@@ -2219,6 +2225,23 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
     }
 }
 
+void RSMainThread::ProcessScreenHotPlugEvents()
+{
+    auto screenManager_ = CreateOrGetScreenManager();
+    if (!screenManager_) {
+        return;
+    }
+
+    if (!screenManager_->TrySimpleProcessHotPlugEvents()) {
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            RSHardwareThread::Instance().PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
+        } else {
+            PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
+        }
+    }
+}
+
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     isOnVsync_.store(true);
@@ -2235,21 +2258,18 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     frameCount_++;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
-        RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        if (RSUnmarshalThread::Instance().CachedTransactionDataEmpty()) {
+            // set needWaitUnmarshalFinished_ to false, it means mainLoop do not wait unmarshalBarrierTask_
+            needWaitUnmarshalFinished_ = false;
+        } else {
+            RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        }
     }
     mainLoop_();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     SetVsyncInfo(timestamp);
 #endif
-    auto screenManager_ = CreateOrGetScreenManager();
-    if (screenManager_ != nullptr) {
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            RSHardwareThread::Instance().PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
-        } else {
-            PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
-        }
-    }
+    ProcessScreenHotPlugEvents();
     RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady);
     isOnVsync_.store(false);
 }

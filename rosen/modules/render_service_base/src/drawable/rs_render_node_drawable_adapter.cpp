@@ -20,6 +20,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
@@ -103,6 +104,10 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
         case RSRenderNodeType::DISPLAY_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
+            break;
+        case RSRenderNodeType::CANVAS_DRAWING_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);

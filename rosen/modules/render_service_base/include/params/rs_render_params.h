@@ -60,6 +60,7 @@ public:
     // return to add some dirtynode does not mark pending
     bool SetLocalDrawRect(const RectF& localDrawRect);
     const RectF& GetLocalDrawRect() const;
+    virtual bool IsNeedProcess() const { return false; };
 
     void SetHasSandBox(bool hasSandBox);
     bool HasSandBox() const;

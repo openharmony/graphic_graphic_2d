@@ -389,10 +389,8 @@ private:
 
     void SwitchColorFilterDrawing(int currentSaveCount);
     void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
-    void SaveCurSurface(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
-        std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
-    void RestoreCurSurface(std::shared_ptr<RSDirtyRegionManager> &dirtyManager,
-        std::shared_ptr<RSSurfaceRenderNode> &surfaceNode);
+    void SaveCurSurface();
+    void RestoreCurSurface();
     void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
     void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 

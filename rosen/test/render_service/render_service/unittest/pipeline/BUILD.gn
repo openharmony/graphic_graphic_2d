@@ -169,11 +169,11 @@ ohos_unittest("RSUniRenderProcessorTest") {
 ## Build RSRenderServiceVisitorTest
 ohos_unittest("RSRenderServiceVisitorTest") {
   module_out_path = module_output_path
-  sources = [ "rs_render_service_visitor_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "../../../../../modules/render_service_base:render_service_base_src",
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "rs_render_service_visitor_test.cpp",
   ]
+  deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -357,11 +357,11 @@ ohos_unittest("RSBaseRenderUtilTest") {
 ## Build RSSurfaceCaptureTaskTest
 ohos_unittest("RSSurfaceCaptureTaskTest") {
   module_out_path = module_output_path
-  sources = [ "rs_surface_capture_task_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "../../../../../modules/render_service_base:render_service_base_src",
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "rs_surface_capture_task_test.cpp",
   ]
+  deps = [ ":rs_test_common" ]
   include_dirs = [ "../../../../../modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
@@ -440,13 +440,11 @@ ohos_unittest("RSUniRenderUtilTest") {
 ohos_unittest("RSUniRenderVisitorTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "mock/mock_matrix.cpp",
     "rs_uni_render_visitor_test.cpp",
   ]
-  deps = [
-    ":rs_test_common",
-    "../../../../../modules/render_service_base:render_service_base_src",
-  ]
+  deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -476,10 +474,13 @@ ohos_unittest("RSUniRenderVisitorTest") {
 ## Build RSUniUiCaptureTest
 ohos_unittest("RSUniUiCaptureTest") {
   module_out_path = module_output_path
-  sources = [ "rs_uni_ui_capture_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "rs_uni_ui_capture_test.cpp",
+  ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base:render_service_base_src",
+    "../../../../../modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",
@@ -540,7 +541,7 @@ ohos_unittest("RSMainThreadTest") {
   sources = [ "rs_main_thread_test.cpp" ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base:render_service_base_src",
+    "../../../../../modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",
@@ -757,10 +758,7 @@ ohos_unittest("RSRoundCornerDisplayTest") {
     "//third_party/skia/include/core",
   ]
 
-  deps = [
-    ":rs_test_common",
-    "../../../../../modules/render_service_base:render_service_base_src",
-  ]
+  deps = [ ":rs_test_common" ]
   deps += [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
@@ -894,10 +892,7 @@ ohos_unittest("RSUniRenderEngineTest") {
 ohos_unittest("RSUnmarshalThreadTest") {
   module_out_path = module_output_path
   sources = [ "rs_unmarshal_thread_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "../../../../../modules/render_service_base:render_service_base_src",
-  ]
+  deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

@@ -29,6 +29,12 @@ config("render_service_client_config") {
     "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
+  if (defined(is_arkui_x) && is_arkui_x) {
+    include_dirs += [
+      "$graphic_2d_root/utils/color_manager/export",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    ]
+  }
 }
 
 template("render_service_client_source_set") {
@@ -59,6 +65,13 @@ template("render_service_client_source_set") {
       "$graphic_2d_root/utils/log",
       "$graphic_2d_root/utils/sandbox",
     ]
+
+    if (defined(is_arkui_x) && is_arkui_x) {
+      include_dirs += [
+        "$graphic_2d_root/utils/color_manager/export",
+        "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      ]
+    }
 
     sources = [
       #animation

@@ -78,6 +78,7 @@ RSUniRenderThread& RSUniRenderThread::Instance()
 }
 
 RSUniRenderThread::RSUniRenderThread()
+    :postImageReleaseTaskFlag_(Rosen::RSSystemProperties::GetImageReleaseUsingPostTask())
 {}
 
 RSUniRenderThread::~RSUniRenderThread() noexcept {}
@@ -94,7 +95,7 @@ void RSUniRenderThread::InitGrContext()
     if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         Drawing::SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         uniRenderEngine_->GetSkContext()->RegisterPostFunc([](const std::function<void()>& task) {
-            RSUniRenderThread::Instance().PostRTTask(task);
+            RSUniRenderThread::Instance().PostImageReleaseTask(task);
         });
     }
 #endif
@@ -165,6 +166,39 @@ void RSUniRenderThread::PostRTTask(const std::function<void()>& task)
         task();
     } else {
         PostTask(task);
+    }
+}
+
+void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
+{
+    imageReleaseCount_++;
+    if (postImageReleaseTaskFlag_) {
+        PostRTTask(task);
+        return;
+    }
+    std::unique_lock<std::mutex> releaseLock(imageReleaseMutex_);
+    imageReleaseTasks_.push_back(task);
+}
+
+void RSUniRenderThread::RunImageReleaseTask()
+{
+    if (postImageReleaseTaskFlag_) { // release using post task
+        RS_TRACE_NAME_FMT("RunImageReleaseTask using PostTask: count %d", imageReleaseCount_);
+        imageReleaseCount_ = 0;
+        return;
+    }
+    std::vector<Callback> tasks;
+    {
+        std::unique_lock<std::mutex> releaseLock(imageReleaseMutex_);
+        std::swap(imageReleaseTasks_, tasks);
+    }
+    if (tasks.empty()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("RunImageReleaseTask: count %d", imageReleaseCount_);
+    imageReleaseCount_ = 0;
+    for (auto task : tasks) {
+        task();
     }
 }
 

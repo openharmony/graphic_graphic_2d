@@ -17,7 +17,6 @@
 
 #include <algorithm>
 #include <securec.h>
-#include "platform/common/rs_log.h"
 
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
@@ -1177,9 +1176,17 @@ void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUp
     if (!emitterUpdater_.empty()) {
         isDrawn_ = true;
         auto renderNode = backref_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
         auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        if (animation == nullptr) {
+            return;
+        }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        particleAnimation->UpdateEmitter(emitterUpdater_);
+        if (particleAnimation) {
+            particleAnimation->UpdateEmitter(emitterUpdater_);
+        }
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1192,9 +1199,17 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
     if (particleNoiseFields_) {
         isDrawn_ = true;
         auto renderNode = backref_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
         auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        if (animation == nullptr) {
+            return;
+        }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        particleAnimation->UpdateNoiseField(particleNoiseFields_);
+        if (particleAnimation) {
+            particleAnimation->UpdateNoiseField(particleNoiseFields_);
+        }
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1847,12 +1862,11 @@ bool RSProperties::IsContentDirty() const
 
 RectI RSProperties::GetDirtyRect() const
 {
-    auto boundsGeometry = (boundsGeo_);
-    RectI dirtyRect = boundsGeometry->MapAbsRect(GetLocalBoundsAndFramesRect());
+    RectI dirtyRect = boundsGeo_->MapAbsRect(GetLocalBoundsAndFramesRect());
     if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
         return dirtyRect;
     } else {
-        auto drawRegion = boundsGeometry->MapAbsRect(*drawRegion_);
+        auto drawRegion = boundsGeo_->MapAbsRect(*drawRegion_);
         // this is used to fix the scene with drawRegion problem, which is need to be optimized
         drawRegion.SetRight(drawRegion.GetRight() + 1);
         drawRegion.SetBottom(drawRegion.GetBottom() + 1);
@@ -1865,19 +1879,18 @@ RectI RSProperties::GetDirtyRect() const
 RectI RSProperties::GetDirtyRect(RectI& drawRegion) const
 {
     RectI dirtyRect;
-    auto boundsGeometry = (boundsGeo_);
     if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
-        dirtyRect = boundsGeometry->GetAbsRect();
+        dirtyRect = boundsGeo_->GetAbsRect();
     } else {
         auto frameRect =
-            boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
-        dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
+            boundsGeo_->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
+        dirtyRect = boundsGeo_->GetAbsRect().JoinRect(frameRect);
     }
     if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
         drawRegion = RectI();
         return dirtyRect;
     } else {
-        drawRegion = boundsGeometry->MapAbsRect(*drawRegion_);
+        drawRegion = boundsGeo_->MapAbsRect(*drawRegion_);
         // this is used to fix the scene with drawRegion problem, which is need to be optimized
         drawRegion.SetRight(drawRegion.GetRight() + 1);
         drawRegion.SetBottom(drawRegion.GetBottom() + 1);

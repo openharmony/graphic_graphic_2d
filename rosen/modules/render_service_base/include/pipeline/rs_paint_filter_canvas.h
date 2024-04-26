@@ -170,15 +170,11 @@ public:
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
 
-    // blendmode related
+    // blendmode and blender related
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
+    void SetBlender(std::shared_ptr<Drawing::Blender>);
     bool HasOffscreenLayer() const;
-
-    // blender related
-    void SetBlender(std::optional<std::shared_ptr<Drawing::Blender>> blender);
-    std::optional<std::shared_ptr<Drawing::Blender>> GetBlender() const;
-    void RestoreBlender();
 
     // save/restore utils
     struct SaveStatus {
@@ -282,7 +278,7 @@ protected:
     using Env = struct {
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
-        std::optional<int> blendMode_;
+        std::shared_ptr<Drawing::Blender> blender_;
         bool hasOffscreenLayer_;
     };
 
@@ -311,10 +307,6 @@ private:
     // save every dirty region of the current surface for quick reject
     std::stack<Drawing::Region> dirtyRegionStack_;
     
-    // blendmode related
-    std::stack<std::optional<int>> blendModeStack_;
-    std::optional<std::shared_ptr<Drawing::Blender>> blenderSave_ = std::nullopt;
-    std::optional<std::shared_ptr<Drawing::Blender>> blender_ = std::nullopt;
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;
 

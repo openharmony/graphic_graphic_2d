@@ -30,7 +30,6 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 
-#ifdef RS_PARALLEL
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "draw/brush.h"
@@ -46,7 +45,6 @@
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
 #endif
 
 namespace OHOS::Rosen::DrawableV2 {
@@ -280,10 +278,9 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
     }
     if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
         auto& accumulatedDirtyRegion = uniParam->GetAccumulatedDirtyRegion();
-        if (surfaceParams->GetIsTransparent()) {
-            auto oldDirtyInSurface = Occlusion::Region{
-                Occlusion::Rect{ surfaceParams->GetOldDirtyInSurface() } };
-            auto dirtyRegion = oldDirtyInSurface.And(accumulatedDirtyRegion);
+        auto transparentRegion = surfaceParams->GetTransparentRegion();
+        if (!transparentRegion.IsEmpty()) {
+            auto dirtyRegion = transparentRegion.And(accumulatedDirtyRegion);
             if (!dirtyRegion.IsEmpty()) {
                 for (auto& rect : dirtyRegion.GetRegionRects()) {
                     Drawing::Region tempRegion;
@@ -298,7 +295,7 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
             Occlusion::Rect{ surfaceNode->GetSyncDirtyManager()->GetDirtyRegion() } };
         accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
         // add children window dirty here for uifirst leasf window will not traverse cached children
-        if (surfaceParams->GetUifirstNodeEnableParam()) {
+        if (surfaceParams->GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
             auto childrenDirtyRegion = Occlusion::Region {
                 Occlusion::Rect{ surfaceParams->GetUifirstChildrenDirtyRectParam() } };
             accumulatedDirtyRegion.OrSelf(childrenDirtyRegion);
@@ -583,46 +580,55 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderN
 bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
-#ifdef RS_PARALLEL
-    if (surfaceParams.GetUifirstNodeEnableParam()) {
-        RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lx", surfaceNode.GetName().c_str(), surfaceParams.GetId());
-        RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
-        Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
-        RSAutoCanvasRestore acr(&canvas);
-        canvas.MultiplyAlpha(surfaceParams.GetAlpha());
-        if (!RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-            canvas.ConcatMatrix(surfaceParams.GetMatrix());
-        }
-        DrawBackground(canvas, bounds);
-        bool drawCacheSuccess = true;
-        if (!DrawUIFirstCache(canvas)) {
-            RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] failed!", surfaceNode.GetName().c_str());
-            RS_LOGE("DrawUIFirstCache failed!");
-            drawCacheSuccess = false;
-        }
-        DrawForeground(canvas, bounds);
-        if (uniParams.GetUIFirstDebugEnabled()) { // DFX for uifirst
-            if (drawCacheSuccess) {
-                Drawing::Brush rectBrush;
-                // Alpha 128, blue 255
-                rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
-                canvas.AttachBrush(rectBrush);
-                // Left 300, width 500, height 200
-                canvas.DrawRect(Drawing::Rect(300, 0, 500, 200));
-                canvas.DetachBrush();
-            } else {
-                Drawing::Brush rectBrush;
-                // Alpha 128, blue 255
-                rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
-                canvas.AttachBrush(rectBrush);
-                // Left 800, width 1000, height 200
-                canvas.DrawRect(Drawing::Rect(800, 0, 1000, 200));
-                canvas.DetachBrush();
-            }
-        }
-        return true;
+    auto enableType = surfaceParams.GetUifirstNodeEnableParam();
+    if (enableType == MultiThreadCacheType::NONE) {
+        return false;
     }
-#endif
-    return false;
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lx, type %d",
+        name_.c_str(), surfaceParams.GetId(), enableType);
+    RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
+    Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+    RSAutoCanvasRestore acr(&canvas);
+    canvas.MultiplyAlpha(surfaceParams.GetAlpha());
+    if (!RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+        canvas.ConcatMatrix(surfaceParams.GetMatrix());
+    }
+    DrawBackground(canvas, bounds);
+    bool drawCacheSuccess = true;
+    bool canSkipFirstWait = (enableType == MultiThreadCacheType::ARKTS_CARD) &&
+        (RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
+    if (!DrawUIFirstCache(canvas, canSkipFirstWait)) {
+        RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
+        RS_LOGE("DrawUIFirstCache failed!");
+        drawCacheSuccess = false;
+    }
+    DrawForeground(canvas, bounds);
+    if (uniParams.GetUIFirstDebugEnabled()) {
+        DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
+    }
+    return true;
 }
+
+void RSSurfaceRenderNodeDrawable::DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
+    RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess)
+{
+    auto sizeDebug = surfaceParams.GetCacheSize();
+    Drawing::Brush rectBrush;
+    if (drawCacheSuccess) {
+        if (enableType == MultiThreadCacheType::ARKTS_CARD) {
+            // rgba: Alpha 128, blue 128
+            rectBrush.SetColor(Drawing::Color(0, 0, 128, 128));
+        } else {
+            // rgba: Alpha 128, green 128, blue 128
+            rectBrush.SetColor(Drawing::Color(0, 128, 128, 128));
+        }
+    } else {
+        // rgba: Alpha 128, red 128
+        rectBrush.SetColor(Drawing::Color(128, 0, 0, 128));
+    }
+    canvas.AttachBrush(rectBrush);
+    canvas.DrawRect(Drawing::Rect(0, 0, sizeDebug.x_, sizeDebug.y_));
+    canvas.DetachBrush();
+}
+
 } // namespace OHOS::Rosen::DrawableV2

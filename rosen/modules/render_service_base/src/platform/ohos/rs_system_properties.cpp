@@ -66,7 +66,8 @@ static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
 
 bool RSSystemProperties::IsSceneBoardEnabled()
 {
-    return SceneBoardJudgement::IsSceneBoardEnabled();
+    static bool isSCBEnabled =  SceneBoardJudgement::IsSceneBoardEnabled();
+    return isSCBEnabled;
 }
 
 // used by clients
@@ -151,6 +152,12 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
 {
     static bool isNeedTrace = system::GetParameter("persist.rosen.rendernodetrace.enabled", "0") != "0";
+    return isNeedTrace;
+}
+
+bool RSSystemProperties::GetAnimationTraceEnabled()
+{
+    static bool isNeedTrace = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
     return isNeedTrace;
 }
 
@@ -591,6 +598,13 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return openDebugTrace;
 }
 
+bool RSSystemProperties::GetImageReleaseUsingPostTask()
+{
+    static bool flag =
+        std::atoi((system::GetParameter("persist.sys.graphic.iamgeReleasePostTask", "0")).c_str()) != 0;
+    return flag;
+}
+
 int RSSystemProperties::GetDebugTraceLevel()
 {
     static int openDebugTraceLevel =
@@ -707,11 +721,12 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
 
 bool RSSystemProperties::GetSnapshotWithDMAEnabled()
 {
-    static bool isSupportDma = system::GetParameter("const.product.devicetype", "pc") == "phone" ||
+    static bool isSupportDma = (system::GetParameter("const.product.devicetype", "pc") == "phone" ||
         system::GetParameter("const.product.devicetype", "pc") == "tablet" ||
         system::GetParameter("const.product.devicetype", "pc") == "pc" ||
-        system::GetParameter("const.product.devicetype", "pc") == "2in1";
-    return isSupportDma && system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+        system::GetParameter("const.product.devicetype", "pc") == "2in1") &&
+        system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+    return isSupportDma;
 }
 
 bool RSSystemProperties::IsPhoneType()

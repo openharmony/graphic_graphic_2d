@@ -489,6 +489,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
     auto surfacenode = RSSurfaceNode::Create(surfaceNodeConfig);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     auto rootnode = std::make_shared<RSRootRenderNode>(nodeId);
+    rootnode->InitRenderParams();
     rootnode->AttachRSSurfaceNode(surfacenode->GetId());
     RSNodeMap::MutableInstance().RegisterNode(surfacenode);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
@@ -498,10 +499,12 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
     rootnode->UpdateSuggestedBufferSize(10, 10);
     constexpr NodeId nodeId2 = TestSrc::limitNumber::Uint64[1];
     auto canvasnode = std::make_shared<RSCanvasRenderNode>(nodeId2);
+    canvasnode->InitRenderParams();
     canvasnode->GetMutableRenderProperties().SetAlpha(1.f);
     rootnode->AddChild(canvasnode, -1);
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsSurfaceRenderNode->InitRenderParams();
     rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(1.f);
     rsSurfaceRenderNode->NotifyRTBufferAvailable();
     canvasnode->AddChild(rsSurfaceRenderNode, -1);

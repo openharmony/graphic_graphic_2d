@@ -503,7 +503,7 @@ private:
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
     std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
-    std::shared_ptr<RSModifier> modifiersTypeMap_[(uint16_t)RSModifierType::MAX_RS_MODIFIER_TYPE] = { nullptr };
+    std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;

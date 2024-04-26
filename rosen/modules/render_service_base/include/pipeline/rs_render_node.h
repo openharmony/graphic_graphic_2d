@@ -150,7 +150,8 @@ public:
     // flag: isOnTheTree; instanceRootNodeId: displaynode or leash/appnode attached to
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID);
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+        NodeId uifirstRootNodeId = INVALID_NODEID);
     inline bool IsOnTheTree() const
     {
         return isOnTheTree_;
@@ -229,6 +230,8 @@ public:
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
     NodeId GetFirstLevelNodeId() const;
     const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
+    NodeId GetUifirstRootNodeId() const;
+    void UpdateTreeUifirstRootNodeId(NodeId id);
 
     // reset accumulated vals before traverses children
     void ResetChildRelevantFlags();
@@ -350,6 +353,7 @@ public:
         bool needCheckThread = true, bool releaseAfterGet = false);
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
+    bool IsCacheCompletedSurfaceValid() const;
     bool IsCacheSurfaceValid() const;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -466,7 +470,7 @@ public:
         bool isInSkippedSubTree = false, const std::optional<RectI>& filterRectForceUpdated = std::nullopt);
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void MarkAndUpdateFilterNodeDirtySlotsAfterPrepare(bool dirtyBelowContainsFilterNode = false);
-    bool IsBackgroundFilterCacheValid() const;
+    bool IsFilterCacheValid() const;
     void MarkForceClearFilterCacheWhenWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
@@ -602,6 +606,8 @@ public:
     void SkipSync()
     {
         lastFrameSynced_ = false;
+        // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
+        addedToPendingSyncList_ = false;
     }
     void Sync()
     {
@@ -693,11 +699,13 @@ private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
+    NodeId uifirstRootNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
     void ResetParent();
     void UpdateClipAbsDrawRectChangeState(const RectI& clipRect);
+    bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
     std::list<WeakPtr> children_;

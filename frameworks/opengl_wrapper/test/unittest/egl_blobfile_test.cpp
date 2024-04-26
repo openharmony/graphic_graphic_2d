@@ -68,8 +68,8 @@ HWTEST_F(EglBlobFileTest, EglBlobFileInit002, Level1)
     EGLsizeiANDROID keysize = 4;
     EGLsizeiANDROID valuesize = 4;
     void *value2 = malloc(4);
-    BlobCache::setBlobFunc(key, keysize, value, valuesize);
-    BlobCache::getBlobFunc(key, keysize, value2, valuesize);
+    BlobCache::SetBlobFunc(key, keysize, value, valuesize);
+    BlobCache::GetBlobFunc(key, keysize, value2, valuesize);
     int c = *static_cast<int *>(value2);
     ASSERT_EQ(c, 2);
     BlobCache::Get()->Terminate();
@@ -104,8 +104,8 @@ HWTEST_F(EglBlobFileTest, EglBlobFileInit003, Level1)
     EGLsizeiANDROID keysize = 4;
     EGLsizeiANDROID valuesize = 4;
     void *value2 = malloc(4);
-    BlobCache::setBlobFunc(key, keysize, value, valuesize);
-    BlobCache::getBlobFunc(key, keysize, value2, valuesize);
+    BlobCache::SetBlobFunc(key, keysize, value, valuesize);
+    BlobCache::GetBlobFunc(key, keysize, value2, valuesize);
     int c = *static_cast<int *>(value2);
     ASSERT_EQ(c, 2);
     BlobCache::Get()->Terminate();
@@ -114,7 +114,7 @@ HWTEST_F(EglBlobFileTest, EglBlobFileInit003, Level1)
     ret->SetCacheDir("/data/log");
     int h = ret->GetMapSize();
     ASSERT_EQ(h, 1);
-    BlobCache::getBlobFunc(key, keysize, value2, valuesize);
+    BlobCache::GetBlobFunc(key, keysize, value2, valuesize);
     c = *static_cast<int *>(value2);
     ASSERT_EQ(c, 2);
 }

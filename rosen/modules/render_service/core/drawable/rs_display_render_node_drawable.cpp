@@ -209,7 +209,8 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame No RSSurface found");
         return nullptr;
     }
-    auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(params.GetScreenInfo(), true);
+    auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(params.GetScreenInfo(), true, false,
+        params.GetNewColorSpace(), params.GetNewPixelFormat());
     auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig);
     if (!renderFrame) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame renderEngine requestFrame is null");
@@ -295,20 +296,14 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(std::shared_ptr<RSDisplay
     }
 
     auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
-    bool needCreateDisplayNodeLayer = false;
     for (const auto& surfaceNode : hardwareNodes) {
         if (surfaceNode == nullptr) {
             continue;
         }
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
         if (params->GetHardwareEnabled()) {
-            needCreateDisplayNodeLayer = true;
             processor->CreateLayer(*surfaceNode, *params);
         }
-    }
-    if (!needCreateDisplayNodeLayer) {
-        RS_TRACE_NAME("DisplayNodeSkip skip commit");
-        return true;
     }
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip: hardwareThread task has too many to Execute");
@@ -551,7 +546,8 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(RSDisplayRenderNode& displayN
             RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(true);
             processCacheImage(*cacheImageProcessed, *mirroredNode, *mirroredProcessor);
         }
-        auto mirroredNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(std::move(mirroredNode));
+        auto mirroredNodeDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(std::move(mirroredNode)));
         // set mirror screen capture param
         float mirrorScaleX = mirroredProcessor->GetMirrorScaleX();
         float mirrorScaleY = mirroredProcessor->GetMirrorScaleY();
@@ -863,7 +859,7 @@ void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes()
         RS_LOGE("RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes displayParams is null!");
         return;
     }
-    
+
     displayParams->GetHardwareEnabledTopNodes().clear();
     displayParams->GetHardwareEnabledNodes().clear();
     auto& hardwareNodes = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeNodes();
@@ -916,9 +912,9 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
     // draw hardware-composition nodes
     for (auto& surfaceNode : nodes) {
         Drawing::AutoCanvasRestore acr(canvas, true);
-        std::unique_ptr<RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
-            std::make_unique<RSSurfaceRenderNodeDrawable>(surfaceNode);
-
+        std::shared_ptr<RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
+            std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
         if (!surfaceParams) {
             RS_LOGE("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode surfaceParams is nullptr");

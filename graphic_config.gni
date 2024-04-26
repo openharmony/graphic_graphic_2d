@@ -305,7 +305,7 @@ safwk_base = "//foundation/systemabilitymgr/safwk"
 skia_root_new = "//third_party/skia"
 graphic_surface_root = "//foundation/graphic/graphic_surface"
 memmgr_root = "//foundation/resourceschedule/memmgr"
-memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
+memmgr_plugin_root = "//foundation/resourceschedule/memmgr_override"
 fuzz_test_output_path = "graphic_2d/graphic_2d"
 video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
 arkui_root = "//foundation/arkui"
@@ -333,7 +333,7 @@ if (defined(global_parts_info) &&
 }
 
 use_memmgr_plugin = false
-if (defined(global_parts_info.resourceschedule_memmgr_plugin)) {
+if (defined(global_parts_info.resourceschedule_memmgr_override)) {
   use_memmgr_plugin = true
 }
 use_memmgr = false

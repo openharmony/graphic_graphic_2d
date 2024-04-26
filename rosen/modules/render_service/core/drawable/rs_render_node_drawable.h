@@ -42,7 +42,6 @@ namespace DrawableV2 {
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
 public:
-    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -68,6 +67,7 @@ public:
     }
 
 protected:
+    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 

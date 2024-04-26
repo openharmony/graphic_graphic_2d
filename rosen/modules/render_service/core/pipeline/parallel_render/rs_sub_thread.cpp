@@ -32,11 +32,9 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
 
-#ifdef RS_PARALLEL
 #include "pipeline/rs_uifirst_manager.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#endif
 
 #ifdef RES_SCHED_ENABLE
 #include "res_type.h"
@@ -252,10 +250,8 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 #endif
 }
 
-#ifdef RS_PARALLEL
 void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDrawable)
 {
-    RS_TRACE_NAME_FMT("RSSubThread::DrawableCache");
     if (grContext_ == nullptr) {
         grContext_ = CreateShareGrContext();
         if (grContext_ == nullptr) {
@@ -268,6 +264,7 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     if (!param) {
         return;
     }
+    RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
 
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
@@ -290,36 +287,11 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
         return;
     }
 
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if (!uniParam) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
-        return;
-    }
-    bool uifirstDebug = uniParam->GetUIFirstDebugEnabled();
-
     rscanvas->SetIsParallelCanvas(true);
     rscanvas->SetDisableFilterCache(true);
     rscanvas->SetParallelThreadIdx(threadIndex_);
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-    if (uifirstDebug) {
-        Drawing::Brush rectBrush;
-        // Alpha 128, blue 255
-        rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
-        rscanvas->AttachBrush(rectBrush);
-        // Left 800, top 500, width 1000, height 700
-        rscanvas->DrawRect(Drawing::Rect(800, 500, 1000, 700));
-        rscanvas->DetachBrush();
-    }
     nodeDrawable->SubDraw(*rscanvas);
-    if (uifirstDebug) {
-        Drawing::Brush rectBrush;
-        // Alpha 128, blue 255
-        rectBrush.SetColor(Drawing::Color(128, 0, 0, 255));
-        rscanvas->AttachBrush(rectBrush);
-        // Left 300, top 500, width 500, height 700
-        rscanvas->DrawRect(Drawing::Rect(300, 500, 500, 700));
-        rscanvas->DetachBrush();
-    }
     if (cacheSurface) {
         RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
 #ifdef RS_ENABLE_VK
@@ -382,7 +354,6 @@ void RSSubThread::DrawableCache(DrawableV2::RSSurfaceRenderNodeDrawable* nodeDra
     std::string pidstring = nodeDrawable->GetDebugInfo();
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheSurface, pidstring);
 }
-#endif
 
 std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 {

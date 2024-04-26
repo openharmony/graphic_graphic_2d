@@ -17,7 +17,6 @@
 
 #include "render/rs_blur_filter.h"
 
-
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -47,6 +46,22 @@ HWTEST_F(RSSkiaFilterTest, ExtractSkImage, TestSize.Level1)
     rsBlurFilter.GetBrush();
 
     rsBlurFilter.GetImageFilter();
+}
+
+/**
+ * @tc.name: DrawImageRectTest001
+ * @tc.desc: Verify function DrawImageRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSkiaFilterTest, DrawImageRectTest001, TestSize.Level1)
+{
+    RSBlurFilter rsBlurFilter(0, 1);
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    rsBlurFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_NE(image, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

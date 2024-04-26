@@ -188,6 +188,8 @@ protected:
 
     virtual void OnAnimate(float fraction) {}
 
+    virtual void DumpFraction(float fraction, int64_t time) {}
+
     virtual void OnRemoveOnCompletion() {}
 
     virtual void RecordLastAnimateValue() {}
@@ -229,6 +231,9 @@ private:
 
     friend class RSAnimation;
     friend class RSModifierManager;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

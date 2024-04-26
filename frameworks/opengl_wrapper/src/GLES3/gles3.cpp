@@ -38,7 +38,7 @@ Func GetEglApi(const char* procname)
 
     return nullptr;
 }
-GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookTable");
+static GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookTable");
 
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(api, ...)                                                         \

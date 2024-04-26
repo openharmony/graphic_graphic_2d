@@ -17,7 +17,6 @@
 
 #include "render/rs_pixel_map_util.h"
 
-
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -47,7 +46,7 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
         return nullptr;
     }
     Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
     auto surface = std::make_shared<Drawing::Surface>();
     surface->Bind(bitmap);
@@ -71,12 +70,42 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
  */
 HWTEST_F(RSPixelMapUtilTest, ExtractDrawingImage, TestSize.Level1)
 {
-    std::shared_ptr<Media::PixelMap> pixelmap;
+    std::shared_ptr<Media::PixelMap> pixelMap;
     int width = 200;
     int height = 300;
-    pixelmap = CreatePixelMap(width, height);
+    pixelMap = CreatePixelMap(width, height);
+    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+}
 
-    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelmap));
+/**
+ * @tc.name: TransformDataSetForAstcnTest001
+ * @tc.desc: Verify function TransformDataSetForAstc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest001, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    EXPECT_NE(pixelMap, nullptr);
+}
+
+/**
+ * @tc.name: DrawPixelMapTest001
+ * @tc.desc: Verify function DrawPixelMap
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, DrawPixelMapTest001, TestSize.Level1)
+{
+    Media::PixelMap pixelMap;
+    Drawing::Canvas canvas;
+    RSPixelMapUtil::DrawPixelMap(canvas, pixelMap, 1.0f, 1.0f);
+    EXPECT_EQ(pixelMap.rowDataSize_, 0);
 }
 
 /**

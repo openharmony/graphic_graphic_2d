@@ -238,7 +238,7 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
     canvas.MultiplyAlpha(properties.GetAlpha());
 
     // Apply matrix to canvas
-    auto currentGeoPtr = (properties.GetBoundsGeometry());
+    auto& currentGeoPtr = (properties.GetBoundsGeometry());
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromSelf();
         auto matrix = currentGeoPtr->GetMatrix();
@@ -517,7 +517,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
     RSPropertiesPainter::DrawFilter(property, canvas, FilterType::FOREGROUND_FILTER);
     canvas.Save();
     if (GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
-        auto geoPtr = (property.GetBoundsGeometry());
+        auto& geoPtr = (property.GetBoundsGeometry());
         canvas.ConcatMatrix(geoPtr->GetMatrix());
     }
     RSPropertiesPainter::DrawOutline(property, canvas);
@@ -1372,7 +1372,7 @@ void RSSurfaceRenderNode::CheckValidFilterCacheFullyCoverTarget(const RSRenderNo
     if (filterNode.IsInstanceOf<RSEffectRenderNode>()) {
         return;
     }
-    if (isFilterCacheFullyCovered_ || !filterNode.IsBackgroundFilterCacheValid()) {
+    if (isFilterCacheFullyCovered_ || !filterNode.IsFilterCacheValid()) {
         return;
     }
     // [planning] need to replace absRect with filterRect
@@ -1775,7 +1775,7 @@ void RSSurfaceRenderNode::OnSync()
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::OnSync name[%s] dirty[%s]",
         GetName().c_str(), dirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str());
     dirtyManager_->OnSync(syncDirtyManager_);
-    if (IsMainWindowType() || IsLeashWindow() || lastFrameUifirstFlag_) {
+    if (IsMainWindowType() || IsLeashWindow() || lastFrameUifirstFlag_ != MultiThreadCacheType::NONE) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
         if (surfaceParams == nullptr) {
             RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
@@ -1896,6 +1896,18 @@ const std::vector<std::shared_ptr<RSRenderNode>>& RSSurfaceRenderNode::GetChildr
 {
     return childrenFilterNodes_;
 }
+
+std::vector<RectI> RSSurfaceRenderNode::GetChildrenNeedFilterRectsWithoutCacheValid()
+{
+    std::vector<RectI> childrenFilterRectsWithoutCacheValid;
+    auto maxSize = std::min(childrenFilterRects_.size(), childrenFilterRectsCacheValid_.size());
+    for (size_t i = 0; i < maxSize; i++) {
+        if (!childrenFilterRectsCacheValid_[i]) {
+            childrenFilterRectsWithoutCacheValid.emplace_back(childrenFilterRects_[i]);
+        }
+    }
+    return childrenFilterRectsWithoutCacheValid;
+};
 
 // manage abilities' nodeid info
 void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
@@ -2033,7 +2045,7 @@ float RSSurfaceRenderNode::GetLocalZOrder() const
 void RSSurfaceRenderNode::OnApplyModifiers()
 {
     auto& properties = GetMutableRenderProperties();
-    auto geoPtr = (properties.GetBoundsGeometry());
+    auto& geoPtr = (properties.GetBoundsGeometry());
 
     // Multiply context alpha into alpha
     properties.SetAlpha(properties.GetAlpha() * contextAlpha_);
@@ -2223,7 +2235,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 }
 
 void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId)
+    NodeId cacheNodeId, NodeId uifirstRootNodeId)
 {
     instanceRootNodeId = IsLeashOrMainWindow() ? GetId() : instanceRootNodeId;
     if (IsLeashWindow()) {
@@ -2354,8 +2366,8 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         surfaceParams->SetVisibleRegion(visibleRegion_);
     }
     surfaceParams->absDrawRect_ = GetAbsDrawRect();
-    surfaceParams->SetIsTransparent(IsTransparent());
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());
+    surfaceParams->SetTransparentRegion(GetTransparentRegion());
 }
 
 void RSSurfaceRenderNode::InitRenderParams()
@@ -2414,34 +2426,16 @@ void RSSurfaceRenderNode::SetUifirstChildrenDirtyRectParam(RectI rect)
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetUifirstChildrenDirtyRectParam(rect);
-        if (stagingRenderParams_->NeedSync()) {
-            if (auto context = GetContext().lock()) {
-                context->AddPendingSyncNode(shared_from_this());
-            } else {
-                RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag context is null");
-                OnSync();
-            }
-        }
-    } else {
-        RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag stagingSurfaceParams is null");
+        AddToPendingSyncList();
     }
 }
 
-void RSSurfaceRenderNode::SetUifirstNodeEnableParam(bool b)
+void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 {
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetUifirstNodeEnableParam(b);
-        if (stagingRenderParams_->NeedSync()) {
-            if (auto context = GetContext().lock()) {
-                context->AddPendingSyncNode(shared_from_this());
-            } else {
-                RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag context is null");
-                OnSync();
-            }
-        }
-    } else {
-        RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag stagingSurfaceParams is null");
+        AddToPendingSyncList();
     }
 }
 
@@ -2450,16 +2444,7 @@ void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetIsParentUifirstNodeEnableParam(b);
-        if (stagingRenderParams_->NeedSync()) {
-            if (auto context = GetContext().lock()) {
-                context->AddPendingSyncNode(shared_from_this());
-            } else {
-                RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag context is null");
-                OnSync();
-            }
-        }
-    } else {
-        RS_LOGE("RSSurfaceRenderNode::SetUifirstFlag stagingSurfaceParams is null");
+        AddToPendingSyncList();
     }
 }
 

@@ -1488,6 +1488,7 @@ void RSNode::SetTakeSurfaceForUIFlag()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->FlushImplicitTransaction();
     }
 }
 
@@ -1680,9 +1681,7 @@ void RSNode::ClearAllModifiers()
     }
     modifiers_.clear();
     propertyModifiers_.clear();
-    for (int i = 0; i < (uint16_t)RSModifierType::MAX_RS_MODIFIER_TYPE; ++i) {
-        modifiersTypeMap_[i] = nullptr;
-    }
+    modifiersTypeMap_.clear();
 }
 
 void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
@@ -1698,7 +1697,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
         auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
         modifier->AttachToNode(rsnode);
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
-        modifiersTypeMap_[(int16_t)modifier->GetModifierType()] = modifier;
+        modifiersTypeMap_.emplace((int16_t)modifier->GetModifierType(), modifier);
     }
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
@@ -1745,14 +1744,14 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
         bool isExist = false;
         for (auto [id, value] : modifiers_) {
             if (value && value->GetModifierType() == deleteType) {
-                modifiersTypeMap_[(int16_t)deleteType] = value;
+                modifiersTypeMap_.emplace((int16_t)deleteType, value);
                 isExist = true;
                 break;
             }
         }
         modifiers_.erase(iter);
-        if (isExist) {
-            modifiersTypeMap_[(int16_t)deleteType] = nullptr;
+        if (!isExist) {
+            modifiersTypeMap_.erase((int16_t)deleteType);
         }
     }
     modifier->DetachFromNode();

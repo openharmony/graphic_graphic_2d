@@ -69,6 +69,7 @@
           "eventhandler",
           "config_policy",
           "init",
+          "input",
           "hicollie",
           "image_framework",
           "ipc",
@@ -79,7 +80,7 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin",
+          "memmgr_override",
           "sensor",
           "qos_manager",
           "video_processing_engine",
@@ -94,7 +95,11 @@
           "cJSON",
           "jsoncpp",
           "openssl",
-          "zlib"
+          "zlib",
+          "libuv",
+          "icu",
+          "libpng",
+          "libxml2"
         ],
         "third_party": [
           "flutter",

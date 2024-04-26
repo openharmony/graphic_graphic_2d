@@ -59,8 +59,10 @@ HWTEST_F(PenTest, CreateAndDestroy001, TestSize.Level1)
 HWTEST_F(PenTest, CopyConstructor001, TestSize.Level1)
 {
     Pen oldPen;
-    auto pen = std::make_unique<Pen>(oldPen);
-    ASSERT_TRUE(pen != nullptr);
+    Pen pen{oldPen};
+    ASSERT_TRUE(pen == oldPen);
+    pen.SetWidth(1);
+    ASSERT_TRUE(pen != oldPen);
 }
 
 /**
@@ -371,6 +373,38 @@ HWTEST_F(PenTest, GetterAndSetterOfAlpha002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetterAndSetterOfAlphaf001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfAlphaf001, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    scalar alpha = 0;
+    pen->SetAlphaF(alpha);
+    ASSERT_TRUE(IsScalarAlmostEqual(alpha, pen->GetAlphaF()));
+}
+
+/**
+ * @tc.name: GetterAndSetterOfWidth001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfWidth001, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    scalar w = 0;
+    pen->SetWidth(w);
+    ASSERT_TRUE(IsScalarAlmostEqual(w, pen->GetWidth()));
+}
+
+/**
  * @tc.name: SetAlphaF001
  * @tc.desc:
  * @tc.type: FUNC
@@ -521,6 +555,22 @@ HWTEST_F(PenTest, GetterAndSetterOfBlendMode002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetterAndSetterOfBlender001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfBlender001, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    std::shared_ptr<Blender> blender = std::make_unique<Blender>();
+    pen->SetBlender(blender);
+    ASSERT_EQ(blender, pen->GetBlender());
+}
+
+/**
  * @tc.name: GetterAndSetterOfAntiAlias001
  * @tc.desc:
  * @tc.type: FUNC
@@ -603,6 +653,7 @@ HWTEST_F(PenTest, GetterAndSetterOfFilter001, TestSize.Level1)
     pen->SetFilter(filter);
     auto result = pen->GetFilter();
     EXPECT_EQ(result, filter);
+    EXPECT_TRUE(pen->HasFilter());
 }
 
 /**
@@ -620,6 +671,7 @@ HWTEST_F(PenTest, GetterAndSetterOfFilter002, TestSize.Level1)
     pen->SetFilter(filter);
     auto result = pen->GetFilter();
     EXPECT_EQ(result, filter);
+    EXPECT_TRUE(pen->HasFilter());
 }
 
 /**
@@ -633,6 +685,24 @@ HWTEST_F(PenTest, GetterAndSetterOfShaderEffect001, TestSize.Level1)
 {
     auto pen = std::make_unique<Pen>();
     ASSERT_TRUE(pen != nullptr);
+    auto shaderEffect = ShaderEffect::CreateColorShader(1);
+    ASSERT_TRUE(shaderEffect != nullptr);
+    pen->SetShaderEffect(shaderEffect);
+    auto result = pen->GetShaderEffect();
+    EXPECT_EQ(result, shaderEffect);
+}
+
+/**
+ * @tc.name: GetterAndSetterOfPathEffect003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfPathEffect003, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
     auto pathEffect = std::make_shared<PathEffect>(PathEffect::PathEffectType::NO_TYPE, 0.5f);
     ASSERT_TRUE(pathEffect != nullptr);
     pen->SetPathEffect(pathEffect);
@@ -642,13 +712,13 @@ HWTEST_F(PenTest, GetterAndSetterOfShaderEffect001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetterAndSetterOfShaderEffect002
+ * @tc.name: GetterAndSetterOfPathEffect004
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(PenTest, GetterAndSetterOfShaderEffect002, TestSize.Level1)
+HWTEST_F(PenTest, GetterAndSetterOfPathEffect004, TestSize.Level1)
 {
     auto pen = std::make_unique<Pen>();
     ASSERT_TRUE(pen != nullptr);

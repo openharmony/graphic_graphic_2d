@@ -154,6 +154,9 @@ private:
     friend class RSRenderThread;
     friend class RSMainThread;
     friend class RSDrawFrame;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 
 } // namespace Rosen
