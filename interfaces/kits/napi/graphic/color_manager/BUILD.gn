@@ -58,8 +58,13 @@ template("color_space_object_convertor_source_set") {
 color_space_object_convertor_source_set("color_space_object_convertor_source") {
 }
 
+config("color_space_object_convertor_public_config") {
+  include_dirs = [ "color_space_object_convertor" ]
+}
+
 if (current_os == "ohos") {
   ohos_shared_library("color_space_object_convertor") {
+    public_configs = [ ":color_space_object_convertor_public_config" ]
     public_deps = [ ":color_space_object_convertor_source" ]
     external_deps = [
       "hilog:libhilog",
