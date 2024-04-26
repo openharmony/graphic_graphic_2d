@@ -5048,7 +5048,9 @@ bool RSUniRenderVisitor::UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node, bool
 
     if (displayNodeMatrix_.has_value()) {
         auto& displayNodeMatrix = displayNodeMatrix_.value();
-        canvas_->ConcatMatrix(displayNodeMatrix);
+        auto matrix = canvas_->GetTotalMatrix();
+        matrix.PostConcat(displayNodeMatrix);
+        canvas_->SetMatrix(matrix);
     }
     node.SetTotalMatrix(canvas_->GetTotalMatrix());
 
