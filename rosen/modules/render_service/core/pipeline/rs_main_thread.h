@@ -398,7 +398,6 @@ private:
     void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     void ConnectChipsetVsyncSer();
@@ -596,7 +595,9 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     RsParallelType rsParallelType_;
     bool isCurtainScreenOn_ = false;
-
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
     // for statistic of jank frames
     std::atomic_bool isOnVsync_ = false;
     std::atomic_bool discardJankFrames_ = false;

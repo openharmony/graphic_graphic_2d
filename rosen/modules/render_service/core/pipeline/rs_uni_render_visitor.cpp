@@ -6221,6 +6221,9 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
 
 NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node)
 {
+    if (node == nullptr) {
+        return INVALID_NODEID;
+    }
     auto nodeParent = node->GetParent().lock();
     if (nodeParent == nullptr) {
         return INVALID_NODEID;

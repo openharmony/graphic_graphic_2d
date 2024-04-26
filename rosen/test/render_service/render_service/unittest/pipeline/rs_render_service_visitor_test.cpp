@@ -15,17 +15,19 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_render_service_visitor.h"
+#include "rs_test_util.h"
 
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_root_render_node.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_service_visitor.h"
+#include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "common/rs_obj_abs_geometry.h"
-#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -39,7 +41,12 @@ public:
     void TearDown() override;
 };
 
-void RSRenderServiceVisitorTest::SetUpTestCase() {}
+void RSRenderServiceVisitorTest::SetUpTestCase()
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        RSUniRenderThread::Instance().InitGrContext();
+    }
+}
 void RSRenderServiceVisitorTest::TearDownTestCase() {}
 void RSRenderServiceVisitorTest::SetUp() {}
 void RSRenderServiceVisitorTest::TearDown() {}
@@ -65,6 +72,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareChildren001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    rsSurfaceRenderNode.InitRenderParams();
     RSRenderServiceVisitor rsRenderServiceVisitor;
     rsRenderServiceVisitor.PrepareChildren(rsSurfaceRenderNode);
 }
@@ -359,6 +367,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSCanvasRenderNode node(nodeId);
+    node.InitRenderParams();
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
 
@@ -612,6 +621,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode001, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(nodeId, config);
+    node.InitRenderParams();
     rsRenderServiceVisitor.ProcessDisplayRenderNode(node);
 }
 
@@ -627,6 +637,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode002, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(nodeId, config);
+    node.InitRenderParams();
     rsRenderServiceVisitor.ProcessDisplayRenderNode(node);
 }
 
