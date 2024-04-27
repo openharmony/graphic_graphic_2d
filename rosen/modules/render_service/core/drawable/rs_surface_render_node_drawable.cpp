@@ -35,6 +35,7 @@
 #include "draw/brush.h"
 
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_node_stats.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 
@@ -263,6 +264,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->PopDirtyRegion();
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw SurfaceNode: [%s], NodeId: %llu, ProcessedNodes: %d",
             surfaceNode->GetName().c_str(), surfaceNode->GetId(), RSRenderNodeDrawable::GetProcessedNodeCount());
+        const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(
+            RSRenderNodeDrawable::GetProcessedNodeCount(), surfaceNode->GetId(), surfaceNode->GetName());
+        RSNodeStats::GetInstance().AddNodeStats(nodeStats);
     }
 
     RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;

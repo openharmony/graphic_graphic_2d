@@ -146,6 +146,19 @@ FIRST_FRAME_DRAWN:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction jank statistics}
   APP_PID: {type: INT32, desc: app process id}
 
+RS_NODE_LIMIT_EXCEEDED:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: rs node limit exceeded statistics}
+  RS_NODE_LIMIT: {type: UINT32, desc: the upper limit of the total number of rs nodes}
+  RS_ACTUAL_NODE: {type: UINT32, desc: current total number of rs nodes}
+  TIMESTAMP: {type: UINT64, desc: current timestamp}
+  RS_APP_WINDOW_TOTAL: {type: UINT32, desc: current total app windows on rs tree}
+  RS_TOP1_APP_NAME: {type: STRING, desc: name of current app with top1 rs nodes}
+  RS_TOP1_APP_NODE: {type: UINT32, desc: number of nodes of current app with top1 rs nodes}
+  RS_TOP2_APP_NAME: {type: STRING, desc: name of current app with top2 rs nodes}
+  RS_TOP2_APP_NODE: {type: UINT32, desc: number of nodes of current app with top2 rs nodes}
+  RS_TOP3_APP_NAME: {type: STRING, desc: name of current app with top3 rs nodes}
+  RS_TOP3_APP_NODE: {type: UINT32, desc: number of nodes of current app with top3 rs nodes}
+
 HGM_VOTER_INFO:
   __BASE: {type: STATISTIC, level: MINOR, desc: hgm voter info statistics}
   MSG: {type: STRING, desc: voter info}
