@@ -69,8 +69,10 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
     return new RSSurfaceRenderNodeDrawable(std::move(node));
 }
 
-Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRenderParams *surfaceParams,
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThreadParams* uniParam,
+    RSSurfaceRenderParams *surfaceParams,
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
+    bool isOffscreen) const
 {
     Drawing::Region resultRegion;
     if (!surfaceParams->IsMainWindowType()) {
@@ -84,6 +86,9 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRen
         return resultRegion;
     }
 
+    if (uniParam->IsOcclusionEnabled() && surfaceParams->GetVisibleRegion().IsEmpty()) {
+        return resultRegion;
+    }
     // The region is dirty region of this SurfaceNode.
     Occlusion::Region surfaceNodeDirtyRegion(surfaceNode->GetSyncDirtyManager()->GetDirtyRegion());
     // The region is the result of global dirty region AND occlusion region.
@@ -170,12 +175,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
-    Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(surfaceParams, surfaceNode, isuifirstNode);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if (!uniParam) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
         return;
     }
+    Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(uniParam, surfaceParams, surfaceNode, isuifirstNode);
     // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
     auto curDisplayNode = rscanvas->GetCurDisplayNode();
     if (curDisplayNode && surfaceParams->GetName().find("CapsuleWindow") != std::string::npos) {

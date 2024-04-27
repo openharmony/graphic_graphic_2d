@@ -150,8 +150,9 @@ private:
         RSSurfaceRenderParams* surfaceParams,
         std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
-        std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const;
+    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams* uniParam,
+        RSSurfaceRenderParams* surfaceParams, std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
+        bool isOffscreen) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 
