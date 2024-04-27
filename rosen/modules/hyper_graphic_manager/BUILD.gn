@@ -33,7 +33,6 @@ config("libhyper_graphic_manager_config") {
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
     "$graphic_2d_root/utils/log",
     "$graphic_2d_root/utils/sandbox",
-    "//third_party/libxml2/include",
   ]
 
   cflags = [ "-g3" ]
