@@ -15,16 +15,13 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_COLORSPACE_CONVERT_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_COLORSPACE_CONVERT_H
 
+#include "colorspace_converter_display.h"
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "image/image.h"
 #include "render/rs_image_base.h"
 
 #include "screen_manager/screen_types.h"
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "colorspace_converter_display.h"
-#endif
 
 namespace OHOS {
 namespace Media {
@@ -55,4 +52,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif //RENDER_SERVICE_CLIENT_CORE_UI_RS_COLORSPACE_CONVERT_H
+#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_COLORSPACE_CONVERT_H

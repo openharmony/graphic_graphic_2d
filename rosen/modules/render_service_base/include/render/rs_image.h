@@ -77,7 +77,7 @@ public:
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
     void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
 
-    void Setpaint(Drawing::Paint paint);
+    void SetPaint(Drawing::Paint paint);
     void SetDyamicRangeMode(uint32_t dynamicRangeMode);
 
     void SetNodeId(NodeId nodeId);
