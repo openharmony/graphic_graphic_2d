@@ -128,6 +128,7 @@
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
+            "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_ndk:native_effect_ndk",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
@@ -316,6 +317,15 @@
               "header_files": [
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/drawing_ndk/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_ndk:native_effect_ndk",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_ndk/include"
             }
           },
           {
