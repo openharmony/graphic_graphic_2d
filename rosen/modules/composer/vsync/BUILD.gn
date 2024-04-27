@@ -85,9 +85,9 @@ ohos_shared_library("libvsync") {
   }
 
   public_deps = [
-   "$graphic_2d_root/utils:scoped_bytrace",
-   "$graphic_2d_root/utils:socketpair", 
- ]
+    "$graphic_2d_root/utils:scoped_bytrace",
+    "$graphic_2d_root/utils:socketpair", 
+  ]
 
   external_deps = [
     "c_utils:utils",
