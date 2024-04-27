@@ -394,7 +394,6 @@ private:
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void ProcessScreenHotPlugEvents();
-    void TryCleanResourceInBackGroundThd();
     void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
