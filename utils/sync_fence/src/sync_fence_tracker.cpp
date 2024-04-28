@@ -23,8 +23,10 @@
 #include "file_ex.h"
 
 #ifdef FENCE_SCHED_ENABLE
-#include "res_sched_client.h"
-#include "res_type.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #endif
 
 namespace OHOS {
@@ -36,7 +38,61 @@ namespace {
 #define LOG_TAG "SyncFence"
 
 #ifdef FENCE_SCHED_ENABLE
-    const uint32_t RS_SUB_QOS_LEVEL = 7;
+constexpr unsigned int QOS_CTRL_IPC_MAGIC = 0xCC;
+
+#define QOS_CTRL_BASIC_OPERATION \
+    _IOWR(QOS_CTRL_IPC_MAGIC, 1, struct QosCtrlData)
+
+#define QOS_APPLY 1
+
+typedef enum {
+    QOS_BACKGROUND = 0,
+    QOS_UTILITY,
+    QOS_DEFAULT,
+    QOS_USER_INITIATED,
+    QOS_DEADLINE_REQUEST,
+    QOS_USER_INTERACTIVE,
+    QOS_KEY_BACKGROUND,
+} QosLevel;
+
+struct QosCtrlData {
+    int pid;
+    unsigned int type;
+    unsigned int level;
+    int qos;
+    int staticQos;
+    int dynamicQos;
+    bool tagSchedEnable = false;
+};
+
+static int TrivalOpenQosCtrlNode(void)
+{
+    char fileName[] = "/proc/thread-self/sched_qos_ctrl";
+    int fd = open(fileName, O_RDWR);
+    if (fd < 0) {
+        HILOG_WARN(LOG_CORE, "open qos node failed");
+    }
+    return fd;
+}
+
+void QosApply(unsigned int level)
+{
+    int fd = TrivalOpenQosCtrlNode();
+    if (fd < 0) {
+        return;
+    }
+
+    int tid = gettid();
+    struct QosCtrlData data;
+    data.level = level;
+    data.type = QOS_APPLY;
+    data.pid = tid;
+    int ret = ioctl(fd, QOS_CTRL_BASIC_OPERATION, &data);
+    if (ret < 0) {
+        HILOG_WARN(LOG_CORE, "qos apply failed");
+    }
+    close(fd);
+}
 #endif
 }
 
@@ -51,16 +107,7 @@ SyncFenceTracker::SyncFenceTracker(const std::string threadName)
 #ifdef FENCE_SCHED_ENABLE
     if (handler_) {
         handler_->PostTask([]() {
-            std::string strPid = std::to_string(getpid());
-            std::string strTid = std::to_string(gettid());
-            std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
-            std::unordered_map<std::string, std::string> mapPayload;
-            mapPayload["pid"] = strPid;
-            mapPayload[strTid] = strQos;
-            mapPayload["bundleName"] = "SyncFenceTracker";
-            uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
-            int64_t value = 0;
-            OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+            QosApply(QosLevel::QOS_USER_INTERACTIVE);
         });
     }
 #endif
