@@ -253,7 +253,8 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
             tmpFilter->IsOffscreenCanvas(true);
             filter->SetSnapshotOutset(false);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter, { filter->NeedSnapshotOutset(), shouldClearFilteredCache });
+        cacheManager->DrawFilter(*paintFilterCanvas, filter,
+            { filter->NeedSnapshotOutset(), shouldClearFilteredCache });
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         return;
     }
