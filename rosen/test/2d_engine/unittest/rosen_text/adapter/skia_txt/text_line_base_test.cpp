@@ -37,7 +37,8 @@ HWTEST_F(OH_Drawing_TextLineBaseTest, OH_Drawing_TextLineBaseTest001, TestSize.L
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     const char* text = "test";
     const std::u16string wideText =
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
@@ -51,7 +52,7 @@ HWTEST_F(OH_Drawing_TextLineBaseTest, OH_Drawing_TextLineBaseTest001, TestSize.L
     vectorTextLineBase[0]->GetGlyphCount();
     vectorTextLineBase[0]->GetGlyphRuns();
     vectorTextLineBase[0]->GetTextRange();
-    vectorTextLineBase[0]->Paint(canvas,100.0,100.0);
+    vectorTextLineBase[0]->Paint(canvas, 100.0, 100.0);
 }
 }// namespace Rosen
 }// namespace OHOS

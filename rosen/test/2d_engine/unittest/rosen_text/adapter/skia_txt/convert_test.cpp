@@ -32,7 +32,8 @@ class OH_Drawing_ConvertTest : public testing::Test {
 HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest001, TestSize.Level1)
 {
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> adapterFontCollection = AdapterTxt::Convert(fontCollection);
+    std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> adapterFontCollection = AdapterTxt::Convert(
+        fontCollection);
     EXPECT_EQ(adapterFontCollection != nullptr, true);
 }
 

@@ -120,10 +120,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest006, TestSize.Level
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    typography->UpdateFontSize(1,10,20.0);
+    typography->UpdateFontSize(1, 10, 20.0);
     std::vector<float> indents = {1.2, 3.4};
     typography->SetIndents(indents);
-    EXPECT_EQ(typography->DetectIndents(3), indents[1]);//3 > indents.size(), return indents.back()
+    //3 > indents.size(), return indents.back()
+    EXPECT_EQ(typography->DetectIndents(3), indents[1]);
     typography->Layout(100);
     SkCanvas* canvas = nullptr;
     typography->Paint(canvas, 10.0, 10.0);
@@ -146,7 +147,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     typography->GetWordBoundaryByIndex(0);
     typography->GetActualTextRange(0, false);

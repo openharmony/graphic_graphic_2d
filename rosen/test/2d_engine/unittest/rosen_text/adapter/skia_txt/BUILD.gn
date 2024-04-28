@@ -15,19 +15,20 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/adapter/skia_txt"
+module_output_path =
+    "graphic_2d/rosen/modules/2d_engine/rosen_text/adapter/skia_txt"
 
 ohos_unittest("rosen_text_adapt_test") {
   module_out_path = module_output_path
 
-    if (use_skia_txt) {
+  if (use_skia_txt) {
     sources = [
       "convert_test.cpp",
       "font_collection_test.cpp",
-      "typography_test.cpp",
-      "typography_create_test.cpp",
-      "text_line_base_test.cpp",
       "run_test.cpp",
+      "text_line_base_test.cpp",
+      "typography_create_test.cpp",
+      "typography_test.cpp",
     ]
   }
   include_dirs = [
@@ -42,7 +43,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "$skia_root_new",
   ]
 
-cflags = [
+  cflags = [
     "-std=c++17",
     "-Dprivate = public",
     "-Dprotected = public",
@@ -62,6 +63,7 @@ cflags = [
       defines += [ "ACE_ENABLE_GPU" ]
     }
   }
+
   #defines += [ "OHOS_STANDARD_SYSTEM" ]
   deps = [
     "$rosen_root/modules/2d_engine/rosen_text/skia_txt:skia_libtxt_$platform",
@@ -73,10 +75,10 @@ cflags = [
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
-  }
+}
 
-  group("unittest") { 
+group("unittest") {
   testonly = true
 
   deps = [ ":rosen_text_adapt_test" ]
-  }
+}
