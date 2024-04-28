@@ -155,7 +155,7 @@ public:
     void SetIsMirrorDisplay(bool isMirror);
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
-    bool SkipFrame(uint32_t skipFrameInterval);
+    bool SkipFrame(uint32_t skipFrameInterval) override;
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
     WeakPtr GetMirrorSource() const

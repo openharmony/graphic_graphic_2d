@@ -625,6 +625,8 @@ public:
     const RectI GetFilterCachedRegion() const;
     bool IsEffectNodeNeedTakeSnapShot() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
+    virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
+
 protected:
     virtual void OnApplyModifiers() {}
 

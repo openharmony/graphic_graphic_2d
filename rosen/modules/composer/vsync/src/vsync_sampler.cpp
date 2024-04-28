@@ -276,6 +276,9 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
     numResyncSamplesSincePresent_ = 0;
 
     UpdateErrorLocked();
+    if (error_ > ERROR_THRESHOLD) {
+        ScopedBytrace trace("PresentFenceTime error_:" + std::to_string(error_));
+    }
 
     return !modeUpdated_ || error_ > ERROR_THRESHOLD;
 }
