@@ -217,6 +217,12 @@ CALL_HOOK_API_RET(eglWaitSyncKHR, dpy, sync, flags)
 HOOK_API_ENTRY(EGLDisplay, eglGetPlatformDisplayEXT, EGLenum platform, void *native_display, const EGLint *attrib_list)
 CALL_HOOK_API_RET(eglGetPlatformDisplayEXT, platform, native_display, attrib_list)
 
+HOOK_API_ENTRY(EGLSurface, eglCreatePlatformWindowSurfaceEXT, EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
+CALL_HOOK_API_RET(eglCreatePlatformWindowSurfaceEXT, dpy, config, native_window, attrib_list)
+
+HOOK_API_ENTRY(EGLSurface, eglCreatePlatformPixmapSurfaceEXT, EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list)
+CALL_HOOK_API_RET(eglCreatePlatformPixmapSurfaceEXT, dpy, config, native_pixmap, attrib_list)
+
 /* EGL_KHR_swap_buffers_with_damage */
 HOOK_API_ENTRY(EGLBoolean, eglSwapBuffersWithDamageKHR, EGLDisplay dpy, EGLSurface surface, const EGLint *rects, EGLint n_rects)
 CALL_HOOK_API_RET(eglSwapBuffersWithDamageKHR, dpy, surface, rects, n_rects)
@@ -232,3 +238,22 @@ CALL_HOOK_API_RET(eglDupNativeFenceFDANDROID, dpy, sync)
 /* EglSetBlobCacheFuncsANDROID */
 HOOK_API_ENTRY(void, eglSetBlobCacheFuncsANDROID, EGLDisplay dpy, EGLSetBlobFuncANDROID set, EGLGetBlobFuncANDROID get)
 CALL_HOOK_API(eglSetBlobCacheFuncsANDROID, dpy, set, get)
+
+/* EGL_ANDROID_get_frame_timestamps */
+HOOK_API_ENTRY(EGLBoolean, eglGetCompositorTimingSupportedANDROID, EGLDisplay dpy, EGLSurface surface, EGLint name)
+CALL_HOOK_API_RET(eglGetCompositorTimingSupportedANDROID, dpy, surface, name)
+
+HOOK_API_ENTRY(EGLBoolean, eglGetFrameTimestampSupportedANDROID, EGLDisplay dpy, EGLSurface surface, EGLint timestamp)
+CALL_HOOK_API_RET(eglGetFrameTimestampSupportedANDROID, dpy, surface, timestamp)
+
+/* EGL_ANDROID_presentation_time */
+HOOK_API_ENTRY(EGLBoolean, eglPresentationTimeANDROID, EGLDisplay dpy, EGLSurface surface, EGLnsecsANDROID time)
+CALL_HOOK_API_RET(eglPresentationTimeANDROID, dpy, surface, time)
+
+/* EGL_EXT_swap_buffers_with_damage */
+HOOK_API_ENTRY(EGLBoolean, eglSwapBuffersWithDamageEXT, EGLDisplay dpy, EGLSurface surface, const EGLint *rects, EGLint n_rects)
+CALL_HOOK_API_RET(eglSwapBuffersWithDamageEXT, dpy, surface, rects, n_rects)
+
+/* EGL_ANDROID_get_native_client_buffer */
+HOOK_API_ENTRY(EGLClientBuffer, eglGetNativeClientBufferANDROID, const struct AHardwareBuffer *buffer)
+CALL_HOOK_API_RET(eglGetNativeClientBufferANDROID, buffer)
