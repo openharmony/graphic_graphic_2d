@@ -303,7 +303,7 @@ std::vector<LineMetrics> Typography::GetLineMetrics()
         for (SPText::LineMetrics& spLineMetrics : metrics) {
             LineMetrics& line = lineMetrics.emplace_back();
             if (!spLineMetrics.runMetrics.empty()) {
-                auto &spFontMetrics = spLineMetrics.runMetrics.begin()->second.fontMetrics;
+                const auto &spFontMetrics = spLineMetrics.runMetrics.begin()->second.fontMetrics;
                 line.firstCharMetrics = spFontMetrics;
                 line.capHeight = spFontMetrics.fCapHeight;
                 line.xHeight = spFontMetrics.fXHeight;

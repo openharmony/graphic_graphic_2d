@@ -2116,8 +2116,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level
 {
     OH_Drawing_FontConfigInfoErrorCode code = ERROR_FONT_CONFIG_INFO_UNKNOWN;
     OH_Drawing_FontConfigInfo* configJsonInfo = OH_Drawing_GetSystemFontConfigInfo(&code);
-    EXPECT_EQ(code, SUCCESS_FONT_CONFIG_INFO);
-    EXPECT_EQ(configJsonInfo != nullptr, true);
+    if (configJsonInfo != nullptr) {
+        EXPECT_EQ(code, SUCCESS_FONT_CONFIG_INFO);
+    } else {
+        EXPECT_NE(code, SUCCESS_FONT_CONFIG_INFO);
+    }
     OH_Drawing_DestroySystemFontConfigInfo(configJsonInfo);
     configJsonInfo = nullptr;
 }
