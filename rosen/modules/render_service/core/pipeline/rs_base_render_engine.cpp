@@ -656,9 +656,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
 #endif
-        Drawing::ColorType drawingColorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-        auto pixelFmt = params.buffer->GetFormat();
-        auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(pixelFmt);
+        auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
 #ifndef ROSEN_EMULATOR
         auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
 #else
