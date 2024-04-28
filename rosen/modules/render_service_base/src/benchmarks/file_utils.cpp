@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "directory_ex.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,7 +32,7 @@ bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
 
 std::string GetRealAndValidPath(const std::string& filePath)
 {
-    std::string realPathStr = std::filesystem::path(filePath).lexically_normal().string();
+    std::string realPathStr = PathToRealPath(filePath);
     if (IsValidFile(realPathStr)) {
         return realPathStr;
     } else {
