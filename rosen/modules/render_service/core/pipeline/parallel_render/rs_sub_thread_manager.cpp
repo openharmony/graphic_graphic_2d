@@ -287,9 +287,9 @@ void RSSubThreadManager::ResetSubThreadGrContext()
     }
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
         auto subThread = threadList_[i];
-        subThread->PostTask([subThread]() {
-            subThread->ResetGrContext();
-        }, RELEASE_RESOURCE);
+        subThread->PostTask(
+            [subThread]() { subThread->ResetGrContext(); },
+            RELEASE_RESOURCE);
     }
     needResetContext_ = false;
     needCancelTask_ = true;
