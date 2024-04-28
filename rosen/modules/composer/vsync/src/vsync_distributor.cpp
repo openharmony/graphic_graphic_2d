@@ -372,7 +372,6 @@ void VSyncDistributor::ThreadMain()
 #endif
 
     int64_t timestamp;
-    int64_t vsyncCount;
     while (vsyncThreadRunning_ == true) {
         std::vector<sptr<VSyncConnection>> conns;
         {
@@ -769,7 +768,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
 #if defined(RS_ENABLE_DVSYNC)
     if (isRs_ && dvsync_->IsFeatureEnabled()) {
         con_.notify_all();
-    } else 
+    } else
 #else
     {
         EnableVSync();
