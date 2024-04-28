@@ -224,6 +224,7 @@ public:
     Vector4<uint32_t> GetOutlineStyle() const;
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
+    bool GetBorderColorIsTransparent() const;
 
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;

@@ -50,6 +50,8 @@ const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
 constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
+constexpr int BORDER_NUM = 4;
+constexpr int16_t BORDER_TRANSPARENT = 255;
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
@@ -1053,6 +1055,19 @@ Vector4<uint32_t> RSProperties::GetBorderStyle() const
 const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
 {
     return border_;
+}
+
+bool RSProperties::GetBorderColorIsTransparent() const
+{
+    if (border_) {
+        for (int i = 0; i < BORDER_NUM; i++) {
+            auto alpha = border_->GetColorFour()[i].GetAlpha();
+            if (alpha < BORDER_TRANSPARENT) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void RSProperties::SetOutlineColor(Vector4<Color> color)
