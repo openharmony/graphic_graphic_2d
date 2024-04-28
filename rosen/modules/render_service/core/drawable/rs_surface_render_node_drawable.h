@@ -141,9 +141,7 @@ private:
     bool DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
 
-    void CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
-        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    void CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
+    void CaptureSurface(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
     void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams* uniParam,
