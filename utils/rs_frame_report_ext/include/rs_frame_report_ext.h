@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RS_FRAME_REPORT_EXT_H
-#define ROSEN_RS_FRAME_REPORT_EXT_H
+#ifndef UTILS_RS_FRAME_REPORT_EXT_H
+#define UTILS_RS_FRAME_REPORT_EXT_H
 
 #include <string>
 
@@ -52,4 +52,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_RS_FRAME_REPORT_EXT_H
+#endif // UTILS_RS_FRAME_REPORT_EXT_H

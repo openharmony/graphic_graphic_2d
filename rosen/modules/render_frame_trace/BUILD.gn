@@ -45,12 +45,3 @@ ohos_source_set("render_frame_trace") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
-
-ohos_source_set("rs_frame_report_ext") {
-  include_dirs = [ "include" ]
-  sources = [ "src/rs_frame_report_ext.cpp" ]
-  external_deps = [ "hilog:libhilog" ]
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
