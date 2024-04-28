@@ -15,7 +15,6 @@
 
 #include "drawing_engine_sample.h"
 
-#include "SkCanvas.h"
 #include "window.h"
 #include <securec.h>
 #include <vsync_generator.h>
@@ -26,6 +25,7 @@
 #include <iostream>
 
 #include "include/core/SkBitmap.h"
+#include "include/core/SkCanvas.h"
 #include "draw/canvas.h"
 
 #ifdef RS_ENABLE_VK

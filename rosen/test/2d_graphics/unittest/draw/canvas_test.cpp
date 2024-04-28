@@ -339,6 +339,37 @@ HWTEST_F(CanvasTest, CanvasDrawRegionTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanvasDrawAtlasTest001
+ * @tc.desc: Test for drawing Atlas on the Canvas.
+ * @tc.type: FUNC
+ * @tc.require: I719R9
+ */
+HWTEST_F(CanvasTest, CanvasDrawAtlasTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Bitmap bitmap;
+    BitmapFormat format {ColorType::COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bitmap.Build(200, 200, format);
+    bitmap.ClearWithColor(Color::COLOR_WHITE);
+    RSXform xform[] = { {25, 36, 2, 5}, {7, 8, 9, 12} };
+    Rect rect[] = { {0, 0, 50, 50}, {50, 50, 100, 100}};
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, nullptr, 2,
+        BlendMode::SRC, SamplingOptions(), nullptr);
+    Brush brush;
+    ColorQuad colors[] = {0xffffffff, 0xff000000};
+    Rect cullRect(0, 0, 100, 100);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, 2,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, -10,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, 5000,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+    canvas->DrawAtlas(nullptr, xform, rect, colors, 2,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+}
+
+/**
  * @tc.name: CanvasDrawBitmapTest001
  * @tc.desc: Test for drawing Bitmap on the Canvas.
  * @tc.type: FUNC

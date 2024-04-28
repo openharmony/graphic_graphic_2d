@@ -18,6 +18,7 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
@@ -25,14 +26,18 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
+};
 
 void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type, bool isTextureExportNode)
 {
     if (!context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        auto node = std::make_shared<RSSurfaceRenderNode>(id, context.weak_from_this(), isTextureExportNode);
+        auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
+            context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
         node->SetSurfaceNodeType(type);
         auto& nodeMap = context.GetMutableNodeMap();
-        nodeMap.RegisterRenderNode(node);   
+        nodeMap.RegisterRenderNode(node);
     }
 }
 
@@ -42,7 +47,8 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
     RSSurfaceRenderNodeConfig config = {
         .id = nodeId, .name = name, .bundleName = bundleName, .nodeType = static_cast<RSSurfaceNodeType>(type)
     };
-    auto node = std::make_shared<RSSurfaceRenderNode>(config, context.weak_from_this());
+    auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
+        context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
@@ -160,7 +166,7 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
 {
     auto type = static_cast<RSSurfaceNodeType>(surfaceNodeType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        if (type == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) {
+        if ((type == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) && (node->GetName() != ARKTS_CARD_NODE)) {
             auto& nodeMap = context.GetMutableNodeMap();
             nodeMap.CalCulateAbilityComponentNumsInProcess(nodeId);
         }
@@ -267,6 +273,13 @@ void SurfaceNodeCommandHelper::SetAncoForceDoDirect(RSContext& context, NodeId n
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetAncoForceDoDirect(ancoForceDoDirect);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, bool ancoForceDoDirect)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHDRPresent(ancoForceDoDirect);
     }
 }
 } // namespace Rosen

@@ -50,15 +50,16 @@ void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr
         return;
     }
     auto aiBarPara = GetAiInvertCoef();
-    auto aiBarFilter = std::make_shared<Drawing::GEVisualEffect>("AIBAR", Drawing::DrawingPaintType::BRUSH);
+    auto aiBarFilter =
+        std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_AI_BAR, Drawing::DrawingPaintType::BRUSH);
     if (!aiBarFilter) {
         return;
     }
-    aiBarFilter->SetParam("AIBAR_LOW", aiBarPara[0]); // 0 low
-    aiBarFilter->SetParam("AIBAR_HIGH", aiBarPara[1]); // 1 high
-    aiBarFilter->SetParam("AIBAR_THRESHOLD", aiBarPara[2]); // 2 threshold
-    aiBarFilter->SetParam("AIBAR_OPACITY", aiBarPara[3]); // 3 opacity
-    aiBarFilter->SetParam("AIBAR_SATURATION", aiBarPara[4]); // 4 saturation
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_LOW, aiBarPara[0]); // 0 low
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_HIGH, aiBarPara[1]); // 1 high
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_THRESHOLD, aiBarPara[2]); // 2 threshold
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_OPACITY, aiBarPara[3]); // 3 opacity
+    aiBarFilter->SetParam(Drawing::GE_FILTER_AI_BAR_SATURATION, aiBarPara[4]); // 4 saturation
     auto radius = aiBarPara[5];  // 5 blur radius
     visualEffectContainer->AddToChainedFilter(aiBarFilter);
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
@@ -67,8 +68,9 @@ void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr
     }
     static bool DDGR_ENABLED = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
     if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED) {
-        auto kawaseFilter = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR", Drawing::DrawingPaintType::BRUSH);
-        kawaseFilter->SetParam("KAWASE_BLUR_RADIUS", (int)radius);
+        auto kawaseFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR, Drawing::DrawingPaintType::BRUSH);
+        kawaseFilter->SetParam(Drawing::GE_FILTER_KAWASE_BLUR_RADIUS, (int)radius);
         visualEffectContainer->AddToChainedFilter(kawaseFilter);
         auto outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
             image, src, src, Drawing::SamplingOptions());

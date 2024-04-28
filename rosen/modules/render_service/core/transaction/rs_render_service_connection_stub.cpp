@@ -446,6 +446,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::OnRemoteRequest no permission to access SET_SCREEN_POWER_STATUS");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             uint32_t status = data.ReadUint32();
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
@@ -542,6 +547,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
                 break;
+            }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::OnRemoteRequest no permission to access GET_MEMORY_GRAPHICS");
+                return ERR_INVALID_STATE;
             }
             std::vector<MemoryGraphic> memoryGraphics = GetMemoryGraphics();
             reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()));

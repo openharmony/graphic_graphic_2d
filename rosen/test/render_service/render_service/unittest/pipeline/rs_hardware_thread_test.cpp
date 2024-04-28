@@ -181,6 +181,8 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     hardwareThread.CommitAndReleaseLayers(composerAdapter_->output_, layers);
 }
 

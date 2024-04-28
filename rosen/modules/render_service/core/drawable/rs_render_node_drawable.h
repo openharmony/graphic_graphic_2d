@@ -42,7 +42,6 @@ namespace DrawableV2 {
 // Used by RSUniRenderThread and RSChildrenDrawable
 class RSRenderNodeDrawable : public RSRenderNodeDrawableAdapter {
 public:
-    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -51,9 +50,10 @@ public:
     virtual void OnDraw(Drawing::Canvas& canvas);
     virtual void OnCapture(Drawing::Canvas& canvas);
 
+    // deprecated
     inline std::shared_ptr<const RSRenderNode> GetRenderNode()
     {
-        return renderNode_;
+        return renderNode_.lock();
     }
 
     inline bool GetOpDropped() const
@@ -63,11 +63,16 @@ public:
 
     inline bool ShouldPaint() const
     {
-        const auto& params = renderNode_->GetRenderParams();
-        return LIKELY(params != nullptr) && params->GetShouldPaint();
+        return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
+    }
+
+    static inline const Drawing::Matrix& GetParentSurfaceMatrix()
+    {
+        return parentSurfaceMatrix_;
     }
 
 protected:
+    explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
 
@@ -80,6 +85,7 @@ protected:
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
+    static inline std::mutex drawingCacheInfoMutex_;
     static inline std::vector<std::pair<RectI, int32_t>> drawingCacheInfos_; // (rect, updateTimes)
 
     // used foe render group cache
@@ -100,7 +106,8 @@ protected:
     static int GetProcessedNodeCount();
     static void ProcessedNodeCountInc();
     static void ClearProcessedNodeCount();
-    static inline bool drawBlurForCache_ = false;
+    static thread_local bool drawBlurForCache_;
+    static thread_local Drawing::Matrix parentSurfaceMatrix_;
 
 private:
     DrawableCacheType cacheType_ = DrawableCacheType::NONE;
@@ -119,8 +126,8 @@ private:
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
 
-    static inline bool isOpDropped_ = true;
-    static inline int processedNodeCount_ = 0;
+    static thread_local bool isOpDropped_;
+    static inline std::atomic<int> processedNodeCount_ = 0;
     // used foe render group cache
 };
 } // namespace DrawableV2

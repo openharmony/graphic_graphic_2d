@@ -598,15 +598,6 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-class RSC_EXPORT RSParticleNoiseFieldModifier : public RSForegroundModifier {
-public:
-    explicit RSParticleNoiseFieldModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSParticleNoiseFieldModifier() = default;
-protected:
-    RSModifierType GetModifierType() const override;
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
 class RSC_EXPORT RSParticleNoiseFieldsModifier : public RSForegroundModifier {
 public:
     explicit RSParticleNoiseFieldsModifier(const std::shared_ptr<RSPropertyBase>& property);
@@ -827,6 +818,15 @@ class RSC_EXPORT RSPixelStretchPercentModifier : public RSGeometryModifier {
 public:
     explicit RSPixelStretchPercentModifier(const std::shared_ptr<RSPropertyBase>& property);
     virtual ~RSPixelStretchPercentModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSPixelStretchTileModeModifier : public RSGeometryModifier {
+public:
+    explicit RSPixelStretchTileModeModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSPixelStretchTileModeModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

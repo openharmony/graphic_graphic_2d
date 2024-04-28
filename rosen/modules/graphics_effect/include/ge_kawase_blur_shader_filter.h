@@ -33,15 +33,13 @@ namespace Rosen {
 class GEKawaseBlurShaderFilter : public GEShaderFilter {
 public:
     GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams& params);
-    ~GEKawaseBlurShaderFilter() override;
+    ~GEKawaseBlurShaderFilter() override = default;
     int GetRadius() const;
 
     std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst) override;
 
 private:
-    friend class RSMarshallingHelper;
-
     static Drawing::Matrix GetShaderTransform(
         const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scaleW = 1.0f, float scaleH = 1.0f);
     bool InitBlurEffect();

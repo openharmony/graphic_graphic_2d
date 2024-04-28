@@ -137,7 +137,7 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
         }
     }
 
-    ret = g_composer->GetDisplayProperty(screenId, propertyId, propertyValue);
+    (void)g_composer->GetDisplayProperty(screenId, propertyId, propertyValue);
     return ret;
 }
 

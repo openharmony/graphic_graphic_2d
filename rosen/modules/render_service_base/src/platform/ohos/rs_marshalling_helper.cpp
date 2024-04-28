@@ -616,6 +616,34 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterU
     return success;
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<std::shared_ptr<EmitterUpdater>>& val)
+{
+    bool success = parcel.WriteUint32(static_cast<uint32_t>(val.size()));
+    for (size_t i = 0; i < val.size(); i++) {
+        success = success && Marshalling(parcel, val[i]);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_ptr<EmitterUpdater>>& val)
+{
+    uint32_t size = parcel.ReadUint32();
+    bool success = true;
+    std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdaters;
+    if (size > PARTICLE_UPPER_LIMIT) {
+        return false;
+    }
+    for (size_t i = 0; i < size; i++) {
+        std::shared_ptr<EmitterUpdater> emitterUpdater;
+        success = success && Unmarshalling(parcel, emitterUpdater);
+        emitterUpdaters.push_back(emitterUpdater);
+    }
+    if (success) {
+        val = emitterUpdaters;
+    }
+    return success;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleNoiseField>& val)
 {
     bool success = Marshalling(parcel, val->fieldStrength_);
@@ -1773,6 +1801,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseField>)                \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)               \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>) \

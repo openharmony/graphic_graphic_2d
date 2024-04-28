@@ -77,6 +77,9 @@ public:
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
     void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
 
+    void Setpaint(Drawing::Paint paint);
+    void SetDyamicRangeMode(uint32_t dynamicRangeMode);
+
     void SetNodeId(NodeId nodeId);
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
@@ -116,6 +119,8 @@ private:
     RectF frameRect_;
     double scale_ = 1.0;
     NodeId nodeId_ = 0;
+    Drawing::Paint paint_;
+    uint32_t dynamicRangeMode_ = 0;
 };
 
 template<>

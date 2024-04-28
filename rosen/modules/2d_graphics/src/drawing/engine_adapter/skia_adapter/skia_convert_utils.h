@@ -23,6 +23,7 @@
 #include "include/core/SkFontStyle.h"
 #include "include/core/SkRect.h"
 #include "include/core/SkRSXform.h"
+#include "include/core/SkSamplingOptions.h"
 #include "include/core/SkString.h"
 #include "include/core/SkTextBlob.h"
 
@@ -31,6 +32,7 @@
 #include "text/rs_xform.h"
 #include "text/text_blob_builder.h"
 #include "utils/rect.h"
+#include "utils/sampling_options.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -130,6 +132,16 @@ public:
         skXform.fSSin = xform.sin_;
         skXform.fTx = xform.tx_;
         skXform.fTy = xform.ty_;
+    }
+
+    static inline void DrawingSamplingCastToSkSampling(const SamplingOptions& sampling, SkSamplingOptions& skSampling)
+    {
+        if (sampling.GetUseCubic()) {
+            skSampling = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
+        } else {
+            skSampling = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+                static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+        }
     }
 };
 } // namespace Drawing

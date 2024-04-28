@@ -118,7 +118,13 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
     info.needClient = RSBaseRenderUtil::IsForceClient();
-    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+    auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+    auto matrix = geoPtr ? geoPtr->GetMatrix() : Drawing::Matrix();
+    info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),
+        matrix.Get(Drawing::Matrix::Index::SKEW_X), matrix.Get(Drawing::Matrix::Index::TRANS_X),
+        matrix.Get(Drawing::Matrix::Index::SKEW_Y), matrix.Get(Drawing::Matrix::Index::SCALE_Y),
+        matrix.Get(Drawing::Matrix::Index::TRANS_Y), matrix.Get(Drawing::Matrix::Index::PERSP_0),
+        matrix.Get(Drawing::Matrix::Index::PERSP_1), matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     info.gravity = static_cast<int32_t>(Gravity::RESIZE);
     return info;
 }
@@ -304,6 +310,14 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
             }
         }
     }
+    Drawing::RectI srcRect(
+        info.srcRect.x, info.srcRect.y, info.srcRect.w + info.srcRect.x, info.srcRect.h + info.srcRect.y);
+    Drawing::RectI bufferRect(0, 0, bufferWidth, bufferHeight);
+    srcRect.Intersect(bufferRect);
+    info.srcRect.x = srcRect.GetLeft();
+    info.srcRect.y = srcRect.GetTop();
+    info.srcRect.w = srcRect.GetWidth();
+    info.srcRect.h = srcRect.GetHeight();
     RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
             "srcRect [%{public}d %{public}d %{public}d %{public}d]",
             node.GetId(), info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h);
@@ -500,7 +514,7 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNod
         return false;
     }
 
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGW("RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:"\
             " node(%{public}" PRIu64 ")'s geoPtr is nullptr!", node.GetId());
@@ -677,7 +691,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     RS_OPTIONAL_TRACE_BEGIN("RSUniRenderComposerAdapter::CreateLayer");
     RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
         node.GetId(), node.GetAvailableBufferCount());
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node) || !node.GetBuffer()) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node, true) || !node.GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         RS_OPTIONAL_TRACE_END();
         return nullptr;

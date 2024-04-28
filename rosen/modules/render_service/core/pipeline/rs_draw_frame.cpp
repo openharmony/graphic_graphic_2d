@@ -18,9 +18,11 @@
 #include "rs_trace.h"
 
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "property/rs_filter_cache_manager.h"
+#include "rs_frame_report.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,6 +40,9 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
 void RSDrawFrame::RenderFrame()
 {
     RS_TRACE_NAME_FMT("RenderFrame");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().RSRenderStart();
+    }
     JankStatsRenderFrameStart();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
@@ -48,7 +53,11 @@ void RSDrawFrame::RenderFrame()
     Render();
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().RSRenderEnd();
+    }
     JankStatsRenderFrameEnd(doJankStats);
+    RSRenderNodeGC::Instance().ReleaseDrawableMemory();
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
@@ -72,12 +81,14 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostSyncTask([this]() {
                 unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.RunImageReleaseTask();
                 unirenderInstance_.SetMainLooping(false);
             });
             break;
         }
         case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
             RenderFrame();
+            unirenderInstance_.RunImageReleaseTask();
             break;
         }
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
@@ -87,6 +98,7 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostTask([this]() {
                 unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
+                unirenderInstance_.RunImageReleaseTask();
                 unirenderInstance_.SetMainLooping(false);
             });
 

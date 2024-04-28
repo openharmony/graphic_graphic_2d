@@ -22,6 +22,7 @@
 #include <sys/resource.h>
 #include <string>
 #include "vsync_log.h"
+#include <ctime>
 
 #ifdef COMPOSER_SCHED_ENABLE
 #include "if_system_ability_manager.h"
@@ -33,10 +34,11 @@ namespace OHOS {
 namespace Rosen {
 namespace impl {
 namespace {
-static int64_t GetSysTimeNs()
+static int64_t systemTime()
 {
-    auto now = std::chrono::steady_clock::now().time_since_epoch();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
 }
 
 // 1.5ms
@@ -99,10 +101,12 @@ VSyncGenerator::~VSyncGenerator()
 void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTimeStamp,
     int64_t occurReferenceTime, bool isWakeup)
 {
+    ScopedBytrace trace("occurTimestamp:" + std::to_string(occurTimestamp) +
+                        ", nextTimeStamp:" + std::to_string(nextTimeStamp));
     std::vector<Listener> listeners;
     {
         std::unique_lock<std::mutex> locker(mutex_);
-        int64_t newOccurTimestamp = GetSysTimeNs();
+        int64_t newOccurTimestamp = systemTime();
         if (isWakeup) {
             UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
         }
@@ -116,6 +120,7 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         ", period:" + std::to_string(periodRecord_) + ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
         ", vsyncMode_:" + std::to_string(vsyncMode_));
     for (uint32_t i = 0; i < listeners.size(); i++) {
+        ScopedBytrace func("listener phase is " + std::to_string(listeners[i].phase_));
         listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
     }
 }
@@ -145,7 +150,7 @@ void VSyncGenerator::ThreadLoop()
                 }
                 continue;
             }
-            occurTimestamp = GetSysTimeNs();
+            occurTimestamp = systemTime();
             nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp, occurReferenceTime);
             if (nextTimeStamp == INT64_MAX) {
                 ScopedBytrace func("VSyncGenerator: there has no listener");
@@ -368,7 +373,7 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     std::vector<VSyncGenerator::Listener> ret;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
-        if (t - GetSysTimeNs() < errorThreshold) {
+        if (t - systemTime() < errorThreshold) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
@@ -464,7 +469,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
-    listener.lastTime_ = GetSysTimeNs() - period_ + phase_;
+    listener.lastTime_ = systemTime() - period_ + phase_;
 
     listeners_.push_back(listener);
 
@@ -691,7 +696,6 @@ VsyncError VSyncGenerator::RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator
     if (!removeFlag) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    con_.notify_all();
     return VSYNC_ERROR_OK;
 }
 

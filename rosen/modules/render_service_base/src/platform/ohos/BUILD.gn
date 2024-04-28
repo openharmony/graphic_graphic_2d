@@ -23,9 +23,6 @@ config("export_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
-    "//commonlibrary/c_utils/base/include",
-    "//utils/system/safwk/native/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
   ]
   if (defined(use_new_render_context) && use_new_render_context) {
     include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_base/include/render_backend" ]
@@ -109,17 +106,16 @@ ohos_source_set("rosen_ohos_sources") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "//commonlibrary/c_utils/base/include",
-    "//utils/system/safwk/native/include",
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
-    "//drivers/peripheral/display/interfaces/include/",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/utils/log",
   ]
 
   public_external_deps = [
+    "c_utils:utils",
     "graphic_surface:surface",
     "graphic_surface:sync_fence",
+    "image_framework:image_native",
   ]
 
   # profiler
@@ -141,11 +137,7 @@ ohos_source_set("rosen_ohos_sources") {
   }
 
   if (rs_enable_gpu) {
-    include_dirs += [
-      "//third_party/openssl/include",
-      "$graphic_2d_root/interfaces/inner_api/common",
-    ]
-    include_dirs += [ "//third_party/skia" ]
+    include_dirs += [ "$graphic_2d_root/interfaces/inner_api/common" ]
 
     public_deps += [
       "$graphic_2d_root:libgl",

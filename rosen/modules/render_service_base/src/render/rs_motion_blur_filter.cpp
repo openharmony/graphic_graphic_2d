@@ -48,14 +48,14 @@ void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::share
         return;
     }
 
-    auto para = motionBlurPara_;
-    if (!RSSystemProperties::GetMotionBlurEnabled() || para == nullptr || para->radius <= 0) {
-        lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
+    if (isOffscreenCanvas_ == true) {
         OutputOriginalImage(canvas, image, src, dst);
         return;
     }
 
-    if (!RectValid(lastRect_, curRect_)) {
+    auto para = motionBlurPara_;
+    if (!RSSystemProperties::GetMotionBlurEnabled() || para == nullptr || para->radius <= 0 ||
+        !RectValid(lastRect_, curRect_)) {
         lastRect_ = Drawing::Rect(curRect_.GetLeft(), curRect_.GetTop(), curRect_.GetRight(), curRect_.GetBottom());
         OutputOriginalImage(canvas, image, src, dst);
         return;

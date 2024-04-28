@@ -45,10 +45,10 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!ShouldPaint()) {
         return;
     }
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, parentSurfaceMatrix_);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
         return;
@@ -73,10 +73,10 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (!ShouldPaint()) {
         return;
     }
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, parentSurfaceMatrix_);
 
     if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && EnableRecordingOptimization(*params)) {
         return;

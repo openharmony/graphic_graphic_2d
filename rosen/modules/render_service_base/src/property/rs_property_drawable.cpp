@@ -119,6 +119,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::SYSTEMBAREFFECT, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::PIXEL_STRETCH, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::PIXEL_STRETCH_PERCENT, RSPropertyDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::PIXEL_STRETCH_TILE_MODE, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::USE_EFFECT, RSPropertyDrawableSlot::USE_EFFECT },
     { RSModifierType::SANDBOX, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::GRAY_SCALE, RSPropertyDrawableSlot::COLOR_FILTER },

@@ -61,6 +61,7 @@ public:
     NodeId GetEntryViewNodeId() const;
     NodeId GetWallPaperViewNodeId() const;
     NodeId GetScreenLockWindowNodeId() const;
+    NodeId GetNegativeScreenNodeId() const;
     void ObtainScreenLockWindowNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
@@ -83,6 +84,7 @@ private:
     std::unordered_map<pid_t, int> abilityComponentNumsInProcess_;
 
     NodeId entryViewNodeId_ = 0;
+    NodeId negativeScreenNodeId_ = 0;
     NodeId wallpaperViewNodeId_ = 0;
     NodeId screenLockWindowNodeId_ = 0;
 

@@ -21,14 +21,14 @@
 namespace OHOS::Rosen::DrawableV2 {
 class RSCanvasRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSCanvasRenderNodeDrawable() override = default;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
     bool EnableRecordingOptimization(RSRenderParams& params);
-
+protected:
+    explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
     static Registrar instance_;

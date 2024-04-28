@@ -41,19 +41,14 @@ ohos_shared_library("libnative_vsync") {
 
   configs = [ ":native_vsync_config" ]
 
-  public_configs = [
-    ":native_vsync_public_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  public_configs = [ ":native_vsync_public_config" ]
 
   output_extension = "so"
 
   deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
 
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
+  external_deps = [ "hilog:libhilog" ]
+  public_external_deps = [ "c_utils:utils" ]
 
   innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"

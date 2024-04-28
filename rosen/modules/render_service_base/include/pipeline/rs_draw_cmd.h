@@ -47,6 +47,7 @@ struct AdaptiveImageInfo {
     uint32_t uniqueId = 0;
     int32_t width = 0;
     int32_t height = 0;
+    uint32_t dynamicRangeMode = 0;
 };
 }
 

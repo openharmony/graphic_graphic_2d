@@ -296,7 +296,7 @@ EGLint EglGetErrorImpl(void)
     return ret;
 }
 
-static __eglMustCastToProperFunctionPointerType findBuiltinWrapper(const char* procname)
+static __eglMustCastToProperFunctionPointerType FindBuiltinWrapper(const char* procname)
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
     static void* dlglv3Handle = dlopen("/system/lib64/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
@@ -318,7 +318,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
         return gExtensionMap.at(procname);
     }
 
-    __eglMustCastToProperFunctionPointerType addr = findBuiltinWrapper(procname);
+    __eglMustCastToProperFunctionPointerType addr = FindBuiltinWrapper(procname);
     if (addr) {
         return __eglMustCastToProperFunctionPointerType(addr);
     }
@@ -1312,7 +1312,7 @@ void EglSetBlobCacheFuncsANDROIDImpl(EGLDisplay dpy, EGLSetBlobFuncANDROID set, 
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
         table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
-                                               BlobCache::setBlobFunc, BlobCache::getBlobFunc);
+                                               BlobCache::SetBlobFunc, BlobCache::GetBlobFunc);
     } else {
         WLOGE("EglSetBlobCacheFuncsANDROIDImpl platform is not found.");
     }

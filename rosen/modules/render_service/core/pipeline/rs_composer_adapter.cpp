@@ -427,7 +427,7 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
         return false;
     }
 
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGW("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%{public}" PRIu64 ")'s"
             " geoPtr is nullptr!", node.GetId());
@@ -524,7 +524,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
         RS_LOGE("RSComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
     }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node, true)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }

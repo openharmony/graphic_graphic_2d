@@ -264,6 +264,7 @@ private:
     // If reusable filter cache covers whole screen, mark lower layer to skip process
     void CheckAndUpdateFilterCacheOcclusion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces) const;
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
+    void CheckMergeDebugRectforRefreshRate();
 
     bool IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const;
     void ClipRegion(std::shared_ptr<Drawing::Canvas> canvas, const Drawing::Region& region) const;
@@ -382,15 +383,14 @@ private:
     bool IsFirstVisitedCacheForced() const;
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
     bool ForceHardwareComposer(RSSurfaceRenderNode& node) const;
-    bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node, bool isProtected = false); // return if srcRect is allowed by dss restriction
+    // return if srcRect is allowed by dss restriction
+    bool UpdateSrcRectForHwcNode(RSSurfaceRenderNode& node, bool isProtected = false);
     std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 
     void SwitchColorFilterDrawing(int currentSaveCount);
     void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
-    void SaveCurSurface(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
-        std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
-    void RestoreCurSurface(std::shared_ptr<RSDirtyRegionManager> &dirtyManager,
-        std::shared_ptr<RSSurfaceRenderNode> &surfaceNode);
+    void SaveCurSurface();
+    void RestoreCurSurface();
     void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
     void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 
@@ -576,7 +576,7 @@ private:
     // record nodes in surface which has filter may influence golbalDirty
     OcclusionRectISet globalFilter_;
     // record container nodes which need filter
-    OcclusionRectISet containerFilter_;
+    FilterRectISet containerFilter_;
     // record nodes which has transparent clean filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
     // record nodes which has transparent dirty filter

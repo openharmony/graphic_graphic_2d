@@ -393,7 +393,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderN
     if (!nodeDrawable) {
         return;
     }
-    auto& param = nodeDrawable->GetRenderNode()->GetRenderParams();
+    auto& param = nodeDrawable->GetRenderParams();
     if (!param) {
         return;
     }

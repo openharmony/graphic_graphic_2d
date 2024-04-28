@@ -115,6 +115,8 @@ public:
     // opinc_end
 
     // image
+    void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[], int count,
+        BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) override;
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
     void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
     void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,

@@ -67,10 +67,7 @@ public:
     void AddDirtyType(RSModifierType type) override;
     void ClearOp();
     void ResetSurface();
-    bool IsNeedProcess() const
-    {
-        return isNeedProcess_;
-    }
+    bool IsNeedProcess() const;
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
     const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
@@ -82,6 +79,7 @@ private:
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
+    void InitRenderParams() override;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif

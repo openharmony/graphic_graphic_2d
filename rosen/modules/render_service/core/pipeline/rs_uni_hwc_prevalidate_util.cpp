@@ -55,7 +55,7 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
     }
 }
 
-bool RSUniHwcPrevalidateUtil::IsLoadSuccess()
+bool RSUniHwcPrevalidateUtil::IsLoadSuccess() const
 {
     return loadSuccess;
 }

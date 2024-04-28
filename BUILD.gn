@@ -36,7 +36,6 @@ group("graphic_common_test") {
     "frameworks/vulkan_layers/test:test",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
-    "rosen/samples/texgine:texgine_feature_test",
     "rosen/test/frame_analyzer:test",
     "rosen/test/frame_report:test",
     "rosen/test/hyper_graphic_manager:test",

@@ -21,9 +21,6 @@
 namespace OHOS::Rosen::DrawableV2 {
 class RSRenderNodeShadowDrawable : public RSRenderNodeDrawableAdapter {
 public:
-    explicit RSRenderNodeShadowDrawable(std::shared_ptr<const RSRenderNode> node)
-        : RSRenderNodeDrawableAdapter(std::move(node))
-    {}
     ~RSRenderNodeShadowDrawable() override = default;
 
     static Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -32,6 +29,9 @@ public:
     void DumpDrawableTree(int32_t depth, std::string& out) const override;
 
 private:
+    explicit RSRenderNodeShadowDrawable(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {}
     using Registrar = RenderNodeShadowDrawableRegistrar<OnGenerate>;
     static Registrar instance_;
 };

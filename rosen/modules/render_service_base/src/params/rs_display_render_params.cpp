@@ -58,6 +58,34 @@ bool RSDisplayRenderParams::IsRotationChanged() const
     return isRotationChanged_;
 }
 
+void RSDisplayRenderParams::SetNewColorSpace(const GraphicColorGamut& newColorSpace)
+{
+    if (newColorSpace_ == newColorSpace) {
+        return;
+    }
+    needSync_ = true;
+    newColorSpace_ = newColorSpace;
+}
+
+GraphicColorGamut RSDisplayRenderParams::GetNewColorSpace() const
+{
+    return newColorSpace_;
+}
+
+void RSDisplayRenderParams::SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat)
+{
+    if (newPixelFormat_ == newPixelFormat) {
+        return;
+    }
+    needSync_ = true;
+    newPixelFormat_ = newPixelFormat;
+}
+
+GraphicPixelFormat RSDisplayRenderParams::GetNewPixelFormat() const
+{
+    return newPixelFormat_;
+}
+
 void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
@@ -81,6 +109,8 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     targetDisplayParams->isRotationChanged_ = isRotationChanged_;
+    targetDisplayParams->newColorSpace_ = newColorSpace_;
+    targetDisplayParams->newPixelFormat_ = newPixelFormat_;
     RSRenderParams::OnSync(target);
 }
 

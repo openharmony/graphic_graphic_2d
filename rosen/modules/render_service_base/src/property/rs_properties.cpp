@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <securec.h>
 
+#include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
@@ -116,6 +117,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH
     [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
+    [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
     [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
@@ -1168,11 +1170,23 @@ void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradi
     contentDirty_ = true;
 }
 
-void RSProperties::SetEmitterUpdater(const std::shared_ptr<EmitterUpdater>& para)
+void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para)
 {
     emitterUpdater_ = para;
-    if (emitterUpdater_) {
+    if (!emitterUpdater_.empty()) {
         isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        if (animation == nullptr) {
+            return;
+        }
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        if (particleAnimation) {
+            particleAnimation->UpdateEmitter(emitterUpdater_);
+        }
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1184,6 +1198,18 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
     particleNoiseFields_ = para;
     if (particleNoiseFields_) {
         isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        if (animation == nullptr) {
+            return;
+        }
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        if (particleAnimation) {
+            particleAnimation->UpdateNoiseField(particleNoiseFields_);
+        }
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1336,7 +1362,7 @@ const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradient
     return linearGradientBlurPara_;
 }
 
-const std::shared_ptr<EmitterUpdater>& RSProperties::GetEmitterUpdater() const
+const std::vector<std::shared_ptr<EmitterUpdater>>& RSProperties::GetEmitterUpdater() const
 {
     return emitterUpdater_;
 }
@@ -1836,12 +1862,11 @@ bool RSProperties::IsContentDirty() const
 
 RectI RSProperties::GetDirtyRect() const
 {
-    auto boundsGeometry = (boundsGeo_);
-    RectI dirtyRect = boundsGeometry->MapAbsRect(GetLocalBoundsAndFramesRect());
+    RectI dirtyRect = boundsGeo_->MapAbsRect(GetLocalBoundsAndFramesRect());
     if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
         return dirtyRect;
     } else {
-        auto drawRegion = boundsGeometry->MapAbsRect(*drawRegion_);
+        auto drawRegion = boundsGeo_->MapAbsRect(*drawRegion_);
         // this is used to fix the scene with drawRegion problem, which is need to be optimized
         drawRegion.SetRight(drawRegion.GetRight() + 1);
         drawRegion.SetBottom(drawRegion.GetBottom() + 1);
@@ -1854,19 +1879,18 @@ RectI RSProperties::GetDirtyRect() const
 RectI RSProperties::GetDirtyRect(RectI& drawRegion) const
 {
     RectI dirtyRect;
-    auto boundsGeometry = (boundsGeo_);
     if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
-        dirtyRect = boundsGeometry->GetAbsRect();
+        dirtyRect = boundsGeo_->GetAbsRect();
     } else {
         auto frameRect =
-            boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
-        dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
+            boundsGeo_->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
+        dirtyRect = boundsGeo_->GetAbsRect().JoinRect(frameRect);
     }
     if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
         drawRegion = RectI();
         return dirtyRect;
     } else {
-        drawRegion = boundsGeometry->MapAbsRect(*drawRegion_);
+        drawRegion = boundsGeo_->MapAbsRect(*drawRegion_);
         // this is used to fix the scene with drawRegion problem, which is need to be optimized
         drawRegion.SetRight(drawRegion.GetRight() + 1);
         drawRegion.SetBottom(drawRegion.GetBottom() + 1);
@@ -2285,6 +2309,20 @@ void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretch
     if (pixelStretchPercent_.has_value() && pixelStretchPercent_->IsZero()) {
         pixelStretchPercent_ = std::nullopt;
     }
+}
+
+void RSProperties::SetPixelStretchTileMode(int stretchTileMode)
+{
+    pixelStretchTileMode_ = std::clamp<int>(stretchTileMode, static_cast<int>(Drawing::TileMode::CLAMP),
+        static_cast<int>(Drawing::TileMode::DECAL));
+    SetDirty();
+    pixelStretchNeedUpdate_ = true;
+    contentDirty_ = true;
+}
+
+int RSProperties::GetPixelStretchTileMode() const
+{
+    return pixelStretchTileMode_;
 }
 
 // Image effect properties

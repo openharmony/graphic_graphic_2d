@@ -78,6 +78,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
+    "src/animation/rs_animation_trace_utils.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_particle_noise_field.cpp",
@@ -177,6 +178,7 @@ ohos_source_set("render_service_base_src") {
     "src/memory/rs_tag_tracker.cpp",
 
     #params
+    "src/params/rs_canvas_drawing_render_params.cpp",
     "src/params/rs_canvas_render_params.cpp",
     "src/params/rs_display_render_params.cpp",
     "src/params/rs_render_params.cpp",
@@ -201,6 +203,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_frame_rate_linker.cpp",
     "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
+    "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
     "src/pipeline/rs_single_frame_composer.cpp",
@@ -316,6 +319,7 @@ ohos_source_set("render_service_base_src") {
       "src/memory/rs_tag_tracker.cpp",
 
       #pipeline
+      "src/pipeline/rs_colorspace_convert.cpp",
       "src/pipeline/rs_display_render_node.cpp",
       "src/pipeline/rs_occlusion_config.cpp",
       "src/pipeline/rs_uni_render_judgement.cpp",
@@ -406,6 +410,13 @@ ohos_source_set("render_service_base_src") {
     "$graphic_2d_root/utils/log",
   ]
 
+  if (is_arkui_x) {
+    include_dirs += [
+      "$graphic_2d_root/utils/color_manager/export",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    ]
+  }
+
   include_dirs += [ "//third_party/skia/src" ]
 
   deps = [
@@ -437,6 +448,14 @@ ohos_source_set("render_service_base_src") {
       ":particle_cxx_gen",
       ":particle_cxx_rust",
     ]
+  }
+
+  external_deps +=
+      [ "drivers_interface_display:display_commontype_idl_headers" ]
+  if (use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
@@ -488,6 +507,7 @@ ohos_source_set("render_service_base_src") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp",
+      "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_dump.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_pixelmap.cpp",
     ]
   }
@@ -541,11 +561,12 @@ ohos_shared_library("librender_service_base") {
     configs = [ ":render_service_base_link_config" ]
   }
 
-  deps = [ "$rosen_root/modules/platform:eventhandler" ]
-  public_deps = [
-    ":render_service_base_src",
+  deps = [
+    "$rosen_root/modules/platform:eventhandler",
     "src/platform:platform",
   ]
+
+  public_deps = [ ":render_service_base_src" ]
 
   external_deps = [ "hilog:libhilog" ]
 

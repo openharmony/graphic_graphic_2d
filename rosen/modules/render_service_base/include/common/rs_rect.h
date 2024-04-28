@@ -261,6 +261,21 @@ struct RectI_Hash_Func {
 };
 
 typedef std::unordered_set<std::pair<NodeId, RectI>, RectI_Hash_Func, RectIComparator> OcclusionRectISet;
+ 
+struct FilterRectIComparator {
+    bool operator()(const std::pair<NodeId, RectI>& p1, const std::pair<NodeId, RectI>& p2) const
+    {
+        return p1.second == p2.second;
+    }
+};
+
+struct Filter_RectI_Hash_Func {
+    size_t operator()(const std::pair<NodeId, RectI>& p) const
+    {
+        return std::hash<NodeId>()(p.first);
+    }
+};
+typedef std::unordered_set<std::pair<NodeId, RectI>, Filter_RectI_Hash_Func, FilterRectIComparator> FilterRectISet;
 
 template<typename T>
 class RRectT {

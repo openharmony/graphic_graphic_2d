@@ -31,6 +31,7 @@ public:
     void PostTask(const std::function<void()>& task);
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel);
     TransactionDataMap GetCachedTransactionData();
+    bool CachedTransactionDataEmpty();
 
 private:
     RSUnmarshalThread() = default;
@@ -47,6 +48,7 @@ private:
 
     std::mutex transactionDataMutex_;
     TransactionDataMap cachedTransactionDataMap_;
+    bool willHaveCachedData_ = false;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H

@@ -58,10 +58,10 @@ public:
         const float& elevation, const bool& isFilled, Color spotColor);
     static void DrawUseEffect(RSPaintFilterCanvas* canvas);
 
-    static void BeginBlendMode(RSPaintFilterCanvas& canvas, int blendMode, int blendModeApplyType);
-    static void EndBlendMode(RSPaintFilterCanvas& canvas, int blendModeApplyType);
-    static void BeginBlender(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Blender> blender);
-    static void EndBlender(RSPaintFilterCanvas& canvas);
+    static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
+    static void BeginBlender(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Blender> blender,
+        int blendModeApplyType, bool isDangerous);
+    static void EndBlender(RSPaintFilterCanvas& canvas, int blendModeApplyType);
 
     static Color CalculateInvertColor(const Color& backgroundColor);
     static Color GetInvertBackgroundColor(RSPaintFilterCanvas& canvas, bool needClipToBounds,

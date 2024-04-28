@@ -733,7 +733,7 @@ Drawing::Matrix RSRenderThreadVisitor::CacRotationFromTransformType(GraphicTrans
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
-    auto geoPtr = property.GetBoundsGeometry();
+    auto& geoPtr = property.GetBoundsGeometry();
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
     canvas_->Save();
 #ifdef ROSEN_OHOS
@@ -859,7 +859,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     // 6.draw border
     canvas_->Save();
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
     RSPropertiesPainter::DrawOutline(node.GetRenderProperties(), *canvas_);
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);

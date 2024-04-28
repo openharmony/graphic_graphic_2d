@@ -57,7 +57,8 @@ public:
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+        NodeId uifirstRootNodeId = INVALID_NODEID) override;
 
     void SetScreenId(uint64_t screenId)
     {
@@ -257,6 +258,10 @@ public:
     {
         return curAllSurfaces_;
     }
+    std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
+    {
+        return onlyFirstLevel ? curAllFirstLevelSurfaces_ : curAllSurfaces_;
+    }
 
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
@@ -361,6 +366,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
     std::mutex mtx_;
 
     // Use in screen recording optimization

@@ -24,16 +24,17 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
-#include "modifier/rs_modifier_type.h"
-#include "pipeline/rs_render_frame_rate_linker.h"
-#include "screen_manager/screen_types.h"
-#include "variable_frame_rate/rs_variable_frame_rate.h"
-#include "hgm_one_shot_timer.h"
 #include "hgm_command.h"
+#include "hgm_multi_app_strategy.h"
+#include "hgm_one_shot_timer.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "hgm_touch_manager.h"
 #include "hgm_vsync_generator_controller.h"
+#include "modifier/rs_modifier_type.h"
+#include "pipeline/rs_render_frame_rate_linker.h"
+#include "screen_manager/screen_types.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -126,6 +127,7 @@ public:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
+    HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     std::shared_ptr<HgmTouchManager> touchMgr_ = std::make_unique<HgmTouchManager>();
 private:
     void Reset();
@@ -141,7 +143,6 @@ private:
     void HandleIdleEvent(bool isIdle);
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
-    void SyncAppVote();
 
     void DeliverRefreshRateVote(pid_t pid, std::string eventName, bool eventStatus,
         uint32_t min = OLED_NULL_HZ, uint32_t max = OLED_NULL_HZ);
@@ -172,7 +173,6 @@ private:
     std::unordered_set<pid_t> pidRecord_;
     std::vector<FrameRateVoteInfo> frameRateVoteInfoVec_;
 
-    std::string curPkgName_ = "";
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
@@ -183,6 +183,7 @@ private:
     int32_t touchFps_ = 120;
     int32_t idleFps_ = 60;
     int32_t touchCnt_ = 0;
+    HgmMultiAppStrategy multiAppStrategy_;
 };
 } // namespace Rosen
 } // namespace OHOS

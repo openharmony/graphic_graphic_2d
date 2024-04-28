@@ -66,12 +66,13 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_unmarshal_thread.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_log.h"
@@ -148,7 +149,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT = 1000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
-constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 3;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
@@ -278,16 +279,6 @@ RSMainThread::~RSMainThread() noexcept
     }
 }
 
-
-void RSMainThread::TryCleanResourceInBackGroundThd()
-{
-#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (RSBackgroundThread::Instance().GetGrResourceFinishFlag()) {
-        RSBackgroundThread::Instance().CleanGrResource();
-    }
-#endif
-}
-
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
@@ -308,12 +299,14 @@ void RSMainThread::Init()
         ProcessCommand();
         Animate(timestamp_);
         CollectInfoForHardwareComposer();
+        RSUifirstManager::Instance().PrepareCurrentFrameEvent();
         ProcessHgmFrameRate(timestamp_);
         RS_PROFILER_ON_RENDER_BEGIN();
         // may mark rsnotrendering
         Render(); // now render is traverse tree to prepare
         RS_PROFILER_ON_RENDER_END();
         if (isUniRender_ && !doDirectComposition_) {
+            renderThreadParams_->SetContext(context_);
             drawFrame_.SetRenderThreadParams(renderThreadParams_);
             drawFrame_.PostAndWait();
         }
@@ -340,6 +333,13 @@ void RSMainThread::Init()
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
         SKResourceManager::Instance().ReleaseResource();
+        // release node memory
+        if (RSRenderNodeGC::Instance().GetNodeSize() > 0) {
+            RSBackgroundThread::Instance().PostTask([] () {
+                RS_TRACE_NAME("ReleaseRSRenderNodeMemory");
+                RSRenderNodeGC::Instance().ReleaseNodeMemory();
+            });
+        }
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
@@ -347,7 +347,6 @@ void RSMainThread::Init()
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
         ConnectChipsetVsyncSer();
 #endif
-        TryCleanResourceInBackGroundThd();
         RS_PROFILER_ON_FRAME_END();
     };
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
@@ -947,10 +946,12 @@ void RSMainThread::ProcessCommandForUniRender()
             }
         }
     }
-    RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
-        RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
-        transactionDataEffective->clear();
-    });
+    if (!transactionDataEffective->empty()) {
+        RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
+            RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
+            transactionDataEffective->clear();
+        });
+    }
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
@@ -1038,16 +1039,14 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     if (syncTransactionData_.count(pid) == 0) {
         syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
     }
+    syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
     if (isNeedCloseSync) {
-        syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
-        syncTransactionCount_ += syncTransactionCountExt_;
-        syncTransactionCountExt_ = 0;
+        isNeedCloseSync_ = true;
     } else {
         syncTransactionCount_ -= 1;
-        syncTransactionCountExt_ += rsTransactionData->GetSyncTransactionNum();
     }
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
-    if (syncTransactionCount_ == 0) {
+    if (syncTransactionCount_ == 0 && isNeedCloseSync_) {
         ProcessAllSyncTransactionData();
     }
 }
@@ -1063,7 +1062,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
     }
     syncTransactionData_.clear();
     syncTransactionCount_ = 0;
-    syncTransactionCountExt_ = 0;
+    isNeedCloseSync_ = false;
     RequestNextVSync();
 }
 
@@ -1095,7 +1094,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
         surfaceHandler.ResetCurrentFrameBufferConsumed();
-        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
+        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
             this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
             if (surfaceNode->IsCurrentFrameBufferConsumed() && !surfaceNode->IsHardwareEnabledType()) {
                 surfaceNode->SetContentDirty();
@@ -1407,6 +1406,13 @@ bool RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
 {
     if (!isUniRender_) {
+        return;
+    }
+    if (!needWaitUnmarshalFinished_) {
+        /* if needWaitUnmarshalFinished_ is false, it means UnmarshallingTask is finished, no need to wait.
+         * reset needWaitUnmarshalFinished_ to true, maybe it need to wait next time.
+         */
+        needWaitUnmarshalFinished_ = true;
         return;
     }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUnmarshallingTaskFinished");
@@ -1732,6 +1738,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetRequestNextVsyncFlag(needRequestNextVsyncAnimate_);
         renderThreadParams_->SetPendingScreenRefreshRate(hgmCore.GetPendingScreenRefreshRate());
         renderThreadParams_->SetForceCommitLayer(isHardwareEnabledBufferUpdated_ || forceUpdateUniRenderFlag_);
+        renderThreadParams_->SetOcclusionEnabled(RSSystemProperties::GetOcclusionEnabled());
     }
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
@@ -1988,8 +1995,7 @@ void RSMainThread::CalcOcclusion()
         }
         curSurfaceIds.emplace_back(surface->GetId());
     }
-    bool winDirty = (lastSurfaceIds_ != curSurfaceIds || isDirty_ ||
-        lastFocusNodeId_ != focusNodeId_);
+    bool winDirty = (isDirty_ || lastFocusNodeId_ != focusNodeId_ || lastSurfaceIds_ != curSurfaceIds);
     lastSurfaceIds_ = std::move(curSurfaceIds);
     lastFocusNodeId_ = focusNodeId_;
     if (!winDirty) {
@@ -2209,6 +2215,23 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
     }
 }
 
+void RSMainThread::ProcessScreenHotPlugEvents()
+{
+    auto screenManager_ = CreateOrGetScreenManager();
+    if (!screenManager_) {
+        return;
+    }
+
+    if (!screenManager_->TrySimpleProcessHotPlugEvents()) {
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            RSHardwareThread::Instance().PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
+        } else {
+            PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
+        }
+    }
+}
+
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     isOnVsync_.store(true);
@@ -2225,21 +2248,18 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     frameCount_++;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
-        RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        if (RSUnmarshalThread::Instance().CachedTransactionDataEmpty()) {
+            // set needWaitUnmarshalFinished_ to false, it means mainLoop do not wait unmarshalBarrierTask_
+            needWaitUnmarshalFinished_ = false;
+        } else {
+            RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        }
     }
     mainLoop_();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     SetVsyncInfo(timestamp);
 #endif
-    auto screenManager_ = CreateOrGetScreenManager();
-    if (screenManager_ != nullptr) {
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            RSHardwareThread::Instance().PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
-        } else {
-            PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
-        }
-    }
+    ProcessScreenHotPlugEvents();
     RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady);
     isOnVsync_.store(false);
 }
