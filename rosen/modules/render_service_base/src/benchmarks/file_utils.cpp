@@ -32,7 +32,11 @@ bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
 
 std::string GetRealAndValidPath(const std::string& filePath)
 {
-    std::string realPathStr = PathToRealPath(filePath);
+    std::string realPathStr;
+    if (!PathToRealPath(filePath, realPathStr)) {
+        ROSEN_LOGE("FilePath is nullptr")
+        return "";
+    }
     if (IsValidFile(realPathStr)) {
         return realPathStr;
     } else {
