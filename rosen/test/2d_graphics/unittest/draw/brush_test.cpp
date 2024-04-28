@@ -573,6 +573,29 @@ HWTEST_F(BrushTest, IsEquals002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsEquals003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ * @tc.author:
+ */
+HWTEST_F(BrushTest, IsEquals003, TestSize.Level1)
+{
+    Brush brush1;
+    // 1.f 2.f  3.f and 0x12345678 is setted to compare.
+    float radius = 1.f;
+    Point point{2.f, 3.f};
+    Color color = Color(0x12345678);
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(radius,
+        point.GetX(), point.GetY(), color);
+    brush1.SetLooper(blurDrawLooper);
+    Brush brush2 = brush1;
+    EXPECT_TRUE(brush1 == brush2);
+    brush2.SetLooper(nullptr);
+    EXPECT_TRUE(brush1 != brush2);
+}
+
+/**
  * @tc.name: IsNotEquals001
  * @tc.desc:
  * @tc.type: FUNC

@@ -759,6 +759,29 @@ HWTEST_F(PenTest, OverrideEquals002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OverrideEquals003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ * @tc.author:
+ */
+HWTEST_F(PenTest, OverrideEquals003, TestSize.Level1)
+{
+    Pen pen1;
+    // 1.f 2.f  3.f and 0x12345678 is setted to compare.
+    float radius = 1.f;
+    Point point{2.f, 3.f};
+    Color color = Color(0x12345678);
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(radius,
+        point.GetX(), point.GetY(), color);
+    pen1.SetLooper(blurDrawLooper);
+    Pen pen2 = pen1;
+    EXPECT_TRUE(pen1 == pen2);
+    pen2.SetLooper(nullptr);
+    EXPECT_TRUE(pen1 != pen2);
+}
+
+/**
  * @tc.name: OverrideNotEquals001
  * @tc.desc:
  * @tc.type: FUNC
