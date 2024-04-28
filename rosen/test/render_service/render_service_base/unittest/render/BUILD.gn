@@ -37,6 +37,7 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_material_filter_test.cpp",
     "rs_motion_blur_filter_test.cpp",
     "rs_path_test.cpp",
+    "rs_pixel_map_shader_test.cpp",
     "rs_pixel_map_util_test.cpp",
     "rs_resource_manager_test.cpp",
     "rs_shader_test.cpp",
