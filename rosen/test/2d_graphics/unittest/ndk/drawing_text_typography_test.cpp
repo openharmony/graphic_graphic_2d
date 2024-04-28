@@ -1690,7 +1690,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest050, TestSize.Level
     EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(nullptr), false);
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
     EXPECT_EQ(std::strcmp(OH_Drawing_TextStyleGetLocale(txtStyle), "en"), 0);
-    EXPECT_EQ(OH_Drawing_TextStyleGetLocale(nullptr) == nullptr, 0);
+    EXPECT_EQ(OH_Drawing_TextStyleGetLocale(nullptr) == nullptr, true);
 }
 
 /*
