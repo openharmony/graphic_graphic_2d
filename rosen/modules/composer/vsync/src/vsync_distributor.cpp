@@ -359,6 +359,19 @@ int64_t Now()
     return std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 }
 
+void VSyncDistributor::WaitForVsyncOrTimeOut(std::unique_lock<std::mutex> &locker)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    dvsync_->MarkPendingRNVIsProcess(false);
+    dvsync_->RNVNotify();
+#endif
+    if (con_.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD)) ==
+        std::cv_status::timeout) {
+        event_.timestamp = Now();
+        event_.vsyncCount++;
+    }
+}
+
 void VSyncDistributor::ThreadMain()
 {
     // set thread priorty
@@ -393,15 +406,7 @@ void VSyncDistributor::ThreadMain()
                 // and start the software vsync with wait_for function
                 if (waitForVSync == true && vsyncEnabled_ == false) {
                     EnableVSync();
-#if defined(RS_ENABLE_DVSYNC)
-                    dvsync_->MarkPendingRNVIsProcess(false);
-                    dvsync_->RNVNotify();
-#endif
-                    if (con_.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD)) ==
-                        std::cv_status::timeout) {
-                        event_.timestamp = Now();
-                        event_.vsyncCount++;
-                    }
+                    WaitForVsyncOrTimeOut(locker);
                 } else {
                     // just wait request or vsync signal
                     WaitForVsyncOrRequest(locker);
@@ -625,6 +630,11 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
     for (uint32_t i = 0; i < connections_.size(); i++) {
         int32_t rate = connections_[i]->highPriorityState_ ? connections_[i]->highPriorityRate_ :
                                                              connections_[i]->rate_;
+
+        if (rate < 0) {
+            return;
+        }
+
         if (rate == 0) {  // for RequestNextVSync
             waitForVSync = true;
             if (timestamp > 0) {
@@ -632,26 +642,28 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
                 conns.push_back(connections_[i]);
                 connections_[i]->triggerThisTime_ = false;
             }
-        } else if (rate > 0) {
-            ScopedBytrace trace("CollectConnections name:" + connections_[i]->info_.name_ +
-                                ", proxyPid:" + std::to_string(connections_[i]->proxyPid_) +
-                                ", highPriorityState_:" + std::to_string(connections_[i]->highPriorityState_) +
-                                ", highPriorityRate_:" + std::to_string(connections_[i]->highPriorityRate_) +
-                                ", rate_:" + std::to_string(connections_[i]->rate_) +
-                                ", timestamp:" + std::to_string(timestamp) +
-                                ", vsyncCount:" + std::to_string(vsyncCount));
-            if (connections_[i]->rate_ == 0) {  // for SetHighPriorityVSyncRate with RequestNextVSync
-                waitForVSync = true;
-                if (timestamp > 0 && (vsyncCount % rate == 0)) {
-                    connections_[i]->rate_ = -1;
-                    conns.push_back(connections_[i]);
-                    connections_[i]->triggerThisTime_ = false;
-                }
-            } else if (connections_[i]->rate_ > 0) {  // for SetVSyncRate
-                waitForVSync = true;
-                if (timestamp > 0 && (vsyncCount % rate == 0)) {
-                    conns.push_back(connections_[i]);
-                }
+            return;
+        }
+        
+        ScopedBytrace trace("CollectConnections name:" + connections_[i]->info_.name_ +
+                            ", proxyPid:" + std::to_string(connections_[i]->proxyPid_) +
+                            ", highPriorityState_:" + std::to_string(connections_[i]->highPriorityState_) +
+                            ", highPriorityRate_:" + std::to_string(connections_[i]->highPriorityRate_) +
+                            ", rate_:" + std::to_string(connections_[i]->rate_) +
+                            ", timestamp:" + std::to_string(timestamp) +
+                            ", vsyncCount:" + std::to_string(vsyncCount));
+
+        if (connections_[i]->rate_ == 0) {  // for SetHighPriorityVSyncRate with RequestNextVSync
+            waitForVSync = true;
+            if (timestamp > 0 && (vsyncCount % rate == 0)) {
+                connections_[i]->rate_ = -1;
+                conns.push_back(connections_[i]);
+                connections_[i]->triggerThisTime_ = false;
+            }
+        } else if (connections_[i]->rate_ > 0) {  // for SetVSyncRate
+            waitForVSync = true;
+            if (timestamp > 0 && (vsyncCount % rate == 0)) {
+                conns.push_back(connections_[i]);
             }
         }
     }

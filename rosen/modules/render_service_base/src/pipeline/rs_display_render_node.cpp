@@ -272,7 +272,7 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
     if (skipFrameInterval == 0) {
         return false;
     }
-    if ((frameCount_ - 1) % skipFrameInterval == 0) {
+    if (frameCount_ >= 1 && (frameCount_ - 1) % skipFrameInterval == 0) {
         return false;
     }
     return true;
