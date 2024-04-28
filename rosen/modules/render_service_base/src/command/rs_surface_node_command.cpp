@@ -275,12 +275,5 @@ void SurfaceNodeCommandHelper::SetAncoForceDoDirect(RSContext& context, NodeId n
         node->SetAncoForceDoDirect(ancoForceDoDirect);
     }
 }
-
-void SurfaceNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, bool ancoForceDoDirect)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetHDRPresent(ancoForceDoDirect);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

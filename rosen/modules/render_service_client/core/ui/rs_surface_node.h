@@ -141,8 +141,6 @@ public:
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoForceDoDirect(bool ancoForceDoDirect);
-    void SetHDRPresent(bool hdrPresent);
-    void RegisterHDRPresentCallback();
 
 protected:
     bool NeedForcedSendToRemote() const override;

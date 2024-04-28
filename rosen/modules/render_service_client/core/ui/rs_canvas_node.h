@@ -44,8 +44,6 @@ public:
     void DrawOnNode(RSModifierType type, DrawFunc func) override;
 
     void SetFreeze(bool isFreeze) override;
-
-    void SetHDRPresent(bool hdrPresent);
     
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
@@ -61,7 +59,6 @@ protected:
 private:
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;
     bool recordingUpdated_ = false;
-    bool hdrPresent_ = false;
     mutable std::mutex mutex_;
 
     friend class RSUIDirector;

@@ -319,7 +319,6 @@ ohos_source_set("render_service_base_src") {
       "src/memory/rs_tag_tracker.cpp",
 
       #pipeline
-      "src/pipeline/rs_colorspace_convert.cpp",
       "src/pipeline/rs_display_render_node.cpp",
       "src/pipeline/rs_occlusion_config.cpp",
       "src/pipeline/rs_uni_render_judgement.cpp",
@@ -448,14 +447,6 @@ ohos_source_set("render_service_base_src") {
       ":particle_cxx_gen",
       ":particle_cxx_rust",
     ]
-  }
-
-  external_deps +=
-      [ "drivers_interface_display:display_commontype_idl_headers" ]
-  if (use_video_processing_engine) {
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {

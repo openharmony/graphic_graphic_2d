@@ -125,7 +125,6 @@ template("render_service_client_source_set") {
       "core/ui/rs_ext_node_operation.cpp",
       "core/ui/rs_frame_rate_linker.cpp",
       "core/ui/rs_frame_rate_policy.cpp",
-      "core/ui/rs_hdr_manager.cpp",
       "core/ui/rs_node.cpp",
       "core/ui/rs_proxy_node.cpp",
       "core/ui/rs_root_node.cpp",

@@ -794,16 +794,6 @@ bool RSSurfaceRenderNode::GetForceUIFirst() const
     return forceUIFirst_;
 }
 
-void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
-{
-    hasHdrPresent_ = hasHdrPresent;
-}
-
-bool RSSurfaceRenderNode::GetHDRPresent() const
-{
-    return hasHdrPresent_;
-}
-
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
 {
     forceUIFirstChanged_ = forceUIFirstChanged;
