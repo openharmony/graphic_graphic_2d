@@ -264,11 +264,11 @@ void Utils::IterateDirectory(const std::string& path, std::vector<std::string>& 
         return;
     }
 
-    for (auto const& dir_entry : std::filesystem::recursive_directory_iterator(path)) {
-        if (dir_entry.is_directory()) {
-            IterateDirectory(dir_entry.path().string(), files);
+    for (auto const& entry : std::filesystem::recursive_directory_iterator(path)) {
+        if (entry.is_directory()) {
+            IterateDirectory(entry.path().string(), files);
         } else {
-            files.push_back(dir_entry.path().string());
+            files.push_back(entry.path().string());
         }
     }
 }
@@ -285,12 +285,12 @@ void Utils::IterateDirectory(const std::string& path, std::vector<std::string>& 
         return;
     }
 
-    while (struct dirent* entry = readdir(directory)) {
-        // current dir OR parent dir
-        if ((strcmp(entry->d_name, ".") == 0) || (strcmp(entry->d_name, "..") == 0)) {
+    while (struct dirent* entry = readdir(directory)) {        
+        const std::string entryName(entry->d_name);
+        if ((entryName == ".") || (entryName == "..")) {
             continue;
         }
-        const std::string entryPath = NormalizePath(realPath) + std::string(entry->d_name);
+        const std::string entryPath = NormalizePath(realPath) + entryName;
         if (entry->d_type == DT_DIR) {
             IterateDirectory(entryPath, files);
         } else {
