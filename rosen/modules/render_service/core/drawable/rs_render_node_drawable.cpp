@@ -101,7 +101,6 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
     // check drawing cache type (disabled: clear cache)
     if (params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
-        SetCacheType(DrawableCacheType::NONE);
         ClearCachedSurface();
         {
             std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
@@ -375,6 +374,7 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
 
 void RSRenderNodeDrawable::ClearCachedSurface()
 {
+    SetCacheType(DrawableCacheType::NONE);
     std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
     if (cachedSurface_ == nullptr) {
         return;
@@ -411,12 +411,10 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
 
     if (params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
         updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
-        SetCacheType(DrawableCacheType::NONE);
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
         return false;
     }
-    SetCacheType(DrawableCacheType::CONTENT);
 
     if (NeedInitCachedSurface(params.GetCacheSize())) {
         ClearCachedSurface();
@@ -479,6 +477,9 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 
     // get image & backend
     cachedImage_ = surface->GetImageSnapshot();
+    if (cachedImage_) {
+        SetCacheType(DrawableCacheType::CONTENT);
+    }
 #if RS_ENABLE_GL
     // vk backend has been created when surface init.
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
