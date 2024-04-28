@@ -1661,21 +1661,22 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeBinarizationShad
     float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
     static constexpr char prog[] = R"(
-        uniform half low;
-        uniform half high;
-        uniform half thresholdLow;
-        uniform half thresholdHigh;
+        uniform mediump float ubo_low;
+        uniform mediump float ubo_high;
+        uniform mediump float ubo_thresholdLow;
+        uniform mediump float ubo_thresholdHigh;
         uniform shader imageShader;
-
-        half4 main(float2 coord) {
-            half3 c = imageShader.eval(float2(coord.x, coord.y)).rgb;
+        mediump vec4 main(vec2 drawing_coord) {
+            mediump vec3 c = imageShader(drawing_coord).rgb;
             float gray = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-            float lowRes = mix(high, -1.0, step(thresholdLow, gray));
-            float highRes = mix(-1.0, low, step(thresholdHigh, gray));
-            float midRes = (thresholdHigh - gray) * (high - low) / (thresholdHigh - thresholdLow) + low;
+            float lowRes = mix(ubo_high, -1.0, step(ubo_thresholdLow, gray));
+            float highRes = mix(-1.0, ubo_low, step(ubo_thresholdHigh, gray));
+            float midRes = (ubo_thresholdHigh - gray) * (ubo_high - ubo_low) /
+            (ubo_thresholdHigh - ubo_thresholdLow) + ubo_low;
             float invertedGray = mix(midRes, max(lowRes, highRes), step(-0.5, max(lowRes, highRes)));
-            half3 invert = half3(invertedGray);
-            return half4(invert, 1.0);
+            mediump vec3 invert = vec3(invertedGray);
+            mediump vec4 res = vec4(invert, 1.0);
+            return res;
         }
     )";
     if (binarizationShaderEffect_ == nullptr) {
@@ -1689,10 +1690,10 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeBinarizationShad
         std::make_shared<Drawing::RuntimeShaderBuilder>(binarizationShaderEffect_);
     thresholdHigh = thresholdHigh <= thresholdLow ? thresholdHigh + 1e-6 : thresholdHigh;
     builder->SetChild("imageShader", imageShader);
-    builder->SetUniform("low", low);
-    builder->SetUniform("high", high);
-    builder->SetUniform("thresholdLow", thresholdLow);
-    builder->SetUniform("thresholdHigh", thresholdHigh);
+    builder->SetUniform("ubo_low", low);
+    builder->SetUniform("ubo_high", high);
+    builder->SetUniform("ubo_thresholdLow", thresholdLow);
+    builder->SetUniform("ubo_thresholdHigh", thresholdHigh);
     return builder->MakeShader(nullptr, false);
 }
 
