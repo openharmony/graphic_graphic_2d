@@ -41,7 +41,7 @@ bool IsValidFile(const std::string& realPathStr, const std::string& validFile = 
 std::string GetRealAndValidPath(const std::string& filePath)
 {
     std::string realPathStr;
-    if (!PathToRealPath(filePath, realPathStr)) {
+    if (!OHOS::PathToRealPath(filePath, realPathStr)) {
         std::cout << "FileUtils: The file path is not valid!" << std::endl;
         return "";
     }
