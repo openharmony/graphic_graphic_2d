@@ -153,6 +153,7 @@ private:
     void SubScribeSystemAbility(const std::string& threadName);
 #endif
     void NotifyMainThread();
+    void OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
@@ -170,7 +171,9 @@ private:
     VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; // default LTPS
     std::mutex changingConnsRefreshRatesMtx_;
     uint32_t generatorRefreshRate_ = 0;
+    uint32_t countTraceValue_ = 0;
 #if defined(RS_ENABLE_DVSYNC)
+    void OnDVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     sptr<DVsync> dvsync_ = nullptr;
     bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync
     std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
