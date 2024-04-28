@@ -463,10 +463,8 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
         std::unique_lock<std::mutex> locker(mutex_);
         pendingRNVInVsync_ = false;
     }
-    return true;
-#else
-    return true;
 #endif
+    return true;
 }
 
 void VSyncDistributor::EnableVSync()
