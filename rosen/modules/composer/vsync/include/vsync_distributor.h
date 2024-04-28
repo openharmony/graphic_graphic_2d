@@ -144,8 +144,6 @@ private:
     void ChangeConnsRateLocked();
     void CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
                                 std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
-    void CollectConns(bool &waitForVSync, int64_t &timestamp,
-        std::vector<sptr<VSyncConnection>> &conns);
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
