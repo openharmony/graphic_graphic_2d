@@ -22,7 +22,12 @@ ohos_unittest("rosen_text_adapt_test") {
 
     if (use_skia_txt) {
     sources = [
+      "convert_test.cpp",
+      "font_collection_test.cpp",
       "typography_test.cpp",
+      "typography_create_test.cpp",
+      "text_line_base_test.cpp",
+      "run_test.cpp",
     ]
   }
   include_dirs = [
