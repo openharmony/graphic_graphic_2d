@@ -212,4 +212,103 @@ HWTEST_F(RSDisplayNodeTest, SetBootAnimationTest, TestSize.Level1)
     displayNode->SetBootAnimation(false);
     ASSERT_EQ(false, displayNode->GetBootAnimation());
 }
+
+/**
+ * @tc.name: Marshalling
+ * @tc.desc: test results of Marshalling
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSDisplayNodeTest, Marshalling, TestSize.Level1)
+{
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    Parcel parcel;
+    bool res = displayNode->Marshalling(parcel);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: Unmarshalling
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSDisplayNodeTest, Unmarshalling, TestSize.Level1)
+{
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    Parcel parcel;
+    auto res = displayNode->Unmarshalling(parcel);
+    EXPECT_EQ(res, nullptr);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged
+ * @tc.desc: test results of OnBoundsSizeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSDisplayNodeTest, OnBoundsSizeChanged, TestSize.Level1)
+{
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    displayNode->OnBoundsSizeChanged();
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayOffset
+ * @tc.desc: test results of SetDisplayOffset
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSDisplayNodeTest, SetDisplayOffset, TestSize.Level1)
+{
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    displayNode->SetDisplayOffset(0, 1);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayNodeMirrorConfig
+ * @tc.desc: test results of SetDisplayNodeMirrorConfig
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSDisplayNodeTest, SetDisplayNodeMirrorConfig, TestSize.Level1)
+{
+    RSDisplayNodeConfig displayNodeConfig;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(displayNodeConfig);
+    displayNode->SetDisplayNodeMirrorConfig(displayNodeConfig);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetScreenRotation
+ * @tc.desc: test results of SetScreenRotation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSDisplayNodeTest, SetScreenRotation, TestSize.Level1)
+{
+    RSDisplayNodeConfig displayNodeConfig;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(displayNodeConfig);
+    uint32_t rotation = 0;
+    displayNode->SetScreenRotation(rotation);
+
+    rotation = 1;
+    displayNode->SetScreenRotation(rotation);
+
+    rotation = 2;
+    displayNode->SetScreenRotation(rotation);
+
+    rotation = 3;
+    displayNode->SetScreenRotation(rotation);
+
+    rotation = 4;
+    displayNode->SetScreenRotation(rotation);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
 } // namespace OHOS::Rosen

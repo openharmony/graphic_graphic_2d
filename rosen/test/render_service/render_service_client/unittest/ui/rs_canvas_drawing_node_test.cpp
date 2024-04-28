@@ -54,4 +54,84 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTest, TestSize.Level1)
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
 }
 
+/**
+ * @tc.name: ResetSurfaceTest
+ * @tc.desc: test results of ResetSurface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
+{
+    bool isRenderServiceNode = true;
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
+    bool res = canvasNode->ResetSurface();
+    EXPECT_EQ(res, true);
+
+    RSTransactionProxy::instance_ = nullptr;
+    res = canvasNode->ResetSurface();
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: CreateTextureExportRenderNodeInRTTest
+ * @tc.desc: test results of CreateTextureExportRenderNodeInRT
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, CreateTextureExportRenderNodeInRTTest, TestSize.Level1)
+{
+    bool isRenderServiceNode = true;
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
+    canvasNode->CreateTextureExportRenderNodeInRT();
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+}
+
+/**
+ * @tc.name: GetBitmapTest
+ * @tc.desc: test results of GetBitmap
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapTest, TestSize.Level1)
+{
+    bool isRenderServiceNode = true;
+    auto drawingNode = std::make_shared<RSCanvasDrawingNode>(isRenderServiceNode);
+    Drawing::Bitmap bitmap;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+    Drawing::Rect rect;
+    bool res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+
+    drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: GetPixelmapTest
+ * @tc.desc: test results of GetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
+{
+    bool isRenderServiceNode = true;
+    auto drawingNode = std::make_shared<RSCanvasDrawingNode>(isRenderServiceNode);
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+    Drawing::Rect rect;
+    bool res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+
+    pixelmap = std::make_shared<Media::PixelMap>();
+    drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+}
 } // namespace OHOS::Rosen
