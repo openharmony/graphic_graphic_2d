@@ -38,7 +38,7 @@ constexpr float MAX_CROSS_FADE_RADIUS = 10.0f;
 static std::shared_ptr<Drawing::RuntimeEffect> g_blurEffect;
 static std::shared_ptr<Drawing::RuntimeEffect> g_mixEffect;
 static std::shared_ptr<Drawing::RuntimeEffect> g_blurEffectAf;
-static std::shared_ptr<Drawing::RuntimeEffect> SIMPLEFILTER;
+static std::shared_ptr<Drawing::RuntimeEffect> g_simplefilte;
 
 } // namespace
 
@@ -138,7 +138,7 @@ std::shared_ptr<Drawing::ShaderEffect> GEKawaseBlurShaderFilter::ApplySimpleFilt
     const std::shared_ptr<Drawing::Image>& input, const std::shared_ptr<Drawing::ShaderEffect>& prevShader,
     const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const
 {
-    Drawing::RuntimeShaderBuilder simpleBlurBuilder(SIMPLEFILTER);
+    Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simplefilte);
     simpleBlurBuilder.SetChild("imageInput", prevShader);
     std::shared_ptr<Drawing::Image> tmpSimpleBlur(simpleBlurBuilder.MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
@@ -178,7 +178,7 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
     auto tmpShader = Drawing::ShaderEffect::CreateImageShader(
         *input, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix);
     Drawing::RuntimeShaderBuilder blurBuilder(isUsingAF ? g_blurEffectAf : g_blurEffect);
-    if (GetBlurExtraFilterEnabled() && SIMPLEFILTER) {
+    if (GetBlurExtraFilterEnabled() && g_simplefilte) {
         tmpShader = ApplySimpleFilter(canvas, input, tmpShader, scaledInfo, linear);
     }
     blurBuilder.SetChild("imageInput", tmpShader);
@@ -321,9 +321,9 @@ bool GEKawaseBlurShaderFilter::InitSimpleFilter()
             return imageInput.eval(xy);
         }
     )");
-    if (SIMPLEFILTER == nullptr) {
-        SIMPLEFILTER = Drawing::RuntimeEffect::CreateForShader(simpleShader);
-        if (SIMPLEFILTER == nullptr) {
+    if (g_simplefilte == nullptr) {
+        g_simplefilte = Drawing::RuntimeEffect::CreateForShader(simpleShader);
+        if (g_simplefilte == nullptr) {
             LOGE("GEKawaseBlurShaderFilter::RuntimeShader failed to create simple filter");
             return false;
         }
