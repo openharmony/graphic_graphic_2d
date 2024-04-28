@@ -361,8 +361,7 @@ HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation007, TestSize.Level1
     std::vector<float> timePercents;
     std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {VARIABLECOLOR_FIRST_PHASE_PARAS,
                                                                      VARIABLECOLOR_SECOND_PHASE_PARAS};
-    auto getParasFlag = symbolAnimation.CalcTimePercents(timePercents, static_cast<float>(ANIMATION_DURATION),
-        oneGroupParas);
+    auto getParasFlag = symbolAnimation.CalcTimePercents(timePercents, ANIMATION_DURATION, oneGroupParas);
     /**
      * @tc.steps: step2. start KeyframeAlphaSymbolAnimation test
      */
@@ -387,7 +386,7 @@ HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation008, TestSize.Level1
     std::vector<float> timePercents;
     std::vector<Drawing::DrawingPiecewiseParameter> oneGroupParas = {VARIABLECOLOR_FIRST_PHASE_PARAS,
                                                                      VARIABLECOLOR_SECOND_PHASE_PARAS};
-    auto getParasFlag = symbolAnimation.CalcTimePercents(timePercents, 0.0, oneGroupParas);
+    auto getParasFlag = symbolAnimation.CalcTimePercents(timePercents, 0, oneGroupParas);
     /**
      * @tc.steps: step2. start KeyframeAlphaSymbolAnimation test
      */
