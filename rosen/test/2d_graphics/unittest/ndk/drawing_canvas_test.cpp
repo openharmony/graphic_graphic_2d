@@ -1016,6 +1016,8 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob035, TestS
     OH_Drawing_TextBlob *textBlob = OH_Drawing_TextBlobCreateFromText(str, strlen(str),
         font, OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
     EXPECT_NE(textBlob, nullptr);
+    EXPECT_TRUE(OH_Drawing_TextBlobUniqueID(nullptr) == 0);
+    EXPECT_TRUE(OH_Drawing_TextBlobUniqueID(textBlob) > 0);
     // draw textblob
     OH_Drawing_CanvasDrawTextBlob(canvas_, textBlob, 0, 0);
 

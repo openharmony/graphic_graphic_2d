@@ -336,7 +336,6 @@ float OH_Drawing_FontGetScaleX(const OH_Drawing_Font*);
  * @since 12
  * @version 1.0
  */
-
 void OH_Drawing_FontSetHinting(OH_Drawing_Font*, OH_Drawing_FontHinting);
 
 /**
