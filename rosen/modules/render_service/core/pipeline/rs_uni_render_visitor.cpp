@@ -2261,7 +2261,9 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
 void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 {
     auto curDirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
-    if (subTreeSkipped) {
+    auto isOccluded = curSurfaceNode_ ?
+        curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
+    if (subTreeSkipped && !isOccluded) {
         CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
     }
     if (node.GetRenderProperties().NeedFilter()) {
@@ -2323,8 +2325,9 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
             filterNode->UpdateFilterCacheWithBelowDirty(dirtyManager, false);
         }
         RectI filterRect;
-        filterNode->UpdateFilterRegionInSkippedSubTree(rootNode, filterRect);
-        CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect);
+        filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect, prepareClipRect_);
+        bool inSkippedSubtree = true;
+        CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect, inSkippedSubtree);
         filterNode->UpdateLastFilterCacheRegionInSkippedSubTree(filterRect);
     }
 }
