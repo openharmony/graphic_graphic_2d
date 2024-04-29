@@ -104,6 +104,9 @@ public:
     void SetRotationChanged(bool changed);
     bool IsRotationChanged() const;
 
+    void SetHDRPresent(bool hasHdrPresent);
+    bool GetHDRPresent() const;
+
     void SetNewColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetNewColorSpace() const;
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
@@ -129,6 +132,7 @@ private:
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
     bool isMainAndLeashSurfaceDirty_ = false;
     bool isRotationChanged_ = false;
+    bool hasHdrPresent_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;

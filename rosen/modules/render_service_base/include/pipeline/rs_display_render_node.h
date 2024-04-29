@@ -321,6 +321,8 @@ public:
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
+    void SetHDRPresent(bool hdrPresent);
+
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
         return dirtySurfaceNodeMap_;

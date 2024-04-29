@@ -58,6 +58,20 @@ bool RSDisplayRenderParams::IsRotationChanged() const
     return isRotationChanged_;
 }
 
+void RSDisplayRenderParams::SetHDRPresent(bool hasHdrPresent)
+{
+    if (hasHdrPresent_ == hasHdrPresent) {
+        return;
+    }
+    hasHdrPresent_ = hasHdrPresent;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::GetHDRPresent() const
+{
+    return hasHdrPresent_;
+}
+
 void RSDisplayRenderParams::SetNewColorSpace(const GraphicColorGamut& newColorSpace)
 {
     if (newColorSpace_ == newColorSpace) {
@@ -111,6 +125,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isRotationChanged_ = isRotationChanged_;
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
+    targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
     RSRenderParams::OnSync(target);
 }
 

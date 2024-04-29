@@ -469,6 +469,7 @@ void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
         return;
     }
+    objectHandle_->SetPaint(paint_);
     canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
