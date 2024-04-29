@@ -210,12 +210,12 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         uint64_t num = para.size();
         for (uint64_t i = 1; i <= num; i++) {
             char buf[10] = {0}; // maximum length of string needed is 10.
-            (void)sprintf_s(buf, sizeof(buf), "para%d", i);
+            (void)sprintf_s(buf, sizeof(buf), "para%lld", i);
             builder.uniform(buf) = para[i-1];
         }
         for (uint64_t i = 1; i <= num1; i++) {
             char buf[15] = {0}; // maximum length of string needed is 15.
-            (void)sprintf_s(buf, sizeof(buf), "transpara%d", i);
+            (void)sprintf_s(buf, sizeof(buf), "transpara%lld", i);
             builder.uniform(buf) = para1[i-1];
         }
         std::vector<float> color = shape.GetColorPara();

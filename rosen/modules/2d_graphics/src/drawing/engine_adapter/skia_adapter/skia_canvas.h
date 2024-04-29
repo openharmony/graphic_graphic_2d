@@ -183,7 +183,7 @@ private:
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
     // opinc_begin
-    SkCanvas* skCanvasBackup_;
+    SkCanvas* skCanvasBackup_ = nullptr;
     std::shared_ptr<SkiaCanvasOp> skiaCanvasOp_ = nullptr;
     // opinc_end
     SkiaPaint skiaPaint_;

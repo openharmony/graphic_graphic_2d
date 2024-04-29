@@ -793,7 +793,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid vertices params.");
     }
 
-    float vertices[verticesSize];
+    auto vertices = new float[verticesSize];
     for (uint32_t i = 0; i < verticesSize; i++) {
         napi_value tempVertex = nullptr;
         napi_get_element(env, verticesArray, i, &tempVertex);
@@ -801,6 +801,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         bool isVertexOk = ConvertFromJsValue(env, tempVertex, vertex);
         if (!isVertexOk) {
             ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh vertex is invalid");
+            delete []vertices;
             return NapiGetUndefined(env);
         }
         vertices[i] = vertex;
@@ -817,19 +818,23 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid colors params.");
     }
 
-    uint32_t colors[colorsSize];
-    for (uint32_t i = 0; i < colorsSize; i++) {
-        napi_value tempColor = nullptr;
-        napi_get_element(env, colorsArray, i, &tempColor);
-        uint32_t color = 0;
-        bool isColorOk = ConvertFromJsValue(env, tempColor, color);
-        if (!isColorOk) {
-            ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh color is invalid");
-            return NapiGetUndefined(env);
+    uint32_t* colorsMesh = nullptr;
+    if (colorsSize != 0) {
+        auto colors = new uint32_t[colorsSize];
+        for (uint32_t i = 0; i < colorsSize; i++) {
+            napi_value tempColor = nullptr;
+            napi_get_element(env, colorsArray, i, &tempColor);
+            uint32_t color = 0;
+            bool isColorOk = ConvertFromJsValue(env, tempColor, color);
+            if (!isColorOk) {
+                ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh color is invalid");
+                delete []colors;
+                return NapiGetUndefined(env);
+            }
+            colors[i] = color;
         }
-        colors[i] = color;
+        colorsMesh = colors + colorOffset;
     }
-    uint32_t* colorsMesh = colorsSize ? (colors + colorOffset) : nullptr;
 
     DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, m_canvas);
 
