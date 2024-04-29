@@ -327,9 +327,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
 
     // before con_ wait, notify the rnv_con.
 #if defined(RS_ENABLE_DVSYNC)
-    if (IsDVsyncOn()) {
         dvsync_->RNVNotify();
-    }
 #endif
     con_.wait(locker);
 
@@ -385,9 +383,7 @@ void VSyncDistributor::ThreadMain()
                 if (waitForVSync == true && vsyncEnabled_ == false) {
                     EnableVSync();
 #if defined(RS_ENABLE_DVSYNC)
-                    if (IsDVsyncOn()) {
-                        dvsync_->RNVNotify();
-                    }
+                    dvsync_->RNVNotify();
 #endif
                     if (con_.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD)) ==
                         std::cv_status::timeout) {
