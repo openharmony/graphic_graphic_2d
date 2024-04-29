@@ -27,6 +27,13 @@
 #include "test_common.h"
 #include "common/log_common.h"
 
+char verbs[] = {
+        0, 1, 1, 1, 4,
+        0, 1, 1, 1, 4,
+        0, 1, 1, 1, 4,
+        0, 1, 1, 1, 4
+    };
+
 static void test4(OH_Drawing_Canvas *canvas)
 {
     OH_Drawing_Brush *brush = OH_Drawing_BrushCreate();
@@ -47,12 +54,7 @@ static void test4(OH_Drawing_Canvas *canvas)
         {10, 199},
         {10, 199}
     };
-    char verbs[] = {
-        0, 1, 1, 1, 4,
-        0, 1, 1, 1, 4,
-        0, 1, 1, 1, 4,
-        0, 1, 1, 1, 4
-    };
+    
     OH_Drawing_Path *path = OH_Drawing_PathCreate();
     OH_Drawing_Point2D *ptPtr = pts;
     for (size_t i = 0; i < sizeof(verbs); ++i) {
