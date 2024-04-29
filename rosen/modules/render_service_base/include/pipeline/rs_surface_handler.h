@@ -221,6 +221,7 @@ public:
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
     void CacheBuffer(SurfaceBufferEntry buffer);
     RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
+    bool HasBufferCache() const;
 #endif
 
 protected:

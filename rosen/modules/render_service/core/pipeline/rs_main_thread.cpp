@@ -1129,7 +1129,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
 
         // still have buffer(s) to consume.
-        if (surfaceHandler.GetAvailableBufferCount() > 0) {
+        if (surfaceHandler.GetAvailableBufferCount() > 0 || surfaceHandler.HasBufferCache()) {
             needRequestNextVsync = true;
         }
     });
