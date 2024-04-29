@@ -61,5 +61,5 @@ HWTEST_F(OH_Drawing_RunTest, OH_Drawing_RunTest001, TestSize.Level1)
     delete canvas;
     canvas = nullptr;
 }
-}// namespace Rosen
-}// namespace OHOS
+} // namespace Rosen
+} // namespace OHOS

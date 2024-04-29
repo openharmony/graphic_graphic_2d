@@ -35,7 +35,8 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest001, Te
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
 }
 
 /*
@@ -63,5 +64,5 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest002, Te
     EXPECT_EQ(typography != nullptr, true);
     typographyCreate->AppendSymbol(0);
 }
-}// namespace Rosen
-}// namespace OHOS
+} // namespace Rosen
+} // namespace OHOS

@@ -42,5 +42,5 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
     EXPECT_EQ(fontMgr != nullptr, true);
     fontCollection->AddLoadedFamilyName("familyname");
 }
-}// namespace Rosen
-}// namespace OHOS
+} // namespace Rosen
+} // namespace OHOS

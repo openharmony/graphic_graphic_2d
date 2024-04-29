@@ -37,7 +37,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest001, TestSize.Level
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     EXPECT_EQ(typography->GetMaxWidth() == 0, true);
 }
@@ -51,7 +52,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest002, TestSize.Level
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     EXPECT_EQ(typography->GetHeight() == 0, true);
     EXPECT_EQ(typography->GetActualWidth() == 0, true);
@@ -66,7 +68,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest003, TestSize.Level
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     EXPECT_EQ(typography->GetActualWidth() == 0, true);
     EXPECT_EQ(typography->GetMaxIntrinsicWidth() == 0, true);
@@ -81,7 +84,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest004, TestSize.Level
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     EXPECT_EQ(typography->GetMinIntrinsicWidth() == 0, true);
 }
@@ -95,9 +99,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest005, TestSize.Level
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    EXPECT_EQ(typography->GetAlphabeticBaseline() == 0, true);    
+    EXPECT_EQ(typography->GetAlphabeticBaseline() == 0, true);
     EXPECT_EQ(typography->GetIdeographicBaseline() == 0, true);
     typography->GetGlyphsBoundsTop();
     typography->GetGlyphsBoundsBottom();
@@ -118,7 +123,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest006, TestSize.Level
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     typography->UpdateFontSize(1, 10, 20.0);
     std::vector<float> indents = {1.2, 3.4};

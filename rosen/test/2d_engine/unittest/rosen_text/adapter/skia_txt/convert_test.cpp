@@ -134,5 +134,5 @@ HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest009, TestSize.Level1)
     SPText::TextStyle sptextStyle = AdapterTxt::Convert(textStyle);
     EXPECT_EQ(sptextStyle.fontSize == 14.0, true);
 }
-}// namespace Rosen
-}// namespace OHOS
+} // namespace Rosen
+} // namespace OHOS
