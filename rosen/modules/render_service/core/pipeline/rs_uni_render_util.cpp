@@ -627,14 +627,16 @@ void RSUniRenderUtil::AssignSubThreadNode(
     node->SetCacheType(CacheType::CONTENT);
     node->SetIsMainThreadNode(false);
     auto deviceType = RSMainThread::Instance()->GetDeviceType();
+    bool dirty = node->GetNeedDrawFocusChange()
+        || (!node->IsCurFrameStatic(deviceType) && !node->IsVisibleDirtyEmpty(deviceType));
     // skip complete static window, DO NOT assign it to subthread.
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
-        node->HasCachedTexture() && node->IsUIFirstSelfDrawCheck() &&
-        (node->IsCurFrameStatic(deviceType) || node->IsVisibleDirtyEmpty(deviceType))) {
+        node->HasCachedTexture() && node->IsUIFirstSelfDrawCheck() && !dirty) {
         node->SetNeedSubmitSubThread(false);
         RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
     } else {
         node->SetNeedSubmitSubThread(true);
+        node->SetNeedDrawFocusChange(false);
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     }
     node->SetLastFrameChildrenCnt(node->GetChildren()->size());

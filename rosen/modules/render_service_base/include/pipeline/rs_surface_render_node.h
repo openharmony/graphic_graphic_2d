@@ -1043,6 +1043,16 @@ public:
     void UpdatePartialRenderParams();
     void UpdateAncestorDisplayNodeInRenderParams();
 
+    void SetNeedDrawFocusChange(bool needDrawFocusChange)
+    {
+        needDrawFocusChange_ = needDrawFocusChange;
+    }
+
+    bool GetNeedDrawFocusChange() const
+    {
+        return needDrawFocusChange_;
+    }
+
     bool HasWindowCorner()
     {
         Vector4f cornerRadius;
@@ -1285,6 +1295,8 @@ private:
     size_t lastFrameChildrenCnt_ = 0;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+
+    bool needDrawFocusChange_ = false;
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;

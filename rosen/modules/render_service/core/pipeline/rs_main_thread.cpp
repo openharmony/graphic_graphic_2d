@@ -597,9 +597,38 @@ void RSMainThread::SetFocusAppInfo(
     focusAppUid_ = uid;
     focusAppBundleName_ = bundleName;
     focusAppAbilityName_ = abilityName;
-    focusNodeId_ = focusNodeId;
+    UpdateFocusNodeId(focusNodeId_, focusNodeId);
 }
 
+void RSMainThread::UpdateFocusNodeId(NodeId oldFocusNodeId, NodeId newFocusNodeId)
+{
+    if (newFocusNodeId == oldFocusNodeId || newFocusNodeId == INVALID_NODEID) {
+        return;
+    }
+    UpdateNeedDrawFocusChange(oldFocusNodeId);
+    UpdateNeedDrawFocusChange(newFocusNodeId);
+    focusNodeId_ = newFocusNodeId;
+}
+
+void RSMainThread::UpdateNeedDrawFocusChange(NodeId id)
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(id));
+    // while nodeMap can't find node, return instantly
+    if (!node) {
+        return;
+    }
+    auto parentNode =
+        node ? RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock()) : nullptr;
+    // while node's parent isn't LEASH_WINDOW_NODE, itselt need SetNeedDrawFocusChange
+    if (!parentNode || parentNode->GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        node->SetNeedDrawFocusChange(true);
+        return;
+    }
+    // while node's parent is LEASH_WINDOW_NODE, parent need SetNeedDrawFocusChange
+    parentNode->SetNeedDrawFocusChange(true);
+}
+ 
 void RSMainThread::Start()
 {
     if (runner_) {
