@@ -33,6 +33,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SHOW_REFRESH_RATE_ENABLED");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SHOW_REFRESH_RATE_ENABLED): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SHOW_REFRESH_RATE_ENABLED");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
             hasPermission = CheckPermission(code);
             break;
