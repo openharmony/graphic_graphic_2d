@@ -25,7 +25,7 @@
 #include "test_common.h"
 #include "common/log_common.h"
 
-ArcOfZorroGM::ArcOfZorroGM()
+ArcOfZorro::ArcOfZorro()
 {
     // file gm/arcofzorro.cpp
     bitmapWidth_ = 1000;  // 1000宽度
@@ -33,11 +33,11 @@ ArcOfZorroGM::ArcOfZorroGM()
     fileName_ = "arcofzorro";
 }
 
-void ArcOfZorroGM::OnTestFunction(OH_Drawing_Canvas *canvas)
+void ArcOfZorro::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
     // 用例名: arcofzorro 测试 OH_Drawing_CanvasDrawArc
     // 迁移基于源码arcofzorro->arcofzorro
-    DRAWING_LOGI("ArcOfZorroGM::OnTestFunction start");
+    DRAWING_LOGI("ArcOfZorro::OnTestFunction start");
     // 使用指定颜色设置清空画布底色
     OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
     // 创建一个矩形对象
@@ -55,7 +55,7 @@ void ArcOfZorroGM::OnTestFunction(OH_Drawing_Canvas *canvas)
     int yOffset = 0;
     int direction = 0;
     for (float arc = 134.0f; arc < 136.0f; arc += 0.01f) {
-        DRAWING_LOGI("ArcOfZorroGM::arc");
+        DRAWING_LOGI("ArcOfZorro::arc");
         uint32_t color = rand.nextU();
         color |= 0xff000000;
         OH_Drawing_PenSetColor(pen, color);
@@ -67,14 +67,14 @@ void ArcOfZorroGM::OnTestFunction(OH_Drawing_Canvas *canvas)
 
         switch (direction) {
             case 0:
-                DRAWING_LOGI("ArcOfZorroGM::OnTestFunction direction0");
+                DRAWING_LOGI("ArcOfZorro::OnTestFunction direction0");
                 xOffset += 10;        // 10 cout
                 if (xOffset >= 700) { // 700 max
                     direction = 1;    // direction 1
                 }
                 break;
             case 1: // 1 case
-                DRAWING_LOGI("ArcOfZorroGM::OnTestFunction direction1");
+                DRAWING_LOGI("ArcOfZorro::OnTestFunction direction1");
                 xOffset -= 10;      // 10 cout
                 yOffset += 10;      // 10 cout
                 if (xOffset < 50) { // 50 max
@@ -82,15 +82,15 @@ void ArcOfZorroGM::OnTestFunction(OH_Drawing_Canvas *canvas)
                 }
                 break;
             case 2: // 2 case
-                DRAWING_LOGI("ArcOfZorroGM::OnTestFunction direction2");
+                DRAWING_LOGI("ArcOfZorro::OnTestFunction direction2");
                 xOffset += 10; // 10 cout
                 break;
             default:
-                DRAWING_LOGI("ArcOfZorroGM::OnTestFunction direction3");
+                DRAWING_LOGI("ArcOfZorro::OnTestFunction direction3");
                 break;
         }
     }
-    DRAWING_LOGI("ArcOfZorroGM::OnTestFunction end");
+    DRAWING_LOGI("ArcOfZorro::OnTestFunction end");
     OH_Drawing_CanvasRestore(canvas);
     OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_RectDestroy(rect);

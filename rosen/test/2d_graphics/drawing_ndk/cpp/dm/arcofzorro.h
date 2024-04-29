@@ -12,19 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ARCOFZORROGM_H
-#define ARCOFZORROGM_H
+#ifndef ArcOfZorro_H
+#define ArcOfZorro_H
 #include "../test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>
 
-class ArcOfZorroGM : public TestBase {
+class ArcOfZorro : public TestBase {
   public:
-    ArcOfZorroGM();
-    ~ArcOfZorroGM() = default;
+    ArcOfZorro();
+    ~ArcOfZorro() = default;
 
   protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
 };
-#endif // ARCOFZORROGM_H
+#endif // ArcOfZorro_H
