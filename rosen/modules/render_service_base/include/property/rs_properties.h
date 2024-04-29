@@ -501,6 +501,17 @@ private:
     void AccmulateDirtyStatus();
     void RecordCurDirtyStatus();
 
+    // generate filter
+    void GenerateBackgroundFilter();
+    void GenerateForegroundFilter();
+    void GenerateBackgroundBlurFilter();
+    void GenerateForegroundBlurFilter();
+    void GenerateBackgroundMaterialBlurFilter();
+    void GenerateForegroundMaterialBlurFilter();
+    std::shared_ptr<Drawing::ColorFilter> GetMaterialColorFilter(float sat, float brightness);
+    void GenerateAIBarFilter();
+    void GenerateLinearGradientBlurFilter();
+
     bool NeedClip() const;
 
     const RectF& GetBgImageRect() const;
@@ -614,7 +625,6 @@ private:
     void CalculatePixelStretch();
     void CalculateFrameOffset();
     void CheckGreyCoef();
-    void ApplyGreyCoef();
 
     // partial update
     bool colorFilterNeedUpdate_ = false;

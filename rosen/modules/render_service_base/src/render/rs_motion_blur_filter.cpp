@@ -30,7 +30,7 @@ constexpr static float FLOAT_ZERO_THRESHOLD = 0.01f; // 0.01f threshold
 std::shared_ptr<Drawing::RuntimeEffect> RSMotionBlurFilter::motionBlurShaderEffect_ = nullptr;
 
 RSMotionBlurFilter::RSMotionBlurFilter(const std::shared_ptr<MotionBlurParam>& para)
-    : RSDrawingFilter(nullptr), motionBlurPara_(para)
+    : RSDrawingFilterOriginal(nullptr), motionBlurPara_(para)
 {
     type_ = FilterType::MOTION_BLUR;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);

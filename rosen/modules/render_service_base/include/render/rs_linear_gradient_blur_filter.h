@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSLinearGradientBlurFilter : public RSDrawingFilter {
+class RSB_EXPORT RSLinearGradientBlurFilter : public RSDrawingFilterOriginal {
 public:
     RSLinearGradientBlurFilter(const std::shared_ptr<RSLinearGradientBlurPara>& para, const float geoWidth,
         const float geoHeight);
@@ -38,7 +38,8 @@ public:
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override
+    std::shared_ptr<RSDrawingFilterOriginal> Compose(
+        const std::shared_ptr<RSDrawingFilterOriginal>& other) const override
     {
         return nullptr;
     }
@@ -80,8 +81,8 @@ private:
     static std::shared_ptr<Drawing::ShaderEffect> MakeAlphaGradientShader(const Drawing::Rect& clipBounds,
         const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias);
     static void DrawMaskLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image, Drawing::Canvas& canvas,
-        std::shared_ptr<RSDrawingFilter>& blurFilter, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
-        const Drawing::Rect& dst);
+        std::shared_ptr<RSDrawingFilterOriginal>& blurFilter,
+        std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::Rect& dst);
     static std::shared_ptr<Drawing::ShaderEffect> MakeMaskLinearGradientBlurShader(
         std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> gradientShader);
     static void DrawMeanLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image, Drawing::Canvas& canvas,

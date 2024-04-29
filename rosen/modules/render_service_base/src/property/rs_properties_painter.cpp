@@ -25,7 +25,9 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_blur_filter.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
+#include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_material_filter.h"
 #include "platform/common/rs_system_properties.h"
@@ -625,7 +627,7 @@ void RSPropertiesPainter::DrawForegroundFilter(const RSProperties& properties, R
         ROSEN_LOGD("RSPropertiesPainter::DrawForegroundFilter image null");
         return;
     }
-    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
+    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(RSFilter);
 
     if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
         auto canvasOriginal = canvas.GetOriginalCanvas();
@@ -650,10 +652,14 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
 
-    bool needSnapshotOutset = true;
     if (RSFilter->GetFilterType() == RSFilter::MATERIAL) {
-        auto material = std::static_pointer_cast<RSMaterialFilter>(RSFilter);
-        needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
+        float radius = 0.f;
+        if (filterType == FilterType::BACKGROUND_FILTER) {
+            radius = properties.GetBackgroundBlurRadius();
+        } else if (filterType == FilterType::FOREGROUND_FILTER) {
+            radius = properties.GetForegroundBlurRadius();
+        }
+        RSFilter->SetSnapshotOutset(radius >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
     }
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawFilter, filterType: %d, %s, bounds: %s", filterType,
@@ -684,26 +690,32 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-            filter->IsOffscreenCanvas(true);
-            filter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
-            needSnapshotOutset = false;
+        std::shared_ptr<RSShaderFilter> rsShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+        if (rsShaderFilter != nullptr) {
+            auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
+            tmpFilter->IsOffscreenCanvas(true);
+            tmpFilter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
+            filter->SetSnapshotOutset(false);
         }
         // RSFilterCacheManger has no more logic for evaluating filtered snapshot clearing
         // Should be passed as secnod argument, if required (see RSPropertyDrawableUtils::DrewFiler())
-        cacheManager->DrawFilter(canvas, filter, { needSnapshotOutset, false });
+        cacheManager->DrawFilter(canvas, filter, {RSFilter->NeedSnapshotOutset(), false });
         return;
     }
 #endif
 
-    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        filter->IsOffscreenCanvas(false);
-        filter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
-        needSnapshotOutset = false;
+    std::shared_ptr<RSShaderFilter> rsShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+    if (rsShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
+        tmpFilter->IsOffscreenCanvas(true);
+        tmpFilter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
+        filter->SetSnapshotOutset(false);
     }
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
-    if (needSnapshotOutset) {
+    if (RSFilter->NeedSnapshotOutset()) {
         imageClipIBounds.MakeOutset(-1, -1);
     }
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);

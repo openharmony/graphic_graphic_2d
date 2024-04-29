@@ -38,6 +38,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 #endif
+#include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "metadata_helper.h"
 

@@ -30,7 +30,7 @@ struct ForegroundEffectParam {
     ForegroundEffectParam(const Drawing::Rect& src, const Drawing::Rect& dst)
         : src(src), dst(dst) {}
 };
-class RSB_EXPORT RSForegroundEffectFilter : public RSDrawingFilter {
+class RSB_EXPORT RSForegroundEffectFilter : public RSDrawingFilterOriginal {
 public:
     RSForegroundEffectFilter(float blurRadius);
     RSForegroundEffectFilter(const RSForegroundEffectFilter&) = delete;
@@ -45,7 +45,8 @@ public:
     void PostProcess(Drawing::Canvas& canvas) override {};
     float GetDirtyExtension();
 
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override
+    std::shared_ptr<RSDrawingFilterOriginal> Compose(
+        const std::shared_ptr<RSDrawingFilterOriginal>& other) const override
     {
         return nullptr;
     }

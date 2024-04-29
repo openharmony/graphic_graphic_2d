@@ -31,7 +31,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSLinearGradientBlurFilter::maskBlurShad
 
 RSLinearGradientBlurFilter::RSLinearGradientBlurFilter(const std::shared_ptr<RSLinearGradientBlurPara>& para,
     const float geoWidth, const float geoHeight)
-    : RSDrawingFilter(nullptr),
+    : RSDrawingFilterOriginal(nullptr),
       linearGradientBlurPara_(para)
 {
     geoWidth_ = geoWidth;
@@ -74,7 +74,7 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
         }
 
         auto& RSFilter = para->LinearGradientBlurFilter_;
-        auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
+        auto filter = std::static_pointer_cast<RSDrawingFilterOriginal>(RSFilter);
         DrawMaskLinearGradientBlur(image, canvas, filter, alphaGradientShader, dst);
     } else {
         // use original LinearGradientBlur
@@ -403,7 +403,7 @@ void RSLinearGradientBlurFilter::DrawMeanLinearGradientBlur(const std::shared_pt
 }
 
 void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image,
-    Drawing::Canvas& canvas, std::shared_ptr<RSDrawingFilter>& blurFilter,
+    Drawing::Canvas& canvas, std::shared_ptr<RSDrawingFilterOriginal>& blurFilter,
     std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::Rect& dst)
 {
     if (image == nullptr) {

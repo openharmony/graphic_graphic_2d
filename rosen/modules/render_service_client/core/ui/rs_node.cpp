@@ -40,6 +40,9 @@
 #include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_filter.h"
+#include "render/rs_material_filter.h"
+#include "render/rs_blur_filter.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_drawing_node.h"
@@ -1257,13 +1260,64 @@ void RSNode::SetForegroundEffectRadius(const float blurRadius)
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
-    SetProperty<RSBackgroundFilterModifier, RSAnimatableProperty<std::shared_ptr<RSFilter>>>(
-        RSModifierType::BACKGROUND_FILTER, backgroundFilter);
+    if (backgroundFilter == nullptr) {
+        SetBackgroundBlurRadius(0.f);
+        SetBackgroundBlurSaturation(1.f);
+        SetBackgroundBlurBrightness(1.f);
+        SetBackgroundBlurMaskColor(RSColor());
+        SetBackgroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT);
+        SetBackgroundBlurRadiusX(0.f);
+        SetBackgroundBlurRadiusY(0.f);
+    } else if (backgroundFilter->GetFilterType() == RSFilter::MATERIAL) {
+        auto materialFilter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter);
+        float Radius = materialFilter->GetRadius();
+        float Saturation = materialFilter->GetSaturation();
+        float Brightness = materialFilter->GetBrightness();
+        Color MaskColor = materialFilter->GetMaskColor();
+        int ColorMode = materialFilter->GetColorMode();
+        SetBackgroundBlurRadius(Radius);
+        SetBackgroundBlurSaturation(Saturation);
+        SetBackgroundBlurBrightness(Brightness);
+        SetBackgroundBlurMaskColor(MaskColor);
+        SetBackgroundBlurColorMode(ColorMode);
+    } else if (backgroundFilter->GetFilterType() == RSFilter::BLUR) {
+        auto blurFilter = std::static_pointer_cast<RSBlurFilter>(backgroundFilter);
+        float blurRadiusX = blurFilter->GetBlurRadiusX();
+        float blurRadiusY = blurFilter->GetBlurRadiusY();
+        SetBackgroundBlurRadiusX(blurRadiusX);
+        SetBackgroundBlurRadiusY(blurRadiusY);
+    }
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
-    SetProperty<RSFilterModifier, RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSModifierType::FILTER, filter);
+    if (filter == nullptr) {
+        SetForegroundBlurRadius(0.f);
+        SetForegroundBlurSaturation(1.f);
+        SetForegroundBlurBrightness(1.f);
+        SetForegroundBlurMaskColor(RSColor());
+        SetForegroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT);
+        SetForegroundBlurRadiusX(0.f);
+        SetForegroundBlurRadiusY(0.f);
+    } else if (filter->GetFilterType() == RSFilter::MATERIAL) {
+        auto materialFilter = std::static_pointer_cast<RSMaterialFilter>(filter);
+        float Radius = materialFilter->GetRadius();
+        float Saturation = materialFilter->GetSaturation();
+        float Brightness = materialFilter->GetBrightness();
+        Color MaskColor = materialFilter->GetMaskColor();
+        int ColorMode = materialFilter->GetColorMode();
+        SetForegroundBlurRadius(Radius);
+        SetForegroundBlurSaturation(Saturation);
+        SetForegroundBlurBrightness(Brightness);
+        SetForegroundBlurMaskColor(MaskColor);
+        SetForegroundBlurColorMode(ColorMode);
+    } else if (filter->GetFilterType() == RSFilter::BLUR) {
+        auto blurFilter = std::static_pointer_cast<RSBlurFilter>(filter);
+        float blurRadiusX = blurFilter->GetBlurRadiusX();
+        float blurRadiusY = blurFilter->GetBlurRadiusY();
+        SetForegroundBlurRadiusX(blurRadiusX);
+        SetForegroundBlurRadiusY(blurRadiusY);
+    }
 }
 
 void RSNode::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)

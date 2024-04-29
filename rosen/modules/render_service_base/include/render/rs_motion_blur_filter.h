@@ -33,7 +33,7 @@ public:
     ~MotionBlurParam() = default;
 };
 
-class RSB_EXPORT RSMotionBlurFilter : public RSDrawingFilter {
+class RSB_EXPORT RSMotionBlurFilter : public RSDrawingFilterOriginal {
 public:
     RSMotionBlurFilter(const std::shared_ptr<MotionBlurParam>& para);
     RSMotionBlurFilter(const RSMotionBlurFilter&) = delete;
@@ -45,7 +45,8 @@ public:
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override
+    std::shared_ptr<RSDrawingFilterOriginal> Compose(
+        const std::shared_ptr<RSDrawingFilterOriginal>& other) const override
     {
         return nullptr;
     }

@@ -34,7 +34,7 @@ namespace Rosen {
 
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 RSAIBarFilter::RSAIBarFilter()
-    : RSDrawingFilter(nullptr)
+    : RSDrawingFilterOriginal(nullptr)
 {
     type_ = RSFilter::AIBAR;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);

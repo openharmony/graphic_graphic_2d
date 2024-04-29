@@ -24,6 +24,7 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {

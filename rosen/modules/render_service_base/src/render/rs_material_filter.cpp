@@ -37,7 +37,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 // style to MaterialParam map
 static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> MATERIAL_PARAM {
     // card blur params
@@ -82,7 +81,7 @@ const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 const bool HPS_BLUR_ENABLED = RSSystemProperties::GetHpsBlurEnabled();
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
-    : RSDrawingFilter(nullptr), colorMode_(mode)
+    : RSDrawingFilterOriginal(nullptr), colorMode_(mode)
 {
     imageFilter_ = RSMaterialFilter::CreateMaterialStyle(static_cast<MATERIAL_BLUR_STYLE>(style), dipScale, ratio);
     type_ = FilterType::MATERIAL;
@@ -94,7 +93,8 @@ RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mo
 }
 
 RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode)
-    : RSDrawingFilter(nullptr), colorMode_(mode), radius_(materialParam.radius), saturation_(materialParam.saturation),
+    : RSDrawingFilterOriginal(nullptr), colorMode_(mode),
+      radius_(materialParam.radius), saturation_(materialParam.saturation),
       brightness_(materialParam.brightness), maskColor_(materialParam.maskColor)
 {
     imageFilter_ = RSMaterialFilter::CreateMaterialFilter(
@@ -145,7 +145,8 @@ std::string RSMaterialFilter::GetDetailedDescription()
     return "RSMaterialFilterBlur, maskColorStr failed";
 }
 
-std::shared_ptr<RSDrawingFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
+std::shared_ptr<RSDrawingFilterOriginal> RSMaterialFilter::Compose(
+    const std::shared_ptr<RSDrawingFilterOriginal>& other) const
 {
     if (other == nullptr) {
         return nullptr;
@@ -355,6 +356,26 @@ void RSMaterialFilter::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
 float RSMaterialFilter::GetRadius() const
 {
     return radius_;
+}
+
+float RSMaterialFilter::GetSaturation() const
+{
+    return saturation_;
+}
+
+float RSMaterialFilter::GetBrightness() const
+{
+    return brightness_;
+}
+
+RSColor RSMaterialFilter::GetMaskColor() const
+{
+    return maskColor_;
+}
+
+BLUR_COLOR_MODE RSMaterialFilter::GetColorMode() const
+{
+    return colorMode_;
 }
 
 bool RSMaterialFilter::CanSkipFrame() const

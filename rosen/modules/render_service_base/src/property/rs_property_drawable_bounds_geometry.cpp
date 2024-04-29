@@ -27,6 +27,7 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_drawing_filter.h"
 
 namespace {
 constexpr int PARAM_DOUBLE = 2;

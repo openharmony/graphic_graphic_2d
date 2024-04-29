@@ -3361,7 +3361,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -3374,7 +3375,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter002, TestSize.Level2)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -3387,7 +3389,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter003, TestSize.Level3)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[3]);
 }
 
 /**
@@ -3400,7 +3403,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter004, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[4]);
 }
 
 /**
@@ -3413,7 +3417,8 @@ HWTEST_F(RSNodeTest, CreateBlurFilter005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
     rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[0]);
 }
 
 /**
@@ -3426,7 +3431,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[1]);
 }
 
 /**
@@ -3439,7 +3445,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter002, TestSize.Level2)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[2]);
 }
 
 /**
@@ -3452,7 +3459,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter003, TestSize.Level3)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[3]);
 }
 
 /**
@@ -3465,7 +3473,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter004, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[4]);
 }
 
 /**
@@ -3478,7 +3487,8 @@ HWTEST_F(RSNodeTest, CreateNormalFilter005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
     rsNode->SetFilter(filter);
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetFilter() == filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[0]);
 }
 
 /**
@@ -3760,8 +3770,6 @@ HWTEST_F(RSNodeTest, SetProperty001, TestSize.Level1)
         RSModifierType::BORDER_WIDTH, Vector4f(), Vector4f(1.f));
     SetPropertyTest<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>, Vector4<uint32_t>>(
         RSModifierType::BORDER_STYLE, Vector4<uint32_t>(), Vector4<uint32_t>(1));
-    SetPropertyTest<RSFilterModifier, RSAnimatableProperty<std::shared_ptr<RSFilter>>, std::shared_ptr<RSFilter>>(
-        RSModifierType::FILTER, RSFilter::CreateBlurFilter(1.f, 1.f), nullptr);
     SetPropertyTest<RSShadowColorModifier, RSAnimatableProperty<Color>, Color>(
         RSModifierType::SHADOW_COLOR, Color(), Color(0xFF00FF00));
     SetPropertyTest<RSShadowOffsetXModifier, RSAnimatableProperty<float>, float>(

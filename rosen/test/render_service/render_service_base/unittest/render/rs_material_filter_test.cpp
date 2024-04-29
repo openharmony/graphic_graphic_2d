@@ -124,7 +124,7 @@ HWTEST_F(RSMaterialFilterTest, GetDescriptionTest001, TestSize.Level1)
 HWTEST_F(RSMaterialFilterTest, ComposeTest001, TestSize.Level1)
 {
     MaterialParam materialParam;
-    std::shared_ptr<RSDrawingFilter> other = nullptr;
+    std::shared_ptr<RSDrawingFilterOriginal> other = nullptr;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
     EXPECT_EQ(rsMaterialFilter->Compose(other), nullptr);
 }
@@ -236,10 +236,10 @@ HWTEST_F(RSMaterialFilterTest, AddTest001, TestSize.Level1)
 {
     MaterialParam materialParam;
     auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilter::FilterType::NONE;
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::NONE;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
     EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilter::FilterType::MATERIAL;
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
     EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
 }
 
@@ -252,10 +252,10 @@ HWTEST_F(RSMaterialFilterTest, SubTest001, TestSize.Level1)
 {
     MaterialParam materialParam;
     auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilter::FilterType::NONE;
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::NONE;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
     EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
-    rhs->type_ = RSDrawingFilter::FilterType::MATERIAL;
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
     EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
 }
 

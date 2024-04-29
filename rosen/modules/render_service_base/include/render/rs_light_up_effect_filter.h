@@ -22,14 +22,15 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSLightUpEffectFilter : public RSDrawingFilter {
+class RSB_EXPORT RSLightUpEffectFilter : public RSDrawingFilterOriginal {
 public:
     RSLightUpEffectFilter(float lightUpDegree);
     RSLightUpEffectFilter(const RSLightUpEffectFilter&) = delete;
     RSLightUpEffectFilter operator=(const RSLightUpEffectFilter&) = delete;
     ~RSLightUpEffectFilter() override;
     float GetLightUpDegree();
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
+    std::shared_ptr<RSDrawingFilterOriginal> Compose(
+        const std::shared_ptr<RSDrawingFilterOriginal>& other) const override;
     std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
