@@ -62,7 +62,8 @@ void RSJankStats::SetStartTime(bool doDirectComposition)
         lastReportTimeSteady_ = rtStartTimeSteady_;
     }
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
-        jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponse_;
+        jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponseTemp_;
+        jankFrames.isSetReportEventResponseTemp_ = jankFrames.isSetReportEventResponse_;
         jankFrames.isSetReportEventResponse_ = false;
         jankFrames.isReportEventComplete_ = jankFrames.isSetReportEventComplete_;
         jankFrames.isSetReportEventComplete_ = false;
