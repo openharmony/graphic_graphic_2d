@@ -629,11 +629,6 @@ void RSPropertiesPainter::DrawForegroundFilter(const RSProperties& properties, R
     }
     auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(RSFilter);
 
-    if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
-        auto canvasOriginal = canvas.GetOriginalCanvas();
-        foregroundFilter->SetGeometry(*canvasOriginal, 0.f, 0.f);
-    }
-
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
         imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
 }
