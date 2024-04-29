@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,6 +86,14 @@ std::shared_ptr<Rect> TextBlob::Bounds() const
         return textBlobImpl_->Bounds();
     }
     return nullptr;
+}
+
+uint32_t TextBlob::UniqueID() const
+{
+    if (textBlobImpl_) {
+        return textBlobImpl_->UniqueID();
+    }
+    return 0;
 }
 } // namespace Drawing
 } // namespace Rosen

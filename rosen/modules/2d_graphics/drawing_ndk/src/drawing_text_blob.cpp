@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,16 @@ static TextBlobBuilder* CastToTextBlobBuilder(OH_Drawing_TextBlobBuilder* cTextB
 static const Font& CastToFont(const OH_Drawing_Font& cFont)
 {
     return reinterpret_cast<const Font&>(cFont);
+}
+
+static TextBlob* CastToTextBlob(OH_Drawing_TextBlob* cTextBlob)
+{
+    return reinterpret_cast<TextBlob*>(cTextBlob);
+}
+
+static const TextBlob* CastToTextBlob(const OH_Drawing_TextBlob* cTextBlob)
+{
+    return reinterpret_cast<const TextBlob*>(cTextBlob);
 }
 
 static const Rect* CastToRect(const OH_Drawing_Rect* cRect)
@@ -121,12 +131,7 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromString(const char* str,
 
 void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rect* cRect)
 {
-    std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
-    auto it = g_textBlobMap.find(cTextBlob);
-    if (it == g_textBlobMap.end()) {
-        return;
-    }
-    std::shared_ptr<TextBlob> textblob = it->second;
+    TextBlob* textblob = CastToTextBlob(cTextBlob);
     if (textblob == nullptr) {
         return;
     }
@@ -136,6 +141,15 @@ void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rec
         *outRect = Rect(rect->GetLeft(), rect->GetTop(),
             rect->GetRight(), rect->GetBottom());
     }
+}
+
+uint32_t OH_Drawing_TextBlobUniqueID(const OH_Drawing_TextBlob* cTextBlob)
+{
+    const TextBlob* textblob = CastToTextBlob(cTextBlob);
+    if (cTextBlob == nullptr) {
+        return 0;
+    }
+    return textblob->UniqueID();
 }
 
 const OH_Drawing_RunBuffer* OH_Drawing_TextBlobBuilderAllocRunPos(OH_Drawing_TextBlobBuilder* cTextBlobBuilder,
