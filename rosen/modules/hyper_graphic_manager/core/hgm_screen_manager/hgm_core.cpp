@@ -184,7 +184,7 @@ int32_t HgmCore::SetCustomRateMode(int32_t mode)
 void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback)
 {
     ScreenId screenId = HgmCore::Instance().GetActiveScreenId();
-    int32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
     refreshRateUpdateCallback_ = callback;
     if (refreshRateUpdateCallback_ != nullptr) {
         refreshRateUpdateCallback_(refreshRate);
