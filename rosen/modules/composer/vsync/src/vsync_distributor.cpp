@@ -763,11 +763,11 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
     if (isRs_ && dvsync_->IsFeatureEnabled()) {
         con_.notify_all();
     } else
-#else
+#endif
     {
         EnableVSync();
     }
-#endif
+
     VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
     return VSYNC_ERROR_OK;
 }
