@@ -142,7 +142,7 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
 
     std::vector<std::string> fontFamilies;
     napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
-    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies) == napi_ok) {
+    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
         textStyle.fontFamilies = fontFamilies;
     }
     GetDecorationFromJS(env, argValue, "decoration", textStyle);
@@ -252,4 +252,13 @@ bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan
     return true;
 }
 
+size_t GetParamLen(napi_env env, napi_value param)
+{
+    size_t buffSize = 0;
+    napi_status status = napi_get_value_string_utf8(env, param, nullptr, 0, &buffSize);
+    if (status != napi_ok || buffSize == 0) {
+        return 0;
+    }
+    return buffSize;
+}
 } // namespace OHOS::Rosen

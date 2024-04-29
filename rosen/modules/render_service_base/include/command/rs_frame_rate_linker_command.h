@@ -24,14 +24,18 @@ namespace OHOS {
 namespace Rosen {
 
 enum RSFrameRateLinkerCommandType : uint16_t {
+    FRAME_RATE_LINKER_DESTROY,
     FRAME_RATE_LINKER_UPDATE_RANGE,
 };
 
 class RSB_EXPORT RSFrameRateLinkerCommandHelper {
 public:
+    static void Destroy(RSContext& context, FrameRateLinkerId id);
     static void UpdateRange(RSContext& context, FrameRateLinkerId id, FrameRateRange range);
 };
 
+ADD_COMMAND(RSFrameRateLinkerDestroy,
+    ARG(FRAME_RATE_LINKER, FRAME_RATE_LINKER_DESTROY, RSFrameRateLinkerCommandHelper::Destroy, FrameRateLinkerId))
 ADD_COMMAND(RSFrameRateLinkerUpdateRange,
     ARG(FRAME_RATE_LINKER, FRAME_RATE_LINKER_UPDATE_RANGE, RSFrameRateLinkerCommandHelper::UpdateRange,
         FrameRateLinkerId, FrameRateRange))

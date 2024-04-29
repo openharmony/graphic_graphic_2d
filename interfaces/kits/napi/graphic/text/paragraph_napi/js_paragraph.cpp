@@ -14,9 +14,10 @@
  */
 #include "canvas_napi/js_canvas.h"
 #include "draw/canvas.h"
-#include "../drawing/js_drawing_utils.h"
+#include "recording/recording_canvas.h"
+#include "js_drawing_utils.h"
 #include "js_paragraph.h"
-#include "../js_text_utils.h"
+#include "js_text_utils.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "utils/log.h"
 #include "text_line_napi/js_text_line.h"
@@ -24,7 +25,7 @@
 namespace OHOS::Rosen {
 std::unique_ptr<Typography> g_Typography = nullptr;
 thread_local napi_ref JsParagraph::constructor_ = nullptr;
-const std::string CLASS_NAME = "JsParagraph";
+const std::string CLASS_NAME = "Paragraph";
 
 napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 {
@@ -163,7 +164,15 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsParagraph::OnPaint Argv is invalid");
         return NapiGetUndefined(env);
     }
-    paragraph_->Paint(jsCanvas->GetCanvas(), x, y);
+    if (jsCanvas->GetCanvas()->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        Drawing::RecordingCanvas* recordingCanvas = (Drawing::RecordingCanvas*)jsCanvas->GetCanvas();
+        recordingCanvas->SetIsCustomTypeface(true);
+        recordingCanvas->SetIsCustomTextType(true);
+        paragraph_->Paint(recordingCanvas, x, y);
+    } else {
+        paragraph_->Paint(jsCanvas->GetCanvas(), x, y);
+    }
+
     return NapiGetUndefined(env);
 }
 
@@ -420,7 +429,7 @@ napi_value JsParagraph::OnGetLineCount(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsParagraph::OnGetLineCount paragraph_ is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    size_t lineCount = paragraph_->GetLineCount();
+    size_t lineCount = static_cast<size_t>(paragraph_->GetLineCount());
     return CreateJsNumber(env, lineCount);
 }
 
@@ -493,7 +502,7 @@ napi_value JsParagraph::OnDidExceedMaxLines(napi_env env, napi_callback_info inf
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     bool didExceedMaxLines = paragraph_->DidExceedMaxLines();
-    return CreateJsNumber(env, didExceedMaxLines);
+    return CreateJsValue(env, didExceedMaxLines);
 }
 
 JsParagraph::JsParagraph(std::shared_ptr<Typography> typography)
@@ -541,11 +550,13 @@ napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    std::vector<std::unique_ptr<TextLineBase>> textlineArr = paragraph_->GetTextLines();
-    if (textlineArr.empty()) {
-        ROSEN_LOGE("JsParagraph::OnGetTextLines textlineArr is empty");
+    std::shared_ptr<Typography> paragraphCopy = paragraph_->CloneSelf();
+    if (!paragraphCopy) {
+        ROSEN_LOGE("JsParagraph::OnGetTextLines paragraphCopy is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+
+    std::vector<std::unique_ptr<TextLineBase>> textlineArr = paragraphCopy->GetTextLines();
     napi_value array = nullptr;
     NAPI_CALL(env, napi_create_array(env, &array));
     uint32_t index = 0;
@@ -562,6 +573,7 @@ napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
             continue;
         }
         jsTextLine->SetTextLine(std::move(item));
+        jsTextLine->SetParagraph(paragraphCopy);
 
         napi_set_element(env, array, index++, itemObject);
     }

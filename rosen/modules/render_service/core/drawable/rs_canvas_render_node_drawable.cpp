@@ -45,10 +45,10 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!ShouldPaint()) {
         return;
     }
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, parentSurfaceMatrix_);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
         return;
@@ -73,15 +73,39 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (!ShouldPaint()) {
         return;
     }
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, parentSurfaceMatrix_);
+
+    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && EnableRecordingOptimization(*params)) {
+        return;
+    }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
         CheckCacheTypeAndDraw(canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
+}
+
+bool RSCanvasRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& params)
+{
+    auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (threadParams) {
+        NodeId nodeId = threadParams->GetRootIdOfCaptureWindow();
+        bool hasCaptureImg = threadParams->GetHasCaptureImg();
+        if (nodeId == params.GetId()) {
+            RS_LOGD("RSCanvasRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "])",
+                params.GetId());
+            threadParams->SetStartVisit(true);
+        }
+        if (hasCaptureImg && !threadParams->GetStartVisit()) {
+            RS_LOGD("RSCanvasRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "]) Skip layer.",
+                params.GetId());
+            return true;
+        }
+    }
+    return false;
 }
 } // namespace OHOS::Rosen::DrawableV2

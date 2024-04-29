@@ -70,7 +70,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
             curNode = parentNode;
         }
         auto curNodeParams = static_cast<RSSurfaceRenderParams*>(curNode->GetRenderParams().get());
-        if (curNodeParams && curNodeParams->GetUifirstNodeEnableParam()) {
+        if (curNodeParams && curNodeParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::LEASH_WINDOW) {
             surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
                 DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
         } else {
@@ -80,9 +80,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         pixelmap = CreatePixelMapBySurfaceNode(curNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        visitor_->SetHasingSecurityOrSkipLayer(FindSecurityOrSkipLayer());
+        visitor_->SetHasingSecurityOrSkipOrProtectedLayer(FindSecurityOrSkipOrProtectedLayer());
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(),
-            visitor_->GetHasingSecurityOrSkipLayer());
+            visitor_->GetHasingSecurityOrSkipOrProtectedLayer());
         visitor_->IsDisplayNode(true);
         displayNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
@@ -95,13 +95,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         return false;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::shared_ptr<RenderContext> renderContext = nullptr;
-    if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-        renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-    } else {
-        RSMainThread::Instance()->GetRenderEngine()->InitCapture();
-        renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetCaptureRenderContext();
-    }
+    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     auto grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
     RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
 #endif
@@ -367,13 +361,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     } else {
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            std::shared_ptr<RenderContext> renderContext = nullptr;
-            if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-                renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-            } else {
-                RSMainThread::Instance()->GetRenderEngine()->InitCapture();
-                renderContext = RSMainThread::Instance()->GetRenderEngine()->GetCaptureRenderContext();
-            }
+            auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
             if (renderContext == nullptr) {
                 RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderContext is nullptr");
                 return nullptr;
@@ -385,36 +373,30 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
 #ifdef RS_ENABLE_VK
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-            if (rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-                return Drawing::Surface::MakeRenderTarget(
-                    RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), false, info);
-            } else {
-                RSMainThread::Instance()->GetRenderEngine()->InitCapture();
-                return Drawing::Surface::MakeRenderTarget(
-                    RSMainThread::Instance()->GetRenderEngine()->GetCaptureSkContext().get(), false, info);
-            }
+            return Drawing::Surface::MakeRenderTarget(
+                RSUniRenderThread::Instance().GetRenderEngine()->GetSkContext().get(), false, info);
         }
 #endif
     }
     return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
-bool RSSurfaceCaptureTaskParallel::FindSecurityOrSkipLayer()
+bool RSSurfaceCaptureTaskParallel::FindSecurityOrSkipOrProtectedLayer()
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    bool hasSecurityOrSkipLayer = false;
+    bool hasSecurityOrSkipOrProtectedLayer = false;
     nodeMap.TraverseSurfaceNodes([this,
-        &hasSecurityOrSkipLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+        &hasSecurityOrSkipOrProtectedLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
         mutable {
         if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
             return;
         }
-        if (surfaceNode->GetSecurityLayer() || surfaceNode->GetSkipLayer()) {
-            hasSecurityOrSkipLayer = true;
+        if (surfaceNode->GetSecurityLayer() || surfaceNode->GetSkipLayer() || surfaceNode->GetProtectedLayer()) {
+            hasSecurityOrSkipOrProtectedLayer = true;
             return;
         }
     });
-    return hasSecurityOrSkipLayer;
+    return hasSecurityOrSkipOrProtectedLayer;
 }
 
 } // namespace Rosen

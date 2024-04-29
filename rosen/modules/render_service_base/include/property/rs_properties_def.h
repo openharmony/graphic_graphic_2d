@@ -30,6 +30,7 @@ class RSImage;
 class RSShader;
 
 constexpr float INVALID_INTENSITY = -1.f;
+constexpr int RGB_NUM = 3;
 
 enum class Gravity {
     CENTER = 0,
@@ -112,6 +113,23 @@ enum class RSColorBlendApplyType : int16_t {
                  // the screen
     MAX = SAVE_LAYER
 };
+
+struct RSDynamicBrightnessPara {
+    float rate_ = 1.0;
+    float lightUpDegree_ = 0.0;
+    float cubicCoeff_ = 0.0;
+    float quadCoeff_ = 0.0;
+    float saturation_ = 1.0;
+    std::array<float, RGB_NUM> posRGB_ = {0.0, 0.0, 0.0};
+    std::array<float, RGB_NUM> negRGB_ = {0.0, 0.0, 0.0};
+
+    bool operator==(const RSDynamicBrightnessPara& other) const
+    {
+        return (rate_ == other.rate_ && lightUpDegree_ == other.lightUpDegree_ && cubicCoeff_ == other.cubicCoeff_ &&
+            quadCoeff_ == other.quadCoeff_ && saturation_ == other.saturation_ && posRGB_ == other.posRGB_ &&
+            negRGB_ == other.negRGB_);
+    }
+} ;
 
 class Decoration final {
 public:

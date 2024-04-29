@@ -36,6 +36,11 @@ static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
     return reinterpret_cast<ShaderEffect*>(cShaderEffect);
 }
 
+static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowlayer)
+{
+    return reinterpret_cast<BlurDrawLooper*>(cShadowlayer);
+}
+
 static PathEffect* CastToPathEffect(OH_Drawing_PathEffect* cPathEffect)
 {
     return reinterpret_cast<PathEffect*>(cPathEffect);
@@ -278,6 +283,15 @@ void OH_Drawing_PenSetPathEffect(OH_Drawing_Pen* cPen, OH_Drawing_PathEffect* cP
         return;
     }
     pen->SetPathEffect(std::shared_ptr<PathEffect>{CastToPathEffect(cPathEffect), [](auto p) {}});
+}
+
+void OH_Drawing_PenSetShadowLayer(OH_Drawing_Pen* cPen, OH_Drawing_ShadowLayer* cShadowlayer)
+{
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetLooper(std::shared_ptr<BlurDrawLooper>{CastToBlurDrawLooper(cShadowlayer), [](auto p) {}});
 }
 
 void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)

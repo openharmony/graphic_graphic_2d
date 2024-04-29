@@ -72,6 +72,11 @@ std::shared_ptr<Image> Image::MakeRasterData(const ImageInfo& info, std::shared_
 }
 
 #ifdef ACE_ENABLE_GPU
+std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    return StaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+}
+
 bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
     return imageImplPtr->BuildFromBitmap(gpuContext, bitmap);

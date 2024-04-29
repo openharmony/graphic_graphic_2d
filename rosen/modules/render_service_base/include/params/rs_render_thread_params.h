@@ -127,7 +127,17 @@ public:
         watermarkFlag_ = watermarkFlag;
         watermarkImg_ = std::move(watermarkImg);
     }
-    
+
+    void SetOcclusionEnabled(bool isOcclusionEnabled)
+    {
+        isOcclusionEnabled_ = isOcclusionEnabled;
+    }
+
+    bool IsOcclusionEnabled() const
+    {
+        return isOcclusionEnabled_;
+    }
+
     void SetForceCommitLayer(bool forceCommit)
     {
         isForceCommitLayer_ = forceCommit;
@@ -136,6 +146,16 @@ public:
     bool GetForceCommitLayer() const
     {
         return isForceCommitLayer_;
+    }
+
+    void SetRequestNextVsyncFlag(bool flag)
+    {
+        needRequestNextVsyncAnimate_ = flag;
+    }
+
+    bool GetRequestNextVsyncFlag() const
+    {
+        return needRequestNextVsyncAnimate_;
     }
 
     void SetOnVsyncStartTime(int64_t time)
@@ -168,7 +188,49 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
+    void SetStartVisit(bool startVisit)
+    {
+        startVisit_ = startVisit;
+    }
+
+    bool GetStartVisit() const
+    {
+        return startVisit_;
+    }
+
+    void SetHasCaptureImg(bool hasCaptureImg)
+    {
+        hasCaptureImg_ = hasCaptureImg;
+    }
+
+    bool GetHasCaptureImg() const
+    {
+        return hasCaptureImg_;
+    }
+
+    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
+    {
+        rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
+    }
+
+    NodeId GetRootIdOfCaptureWindow() const
+    {
+        return rootIdOfCaptureWindow_;
+    }
+
+    void SetContext(std::shared_ptr<RSContext> context)
+    {
+        context_ = context;
+    }
+
+    const std::shared_ptr<RSContext>& GetContext() const
+    {
+        return context_.lock();
+    }
 private:
+    bool startVisit_ = false;
+    bool hasCaptureImg_ = false;
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     uint32_t pendingScreenRefreshRate_ = 0;
@@ -182,6 +244,7 @@ private:
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
@@ -191,9 +254,13 @@ private:
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+
+    bool needRequestNextVsyncAnimate_ = false;
+
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
     bool isUniRenderAndOnVsync_ = false;
+    std::weak_ptr<RSContext> context_;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

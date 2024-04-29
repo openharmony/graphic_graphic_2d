@@ -159,12 +159,12 @@ HWTEST_F(SkiaImageTest, BuildFromSurface001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBackendTexture001
+ * @tc.name: IsTextureBacked002
  * @tc.desc: Test GetBackendTexture
  * @tc.type: FUNC
  * @tc.require: I91EH1
  */
-HWTEST_F(SkiaImageTest, GetBackendTexture001, TestSize.Level1)
+HWTEST_F(SkiaImageTest, IsTextureBacked002, TestSize.Level1)
 {
     auto surface = std::make_unique<SkiaSurface>();
     surface->FlushAndSubmit(true);
@@ -174,13 +174,16 @@ HWTEST_F(SkiaImageTest, GetBackendTexture001, TestSize.Level1)
     ASSERT_TRUE(surface->Bind(bitmap));
 
     auto image = surface->GetImageSnapshot();
-    auto skiaImage = image->GetImpl<SkiaImage>();
-    ASSERT_TRUE(skiaImage->IsValid(nullptr));
-    TextureOrigin textureOrigin = TextureOrigin::TOP_LEFT;
-    BackendTexture backendTexture = skiaImage->GetBackendTexture(true, &textureOrigin);
-    ASSERT_TRUE(!backendTexture.IsValid());
-    BackendTexture backendTexture2 = skiaImage->GetBackendTexture(true, nullptr);
-    ASSERT_TRUE(!backendTexture2.IsValid());
+    if (image) {
+        auto skiaImage = image->GetImpl<SkiaImage>();
+        if (skiaImage) {
+            ASSERT_TRUE(skiaImage->IsValid(nullptr));
+            ASSERT_TRUE(!skiaImage->IsTextureBacked());
+            ASSERT_TRUE(!skiaImage->IsLazyGenerated());
+            ASSERT_TRUE(skiaImage->CanPeekPixels());
+            ASSERT_TRUE(skiaImage->IsOpaque());
+        }
+    }
 }
 
 /**

@@ -99,6 +99,7 @@ public:
 class RSB_EXPORT ParticleColorParaType {
 public:
     Range<Color> colorVal_;
+    DistributionType distribution_;
     ParticleUpdator updator_;
     Range<float> redRandom_;
     Range<float> greenRandom_;
@@ -106,11 +107,12 @@ public:
     Range<float> alphaRandom_;
 
     std::vector<Change<Color>> valChangeOverLife_;
-    ParticleColorParaType(const Range<Color>& colorVal, const ParticleUpdator& updator, const Range<float>& redRandom,
-        const Range<float>& greenRandom, const Range<float>& blueRandom, const Range<float>& alphaRandom,
-        std::vector<Change<Color>>& valChangeOverLife)
+    ParticleColorParaType(const Range<Color>& colorVal, const DistributionType& distribution,
+        const ParticleUpdator& updator, const Range<float>& redRandom, const Range<float>& greenRandom,
+        const Range<float>& blueRandom, const Range<float>& alphaRandom, std::vector<Change<Color>>& valChangeOverLife)
     {
         colorVal_ = colorVal;
+        distribution_ = distribution;
         updator_ = updator;
         redRandom_ = redRandom;
         greenRandom_ = greenRandom;
@@ -122,8 +124,8 @@ public:
         }
     }
     ParticleColorParaType()
-        : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_(), alphaRandom_(),
-          valChangeOverLife_(0)
+        : colorVal_(), distribution_(DistributionType::UNIFORM), updator_(ParticleUpdator::NONE), redRandom_(),
+          greenRandom_(), blueRandom_(), alphaRandom_(), valChangeOverLife_(0)
     {}
     ParticleColorParaType(const ParticleColorParaType& velocity) = default;
     ParticleColorParaType& operator=(const ParticleColorParaType& velocity) = default;
@@ -189,6 +191,7 @@ public:
     {
         RenderParticleColorParaType color;
         color.colorVal_ = val.colorVal_;
+        color.distribution_ = val.distribution_;
         color.updator_ = val.updator_;
         if (color.updator_ == ParticleUpdator::RANDOM) {
             color.redRandom_ = val.redRandom_;

@@ -86,6 +86,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .customSpTextStyle = style.customTextStyle,
         .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
         .hintingIsOn = style.hintingIsOn,
+        .breakStrategy = static_cast<SPText::BreakStrategy>(style.breakStrategy),
     };
 }
 
@@ -106,7 +107,7 @@ static std::string RemoveQuotes(const std::string& str)
         return str;
     }
     const int start = 1; // The starting position of string.
-    const int end = str.size() - 2; // End position of string.
+    const int end = static_cast<int>(str.size()) - 2; // End position of string.
     return str.substr(start, end); // Remove quotation marks from both ends.
 }
 
@@ -117,7 +118,7 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
     textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
     textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
-    textStyle.symbol.SetAminationStart(style.symbol.GetAminationStart());
+    textStyle.symbol.SetAnimationStart(style.symbol.GetAnimationStart());
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
     for (auto [tag, value] : style.symbol.GetVisualMap()) {
         textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);

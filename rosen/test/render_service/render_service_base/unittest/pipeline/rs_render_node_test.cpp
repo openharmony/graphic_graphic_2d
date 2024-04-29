@@ -218,6 +218,7 @@ HWTEST_F(RSRenderNodeTest, ResetFilterRectsInCacheTest, TestSize.Level2)
 HWTEST_F(RSRenderNodeTest, SetDrawingCacheChangedTest, TestSize.Level2)
 {
     RSRenderNode node(id, context);
+    node.InitRenderParams();
     bool isDrawingCacheChanged = true;
 
     node.SetDrawingCacheChanged(isDrawingCacheChanged);
@@ -233,6 +234,7 @@ HWTEST_F(RSRenderNodeTest, SetDrawingCacheChangedTest, TestSize.Level2)
 HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest001, TestSize.Level2)
 {
     RSRenderNode node(id, context);
+    node.InitRenderParams();
     bool isDrawingCacheChanged = true;
 
     node.SetDrawingCacheChanged(isDrawingCacheChanged);
@@ -249,9 +251,8 @@ HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest001, TestSize.Level2)
 HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest002, TestSize.Level2)
 {
     RSRenderNode node(id, context);
-
+    node.InitRenderParams();
     node.SetDrawingCacheChanged(true);
-    node.SetDrawingCacheChanged(false);
     ASSERT_EQ(node.GetDrawingCacheChanged(), true);
 }
 

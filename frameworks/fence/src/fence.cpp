@@ -39,8 +39,14 @@ bool IsSupportSwSync()
 int CreateTimeline()
 {
     int timeline = open("/sys/kernel/debug/sync/sw_sync", O_RDWR);
+    if (timeline < 0) {
+        HiLogPrint(LOG_CORE, LOG_ERROR, 0, "fence", "open file failed");
+        return -1;
+    }
+
     if (fcntl(timeline, F_GETFD, 0) < 0) {
         HiLogPrint(LOG_CORE, LOG_ERROR, 0, "fence", "the timeline is valid");
+        close(timeline);
         return -1;
     }
     return timeline;

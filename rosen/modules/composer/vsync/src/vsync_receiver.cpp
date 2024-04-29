@@ -61,6 +61,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     {
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
+        RNVFlag_ = false;
     }
     now = data[0];
     period_ = data[1];
@@ -125,8 +126,7 @@ VsyncError VSyncReceiver::Init()
         runner->Run();
     }
 
-    looper_->AddFileDescriptorListener(
-        fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask", AppExecFwk::EventQueue::Priority::VIP);
+    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
     return VSYNC_ERROR_OK;
 }
@@ -153,6 +153,7 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::st
         return VSYNC_ERROR_API_FAILED;
     }
     listener_->SetCallback(callback);
+    listener_->SetRNVFlag(true);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
@@ -221,6 +222,15 @@ VsyncError VSyncReceiver::Destroy()
         return VSYNC_ERROR_API_FAILED;
     }
     return connection_->Destroy();
+}
+
+bool VSyncReceiver::IsRequestedNextVSync()
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return false;
+    }
+    return listener_->GetRNVFlag();
 }
 } // namespace Rosen
 } // namespace OHOS

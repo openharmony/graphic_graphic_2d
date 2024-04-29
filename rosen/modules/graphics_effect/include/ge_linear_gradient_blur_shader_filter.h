@@ -26,12 +26,12 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT GELinearGradientBlurShaderFilter : public GEShaderFilter {
+class GELinearGradientBlurShaderFilter : public GEShaderFilter {
 public:
     GELinearGradientBlurShaderFilter(const Drawing::GELinearGradientBlurShaderFilterParams& params);
     GELinearGradientBlurShaderFilter(const GELinearGradientBlurShaderFilter&) = delete;
     GELinearGradientBlurShaderFilter operator=(const GELinearGradientBlurShaderFilter&) = delete;
-    ~GELinearGradientBlurShaderFilter() override;
+    ~GELinearGradientBlurShaderFilter() override = default;
 
     std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst) override;
@@ -50,7 +50,6 @@ private:
     static void MakeHorizontalMeanBlurEffect();
     static void MakeVerticalMeanBlurEffect();
 
-    friend class RSMarshallingHelper;
     std::shared_ptr<GELinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     inline static float imageScale_ = 1.f;
     inline static float geoWidth_ = 0.f;

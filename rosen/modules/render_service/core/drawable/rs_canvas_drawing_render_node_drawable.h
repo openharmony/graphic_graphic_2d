@@ -19,12 +19,12 @@
 #include "drawable/rs_render_node_drawable.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 class RSCanvasDrawingRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSCanvasDrawingRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -51,6 +51,7 @@ public:
     }
     void ResetSurface();
 private:
+    explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
     void ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds,
         std::shared_ptr<RSContext> ctx, NodeId nodeId);
@@ -72,7 +73,7 @@ private:
     Drawing::BackendTexture backendTexture_;
 #endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
-    pid_t threadId_ = 0;
+    pid_t threadId_ = RSUniRenderThread::Instance().GetTid();
 
     ThreadInfo curThreadInfo_ = { UNI_RENDER_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_RENDER_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };

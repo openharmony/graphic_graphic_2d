@@ -17,6 +17,7 @@ group("unittest") {
   deps = [
     "rosen_text/hm_symbol:hm_symbol_engine_test",
     "rosen_text/properties:unittest",
+    "rosen_text/skia_test:unittest",
     "rosen_text/texgine:2d_engine_rosen_text_texgine_test",
     "rosen_text/texgine:hm_symbol_test",
     "rosen_text/ui:unittest",

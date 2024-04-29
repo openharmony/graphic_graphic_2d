@@ -47,16 +47,14 @@ public:
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
-    bool childrenHasSharedTransition_ = false;
 private:
-    // Render properties
-    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
-    // Staging properties
-    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
-    // static inline std::set<NodeId> pendingSharedTransitionSet_;
-    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
-
     bool needSync_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
+
+    // Shared Transition related
+    bool childrenHasSharedTransition_ = false;
+    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
     friend class RSRenderNode;
     friend class RSRenderNodeDrawableAdapter;
 };
@@ -76,7 +74,6 @@ private:
     bool needSync_ = false;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
-    friend class RSCustomModifierDrawable;
 };
 
 // ============================================================================
@@ -181,12 +178,11 @@ protected:
 };
 
 // ============================================================================
-// Blend Mode
-class RSBeginBlendModeDrawable : public RSDrawable {
+// Blender & BlendMode
+class RSBeginBlenderDrawable : public RSDrawable {
 public:
-    RSBeginBlendModeDrawable(int blendMode, int blendApplyType) : blendMode_(blendMode), blendApplyType_(blendApplyType)
-    {}
-    ~RSBeginBlendModeDrawable() override = default;
+    RSBeginBlenderDrawable() = default;
+    ~RSBeginBlenderDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
@@ -195,22 +191,29 @@ public:
 
 private:
     bool needSync_ = false;
-    int blendMode_;
+    std::shared_ptr<Drawing::Blender> blender_ = nullptr;
     int blendApplyType_;
+    bool isDangerous_ = false;
 
-    int stagingBlendMode_;
+    std::shared_ptr<Drawing::Blender> stagingBlender_ = nullptr;
     int stagingBlendApplyType_;
+    bool stagingIsDangerous_ = false;
 };
 
-class RSEndBlendModeDrawable : public RSDrawable {
+class RSEndBlenderDrawable : public RSDrawable {
 public:
-    RSEndBlendModeDrawable() = default;
-    ~RSEndBlendModeDrawable() override = default;
+    RSEndBlenderDrawable() = default;
+    ~RSEndBlenderDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override {};
+    void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    bool needSync_ = false;
+    int blendApplyType_;
+    int stagingBlendApplyType_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

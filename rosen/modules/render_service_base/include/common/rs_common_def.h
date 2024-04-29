@@ -76,6 +76,13 @@ enum class RSRenderNodeType : uint32_t {
     CANVAS_DRAWING_NODE = 0x2081u,
 };
 
+enum RSRenderParamsDirtyType {
+    NO_DIRTY = 0,
+    MATRIX_DIRTY,
+    LAYER_INFO_DIRTY,
+    MAX_DIRTY_TYPE,
+};
+
 enum class CacheType : uint8_t {
     NONE = 0,
     CONTENT,
@@ -170,6 +177,12 @@ enum class RSSurfaceNodeType : uint8_t {
     SURFACE_TEXTURE_NODE,      // create by video
     FOREGROUND_SURFACE,
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
+};
+
+enum class MultiThreadCacheType : uint8_t {
+    NONE = 0,
+    LEASH_WINDOW,
+    ARKTS_CARD,
 };
 
 enum class SelfDrawingNodeType : uint8_t {

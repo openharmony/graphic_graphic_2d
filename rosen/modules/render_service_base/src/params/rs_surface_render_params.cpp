@@ -33,16 +33,6 @@ bool RSSurfaceRenderParams::GetOcclusionVisible() const
     return occlusionVisible_;
 }
 
-void RSSurfaceRenderParams::SetIsTransparent(bool isTransparent)
-{
-    isTransparent_ = isTransparent;
-}
-
-bool RSSurfaceRenderParams::GetIsTransparent() const
-{
-    return isTransparent_;
-}
-
 void RSSurfaceRenderParams::SetOldDirtyInSurface(const RectI& oldDirtyInSurface)
 {
     oldDirtyInSurface_ = oldDirtyInSurface;
@@ -51,6 +41,16 @@ void RSSurfaceRenderParams::SetOldDirtyInSurface(const RectI& oldDirtyInSurface)
 RectI RSSurfaceRenderParams::GetOldDirtyInSurface() const
 {
     return oldDirtyInSurface_;
+}
+
+void RSSurfaceRenderParams::SetTransparentRegion(const Occlusion::Region& transparentRegion)
+{
+    transparentRegion_ = transparentRegion;
+}
+
+const Occlusion::Region& RSSurfaceRenderParams::GetTransparentRegion() const
+{
+    return transparentRegion_;
 }
 
 Occlusion::Region RSSurfaceRenderParams::GetVisibleRegion() const
@@ -81,11 +81,9 @@ bool RSSurfaceRenderParams::GetOccludedByFilterCache() const
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (layerInfo_ == layerInfo) {
-        return;
-    }
     layerInfo_ = layerInfo;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 #endif
 }
 
@@ -125,11 +123,9 @@ bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
 {
-    if (layerInfo_.buffer == buffer) {
-        return;
-    }
     layerInfo_.buffer = buffer;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 }
 
 sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
@@ -139,11 +135,9 @@ sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
 
 void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
 {
-    if (layerInfo_.preBuffer == preBuffer) {
-        return;
-    }
     layerInfo_.preBuffer = preBuffer;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 }
 
 sptr<SurfaceBuffer>& RSSurfaceRenderParams::GetPreBuffer()
@@ -153,11 +147,9 @@ sptr<SurfaceBuffer>& RSSurfaceRenderParams::GetPreBuffer()
 
 void RSSurfaceRenderParams::SetAcquireFence(const sptr<SyncFence>& acquireFence)
 {
-    if (layerInfo_.acquireFence == acquireFence) {
-        return;
-    }
     layerInfo_.acquireFence = acquireFence;
     needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
 }
 
 sptr<SyncFence> RSSurfaceRenderParams::GetAcquireFence() const
@@ -212,6 +204,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         RS_LOGE("RSSurfaceRenderParams::OnSync targetSurfaceParams is nullptr");
         return;
     }
+
+    if (dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY)) {
+        targetSurfaceParams->layerInfo_ = layerInfo_;
+        dirtyType_.reset(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
+    }
+
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
@@ -224,9 +222,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
     targetSurfaceParams->visibleRegion_ = visibleRegion_;
-    targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
-    targetSurfaceParams->layerInfo_ = layerInfo_;
+    targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
@@ -235,8 +232,10 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
+    targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
+    targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;

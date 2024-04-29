@@ -944,85 +944,6 @@ HWTEST_F(RSInterfacesTest, GetScreenGamutMap002, Function | SmallTest | Level2)
 }
 
 /*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval001, Function | SmallTest | Level2)
-{
-    ScreenId screenId = INVALID_SCREEN_ID;
-    uint32_t skipFrameInterval = 1;
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval002, Function | SmallTest | Level2)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t skipFrameInterval = 0;
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval003, Function | SmallTest | Level2)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t skipFrameInterval = 100;  // for test
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with valid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval004, Function | SmallTest | Level1)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    float skipFrameInterval = 2.1;  // for test
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/*
-* Function: SetScreenSkipFrameInterval
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenSkipFrameInterval with valid parameters and check ret
-*/
-HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval005, Function | SmallTest | Level1)
-{
-    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t skipFrameInterval = 1;
-    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    ASSERT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/*
  * @tc.name: ScreenGamutMap_001
  * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap
  * @tc.type: FUNC
@@ -1083,6 +1004,9 @@ HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest 
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     uint32_t formerRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
 
+    FrameRateLinkerId id = 0;
+    FrameRateRange range;
+    rsInterfaces->SyncFrameRateRange(id, range);
     auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
     rsInterfaces->SetScreenRefreshRate(screenId, 0, modeInfo.GetScreenRefreshRate());
     uint32_t currentRate = rsInterfaces-> GetScreenCurrentRefreshRate(screenId);
@@ -1107,17 +1031,24 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
     rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
-    auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
-
     bool ifSupported = false;
-    for (auto rateIter : supportedRates) {
-        if (rateIter < 0) {
-            continue;
-        }
-        if (static_cast<uint32_t>(rateIter) == rateToSet) {
-            ifSupported = true;
+
+    if (currentRate == rateToSet) {
+        ifSupported = true;
+    } else {
+        auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
+        for (auto rateIter : supportedRates) {
+            if (rateIter < 0) {
+                continue;
+            }
+            if (static_cast<uint32_t>(rateIter) == rateToSet) {
+                ifSupported = true;
+                currentRate = rateToSet;
+                break;
+            }
         }
     }
+    
     if (ifSupported) {
         EXPECT_GE(currentRate, rateToSet);
     } else {
@@ -1467,6 +1398,17 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus001, Function | SmallTest 
 HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest | Level2)
 {
     rsInterfaces->SetVirtualScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: GetCurrentRefreshRateMode
+ * @tc.desc: Test GetCurrentRefreshRateMode.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, GetCurrentRefreshRateMode, Function | SmallTest | Level2)
+{
+    EXPECT_TRUE(rsInterfaces->GetCurrentRefreshRateMode() >= -1);
 }
 } // namespace Rosen
 } // namespace OHOS

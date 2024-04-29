@@ -30,19 +30,19 @@ void RSRenderParticleEmitter::PreEmit()
     auto particleType = particleParams_->GetParticleType();
     auto opacityUpdater = particleParams_->GetOpacityUpdator();
     auto scaleUpdater = particleParams_->GetScaleUpdator();
-    if (opacityUpdater == ParticleUpdator::NONE && particleParams_->GetOpacityStartValue() <= 0.f) {
+    if (opacityUpdater == ParticleUpdator::NONE && particleParams_->GetOpacityEndValue() <= 0.f) {
         emitFinish_ = true;
         return;
-    } else if (opacityUpdater == ParticleUpdator::RANDOM && particleParams_->GetOpacityStartValue() <= 0.f &&
-               particleParams_->GetOpacityRandomStart() <= 0.f) {
+    } else if (opacityUpdater == ParticleUpdator::RANDOM && particleParams_->GetOpacityEndValue() <= 0.f &&
+               particleParams_->GetOpacityRandomEnd() <= 0.f) {
         emitFinish_ = true;
         return;
     }
-    if (scaleUpdater == ParticleUpdator::NONE && particleParams_->GetScaleStartValue() <= 0.f) {
+    if (scaleUpdater == ParticleUpdator::NONE && particleParams_->GetScaleEndValue() <= 0.f) {
         emitFinish_ = true;
         return;
-    } else if (scaleUpdater == ParticleUpdator::RANDOM && particleParams_->GetScaleStartValue() <= 0.f &&
-               particleParams_->GetScaleRandomStart() <= 0.f) {
+    } else if (scaleUpdater == ParticleUpdator::RANDOM && particleParams_->GetScaleEndValue() <= 0.f &&
+               particleParams_->GetScaleRandomEnd() <= 0.f) {
         emitFinish_ = true;
         return;
     }
@@ -113,11 +113,5 @@ const std::vector<std::shared_ptr<RSRenderParticle>>& RSRenderParticleEmitter::G
     return particles_;
 }
 
-void RSRenderParticleEmitter::UpdateEmitter(const Vector2f& position, const Vector2f& emitSize, const int& emitRate)
-{
-    particleParams_->emitterConfig_.position_ = position;
-    particleParams_->emitterConfig_.emitSize_ = emitSize;
-    particleParams_->emitterConfig_.emitRate_ = emitRate;
-}
 } // namespace Rosen
 } // namespace OHOS

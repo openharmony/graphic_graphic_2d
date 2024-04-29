@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT GEShaderFilter {
+class GEShaderFilter {
 public:
     GEShaderFilter() = default;
     GEShaderFilter(const GEShaderFilter&) = delete;

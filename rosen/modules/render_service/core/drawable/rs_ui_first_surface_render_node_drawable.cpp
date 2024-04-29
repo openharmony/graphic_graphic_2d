@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#ifdef RS_PARALLEL
 #include <memory>
 
 #include "impl_interface/region_impl.h"
@@ -46,7 +45,7 @@
 namespace {
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
 
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -96,7 +95,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -261,7 +260,6 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
 {
     RS_TRACE_NAME("DrawCacheSurface");
     if (ROSEN_EQ(boundsWidth_, 0.f) || ROSEN_EQ(boundsHeight_, 0.f)) {
-        RS_TRACE_NAME_FMT("return %d", __LINE__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
         return false;
     }
@@ -269,7 +267,6 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheImage, "cacheImage");
     if (cacheImage == nullptr) {
-        RS_TRACE_NAME_FMT("return %d", __LINE__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
         return false;
     }
@@ -311,7 +308,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 
     float width = 0.0f;
     float height = 0.0f;
-    if (auto& params = GetRenderNode()->GetRenderParams()) {
+    if (const auto& params = GetRenderParams()) {
         auto size = params->GetCacheSize();
         boundsWidth_ = size.x_;
         boundsHeight_ = size.y_;
@@ -381,7 +378,7 @@ bool RSSurfaceRenderNodeDrawable::NeedInitCacheSurface()
     int width = 0;
     int height = 0;
 
-    if (auto& params = GetRenderNode()->GetRenderParams()) {
+    if (const auto& params = GetRenderParams()) {
         auto size = params->GetCacheSize();
         width =  size.x_;
         height = size.y_;
@@ -460,7 +457,7 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurface(bool isClearCompletedCacheSu
 
 bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic(DeviceType deviceType)
 {
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderNode()->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return false;
@@ -472,37 +469,43 @@ bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic(DeviceType deviceType)
 
 void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
 {
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_);
-    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::SubDraw [%s]", surfaceNode->GetName().c_str());
+    const auto& uifirstParams = GetUifirstRenderParams();
+    auto debugSize = uifirstParams ? uifirstParams->GetCacheSize() : Vector2f(0.f, 0.f);
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::SubDraw[%s] w%.1f h%.1f",
+        name_.c_str(), debugSize.x_, debugSize.y_);
 
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::SubDraw, rscanvas us nullptr");
         return;
     }
-    auto& renderParams = renderNode_->GetUifirstRenderParams();
-    Drawing::Rect bounds = renderParams ? renderParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+    Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
-    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
-    RSRenderParams::parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
+    auto parentSurfaceMatrix = parentSurfaceMatrix_;
+    parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
-    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
+    parentSurfaceMatrix_ = parentSurfaceMatrix;
 }
 
-bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas)
+bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait)
 {
-    const auto& params = GetRenderNode()->GetRenderParams();
+    const auto& params = GetRenderParams();
+    if (!params) {
+        RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
+        return false;
+    }
 
     if (!HasCachedTexture()) {
-        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params->GetId());
+        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %lx", canSkipWait, nodeId_);
+        if (canSkipWait) {
+            return false; // draw nothing
+        }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-        RSSubThreadManager::Instance()->WaitNodeTask(params->GetId());
+        RSSubThreadManager::Instance()->WaitNodeTask(nodeId_);
         UpdateCompletedCacheSurface();
 #endif
     }
     return DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX, true);
 }
-#endif //RS_PARALLEL
 } // namespace OHOS::Rosen

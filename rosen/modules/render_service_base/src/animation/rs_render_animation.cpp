@@ -320,6 +320,7 @@ bool RSRenderAnimation::Animate(int64_t time)
 
     RecordLastAnimateValue();
     OnAnimate(fraction);
+    DumpFraction(fraction, time);
     UpdateAnimateVelocity(frameInterval);
 
     if (isRepeatFinished) {

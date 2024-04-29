@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
@@ -33,6 +34,7 @@ namespace OHOS {
 namespace Rosen {
 class RSUniRenderThread {
 public:
+    using Callback = std::function<void()>;
     static RSUniRenderThread& Instance();
 
     // disable copy and move
@@ -48,9 +50,12 @@ public:
     void PostTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);
     void PostRTTask(const std::function<void()>& task);
+    void PostImageReleaseTask(const std::function<void()>& task);
+    void RunImageReleaseTask();
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::HIGH);
     void PostSyncTask(const std::function<void()>& task);
+    bool IsIdle() const;
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
@@ -87,6 +92,8 @@ public:
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 
+    void DvsyncRequestNextVsync();
+
     bool IsMainLooping() const
     {
         return mainLooping_.load();
@@ -113,6 +120,10 @@ public:
     }
     void UpdateDisplayNodeScreenId();
     uint32_t GetDynamicRefreshRate() const;
+    pid_t GetTid() const
+    {
+        return tid_;
+    }
 
 private:
     RSUniRenderThread();
@@ -154,6 +165,11 @@ private:
     ScreenId displayNodeScreenId_ = 0;
     std::set<pid_t> exitedPidSet_;
     ClearMemoryMoment clearMoment_;
+
+    std::vector<Callback> imageReleaseTasks_;
+    std::mutex imageReleaseMutex_;
+    bool postImageReleaseTaskFlag_;
+    int imageReleaseCount_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

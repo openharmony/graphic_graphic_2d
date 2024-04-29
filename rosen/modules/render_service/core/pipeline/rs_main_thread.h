@@ -87,7 +87,9 @@ public:
 
     void Init();
     void Start();
+    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    void RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync(const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0);
     void PostTask(RSTaskMessage::RSTask task);
@@ -269,6 +271,15 @@ public:
     bool GetParallelCompositionEnabled();
     std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
     void SetFrameIsRender(bool isRender);
+    bool GetMarkRenderFlag() const
+    {
+        return markRenderFlag_;
+    }
+    void ResetMarkRenderFlag()
+    {
+        markRenderFlag_ = false;
+    }
+
     void PerfForBlurIfNeeded();
 
     bool IsOnVsync() const
@@ -295,6 +306,8 @@ public:
     {
         skipJankAnimatorFrame_.store(skipJankAnimatorFrame);
     }
+
+    bool IsRequestedNextVSync();
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -380,10 +393,14 @@ private:
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
+    void ProcessScreenHotPlugEvents();
     void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    void ConnectChipsetVsyncSer();
+    void SetVsyncInfo(uint64_t timestamp);
 #endif
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
@@ -405,7 +422,7 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
-    int32_t syncTransactionCountExt_ { 0 };
+    bool isNeedCloseSync_ = false;
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
@@ -432,6 +449,7 @@ private:
     std::condition_variable unmarshalTaskCond_;
     std::mutex unmarshalMutex_;
     int32_t unmarshalFinishedCount_ = 0;
+    bool needWaitUnmarshalFinished_ = true;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
 
     std::condition_variable surfaceCapProcTaskCond_;
@@ -513,6 +531,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     bool watermarkFlag_ = false;
     bool doParallelComposition_ = false;
+    bool hasProtectedLayer_ = false;
 
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
@@ -559,12 +578,15 @@ private:
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
-    bool hasMark_ = false;
+    bool markRenderFlag_ = false;
 
     bool forceUIFirstChanged_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
+#endif
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    bool initVsyncServiceFlag_ = true;
 #endif
     pid_t exitedPid_ = -1;
     std::set<pid_t> exitedPidSet_;
@@ -572,7 +594,9 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     RsParallelType rsParallelType_;
     bool isCurtainScreenOn_ = false;
-
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
     // for statistic of jank frames
     std::atomic_bool isOnVsync_ = false;
     std::atomic_bool discardJankFrames_ = false;

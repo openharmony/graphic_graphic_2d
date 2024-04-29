@@ -125,6 +125,14 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest005, TestSize.Level1)
     style.symbol.SetSymbolEffect(5); // this 5 is bounce animation
     textStyle = AdapterTxt::Convert(style);
     EXPECT_EQ(textStyle.symbol.GetEffectStrategy(), Drawing::DrawingEffectStrategy::BOUNCE);
+
+    style.symbol.SetSymbolEffect(6); // this 6 is pulse animation
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetEffectStrategy(), Drawing::DrawingEffectStrategy::PULSE);
+
+    style.symbol.SetSymbolEffect(7); // this 7 is replace_appear animation
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetEffectStrategy(), Drawing::DrawingEffectStrategy::REPLACE_APPEAR);
 }
 
 /*
@@ -168,7 +176,7 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest007, TestSize.Level1)
 
 /*
  * @tc.name: OHHmSymbolTxtTest
- * @tc.desc: test for symbol SetAminationStart
+ * @tc.desc: test for symbol SetAnimationStart
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest008, TestSize.Level1)
@@ -176,9 +184,9 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest008, TestSize.Level1)
     TextStyle style;
     style.isSymbolGlyph = true;
     SPText::TextStyle textStyle;
-    style.symbol.SetAminationStart(true);
+    style.symbol.SetAnimationStart(true);
     textStyle = AdapterTxt::Convert(style);
-    EXPECT_EQ(textStyle.symbol.GetAminationStart(), true);
+    EXPECT_EQ(textStyle.symbol.GetAnimationStart(), true);
 }
 
 /*
@@ -202,6 +210,25 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest009, TestSize.Level1)
     style.symbol.SetVisualMode(VisualMode::VISUAL_MEDIUM);
     visualMap = style.symbol.GetVisualMap();
     EXPECT_EQ(visualMap.empty(), true);
+}
+
+/*
+ * @tc.name: OHHmSymbolTxtTest
+ * @tc.desc: test for symbol SetCommonSubType
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest010, TestSize.Level1)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    SPText::TextStyle textStyle;
+    style.symbol.SetCommonSubType(Drawing::DrawingCommonSubType::DOWN);
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetCommonSubType(), Drawing::DrawingCommonSubType::DOWN);
+
+    style.symbol.SetCommonSubType(Drawing::DrawingCommonSubType::UP);
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetCommonSubType(), Drawing::DrawingCommonSubType::UP);
 }
 } // namespace Rosen
 } // namespace OHOS

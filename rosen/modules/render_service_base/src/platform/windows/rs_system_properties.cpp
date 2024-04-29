@@ -62,6 +62,11 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAnimationTraceEnabled()
+{
+    return {};
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
@@ -212,6 +217,11 @@ bool RSSystemProperties::GetMaskLinearBlurEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetMotionBlurEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;
@@ -233,6 +243,11 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
 }
 
 bool RSSystemProperties::GetKawaseEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
 }
@@ -320,6 +335,16 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
 }
 
 bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetBlurExtraFilterEnabled()
 {
     return false;
 }

@@ -24,7 +24,7 @@ namespace Rosen {
 namespace SPText {
 void FontFeatures::SetFeature(std::string tag, int value)
 {
-    features_[tag] = value;
+    features_.emplace_back(std::make_pair(tag, value));
 }
 
 std::string FontFeatures::GetFeatureSettings() const
@@ -45,7 +45,7 @@ std::string FontFeatures::GetFeatureSettings() const
     return stream.str();
 }
 
-const std::map<std::string, int>& FontFeatures::GetFontFeatures() const
+const std::vector<std::pair<std::string, int>>& FontFeatures::GetFontFeatures() const
 {
     return features_;
 }

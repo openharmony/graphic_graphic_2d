@@ -14,6 +14,8 @@
  */
 
 #include "transaction/rs_render_service_client.h"
+#include "surface_type.h"
+#include "surface_utils.h"
 
 #include "backend/rs_surface_ohos_gl.h"
 #include "backend/rs_surface_ohos_raster.h"
@@ -169,6 +171,21 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+    const Rect &srcRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return nullptr;
+    }
+    sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    return renderService->CreatePixelMapFromSurface(surface, srcRect);
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
@@ -390,7 +407,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
     renderService->SetRefreshRateMode(refreshRateMode);
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -398,7 +415,7 @@ void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
         return;
     }
 
-    return renderService->SyncFrameRateRange(range);
+    return renderService->SyncFrameRateRange(id, range);
 }
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
@@ -444,7 +461,7 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 
     return renderService->GetShowRefreshRateEnabled();
 }
-    
+
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

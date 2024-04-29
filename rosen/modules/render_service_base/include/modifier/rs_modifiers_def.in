@@ -96,7 +96,11 @@ DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGRO
 
 DECLARE_NOANIMATABLE_MODIFIER(LinearGradientBlurPara, std::shared_ptr<RSLinearGradientBlurPara>, LINEAR_GRADIENT_BLUR_PARA, Foreground)
 
-DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::shared_ptr<EmitterUpdater>, PARTICLE_EMITTER_UPDATER, Foreground)
+DECLARE_NOANIMATABLE_MODIFIER(MotionBlurPara, std::shared_ptr<MotionBlurParam>, MOTION_BLUR_PARA, Foreground)
+
+DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::vector<std::shared_ptr<EmitterUpdater>>, PARTICLE_EMITTER_UPDATER, Foreground)
+
+DECLARE_NOANIMATABLE_MODIFIER(ParticleNoiseFields, std::shared_ptr<ParticleNoiseFields>, PARTICLE_NOISE_FIELD, Foreground)
 
 DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, Appearance)
 
@@ -140,6 +144,8 @@ DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geom
 
 DECLARE_ANIMATABLE_MODIFIER(PixelStretchPercent, Vector4f, PIXEL_STRETCH_PERCENT, Replace, Geometry, FINE)
 
+DECLARE_NOANIMATABLE_MODIFIER(PixelStretchTileMode, int, PIXEL_STRETCH_TILE_MODE, Geometry)
+
 DECLARE_ANIMATABLE_MODIFIER(GrayScale, float, GRAY_SCALE, Add, Foreground, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(Brightness, float, BRIGHTNESS, Add, Foreground, COARSE)
@@ -165,6 +171,18 @@ DECLARE_NOANIMATABLE_MODIFIER(UseEffect, bool, USE_EFFECT, Background)
 DECLARE_NOANIMATABLE_MODIFIER(ColorBlendMode, int, COLOR_BLEND_MODE, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(ColorBlendApplyType, int, COLOR_BLEND_APPLY_TYPE, Background)
+
+DECLARE_NOANIMATABLE_MODIFIER(FgBrightnessParams, RSDynamicBrightnessPara, FG_BRIGHTNESS_PARAMS,
+    Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(FgBrightnessFract, float, FG_BRIGHTNESS_FRACTION, Replace,
+    Foreground, COARSE)
+
+DECLARE_NOANIMATABLE_MODIFIER(BgBrightnessParams, RSDynamicBrightnessPara, BG_BRIGHTNESS_PARAMS,
+    Background)
+
+DECLARE_ANIMATABLE_MODIFIER(BgBrightnessFract, float, BG_BRIGHTNESS_FRACTION, Replace,
+    Background, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpRate, float, DYNAMIC_LIGHT_UP_RATE, Replace, Foreground, COARSE)
 

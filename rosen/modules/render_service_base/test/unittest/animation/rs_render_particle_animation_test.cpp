@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "animation/rs_render_particle.h"
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_vector2.h"
 #include "modifier/rs_render_property.h"
@@ -103,9 +102,11 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter001, TestSize.Level1)
     Vector2f emitSize = { 400.f, 500.f };
     int emitRate = 10;
     auto para = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
+    std::vector<std::shared_ptr<EmitterUpdater>> emitUpdate;
+    emitUpdate.push_back(para);
     auto renderParticleAnimation =
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
-    renderParticleAnimation->UpdateEmitter(para);
+    renderParticleAnimation->UpdateEmitter(emitUpdate);
     auto particleSystem = renderParticleAnimation->GetParticleSystem();
     EXPECT_TRUE(particleSystem != nullptr);
     auto emitters = particleSystem->GetParticleEmitter();

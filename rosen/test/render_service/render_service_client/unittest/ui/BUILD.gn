@@ -45,6 +45,11 @@ ohos_unittest("RSRenderServiceClientUITest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
   ]
 
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
     "//third_party/googletest:gtest_main",

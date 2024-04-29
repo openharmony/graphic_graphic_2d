@@ -15,6 +15,7 @@
 
 #include "drawable/rs_property_drawable_background.h"
 
+#include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/runtime_blender_builder.h"
@@ -28,7 +29,7 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
 bool g_forceBgAntiAlias = true;
-constexpr int16_t BORDER_TRANSPARENT = 255;
+constexpr int TRACE_LEVEL_TWO = 2;
 }
 
 RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
@@ -153,6 +154,7 @@ Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSMaskShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        Drawing::AutoCanvasRestore rst(*canvas, true);
         RSPropertyDrawableUtils::CeilMatrixTrans(canvas);
         ptr->drawCmdList_->Playback(*canvas);
     };
@@ -292,10 +294,16 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Brush brush;
     brush.SetAntiAlias(antiAlias);
     brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+    if (properties.IsBgBrightnessValid()) {
+        auto blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
+            properties.GetBgBrightnessParams().value(), properties.GetBgBrightnessFract());
+        brush.SetBlender(blender);
+    }
+
     canvas.AttachBrush(brush);
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType()) {
-        if (properties.GetBorderColor()[0].GetAlpha() < BORDER_TRANSPARENT) {
+        if (properties.GetBorderColorIsTransparent()) {
             canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
         } else {
             canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetInnerRRect()));
@@ -333,10 +341,9 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     auto shaderEffect = bgShader->GetDrawingShader();
     brush.SetShaderEffect(shaderEffect);
     canvas.AttachBrush(brush);
-    auto borderColorAlpha = properties.GetBorderColor()[0].GetAlpha();
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType()) {
-        if (borderColorAlpha < BORDER_TRANSPARENT) {
+        if (properties.GetBorderColorIsTransparent()) {
             canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
         } else {
             canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetInnerRRect()));
@@ -519,6 +526,9 @@ Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() co
         auto alpha = paintFilterCanvas->GetAlpha();
         auto blender = RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(
             ptr->dynamicLightUpRate_, ptr->dynamicLightUpDeg_, alpha);
+        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+            "RSDynamicLightUpDrawable::DrawDynamicLightUp, rate: %f, degree: %f, bounds: %s", ptr->dynamicLightUpRate_,
+            ptr->dynamicLightUpDeg_, rect->ToString().c_str());
         Drawing::Brush brush;
         brush.SetBlender(blender);
         paintFilterCanvas->DrawBackground(brush);

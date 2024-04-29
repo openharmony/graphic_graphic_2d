@@ -33,6 +33,8 @@ using namespace OHOS;
 using namespace OHOS::Rosen;
 using namespace std;
 
+constexpr uint32_t SLEEP_TIME = 5;
+
 std::shared_ptr<RSNode> rootNode;
 std::vector<std::shared_ptr<RSCanvasNode>> nodes;
 
@@ -120,12 +122,12 @@ int main()
     DrawSurface(Drawing::Rect(0, 0, 2800, 1600), 0xffffe4c4, Drawing::Rect(0, 0, 2800, 1600), surfaceNode);
     std::cout << "rs app demo set up finished!" << std::endl;
     RSTransaction::FlushImplicitTransaction();
-    sleep(5);
+    sleep(SLEEP_TIME);
 
     std::cout << "adding animation" << std::endl;
 
     RSTransaction::FlushImplicitTransaction();
-    sleep(5);
+    sleep(SLEEP_TIME);
 
     std::cout << "adding transition" << std::endl;
     auto animation2 = std::make_shared<RSTransition>(RSTransitionEffect::OPACITY, true);
@@ -137,7 +139,7 @@ int main()
     surfaceNode->AddAnimation(animation2);
 
     RSTransaction::FlushImplicitTransaction();
-    sleep(5);
+    sleep(SLEEP_TIME);
 
     std::cout << "rs app demo end!" << std::endl;
     window->Hide();

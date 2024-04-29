@@ -48,7 +48,7 @@ RSSurfaceOhosGl::~RSSurfaceOhosGl()
 }
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int32_t height,
-    uint64_t uiTimestamp, bool useAFBC)
+    uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
     RenderContext* context = GetRenderContext();
     if (context == nullptr) {

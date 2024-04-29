@@ -98,6 +98,9 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEf
     impl_->InitWithLightUp(lightUpDeg, imageShader);
 }
 
+ShaderEffect::ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept
+    : type_(t), object_(object) {}
+
 ShaderEffect::ShaderEffect() noexcept
     : type_(ShaderEffect::ShaderEffectType::NO_TYPE), impl_(ImplFactory::CreateShaderEffectImpl())
 {}
@@ -113,13 +116,13 @@ ShaderEffect::ShaderEffectType ShaderEffect::GetType() const
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateColorShader(ColorQuad color)
 {
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, color);
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_SHADER, color);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateColorSpaceShader(const Color4f& color,
     std::shared_ptr<ColorSpace> colorSpace)
 {
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, color, colorSpace);
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_SHADER, color, colorSpace);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode)
@@ -174,6 +177,11 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& cen
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader)
 {
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LIGHT_UP, lightUpDeg, imageShader);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateExtendShader(std::shared_ptr<ExtendObject> object)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::EXTEND_SHADER, object);
 }
 
 std::shared_ptr<Data> ShaderEffect::Serialize() const

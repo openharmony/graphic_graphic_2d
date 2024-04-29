@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,6 +54,104 @@ extern "C" {
 OH_Drawing_Font* OH_Drawing_FontCreate(void);
 
 /**
+ * @brief Enumerates font hinting pattern.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /** glyph outlines unchanged */
+    FONT_HINTING_NONE,
+    /** minimal modification to improve contrast */
+    FONT_HINTING_SLIGHT,
+    /** glyph outlines modified to improve contrast */
+    FONT_HINTING_NORMAL,
+    /** modifies glyph outlines for maximum contrast */
+    FONT_HINTING_FULL,
+} OH_Drawing_FontHinting;
+
+/**
+ * @brief Enumerates font edging effect.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef enum {
+    /** no transparent pixels on glyph edges */
+    FONT_EDGING_ALIAS,
+    /** may have transparent pixels on glyph edges */
+    FONT_EDGING_ANTI_ALIAS,
+    /** glyph positioned in pixel using transparency */
+    FONT_EDGING_SUBPIXEL_ANTI_ALIAS,
+} OH_Drawing_FontEdging;
+
+/**
+ * @brief Sets whether the font baselines and pixels alignment when the transformation matrix is ​​axis aligned.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param baselineSnap Indicates whether the font baselines and pixels alignment.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FontSetBaselineSnap(OH_Drawing_Font*, bool baselineSnap);
+
+/**
+ * @brief Gets whether the font baselines and pixels alignment when the transformation matrix is ​​axis aligned.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns <b>true</b> if the font baselines and pixels alignment; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_FontIsBaselineSnap(const OH_Drawing_Font*);
+
+/**
+ * @brief Sets whether the font uses sub-pixel rendering.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param isSubpixel Indicates whether the font uses sub-pixel rendering.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FontSetSubpixel(OH_Drawing_Font*, bool isSubpixel);
+
+/**
+ * @brief Gets whether the font uses sub-pixel rendering.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns <b>true</b> if the font uses sub-pixel rendering; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_FontIsSubpixel(const OH_Drawing_Font*);
+
+/**
+ * @brief Sets whether the font outline is automatically adjusted.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param isForceAutoHinting Indicates whether the font outline is automatically adjusted.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FontSetForceAutoHinting(OH_Drawing_Font*, bool isForceAutoHinting);
+
+/**
+ * @brief Gets whether the font outline is automatically adjusted.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns <b>true</b> if the font outline is automatically adjusted; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_FontIsForceAutoHinting(const OH_Drawing_Font*);
+
+/**
  * @brief Sets an <b>OH_Drawing_Typeface</b> object for an <b>OH_Drawing_Font</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -87,6 +185,17 @@ OH_Drawing_Typeface* OH_Drawing_FontGetTypeface(OH_Drawing_Font*);
 void OH_Drawing_FontSetTextSize(OH_Drawing_Font*, float textSize);
 
 /**
+ * @brief Gets text size for an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns the size of text.
+ * @since 12
+ * @version 1.0
+ */
+float OH_Drawing_FontGetTextSize(const OH_Drawing_Font*);
+
+/**
  * @brief Calculate number of glyphs represented by text.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -101,6 +210,36 @@ int OH_Drawing_FontCountText(OH_Drawing_Font*, const void* text, size_t byteLeng
     OH_Drawing_TextEncoding encoding);
 
 /**
+ * @brief Converts text into glyph indices.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param text Indicates the character storage encoded with text encoding.
+ * @param byteLength Indicates the text length in bytes.
+ * @param encoding Indicates the text encoding.
+ * @param glyphs Indicates the storage for glyph indices.
+ * @param maxGlyphCount Indicates the storage capacity.
+ * @return Returns the number of glyph indices represented by text.
+ * @since 12
+ * @version 1.0
+ */
+uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font*, const void* text, uint32_t byteLength,
+    OH_Drawing_TextEncoding encoding, uint16_t* glyphs, int maxGlyphCount);
+
+/**
+ * @brief Retrieves the advance for each glyph in glyphs.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param glyphs Indicates the array of glyph indices to be measured.
+ * @param count Indicates the number of glyphs.
+ * @param widths Indicates the text advances for each glyph returned to the caller.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FontGetWidths(const OH_Drawing_Font*, const uint16_t* glyphs, int count, float* widths);
+
+/**
  * @brief Enables or disables linearly scalable font for an <b>OH_Drawing_Font</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -110,6 +249,17 @@ int OH_Drawing_FontCountText(OH_Drawing_Font*, const void* text, size_t byteLeng
  * @version 1.0
  */
 void OH_Drawing_FontSetLinearText(OH_Drawing_Font*, bool isLinearText);
+
+/**
+ * @brief Gets whether the font is linearly scalable.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns <b>true</b> if the font is linearly scalable; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_FontIsLinearText(const OH_Drawing_Font*);
 
 /**
  * @brief Sets text skew on x-axis for an <b>OH_Drawing_Font</b> object.
@@ -123,6 +273,17 @@ void OH_Drawing_FontSetLinearText(OH_Drawing_Font*, bool isLinearText);
 void OH_Drawing_FontSetTextSkewX(OH_Drawing_Font*, float skewX);
 
 /**
+ * @brief Gets text skew on x-axis for an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns additional skew on x-axis relative to y-axis.
+ * @since 12
+ * @version 1.0
+ */
+float OH_Drawing_FontGetTextSkewX(const OH_Drawing_Font*);
+
+/**
  * @brief Enables or disables to increase stroke width to approximate bold fonts for an <b>OH_Drawing_Font</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -132,6 +293,106 @@ void OH_Drawing_FontSetTextSkewX(OH_Drawing_Font*, float skewX);
  * @version 1.0
  */
 void OH_Drawing_FontSetFakeBoldText(OH_Drawing_Font*, bool isFakeBoldText);
+
+/**
+ * @brief Gets whether to increase the stroke width to approximate bold fonts.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns <b>true</b> to increase the stroke width to approximate bold fonts; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_FontIsFakeBoldText(const OH_Drawing_Font*);
+
+/**
+ * @brief Sets text scale on x-axis for an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param scaleX Indicates the text horizontal scale.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FontSetScaleX(OH_Drawing_Font*, float scaleX);
+
+/**
+ * @brief Gets text scale on x-axis from an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns text horizontal scale on x-axis.
+ * @since 12
+ * @version 1.0
+ */
+float OH_Drawing_FontGetScaleX(const OH_Drawing_Font*);
+
+/**
+ * @brief Sets hinting pattern for an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param OH_Drawing_FontHinting Indicates the font hinting pattern.
+ * @since 12
+ * @version 1.0
+ */
+
+void OH_Drawing_FontSetHinting(OH_Drawing_Font*, OH_Drawing_FontHinting);
+
+/**
+ * @brief Gets hinting pattern from an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns the font hinting pattern.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_FontHinting OH_Drawing_FontGetHinting(const OH_Drawing_Font*);
+
+/**
+ * @brief Sets whether to use bitmaps instead of outlines in the <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param isEmbeddedBitmaps Indicates whether to use bitmaps instead of outlines.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FontSetEmbeddedBitmaps(OH_Drawing_Font*, bool isEmbeddedBitmaps);
+
+/**
+ * @brief Gets whether to use bitmaps instead of outlines in the <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns <b>true</b> if using bitmaps instead of outlines; returns <b>false</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_FontIsEmbeddedBitmaps(const OH_Drawing_Font*);
+
+/**
+ * @brief Sets the font edging effect for an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param OH_Drawing_FontEdging Indicates the font edging effect.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_FontSetEdging(OH_Drawing_Font*, OH_Drawing_FontEdging);
+
+/**
+ * @brief Gets the font edging effect from an <b>OH_Drawing_Font</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @return Returns the font edging effect.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_FontEdging OH_Drawing_FontGetEdging(const OH_Drawing_Font*);
 
 /**
  * @brief Destroys an <b>OH_Drawing_Font</b> object and reclaims the memory occupied by the object.

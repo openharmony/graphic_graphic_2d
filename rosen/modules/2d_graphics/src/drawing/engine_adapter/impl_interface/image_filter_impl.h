@@ -72,7 +72,7 @@ public:
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
     virtual void InitWithBlend(BlendMode mode, std::shared_ptr<ImageFilter> background,
         std::shared_ptr<ImageFilter> foreground = nullptr) = 0;
-    virtual void InitWithShader(std::shared_ptr<ShaderEffect> shader) = 0;
+    virtual void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& rect) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -46,9 +46,9 @@ namespace {
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
-        "VOTER_GAMES",
-        "VOTER_VIDEO",
         "VOTER_VIRTUALDISPLAY",
+        "VOTER_POWER_MODE",
+        "VOTER_GAMES",
         "VOTER_MULTI_APP",
         "VOTER_ANCO",
 
@@ -56,6 +56,7 @@ namespace {
         "VOTER_TOUCH",
         "VOTER_LTPO",
         "VOTER_SCENE",
+        "VOTER_VIDEO",
         "VOTER_IDLE"
     };
 }
@@ -66,6 +67,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
     auto& hgmCore = HgmCore::Instance();
     curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
+    multiAppStrategy_.UpdateXmlConfigCache();
 
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
     auto screenList = hgmCore.GetScreenIds();
@@ -78,7 +80,8 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
-        SyncAppVote();
+        multiAppStrategy_.UpdateXmlConfigCache();
+        multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
     }
 
@@ -102,8 +105,13 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 
-    touchMgr_->touchMachine_.RegisterIdleEventCallback([this] () {
-        DeliverRefreshRateVote(0, "VOTER_TOUCH", REMOVE_VOTE);
+    multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
+        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_XML", ADD_VOTE, strategy.min, strategy.max);
+
+        isTouchEnable_ = (strategy.dynamicMode == DynamicModeType::TOUCH_ENABLED);
+        touchFps_ = strategy.max;
+        idleFps_ = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
+        HandleIdleEvent(true);
     });
 }
 
@@ -499,17 +507,12 @@ void HgmFrameRateManager::HandleLightFactorStatus(bool isSafe)
 
 void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    // the focus app agreed at the front of packageList
-    std::lock_guard<std::mutex> locker(pkgSceneMutex_);
-
-    std::string curPkgName = packageList.front();
-    HGM_LOGI("HandlePackageEvent curPkg:[%{public}s] pkgNum:[%{public}d]", curPkgName.c_str(), listSize);
-    if (curPkgName_ != curPkgName) {
-        curPkgName_ = curPkgName;
-        sceneStack_.clear();
-    }
-
-    SyncAppVote();
+    HgmTaskHandleThread::Instance().PostTask([this, packageList = packageList] () {
+        if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
+            std::lock_guard<std::mutex> locker(pkgSceneMutex_);
+            sceneStack_.clear();
+        }
+    });
 }
 
 void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
@@ -539,6 +542,16 @@ void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
     if (!isTouchEnable_) {
         return;
     }
+    static auto downEventTask = [this]() {
+        touchMgr_->StopRSTimer(curScreenId_);
+        touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::DOWN);
+    };
+    static auto upEventTask = [this]() {
+        touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::UP);
+        touchMgr_->StartRSTimer(curScreenId_, TOUCH_RS_IDLE_TIMER_EXPIRED, nullptr, [this]() {
+            touchMgr_->rsIdleUpdateCallback_(true);
+        });
+    };
 
     static std::mutex hgmTouchEventMutex;
     std::unique_lock<std::mutex> lock(hgmTouchEventMutex);
@@ -548,23 +561,14 @@ void HgmFrameRateManager::HandleTouchEvent(int32_t touchStatus)
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         touchCnt_++;
         if (touchCnt_ == LAST_TOUCH_DOWN_CNT) {
-            DeliverRefreshRateVote(0, "VOTER_TOUCH", ADD_VOTE, touchFps_, touchFps_);
             HGM_LOGI("[touch manager] update to target %{public}d fps", touchFps_);
-            StopScreenTimer(curScreenId_);
-            touchMgr_->StopRSTimer(curScreenId_);
-            touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::DOWN);
+            HgmTaskHandleThread::Instance().PostTask(downEventTask);
         }
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
         touchCnt_--;
         if (touchCnt_ == 0) {
             HGM_LOGI("[touch manager] touch up detect");
-            StartScreenTimer(curScreenId_, TOUCH_UP_TIMEOUT_TIMER_EXPIRED, nullptr, [this]() {
-                forceUpdateCallback_(true, false);
-            });
-            touchMgr_->touchMachine_.TouchEventHandle(TouchEvent::UP);
-            touchMgr_->StartRSTimer(curScreenId_, TOUCH_RS_IDLE_TIMER_EXPIRED, nullptr, [this]() {
-                touchMgr_->rsIdleUpdateCallback_(true);
-            });
+            HgmTaskHandleThread::Instance().PostTask(upEventTask);
         }
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
@@ -575,12 +579,9 @@ void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
 {
     if (isIdle) {
         HGM_LOGI("HandleIdleEvent status:%{public}u", isIdle);
-        // fix for down event but not refreshing frames condition
-        if (touchMgr_->touchMachine_.GetState() != TouchState::DOWN) {
-            DeliverRefreshRateVote(0, "VOTER_IDLE", ADD_VOTE, idleFps_, idleFps_);
-        }
+        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_IDLE", ADD_VOTE, idleFps_, idleFps_);
     } else {
-        DeliverRefreshRateVote(0, "VOTER_IDLE", REMOVE_VOTE);
+        DeliverRefreshRateVote(DEFAULT_PID, "VOTER_IDLE", REMOVE_VOTE);
     }
 }
 
@@ -592,7 +593,9 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     }
 
     curRefreshRateMode_ = refreshRateMode;
-    SyncAppVote();
+    DeliverRefreshRateVote(DEFAULT_PID, "VOTER_LTPO", REMOVE_VOTE);
+    multiAppStrategy_.UpdateXmlConfigCache();
+    multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     FrameRateReport();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
@@ -616,7 +619,6 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     auto screenPos = find(screenList.begin(), screenList.end(), id);
     curScreenId_ = (screenPos == screenList.end()) ? 0 : id;
     HGM_LOGI("HandleScreenPowerStatus curScreen:%{public}d", static_cast<int>(curScreenId_));
-
     isLtpo_ = (GetScreenType(curScreenId_) == "LTPO");
     std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
 
@@ -626,9 +628,10 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
+        multiAppStrategy_.UpdateXmlConfigCache();
     }
 
-    SyncAppVote();
+    multiAppStrategy_.CalcVote();
     hgmCore.SetLtpoConfig();
     FrameRateReport();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
@@ -677,28 +680,6 @@ void HgmFrameRateManager::HandleVirtualDisplayEvent(pid_t pid, EventInfo eventIn
         auto curStrategy = configData->strategyConfigs_[virtualDisplayConfig[virtualDisplayName]];
         DeliverRefreshRateVote(pid, "VOTER_VIRTUALDISPLAY", ADD_VOTE, curStrategy.min, curStrategy.max);
     }
-}
-
-void HgmFrameRateManager::SyncAppVote()
-{
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData == nullptr) {
-        return;
-    }
-    auto curScreenSetting =
-        configData->screenConfigs_[curScreenStrategyId_][std::to_string(curRefreshRateMode_)];
-    std::string curXmlStrategy;
-    if (curScreenSetting.appList.count(curPkgName_) == 0) {
-        curXmlStrategy = curScreenSetting.strategy;
-    } else {
-        curXmlStrategy = curScreenSetting.appList[curPkgName_];
-    }
-    DeliverRefreshRateVote(0, "VOTER_XML", ADD_VOTE,
-        configData->strategyConfigs_[curXmlStrategy].min, configData->strategyConfigs_[curXmlStrategy].max);
-
-    isTouchEnable_ = (configData->strategyConfigs_[curXmlStrategy].dynamicMode != 0);
-    touchFps_ = configData->strategyConfigs_[curXmlStrategy].max;
-    idleFps_ = std::max(configData->strategyConfigs_[curXmlStrategy].min, static_cast<int32_t>(OLED_60_HZ));
 }
 
 void HgmFrameRateManager::MarkVoteChange()

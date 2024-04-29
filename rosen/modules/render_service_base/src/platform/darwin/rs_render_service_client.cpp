@@ -110,6 +110,12 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverDarwin>();
 }
 
+std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+    const Rect &srcRect)
+{
+    return nullptr;
+}
+
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType, bool isSync)
 {
@@ -158,7 +164,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 {
 }
 
-void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
 }
 

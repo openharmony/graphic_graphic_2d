@@ -61,6 +61,9 @@ private:
     static void ComputeScale(float width, float height, bool useMaskAlgorithm);
     static void MakeHorizontalMeanBlurEffect();
     static void MakeVerticalMeanBlurEffect();
+    static void DrawImageRectByDDGRGpuApiType(Drawing::Canvas& canvas, uint8_t directionBias,
+        Drawing::RectF& clipIPadding, const std::shared_ptr<Drawing::Image>& image,
+        std::shared_ptr<RSLinearGradientBlurPara> para);
 
     friend class RSMarshallingHelper;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;

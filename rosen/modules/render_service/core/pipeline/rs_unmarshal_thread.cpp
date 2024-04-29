@@ -64,7 +64,8 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
         RS_LOGE("RSUnmarshalThread::RecvParcel handler_ is nullptr");
         return;
     }
-    RSTaskMessage::RSTask task = [this, parcel = parcel]() {
+    bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
+    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal]() {
         if (RsFrameReport::GetInstance().GetEnable()) {
             RsFrameReport::GetInstance().SetFrameParam(
                 REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
@@ -74,11 +75,26 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
             return;
         }
         RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
-        std::lock_guard<std::mutex> lock(transactionDataMutex_);
-        cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));
+        {
+            std::lock_guard<std::mutex> lock(transactionDataMutex_);
+            cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));
+        }
+        if (isPendingUnmarshal) {
+            RSMainThread::Instance()->RequestNextVSync();
+        }
     };
-    PostTask(task);
-    RSMainThread::Instance()->RequestNextVSync();
+    {
+        PostTask(task);
+        /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
+         * so set willHaveCachedData_ to true
+         */
+        std::lock_guard<std::mutex> lock(transactionDataMutex_);
+        willHaveCachedData_ = true;
+    }
+
+    if (!isPendingUnmarshal) {
+        RSMainThread::Instance()->RequestNextVSync();
+    }
 }
 
 TransactionDataMap RSUnmarshalThread::GetCachedTransactionData()
@@ -87,7 +103,17 @@ TransactionDataMap RSUnmarshalThread::GetCachedTransactionData()
     {
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         std::swap(transactionData, cachedTransactionDataMap_);
+        willHaveCachedData_ = false;
     }
     return transactionData;
+}
+
+bool RSUnmarshalThread::CachedTransactionDataEmpty()
+{
+    std::lock_guard<std::mutex> lock(transactionDataMutex_);
+    /* we need consider both whether cachedTransactionDataMap_ is empty now
+     * and whether cachedTransactionDataMap_ will be empty later
+     */
+    return cachedTransactionDataMap_.empty() && !willHaveCachedData_;
 }
 }

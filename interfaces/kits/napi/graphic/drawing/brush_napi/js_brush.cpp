@@ -99,6 +99,9 @@ JsBrush::~JsBrush()
 napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (!jsBrush) {
+        return nullptr;
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetColor brush is nullptr");
@@ -145,6 +148,9 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (!jsBrush) {
+        return nullptr;
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetAntiAlias brush is nullptr");
@@ -172,6 +178,9 @@ napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
 napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (!jsBrush) {
+        return nullptr;
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetAlpha brush is nullptr");
@@ -199,6 +208,9 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
 napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (!jsBrush) {
+        return nullptr;
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetColorFilter brush is nullptr");
@@ -229,6 +241,9 @@ napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
 napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (!jsBrush) {
+        return nullptr;
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetBlendMode brush is nullptr");

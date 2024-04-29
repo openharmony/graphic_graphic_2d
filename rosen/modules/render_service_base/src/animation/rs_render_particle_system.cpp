@@ -60,7 +60,7 @@ void RSRenderParticleSystem::UpdateParticle(
         if ((*it) == nullptr || !(*it)->IsAlive()) {
             it = activeParticles.erase(it);
         } else {
-            Update((*it), deltaTime);
+            Update((*it), particleNoiseFields_, deltaTime);
             ++it;
         }
     }
@@ -81,10 +81,14 @@ bool RSRenderParticleSystem::IsFinish(const std::vector<std::shared_ptr<RSRender
 }
 
 void RSRenderParticleSystem::UpdateEmitter(
-    const uint32_t& emitterIndex, const Vector2f& position, const Vector2f& emitSize, const int& emitRate)
+    const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams)
 {
-    emitters_[emitterIndex]->UpdateEmitter(position, emitSize, emitRate);
+    particlesRenderParams_ = particlesRenderParams;
 }
 
+void RSRenderParticleSystem::UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields)
+{
+    particleNoiseFields_ = particleNoiseFields;
+}
 } // namespace Rosen
 } // namespace OHOS

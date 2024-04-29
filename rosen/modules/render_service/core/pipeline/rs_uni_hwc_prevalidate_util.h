@@ -74,6 +74,7 @@ public:
         uint32_t zorder, RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps);
     RequestLayerInfo CreateRCDLayerInfo(
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps);
+    bool IsLoadSuccess() const;
 private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();
@@ -84,6 +85,7 @@ private:
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
+    bool loadSuccess = false;
 };
 } // namespace Rosen
 } // namespace OHOS

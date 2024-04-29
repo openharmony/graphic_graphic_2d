@@ -103,6 +103,9 @@ JsPen::~JsPen()
 napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (!jsPen) {
+        return nullptr;
+    }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetColor pen is nullptr");
@@ -149,6 +152,9 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
 napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (!jsPen) {
+        return nullptr;
+    }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetStrokeWidth pen is nullptr");
@@ -177,6 +183,9 @@ napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
 napi_value JsPen::SetAntiAlias(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (!jsPen) {
+        return nullptr;
+    }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAntiAlias pen is nullptr");
@@ -204,6 +213,9 @@ napi_value JsPen::SetAntiAlias(napi_env env, napi_callback_info info)
 napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (!jsPen) {
+        return nullptr;
+    }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
@@ -231,6 +243,9 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
 napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (!jsPen) {
+        return nullptr;
+    }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
@@ -258,6 +273,9 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
 napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
 {
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (!jsPen) {
+        return nullptr;
+    }
     Pen* pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");

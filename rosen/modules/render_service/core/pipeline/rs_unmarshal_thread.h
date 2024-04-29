@@ -31,6 +31,7 @@ public:
     void PostTask(const std::function<void()>& task);
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel);
     TransactionDataMap GetCachedTransactionData();
+    bool CachedTransactionDataEmpty();
 
 private:
     RSUnmarshalThread() = default;
@@ -40,11 +41,14 @@ private:
     RSUnmarshalThread& operator=(const RSUnmarshalThread&);
     RSUnmarshalThread& operator=(const RSUnmarshalThread&&);
 
+    static constexpr uint32_t MIN_PENDING_REQUEST_SYNC_DATA_SIZE = 32 * 1024;
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
     std::mutex transactionDataMutex_;
     TransactionDataMap cachedTransactionDataMap_;
+    bool willHaveCachedData_ = false;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H

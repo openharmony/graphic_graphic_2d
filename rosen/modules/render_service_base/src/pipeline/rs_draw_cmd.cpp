@@ -85,6 +85,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
+        rsImage_->SetDyamicRangeMode(imageInfo.dynamicRangeMode);
     }
 }
 
@@ -92,6 +93,13 @@ void RSExtendImageObject::SetNodeId(NodeId id)
 {
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageObject::SetPaint(Drawing::Paint paint)
+{
+    if (rsImage_) {
+        rsImage_->SetPaint(paint);
     }
 }
 
@@ -248,9 +256,10 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
             return false;
         }
     }
-    if (!backendTexture_.IsValid()) {
+    bool isProtected = (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
+    if (!backendTexture_.IsValid() || isProtected) {
         backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), isProtected);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),

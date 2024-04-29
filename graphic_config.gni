@@ -44,7 +44,9 @@ declare_args() {
   graphic_2d_feature_tp_switch_enbale = false
   graphic_2d_feature_enable_recording_dcl = true
   graphic_2d_feature_use_igraphics_extend_hooks = false
-  graphic_2d_feature_enable_rsparallel = false
+  graphic_2d_feature_use_aps_igameservice_func = false
+  graphic_2d_feature_enable_chipset_vsync = false
+  graphic_2d_feature_enable_rspipeline = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -154,9 +156,13 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   graphic_2d_feature_enable_dvsync = true
+  if (graphic_2d_feature_product == "phone") {
+    graphic_2d_feature_enable_chipset_vsync = true
+  }
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
 } else {
   graphic_2d_feature_enable_dvsync = false
+  graphic_2d_feature_enable_chipset_vsync = false
 }
 
 if (graphic_2d_feature_enable_afbc) {
@@ -174,6 +180,9 @@ if (defined(use_new_render_context) && use_new_render_context) {
 
 if (graphic_2d_feature_enable_dvsync) {
   gpu_defines += [ "RS_ENABLE_DVSYNC" ]
+}
+if (graphic_2d_feature_enable_chipset_vsync) {
+  gpu_defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
 }
 
 tp_defines = []
@@ -199,6 +208,15 @@ check_igraphics_core_file_args = [
   "--filename",
   rebase_path(
       "//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni"),
+]
+check_igameservice_core_file_args = [
+  "--filename",
+  rebase_path(
+      "//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni"),
+]
+check_aps_core_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/aps_manager/config.gni"),
 ]
 check_delegator_ext_file_args = [
   "--filename",
@@ -230,6 +248,17 @@ if (exec_script(check_graphic_ext_file_script,
                 "string") == "True") {
   graphic_2d_feature_use_igraphics_extend_hooks = true
   import("//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni")
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_aps_core_file_args,
+                "string") == "True" &&
+    exec_script(check_graphic_ext_file_script,
+                check_igameservice_core_file_args,
+                "string") == "True") {
+  graphic_2d_feature_use_aps_igameservice_func = true
+  import("//foundation/graphic/graphic_2d_ext/aps_manager/config.gni")
+  import(
+      "//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni")
 }
 
 graphic_2d_delegator_configs = {
@@ -276,7 +305,7 @@ safwk_base = "//foundation/systemabilitymgr/safwk"
 skia_root_new = "//third_party/skia"
 graphic_surface_root = "//foundation/graphic/graphic_surface"
 memmgr_root = "//foundation/resourceschedule/memmgr"
-memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
+memmgr_plugin_root = "//foundation/resourceschedule/memmgr_override"
 fuzz_test_output_path = "graphic_2d/graphic_2d"
 video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
 arkui_root = "//foundation/arkui"
@@ -304,7 +333,7 @@ if (defined(global_parts_info) &&
 }
 
 use_memmgr_plugin = false
-if (defined(global_parts_info.resourceschedule_memmgr_plugin)) {
+if (defined(global_parts_info.resourceschedule_memmgr_override)) {
   use_memmgr_plugin = true
 }
 use_memmgr = false

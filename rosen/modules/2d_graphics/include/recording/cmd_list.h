@@ -25,6 +25,7 @@
 #include "recording/mem_allocator.h"
 #include "recording/recording_handle.h"
 #include "utils/drawing_macros.h"
+#include "utils/extend_object.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #endif
@@ -41,6 +42,7 @@ public:
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling, bool isBackground = false) = 0;
     virtual void SetNodeId(NodeId id) {};
+    virtual void SetPaint(Paint paint) {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
@@ -126,6 +128,26 @@ public:
     const void* GetBitmapData(uint32_t offset) const;
     bool SetUpBitmapData(const void* data, size_t size);
     CmdListData GetAllBitmapData() const;
+
+    /*
+     * @brief  return ExtendObject index. UINT32_MAX is error.
+     */
+    uint32_t AddExtendObject(const std::shared_ptr<ExtendObject>& object);
+
+    /*
+     * @brief  get ExtendObject by index.
+     */
+    std::shared_ptr<ExtendObject> GetExtendObject(uint32_t index);
+
+    /*
+     * @brief  return ExtendObject size, 0 is no ExtendObject.
+     */
+    uint32_t GetAllExtendObject(std::vector<std::shared_ptr<ExtendObject>>& objectList);
+
+    /*
+     * @brief  return real setup ExtendObject size.
+     */
+    uint32_t SetupExtendObject(const std::vector<std::shared_ptr<ExtendObject>>& objectList);
 
     /*
      * @brief  return imageObject index, negative is error.
@@ -228,6 +250,8 @@ protected:
     std::mutex imageObjectMutex_;
     std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
     std::mutex imageBaseObjMutex_;
+    std::vector<std::shared_ptr<ExtendObject>> extendObjectVec_;
+    std::mutex extendObjectMutex_;
 #ifdef ROSEN_OHOS
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
     std::mutex surfaceBufferMutex_;

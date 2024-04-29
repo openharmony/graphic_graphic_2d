@@ -83,6 +83,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/draw/pen.cpp",
       "$drawing_core_src_dir/draw/surface.cpp",
       "$drawing_core_src_dir/effect/blender.cpp",
+      "$drawing_core_src_dir/effect/blur_draw_looper.cpp",
       "$drawing_core_src_dir/effect/color_filter.cpp",
       "$drawing_core_src_dir/effect/color_matrix.cpp",
       "$drawing_core_src_dir/effect/color_space.cpp",
@@ -212,9 +213,7 @@ template("graphics2d_source_set") {
       "$ace_root/frameworks",
       "$rosen_root/modules/render_service_base/include",
       "//third_party/skia/include/core",
-      "//third_party/skia/include/private",
       "//third_party/skia/src/core",
-      "//third_party/skia/src/ports",
       "$rosen_root/modules/texgine/src",
       "$rosen_root/modules/texgine/texgine_drawing/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
@@ -293,7 +292,6 @@ template("graphics2d_source_set") {
         remove_configs = [ "//build/config/compiler:default_include_dirs" ]
         include_dirs += [
           "$flutter_root/txt/src",
-          "//third_party/skia/third_party/externals/harfbuzz/src",
           "//",
           root_gen_dir,
         ]
@@ -413,6 +411,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "$drawing_core_src_dir/draw/core_canvas.cpp",
     "$drawing_core_src_dir/draw/path.cpp",
     "$drawing_core_src_dir/draw/pen.cpp",
+    "$drawing_core_src_dir/effect/blur_draw_looper.cpp",
     "$drawing_core_src_dir/effect/color_filter.cpp",
     "$drawing_core_src_dir/effect/color_space.cpp",
     "$drawing_core_src_dir/effect/filter.cpp",

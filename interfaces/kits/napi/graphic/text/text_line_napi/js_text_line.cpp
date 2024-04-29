@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include "js_text_line.h"
-
 #include "canvas_napi/js_canvas.h"
+#include "js_text_line.h"
+#include "js_drawing_utils.h"
+#include "recording/recording_canvas.h"
 #include "run_napi/js_run.h"
 #include "utils/log.h"
-#include "../drawing/js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 thread_local napi_ref JsTextLine::constructor_ = nullptr;
@@ -176,6 +176,7 @@ napi_value JsTextLine::OnGetGlyphRuns(napi_env env, napi_callback_info info)
             continue;
         }
         jsRun->SetRun(std::move(item));
+        jsRun->SetParagraph(paragraph_);
         napi_set_element(env, array, index++, itemObject);
     }
     return array;
@@ -226,12 +227,25 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     if (!(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         return NapiGetUndefined(env);
     }
-    textLine_->Paint(jsCanvas->GetCanvas(), x, y);
+    if (jsCanvas->GetCanvas()->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        Drawing::RecordingCanvas* recordingCanvas = (Drawing::RecordingCanvas*)jsCanvas->GetCanvas();
+        recordingCanvas->SetIsCustomTypeface(true);
+        recordingCanvas->SetIsCustomTextType(true);
+        textLine_->Paint(recordingCanvas, x, y);
+    } else {
+        textLine_->Paint(jsCanvas->GetCanvas(), x, y);
+    }
+
     return NapiGetUndefined(env);
 }
 
 std::unique_ptr<TextLineBase> JsTextLine::GetTextLineBase()
 {
     return std::move(textLine_);
+}
+
+void JsTextLine::SetParagraph(std::shared_ptr<Typography> paragraph)
+{
+    paragraph_ = paragraph;
 }
 } // namespace OHOS::Rosen

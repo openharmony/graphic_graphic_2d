@@ -17,12 +17,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 skia_root = "//third_party/skia"
 
-external_icu_include_dirs = [
-  "//third_party/icu/icu4c/source/common",
-  "//third_party/icu/icu4c/source/i18n",
-  "//third_party/icu/icu4c/source/ohos",
-  "//third_party/icu/icu4c/source",
-]
+external_icu_include_dirs = [ "//third_party/icu/icu4c/source/ohos" ]
 
 icu_include_dirs = [
   "$skia_root/third_party/externals/icu/source/common",
@@ -131,9 +126,9 @@ template("rosen_libicu") {
 
     if (defined(config.use_external_icu)) {
       if (config.use_external_icu == "static") {
-        deps = [ "//third_party/icu/icu4c:static_icuuc" ]
+        external_deps = [ "icu:static_icuuc" ]
       } else if (config.use_external_icu == "shared") {
-        deps = [ "//third_party/icu/icu4c:shared_icuuc" ]
+        external_deps = [ "icu:shared_icuuc" ]
       }
     } else {
       configs += [ "//build/config/compiler:rtti" ]

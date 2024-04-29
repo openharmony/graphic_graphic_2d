@@ -37,8 +37,10 @@
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
+#include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -137,9 +139,9 @@ void RSRenderServiceConnection::CleanRenderNodeMap() noexcept
 void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
 {
     auto& context = mainThread_->GetContext();
-    auto& frameRateLikerMap = context.GetMutableFrameRateLinkerMap();
+    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
 
-    frameRateLikerMap.FilterFrameRateLinkerByPid(remotePid_);
+    frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
 void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
@@ -251,8 +253,12 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    mainThread_->ProcessDataBySingleFrameComposer(transactionData);
-    mainThread_->RecvRSTransactionData(transactionData);
+    bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
+    if (isProcessBySingleFrame) {
+        mainThread_->ProcessDataBySingleFrameComposer(transactionData);
+    } else {
+        mainThread_->RecvRSTransactionData(transactionData);
+    }
 }
 
 void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
@@ -346,8 +352,8 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     if (ExtractPid(id) == remotePid_) {
         auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
         auto& context = mainThread_->GetContext();
-        auto& frameRateLikerMap = context.GetMutableFrameRateLinkerMap();
-        frameRateLikerMap.RegisterFrameRateLinker(linker);
+        auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+        frameRateLinkerMap.RegisterFrameRateLinker(linker);
         conn->id_ = id;
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
@@ -355,6 +361,22 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
         return nullptr;
     }
     return conn;
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect)
+{
+    OHOS::Media::Rect rect = {
+        .left = srcRect.x,
+        .top = srcRect.y,
+        .width = srcRect.w,
+        .height = srcRect.h,
+    };
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    RSBackgroundThread::Instance().PostSyncTask([this, surface, rect, &pixelmap]() {
+        pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+    });
+    return pixelmap;
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
@@ -474,16 +496,18 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-void RSRenderServiceConnection::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
-    auto& context = mainThread_->GetContext();
-    auto& frameRateLikerMap = context.GetFrameRateLinkerMap().Get();
-    auto iter = std::find_if(frameRateLikerMap.begin(), frameRateLikerMap.end(), [this](const auto& pair) {
-        return ExtractPid(pair.first) == remotePid_;
-    });
-    if (iter != frameRateLikerMap.end()) {
-        iter->second->SetExpectedRange(range);
-    }
+    mainThread_->ScheduleTask([=]() {
+        auto& context = mainThread_->GetContext();
+        auto& linkerMap = context.GetMutableFrameRateLinkerMap();
+        auto linker = linkerMap.GetFrameRateLinker(id);
+        if (linker == nullptr) {
+            RS_LOGW("SyncFrameRateRange there is no frameRateLinker for id %{public}" PRIu64, id);
+            return;
+        }
+        linker->SetExpectedRange(range);
+    }).wait();
 }
 
 uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
@@ -1068,6 +1092,9 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         }
         mainThread_->PostSyncTask(getPixelmapTask);
     } else if (tid == UNI_RENDER_THREAD_INDEX) {
+        if (!renderThread_.IsIdle()) {
+            return false;
+        }
         renderThread_.PostSyncTask(getDrawablePixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
@@ -1235,6 +1262,7 @@ void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
         RSJankStats::GetInstance().SetReportEventResponse(info);
     };
     renderThread_.PostTask(task);
+    RSUifirstManager::Instance().OnProcessEventResponse(info);
 }
 
 void RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
@@ -1243,6 +1271,7 @@ void RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
         RSJankStats::GetInstance().SetReportEventComplete(info);
     };
     renderThread_.PostTask(task);
+    RSUifirstManager::Instance().OnProcessEventComplete(info);
 }
 
 void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)

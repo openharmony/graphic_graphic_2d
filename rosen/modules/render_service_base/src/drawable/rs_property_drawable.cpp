@@ -33,7 +33,7 @@ void RSPropertyDrawable::OnSync()
     if (!needSync_) {
         return;
     }
-    drawCmdList_ = std::move(stagingDrawCmdList_);
+    std::swap(drawCmdList_, stagingDrawCmdList_);
     needSync_ = false;
 }
 
@@ -163,10 +163,6 @@ void RSFilterDrawable::OnSync()
     forceUseCache_ = stagingForceUseCache_;
     clearFilteredCacheAfterDrawing_ = stagingClearFilteredCacheAfterDrawing_;
 
-    if (filterType_ == RSFilter::LINEAR_GRADIENT_BLUR) {
-        frameWidth_ = stagingFrameWidth_;
-        frameHeight_ = stagingFrameHeight_;
-    }
     filterHashChanged_ = false;
     filterRegionChanged_ = false;
     filterInteractWithDirty_ = false;
@@ -175,7 +171,6 @@ void RSFilterDrawable::OnSync()
     stagingForceUseCache_ = false;
     stagingClearFilteredCacheAfterDrawing_ = false;
     isOccluded_ = false;
-    belowFilterIsDirty_ = false;
 
     clearType_ = FilterCacheType::BOTH;
     isLargeArea_ = false;
@@ -189,9 +184,9 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         if (canvas && ptr && ptr->filter_) {
             RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->nodeId_);
-            if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+            if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR && rect != nullptr) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                filter->SetGeometry(*canvas, ptr->frameWidth_, ptr->frameHeight_);
+                filter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
             }
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
                 ptr->cacheManager_, ptr->IsForeground(), ptr->clearFilteredCacheAfterDrawing_);
@@ -239,14 +234,6 @@ void RSFilterDrawable::MarkHasEffectChildren()
     stagingHasEffectChildren_ = true;
 }
 
-void RSFilterDrawable::MarkFilterBelowIsDirty()
-{
-    if (filterType_ != RSFilter::AIBAR) {
-        forceClearCache_ = true;
-    }
-    belowFilterIsDirty_ = true;
-}
-
 void RSFilterDrawable::MarkNodeIsOccluded(bool isOccluded)
 {
     isOccluded_ = isOccluded;
@@ -258,11 +245,11 @@ void RSFilterDrawable::CheckClearFilterCache()
         return;
     }
 
-    stagingClearFilteredCacheAfterDrawing_ =
-        filterType_ != RSFilter::AIBAR ? (filterHashChanged_ && !filterRegionChanged_) : false;
+    stagingClearFilteredCacheAfterDrawing_ = filterType_ != RSFilter::AIBAR ? filterHashChanged_ : false;
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu], forceUseCache_:%d, "
+        "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,  currentClearAfterDrawing:%d, "
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, hasEffectChildren_:%d,"
-        "filterType_:%d, lastOccluded_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
+        "filterType_:%d", nodeId_, stagingForceUseCache_, forceClearCache_, filterHashChanged_,
         filterRegionChanged_, filterInteractWithDirty_, stagingClearFilteredCacheAfterDrawing_, lastCacheType_,
         cacheUpdateInterval_, canSkipFrame_, isLargeArea_, stagingHasEffectChildren_, filterType_);
 
@@ -291,12 +278,12 @@ void RSFilterDrawable::CheckClearFilterCache()
 
     // background changed and last frame when skip-frame enabled
     if ((filterInteractWithDirty_ || rotationChanged_) && cacheUpdateInterval_ <= 0) {
-        UpdateFlags(FilterCacheType::BOTH, false, false);
+        UpdateFlags(FilterCacheType::BOTH, false);
         return;
     }
     // when blur filter changes, we need to clear filtered cache if it valid.
     UpdateFlags(filterHashChanged_ ?
-        FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true, false);
+        FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true);
 }
 
 bool RSFilterDrawable::IsFilterCacheValid() const
@@ -331,21 +318,20 @@ void RSFilterDrawable::ClearFilterCache()
             cacheManager_ != nullptr, filter_ == nullptr);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d, isOccluded_:%d",
-        nodeId_, clearType_, isOccluded_);
     cacheManager_->InvalidateFilterCache(clearType_);
+    bool needClearMemoryForGpu = filterRegionChanged_ && cacheManager_->GetCachedType() == FilterCacheType::NONE;
+    cacheManager_->SetFilterInvalid(needClearMemoryForGpu);
     lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (stagingClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
+    RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache "
+        "nodeId[%llu], clearType:%d, isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d",
+        nodeId_, clearType_, isOccluded_, lastCacheType_, needClearMemoryForGpu);
 }
 
-void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid, bool forceResetInterval)
+void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
 {
     clearType_ = type;
     isFilterCacheValid_ = cacheValid;
-    if (forceResetInterval && !belowFilterIsDirty_) {
-        cacheUpdateInterval_ = 0;
-        return;
-    }
     if (cacheValid) {
         cacheUpdateInterval_--;
         return;

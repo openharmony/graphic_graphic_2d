@@ -36,6 +36,7 @@
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
+#include "platform/ohos/rs_node_stats.h"
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
@@ -78,6 +79,7 @@ RSUniRenderThread& RSUniRenderThread::Instance()
 }
 
 RSUniRenderThread::RSUniRenderThread()
+    :postImageReleaseTaskFlag_(Rosen::RSSystemProperties::GetImageReleaseUsingPostTask())
 {}
 
 RSUniRenderThread::~RSUniRenderThread() noexcept {}
@@ -94,7 +96,7 @@ void RSUniRenderThread::InitGrContext()
     if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         Drawing::SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         uniRenderEngine_->GetSkContext()->RegisterPostFunc([](const std::function<void()>& task) {
-            RSUniRenderThread::Instance().PostRTTask(task);
+            RSUniRenderThread::Instance().PostImageReleaseTask(task);
         });
     }
 #endif
@@ -168,6 +170,39 @@ void RSUniRenderThread::PostRTTask(const std::function<void()>& task)
     }
 }
 
+void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
+{
+    imageReleaseCount_++;
+    if (postImageReleaseTaskFlag_) {
+        PostRTTask(task);
+        return;
+    }
+    std::unique_lock<std::mutex> releaseLock(imageReleaseMutex_);
+    imageReleaseTasks_.push_back(task);
+}
+
+void RSUniRenderThread::RunImageReleaseTask()
+{
+    if (postImageReleaseTaskFlag_) { // release using post task
+        RS_TRACE_NAME_FMT("RunImageReleaseTask using PostTask: count %d", imageReleaseCount_);
+        imageReleaseCount_ = 0;
+        return;
+    }
+    std::vector<Callback> tasks;
+    {
+        std::unique_lock<std::mutex> releaseLock(imageReleaseMutex_);
+        std::swap(imageReleaseTasks_, tasks);
+    }
+    if (tasks.empty()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("RunImageReleaseTask: count %d", imageReleaseCount_);
+    imageReleaseCount_ = 0;
+    for (auto task : tasks) {
+        task();
+    }
+}
+
 void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
     AppExecFwk::EventQueue::Priority priority)
 {
@@ -191,6 +226,11 @@ void RSUniRenderThread::PostSyncTask(const std::function<void()>& task)
     handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
+bool RSUniRenderThread::IsIdle() const
+{
+    return handler_ ? handler_->IsIdle() : false;
+}
+
 void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams)
 {
     renderThreadParams_ = std::move(stagingRenderThreadParams);
@@ -203,8 +243,16 @@ void RSUniRenderThread::Render()
     }
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
+    RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(canvas);
+    RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     RSMainThread::Instance()->PerfForBlurIfNeeded();
+
+    if (RSMainThread::Instance()->GetMarkRenderFlag() == false) {
+        RSMainThread::Instance()->SetFrameIsRender(true);
+        DvsyncRequestNextVsync();
+    }
+    RSMainThread::Instance()->ResetMarkRenderFlag();
 }
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
@@ -457,6 +505,17 @@ void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
         return;
     }
     rootNodeDrawable_->DumpDrawableTree(0, dumpString);
+}
+
+void RSUniRenderThread::DvsyncRequestNextVsync()
+{
+    if ((renderThreadParams_ && renderThreadParams_->GetRequestNextVsyncFlag()) ||
+        RSMainThread::Instance()->rsVSyncDistributor_->HasPendingUIRNV()) {
+        RSMainThread::Instance()->rsVSyncDistributor_->MarkRSAnimate();
+        RSMainThread::Instance()->RequestNextVSync("animate", renderThreadParams_->GetCurrentTimestamp());
+    } else {
+        RSMainThread::Instance()->rsVSyncDistributor_->UnmarkRSAnimate();
+    }
 }
 
 void RSUniRenderThread::UpdateDisplayNodeScreenId()

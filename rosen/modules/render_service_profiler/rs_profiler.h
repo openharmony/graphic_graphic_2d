@@ -84,13 +84,16 @@ class RSMainThread;
 class RSRenderServiceConnection;
 class RSTransactionData;
 class RSRenderNode;
+class RSRenderModifier;
+class RSProperties;
 class RSContext;
-class RSRenderNode;
 class RSDisplayRenderNode;
 class RSRenderNodeMap;
 class RSAnimationManager;
+class RSRenderAnimation;
 class RSCommand;
 class ArgList;
+class JsonWriter;
 
 enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
 
@@ -203,6 +206,17 @@ private:
     RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data);
     RSB_EXPORT static void UnmarshalNode(RSRenderNode& node, std::stringstream& data);
 
+    // JSON
+    static void RenderServiceTreeDump(JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpSubClassNode(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpDrawCmdModifiers(const RSRenderNode& node, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpDrawCmdModifier(
+        const RSRenderNode& node, JsonWriter& outWrapper, int type, RSRenderModifier& modifier);
+    RSB_EXPORT static void DumpProperties(const RSProperties& properties, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpAnimations(const RSAnimationManager& animationManager, JsonWriter& outWrapper);
+    RSB_EXPORT static void DumpAnimation(const RSRenderAnimation& animation, JsonWriter& outWrapper);
+
     // RSRenderNode
     RSB_EXPORT static std::string DumpRenderProperties(const RSRenderNode& node);
     RSB_EXPORT static std::string DumpModifiers(const RSRenderNode& node);
@@ -213,6 +227,13 @@ private:
 
     RSB_EXPORT static NodeId PatchPlainNodeId(const Parcel& parcel, NodeId id);
     RSB_EXPORT static pid_t PatchPlainPid(const Parcel& parcel, pid_t pid);
+
+    RSB_EXPORT static int PerfTreeFlatten(
+        const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet, std::unordered_map<NodeId, int>& mapNode2Count);
+
+    static uint64_t RawNowNano();
+    static uint64_t NowNano();
+    static double Now();
 
     static bool IsRecording();
     static bool IsPlaying();
@@ -245,6 +266,7 @@ private:
     static void DumpConnections(const ArgList& args);
     static void DumpNodeProperties(const ArgList& args);
     static void DumpTree(const ArgList& args);
+    static void DumpTreeToJson(const ArgList& args);
     static void DumpSurfaces(const ArgList& args);
     static void DumpNodeSurface(const ArgList& args);
     static void PatchNode(const ArgList& args);
@@ -253,6 +275,9 @@ private:
     static void KillPid(const ArgList& args);
     static void GetRoot(const ArgList& args);
     static void GetDeviceInfo(const ArgList& args);
+    static void GetPerfTree(const ArgList& args);
+    static void CalcPerfNode(const ArgList& args);
+    static void CalcPerfNodeAll(const ArgList& args);
 
     static void SaveSkp(const ArgList& args);
     static void SaveRdc(const ArgList& args);
@@ -274,6 +299,8 @@ private:
     static void TestSaveFrame(const ArgList& args);
     static void TestLoadFrame(const ArgList& args);
     static void TestSwitch(const ArgList& args);
+
+    static void CalcPerfNodeAllStep();
 };
 
 } // namespace OHOS::Rosen

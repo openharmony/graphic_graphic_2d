@@ -62,33 +62,7 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
     }
 
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        uint8_t direction = static_cast<uint8_t>(para->direction_);
-        TransformGradientBlurDirection(direction, directionBias);
-        float radius = para->blurRadius_;
-
-        Drawing::Brush brush;
-        Drawing::Filter imageFilter;
-        Drawing::GradientBlurType blurType;
-        if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
-            blurType = Drawing::GradientBlurType::AlPHA_BLEND;
-            radius /= 2; // 2: half radius.
-        } else {
-            radius -= para->originalBase_;
-            radius = std::clamp(radius, 0.0f, 60.0f); // 60.0 represents largest blur radius
-            blurType = Drawing::GradientBlurType::RADIUS_GRADIENT;
-        }
-        imageFilter.SetImageFilter(Drawing::ImageFilter::CreateGradientBlurImageFilter(
-            radius, para->fractionStops_, static_cast<Drawing::GradientDir>(direction),
-            blurType, nullptr));
-        brush.SetFilter(imageFilter);
-
-        canvas.AttachBrush(brush);
-        Drawing::Rect rect = clipIPadding;
-        rect.Offset(-clipIPadding.GetLeft(), -clipIPadding.GetTop());
-        canvas.DrawImageRect(
-            *image, rect, clipIPadding, Drawing::SamplingOptions(),
-            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-        canvas.DetachBrush();
+        DrawImageRectByDDGRGpuApiType(canvas, directionBias, clipIPadding, image, para);
         return;
     }
     if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
@@ -112,6 +86,39 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
         MakeVerticalMeanBlurEffect();
         DrawMeanLinearGradientBlur(image, canvas, radius, alphaGradientShader, dst);
     }
+}
+
+void RSLinearGradientBlurFilter::DrawImageRectByDDGRGpuApiType(Drawing::Canvas& canvas, uint8_t directionBias,
+    Drawing::RectF& clipIPadding, const std::shared_ptr<Drawing::Image>& image,
+    std::shared_ptr<RSLinearGradientBlurPara> para)
+{
+    uint8_t direction = static_cast<uint8_t>(para->direction_);
+    TransformGradientBlurDirection(direction, directionBias);
+    float radius = para->blurRadius_;
+
+    Drawing::Brush brush;
+    Drawing::Filter imageFilter;
+    Drawing::GradientBlurType blurType;
+    if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
+        blurType = Drawing::GradientBlurType::AlPHA_BLEND;
+        radius /= 2; // 2: half radius.
+    } else {
+        radius -= para->originalBase_;
+        radius = std::clamp(radius, 0.0f, 60.0f); // 60.0 represents largest blur radius
+        blurType = Drawing::GradientBlurType::RADIUS_GRADIENT;
+    }
+    imageFilter.SetImageFilter(Drawing::ImageFilter::CreateGradientBlurImageFilter(
+        radius, para->fractionStops_, static_cast<Drawing::GradientDir>(direction),
+        blurType, nullptr));
+    brush.SetFilter(imageFilter);
+
+    canvas.AttachBrush(brush);
+    Drawing::Rect rect = clipIPadding;
+    rect.Offset(-clipIPadding.GetLeft(), -clipIPadding.GetTop());
+    canvas.DrawImageRect(
+        *image, rect, clipIPadding, Drawing::SamplingOptions(),
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DetachBrush();
 }
 
 void RSLinearGradientBlurFilter::ComputeScale(float width, float height, bool useMaskAlgorithm)
@@ -407,7 +414,7 @@ void RSLinearGradientBlurFilter::DrawMaskLinearGradientBlur(const std::shared_pt
     auto imageInfo = image->GetImageInfo();
     auto srcRect = Drawing::Rect(0, 0, imageInfo.GetWidth(), imageInfo.GetHeight());
     blurFilter->DrawImageRect(canvas, image, srcRect, dst);
-    
+
     Drawing::Matrix inputMatrix;
     inputMatrix.Translate(dst.GetLeft(), dst.GetTop());
     inputMatrix.PostScale(dst.GetWidth() / imageInfo.GetWidth(), dst.GetHeight() / imageInfo.GetHeight());

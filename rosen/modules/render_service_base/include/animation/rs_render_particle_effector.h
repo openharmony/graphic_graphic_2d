@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PARTICLE_EFFECTOR_H
 
 #include "rs_render_particle.h"
+#include "rs_particle_noise_field.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -27,10 +28,10 @@ public:
     Vector4<int16_t> CalculateColorInt(const std::shared_ptr<RSRenderParticle>& particle, Vector4<int16_t> colorInt,
         Vector4<float> colorF, Vector4<float> colorSpeed, float deltaTime);
 
-    float UpdateCurveValue(
+    void UpdateCurveValue(float& value,
         const std::vector<std::shared_ptr<ChangeInOverLife<float>>>& valChangeOverLife, int64_t activeTime);
 
-    Color UpdateColorCurveValue(
+    void UpdateColorCurveValue(Color& color,
         const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife, int64_t activeTime);
 
     void UpdateColor(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
@@ -45,11 +46,13 @@ public:
 
     void UpdateAccelerationValue(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
 
-    void UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
+    void UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
+        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, float deltaTime);
 
     void UpdateActiveTime(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime);
 
-    void Update(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime);
+    void Update(const std::shared_ptr<RSRenderParticle>& particle,
+        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, int64_t deltaTime);
 };
 
 } // namespace Rosen

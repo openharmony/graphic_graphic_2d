@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace Rosen {
-int RSWindowAnimationFinishedCallbackStub::OnRemoteRequest(uint32_t code,MessageParcel &data,
+int RSWindowAnimationFinishedCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
     WALOGD("Window animation finished callback on remote request!");

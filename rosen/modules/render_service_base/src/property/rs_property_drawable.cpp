@@ -95,6 +95,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::BACKGROUND_FILTER, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, RSPropertyDrawableSlot::COMPOSITING_FILTER },
     { RSModifierType::FOREGROUND_EFFECT_RADIUS, RSPropertyDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::MOTION_BLUR_PARA, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::FRAME_GRAVITY, RSPropertyDrawableSlot::FRAME_OFFSET },
@@ -118,6 +119,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::SYSTEMBAREFFECT, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::PIXEL_STRETCH, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::PIXEL_STRETCH_PERCENT, RSPropertyDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::PIXEL_STRETCH_TILE_MODE, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::USE_EFFECT, RSPropertyDrawableSlot::USE_EFFECT },
     { RSModifierType::SANDBOX, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::GRAY_SCALE, RSPropertyDrawableSlot::COLOR_FILTER },
@@ -167,6 +169,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::ENV_FOREGROUND_COLOR, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR },
     { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY },
     { RSModifierType::PARTICLE_EMITTER_UPDATER, RSPropertyDrawableSlot::PARTICLE_EFFECT },
+    { RSModifierType::PARTICLE_NOISE_FIELD, RSPropertyDrawableSlot::PARTICLE_EFFECT },
     { RSModifierType::DYNAMIC_DIM_DEGREE, RSPropertyDrawableSlot::DYNAMIC_DIM },
     { RSModifierType::GEOMETRYTRANS, RSPropertyDrawableSlot::INVALID },
 };

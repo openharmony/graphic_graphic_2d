@@ -136,7 +136,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     }
     symbolAnimationConfig->repeatCount = repeatCount_;
     symbolAnimationConfig->animationMode = animationMode_;
-    symbolAnimationConfig->aminationStart = aminationStart_;
+    symbolAnimationConfig->animationStart = animationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
     animationFunc_(symbolAnimationConfig);

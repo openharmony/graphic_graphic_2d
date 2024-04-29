@@ -32,12 +32,12 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
     // rect is not directly used, make a dummy rect
     static Drawing::Rect rect;
 
-    auto shadowIndex = renderNode_->drawCmdIndex_.shadowIndex_;
+    auto shadowIndex = drawCmdIndex_.shadowIndex_;
     if (shadowIndex == -1) {
         return;
     }
 
-    const auto& params = renderNode_->GetRenderParams();
+    const auto& params = GetRenderParams();
     if (!params) {
         RS_LOGE("params is nullptr");
         return;
@@ -47,13 +47,13 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, RSRenderNodeDrawable::GetParentSurfaceMatrix());
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
         return;
     }
 
-    SetSkipShadow(false);
+    SetSkip(SkipType::NONE);
     DrawRangeImpl(canvas, rect, 0, shadowIndex + 1);
 }
 
@@ -62,7 +62,7 @@ void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string& ou
     for (int32_t i = 0; i < depth; ++i) {
         out += "  ";
     }
-    renderNode_->DumpNodeType(out);
-    out += "[" + std::to_string(renderNode_->GetId()) + "] Draw Shadow Only\n";
+    RSRenderNode::DumpNodeType(nodeType_, out);
+    out += "[" + std::to_string(nodeId_) + "] Draw Shadow Only\n";
 }
 } // namespace OHOS::Rosen::DrawableV2

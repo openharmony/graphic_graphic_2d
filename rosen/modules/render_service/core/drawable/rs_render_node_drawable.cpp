@@ -22,6 +22,7 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -31,6 +32,9 @@ namespace OHOS::Rosen::DrawableV2 {
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
+thread_local bool RSRenderNodeDrawable::drawBlurForCache_ = false;
+thread_local bool RSRenderNodeDrawable::isOpDropped_ = true;
+thread_local Drawing::Matrix RSRenderNodeDrawable::parentSurfaceMatrix_;
 
 namespace {
 constexpr int32_t DRAWING_CACHE_MAX_UPDATE_TIME = 3;
@@ -39,13 +43,15 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
     : RSRenderNodeDrawableAdapter(std::move(node))
 {
     auto task = std::bind(&RSRenderNodeDrawable::ClearCachedSurface, this);
-    std::const_pointer_cast<RSRenderNode>(renderNode_)->RegisterClearSurfaceFunc(task);
+    std::const_pointer_cast<RSRenderNode>(node)->RegisterClearSurfaceFunc(task);
 }
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
 {
     ClearCachedSurface();
-    std::const_pointer_cast<RSRenderNode>(renderNode_)->ResetClearSurfaeFunc();
+    if (auto renderNode = renderNode_.lock()) {
+        std::const_pointer_cast<RSRenderNode>(renderNode)->ResetClearSurfaeFunc();
+    }
 }
 
 RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -67,8 +73,7 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    auto& renderParams = renderNode_->GetRenderParams();
-    Drawing::Rect bounds = renderParams ? renderParams->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     DrawAll(canvas, bounds);
 }
@@ -96,11 +101,10 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
     // check drawing cache type (disabled: clear cache)
     if (params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
-        SetCacheType(DrawableCacheType::NONE);
         ClearCachedSurface();
         {
             std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
-            drawingCacheUpdateTimeMap_.erase(renderNode_->GetId());
+            drawingCacheUpdateTimeMap_.erase(nodeId_);
         }
         return;
     }
@@ -114,7 +118,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
     // in case of no filter
     if (needUpdateCache && !hasFilter) {
-        RS_TRACE_NAME_FMT("UpdateCacheSurface id:%llu", renderNode_->GetId());
+        RS_TRACE_NAME_FMT("UpdateCacheSurface id:%llu", nodeId_);
         UpdateCacheSurface(canvas, params);
         return;
     }
@@ -126,7 +130,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         auto canvasType = curCanvas->GetCacheType();
         // set canvas type as OFFSCREEN to not draw filter/shadow/filter
         curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
-        RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%llu", renderNode_->GetId());
+        RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%llu", nodeId_);
         UpdateCacheSurface(canvas, params);
         curCanvas->SetCacheType(canvasType);
     }
@@ -140,10 +144,10 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         Drawing::AutoCanvasRestore arc(canvas, true);
         bool isOpDropped = isOpDropped_;
         isOpDropped_ = false;
-        drawBlurForCache_ = true;
+        drawBlurForCache_ = true; // may use in uifirst subthread
         auto drawableCacheType = GetCacheType();
         SetCacheType(DrawableCacheType::NONE);
-        RS_TRACE_NAME_FMT("DrawBlurForCache id:%llu", renderNode_->GetId());
+        RS_TRACE_NAME_FMT("DrawBlurForCache id:%llu", nodeId_);
 
         RSRenderNodeDrawable::OnDraw(canvas);
         SetCacheType(drawableCacheType);
@@ -152,9 +156,8 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (drawBlurForCache_ && !params.ChildHasVisibleFilter() && !params.ChildHasVisibleEffect() &&
-        !curCanvas->GetIsParallelCanvas()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", renderNode_->GetId());
+    if (drawBlurForCache_ && !params.ChildHasVisibleFilter() && !params.ChildHasVisibleEffect()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", nodeId_);
         Drawing::AutoCanvasRestore arc(canvas, true);
         DrawBackground(canvas, params.GetBounds());
         return;
@@ -178,7 +181,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
             break;
         }
         case DrawableCacheType::CONTENT: {
-            RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", renderNode_->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
             if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
                 DrawBackground(canvas, params.GetBounds());
                 DrawCachedImage(*curCanvas, params.GetCacheSize());
@@ -208,11 +211,14 @@ void RSRenderNodeDrawable::DrawDfxForCache(Drawing::Canvas& canvas, const Drawin
     int32_t updateTimes = 0;
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
-        if (drawingCacheUpdateTimeMap_.count(renderNode_->GetId()) > 0) {
-            updateTimes = drawingCacheUpdateTimeMap_.at(renderNode_->GetId());
+        if (drawingCacheUpdateTimeMap_.count(nodeId_) > 0) {
+            updateTimes = drawingCacheUpdateTimeMap_.at(nodeId_);
         }
     }
-    drawingCacheInfos_.emplace_back(dfxRect, updateTimes);
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+        drawingCacheInfos_.emplace_back(dfxRect, updateTimes);
+    }
 }
 
 void RSRenderNodeDrawable::SetCacheType(DrawableCacheType cacheType)
@@ -368,6 +374,7 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
 
 void RSRenderNodeDrawable::ClearCachedSurface()
 {
+    SetCacheType(DrawableCacheType::NONE);
     std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
     if (cachedSurface_ == nullptr) {
         return;
@@ -391,25 +398,23 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
     int32_t updateTimes = 0;
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
-        if (drawingCacheUpdateTimeMap_.count(renderNode_->GetId()) > 0) {
-            updateTimes = drawingCacheUpdateTimeMap_.at(renderNode_->GetId());
+        if (drawingCacheUpdateTimeMap_.count(nodeId_) > 0) {
+            updateTimes = drawingCacheUpdateTimeMap_.at(nodeId_);
         } else {
-            drawingCacheUpdateTimeMap_.emplace(renderNode_->GetId(), 0);
+            drawingCacheUpdateTimeMap_.emplace(nodeId_, 0);
         }
     }
 
     RS_OPTIONAL_TRACE_NAME_FMT("CheckUpdateCache id:%llu updateTimes:%d type:%d cacheChanged:%d size:[%.2f, %.2f]",
-        renderNode_->GetId(), updateTimes, params.GetDrawingCacheType(), params.GetDrawingCacheChanged(),
+        nodeId_, updateTimes, params.GetDrawingCacheType(), params.GetDrawingCacheChanged(),
         params.GetCacheSize().x_, params.GetCacheSize().y_);
 
     if (params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
         updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
-        SetCacheType(DrawableCacheType::NONE);
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
         return false;
     }
-    SetCacheType(DrawableCacheType::CONTENT);
 
     if (NeedInitCachedSurface(params.GetCacheSize())) {
         ClearCachedSurface();
@@ -425,6 +430,7 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params)
 
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    RS_TRACE_NAME("UpdateCacheSurface");
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
     if (GetCachedSurface(threadId) == nullptr) {
@@ -471,6 +477,9 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 
     // get image & backend
     cachedImage_ = surface->GetImageSnapshot();
+    if (cachedImage_) {
+        SetCacheType(DrawableCacheType::CONTENT);
+    }
 #if RS_ENABLE_GL
     // vk backend has been created when surface init.
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
@@ -481,7 +490,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     // update cache updateTimes
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
-        drawingCacheUpdateTimeMap_[renderNode_->GetId()]++;
+        drawingCacheUpdateTimeMap_[nodeId_]++;
     }
 }
 

@@ -15,6 +15,7 @@
 
 #include "skia_static_factory.h"
 
+#include "skia_adapter/skia_blender.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_hm_symbol.h"
@@ -93,6 +94,11 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuCont
     bool budgeted, const ImageInfo& imageInfo)
 {
     return SkiaSurface::MakeRenderTarget(gpuContext, budgeted, imageInfo);
+}
+
+std::shared_ptr<Image> SkiaStaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+{
+    return SkiaImage::MakeFromYUVAPixmaps(gpuContext, info, memory);
 }
 #endif
 
@@ -193,6 +199,11 @@ std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupP
 FontStyleSet* SkiaStaticFactory::CreateEmpty()
 {
     return SkiaFontStyleSet::CreateEmpty();
+}
+
+std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
+{
+    return SkiaBlender::CreateWithBlendMode(mode);
 }
 } // namespace Drawing
 } // namespace Rosen

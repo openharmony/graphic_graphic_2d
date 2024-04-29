@@ -36,6 +36,27 @@ void RSFrameRateLinkerCommandTest::SetUp() {}
 void RSFrameRateLinkerCommandTest::TearDown() {}
 
 /**
+ * @tc.name: Destroy
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFrameRateLinkerCommandTest, Destroy, TestSize.Level1)
+{
+    RSContext context;
+    FrameRateLinkerId linkerId = 0;
+    auto& linkerMap = context.GetMutableFrameRateLinkerMap();
+    RSFrameRateLinkerCommandHelper::Destroy(context, linkerId);
+    EXPECT_EQ(linkerMap.GetFrameRateLinker(linkerId), nullptr);
+
+    FrameRateLinkerId linkerId1 = 1;
+    std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkerId);
+    linkerMap.RegisterFrameRateLinker(linkerPtr);
+    EXPECT_NE(linkerMap.GetFrameRateLinker(linkerId1), nullptr);
+    RSFrameRateLinkerCommandHelper::Destroy(context, linkerId1);
+    EXPECT_EQ(linkerMap.GetFrameRateLinker(linkerId1), nullptr);
+}
+
+/**
  * @tc.name: UpdateRange
  * @tc.desc:
  * @tc.type: FUNC
@@ -43,13 +64,13 @@ void RSFrameRateLinkerCommandTest::TearDown() {}
 HWTEST_F(RSFrameRateLinkerCommandTest, UpdateRange, TestSize.Level1)
 {
     RSContext context;
-    FrameRateLinkerId linkId = 1;
+    FrameRateLinkerId linkerId = 1;
     FrameRateRange range = { 0, 0, 0 };
-    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkId, range);
+    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range);
 
-    std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkId);
+    std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkerId);
     context.GetMutableFrameRateLinkerMap().RegisterFrameRateLinker(linkerPtr);
-    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkId, range);
+    RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range);
 }
 
 } // namespace Rosen

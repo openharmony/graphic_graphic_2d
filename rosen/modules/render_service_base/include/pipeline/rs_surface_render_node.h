@@ -68,7 +68,8 @@ public:
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+        NodeId uifirstRootNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -130,6 +131,10 @@ public:
         isHardwareEnabledNode_ = isEnabled;
         selfDrawingType_ = selfDrawingType;
     }
+
+    void SetForceHardwareAndFixRotation(bool flag);
+    bool GetForceHardwareByUser() const;
+    int32_t GetFixedRotationDegree() const;
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -214,6 +219,11 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
+    {
+        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
+    }
+
     void SetHardwareDisabledByCache(bool disabledByCache)
     {
         isHardwareDisabledByCache_ = disabledByCache;
@@ -236,7 +246,10 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_ ||
+        if (isForceHardwareByUser_ && !isHardwareForcedDisabledByVisibility_) {
+            return false;
+        }
+        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -282,16 +295,6 @@ public:
         calcRectInPrepare_ = calc;
     }
 
-    void SetIntersectByFilterInApp(bool intersect)
-    {
-        intersectByFilterInApp_ = intersect;
-    }
-
-    bool GetIntersectByFilterInApp() const
-    {
-        return intersectByFilterInApp_;
-    }
-
     bool IsSelfDrawingType() const
     {
         // self drawing surfacenode has its own buffer, and rendered in its own progress/thread
@@ -329,6 +332,8 @@ public:
 
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
+
+    bool IsLeashWindowSurfaceNodeVisible();
 
     const std::string& GetName() const
     {
@@ -384,6 +389,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsNeedSetVSync();
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
     void SetContextBounds(const Vector4f bounds);
@@ -416,17 +422,21 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
+    void SetProtectedLayer(bool isProtectedLayer);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetProtectedLayer() const;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
+    bool GetHasProtectedLayer() const;
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
+    void SyncProtectedInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -436,6 +446,12 @@ public:
 
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
+
+    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    bool GetAncoForceDoDirect() const;
+
+    void SetHDRPresent(bool hasHdrPresent);
+    bool GetHDRPresent() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
@@ -464,6 +480,11 @@ public:
     const RectI& GetDstRect() const
     {
         return dstRect_;
+    }
+
+    const RectI& GetOriginalDstRect() const
+    {
+        return originalDstRect_;
     }
 
     Occlusion::Region& GetTransparentRegion()
@@ -760,6 +781,7 @@ public:
     const std::vector<RectI>& GetChildrenNeedFilterRects() const;
     const std::vector<bool>& GetChildrenNeedFilterRectsCacheValid() const;
     const std::vector<std::shared_ptr<RSRenderNode>>& GetChildrenFilterNodes() const;
+    std::vector<RectI> GetChildrenNeedFilterRectsWithoutCacheValid();
 
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
@@ -992,16 +1014,16 @@ public:
         ancestorDisplayNode_ = ancestorDisplayNode;
     }
 
-    void SetUifirstNodeEnableParam(bool b);
+    void SetUifirstNodeEnableParam(MultiThreadCacheType b);
 
     void SetIsParentUifirstNodeEnableParam(bool b);
 
-    bool GetLastFrameUifirstFlag()
+    MultiThreadCacheType GetLastFrameUifirstFlag()
     {
         return lastFrameUifirstFlag_;
     }
 
-    void SetLastFrameUifirstFlag(bool b)
+    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
     {
         lastFrameUifirstFlag_ = b;
     }
@@ -1070,10 +1092,13 @@ private:
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isProtectedLayer_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
+    std::set<NodeId> protectedLayerIds_= {};
 
     bool hasFingerprint_ = false;
+    bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
     int32_t offsetX_ = 0;
@@ -1210,6 +1235,10 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool isForceHardwareByUser_ = false;
+    bool isHardwareForcedDisabledByVisibility_ = false;
+    RectI originalDstRect_;
+    int32_t fixedRotationDegree_ = -90;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -1263,7 +1292,9 @@ private:
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
-    bool lastFrameUifirstFlag_ = false;
+    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+
+    bool ancoForceDoDirect_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

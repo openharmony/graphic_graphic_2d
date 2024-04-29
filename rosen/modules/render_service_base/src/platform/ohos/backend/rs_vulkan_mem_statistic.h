@@ -25,8 +25,8 @@
 namespace OHOS {
 namespace Rosen {
 
-inline const char* g_resourceCategory = "Image";
-inline const char* g_resourceType = "RS_VULKAN_IMG";
+inline const char* RESOURCE_CATEGORY = "Image";
+inline const char* RESOURCE_TYPE = "RS_VULKAN_IMG";
 
 class RsVulkanMemStat {
 public:
@@ -60,8 +60,8 @@ public:
         }
         for (auto it = mResources.begin(); it != mResources.end(); it++) {
             memoryDump->DumpNumericValue(it->first.c_str(), "size", "bytes", it->second.size);
-            memoryDump->DumpStringValue(it->first.c_str(), "type", g_resourceType);
-            memoryDump->DumpStringValue(it->first.c_str(), "category", g_resourceCategory);
+            memoryDump->DumpStringValue(it->first.c_str(), "type", RESOURCE_TYPE);
+            memoryDump->DumpStringValue(it->first.c_str(), "category", RESOURCE_CATEGORY);
         }
     }
 

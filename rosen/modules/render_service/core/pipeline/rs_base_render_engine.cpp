@@ -223,14 +223,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #else
     (void)colorGamut;
 #endif
-    Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
     auto pixelFmt = buffer->GetFormat();
-    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-        colorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
-    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-        colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
-    }
-    Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
 
     auto image = std::make_shared<Drawing::Image>();
     Drawing::TextureInfo externalTextureInfo;
@@ -251,7 +245,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         auto glType = GR_GL_RGBA8;
         if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
             glType = GR_GL_BGRA8;
-        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
+            pixelFmt == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
             glType = GR_GL_RGB10_A2;
         }
         externalTextureInfo.SetFormat(glType);
@@ -280,12 +275,16 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #ifdef NEW_RENDER_CONTEXT
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
 #else
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
 #endif
 {
+#ifdef RS_ENABLE_VK
+    skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    renderContext_->SetUpGpuContext(skContext_);
+#endif
     if (rsSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
         return nullptr;
@@ -305,6 +304,9 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 #else
     bufferUsage |= BUFFER_USAGE_CPU_WRITE;
 #endif
+    if (isProtected) {
+        bufferUsage |= BUFFER_USAGE_PROTECTED;
+    }
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
@@ -340,7 +342,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
     }
 #endif
 #endif
-    auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC);
+    auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC, isProtected);
     RS_OPTIONAL_TRACE_END();
     if (surfaceFrame == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
@@ -354,7 +356,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 }
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC, bool isProtected)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(targetSurface)");
     if (targetSurface == nullptr) {
@@ -389,7 +391,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     }
 #endif
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurface, config, forceCPU, useAFBC);
+    return RequestFrame(rsSurface, config, forceCPU, useAFBC, isProtected);
 }
 
 #ifdef NEW_RENDER_CONTEXT
@@ -654,16 +656,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
 #endif
-        Drawing::ColorType drawingColorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-        auto pixelFmt = params.buffer->GetFormat();
-        if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-            drawingColorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
-        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-            drawingColorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
-        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_RGB_565) {
-            drawingColorType = Drawing::ColorType::COLORTYPE_RGB_565;
-        }
-        Drawing::BitmapFormat bitmapFormat = { drawingColorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+        auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
 #ifndef ROSEN_EMULATOR
         auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
 #else

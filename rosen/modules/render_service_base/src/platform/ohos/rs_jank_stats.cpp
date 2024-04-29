@@ -62,7 +62,8 @@ void RSJankStats::SetStartTime(bool doDirectComposition)
         lastReportTimeSteady_ = rtStartTimeSteady_;
     }
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
-        jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponse_;
+        jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponseTemp_;
+        jankFrames.isSetReportEventResponseTemp_ = jankFrames.isSetReportEventResponse_;
         jankFrames.isSetReportEventResponse_ = false;
         jankFrames.isReportEventComplete_ = jankFrames.isSetReportEventComplete_;
         jankFrames.isSetReportEventComplete_ = false;
@@ -156,15 +157,11 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
                rsParams.refreshRate_, true, isReportTaskDelayed);
 }
 
-void RSJankStats::SetRSJankStats(uint32_t dynamicRefreshRate)
+// dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
+void RSJankStats::SetRSJankStats(uint32_t /* dynamicRefreshRate */)
 {
-    if (dynamicRefreshRate == 0) {
-        dynamicRefreshRate = STANDARD_REFRESH_RATE;
-    }
-    const float standardFrameTime = S_TO_MS / dynamicRefreshRate;
-    // temporary scheme
-    const int64_t missedVsync = static_cast<int64_t>(
-        std::max<float>(0.f, GetEffectiveFrameTime(true) - standardFrameTime) / VSYNC_PERIOD);
+    auto frameTime = GetEffectiveFrameTime(true);
+    const int64_t missedVsync = static_cast<int64_t>(frameTime / VSYNC_PERIOD);
     if (missedVsync <= 0) {
         return;
     }
@@ -196,6 +193,9 @@ void RSJankStats::SetRSJankStats(uint32_t dynamicRefreshRate)
         ROSEN_LOGW("RSJankStats::SetJankStats rsJankStats_ value oversteps USHRT_MAX");
         return;
     }
+
+    RS_TRACE_NAME_FMT("RSJankStats::SetRSJankStats missedVsync %d frameTime %f", missedVsync, frameTime);
+
     if (type != JANK_FRAME_6_FREQ) {
         RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, missedVsync);
         lastJankFrame6FreqTimeSteady_ = rtEndTimeSteady_;
@@ -228,9 +228,7 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, uint32_t dynamicRefres
     const float standardFrameTime = S_TO_MS / dynamicRefreshRate;
     const bool isConsiderRsStartTime =
         jankFrames.isDisplayAnimator_ || jankFrames.isFirstFrame_ || isFirstSetEnd_;
-    // temporary scheme
-    const int64_t frameDuration =
-        std::max<int64_t>(0, GetEffectiveFrameTime(isConsiderRsStartTime) - standardFrameTime);
+    const int64_t frameDuration = GetEffectiveFrameTime(isConsiderRsStartTime);
     const int32_t missedFramesToReport = static_cast<int32_t>(frameDuration / VSYNC_PERIOD);
     jankFrames.totalFrames_++;
     jankFrames.totalFrameTimeSteady_ += frameDuration;
@@ -525,18 +523,13 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", static_cast<int32_t>(appPid));
 }
 
-void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
+// dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
+void RSJankStats::RecordJankFrame(uint32_t /* dynamicRefreshRate */)
 {
-    if (dynamicRefreshRate == 0) {
-        dynamicRefreshRate = STANDARD_REFRESH_RATE;
-    }
-    const float standardFrameTime = S_TO_MS / dynamicRefreshRate;
     for (auto& recordStats : jankExplicitAnimatorFrameRecorder_) {
         recordStats.isRecorded_ = false;
     }
-    // temporary scheme
-    const int64_t missedFramesByDuration = static_cast<int64_t>(
-        std::max<float>(0.f, GetEffectiveFrameTime(true) - standardFrameTime) / VSYNC_PERIOD);
+    const int64_t missedFramesByDuration = static_cast<int64_t>(GetEffectiveFrameTime(true) / VSYNC_PERIOD);
     if (missedFramesByDuration > 0 && explicitAnimationTotal_ > 0) {
         for (auto& recordStats : jankExplicitAnimatorFrameRecorder_) {
             RecordJankFrameSingle(missedFramesByDuration, recordStats);
@@ -545,9 +538,7 @@ void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
     for (auto& recordStats : jankImplicitAnimatorFrameRecorder_) {
         recordStats.isRecorded_ = false;
     }
-    // temporary scheme
-    const int64_t missedFramesByInterval = static_cast<int64_t>(
-        std::max<float>(0.f, GetEffectiveFrameTime(isFirstSetEnd_) - standardFrameTime) / VSYNC_PERIOD);
+    const int64_t missedFramesByInterval = static_cast<int64_t>(GetEffectiveFrameTime(isFirstSetEnd_) / VSYNC_PERIOD);
     if (missedFramesByInterval > 0 && implicitAnimationTotal_ > 0) {
         for (auto& recordStats : jankImplicitAnimatorFrameRecorder_) {
             RecordJankFrameSingle(missedFramesByInterval, recordStats);

@@ -37,12 +37,12 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, renderNode_->GetId());
-    const auto& params = renderNode_->GetRenderParams();
+    RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, nodeId_);
+    const auto& params = GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
 
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, parentSurfaceMatrix_);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
         return;
@@ -56,11 +56,11 @@ void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
-    RS_LOGD("RSEffectRenderNodeDrawable::OnCapture node: %{public}" PRIu64, renderNode_->GetId());
-    const auto& params = renderNode_->GetRenderParams();
+    RS_LOGD("RSEffectRenderNodeDrawable::OnCapture node: %{public}" PRIu64, nodeId_);
+    const auto& params = GetRenderParams();
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, parentSurfaceMatrix_);
     RSRenderNodeDrawable::OnCapture(canvas);
 }
 } // namespace OHOS::Rosen::DrawableV2

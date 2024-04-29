@@ -45,6 +45,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
         dlclose(preValidateHandle_);
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
+    loadSuccess = true;
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
@@ -52,6 +53,11 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
     if (preValidateHandle_) {
         dlclose(preValidateHandle_);
     }
+}
+
+bool RSUniHwcPrevalidateUtil::IsLoadSuccess() const
+{
+    return loadSuccess;
 }
 
 bool RSUniHwcPrevalidateUtil::PreValidate(

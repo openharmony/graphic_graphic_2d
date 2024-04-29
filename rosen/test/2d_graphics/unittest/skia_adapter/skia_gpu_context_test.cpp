@@ -63,10 +63,8 @@ HWTEST_F(SkiaGPUContextTest, storeVkPipelineCacheData001, TestSize.Level1)
     auto gpuContext = std::make_shared<SkiaGPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->storeVkPipelineCacheData();
-#ifdef NEW_SKIA
     GrMockOptions options;
     gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
     gpuContext->storeVkPipelineCacheData();
 }
 #endif
@@ -82,10 +80,8 @@ HWTEST_F(SkiaGPUContextTest, GetResourceCacheUsage001, TestSize.Level1)
     auto gpuContext = std::make_shared<SkiaGPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->GetResourceCacheUsage(nullptr, nullptr);
-#ifdef NEW_SKIA
     GrMockOptions options;
     gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
     int resourceCount = 1;
     size_t resourceBytes = 1;
     gpuContext->GetResourceCacheUsage(&resourceCount, &resourceBytes);
@@ -129,10 +125,8 @@ HWTEST_F(SkiaGPUContextTest, ReleaseResourcesAndAbandonContext001, TestSize.Leve
     auto gpuContext = std::make_shared<SkiaGPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->ReleaseResourcesAndAbandonContext();
-#ifdef NEW_SKIA
     GrMockOptions options;
     gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
     gpuContext->ReleaseResourcesAndAbandonContext();
 }
 
@@ -161,10 +155,8 @@ HWTEST_F(SkiaGPUContextTest, PurgeUnlockedResourcesByTag001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     GPUResourceTag tag;
     gpuContext->PurgeUnlockedResourcesByTag(true, tag);
-#ifdef NEW_SKIA
     GrMockOptions options;
     gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
     gpuContext->PurgeUnlockedResourcesByTag(true, tag);
 }
 
@@ -181,10 +173,8 @@ HWTEST_F(SkiaGPUContextTest, PurgeUnlockedResourcesByPid001, TestSize.Level1)
     GPUResourceTag tag;
     std::set<pid_t> pidset;
     gpuContext->PurgeUnlockedResourcesByPid(true, pidset);
-#ifdef NEW_SKIA
     GrMockOptions options;
     gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
     gpuContext->PurgeUnlockedResourcesByPid(true, pidset);
 }
 
@@ -226,10 +216,8 @@ HWTEST_F(SkiaGPUContextTest, ReleaseByTag001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     GPUResourceTag tag;
     gpuContext->ReleaseByTag(tag);
-#ifdef NEW_SKIA
     GrMockOptions options;
     gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
     gpuContext->ReleaseByTag(tag);
 }
 
@@ -245,10 +233,7 @@ HWTEST_F(SkiaGPUContextTest, DumpMemoryStatisticsByTag001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     GPUResourceTag tag;
     gpuContext->DumpMemoryStatisticsByTag(nullptr, tag);
-#ifdef NEW_SKIA
-    GrMockOptions options;
-    gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-#endif
+    gpuContext->SetGrContext(nullptr);
     gpuContext->DumpMemoryStatisticsByTag(nullptr, tag);
 }
 

@@ -238,6 +238,44 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     return conn;
 }
 
+std::shared_ptr<Media::PixelMap> RSRenderServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    auto producer = surface->GetProducer();
+    if (producer == nullptr) {
+        return nullptr;
+    }
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return nullptr;
+    }
+    data.WriteRemoteObject(producer->AsObject());
+    data.WriteInt32(srcRect.x);
+    data.WriteInt32(srcRect.y);
+    data.WriteInt32(srcRect.w);
+    data.WriteInt32(srcRect.h);
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreatePixelMapFromSurface: Send Request err.");
+        return nullptr;
+    }
+
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    if (reply.ReadBool()) {
+        pixelMap.reset(Media::PixelMap::Unmarshalling(reply));
+    }
+    return pixelMap;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
     int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
@@ -515,7 +553,7 @@ void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
     }
 }
 
-void RSRenderServiceConnectionProxy::SyncFrameRateRange(const FrameRateRange& range)
+void RSRenderServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -526,6 +564,7 @@ void RSRenderServiceConnectionProxy::SyncFrameRateRange(const FrameRateRange& ra
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
     data.WriteUint32(range.min_);
     data.WriteUint32(range.max_);
     data.WriteUint32(range.preferred_);
