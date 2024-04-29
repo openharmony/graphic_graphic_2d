@@ -327,7 +327,7 @@ void VSyncDistributor::WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locke
 
     // before con_ wait, notify the rnv_con.
 #if defined(RS_ENABLE_DVSYNC)
-        dvsync_->RNVNotify();
+    dvsync_->RNVNotify();
 #endif
     con_.wait(locker);
 
