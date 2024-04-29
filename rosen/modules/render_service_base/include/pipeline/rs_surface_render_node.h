@@ -1018,16 +1018,6 @@ public:
 
     void SetIsParentUifirstNodeEnableParam(bool b);
 
-    MultiThreadCacheType GetLastFrameUifirstFlag()
-    {
-        return lastFrameUifirstFlag_;
-    }
-
-    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
-    {
-        lastFrameUifirstFlag_ = b;
-    }
-
     void SetUifirstChildrenDirtyRectParam(RectI rect);
 
     RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
@@ -1292,7 +1282,6 @@ private:
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
-    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
 
     bool ancoForceDoDirect_ = false;
 
