@@ -55,6 +55,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
+#include "platform/ohos/rs_node_stats.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_skia_filter.h"
@@ -5345,6 +5346,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         // count processed canvas node
         RS_TRACE_NAME_FMT("%s PureContainerNode/ProcessedNodes: %u/%u", node.GetName().c_str(),
             processedPureContainerNode_, processedCanvasNodeInCurrentSurface_);
+        const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(
+            processedCanvasNodeInCurrentSurface_, node.GetId(), node.GetName());
+        RSNodeStats::GetInstance().AddNodeStats(nodeStats);
         processedCanvasNodeInCurrentSurface_ = 0; // reset
         processedPureContainerNode_ = 0;
     }

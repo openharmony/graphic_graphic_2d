@@ -36,6 +36,7 @@
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
+#include "platform/ohos/rs_node_stats.h"
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
@@ -242,7 +243,9 @@ void RSUniRenderThread::Render()
     }
     // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
+    RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(canvas);
+    RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     RSMainThread::Instance()->PerfForBlurIfNeeded();
 
     if (RSMainThread::Instance()->GetMarkRenderFlag() == false) {
