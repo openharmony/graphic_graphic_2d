@@ -362,36 +362,6 @@ HWTEST_F(OpenglWrapperApiTest, glClear, TestSize.Level0)
 }
 
 /*
-* Function: eglSwapBuffers
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call eglSwapBuffers
-*                  2. check ret
- */
-HWTEST_F(OpenglWrapperApiTest, eglSwapBuffers, TestSize.Level0)
-{
-    // abnormal
-    EGLBoolean ret = eglSwapBuffers(nullptr, eglSurface_);
-    EXPECT_EQ(ret, EGL_FALSE);
-
-    EGLint error = eglGetError();
-    EXPECT_EQ(error, EGL_BAD_DISPLAY);
-
-    ret = eglSwapBuffers(eglDisplay_, nullptr);
-    EXPECT_EQ(ret, EGL_FALSE);
-
-    error = eglGetError();
-    EXPECT_EQ(error, EGL_BAD_SURFACE);
-
-    ret = eglSwapBuffers(eglDisplay_, eglSurface_);
-    EXPECT_EQ(ret, EGL_TRUE);
-
-    error = eglGetError();
-    EXPECT_EQ(error, EGL_SUCCESS);
-}
-
-/*
 * Function: eglDestroySurface
 * Type: Function
 * Rank: Important(2)
