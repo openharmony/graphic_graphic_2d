@@ -13,14 +13,13 @@
  * limitations under the License.
  */
 
+#ifndef STROKE_RECT_SHADER_H
+#define STROKE_RECT_SHADER_H
+
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_canvas.h>
 #include <native_drawing/drawing_rect.h>
-
 #include "../test_base.h"
-
-#ifndef STROKE_RECT_SHADER_H
-#define STROKE_RECT_SHADER_H
 
 enum { K_W = 690, K_H = 300 };
 class StrokeRectShader : public TestBase {

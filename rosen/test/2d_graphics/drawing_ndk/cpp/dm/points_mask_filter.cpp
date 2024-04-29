@@ -29,14 +29,14 @@
 
 enum {
     K_W = 512,
-    k_H = 256,
+    K_H = 256,
     N = 30,
 };
 
 PointsMaskFilter::PointsMaskFilter()
 {
     bitmapWidth_ = K_W;
-    bitmapHeight_ = k_H;
+    bitmapHeight_ = K_H;
     fileName_ = "point_smaskfilter";
 }
 

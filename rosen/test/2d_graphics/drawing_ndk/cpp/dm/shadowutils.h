@@ -23,7 +23,7 @@
 
 class ShadowUtils : public TestBase {
 public:
-    enum ShadowMode { kDebugColorNoOccluders, kDebugColorOccluders, kGrayscale };
+    enum ShadowMode { K_NO_OCCLUDERS, K_OCCLUDERS, K_GRAY_SCALE };
     explicit ShadowUtils(ShadowMode m);
     ~ShadowUtils() = default;
 

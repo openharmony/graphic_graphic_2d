@@ -28,10 +28,49 @@
 
 #include "common/log_common.h"
 
+void drawRect(OH_Drawing_Canvas* canvas, OH_Drawing_Pen* pen, bool aa)
+{
+    float kPad = 20;
+    float kSize = 100;
+    float fWidth = 10.f;
+    float fMiter = 0.01f;
+    OH_Drawing_Rect* kRect = OH_Drawing_RectCreate(0, 0, kSize, kSize);
+
+    OH_Drawing_PenSetAntiAlias(pen, aa);
+    OH_Drawing_CanvasSave(canvas);
+    OH_Drawing_PenSetWidth(pen, fWidth);
+    OH_Drawing_PenSetJoin(pen, OH_Drawing_PenLineJoinStyle::LINE_BEVEL_JOIN);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
+    OH_Drawing_CanvasDrawRect(canvas, kRect);
+    OH_Drawing_CanvasTranslate(canvas, kSize + kPad, 0);
+
+    OH_Drawing_PenSetJoin(pen, OH_Drawing_PenLineJoinStyle::LINE_MITER_JOIN);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
+    OH_Drawing_CanvasDrawRect(canvas, kRect);
+    OH_Drawing_CanvasTranslate(canvas, kSize + kPad, 0);
+
+    OH_Drawing_PenSetMiterLimit(pen, fMiter);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
+    OH_Drawing_CanvasDrawRect(canvas, kRect);
+    OH_Drawing_CanvasTranslate(canvas, kSize + kPad, 0);
+
+    OH_Drawing_PenSetJoin(pen, OH_Drawing_PenLineJoinStyle::LINE_ROUND_JOIN);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
+    OH_Drawing_CanvasDrawRect(canvas, kRect);
+    OH_Drawing_CanvasTranslate(canvas, kSize + kPad, 0);
+
+    OH_Drawing_PenSetWidth(pen, 0);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
+    OH_Drawing_CanvasDrawRect(canvas, kRect);
+
+    OH_Drawing_CanvasRestore(canvas);
+    OH_Drawing_CanvasTranslate(canvas, 0, kSize + kPad);
+
+    OH_Drawing_RectDestroy(kRect);
+}
 void StrokeRectShader::OnTestFunction(OH_Drawing_Canvas* canvas)
 {
-    float kSize;
-    OH_Drawing_Rect* kRect = OH_Drawing_RectCreate(0, 0, kSize, kSize);
+    float kSize = 100;
     DrawRect Rect = { 0, 0, kSize, kSize };
     OH_Drawing_Point* startPts = OH_Drawing_PointCreate(Rect.fLeft, Rect.fTop);
     OH_Drawing_Point* endPts = OH_Drawing_PointCreate(Rect.fRight, Rect.fBottom);
@@ -42,51 +81,21 @@ void StrokeRectShader::OnTestFunction(OH_Drawing_Canvas* canvas)
 
     int nCount = 2;
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
-    OH_Drawing_ShaderEffect* shaderEffect =
-        OH_Drawing_ShaderEffectCreateLinearGradient(startPts, endPts, kColors, nullptr, nCount, OH_Drawing_TileMode::CLAMP);
+    OH_Drawing_ShaderEffect* shaderEffect = OH_Drawing_ShaderEffectCreateLinearGradient(
+        startPts, endPts, kColors, nullptr, nCount, OH_Drawing_TileMode::CLAMP);
     OH_Drawing_PenSetShaderEffect(pen, shaderEffect);
 
     float fHalf = 0.5f;
-    float fWidth = 10.f;
-    float fMiter = 0.01f;
+
     OH_Drawing_CanvasTranslate(canvas, fHalf * (Rect.fLeft + Rect.fRight), fHalf * (Rect.fTop + Rect.fBottom));
     float kPad = 20;
     for (auto aa : { false, true }) {
-        OH_Drawing_PenSetAntiAlias(pen, aa);
-        OH_Drawing_CanvasSave(canvas);
-        OH_Drawing_PenSetWidth(pen, fWidth);
-        OH_Drawing_PenSetJoin(pen, OH_Drawing_PenLineJoinStyle::LINE_BEVEL_JOIN);
-        OH_Drawing_CanvasAttachPen(canvas, pen);
-        OH_Drawing_CanvasDrawRect(canvas, kRect);
-        OH_Drawing_CanvasTranslate(canvas, Rect.width() + kPad, 0);
-
-        OH_Drawing_PenSetJoin(pen, OH_Drawing_PenLineJoinStyle::LINE_MITER_JOIN);
-        OH_Drawing_CanvasAttachPen(canvas, pen);
-        OH_Drawing_CanvasDrawRect(canvas, kRect);
-        OH_Drawing_CanvasTranslate(canvas, Rect.width() + kPad, 0);
-
-        OH_Drawing_PenSetMiterLimit(pen, fMiter);
-        OH_Drawing_CanvasAttachPen(canvas, pen);
-        OH_Drawing_CanvasDrawRect(canvas, kRect);
-        OH_Drawing_CanvasTranslate(canvas, Rect.width() + kPad, 0);
-
-        OH_Drawing_PenSetJoin(pen, OH_Drawing_PenLineJoinStyle::LINE_ROUND_JOIN);
-        OH_Drawing_CanvasAttachPen(canvas, pen);
-        OH_Drawing_CanvasDrawRect(canvas, kRect);
-        OH_Drawing_CanvasTranslate(canvas, Rect.width() + kPad, 0);
-
-        OH_Drawing_PenSetWidth(pen, 0);
-        OH_Drawing_CanvasAttachPen(canvas, pen);
-        OH_Drawing_CanvasDrawRect(canvas, kRect);
-
-        OH_Drawing_CanvasRestore(canvas);
-        OH_Drawing_CanvasTranslate(canvas, 0, Rect.height() + kPad);
+        drawRect(canvas, pen, aa);
     }
 
     OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_ShaderEffectDestroy(shaderEffect);
     OH_Drawing_PenDestroy(pen);
-    OH_Drawing_RectDestroy(kRect);
     OH_Drawing_PointDestroy(startPts);
     OH_Drawing_PointDestroy(endPts);
 }

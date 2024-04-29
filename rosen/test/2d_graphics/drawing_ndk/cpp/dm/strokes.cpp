@@ -46,7 +46,7 @@ void rnd_rect(DrawRect& r, OH_Drawing_Pen* pen, TestRend& rand)
     float woffset = rand.nextUScalar1();
 
     r.setXYWH(x, y, w, h);
-    r.offset(-w / 2 + woffset, -h / 2 + hoffset);
+    r.offset(-w / 2 + woffset, -h / 2 + hoffset); // 2 表示去中点进行偏移
 
     OH_Drawing_PenSetColor(pen, rand.nextU() | 0xFF000000);
 }
@@ -55,7 +55,7 @@ void rnd_rect(DrawRect& r, OH_Drawing_Pen* pen, TestRend& rand)
 Strokes2::Strokes2()
 {
     bitmapWidth_ = K_W;
-    bitmapHeight_ = K_H * 2;
+    bitmapHeight_ = K_H * 2;// 2 只画一半的高度
     fileName_ = "strokes_poly";
 }
 
