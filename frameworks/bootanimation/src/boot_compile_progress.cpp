@@ -31,7 +31,7 @@
 #include "util.h"
 
 constexpr const char* OTA_COMPILE_TIME_LIMIT = "persist.bms.optimizing_apps.timing";
-constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 5 * 60;
+constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 4 * 60;
 
 constexpr const char* OTA_COMPILE_DISPLAY_INFO = "const.bms.optimizing_apps.display_info";
 const std::string OTA_COMPILE_DISPLAY_INFO_DEFAULT = "正在优化应用";
@@ -117,6 +117,11 @@ bool BootCompileProgress::RegisterVsyncCallback()
         return false;
     }
 
+    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
+        LOGI("bms compile is already done.");
+        return false;
+    }
+
     auto& rsClient = Rosen::RSInterfaces::GetInstance();
     int32_t retry = 0;
     while (receiver_ == nullptr) {
@@ -160,7 +165,8 @@ bool BootCompileProgress::RegisterVsyncCallback()
 bool BootCompileProgress::WaitBmsStartIfNeeded()
 {
     int waitSeconds = 0;
-    while (system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_BEGIN) {
+    while (system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_BEGIN
+        && system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_END) {
         if (++waitSeconds > WAITING_SECONDS) {
             break;
         }
@@ -168,7 +174,8 @@ bool BootCompileProgress::WaitBmsStartIfNeeded()
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_BEGIN) {
+    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_BEGIN
+        && system::GetParameter(BMS_COMPILE_STATUS, "-1") != BMS_COMPILE_STATUS_END) {
         LOGE("Bms did not start ota compile");
         return false;
     }
