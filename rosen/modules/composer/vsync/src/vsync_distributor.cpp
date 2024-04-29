@@ -837,6 +837,7 @@ VsyncError VSyncDistributor::SetHighPriorityVSyncRate(int32_t highPriorityRate, 
 VsyncError VSyncDistributor::GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos)
 {
     infos.clear();
+    std::lock_guard<std::mutex> locker(mutex_);
     for (auto &connection : connections_) {
         infos.push_back(connection->info_);
     }

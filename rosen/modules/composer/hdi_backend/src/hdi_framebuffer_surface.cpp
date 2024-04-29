@@ -142,6 +142,7 @@ int32_t HdiFramebufferSurface::ReleaseFramebuffer(
 
 void HdiFramebufferSurface::ClearFrameBuffer()
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     while (!availableBuffers_.empty()) {
         availableBuffers_.pop();
     }
