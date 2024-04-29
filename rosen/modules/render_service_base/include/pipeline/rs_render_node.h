@@ -589,6 +589,9 @@ public:
     }
 
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
+
+    // Deprecated! Do not use this interface.
+    // This interface has crash risks and will be deleted in later versions.
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
 
     void UpdatePointLightDirtySlot();
