@@ -278,7 +278,7 @@ void RSScreenManager::ForceRefreshOneFrameIfNoRNV()
         mainThread->PostTask([mainThread]() {
             mainThread->SetDirtyFlag();
         });
-        mainThread->ForceRefreshForUni();
+        mainThread->RequestNextVSync();
     }
 }
 
