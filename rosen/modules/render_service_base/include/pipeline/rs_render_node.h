@@ -932,6 +932,8 @@ struct SharedTransitionParam {
     NodeId outNodeId_;
 
     RSB_EXPORT static std::map<NodeId, std::weak_ptr<SharedTransitionParam>> unpairedShareTransitions_;
+    bool paired_ = true; // treated as paired by default, until we fail to pair them
+
 private:
     enum class NodeHierarchyRelation : uint8_t {
         UNKNOWN = -1,

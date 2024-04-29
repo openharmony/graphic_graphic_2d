@@ -20,6 +20,9 @@
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
+namespace {
+thread_local Drawing::Matrix parentSurfaceMatrix_;
+}
 
 void RSRenderParams::SetAlpha(float alpha)
 {
@@ -59,11 +62,10 @@ const Drawing::Matrix& RSRenderParams::GetMatrix() const
     return matrix_;
 }
 
-void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas,
-    const Drawing::Matrix& parentSurfaceMatrix) const
+void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const
 {
     if (UNLIKELY(HasSandBox())) {
-        canvas.SetMatrix(parentSurfaceMatrix);
+        canvas.SetMatrix(parentSurfaceMatrix_);
         canvas.ConcatMatrix(matrix_);
         canvas.SetAlpha(alpha_);
     } else {
@@ -365,6 +367,15 @@ std::string RSRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);
     ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
     return ret;
+}
+
+void RSRenderParams::SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix)
+{
+    parentSurfaceMatrix_ = parentSurfaceMatrix;
+}
+const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
+{
+    return parentSurfaceMatrix_;
 }
 
 } // namespace OHOS::Rosen

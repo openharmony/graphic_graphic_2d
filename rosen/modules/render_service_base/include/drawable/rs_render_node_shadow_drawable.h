@@ -13,27 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_SHADOW_DRAWABLE_H
-#define RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_SHADOW_DRAWABLE_H
+#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_SHADOW_DRAWABLE_H
+#define RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_SHADOW_DRAWABLE_H
 
 #include "drawable/rs_render_node_drawable_adapter.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 class RSRenderNodeShadowDrawable : public RSRenderNodeDrawableAdapter {
 public:
+    explicit RSRenderNodeShadowDrawable(
+        std::shared_ptr<const RSRenderNode> node, std::shared_ptr<RSRenderNodeDrawableAdapter> nodeDrawable);
     ~RSRenderNodeShadowDrawable() override = default;
-
-    static Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
 
     void Draw(Drawing::Canvas& canvas) override;
     void DumpDrawableTree(int32_t depth, std::string& out) const override;
 
+    void OnDetach();
+
 private:
-    explicit RSRenderNodeShadowDrawable(std::shared_ptr<const RSRenderNode> node)
-        : RSRenderNodeDrawableAdapter(std::move(node))
-    {}
-    using Registrar = RenderNodeShadowDrawableRegistrar<OnGenerate>;
-    static Registrar instance_;
+    RSRenderNodeDrawableAdapter::SharedPtr nodeDrawable_;
 };
 
 } // namespace OHOS::Rosen::DrawableV2

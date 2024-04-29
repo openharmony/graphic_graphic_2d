@@ -23,8 +23,8 @@
 
 namespace OHOS::Rosen {
 #define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string(#basicType "[") + std::to_string(basicType) + "] ")
-#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + rect.ToString() + "] ")
-#define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + param.ToString() + "] ")
+#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + (rect).ToString() + "] ")
+#define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + (param).ToString() + "] ")
 
 struct DirtyRegionInfoForDFX {
     RectI oldDirty;
@@ -49,7 +49,7 @@ public:
     void SetMatrix(const Drawing::Matrix& matrix);
     const Drawing::Matrix& GetMatrix() const;
 
-    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, const Drawing::Matrix& parentSurfaceMatrix) const;
+    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
 
     void SetBoundsRect(const Drawing::RectF& boundsRect);
     const Drawing::Rect& GetBounds() const;
@@ -132,6 +132,9 @@ public:
 
     // dfx
     virtual std::string ToString() const;
+
+    static void SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix);
+    static const Drawing::Matrix& GetParentSurfaceMatrix();
 
 protected:
     bool needSync_ = false;

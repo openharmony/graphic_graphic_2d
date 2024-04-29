@@ -481,11 +481,11 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
-    auto parentSurfaceMatrix = parentSurfaceMatrix_;
-    parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
+    auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
+    RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
-    parentSurfaceMatrix_ = parentSurfaceMatrix;
+    RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait)

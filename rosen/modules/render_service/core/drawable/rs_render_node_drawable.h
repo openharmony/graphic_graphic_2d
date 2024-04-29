@@ -66,11 +66,6 @@ public:
         return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
     }
 
-    static inline const Drawing::Matrix& GetParentSurfaceMatrix()
-    {
-        return parentSurfaceMatrix_;
-    }
-
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
@@ -107,7 +102,6 @@ protected:
     static void ProcessedNodeCountInc();
     static void ClearProcessedNodeCount();
     static thread_local bool drawBlurForCache_;
-    static thread_local Drawing::Matrix parentSurfaceMatrix_;
 
 private:
     DrawableCacheType cacheType_ = DrawableCacheType::NONE;

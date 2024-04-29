@@ -233,6 +233,7 @@ ohos_source_set("render_service_base_src") {
     "src/drawable/rs_property_drawable_foreground.cpp",
     "src/drawable/rs_property_drawable_utils.cpp",
     "src/drawable/rs_render_node_drawable_adapter.cpp",
+    "src/drawable/rs_render_node_shadow_drawable.cpp",
 
     #render
     "src/render/rs_aibar_filter.cpp",
