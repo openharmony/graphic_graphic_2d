@@ -13,24 +13,27 @@
  * limitations under the License.
  */
 
-#include "../test_base.h"
 #include <bits/alltypes.h>
-#include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>
+#include <native_drawing/drawing_rect.h>
+
+#include "../test_base.h"
 
 #ifndef STROKE_RECT_SHADER_H
 #define STROKE_RECT_SHADER_H
 
-
+enum { K_W = 690, K_H = 300 };
 class StrokeRectShader : public TestBase {
 public:
-    StrokeRectShader() {
-        bitmapWidth_ = 690;
-        bitmapHeight_ = 300;
+    StrokeRectShader()
+    {
+        bitmapWidth_ = K_W;
+        bitmapHeight_ = K_H;
     }
     ~StrokeRectShader() = default;
+
 protected:
     void OnTestFunction(OH_Drawing_Canvas* canvas) override;
 };
 
-#endif //STROKE_RECT_SHADER
+#endif // STROKE_RECT_SHADER

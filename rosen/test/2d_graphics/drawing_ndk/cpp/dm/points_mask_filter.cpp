@@ -14,6 +14,7 @@
  */
 
 #include "points_mask_filter.h"
+
 #include <bits/alltypes.h>
 #include <hilog/log.h>
 #include <native_drawing/drawing_filter.h>
@@ -21,37 +22,49 @@
 #include <native_drawing/drawing_path_effect.h>
 #include <native_drawing/drawing_pen.h>
 #include <native_drawing/drawing_rect.h>
-#include "common/log_common.h"
+
 #include "test_common.h"
 
-PointsMaskFilter::PointsMaskFilter() {
-    // skia dm file gm\points.cpp
-    bitmapWidth_ = 512;
-    bitmapHeight_ = 256;
+#include "common/log_common.h"
+
+enum {
+    K_W = 512,
+    k_H = 256,
+    N = 30,
+};
+
+PointsMaskFilter::PointsMaskFilter()
+{
+    bitmapWidth_ = K_W;
+    bitmapHeight_ = k_H;
     fileName_ = "point_smaskfilter";
 }
-constexpr int N = 30;
+
 // 用例名: pointsmaskfilter 测试 OH_Drawing_MaskFilterCreateBlur
-// 迁移基于skia gm\points.cpp->dm\points_mask_filter.cpp
-void PointsMaskFilter::OnTestFunction(OH_Drawing_Canvas *canvas) {
-    DRAWING_LOGI("pointsmaskfilter::OnTestFunction start");
+void PointsMaskFilter::OnTestFunction(OH_Drawing_Canvas* canvas)
+{
+    float fRange = 220.0f;   // 点的x坐标范围
+    float fOffset = 18.0f;   // 点的x坐标偏移量
+    float fRadius = 6.0f;    // 模糊半径
+    float fOffsetX = 256.0f; // 画布平移的x坐标量
+    float fWidth = 10.0f;
     OH_Drawing_Point2D pts[N];
     TestRend testRend;
-    for (OH_Drawing_Point2D &p : pts) {
-        p.x = testRend.nextF() * 220 + 18;
-        p.y = testRend.nextF() * 220 + 18;
+    for (OH_Drawing_Point2D& p : pts) {
+        p.x = testRend.nextF() * fRange + fOffset;
+        p.y = testRend.nextF() * fRange + fOffset;
     }
 
-    OH_Drawing_MaskFilter *maskFilter = OH_Drawing_MaskFilterCreateBlur(OH_Drawing_BlurType::NORMAL, 6, true);
+    OH_Drawing_MaskFilter* maskFilter = OH_Drawing_MaskFilterCreateBlur(OH_Drawing_BlurType::NORMAL, fRadius, true);
 
-    const OH_Drawing_PenLineCapStyle caps[] = {OH_Drawing_PenLineCapStyle::LINE_SQUARE_CAP,
-                                               OH_Drawing_PenLineCapStyle::LINE_ROUND_CAP};
+    const OH_Drawing_PenLineCapStyle caps[] = { OH_Drawing_PenLineCapStyle::LINE_SQUARE_CAP,
+        OH_Drawing_PenLineCapStyle::LINE_ROUND_CAP };
     // 创建一个pen对象
-    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetAntiAlias(pen, true);
     OH_Drawing_CanvasAttachPen(canvas, pen);
-    OH_Drawing_PenSetWidth(pen, 10.f);
-    OH_Drawing_Filter *filter = OH_Drawing_FilterCreate();
+    OH_Drawing_PenSetWidth(pen, fWidth);
+    OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
     for (auto cap : caps) {
         OH_Drawing_PenSetCap(pen, cap);
         OH_Drawing_FilterSetMaskFilter(filter, maskFilter);
@@ -66,7 +79,7 @@ void PointsMaskFilter::OnTestFunction(OH_Drawing_Canvas *canvas) {
 
         OH_Drawing_CanvasAttachPen(canvas, pen);
         OH_Drawing_CanvasDrawPoints(canvas, OH_Drawing_PointMode::POINT_MODE_POINTS, N, pts);
-        OH_Drawing_CanvasTranslate(canvas, 256, 0);
+        OH_Drawing_CanvasTranslate(canvas, fOffsetX, 0);
     }
     OH_Drawing_PenDestroy(pen);
     OH_Drawing_FilterDestroy(filter);
