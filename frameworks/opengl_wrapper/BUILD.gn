@@ -85,6 +85,7 @@ if (current_os != "ohos") {
     public_deps = [ "//third_party/openGLES:libGLES" ]
     external_deps = [
       "c_utils:utils",
+      "graphic_surface:surface",
       "hilog:libhilog",
       "init:libbeget_proxy",
       "init:libbegetutil",
