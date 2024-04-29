@@ -25,7 +25,7 @@
 #include "test_common.h"
 #include "common/log_common.h"
 
-ArcOfZorroGM::ArcOfZorroGM()
+ArcOfZorro::ArcOfZorro()
 {
     // file gm/arcofzorro.cpp
     bitmapWidth_ = 1000;  // 1000宽度
@@ -33,7 +33,7 @@ ArcOfZorroGM::ArcOfZorroGM()
     fileName_ = "arcofzorro";
 }
 
-void ArcOfZorroGM::OnTestFunction(OH_Drawing_Canvas *canvas)
+void ArcOfZorro::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
     // 用例名: arcofzorro 测试 OH_Drawing_CanvasDrawArc
     // 迁移基于源码arcofzorro->arcofzorro
