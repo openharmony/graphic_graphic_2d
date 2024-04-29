@@ -25,10 +25,6 @@ config("socketpair_config") {
 }
 
 config("socketpair_public_config") {
-  include_dirs = []
-}
-
-config("socketpair_all_dependent_config") {
   include_dirs = [ "export" ]
 }
 
@@ -38,7 +34,6 @@ ohos_shared_library("socketpair") {
   configs = [ ":socketpair_config" ]
 
   public_configs = [ ":socketpair_public_config" ]
-  all_dependent_configs = [ ":socketpair_all_dependent_config" ]
 
   deps = [ "//foundation/graphic/graphic_2d/utils:scoped_bytrace" ]
 

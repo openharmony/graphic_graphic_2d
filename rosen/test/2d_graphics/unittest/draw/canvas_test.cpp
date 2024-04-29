@@ -339,6 +339,37 @@ HWTEST_F(CanvasTest, CanvasDrawRegionTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanvasDrawAtlasTest001
+ * @tc.desc: Test for drawing Atlas on the Canvas.
+ * @tc.type: FUNC
+ * @tc.require: I719R9
+ */
+HWTEST_F(CanvasTest, CanvasDrawAtlasTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Bitmap bitmap;
+    BitmapFormat format {ColorType::COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bitmap.Build(200, 200, format);
+    bitmap.ClearWithColor(Color::COLOR_WHITE);
+    RSXform xform[] = { {25, 36, 2, 5}, {7, 8, 9, 12} };
+    Rect rect[] = { {0, 0, 50, 50}, {50, 50, 100, 100}};
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, nullptr, 2,
+        BlendMode::SRC, SamplingOptions(), nullptr);
+    Brush brush;
+    ColorQuad colors[] = {0xffffffff, 0xff000000};
+    Rect cullRect(0, 0, 100, 100);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, 2,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, -10,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+    canvas->DrawAtlas(bitmap.MakeImage().get(), xform, rect, colors, 5000,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+    canvas->DrawAtlas(nullptr, xform, rect, colors, 2,
+        BlendMode::SRC, SamplingOptions(), &cullRect);
+}
+
+/**
  * @tc.name: CanvasDrawBitmapTest001
  * @tc.desc: Test for drawing Bitmap on the Canvas.
  * @tc.type: FUNC
@@ -708,6 +739,49 @@ HWTEST_F(CanvasTest, CanvasAttachAndDetachBrushTest001, TestSize.Level1)
     Brush brush(Color::COLOR_GREEN);
     canvas->AttachBrush(brush);
     canvas->DetachBrush();
+}
+
+/**
+ * @tc.name: GetRecordingStateTest001
+ * @tc.desc: Test for GetRecordingState functions.
+ * @tc.type: FUNC
+ * @tc.require: I719U5
+ */
+HWTEST_F(CanvasTest, GetRecordingStateTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    canvas->SetRecordingState(true);
+    bool state = canvas->GetRecordingState();
+    ASSERT_TRUE(state);
+}
+
+/**
+ * @tc.name: SetRecordingStateTest001
+ * @tc.desc: Test for SetRecordingState functions.
+ * @tc.type: FUNC
+ * @tc.require: I719U5
+ */
+HWTEST_F(CanvasTest, SetRecordingStateTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    canvas->SetRecordingState(false);
+    bool state = canvas->GetRecordingState();
+    ASSERT_TRUE(!state);
+}
+
+/**
+ * @tc.name: GetDrawingTypeTest001
+ * @tc.desc: Test for GetDrawingType functions.
+ * @tc.type: FUNC
+ * @tc.require: I719U5
+ */
+HWTEST_F(CanvasTest, GetDrawingTypeTest001, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::OverDrawCanvas> overDrawCanvas;
+    DrawingType type = overDrawCanvas->GetDrawingType();
+    ASSERT_TRUE(type == DrawingType::OVER_DRAW);
 }
 
 /**

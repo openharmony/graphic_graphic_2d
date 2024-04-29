@@ -229,6 +229,10 @@ void RSMaterialFilter::PostProcess(Drawing::Canvas& canvas)
 {
     Drawing::Brush brush;
     brush.SetColor(maskColor_.AsArgbInt());
+    // Missed from copying snapshot to canvas if doesn't use snapshot
+    // Not used without cache
+    if (RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled())
+        brush.SetAntiAlias(true);
     canvas.DrawBackground(brush);
 }
 
@@ -309,9 +313,10 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
         if (!visualEffectContainer) {
             return;
         }
-        auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);
-        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]);
-        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]);
+        auto greyFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_GREY, Drawing::DrawingPaintType::BRUSH);
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_1, greyCoef_.value()[0]); // blur radius
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_2, greyCoef_.value()[1]); // blur radius
         visualEffectContainer->AddToChainedFilter(greyFilter);
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         if (!geRender) {

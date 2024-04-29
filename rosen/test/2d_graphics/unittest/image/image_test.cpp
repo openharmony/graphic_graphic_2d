@@ -158,13 +158,9 @@ HWTEST_F(ImageTest, ImageGetHeightTest002, TestSize.Level1)
  */
 HWTEST_F(ImageTest, ImageGetUniqueIDTest001, TestSize.Level1)
 {
-    Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    bitmap.Build(15, 15, bitmapFormat);
+    // GetUniqueID will change all the time
     Image image;
     ASSERT_EQ(0, image.GetUniqueID());
-    image.BuildFromBitmap(bitmap);
-    ASSERT_EQ(10, image.GetUniqueID());
 }
 
 /**

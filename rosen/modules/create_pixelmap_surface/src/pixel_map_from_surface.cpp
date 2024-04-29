@@ -95,7 +95,7 @@ static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_
 #if defined(RS_ENABLE_GL)
 class DmaMem {
 public:
-    sptr<SurfaceBuffer> DmaMemAlloc(const uint32_t &width, const uint32_t &height,
+    static sptr<SurfaceBuffer> DmaMemAlloc(const uint32_t &width, const uint32_t &height,
         const std::unique_ptr<Media::PixelMap>& pixelmap);
     sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *context,
         sptr<SurfaceBuffer> surfaceBuffer);
@@ -201,7 +201,6 @@ private:
     bool DrawImage(GrRecordingContext *context, const OHOS::Media::Rect &srcRect, const sk_sp<SkSurface> &surface);
     void Clear() noexcept;
 #if defined(RS_ENABLE_VK)
-    Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat);
     static void DeleteVkImage(void *context);
 #endif
     std::unique_ptr<OHOS::Media::PixelMap> CreateForVK(const sptr<Surface> &surface, const OHOS::Media::Rect &srcRect);
@@ -257,7 +256,7 @@ void PixelMapFromSurface::Clear() noexcept
 }
 
 #if defined(RS_ENABLE_VK)
-Drawing::ColorType PixelMapFromSurface::GetColorTypeFromVKFormat(VkFormat vkFormat)
+static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
     switch (vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
@@ -307,7 +306,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sp
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
 
-    sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(srcRect.width, srcRect.height, pixelMap);
+    sptr<SurfaceBuffer> surfaceBuffer = DmaMem::DmaMemAlloc(srcRect.width, srcRect.height, pixelMap);
     auto skSurface = dmaMem.GetSkSurfaceFromSurfaceBuffer(grContext.get(), surfaceBuffer);
     if (skSurface == nullptr) {
         dmaMem.ReleaseGLMemory();
@@ -334,7 +333,6 @@ void PixelMapFromSurface::DeleteVkImage(void *context)
     if (cleanupHelper != nullptr) {
         cleanupHelper->UnRef();
     }
-    RSBackgroundThread::Instance().SetGrResourceFinishFlag(false);
 }
 #endif
 
@@ -344,7 +342,7 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
     const OHOS::Media::Rect &srcRect)
 {
 #if defined(RS_ENABLE_VK)
-    ScopedBytrace trace(__func__);
+    ScopedBytrace trace1(__func__);
     Drawing::BackendTexture backendTextureTmp =
         NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBufferTmp,
         surfaceBufferTmp->GetWidth(), surfaceBufferTmp->GetHeight());
@@ -363,7 +361,7 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         backendTextureTmp.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT,
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
-        DeleteVkImage, cleanUpHelper);
+        PixelMapFromSurface::DeleteVkImage, cleanUpHelper);
     if (drawingSurface == nullptr) {
         return false;
     }
@@ -376,8 +374,10 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         OHOS::Rosen::Drawing::Rect(srcRect.left, srcRect.top, srcRect.width, srcRect.height),
         Drawing::SamplingOptions(Drawing::FilterMode::NEAREST),
         OHOS::Rosen::Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-    canvas->Flush();
-    RSBackgroundThread::Instance().SetGrResourceFinishFlag(true);
+    {
+        ScopedBytrace trace2("FlushAndSubmit");
+        drawingSurface->FlushAndSubmit(true);
+    }
     return true;
 #else
     return false;
@@ -533,10 +533,10 @@ bool PixelMapFromSurface::CreateEGLImage()
 }
 
 bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
-    const OHOS::Media::Rect &srcRect, const sk_sp<SkSurface> &targetSurface)
+    const OHOS::Media::Rect &srcRect, const sk_sp<SkSurface> &surface)
 {
 #if defined(RS_ENABLE_GL)
-    ScopedBytrace trace(__func__);
+    ScopedBytrace trace1(__func__);
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(surfaceBuffer_->GetFormat());
     SkColorType colorType = kRGBA_8888_SkColorType;
     GLuint glType = GL_RGBA8;
@@ -544,7 +544,8 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     int bufferHeight = surfaceBuffer_->GetHeight();
     if (pixelFormat == GRAPHIC_PIXEL_FMT_BGRA_8888) {
         colorType = kBGRA_8888_SkColorType;
-    } else if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+    } else if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
+        pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
         colorType = kRGBA_1010102_SkColorType;
         glType = GL_RGB10_A2;
     }
@@ -558,20 +559,20 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
         return false;
     }
 
-    SkCanvas* canvas = targetSurface->getCanvas();
+    SkCanvas* canvas = surface->getCanvas();
     SkPaint paint;
     paint.setStyle(SkPaint::kFill_Style);
     SkSamplingOptions sampling(SkFilterMode::kNearest);
     {
-        ScopedBytrace trace("DrawImage::drawImageRect");
+        ScopedBytrace trace2("DrawImage::drawImageRect");
         canvas->drawImageRect(image,
             SkRect::MakeXYWH(srcRect.left, srcRect.top, srcRect.width, srcRect.height),
             SkRect::MakeWH(srcRect.width, srcRect.height),
             sampling, &paint, SkCanvas::kStrict_SrcRectConstraint);
     }
     {
-        ScopedBytrace trace("DrawImage::canvas->flush");
-        canvas->flush();
+        ScopedBytrace trace3("flushAndSubmit");
+        surface->flushAndSubmit(true);
     }
     return true;
 #else

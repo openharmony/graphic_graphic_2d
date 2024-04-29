@@ -16,10 +16,12 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_HANDLER_H
 
 #include <atomic>
+#include <map>
 #include <mutex>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
 #include <surface.h>
@@ -215,6 +217,10 @@ public:
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
         }
     }
+    void ReleaseBuffer(SurfaceBufferEntry buffer);
+    void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
+    void CacheBuffer(SurfaceBufferEntry buffer);
+    RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
 #endif
 
 protected:
@@ -230,6 +236,7 @@ private:
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
+    std::map<uint64_t, SurfaceBufferEntry> bufferCache_;
 };
 }
 }

@@ -20,7 +20,10 @@ module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/hm_symbol"
 ohos_unittest("hm_symbol_engine_test") {
   module_out_path = module_output_path
   if (use_skia_txt) {
-    sources = [ "hm_symbol_txt_test.cpp" ]
+    sources = [
+      "hm_symbol_run_test.cpp",
+      "hm_symbol_txt_test.cpp",
+    ]
   }
   include_dirs = [
     "//third_party/googletest/googletest/include",

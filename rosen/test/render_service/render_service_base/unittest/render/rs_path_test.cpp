@@ -14,8 +14,9 @@
  */
 
 #include "gtest/gtest.h"
-#include "render/rs_path.h"
+
 #include "draw/path.h"
+#include "render/rs_path.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
@@ -70,6 +71,18 @@ HWTEST_F(RSPathTest, CreateRSPathTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDrawingPathTest001
+ * @tc.desc: Verify function GetDrawingPath
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetDrawingPathTest001, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    rsPath->GetDrawingPath();
+    ASSERT_NE(rsPath->drPath_, nullptr);
+}
+
+/**
  * @tc.name: SetSkiaPathTest
  * @tc.desc:
  * @tc.type: FUNC
@@ -79,5 +92,31 @@ HWTEST_F(RSPathTest, SetSkiaPathTest, TestSize.Level1)
     Drawing::Path path = CreateDrawingPath();
     RSPath rsPath;
     rsPath.SetDrawingPath(path);
+}
+
+/**
+ * @tc.name: GetPosTanTest001
+ * @tc.desc: Verify function GetPosTan
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetPosTanTest001, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    Vector2f pos = { 1.0f, 1.0f };
+    float degrees = 0.0f;
+    EXPECT_FALSE(rsPath->GetPosTan(0.0f, pos, degrees));
+}
+
+/**
+ * @tc.name: GetPosTanTest002
+ * @tc.desc: Verify function GetPosTan
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPathTest, GetPosTanTest002, TestSize.Level1)
+{
+    auto rsPath = RSPath::CreateRSPath();
+    Vector4f pos = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float degrees = 0.0f;
+    EXPECT_FALSE(rsPath->GetPosTan(0.0f, pos, degrees));
 }
 } // namespace OHOS::Rosen

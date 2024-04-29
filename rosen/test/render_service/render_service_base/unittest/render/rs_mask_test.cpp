@@ -226,6 +226,10 @@ HWTEST_F(RSMaskTest, LifeCycle008, TestSize.Level1)
      */
     Drawing::Path path2;
     mask->SetMaskPath(path2);
+    auto path3 = mask->GetMaskPath();
+    ASSERT_TRUE(path2.GetBounds() == path3->GetBounds());
+
+    ASSERT_TRUE(!mask->GetSvgPicture());
 }
 
 /**
@@ -248,6 +252,23 @@ HWTEST_F(RSMaskTest, LifeCycle009, TestSize.Level1)
     Drawing::Brush brush2;
     mask->SetMaskBrush(brush2);
     ASSERT_TRUE(mask->GetMaskBrush() == brush2);
+}
+
+/**
+ * @tc.name: LifeCycle010
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, LifeCycle010, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Path
+     */
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    Drawing::Path path;
+    std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, pen, brush);
+    ASSERT_TRUE(mask != nullptr);
 }
 
 /**

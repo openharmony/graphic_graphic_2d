@@ -15,6 +15,7 @@
 
 #include "drawing_font.h"
 
+#include "drawing_canvas_utils.h"
 #include "text/font.h"
 
 using namespace OHOS;
@@ -33,7 +34,9 @@ static Typeface* CastToTypeface(OH_Drawing_Typeface* cTypeface)
 
 OH_Drawing_Font* OH_Drawing_FontCreate()
 {
-    return (OH_Drawing_Font*)new Font;
+    Font* font = new Font();
+    font->SetTypeface(g_LoadZhCnTypeface());
+    return (OH_Drawing_Font*)font;
 }
 
 void OH_Drawing_FontSetTypeface(OH_Drawing_Font* cFont, OH_Drawing_Typeface* cTypeface)

@@ -218,27 +218,4 @@ HWTEST(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSiz
     ASSERT_EQ(colorSpace, nullptr);
 }
 #endif
-
-/**
- * @tc.name: DrawDisplayNodeWithParams
- * @tc.desc: Test DrawDisplayNodeWithParams
- * @tc.type: FUNC
- * @tc.require: issueI6GJ1Z
- */
-HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-    renderEngine->Init(true);
-    auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
-    drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
-    RSPaintFilterCanvas recordingCanvas(drawingRecordingCanvas.get());
-
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(id, config);
-
-    BufferDrawParam param;
-    renderEngine->DrawDisplayNodeWithParams(recordingCanvas, node, param);
-}
 }

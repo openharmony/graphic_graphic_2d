@@ -31,7 +31,6 @@
 namespace {
 constexpr int PARAM_DOUBLE = 2;
 constexpr int TRACE_LEVEL_TWO = 2;
-constexpr int16_t BORDER_TRANSPARENT = 255;
 } // namespace
 namespace OHOS::Rosen {
 // ============================================================================
@@ -945,21 +944,20 @@ RSPropertyDrawable::DrawablePtr RSPixelStretchDrawable::Generate(const RSRenderC
 void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     auto& properties = content.GetRenderProperties();
-    auto borderColorAlpha = properties.GetBorderColor()[0].GetAlpha();
     Drawing::Brush brush = brush_;
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        if (borderColorAlpha < BORDER_TRANSPARENT) {
+        if (properties.GetBorderColorIsTransparent()) {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()));
         }
     } else {
         canvas.AttachBrush(brush);
-        if (borderColorAlpha < BORDER_TRANSPARENT) {
+        if (properties.GetBorderColorIsTransparent()) {
             canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
         } else {
             canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());

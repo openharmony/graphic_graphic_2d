@@ -16,7 +16,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/rosen/modules/graphics_effect"
 
-ohos_unittest("GEVisualEffectTest") {
+ohos_unittest("GraphicsEffectTest") {
   module_out_path = module_output_path
 
   sources = [
@@ -44,5 +44,5 @@ ohos_unittest("GEVisualEffectTest") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":GEVisualEffectTest" ]
+  deps = [ ":GraphicsEffectTest" ]
 }

@@ -224,6 +224,7 @@ public:
     Vector4<uint32_t> GetOutlineStyle() const;
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
+    bool GetBorderColorIsTransparent() const;
 
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;
@@ -653,6 +654,9 @@ private:
     friend class DrawableV2::RSBackgroundFilterDrawable;
     friend class DrawableV2::RSShadowDrawable;
     friend class DrawableV2::RSFilterDrawable;
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

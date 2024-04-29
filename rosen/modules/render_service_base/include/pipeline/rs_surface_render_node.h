@@ -450,6 +450,9 @@ public:
     void SetAncoForceDoDirect(bool ancoForceDoDirect);
     bool GetAncoForceDoDirect() const;
 
+    void SetHDRPresent(bool hasHdrPresent);
+    bool GetHDRPresent() const;
+
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     const std::shared_ptr<RSDirtyRegionManager>& GetSyncDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
@@ -778,6 +781,7 @@ public:
     const std::vector<RectI>& GetChildrenNeedFilterRects() const;
     const std::vector<bool>& GetChildrenNeedFilterRectsCacheValid() const;
     const std::vector<std::shared_ptr<RSRenderNode>>& GetChildrenFilterNodes() const;
+    std::vector<RectI> GetChildrenNeedFilterRectsWithoutCacheValid();
 
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
@@ -1094,6 +1098,7 @@ private:
     std::set<NodeId> protectedLayerIds_= {};
 
     bool hasFingerprint_ = false;
+    bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
     int32_t offsetX_ = 0;

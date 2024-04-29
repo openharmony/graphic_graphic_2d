@@ -17,6 +17,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -66,7 +67,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas, parentSurfaceMatrix_);
 
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if ((!uniParam || uniParam->IsOpDropped()) && QuickReject(canvas, params->GetLocalDrawRect())) {
@@ -141,7 +142,8 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
     if (canvasDrawingNode == nullptr) {
         return;
     }
-    canvasDrawingNode->SetNeedProcess(false);
+    auto canvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
+    canvasDrawingParams->SetNeedProcess(false);
     Rosen::Drawing::Matrix mat;
     const auto& params = GetRenderParams();
     if (params == nullptr) {
@@ -200,8 +202,11 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         if (canvasDrawingNode == nullptr) {
             return;
         }
+        auto canvasDrawingParams =
+            static_cast<RSCanvasDrawingRenderParams*>(canvasDrawingNode->GetRenderParams().get());
         DrawContent(*canvas_, rect);
-        canvasDrawingNode->SetNeedProcess(false);
+        canvasDrawingParams->SetNeedProcess(false);
+        canvasDrawingNode->SetDrawCmdListsVisited(true);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }

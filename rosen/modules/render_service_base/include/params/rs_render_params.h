@@ -49,7 +49,7 @@ public:
     void SetMatrix(const Drawing::Matrix& matrix);
     const Drawing::Matrix& GetMatrix() const;
 
-    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
+    void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, const Drawing::Matrix& parentSurfaceMatrix) const;
 
     void SetBoundsRect(const Drawing::RectF& boundsRect);
     const Drawing::Rect& GetBounds() const;
@@ -60,6 +60,7 @@ public:
     // return to add some dirtynode does not mark pending
     bool SetLocalDrawRect(const RectF& localDrawRect);
     const RectF& GetLocalDrawRect() const;
+    virtual bool IsNeedProcess() const { return false; };
 
     void SetHasSandBox(bool hasSandBox);
     bool HasSandBox() const;
@@ -131,8 +132,6 @@ public:
 
     // dfx
     virtual std::string ToString() const;
-
-    static Drawing::Matrix parentSurfaceMatrix_;
 
 protected:
     bool needSync_ = false;

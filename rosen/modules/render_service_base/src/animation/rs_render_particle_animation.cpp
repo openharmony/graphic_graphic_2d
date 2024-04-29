@@ -44,7 +44,7 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     auto target = GetTarget();
     if (!target) {
         return true;
-    } else if (!target->IsOnTheTree() || !target->GetRenderProperties().GetVisible()) {
+    } else if (!target->GetRenderProperties().GetVisible()) {
         target->RemoveModifier(property_->GetId());
         return true;
     }

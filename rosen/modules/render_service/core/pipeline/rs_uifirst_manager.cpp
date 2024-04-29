@@ -514,24 +514,6 @@ CacheProcessStatus RSUifirstManager::GetNodeStatus(NodeId id)
     return CacheProcessStatus::UNKNOWN;
 }
 
-static int GetChildrenAppWindowNum(RSRenderNode& node)
-{
-    int num = 0;
-    for (auto& child : *(node.GetChildren())) {
-        if (!child) {
-            continue;
-        }
-        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceChild) {
-            continue;
-        }
-        if (surfaceChild->IsAppWindow()) {
-            ++num;
-        }
-    }
-    return num;
-}
-
 void RSUifirstManager::UpdateCompletedSurface(NodeId id)
 {
     DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
@@ -691,7 +673,7 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
         return false;
     }
     // 1: Planning: support multi appwindows
-    if (isUIFirstEnable && node.IsLeashWindow() && (GetChildrenAppWindowNum(node) <= 1)) {
+    if (isUIFirstEnable && node.IsLeashWindow()) {
         isNeedAssignToSubThread = (animation || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
             node.GetForceUIFirst()) && !node.HasFilter();
     }

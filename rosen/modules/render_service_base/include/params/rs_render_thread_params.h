@@ -128,6 +128,16 @@ public:
         watermarkImg_ = std::move(watermarkImg);
     }
 
+    void SetOcclusionEnabled(bool isOcclusionEnabled)
+    {
+        isOcclusionEnabled_ = isOcclusionEnabled;
+    }
+
+    bool IsOcclusionEnabled() const
+    {
+        return isOcclusionEnabled_;
+    }
+
     void SetForceCommitLayer(bool forceCommit)
     {
         isForceCommitLayer_ = forceCommit;
@@ -234,6 +244,7 @@ private:
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;

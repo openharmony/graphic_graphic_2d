@@ -62,7 +62,7 @@ void VSyncControllerCallback::OnConnsRefreshRateChanged(const std::vector<std::p
 HWTEST_F(VSyncControllerTest, SetEnable001, Function | MediumTest | Level2)
 {
     bool isGeneratorEnable = false;
-    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true, isGeneratorEnable), VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true, isGeneratorEnable), VSYNC_ERROR_OK);
 }
 
 /*
@@ -99,7 +99,32 @@ HWTEST_F(VSyncControllerTest, SetCallback002, Function | MediumTest | Level2)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetPhaseOffset
  */
-HWTEST_F(VSyncControllerTest, SetPhaseOffset, Function | MediumTest | Level2)
+HWTEST_F(VSyncControllerTest, SetPhaseOffset001, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetPhaseOffset(2), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetEnable002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetEnable
+ */
+HWTEST_F(VSyncControllerTest, SetEnable002, Function | MediumTest | Level2)
+{
+    bool isGeneratorEnable = false;
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(false, isGeneratorEnable), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetPhaseOffset002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPhaseOffset
+ */
+HWTEST_F(VSyncControllerTest, SetPhaseOffset002, Function | MediumTest | Level2)
 {
     ASSERT_EQ(VSyncControllerTest::vsyncController_->SetPhaseOffset(2), VSYNC_ERROR_INVALID_OPERATING);
 }

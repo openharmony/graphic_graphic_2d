@@ -33,8 +33,6 @@ public:
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void InitRenderContext(RenderContext* context);
     void CleanGrResource();
-    void SetGrResourceFinishFlag(const bool& resourceFinish);
-    bool GetGrResourceFinishFlag();
     std::shared_ptr<Drawing::GPUContext> GetShareGPUContext() const;
 #endif
 private:
@@ -55,7 +53,6 @@ private:
     RenderContext* renderContext_ = nullptr;
     std::shared_ptr<Drawing::GPUContext> CreateShareGPUContext();
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
-    std::atomic<bool> resourceFinish_ = false;
 #endif
 };
 }

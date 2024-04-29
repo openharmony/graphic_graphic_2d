@@ -74,7 +74,7 @@ public:
         uint32_t zorder, RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps);
     RequestLayerInfo CreateRCDLayerInfo(
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps);
-    bool IsLoadSuccess();
+    bool IsLoadSuccess() const;
 private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();

@@ -1170,6 +1170,18 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawBackground039, Tes
     OH_Drawing_CanvasDrawBackground(canvas_, brush);
     OH_Drawing_BrushDestroy(brush);
 }
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRect040
+ * @tc.desc: test for DrawPixelMapRect
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRect040, TestSize.Level1)
+{
+    // unkown how to create napi pixelmap
+    OH_Drawing_CanvasDrawPixelMapRect(canvas_, nullptr, nullptr, nullptr, nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

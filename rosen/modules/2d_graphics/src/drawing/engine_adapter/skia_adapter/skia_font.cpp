@@ -122,7 +122,15 @@ void SkiaFont::GetWidths(const uint16_t glyphs[], int count, scalar widths[], Re
         skFont_.getWidths(glyphs, count, widths, nullptr);
         return;
     }
-    SkRect skBounds[count];
+    if (count <= 0) {
+        LOGE("SkiaFont GetWidths error param");
+        return;
+    }
+    SkRect *skBounds = new(std::nothrow) SkRect[count];
+    if (!skBounds) {
+        LOGE("SkiaFont GetWidths no memory or count is too big %{public}d", count);
+        return;
+    }
     for (int idx = 0; idx < count; ++idx) {
         SkiaConvertUtils::DrawingRectCastToSkRect(bounds[idx], skBounds[idx]);
     }
@@ -130,6 +138,7 @@ void SkiaFont::GetWidths(const uint16_t glyphs[], int count, scalar widths[], Re
     for (int idx = 0; idx < count; ++idx) {
         SkiaConvertUtils::SkRectCastToDrawingRect(skBounds[idx], bounds[idx]);
     }
+    delete[] skBounds;
 }
 
 scalar SkiaFont::GetSize() const

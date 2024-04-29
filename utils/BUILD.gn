@@ -81,6 +81,10 @@ group("sandbox_utils") {
   public_deps = [ "sandbox:sandbox_utils" ]
 }
 
+group("rs_frame_report_ext") {
+  public_deps = [ "rs_frame_report_ext:rs_frame_report_ext" ]
+}
+
 ## Build libgraphic_utils.so {{{
 config("libgraphic_utils_public_config") {
   include_dirs = [ "$graphic_2d_root/interfaces/inner_api/common" ]

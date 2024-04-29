@@ -68,6 +68,7 @@ public:
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     using ClearSurfaceTask = std::function<void()>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
+    std::atomic<int32_t> cacheCnt_ = -1;
     virtual RSRenderNodeType GetType() const
     {
         return Type;
@@ -353,6 +354,7 @@ public:
         bool needCheckThread = true, bool releaseAfterGet = false);
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
+    bool IsCacheCompletedSurfaceValid() const;
     bool IsCacheSurfaceValid() const;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -462,7 +464,8 @@ public:
     // for blur filter cache
     void UpdateLastFilterCacheRegion(const std::optional<RectI>& clipRect = std::nullopt);
     void UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect);
-    void UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect);
+    void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect = std::nullopt,
@@ -622,6 +625,8 @@ public:
     const RectI GetFilterCachedRegion() const;
     bool IsEffectNodeNeedTakeSnapShot() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
+    virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
+
 protected:
     virtual void OnApplyModifiers() {}
 

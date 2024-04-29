@@ -202,8 +202,8 @@ public:
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const;
 
-    void SetIsTransparent(bool isTransparent);
-    bool GetIsTransparent() const;
+    void SetTransparentRegion(const Occlusion::Region& transparentRegion);
+    const Occlusion::Region& GetTransparentRegion() const;
 
     void SetOldDirtyInSurface(const RectI& oldDirtyInSurface);
     RectI GetOldDirtyInSurface() const;
@@ -254,6 +254,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    Occlusion::Region transparentRegion_;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;

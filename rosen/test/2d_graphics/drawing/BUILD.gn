@@ -25,6 +25,7 @@ ohos_source_set("demo_set") {
     "drawing_demo.cpp",
     "test_case/draw_path_test.cpp",
     "test_case/draw_rect_test.cpp",
+    "test_case/draw_textblob_test.cpp",
     "test_case/test_base.cpp",
     "test_case/test_common.cpp",
     "test_case_factory.cpp",

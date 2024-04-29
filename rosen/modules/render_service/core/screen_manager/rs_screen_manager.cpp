@@ -829,7 +829,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (screens_.find(id) == screens_.end()) {
+    if (screens_.find(id) == screens_.end() || surface == nullptr) {
         return SCREEN_NOT_FOUND;
     }
     uint64_t surfaceId = surface->GetUniqueId();

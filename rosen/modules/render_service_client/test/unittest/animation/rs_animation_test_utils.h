@@ -79,26 +79,50 @@ const std::string SUCCESS_STRING = "success";
 constexpr bool SUCCESS_BOOL = true;
 
 const Drawing::DrawingPiecewiseParameter BOUNCE_FIRST_PHASE_PARAS = {
-    // the 16: duration, 0: delay, 1 and 1.01: scale
+    // 16: duration, 0: delay, 1 and 1.01: scale
     OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 16, 0, {{"sx", {1, 1.01}}, {"sy", {1, 1.01}}}
 };
 const Drawing::DrawingPiecewiseParameter BOUNCE_SECOND_PHASE_PARAS = {
     OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
-    // the -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
+    // -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
     {{"velocity", -300}, {"mass", 1}, {"stiffness", 328}, {"damping", 16}},
     0, 16, {{"sx", {1.01, 1}}, {"sy", {1.01, 1}}} // 16: duration, 0: delay, 1 and 1.01: scale
 };
 const Drawing::DrawingPiecewiseParameter APPEAR_FIRST_PHASE_PARAS = {
     OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
-    // the -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
+    // -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
     {{"velocity", 0}, {"mass", 1}, {"stiffness", 228}, {"damping", 22}},
     16, 0, {{"sx", {0.9, 1}}, {"sy", {0.9, 1}}} // 16: duration, 0: delay, 1.01: scale
 };
 const Drawing::DrawingPiecewiseParameter APPEAR_SECOND_PHASE_PARAS = {
-    // the 100: duration, 0: delay, 0.0 and 1: alpha
+    // 100: duration, 0: delay, 0.0 and 1: alpha
     OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 100, 0, {{"alpha", {0.0, 1}}}
 };
-}
+const std::vector<float> TIME_PERCENTS = {0.0, 0.35, 0.35, 1.0};
+const std::vector<float> ALPHA_VALUES = {0.4, 1.0, 1.0, 0.4};
+const Drawing::DrawingPiecewiseParameter VARIABLECOLOR_FIRST_PHASE_PARAS = {
+    // 250: duration, 0: delay, 0.4 and 1: alpha
+    OHOS::Rosen::Drawing::DrawingCurveType::SHARP,
+    {{"ctrlX1", 0.33}, {"ctrlY1", 0}, {"ctrlX2", 0.67}, {"ctrlY2", 1}},
+    250, 0, {{"alpha", {0.4, 1}}}
+};
+const Drawing::DrawingPiecewiseParameter VARIABLECOLOR_SECOND_PHASE_PARAS = {
+    // 250: duration, 0: delay, 0.4 and 1: alpha
+    OHOS::Rosen::Drawing::DrawingCurveType::SHARP,
+    {{"ctrlX1", 0.33}, {"ctrlY1", 0}, {"ctrlX2", 0.67}, {"ctrlY2", 1}},
+    450, 250, {{"alpha", {1, 0.4}}}
+};
+const Drawing::DrawingPiecewiseParameter DISAPPEAR_FIRST_PHASE_PARAS = {
+    OHOS::Rosen::Drawing::DrawingCurveType::SPRING,
+    // -300: velocity, 1: mass,  328: stiffness, 16: damping is paramaters of animation
+    {{"velocity", 0}, {"mass", 1}, {"stiffness", 228}, {"damping", 22}},
+    16, 0, {{"sx", {1, 0.3}}, {"sy", {1, 0.3}}} // 16: duration, 0: delay, 1.01: scale
+};
+const Drawing::DrawingPiecewiseParameter DISAPPEAR_SECOND_PHASE_PARAS = {
+    // 100: duration, 0: delay, 0.0 and 1: alpha
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, {}, 100, 0, {{"alpha", {1.0, 0.0}}}
+};
+} // ANIMATIONTEST
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_MODULES_RENDER_SERVICE_CLIENT_TEST_UNITTEST_ANIMATION_RS_ANIMATION_TEST_UTILS_H

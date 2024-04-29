@@ -35,36 +35,38 @@ enum class GEGradientDirection {
     RIGHT_BOTTOM,
     NONE,
     START_TO_END,
-    END_TO_START,
+    END_TO_START
 };
 
 class GELinearGradientBlurPara {
 public:
-    float blurRadius_;
-    // Each pair in fractionStops_ represents <blur degree, position scale>
-    std::vector<std::pair<float, float>> fractionStops_;
-    GEGradientDirection direction_;
-    std::shared_ptr<GEShaderFilter> LinearGradientBlurFilter_;
-    bool useMaskAlgorithm_ = true;
-    float originalBase_ = 1000.0f; // 1000.0f represents original radius_base
+    static constexpr float ORIGINAL_BASE = 1000.0f; // 1000.0f represents original radius_base
+
     explicit GELinearGradientBlurPara(const float blurRadius, const std::vector<std::pair<float, float>> fractionStops,
         const GEGradientDirection direction, const bool maskLinearBlurEnabled)
+        : blurRadius_(blurRadius), fractionStops_(fractionStops), direction_(direction)
     {
-        if (blurRadius > originalBase_) {
+        if (blurRadius > ORIGINAL_BASE) {
             useMaskAlgorithm_ = false;
         } else {
             useMaskAlgorithm_ = true;
         }
-        blurRadius_ = blurRadius;
-        fractionStops_ = fractionStops;
-        direction_ = direction;
+
         if (maskLinearBlurEnabled && useMaskAlgorithm_) {
             auto kawaseParams = std::make_shared<Drawing::GEKawaseBlurShaderFilterParams>();
             kawaseParams->radius = blurRadius_ / 2; // 2: experience factor
             LinearGradientBlurFilter_ = std::make_shared<GEKawaseBlurShaderFilter>(*kawaseParams);
         }
     }
+
     ~GELinearGradientBlurPara() = default;
+
+    float blurRadius_;
+    // Each pair in fractionStops_ represents <blur degree, position scale>
+    std::vector<std::pair<float, float>> fractionStops_;
+    GEGradientDirection direction_;
+    std::shared_ptr<GEShaderFilter> LinearGradientBlurFilter_;
+    bool useMaskAlgorithm_;
 };
 
 } // namespace Rosen
