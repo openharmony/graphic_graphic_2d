@@ -230,7 +230,6 @@ ohos_shared_library("librender_service") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
-      "$rosen_root/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
