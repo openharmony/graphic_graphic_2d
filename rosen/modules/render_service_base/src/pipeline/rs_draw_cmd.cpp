@@ -96,6 +96,13 @@ void RSExtendImageObject::SetNodeId(NodeId id)
     }
 }
 
+void RSExtendImageObject::SetPaint(Drawing::Paint paint)
+{
+    if (rsImage_) {
+        rsImage_->SetPaint(paint);
+    }
+}
+
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
