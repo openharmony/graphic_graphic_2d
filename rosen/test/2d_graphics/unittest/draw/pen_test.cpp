@@ -808,6 +808,21 @@ HWTEST_F(PenTest, OverrideNotEquals002, TestSize.Level1)
     Pen pen2 = Pen(0);
     EXPECT_TRUE(pen1 != pen2);
 }
+
+/**
+ * @tc.name: SetLoop001
+ * @tc.desc: Test for SetLooper
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, SetLoop001, TestSize.Level1)
+{
+    Pen pen;
+    auto looper = BlurDrawLooper::CreateBlurDrawLooper(1.0, 1, 1, Color::COLOR_BLACK);
+    pen.SetLooper(looper);
+    EXPECT_TRUE(looper == pen.GetLooper());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
