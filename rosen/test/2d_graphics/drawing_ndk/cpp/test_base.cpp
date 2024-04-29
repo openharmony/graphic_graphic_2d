@@ -200,47 +200,7 @@ void TestBase::BitmapCanvasToFile(napi_env env)
         return;
     }
 
-    // 使用napi_value 承接创建的编码器对象
-    napi_value packer;
-    // 通过 napi_env 创建编码器，返回result为 IMAGE_RESULT_SUCCESS则创建成功
-    int32_t result = OH_ImagePacker_Create(env, &packer);
-    if (result != IMAGE_RESULT_SUCCESS) {
-        DRAWING_LOGE("failed to OH_ImagePacker_Create");
-        return;
-    }
-    // 通过 napi_env 及上述创建的编码器对象初始化原生实例对象
-    ImagePacker_Native* nativePacker = OH_ImagePacker_InitNative(env, packer);
-    if (nativePacker == nullptr) {
-        DRAWING_LOGE("failed to OH_ImagePacker_InitNative");
-        return;
-    }
-    // 编码参数
-    ImagePacker_Opts opts;
-    // 配置编码格式（必须）
-    opts.format = "image/png";
-    // 配置编码质量（必须）
-    opts.quality = 100; // 100 quality
-    // 打开需要输出的文件（请确保应用有权限访问这个路径）
-    std::string path = "/data/storage/el2/base/files/" + fileName_ + ".png";
-    int fd = open(path.c_str(), O_RDWR | O_CREAT);
-    if (fd <= 0) {
-        DRAWING_LOGE("failed to open fd = %{public}d", fd);
-        return;
-    }
-
-    // 开始对输入source进行编码过程，返回result为 IMAGE_RESULT_SUCCESS则编码成功
-    result = OH_ImagePacker_PackToFile(nativePacker, pixelMap, &opts, fd);
-    if (result != IMAGE_RESULT_SUCCESS) {
-        DRAWING_LOGE("failed to OH_ImagePacker_PackToFile");
-        close(fd);
-        return;
-    }
-
-    // 调用OH_ImagePacker_Release, 销毁编码器
-    int32_t ret = OH_ImagePacker_Release(nativePacker);
-    // 关闭输出文件
-    close(fd);
-    DRAWING_LOGE("end");
+    Pixmap2File(env, pixelMap);
 }
 
 void TestBase::GpuCanvasToFile(napi_env env)
@@ -276,6 +236,13 @@ void TestBase::GpuCanvasToFile(napi_env env)
         return;
     }
 
+    Pixmap2File(env, pixelMap);
+    free(dstPixels);
+    dstPixels = nullptr;
+}
+
+void TestBase::Pixmap2File(napi_env env, napi_value pixelMap)
+{
     // 使用napi_value 承接创建的编码器对象
     napi_value packer;
     // 通过 napi_env 创建编码器，返回result为 IMAGE_RESULT_SUCCESS则创建成功
@@ -316,8 +283,6 @@ void TestBase::GpuCanvasToFile(napi_env env)
     int32_t ret = OH_ImagePacker_Release(nativePacker);
     // 关闭输出文件
     close(fd);
-    free(dstPixels);
-    dstPixels = nullptr;
     DRAWING_LOGE("end");
 }
 

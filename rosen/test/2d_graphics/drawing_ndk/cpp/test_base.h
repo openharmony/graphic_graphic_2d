@@ -30,7 +30,6 @@
 #define DEFAULT_TESTCOUNT 1
 #define DEFAULT_BACKGROUND_COLOR 0xFFFFFFFF
 
-
 class TestBase {
 public:
     TestBase(){};
@@ -68,6 +67,7 @@ protected:
     void CreateGpuCanvas();
     void BitmapCanvasToFile(napi_env env);
     void GpuCanvasToFile(napi_env env);
+    void Pixmap2File(napi_env env, napi_value pixelMap);
 
     //pixmap to file
     OH_Drawing_Bitmap* bitmap_ = nullptr;

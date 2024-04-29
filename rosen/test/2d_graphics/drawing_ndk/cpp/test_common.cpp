@@ -56,7 +56,7 @@ uint32_t TestRend::nextU()
 
 float_t TestRend::nextUScalar1()
 {
-    return (this->nextU()>>16) * 1.52587890625e-5f; // 1.52587890625e-5f:int to float
+    return (this->nextU()>>16) * 1.52587890625e-5f; // 1.52587890625e-5f:int to float, high 16 bits
 }
 
 uint32_t TestRend::nextULessThan(uint32_t count)
@@ -93,7 +93,7 @@ uint32_t color_to_565(uint32_t color)
 {
     //这个接口按照32位图转565格式，再用32位来显示的方式运行，但是和dm的出图有色差 参见 addarc case
     uint8_t r = (color >> 16) & 0xFF;  // 16 for r
-    uint8_t g = (color >> 8) & 0xFF; // 8 for g 
+    uint8_t g = (color >> 8) & 0xFF; // 8 for g
     uint8_t b = color & 0xFF;
 
     // 预乘 RGB 分量  由于目前代码中alpha为255 ，所以忽略此过程， dm中有此过程，代码不同
