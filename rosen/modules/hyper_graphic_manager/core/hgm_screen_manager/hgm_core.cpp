@@ -95,6 +95,7 @@ bool HgmCore::Init()
     } else {
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = newRateMode;
+        CheckCustomFrameRateModeValid();
     }
 
     SetLtpoConfig();
@@ -102,6 +103,38 @@ bool HgmCore::Init()
     isInit_ = true;
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;
+}
+
+void HgmCore::CheckCustomFrameRateModeValid()
+{
+    if (hgmFrameRateMgr_ == nullptr || mPolicyConfigData_ == nullptr) {
+        return;
+    }
+
+    auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto &screenConfigs = mPolicyConfigData_->screenConfigs_;
+    if (screenConfigs.find(curScreenStrategyId) == screenConfigs.end()) {
+        return;
+    }
+
+    auto &screenConfig = screenConfigs[curScreenStrategyId];
+    auto modeStr = std::to_string(customFrameRateMode_);
+    if (screenConfigs.find(modeStr) != screenConfigs.end() || screenConfigs.empty()) {
+        return;
+    }
+
+    int32_t maxMode = HGM_REFRESHRATE_MODE_AUTO;
+    for (auto &[modeStr, _] : screenConfig) {
+        if (!XMLParser::IsNumber(modeStr)) {
+            continue;
+        }
+        auto mode = std::stoi(modeStr);
+        if (maxMode < mode) {
+            maxMode = mode;
+        }
+    }
+    HGM_LOGE("auto repair mode: %{public}d -> %{public}d", customFrameRateMode_, maxMode);
+    customFrameRateMode_ = maxMode;
 }
 
 int32_t HgmCore::InitXmlConfig()
