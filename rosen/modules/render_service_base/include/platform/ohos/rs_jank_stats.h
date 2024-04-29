@@ -43,6 +43,7 @@ struct JankFrames {
     bool isReportEventJankFrame_ = false;
     bool isUpdateJankFrame_ = false;
     bool isFirstFrame_ = false;
+    bool isFirstFrameTemp_ = false;
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
