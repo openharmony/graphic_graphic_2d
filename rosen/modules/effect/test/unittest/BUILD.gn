@@ -53,6 +53,7 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root:libgl",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
+    "$graphic_2d_root/rosen/modules/effect/effect_ndk:native_effect_ndk",
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
     "$graphic_2d_root/utils/color_manager:color_manager",
@@ -70,6 +71,8 @@ ohos_unittest("EffectTest") {
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image",
+    "image_framework:pixelmap",
   ]
 }
 
@@ -81,6 +84,7 @@ config("effect_test_config") {
     "//third_party/skia",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/effectChain/include",
+    "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/utils/color_manager/export",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
