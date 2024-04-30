@@ -30,7 +30,7 @@ public:
     void PopStyle() override;
     void AppendText(const std::u16string& text) override;
     void AppendPlaceholder(const PlaceholderSpan& span) override;
-    std::unique_ptr<Typography> CreateTypography() override;
+    std::unique_ptr<OHOS::Rosen::Typography> CreateTypography() override;
     void AppendSymbol(const uint32_t& symbolId) override;
     std::vector<uint16_t> SymbolToUTF16(const std::vector<uint32_t> &utf32Text);
 

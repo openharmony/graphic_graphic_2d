@@ -843,29 +843,35 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
 
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colors are invalid");
+        delete []vertices;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid colors params.");
     }
 
-    uint32_t* colorsMesh = nullptr;
-    if (colorsSize != 0) {
-        auto colors = new uint32_t[colorsSize];
-        for (uint32_t i = 0; i < colorsSize; i++) {
-            napi_value tempColor = nullptr;
-            napi_get_element(env, colorsArray, i, &tempColor);
-            uint32_t color = 0;
-            bool isColorOk = ConvertFromJsValue(env, tempColor, color);
-            if (!isColorOk) {
-                ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh color is invalid");
-                delete []colors;
-                return NapiGetUndefined(env);
-            }
-            colors[i] = color;
-        }
-        colorsMesh = colors + colorOffset;
+    if (colorsSize == 0) {
+        DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, nullptr, m_canvas);
+        delete []vertices;
+        return NapiGetUndefined(env);
     }
 
-    DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, m_canvas);
+    auto colors = new uint32_t[colorsSize];
+    for (uint32_t i = 0; i < colorsSize; i++) {
+        napi_value tempColor = nullptr;
+        napi_get_element(env, colorsArray, i, &tempColor);
+        uint32_t color = 0;
+        bool isColorOk = ConvertFromJsValue(env, tempColor, color);
+        if (!isColorOk) {
+            ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh color is invalid");
+            delete []vertices;
+            delete []colors;
+            return NapiGetUndefined(env);
+        }
+        colors[i] = color;
+    }
+    uint32_t* colorsMesh = colors + colorOffset;
 
+    DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, m_canvas);
+    delete []vertices;
+    delete []colors;
     return NapiGetUndefined(env);
 #else
     return nullptr;

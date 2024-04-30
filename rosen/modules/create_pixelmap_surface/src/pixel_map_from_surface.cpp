@@ -363,6 +363,7 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         PixelMapFromSurface::DeleteVkImage, cleanUpHelper);
     if (drawingSurface == nullptr) {
+        cleanUpHelper->UnRef();
         return false;
     }
     auto canvas = drawingSurface->GetCanvas();
@@ -409,6 +410,7 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     std::shared_ptr<Drawing::Image> drawingImage = std::make_shared<Drawing::Image>();
     if (!drawingImage) {
+        cleanUpHelper->UnRef();
         return nullptr;
     }
 
@@ -417,6 +419,7 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper)) {
+        cleanUpHelper->UnRef();
         return nullptr;
     }
     return drawingImage;

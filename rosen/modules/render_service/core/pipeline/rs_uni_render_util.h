@@ -100,7 +100,6 @@ public:
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerScaleDown(RSSurfaceRenderNode& Node);
-    static void LayerScaleFit(RSSurfaceRenderNode& Node);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);

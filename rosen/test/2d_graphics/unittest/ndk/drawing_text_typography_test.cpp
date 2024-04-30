@@ -2483,6 +2483,241 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest086, TestSize.Level
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographyTest087
+ * @tc.desc: test for adding symbol for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest087, TestSize.Level1)
+{
+    uint32_t symbol = 0; // 0 means symbol for test
+    OH_Drawing_TypographyHandlerAddSymbol(nullptr, symbol);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest088
+ * @tc.desc: test for setting indents for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest088, TestSize.Level1)
+{
+    // {1.2, 3.4} for unit test
+    const float indents[] = {1.2, 3.4};
+    OH_Drawing_TypographySetIndents(nullptr, 0, indents);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest089
+ * @tc.desc: test for getting line  metrics for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest089, TestSize.Level1)
+{
+    OH_Drawing_Typography* typography = nullptr;
+    OH_Drawing_LineMetrics* vectorMetrics = OH_Drawing_TypographyGetLineMetrics(typography);
+    EXPECT_EQ(vectorMetrics == nullptr, true);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest090
+ * @tc.desc: test for getting size of line metrics for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest090, TestSize.Level1)
+{
+    OH_Drawing_Typography* typography = nullptr;
+    OH_Drawing_LineMetrics* vectorMetrics = OH_Drawing_TypographyGetLineMetrics(typography);
+    EXPECT_EQ(vectorMetrics == nullptr, true);
+    EXPECT_EQ(OH_Drawing_LineMetricsGetSize(vectorMetrics) == 0, true);
+    OH_Drawing_DestroyLineMetrics(vectorMetrics);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest091
+ * @tc.desc: test returning line metrics info for the line text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest091, TestSize.Level1)
+{
+    OH_Drawing_Typography* typography = nullptr;
+    OH_Drawing_LineMetrics* metrics = nullptr;
+    EXPECT_EQ(OH_Drawing_TypographyGetLineMetricsAt(typography, 0, metrics), false);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    typography = OH_Drawing_CreateTypography(handler);
+    metrics = new OH_Drawing_LineMetrics();
+    EXPECT_EQ(OH_Drawing_TypographyGetLineMetricsAt(typography, -1, metrics), false);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    delete metrics;
+    metrics = nullptr;
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest092
+ * @tc.desc: test for getting indets of index for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest092, TestSize.Level1)
+{
+    OH_Drawing_Typography* typography = nullptr;
+    EXPECT_EQ(0.0, OH_Drawing_TypographyGetIndentsWithIndex(typography, 1));
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    typography = OH_Drawing_CreateTypography(handler);
+    EXPECT_EQ(0.0, OH_Drawing_TypographyGetIndentsWithIndex(typography, -1));
+    // {1.2, 3.4} for unit test
+    const float indents[] = {1.2, 3.4};
+    OH_Drawing_TypographySetIndents(typography, 2, indents);
+    int indexOutOfBounds = 3;
+    EXPECT_EQ(indents[1], OH_Drawing_TypographyGetIndentsWithIndex(typography, indexOutOfBounds));
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest093
+ * @tc.desc: test for getting line font metrics for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest093, TestSize.Level1)
+{
+    size_t charNumber = 0;
+    EXPECT_EQ(OH_Drawing_TypographyGetLineFontMetrics(nullptr, 1, &charNumber), nullptr);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineFontMetrics(typography, 1, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineFontMetrics(typography, 0, &charNumber), nullptr);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest094
+ * @tc.desc: test for setting font weight for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest094, TestSize.Level1)
+{
+    OH_Drawing_SetTypographyTextFontWeight(nullptr, FONT_WEIGHT_100);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextFontWeight(typoStyle, -1);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W400);
+    OH_Drawing_SetTypographyTextFontStyle(nullptr, FONT_STYLE_NORMAL);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest095
+ * @tc.desc: test for setting font height for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest095, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    // -1.2 for unit test
+    OH_Drawing_SetTypographyTextFontHeight(typoStyle, -1.2);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightOnly, true);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, -1.2);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest096
+ * @tc.desc: test for setting half leading for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest096, TestSize.Level1)
+{
+    bool halfLeading = false;
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextHalfLeading(typoStyle, halfLeading);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->halfLeading, false);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest097
+ * @tc.desc: test for setting text line style font weight for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest097, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    // -1 for unit test
+    int weight = -1;
+    OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, weight);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W400);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest098
+ * @tc.desc: test for text line style getting font families for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest098, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    char** result = OH_Drawing_TypographyTextlineStyleGetFontFamilies(typoStyle, nullptr);
+    EXPECT_TRUE(result == nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest099
+ * @tc.desc: test for text line style setting half leading for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest099, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    bool lineStyleHalfLeading = false;
+    OH_Drawing_SetTypographyTextLineStyleHalfLeading(typoStyle, lineStyleHalfLeading);
+    bool result = OH_Drawing_TypographyTextlineStyleGetHalfLeading(typoStyle);
+    EXPECT_TRUE(result == false);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest100
+ * @tc.desc: test for getting style struct for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest100, TestSize.Level1)
+{
+    // 0.0 for unit test
+    double lineShift = 0.0;
+    EXPECT_EQ(OH_Drawing_TypographyStyleGetStrutStyle(nullptr) == nullptr, true);
+    OH_Drawing_TextStyleSetBaselineShift(nullptr, lineShift);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaselineShift(nullptr), 0.0);
+    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(nullptr), TEXT_ALIGN_START);
+    EXPECT_EQ(OH_Drawing_TypographyStyleIsHintEnabled(nullptr), false);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest101
+ * @tc.desc: test for getting font style struct for text typography
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest101, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    EXPECT_NE(typoStyle, nullptr);
+    OH_Drawing_FontStyleStruct normalStyle;
+    normalStyle.weight = FONT_WEIGHT_900;
+    normalStyle.width = FONT_WIDTH_ULTRA_EXPANDED;
+    normalStyle.slant = FONT_STYLE_OBLIQUE;
+    OH_Drawing_SetTypographyStyleFontStyleStruct(typoStyle, normalStyle);
+
+    OH_Drawing_FontStyleStruct style = OH_Drawing_TypographyStyleGetFontStyleStruct(typoStyle);
+    EXPECT_EQ(style.weight, FONT_WEIGHT_900);
+    EXPECT_EQ(style.width, FONT_WIDTH_ULTRA_EXPANDED);
+    EXPECT_EQ(style.slant, FONT_STYLE_OBLIQUE);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyTest102
  * @tc.desc: test for the font parser
  * @tc.type: FUNC

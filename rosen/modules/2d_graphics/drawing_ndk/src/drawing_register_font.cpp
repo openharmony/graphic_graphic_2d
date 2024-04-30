@@ -117,7 +117,7 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, cons
         return ERROR_FILE_NOT_EXISTS;
     }
 
-    std::ifstream ifs(path, std::ios_base::in);
+    std::ifstream ifs(tmpPath, std::ios_base::in);
     if (!ifs.is_open()) {
         return ERROR_OPEN_FILE_FAILED;
     }

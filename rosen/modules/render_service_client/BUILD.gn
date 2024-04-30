@@ -298,6 +298,8 @@ ohos_shared_library("librender_service_client") {
     blocklist = "./rs_client_blocklist.txt"
   }
 
+  public_configs = [ ":render_service_client_config" ]
+
   public_deps = [ ":render_service_client_src" ]
 
   external_deps = [ "hilog:libhilog" ]

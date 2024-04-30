@@ -26,4 +26,4 @@ public:
 };
 } // namespace Rosen
 } // namespace OHOS
- #endif // RS_PROCESSOR_FACTORY_H
+#endif // RS_PROCESSOR_FACTORY_H
