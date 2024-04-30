@@ -2073,7 +2073,8 @@ std::optional<Drawing::Rect> RSSurfaceRenderNode::GetContextClipRegion() const
     return contextClipRect_;
 }
 
-bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode)
+bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNodes)
 {
     if (!IsLeashWindow()) {
         return false;
@@ -2081,11 +2082,12 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RS
     for (auto& childNode : *GetChildren()) {
         const auto& childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
         if (childNodeSurface && childNodeSurface->GetVisibleRegion().IsEmpty()) {
-            appNode = childNodeSurface;
-            return true;
+            appNodes.emplace_back(childNodeSurface);
+        } else {
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 std::vector<std::shared_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetLeashWindowNestedSurfaces()

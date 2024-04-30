@@ -5015,10 +5015,12 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
         RS_PROCESS_TRACE(isPhone_, node.GetName() + " Empty AbilityComponent Skip");
         return false;
     }
-    std::shared_ptr<RSSurfaceRenderNode> appNode;
-    if (node.LeashWindowRelatedAppWindowOccluded(appNode) && !isSecurityDisplay_) {
-        if (appNode != nullptr) {
-            MarkSubHardwareEnableNodeState(*appNode);
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> appNodes;
+    if (node.LeashWindowRelatedAppWindowOccluded(appNodes) && !isSecurityDisplay_) {
+        for (auto& appNode : appNodes) {
+            if (appNode) {
+                MarkSubHardwareEnableNodeState(*appNode);
+            }
         }
         RS_PROCESS_TRACE(isPhone_, node.GetName() + " App Occluded Leashwindow Skip");
         return false;
