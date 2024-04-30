@@ -260,6 +260,10 @@ bool GELinearGradientBlurShaderFilter::ProcessGradientDirectionPoints(
 std::shared_ptr<Drawing::ShaderEffect> GELinearGradientBlurShaderFilter::MakeAlphaGradientShader(
     const Drawing::Rect& clipBounds, const std::shared_ptr<GELinearGradientBlurPara>& para, uint8_t directionBias)
 {
+    if (para->fractionStops_.size() < 1) {
+        return nullptr;
+    }
+
     std::vector<Drawing::ColorQuad> c;
     std::vector<Drawing::scalar> p;
     Drawing::Point pts[2];  // 2 size of points
@@ -284,10 +288,10 @@ std::shared_ptr<Drawing::ShaderEffect> GELinearGradientBlurShaderFilter::MakeAlp
         p.emplace_back(para->fractionStops_[i].second);
     }
     // 0.01 represents the fraction bias
-    if (para->fractionStops_[para->fractionStops_.size() - 1].second < (1 - 0.01)) {
+    if (para->fractionStops_.back().second < (1 - 0.01)) {
         c.emplace_back(Drawing::Color::ColorQuadSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
         // 0.01 represents the fraction bias
-        p.emplace_back(para->fractionStops_[para->fractionStops_.size() - 1].second + 0.01);
+        p.emplace_back(para->fractionStops_.back().second + 0.01);
     }
     return Drawing::ShaderEffect::CreateLinearGradient(pts[0], pts[1], c, p, Drawing::TileMode::CLAMP);
 }
