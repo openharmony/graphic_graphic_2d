@@ -48,6 +48,7 @@ public:
     uint32_t GetTime();
     void Destroy();
 
+    void ClipCanvasToDrawSize(OH_Drawing_Canvas *canvas);
     void TestFunctionCpu(napi_env env);
     void TestFunctionGpu(OH_Drawing_Canvas* canvas);
     void TestFunctionGpu(napi_env env);

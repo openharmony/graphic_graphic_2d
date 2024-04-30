@@ -36,6 +36,7 @@
 #include <native_drawing/drawing_matrix.h>
 #include <native_drawing/drawing_path.h>
 #include <native_drawing/drawing_pen.h>
+#include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_round_rect.h>
 #include <native_drawing/drawing_shader_effect.h>
 #include <native_drawing/drawing_point.h>
@@ -64,6 +65,12 @@ OH_Drawing_Bitmap* TestBase::GetBitmap()
 uint32_t TestBase::GetTime()
 {
     return usedTime_;
+}
+
+void TestBase::ClipCanvasToDrawSize(OH_Drawing_Canvas *canvas) {
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, bitmapWidth_, bitmapHeight_);
+    OH_Drawing_CanvasClipRect(canvas, rect, OH_Drawing_CanvasClipOp::INTERSECT, false);
+    OH_Drawing_RectDestroy(rect);
 }
 
 void TestBase::TestFunctionCpu(napi_env env)
