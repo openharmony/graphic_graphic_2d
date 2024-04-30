@@ -187,6 +187,8 @@ public:
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
 #endif
     virtual void ForceRefreshOneFrameIfNoRNV() = 0;
+
+    virtual void ClearFrameBufferIfNeed() = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -355,6 +357,8 @@ public:
     void HandlePostureData(const SensorEvent * const event) override;
 #endif
     void ForceRefreshOneFrameIfNoRNV() override;
+
+    void ClearFrameBufferIfNeed() override;
 
 private:
     RSScreenManager();

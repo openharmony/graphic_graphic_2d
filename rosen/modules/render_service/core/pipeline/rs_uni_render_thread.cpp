@@ -450,6 +450,8 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
             }
+            auto screenManager_ = CreateOrGetScreenManager();
+            screenManager_->ClearFrameBufferIfNeed();
             grContext->FlushAndSubmit(true);
             this->clearMemoryFinished_ = true;
             this->exitedPidSet_.clear();

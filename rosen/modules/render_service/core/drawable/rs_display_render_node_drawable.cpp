@@ -352,6 +352,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw params %s", params->ToString().c_str());
 
+    // if start process DisplayRenderNode, restart the delaytime of clearMemoryTask
+    RemoveClearMemoryTask();
+
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
     drawingCacheInfos_.clear();
@@ -446,7 +449,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     curCanvas_->SetCurDisplayNode(displayNodeSp);
 
-    RemoveClearMemoryTask();
     // canvas draw
     {
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
