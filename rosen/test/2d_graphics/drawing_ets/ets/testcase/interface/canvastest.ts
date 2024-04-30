@@ -352,7 +352,7 @@ export class CanvasDrawImage extends TestBase {
       let pen = new drawing.Pen();
       this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_3)
       canvas.attachPen(pen)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_img_case_1.jpg")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
       canvas.drawImage(pixelMap, 0, 0);
       canvas.detachPen()
     }
@@ -364,7 +364,7 @@ export class CanvasDrawImage extends TestBase {
       this.ApplyBrushStyle(brush, TestFunctionStyleType.DRAW_STYLE_TYPE_2)
       canvas.attachPen(pen)
       canvas.attachBrush(brush)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_img_case_2.jpg")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
       canvas.drawImage(pixelMap, 100, 150);
       canvas.detachPen()
       canvas.detachBrush()
@@ -377,7 +377,7 @@ export class CanvasDrawImage extends TestBase {
       this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_3)
       canvas.attachPen(pen)
       canvas.attachBrush(brush)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_img_case_3.jpeg")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
       canvas.drawImage(pixelMap, 200, 233.97);
       canvas.detachPen()
       canvas.detachBrush()
@@ -390,7 +390,7 @@ export class CanvasDrawImage extends TestBase {
       this.ApplyBrushStyle (brush, TestFunctionStyleType.DRAW_STYLE_TYPE_4)
       canvas.attachPen(pen)
       canvas.attachBrush(brush)
-      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_img_case_4.png")
+      let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test.jpg")
       canvas.drawImage(pixelMap, 140, 17.8);
       canvas.detachPen()
       canvas.detachBrush()
