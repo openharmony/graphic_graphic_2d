@@ -30,6 +30,9 @@ const struct NameTable* NameTableParser::Parse(const char* data, int32_t size)
 
 void NameTableParser::Dump() const
 {
+    if (data_ == nullptr) {
+        return;
+    }
     const auto& nameTable = *reinterpret_cast<const struct NameTable*>(data_);
     LOGSO_FUNC_LINE(INFO) << "nameTable size:" << size_ << ", version:" << nameTable.version.Get();
     auto count = nameTable.count.Get();

@@ -43,6 +43,9 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsParagraph *jsParagraph = new(std::nothrow) JsParagraph(std::move(g_Typography));
+    if (jsParagraph == nullptr) {
+        return nullptr;
+    }
 
     status = napi_wrap(env, jsThis, jsParagraph,
         JsParagraph::Destructor, nullptr, nullptr);
