@@ -57,6 +57,7 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest002, Te
     const std::u16string wideText =
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
     typographyCreate->AppendText(wideText);
+    // 0.0 for unit test
     const OHOS::Rosen::PlaceholderSpan placeholderSpan = {0.0, 0.0,
         PlaceholderVerticalAlignment::OFFSET_AT_BASELINE, TextBaseline::ALPHABETIC, 0.0};
     typographyCreate->AppendPlaceholder(placeholderSpan);

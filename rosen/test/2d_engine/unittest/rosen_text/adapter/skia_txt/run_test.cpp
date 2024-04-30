@@ -46,7 +46,9 @@ HWTEST_F(OH_Drawing_RunTest, OH_Drawing_RunTest001, TestSize.Level1)
     typographyCreate->AppendText(wideText);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     Drawing::Canvas* canvas = new Drawing::Canvas();
+    // 200 for unit test
     typography->Layout(200);
+    // 100 for unit test
     typography->Paint(canvas, 100, 100);
     std::vector<std::unique_ptr<TextLineBase>> vectorTextLineBase = typography->GetTextLines();
     EXPECT_EQ(vectorTextLineBase.size() > 0, true);
@@ -57,6 +59,7 @@ HWTEST_F(OH_Drawing_RunTest, OH_Drawing_RunTest001, TestSize.Level1)
     vectorRun[0]->GetGlyphs();
     vectorRun[0]->GetPositions();
     vectorRun[0]->GetOffsets();
+    // 10.0 for unit test
     vectorRun[0]->Paint(canvas, 10.0, 10.0);
     delete canvas;
     canvas = nullptr;

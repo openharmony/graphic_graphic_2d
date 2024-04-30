@@ -45,13 +45,16 @@ HWTEST_F(OH_Drawing_TextLineBaseTest, OH_Drawing_TextLineBaseTest001, TestSize.L
     typographyCreate->AppendText(wideText);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     Drawing::Canvas* canvas = new Drawing::Canvas();
+    // 200 for unit test
     typography->Layout(200);
+    // 100 for unit test
     typography->Paint(canvas, 100, 100);
     std::vector<std::unique_ptr<TextLineBase>> vectorTextLineBase = typography->GetTextLines();
     EXPECT_EQ(vectorTextLineBase.size() > 0, true);
     vectorTextLineBase[0]->GetGlyphCount();
     vectorTextLineBase[0]->GetGlyphRuns();
     vectorTextLineBase[0]->GetTextRange();
+    // 100.0 for unit test
     vectorTextLineBase[0]->Paint(canvas, 100.0, 100.0);
 }
 } // namespace Rosen

@@ -44,6 +44,7 @@ HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest001, TestSize.Level1)
  */
 HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest002, TestSize.Level1)
 {
+    // 0 for unit test
     const SPText::PositionWithAffinity positionWithAffinity = {0, SPText::Affinity::UPSTREAM};
     IndexAndAffinity indexAndAffinity = AdapterTxt::Convert(positionWithAffinity);
     EXPECT_EQ(indexAndAffinity.index == 0, true);
@@ -56,6 +57,7 @@ HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest002, TestSize.Level1)
  */
 HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest003, TestSize.Level1)
 {
+    // 0 for unit test
     SPText::Range<size_t> range(0, 0);
     Boundary boundary = AdapterTxt::Convert(range);
     EXPECT_EQ(boundary.leftIndex == 0, true);

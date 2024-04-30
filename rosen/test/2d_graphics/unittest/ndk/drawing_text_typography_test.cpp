@@ -2500,6 +2500,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest087, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest088, TestSize.Level1)
 {
+    // {1.2, 3.4} for unit test
     const float indents[] = {1.2, 3.4};
     OH_Drawing_TypographySetIndents(nullptr, 0, indents);
 }
@@ -2566,6 +2567,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest092, TestSize.Level
         OH_Drawing_CreateFontCollection());
     typography = OH_Drawing_CreateTypography(handler);
     EXPECT_EQ(0.0, OH_Drawing_TypographyGetIndentsWithIndex(typography, -1));
+    // {1.2, 3.4} for unit test
     const float indents[] = {1.2, 3.4};
     OH_Drawing_TypographySetIndents(typography, 2, indents);
     int indexOutOfBounds = 3;
@@ -2618,6 +2620,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest094, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest095, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    // -1.2 for unit test
     OH_Drawing_SetTypographyTextFontHeight(typoStyle, -1.2);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightOnly, true);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, -1.2);
@@ -2644,6 +2647,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest096, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest097, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    // -1 for unit test
     int weight = -1;
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, weight);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W400);
@@ -2682,6 +2686,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest099, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest100, TestSize.Level1)
 {
+    // 0.0 for unit test
     double lineShift = 0.0;
     EXPECT_EQ(OH_Drawing_TypographyStyleGetStrutStyle(nullptr) == nullptr, true);
     OH_Drawing_TextStyleSetBaselineShift(nullptr, lineShift);

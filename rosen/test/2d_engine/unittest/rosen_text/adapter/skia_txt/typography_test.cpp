@@ -156,6 +156,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    // 0 for unit test
     typography->GetWordBoundaryByIndex(0);
     typography->GetActualTextRange(0, false);
     EXPECT_EQ(typography->GetLineHeight(0) == 0.0, true);
