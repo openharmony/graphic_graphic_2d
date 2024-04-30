@@ -47,7 +47,7 @@ struct GradData {
 };
 
 constexpr int K_NUM_COLOR_CHOICES = 40; // 40 定义了颜色数组的大小
-Color g_colors[K_NUM_COLOR_CHOICES] = {
+uint32_t g_colors[K_NUM_COLOR_CHOICES] = {
     0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF,
     0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF,
     0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000, 0xFFFF0000, 0xFF00FF00,
@@ -83,8 +83,8 @@ OH_Drawing_ShaderEffect* MakeRadial(const OH_Drawing_Point* firstPoint, const OH
     DRAWING_LOGI("GradientsGM MakeRadial");
 
     // 圆心和圆半径坐标
-    OH_Drawing_Point2D pts[] = { { 0, 0 }, { 100.0, 100.0 } };//100 坐标点
-    OH_Drawing_Point2D Point = { SCALAR_AVE(pts[0].x, pts[1].x), SCALAR_AVE(pts[0].y, pts[1].y) };
+    OH_Drawing_Point2D pts[] = { { 0, 0 }, { 100.0, 100.0 } };                           // 100.0, 100.0 坐标点
+    OH_Drawing_Point2D Point = { (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2 }; // 取[0] 和[2] 的元素中点
     OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(Point.x, Point.y);
     int fCount = 40;     // 40  表示颜色数量
     int arraySize = 100; // 100 用于存储渐变效果中每种颜色的相对位置
@@ -105,8 +105,8 @@ OH_Drawing_ShaderEffect* MakeSweep(const OH_Drawing_Point* firstPoint, const OH_
 {
     DRAWING_LOGI("GradientsGM MakeSweep");
     // 圆心和圆半径坐标
-    OH_Drawing_Point2D pts[] = { { 0, 0 }, { 100.0, 100.0 } }; // 100 设置点
-    OH_Drawing_Point2D Point = { (pts[0].x+ pts[1].x)/2, (pts[0].y+ pts[1].y)/2 };// 2 取中点
+    OH_Drawing_Point2D pts[] = { { 0, 0 }, { 100.0, 100.0 } };                           // 100 设置点
+    OH_Drawing_Point2D Point = { (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2 }; // 取[0] 和[2] 的元素中点
     OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(Point.x, Point.y);
     int fCount = 40;     // 40  表示颜色数量
     int arraySize = 100; // 100 用于存储渐变效果中每种颜色的相对位置
@@ -141,23 +141,21 @@ void Gradients::OnTestFunction(OH_Drawing_Canvas* canvas)
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_BrushSetAntiAlias(brush, true);
 
-    OH_Drawing_Rect* rectAngLe = OH_Drawing_RectCreate(0, 0, IntToScalar(100), IntToScalar(100)); //100 创建一个矩形对象
+    OH_Drawing_Rect* rectAngLe = OH_Drawing_RectCreate(0, 0, (100), (100)); // 100 创建一个矩形对象
     // 平移画布
-    OH_Drawing_CanvasTranslate(canvas, IntToScalar(20),
-        IntToScalar(20)); // 20 是用于平移
+    OH_Drawing_CanvasTranslate(canvas, 20, 20); // x平移20  y平移20
 
-    for (size_t i = 0; i < SK_ARRAY_COUNT(G_GRAD_DATA); i++) {
+    for (size_t i = 0; i < sizeof(G_GRAD_DATA) / sizeof(G_GRAD_DATA[0]); i++) {
         OH_Drawing_CanvasSave(canvas);
-        for (size_t j = 0; j < SK_ARRAY_COUNT(G_GRAD_MAKERS); j++) {
+        for (size_t j = 0; j < sizeof(G_GRAD_MAKERS) / sizeof(G_GRAD_MAKERS[0]); j++) {
             OH_Drawing_BrushSetShaderEffect(
                 brush, G_GRAD_MAKERS[j](firstPoint, secondPoint, G_GRAD_DATA[i], OH_Drawing_TileMode::CLAMP));
             OH_Drawing_CanvasAttachBrush(canvas, brush);
             OH_Drawing_CanvasDrawRect(canvas, rectAngLe);
-            OH_Drawing_CanvasTranslate(
-                canvas, 0, IntToScalar(120)); // 120 Indicates the distance to translate on x-axis、y-axis.
+            OH_Drawing_CanvasTranslate(canvas, 0, 120); // y平移 120
         }
         OH_Drawing_CanvasRestore(canvas);
-        OH_Drawing_CanvasTranslate(canvas, IntToScalar(120), 0); // 120 Indicates the distance to translate on x-axis
+        OH_Drawing_CanvasTranslate(canvas, 120, 0); // x平移 120
     }
     DRAWING_LOGI("GradientsGM::OnTestFunction end");
     OH_Drawing_RectDestroy(rectAngLe);

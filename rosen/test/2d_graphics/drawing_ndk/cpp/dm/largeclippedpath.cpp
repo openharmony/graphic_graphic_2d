@@ -57,8 +57,8 @@ void LargeClippedPath::OnTestFunction(OH_Drawing_Canvas* canvas)
     } // 0、y * kCellSize、kSize、(y + 1) * kCellSize用于确定垂直矩形的位置和大小
     for (int x = 0; x < kGridCount; ++x) {
         OH_Drawing_PathAddRect(path, x * kCellSize, 0, (x + 1) * kCellSize, K_SIZE,
-            (x % 2 == 0) ? OH_Drawing_PathDirection::PATH_DIRECTION_CW : OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
-    } //2 是用于确定水平矩形的位置和大小。
+            (x % 2 == 0) ? PATH_DIRECTION_CW : PATH_DIRECTION_CCW); // 2 取偶数
+    } // 2 是用于确定水平矩形的位置和大小。
     // 裁剪一个自定义路径，源代码并未说是取交集还是差集DIFFERENCE，这里暂定取交集INTERSECT
     bool doAntiAlias = false;
     OH_Drawing_CanvasClipPath(canvas, path, OH_Drawing_CanvasClipOp::INTERSECT, doAntiAlias);
@@ -66,10 +66,11 @@ void LargeClippedPath::OnTestFunction(OH_Drawing_Canvas* canvas)
     OH_Drawing_PathSetFillType(pathQuad, fType);
 
     OH_Drawing_PathMoveTo(pathQuad, 1, 0); // 1、0是贝塞尔曲线的起始坐标
+    float n = 2;
     for (int i = 1; i <= kNumPetals; ++i) {
-        float c = 2 * M_PI * (i - .5f) / kNumPetals;
-        float theta = 2 * M_PI * i / kNumPetals;
-        OH_Drawing_PathQuadTo(pathQuad, cosf(c) * 2, sinf(c) * 2, cosf(theta), sinf(theta));
+        float c = n * M_PI * (i - 0.5f) / kNumPetals; // 0.5f 曲线参数
+        float theta = n * M_PI * i / kNumPetals;
+        OH_Drawing_PathQuadTo(pathQuad, cosf(c) * n, sinf(c) * n, cosf(theta), sinf(theta));
     } // 2 * M_PI、i - .5f、i、kNumPetals用于计算贝塞尔曲线上的控制点,2 是用于PathQuadTo参数控制
     OH_Drawing_PathClose(pathQuad);
     // 创建矩形对象并将弧添加到路径中

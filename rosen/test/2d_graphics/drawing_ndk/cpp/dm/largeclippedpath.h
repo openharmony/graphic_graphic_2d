@@ -24,7 +24,7 @@ class LargeClippedPath : public TestBase {
     uint32_t defaultBitmapHeight = 1000; // 1000是位图高度
 
 public:
-    LargeClippedPath(OH_Drawing_PathFillType type) : fType(type)
+    explicit LargeClippedPath(OH_Drawing_PathFillType type) : fType(type)
     {
         bitmapWidth_ = defaultBitmapWidth;
         bitmapHeight_ = defaultBitmapHeight;

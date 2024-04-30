@@ -36,8 +36,7 @@ OH_Drawing_TextBlob* make_blob(const std::string& text, OH_Drawing_Font* font)
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, WIDTH, HEIGHT); // 0, 0 矩阵对象创建参数
 
     int count = OH_Drawing_FontCountText(font, text.c_str(), len, OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
-    auto buffer = OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, count, rect);
-    memcpy(buffer->pos, pos.begin(), len);
+    OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, count, rect);
     return OH_Drawing_TextBlobBuilderMake(builder);
 }
 

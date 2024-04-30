@@ -88,13 +88,14 @@ void FillTypePersp::ShowFour(OH_Drawing_Canvas* canvas, float scale, bool aa)
     OH_Drawing_BrushSetAntiAlias(brush, aa);
     OH_Drawing_CanvasAttachBrush(canvas, brush);
 
+    float offset = 200.0;
     ShowPath(canvas, 0, 0, OH_Drawing_PathFillType::PATH_FILL_TYPE_WINDING, scale,
         brush); // 0 、0是绘制路径时的平移量
-    ShowPath(canvas, 200, 0, OH_Drawing_PathFillType::PATH_FILL_TYPE_EVEN_ODD, scale,
+    ShowPath(canvas, offset, 0, OH_Drawing_PathFillType::PATH_FILL_TYPE_EVEN_ODD, scale,
         brush); // 200、 0  是绘制路径时的平移量
-    ShowPath(canvas, 0, 200, OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_WINDING, scale,
+    ShowPath(canvas, 0, offset, OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_WINDING, scale,
         brush); // 0、200  是绘制路径时的平移量
-    ShowPath(canvas, 200, 200, OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_EVEN_ODD, scale,
+    ShowPath(canvas, offset, offset, OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_EVEN_ODD, scale,
         brush); // 200、200  是绘制路径时的平移量
 
     OH_Drawing_CanvasDetachBrush(canvas);
@@ -110,9 +111,7 @@ void FillTypePersp::OnTestFunction(OH_Drawing_Canvas* canvas)
     OH_Drawing_Brush* bkgnrd = OH_Drawing_BrushCreate();
     OH_Drawing_Point* center = OH_Drawing_PointCreate(100, 100); // 100, 100  PointCreate参数值
     uint32_t colors[] = { DRAW_COLORBLACK, DRAW_COLORCYAN, DRAW_COLORYELLOW, DRAW_COLORWHITE };
-    float pos[] = {
-        0, 0.25, 0.75, 1.0
-    }; //{ 0, 0.25, 0.75, 1.0 }  Indicates the relative position of each corresponding color in the colors array.
+    float pos[] = { 0, 0.25, 0.75, 1.0 }; //{ 0, 0.25, 0.75, 1.0 }  alpha值
     OH_Drawing_ShaderEffect* effect = OH_Drawing_ShaderEffectCreateRadialGradient(
         center, 1000, colors, pos, 4, OH_Drawing_TileMode::CLAMP); // 1000 Indicates the radius of the circle for this
                                                                    // gradient.4 Indicates the number of colors and pos.
@@ -123,8 +122,9 @@ void FillTypePersp::OnTestFunction(OH_Drawing_Canvas* canvas)
     OH_Drawing_CanvasTranslate(canvas, 100, 100); // 100, 100  Indicates the distance to translate on x-axis、y-axis.
 
     OH_Drawing_Matrix* mat = OH_Drawing_MatrixCreate();
-    OH_Drawing_MatrixSetMatrix(mat, 1, 0, 0, 0, 1, 0, 0, 1.0 / 1000,
-        1); // 1、 0、 0、 0、 1、 0、 0、 1.0 / 1000都是矩阵参数
+    OH_Drawing_MatrixSetMatrix(mat, 1, 0, 0, // 1、 0、 0 矩阵参数
+        0, 1, 0,                             // 0, 1, 0 0, 1, 0
+        0, 1.0 / 1000, 1);                   // 0， 1.0 / 1000，1 都是矩阵参数
     OH_Drawing_CanvasConcatMatrix(canvas, mat);
     OH_Drawing_CanvasDrawBackground(canvas, bkgnrd);
     OH_Drawing_CanvasRestore(canvas);
