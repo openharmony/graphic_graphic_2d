@@ -110,6 +110,10 @@ bool MarshallingExtendObjectFromDrawCmdList(Parcel& parcel, const std::shared_pt
     if (objectSize == 0) {
         return true;
     }
+    if (objectSize > USHRT_MAX) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::MarshallingExtendObjectFromDrawCmdList failed with max limit");
+        return false;
+    }
     for (const auto& object : objectVec) {
         if (!object->Marshalling(parcel)) {
             return false;
@@ -123,6 +127,10 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
     uint32_t objectSize = parcel.ReadUint32();
     if (objectSize == 0) {
         return true;
+    }
+    if (objectSize > USHRT_MAX) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingExtendObjectToDrawCmdList failed with max limit");
+        return false;
     }
     std::vector<std::shared_ptr<Drawing::ExtendObject>> objectVec;
     for (uint32_t i = 0; i < objectSize; i++) {
