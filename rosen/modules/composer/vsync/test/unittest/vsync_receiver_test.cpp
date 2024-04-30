@@ -72,7 +72,12 @@ namespace {
 * EnvConditions: N/A
 * CaseDescription: 1. call RequestNextVSync Before Init
                    2. call SetVSyncRate Before Init
-                   3. call GetVSyncPeriodAndLastTimeStamp Before Init
+                   3. call the one-parameter method of CreateVSyncReceiver
+                   4. call GetVSyncPeriodAndLastTimeStamp Before Init of vSync receiver in 3.
+                   5. call the two-parameter method of CreateVSyncReceiver
+                   6. call GetVSyncPeriodAndLastTimeStamp Before Init of vSync receiver in 5.
+                   7. call the four-parameter method of CreateVSyncReceiver
+                   8. call GetVSyncPeriodAndLastTimeStamp Before Init of vSync receiver in 7.
  */
 HWTEST_F(VsyncReceiverTest, BeforeInit001, Function | MediumTest| Level3)
 {
@@ -87,6 +92,10 @@ HWTEST_F(VsyncReceiverTest, BeforeInit001, Function | MediumTest| Level3)
     int64_t timeStamp;
     auto& rsClient = RSInterfaces::GetInstance();
     auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+    ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_API_FAILED);
+    rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest", nullptr);
+    ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_API_FAILED);
+    rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest", 0, nullptr, 0);
     ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_API_FAILED);
 }
 

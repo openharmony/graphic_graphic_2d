@@ -212,7 +212,7 @@ void RSProcessor::SetMirrorScreenSwap(const RSDisplayRenderNode& node)
 
 void RSProcessor::CalculateScreenTransformMatrix(const RSDisplayRenderNode& node)
 {
-    auto boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr != nullptr) {
         boundsGeoPtr->UpdateByMatrixFromSelf();
         screenTransformMatrix_ = boundsGeoPtr->GetMatrix();

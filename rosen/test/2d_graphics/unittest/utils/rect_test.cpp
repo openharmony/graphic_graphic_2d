@@ -288,6 +288,41 @@ HWTEST_F(RectTest, RectFOffset002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RectFMakeOutset001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(RectTest, RectFMakeOutset001, TestSize.Level1)
+{
+    std::unique_ptr<RectF> rectF = std::make_unique<RectF>(1.0f, 2.0f, 3.0f, 4.0f);
+    rectF->MakeOutset(1.0f, 2.0f);
+    EXPECT_EQ(0.0f, rectF->GetLeft());
+    EXPECT_EQ(4.0f, rectF->GetRight());
+    EXPECT_EQ(0.0f, rectF->GetTop());
+    EXPECT_EQ(6.0f, rectF->GetBottom());
+}
+
+/**
+ * @tc.name: RectFMakeOutset002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(RectTest, RectFMakeOutset002, TestSize.Level1)
+{
+    std::unique_ptr<RectF> rectF = std::make_unique<RectF>(1.0f, 2.0f, 3.0f, 4.0f);
+    rectF->MakeOutset(2.0f, 1.0f);
+    EXPECT_EQ(-1.0f, rectF->GetLeft());
+    EXPECT_EQ(5.0f, rectF->GetRight());
+    EXPECT_EQ(1.0f, rectF->GetTop());
+    EXPECT_EQ(5.0f, rectF->GetBottom());
+}
+
+
+/**
  * @tc.name: RectFEqual001
  * @tc.desc:
  * @tc.type: FUNC
@@ -670,6 +705,40 @@ HWTEST_F(RectTest, RectIOffset002, TestSize.Level1)
     EXPECT_EQ(3.0f, rectI->GetLeft());
     EXPECT_EQ(5.0f, rectI->GetRight());
     EXPECT_EQ(3.0f, rectI->GetTop());
+    EXPECT_EQ(5.0f, rectI->GetBottom());
+}
+
+/**
+ * @tc.name: RectIMakeOutset001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(RectTest, RectIMakeOutset001, TestSize.Level1)
+{
+    std::unique_ptr<RectI> rectI = std::make_unique<RectI>(1.0f, 2.0f, 3.0f, 4.0f);
+    rectI->MakeOutset(1.0f, 2.0f);
+    EXPECT_EQ(0.0f, rectI->GetLeft());
+    EXPECT_EQ(4.0f, rectI->GetRight());
+    EXPECT_EQ(0.0f, rectI->GetTop());
+    EXPECT_EQ(6.0f, rectI->GetBottom());
+}
+
+/**
+ * @tc.name: RectIMakeOutset002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(RectTest, RectIMakeOutset002, TestSize.Level1)
+{
+    std::unique_ptr<RectI> rectI = std::make_unique<RectI>(1.0f, 2.0f, 3.0f, 4.0f);
+    rectI->MakeOutset(2.0f, 1.0f);
+    EXPECT_EQ(-1.0f, rectI->GetLeft());
+    EXPECT_EQ(5.0f, rectI->GetRight());
+    EXPECT_EQ(1.0f, rectI->GetTop());
     EXPECT_EQ(5.0f, rectI->GetBottom());
 }
 

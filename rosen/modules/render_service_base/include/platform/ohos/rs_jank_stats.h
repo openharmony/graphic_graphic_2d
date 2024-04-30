@@ -35,6 +35,7 @@ constexpr int32_t TRACE_ID_INITIAL = -1;
 
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
+    bool isSetReportEventResponseTemp_ = false;
     bool isSetReportEventComplete_ = false;
     bool isSetReportEventJankFrame_ = false;
     bool isReportEventResponse_ = false;
@@ -42,6 +43,7 @@ struct JankFrames {
     bool isReportEventJankFrame_ = false;
     bool isUpdateJankFrame_ = false;
     bool isFirstFrame_ = false;
+    bool isFirstFrameTemp_ = false;
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;

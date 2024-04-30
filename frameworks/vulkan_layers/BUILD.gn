@@ -42,13 +42,12 @@ ohos_shared_library("vulkan_swapchain_layer") {
 
   public_configs = [ ":vulkan_public_config" ]
 
-  deps = [ "//third_party/vulkan-headers:vulkan_headers" ]
-
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
     "graphic_surface:sync_fence",
     "hilog:libhilog",
+    "vulkan-headers:vulkan_headers",
     "vulkan-loader:vulkan_loader",
   ]
 

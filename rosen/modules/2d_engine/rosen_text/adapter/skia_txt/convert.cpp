@@ -107,7 +107,7 @@ static std::string RemoveQuotes(const std::string& str)
         return str;
     }
     const int start = 1; // The starting position of string.
-    const int end = str.size() - 2; // End position of string.
+    const int end = static_cast<int>(str.size()) - 2; // End position of string.
     return str.substr(start, end); // Remove quotation marks from both ends.
 }
 

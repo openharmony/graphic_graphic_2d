@@ -201,6 +201,9 @@ void RSCustomInterpolator::Convert(int duration)
 
 float RSCustomInterpolator::InterpolateImpl(float input) const
 {
+    if (times_.size() <= 0) {
+        return 0.0f;
+    }
     if (input < times_[0] + EPSILON) {
         return times_[0];
     }

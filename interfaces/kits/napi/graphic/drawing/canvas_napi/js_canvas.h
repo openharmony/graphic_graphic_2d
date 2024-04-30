@@ -43,25 +43,35 @@ public:
     explicit JsCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
     ~JsCanvas();
 
+    static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
+
     DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas);
 
-    static napi_value Init(napi_env env, napi_value exportObj);
-
-    static napi_value DrawRect(napi_env env, napi_callback_info info);
+    static napi_value AttachBrush(napi_env env, napi_callback_info info);
+    static napi_value AttachPen(napi_env env, napi_callback_info info);
+    static napi_value ClipPath(napi_env env, napi_callback_info info);
+    static napi_value ClipRect(napi_env env, napi_callback_info info);
     static napi_value DrawCircle(napi_env env, napi_callback_info info);
-    static napi_value DrawImage(napi_env env, napi_callback_info info);
     static napi_value DrawColor(napi_env env, napi_callback_info info);
+    static napi_value DrawImage(napi_env env, napi_callback_info info);
+    static napi_value DrawLine(napi_env env, napi_callback_info info);
+    static napi_value DrawRect(napi_env env, napi_callback_info info);
     static napi_value DrawPoint(napi_env env, napi_callback_info info);
     static napi_value DrawPath(napi_env env, napi_callback_info info);
-    static napi_value DrawLine(napi_env env, napi_callback_info info);
-    static napi_value DrawText(napi_env env, napi_callback_info info);
     static napi_value DrawPixelMapMesh(napi_env env, napi_callback_info info);
-    static napi_value AttachPen(napi_env env, napi_callback_info info);
-    static napi_value AttachBrush(napi_env env, napi_callback_info info);
-    static napi_value DetachPen(napi_env env, napi_callback_info info);
+    static napi_value DrawText(napi_env env, napi_callback_info info);
     static napi_value DetachBrush(napi_env env, napi_callback_info info);
+    static napi_value DetachPen(napi_env env, napi_callback_info info);
+    static napi_value GetSaveCount(napi_env env, napi_callback_info info);
+    static napi_value Rotate(napi_env env, napi_callback_info info);
+    static napi_value RestoreToCount(napi_env env, napi_callback_info info);
+    static napi_value Restore(napi_env env, napi_callback_info info);
+    static napi_value Skew(napi_env env, napi_callback_info info);
+    static napi_value Save(napi_env env, napi_callback_info info);
+    static napi_value Scale(napi_env env, napi_callback_info info);
+    static napi_value Translate(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();
@@ -70,15 +80,25 @@ public:
     DRAWING_API void RestoreCanvas();
 
 private:
-    napi_value OnDrawRect(napi_env env, napi_callback_info info);
+    napi_value OnClipPath(napi_env env, napi_callback_info info);
+    napi_value OnClipRect(napi_env env, napi_callback_info info);
     napi_value OnDrawCircle(napi_env env, napi_callback_info info);
-    napi_value OnDrawImage(napi_env env, napi_callback_info info);
     napi_value OnDrawColor(napi_env env, napi_callback_info info);
+    napi_value OnDrawImage(napi_env env, napi_callback_info info);
+    napi_value OnDrawLine(napi_env env, napi_callback_info info);
+    napi_value OnDrawRect(napi_env env, napi_callback_info info);
     napi_value OnDrawPoint(napi_env env, napi_callback_info info);
     napi_value OnDrawPath(napi_env env, napi_callback_info info);
-    napi_value OnDrawLine(napi_env env, napi_callback_info info);
-    napi_value OnDrawText(napi_env env, napi_callback_info info);
     napi_value OnDrawPixelMapMesh(napi_env env, napi_callback_info info);
+    napi_value OnDrawText(napi_env env, napi_callback_info info);
+    napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
+    napi_value OnRotate(napi_env env, napi_callback_info info);
+    napi_value OnRestoreToCount(napi_env env, napi_callback_info info);
+    napi_value OnRestore(napi_env env, napi_callback_info info);
+    napi_value OnSkew(napi_env env, napi_callback_info info);
+    napi_value OnSave(napi_env env, napi_callback_info info);
+    napi_value OnScale(napi_env env, napi_callback_info info);
+    napi_value OnTranslate(napi_env env, napi_callback_info info);
 
     static bool DeclareFuncAndCreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;

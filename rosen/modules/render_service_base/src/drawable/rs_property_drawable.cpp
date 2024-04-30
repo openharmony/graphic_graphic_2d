@@ -23,6 +23,8 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_filter_cache_manager.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_linear_gradient_blur_shader_filter.h"
 
 namespace OHOS::Rosen {
 constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
@@ -163,10 +165,6 @@ void RSFilterDrawable::OnSync()
     forceUseCache_ = stagingForceUseCache_;
     clearFilteredCacheAfterDrawing_ = stagingClearFilteredCacheAfterDrawing_;
 
-    if (filterType_ == RSFilter::LINEAR_GRADIENT_BLUR) {
-        frameWidth_ = stagingFrameWidth_;
-        frameHeight_ = stagingFrameHeight_;
-    }
     filterHashChanged_ = false;
     filterRegionChanged_ = false;
     filterInteractWithDirty_ = false;
@@ -188,9 +186,14 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         if (canvas && ptr && ptr->filter_) {
             RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->nodeId_);
-            if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
+            if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR && rect != nullptr) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                filter->SetGeometry(*canvas, ptr->frameWidth_, ptr->frameHeight_);
+                std::shared_ptr<RSShaderFilter> rsShaderFilter =
+                    filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+                if (rsShaderFilter != nullptr) {
+                    auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
+                    tmpFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
+                }
             }
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
                 ptr->cacheManager_, ptr->IsForeground(), ptr->clearFilteredCacheAfterDrawing_);
@@ -322,11 +325,14 @@ void RSFilterDrawable::ClearFilterCache()
             cacheManager_ != nullptr, filter_ == nullptr);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d, isOccluded_:%d",
-        nodeId_, clearType_, isOccluded_);
     cacheManager_->InvalidateFilterCache(clearType_);
+    bool needClearMemoryForGpu = filterRegionChanged_ && cacheManager_->GetCachedType() == FilterCacheType::NONE;
+    cacheManager_->SetFilterInvalid(needClearMemoryForGpu);
     lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (stagingClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
+    RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache "
+        "nodeId[%llu], clearType:%d, isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d",
+        nodeId_, clearType_, isOccluded_, lastCacheType_, needClearMemoryForGpu);
 }
 
 void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)

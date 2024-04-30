@@ -31,13 +31,13 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class ParticleUpdator : uint32_t { NONE = 0, RANDOM, CURVE };
+enum class ParticleUpdator: uint32_t {NONE = 0, RANDOM, CURVE};
 
-enum class ShapeType : uint32_t { RECT = 0, CIRCLE, ELLIPSE };
+enum class ShapeType: uint32_t {RECT = 0, CIRCLE, ELLIPSE};
 
-enum class ParticleType : uint32_t { POINTS = 0, IMAGES };
+enum class ParticleType: uint32_t {POINTS = 0, IMAGES};
 
-enum class DistributionType : uint32_t { UNIFORM = 0, GAUSSIAN };
+enum class DistributionType: uint32_t {UNIFORM = 0, GAUSSIAN};
 
 template<typename T>
 struct Range {
@@ -385,9 +385,9 @@ public:
     }
 
 private:
-    Vector2f position_ = { 0.f, 0.f };
-    Vector2f velocity_ = { 0.f, 0.f };
-    Vector2f acceleration_ = { 0.f, 0.f };
+    Vector2f position_ = {0.f, 0.f};
+    Vector2f velocity_ = {0.f, 0.f};
+    Vector2f acceleration_ = {0.f, 0.f};
     float scale_ = 1.f;
     float spin_ = 0.f;
     float opacity_ = 1.f;

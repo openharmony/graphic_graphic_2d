@@ -20,21 +20,25 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_render_node_shadow_drawable.h"
+#include "params/rs_canvas_drawing_render_params.h"
+#include "params/rs_display_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen::DrawableV2 {
-RSRenderNodeDrawableAdapter::Generator RSRenderNodeDrawableAdapter::shadowGenerator_ = nullptr;
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
-std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache;
+std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
-    : renderNode_(std::move(node)) {};
+    : nodeType_(node->GetType()), renderNode_(std::move(node)) {}
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableById(NodeId id)
 {
     std::lock_guard<std::mutex> lock(cacheMapMutex_);
-    if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
+    if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
         if (const auto ptr = cacheIt->second.lock()) {
             return ptr;
         }
@@ -45,25 +49,28 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableB
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
-    static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
-        {
-            std::lock_guard<std::mutex> lock(cacheMapMutex_);
-            RenderNodeDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
-        }
-        delete ptr;
-    };
     if (node == nullptr) {
         return nullptr;
     }
+    if (node->renderDrawable_ != nullptr) {
+        return node->renderDrawable_;
+    }
+    static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
+        {
+            std::lock_guard<std::mutex> lock(cacheMapMutex_);
+            RenderNodeDrawableCache_.erase(ptr->nodeId_); // Remove from cache before deleting
+        }
+        RSRenderNodeGC::DrawableDestructor(ptr);
+    };
     auto id = node->GetId();
     // Try to get a cached drawable if it exists.
     {
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
-        if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
+        if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
                 return ptr;
             } else {
-                RenderNodeDrawableCache.erase(cacheIt);
+                RenderNodeDrawableCache_.erase(cacheIt);
             }
         }
     }
@@ -75,33 +82,62 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     }
     auto ptr = it->second(node);
     auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
+    node->renderDrawable_ = sharedPtr;
+    sharedPtr->nodeId_ = id;
+    InitRenderParams(node, sharedPtr);
+
     {
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
-        RenderNodeDrawableCache.emplace(id, sharedPtr);
+        RenderNodeDrawableCache_.emplace(id, sharedPtr);
     }
     return sharedPtr;
 }
 
+void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
+                                            std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr)
+{
+    switch (node->GetType()) {
+        case RSRenderNodeType::SURFACE_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
+            break;
+        case RSRenderNodeType::DISPLAY_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
+            break;
+        case RSRenderNodeType::CANVAS_DRAWING_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
+            break;
+        default:
+            sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
+            break;
+    }
+}
+
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
-    const std::shared_ptr<const RSRenderNode>& node)
+    const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable)
 {
     static std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> shadowDrawableCache;
-    static std::mutex cacheMapMutex;
+    static std::mutex shadowCacheMapMutex;
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
         {
-            std::lock_guard<std::mutex> lock(cacheMapMutex);
-            shadowDrawableCache.erase(ptr->renderNode_->GetId()); // Remove from cache before deleting
+            std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
+            shadowDrawableCache.erase(ptr->nodeId_); // Remove from cache before deleting
         }
-        delete ptr;
+        // tell associated RenderNodeDrawable not to skip shadow
+        static_cast<RSRenderNodeShadowDrawable*>(ptr)->OnDetach();
+        RSRenderNodeGC::DrawableDestructor(ptr);
     };
 
-    if (node == nullptr || shadowGenerator_ == nullptr) {
+    if (node == nullptr) {
         return nullptr;
     }
     auto id = node->GetId();
     // Try to get a cached drawable if it exists.
     {
-        std::lock_guard<std::mutex> lock(cacheMapMutex);
+        std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
         if (const auto cacheIt = shadowDrawableCache.find(id); cacheIt != shadowDrawableCache.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
                 return ptr;
@@ -111,10 +147,10 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
         }
     }
 
-    auto ptr = shadowGenerator_(node);
+    auto ptr = new RSRenderNodeShadowDrawable(node, drawable);
     auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
     {
-        std::lock_guard<std::mutex> lock(cacheMapMutex);
+        std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
         shadowDrawableCache.emplace(id, sharedPtr);
     }
     return sharedPtr;
@@ -123,22 +159,23 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
 void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
 {
-    if (renderNode_->drawCmdList_.empty() || start < 0 || end < 0 || start > end) {
+    if (drawCmdList_.empty() || start < 0 || end < 0 || start > end) {
         return;
     }
 
-    const auto& drawCmdList_ = renderNode_->drawCmdList_;
-
-    if (UNLIKELY(skipIndex_ != -1)) {
+    if (UNLIKELY(skipType_ != SkipType::NONE)) {
+        auto skipIndex_ = GetSkipIndex();
         if (start <= skipIndex_ || end > skipIndex_) {
+            // skip index is in the range
             for (auto i = start; i < skipIndex_; i++) {
                 drawCmdList_[i](&canvas, &rect);
             }
             for (auto i = skipIndex_ + 1; i < end; i++) {
                 drawCmdList_[i](&canvas, &rect);
             }
+            return;
         }
-        return;
+        // skip index is not in the range, fall back to normal drawing
     }
 
     for (auto i = start; i < end; i++) {
@@ -148,63 +185,67 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
 void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    if (renderNode_->drawCmdList_.empty()) {
+    if (drawCmdList_.empty()) {
         return;
     }
-    DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.backgroundEndIndex_);
+    DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.backgroundEndIndex_);
 }
 
 void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    if (renderNode_->drawCmdList_.empty()) {
+    if (drawCmdList_.empty()) {
         return;
     }
 
-    auto index = renderNode_->drawCmdIndex_.contentIndex_;
+    auto index = drawCmdIndex_.contentIndex_;
     if (index == -1) {
         return;
     }
-    renderNode_->drawCmdList_[index](&canvas, &rect);
+    drawCmdList_[index](&canvas, &rect);
 }
 
 void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    if (renderNode_->drawCmdList_.empty()) {
+    if (drawCmdList_.empty()) {
         return;
     }
 
-    auto index = renderNode_->drawCmdIndex_.childrenIndex_;
+    auto index = drawCmdIndex_.childrenIndex_;
     if (index == -1) {
         return;
     }
-    renderNode_->drawCmdList_[index](&canvas, &rect);
+    drawCmdList_[index](&canvas, &rect);
 }
 
 void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    if (renderNode_->uifirstDrawCmdList_.empty()) {
+    if (uifirstDrawCmdList_.empty()) {
         return;
     }
 
-    const auto& drawCmdList_ = renderNode_->uifirstDrawCmdList_;
-    auto contentIdx = renderNode_->uifirstDrawCmdIndex_.contentIndex_;
-    auto childrenIdx = renderNode_->uifirstDrawCmdIndex_.childrenIndex_;
+    const auto& drawCmdList = uifirstDrawCmdList_;
+    auto contentIdx = uifirstDrawCmdIndex_.contentIndex_;
+    auto childrenIdx = uifirstDrawCmdIndex_.childrenIndex_;
     if (contentIdx != -1) {
-        drawCmdList_[contentIdx](&canvas, &rect);
+        drawCmdList[contentIdx](&canvas, &rect);
     }
     if (childrenIdx != -1) {
-        drawCmdList_[childrenIdx](&canvas, &rect);
+        drawCmdList[childrenIdx](&canvas, &rect);
     }
 }
 
 void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.foregroundBeginIndex_, renderNode_->drawCmdIndex_.endIndex_);
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.foregroundBeginIndex_, drawCmdIndex_.endIndex_);
 }
 
 void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, 0, renderNode_->drawCmdIndex_.endIndex_);
+    const auto& drawCmdList = drawCmdList_;
+    if (drawCmdList.empty()) {
+        return;
+    }
+    DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.endIndex_);
 }
 
 void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& out) const
@@ -212,15 +253,23 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
     for (int32_t i = 0; i < depth; ++i) {
         out += "  ";
     }
-    renderNode_->DumpNodeType(out);
-    out += "[" + std::to_string(renderNode_->GetId()) + "]";
-    renderNode_->DumpSubClassNode(out);
+    auto renderNode = renderNode_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSRenderNode::DumpNodeType(nodeType_, out);
+    out += "[" + std::to_string(nodeId_) + "]";
+    renderNode->DumpSubClassNode(out);
     out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-    out += ", " + renderNode_->GetRenderParams()->ToString();
+    out += ", " + renderNode->GetRenderParams()->ToString();
+    if (skipType_ != SkipType::NONE) {
+        out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
+        out += ", SkipIndex:" + std::to_string(GetSkipIndex());
+    }
     out += "\n";
 
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
-        renderNode_->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
+        renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
     if (childrenDrawable) {
         for (const auto& renderNodeDrawable : childrenDrawable->childrenDrawableVec_) {
             renderNodeDrawable->DumpDrawableTree(depth + 1, out);
@@ -230,7 +279,11 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
 
 std::string RSRenderNodeDrawableAdapter::DumpDrawableVec() const
 {
-    const auto& drawableVec = renderNode_->drawableVec_;
+    auto renderNode = renderNode_.lock();
+    if (renderNode == nullptr) {
+        return "";
+    }
+    const auto& drawableVec = renderNode->drawableVec_;
     std::string str;
     for (uint8_t i = 0; i < drawableVec.size(); ++i) {
         if (drawableVec[i]) {
@@ -265,16 +318,15 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, RectF loc
 void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     Drawing::Canvas& canvas, const RSRenderParams& params) const
 {
-    if (renderNode_->uifirstDrawCmdList_.empty()) {
+    if (uifirstDrawCmdList_.empty()) {
         return;
     }
 
-    const auto& drawCmdList_ = renderNode_->drawCmdList_;
-    auto backgroundIndex = renderNode_->drawCmdIndex_.backgroundEndIndex_;
+    auto backgroundIndex = drawCmdIndex_.backgroundEndIndex_;
     auto bounds = params.GetBounds();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     for (auto index = 0; index < backgroundIndex; ++index) {
-        if (index == renderNode_->drawCmdIndex_.shadowIndex_) {
+        if (index == drawCmdIndex_.shadowIndex_) {
             if (!params.GetShadowRect().IsEmpty()) {
                 auto shadowRect = params.GetShadowRect();
                 RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]", shadowRect.GetLeft(),
@@ -290,8 +342,8 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             }
             continue;
         }
-        if (index != renderNode_->drawCmdIndex_.backgroundFilterIndex_ &&
-            index != renderNode_->drawCmdIndex_.useEffectIndex_) {
+        if (index != drawCmdIndex_.backgroundFilterIndex_ &&
+            index != drawCmdIndex_.useEffectIndex_) {
             drawCmdList_[index](&canvas, &bounds);
         } else {
             RS_OPTIONAL_TRACE_NAME_FMT(
@@ -305,39 +357,36 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
 
 void RSRenderNodeDrawableAdapter::DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.renderGroupBeginIndex_,
-        renderNode_->drawCmdIndex_.renderGroupEndIndex_);
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.renderGroupBeginIndex_,
+        drawCmdIndex_.renderGroupEndIndex_);
 }
 
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(renderNode_->drawCmdIndex_.renderGroupBeginIndex_ - 1));
+    DrawRangeImpl(canvas, rect, 0, static_cast<int8_t>(drawCmdIndex_.renderGroupBeginIndex_ - 1));
 }
 
 void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    DrawRangeImpl(canvas, rect, renderNode_->drawCmdIndex_.renderGroupEndIndex_,
-        renderNode_->drawCmdIndex_.endIndex_);
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.renderGroupEndIndex_,
+        drawCmdIndex_.endIndex_);
 }
 
 bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
-    return renderNode_->drawCmdIndex_.shadowIndex_ != -1 || renderNode_->drawCmdIndex_.backgroundFilterIndex_ != -1 ||
-           renderNode_->drawCmdIndex_.useEffectIndex_ != -1;
+    return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
+           drawCmdIndex_.useEffectIndex_ != -1;
 }
-void RSRenderNodeDrawableAdapter::SetSkip(SkipType type)
+int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
 {
-    switch (type) {
+    switch (skipType_) {
         case SkipType::SKIP_BACKGROUND_COLOR:
-            skipIndex_ = renderNode_->drawCmdIndex_.backgroundColorIndex_;
-            break;
+            return drawCmdIndex_.backgroundColorIndex_;
         case SkipType::SKIP_SHADOW:
-            skipIndex_ = renderNode_->drawCmdIndex_.shadowIndex_;
-            break;
+            return drawCmdIndex_.shadowIndex_;
         case SkipType::NONE:
         default:
-            skipIndex_ = -1;
-            break;
+            return -1;
     }
 }
 } // namespace OHOS::Rosen::DrawableV2

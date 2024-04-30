@@ -25,7 +25,6 @@ namespace OHOS::Rosen::DrawableV2 {
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 class RSCanvasDrawingRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSCanvasDrawingRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -52,6 +51,7 @@ public:
     }
     void ResetSurface();
 private:
+    explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
     void ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds,
         std::shared_ptr<RSContext> ctx, NodeId nodeId);

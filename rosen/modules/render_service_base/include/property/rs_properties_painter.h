@@ -26,6 +26,7 @@ namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
 class RSDrawingFilter;
+class RSDrawingFilterOriginal;
 enum class FilterType {
     BACKGROUND_FILTER,
     FOREGROUND_FILTER,

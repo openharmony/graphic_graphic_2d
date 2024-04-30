@@ -276,6 +276,9 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
     numResyncSamplesSincePresent_ = 0;
 
     UpdateErrorLocked();
+    if (error_ > ERROR_THRESHOLD) {
+        ScopedBytrace trace("PresentFenceTime error_:" + std::to_string(error_));
+    }
 
     return !modeUpdated_ || error_ > ERROR_THRESHOLD;
 }
@@ -319,6 +322,7 @@ void VSyncSampler::SetPendingPeriod(int64_t period)
 
 void VSyncSampler::Dump(std::string &result)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     result.append("\n-- VSyncSampler --");
     result += "\nperiod:" + std::to_string(period_);
     result += "\nphase:" + std::to_string(phase_);

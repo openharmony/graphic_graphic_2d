@@ -18,7 +18,21 @@ module_out_path = "graphic_2d/render_service_client"
 group("systemtest") {
   testonly = true
 
-  deps = [ ":RSInterfacesSystemTest" ]
+  deps = [
+    ":RSInterfacesSystemTest",
+    ":RSInterfacesVirtualScreenTest",
+  ]
+}
+
+## Build RSInterfacesVirtualScreenTest
+ohos_systemtest("RSInterfacesVirtualScreenTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_interfaces_virtual_screen_test.cpp" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## Build RSInterfacesSystemTest
@@ -80,6 +94,8 @@ ohos_static_library("rs_client_test_common") {
     "hilog:libhilog",
     "image_framework:image_native",
   ]
+
+  public_external_deps = [ "window_manager:libwmutil_base" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

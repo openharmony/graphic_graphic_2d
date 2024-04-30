@@ -125,6 +125,7 @@ private:
     std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t occurTimestamp, int64_t referenceTime);
     int64_t ComputeListenerNextVSyncTimeStamp(const Listener &listen, int64_t now, int64_t referenceTime);
     void ThreadLoop();
+    void WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStamp, int64_t occurReferenceTime);
     void UpdateWakeupDelay(int64_t occurTimestamp, int64_t nextTimeStamp);
     bool ChangeListenerOffsetInternal();
     bool ChangeListenerRefreshRatesInternal();

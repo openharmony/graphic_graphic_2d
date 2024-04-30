@@ -16,6 +16,7 @@
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "string_utils.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "rs_trace.h"
 #include "platform/common/rs_log.h"

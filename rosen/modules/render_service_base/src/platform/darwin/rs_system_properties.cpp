@@ -67,6 +67,11 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAnimationTraceEnabled()
+{
+    return {};
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -330,6 +335,16 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
 }
 
 bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetBlurExtraFilterEnabled()
 {
     return false;
 }

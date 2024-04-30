@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-CacheData::CacheData (const size_t maxKeySize, const size_t maxValueSize,
+CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
     const size_t maxTotalSize, const std::string& fileName)
     : maxKeySize_(maxKeySize),
     maxValueSize_(maxValueSize),
@@ -133,12 +133,11 @@ void CacheData::WriteToFile()
 
 void CacheData::Rewrite(const void *key, const size_t keySize, const void *value, const size_t valueSize)
 {
-    if (maxKeySize_ < keySize || maxValueSize_ < valueSize || maxTotalSize_ < keySize + valueSize
-        || keySize == 0 || valueSize <= 0) {
+    if (maxKeySize_ < keySize || maxValueSize_ < valueSize ||
+        maxTotalSize_ < keySize + valueSize || keySize == 0 || valueSize <= 0) {
         LOGD("abandon, because of illegal content size");
         return;
     }
-
     std::shared_ptr<DataPointer> fakeDataPointer(std::make_shared<DataPointer>(key, keySize, false));
     ShaderPointer fakeShaderPointer(fakeDataPointer, nullptr);
     bool isShaderFound = false;

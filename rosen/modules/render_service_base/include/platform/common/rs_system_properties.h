@@ -135,6 +135,7 @@ public:
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
+    static bool GetAnimationTraceEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -178,6 +179,7 @@ public:
     static bool GetHpsBlurEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
+    static bool GetImageReleaseUsingPostTask();
     static bool GetKawaseOriginalEnabled();
     static bool GetBlurEnabled();
     static const std::vector<float>& GetAiInvertCoef();
@@ -186,6 +188,9 @@ public:
     static bool GetQuickPrepareEnabled();
     static bool GetRenderParallelEnabled();
     static bool GetPropertyDrawableEnable();
+
+    static bool GetDrawFilterWithoutSnapshotEnabled();
+    static bool GetBlurExtraFilterEnabled();
 
     static bool GetAnimationCacheEnabled();
 

@@ -120,4 +120,61 @@ HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkip, TestSize.Level1)
     isFrameSkip = displaySync->OnFrameSkip(timestamp, period, isDisplaySyncEnabled);
     EXPECT_EQ(isFrameSkip, false);
 }
+
+/**
+ * @tc.name: CalcSkipRateCount
+ * @tc.desc: Test CalcSkipRateCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderDisplaySyncTest, CalcSkipRateCount, TestSize.Level1)
+{
+    NodeId id = 1;
+    std::unique_ptr<RSRenderDisplaySync> renderDisplaySync = std::make_unique<RSRenderDisplaySync>(id);
+    renderDisplaySync->expectedFrameRateRange_.preferred_ = 0;
+    EXPECT_EQ(renderDisplaySync->CalcSkipRateCount(60), 0);
+
+    renderDisplaySync->expectedFrameRateRange_.preferred_ = 30;
+    EXPECT_EQ(renderDisplaySync->CalcSkipRateCount(0), 0);
+
+    renderDisplaySync->expectedFrameRateRange_.preferred_ = 30;
+    EXPECT_EQ(renderDisplaySync->CalcSkipRateCount(60), 2);
+}
+
+/**
+ * @tc.name: GetNearestFrameRate
+ * @tc.desc: Test GetNearestFrameRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderDisplaySyncTest, GetNearestFrameRate, TestSize.Level1)
+{
+    NodeId id = 1;
+    OHOS::Rosen::RSRenderDisplaySync sync(id);
+    int32_t result = sync.GetNearestFrameRate(30, {});
+    EXPECT_EQ(result, 0);
+
+    result = sync.GetNearestFrameRate(60, {30, 60, 90});
+    EXPECT_EQ(result, 60);
+
+    result = sync.GetNearestFrameRate(5, {30, 60, 90});
+    EXPECT_EQ(result, 0);
+    {
+        RSRenderDisplaySync sync(id);
+        int32_t result = sync.GetNearestFrameRate(100, {30, 60, 90});
+        EXPECT_EQ(result, 0);
+    }
+    {
+        RSRenderDisplaySync sync(id);
+        int32_t result = sync.GetNearestFrameRate(70, {60, 75, 90});
+        EXPECT_EQ(result, 75);
+    }
+    {
+        RSRenderDisplaySync sync(id);
+        int32_t result = sync.GetNearestFrameRate(80, {60, 75, 90});
+        EXPECT_EQ(result, 75);
+    }
+    result = sync.GetNearestFrameRate(70, {60, 80});
+    EXPECT_EQ(result, 80);
+}
 } // namespace OHOS::Rosen

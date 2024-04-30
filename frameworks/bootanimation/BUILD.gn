@@ -47,10 +47,16 @@ ohos_executable("bootanimation") {
   install_enable = true
 
   sources = [
-    "src/boot_animation.cpp",
-    "src/boot_animationconfig.cpp",
-    "src/boot_compileprogress.cpp",
-    "src/boot_videoplayer.cpp",
+    "src/boot_animation_controller.cpp",
+    "src/boot_animation_operation.cpp",
+    "src/boot_animation_strategy.cpp",
+    "src/boot_associative_display_strategy.cpp",
+    "src/boot_compatible_display_strategy.cpp",
+    "src/boot_compile_progress.cpp",
+    "src/boot_independent_display_strategy.cpp",
+    "src/boot_picture_player.cpp",
+    "src/boot_sound_player.cpp",
+    "src/boot_video_player.cpp",
     "src/main.cpp",
     "src/util.cpp",
   ]
@@ -68,7 +74,6 @@ ohos_executable("bootanimation") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/cJSON:cjson_static",
-    "//third_party/zlib:libz",
   ]
 
   deps += [ "//third_party/skia:skia_ohos" ]
@@ -84,6 +89,7 @@ ohos_executable("bootanimation") {
     "ipc:ipc_core",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "zlib:libz",
   ]
 
   if (player_framework_enable) {

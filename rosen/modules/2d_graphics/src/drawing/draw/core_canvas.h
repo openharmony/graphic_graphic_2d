@@ -410,6 +410,30 @@ public:
     // opinc_end
 
     // image
+    /**
+     * @brief Draws many parts of the image (atlas) onto the canvas.
+     * This approach can be optimized when you want to draw many parts of an image on the canvas.
+     * Rect tex selects the area in the atlas, xform transforms each sprite individually rotating or zooming.
+     * MaskFilter and PathEffect on brush are ignored.
+     * 
+     * The xform and tex list must contain count entries, and if the colors is present,
+     * it must be the same length as the other two lists, the max count supported is 2000.
+     * Optional parameter colors, if present, are applied to each sprite using BlendMode mode, treating
+     * sprite as source and colors as destination.
+     * Optional parameter cullRect, if present, provides boundary values rendered by all
+     * components of the atlas to be compared to the clip.
+     *
+     * @param atlas    Image containing pixels, dimensions, and format
+     * @param xform    RSXform mappings for sprites in atlas
+     * @param tex      destination Rect of image to draw to
+     * @param colors   for each sprite, blend with it using blendmode; or nullptr
+     * @param count    the number of sprites to draw, the maximum is 2000
+     * @param mode     used to combine colors with sprites
+     * @param sampling SamplingOptions used when sampling from the atlas image
+     * @param cullRect bounds of sprites for efficient clipping; or nullptr
+     */
+    virtual void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+        int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect);
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
     virtual void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling);
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,

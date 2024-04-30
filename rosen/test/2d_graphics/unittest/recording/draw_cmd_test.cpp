@@ -152,6 +152,76 @@ HWTEST_F(DrawCmdTest, GenerateHandleFromPaint001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawCmdTestBlurDrawLooper001
+ * @tc.desc: Test BlurDrawLooper
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper001, TestSize.Level1)
+{
+    // recordingcanvas  width 100, height 100
+    int32_t width = 100;
+    int32_t height = 100;
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(width, height, true);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Paint paint1;
+    paint1.SetAntiAlias(true);
+    // 1.f 2.f  3.f and 0x12345678 is setted to compare.
+    float radius = 1.f;
+    Point point{2.f, 3.f};
+    Color color = Color(0x12345678);
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper1 = BlurDrawLooper::CreateBlurDrawLooper(radius,
+        point.GetX(), point.GetY(), color);
+    EXPECT_NE(blurDrawLooper1, nullptr);
+    paint1.SetLooper(blurDrawLooper1);
+
+    PaintHandle paintHandle { 0 };
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
+    EXPECT_TRUE(paintHandle.isAntiAlias);
+    EXPECT_NE(paintHandle.blurDrawLooperHandle.size, 0);
+
+    Paint paint2;
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint2);
+    EXPECT_TRUE(paint2.IsAntiAlias());
+    EXPECT_NE(paint2.GetLooper(), nullptr);
+    EXPECT_TRUE(*(paint2.GetLooper()) == *blurDrawLooper1);
+}
+
+/**
+ * @tc.name: DrawCmdTestBlurDrawLooper002
+ * @tc.desc: Test null BlurDrawLooper
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper002, TestSize.Level1)
+{
+    // recordingcanvas  width 100, height 100
+    int32_t width = 100;
+    int32_t height = 100;
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(width, height, true);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+
+    Paint paint1;
+    paint1.SetAntiAlias(true);
+    paint1.SetLooper(nullptr);
+
+    PaintHandle paintHandle { 0 };
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
+    EXPECT_TRUE(paintHandle.isAntiAlias);
+    EXPECT_EQ(paintHandle.blurDrawLooperHandle.offset, 0);
+    EXPECT_EQ(paintHandle.blurDrawLooperHandle.size, 0);
+
+    Paint paint2;
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint2);
+    EXPECT_TRUE(paint2.IsAntiAlias());
+    EXPECT_EQ(paint2.GetLooper(), nullptr);
+}
+
+/**
  * @tc.name: GenerateCachedOpItem001
  * @tc.desc: Test GenerateCachedOpItem
  * @tc.type: FUNC

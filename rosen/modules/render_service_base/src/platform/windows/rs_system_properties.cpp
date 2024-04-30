@@ -62,6 +62,11 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAnimationTraceEnabled()
+{
+    return {};
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
@@ -330,6 +335,16 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
 }
 
 bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetBlurExtraFilterEnabled()
 {
     return false;
 }

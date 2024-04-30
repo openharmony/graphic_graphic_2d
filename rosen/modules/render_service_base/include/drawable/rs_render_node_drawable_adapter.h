@@ -23,15 +23,32 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "recording/recording_canvas.h"
+#include "pipeline/rs_render_content.h"
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSRenderParams;
+class RSDisplayRenderNode;
+class RSSurfaceRenderNode;
 namespace Drawing {
 class Canvas;
 }
 
+struct DrawCmdIndex {
+    int8_t shadowIndex_           = -1;
+    int8_t renderGroupBeginIndex_ = -1;
+    int8_t backgroundFilterIndex_ = -1;
+    int8_t backgroundColorIndex_  = -1;
+    int8_t useEffectIndex_        = -1;
+    int8_t backgroundEndIndex_    = -1;
+    int8_t childrenIndex_         = -1;
+    int8_t contentIndex_          = -1;
+    int8_t foregroundBeginIndex_  = -1;
+    int8_t renderGroupEndIndex_   = -1;
+    int8_t endIndex_              = -1;
+};
 namespace DrawableV2 {
 enum class SkipType : uint8_t {
     NONE = 0,
@@ -59,9 +76,18 @@ public:
 
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
-    static SharedPtr OnGenerateShadowDrawable(const std::shared_ptr<const RSRenderNode>& node);
+    static SharedPtr OnGenerateShadowDrawable(
+        const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
-    void SetSkip(SkipType type);
+    inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
+    {
+        return renderParams_;
+    }
+
+    inline const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const
+    {
+        return uifirstRenderParams_;
+    }
 
 protected:
     // Util functions
@@ -85,6 +111,7 @@ protected:
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
+    void SetSkip(SkipType type) { skipType_ = type; }
 
     // Register utils
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
@@ -96,23 +123,32 @@ protected:
             RSRenderNodeDrawableAdapter::GeneratorMap.emplace(type, generator);
         }
     };
-    template<Generator generator>
-    class RenderNodeShadowDrawableRegistrar {
-    public:
-        RenderNodeShadowDrawableRegistrar()
-        {
-            RSRenderNodeDrawableAdapter::shadowGenerator_ = generator;
-        }
-    };
 
-    std::shared_ptr<const RSRenderNode> renderNode_;
+    const RSRenderNodeType nodeType_;
+    // deprecated
+    std::weak_ptr<const RSRenderNode> renderNode_;
+    NodeId nodeId_;
+
+    DrawCmdIndex uifirstDrawCmdIndex_;
+    DrawCmdIndex drawCmdIndex_;
+    std::unique_ptr<RSRenderParams> renderParams_;
+    std::unique_ptr<RSRenderParams> uifirstRenderParams_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
 
 private:
+    static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
+                            std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
-    static Generator shadowGenerator_;
-    static std::map<NodeId, WeakPtr> RenderNodeDrawableCache;
+    static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
-    int8_t skipIndex_ = -1;
+    SkipType skipType_ = SkipType::NONE;
+    int8_t GetSkipIndex() const;
+
+    friend class OHOS::Rosen::RSRenderNode;
+    friend class OHOS::Rosen::RSDisplayRenderNode;
+    friend class OHOS::Rosen::RSSurfaceRenderNode;
+    friend class RSRenderNodeShadowDrawable;
 };
 
 } // namespace DrawableV2

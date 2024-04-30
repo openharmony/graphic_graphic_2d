@@ -21,40 +21,13 @@
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
 
+#include "ge_shader_filter_params.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
 enum class DrawingPaintType { NONE, BRUSH, PEN, PAINT, BRUSH_PEN };
-
-struct GEAIBarShaderFilterParams {
-    float aiBarLow;
-    float aiBarHigh;
-    float aiBarThreshold;
-    float aiBarOpacity;
-    float aiBarSaturation;
-};
-
-struct GEGreyShaderFilterParams {
-    float greyCoef1;
-    float greyCoef2;
-};
-
-struct GEKawaseBlurShaderFilterParams {
-    int radius;
-};
-
-struct GELinearGradientBlurShaderFilterParams {
-    float blurRadius;
-    std::vector<std::pair<float, float>> fractionStops;
-    int direction;
-    float geoWidth;
-    float geoHeight;
-    Drawing::Matrix mat;
-    float tranX;
-    float tranY;
-    bool isOffscreenCanvas;
-};
 
 class GEVisualEffectImpl;
 

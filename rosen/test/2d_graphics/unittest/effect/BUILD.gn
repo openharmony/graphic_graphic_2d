@@ -19,6 +19,7 @@ ohos_unittest("2d_graphics_effect_test") {
   module_out_path = module_output_path
 
   sources = [
+    "blur_draw_looper_test.cpp",
     "color_filter_test.cpp",
     "color_matrix_test.cpp",
     "color_space_test.cpp",

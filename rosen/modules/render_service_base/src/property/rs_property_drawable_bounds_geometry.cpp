@@ -27,11 +27,11 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_drawing_filter.h"
 
 namespace {
 constexpr int PARAM_DOUBLE = 2;
 constexpr int TRACE_LEVEL_TWO = 2;
-constexpr int16_t BORDER_TRANSPARENT = 255;
 } // namespace
 namespace OHOS::Rosen {
 // ============================================================================
@@ -316,7 +316,7 @@ void RSSvgDomMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
-    int tmpLayer = canvas.GetSaveCount();
+    uint32_t tmpLayer = canvas.GetSaveCount();
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
@@ -340,7 +340,7 @@ void RSSvgPictureMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
-    int tmpLayer = canvas.GetSaveCount();
+    uint32_t tmpLayer = canvas.GetSaveCount();
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
@@ -364,7 +364,7 @@ void RSGradientMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterC
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
-    int tmpLayer = canvas.GetSaveCount();
+    uint32_t tmpLayer = canvas.GetSaveCount();
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
@@ -391,7 +391,7 @@ void RSPathMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
-    int tmpLayer = canvas.GetSaveCount();
+    uint32_t tmpLayer = canvas.GetSaveCount();
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
@@ -945,21 +945,20 @@ RSPropertyDrawable::DrawablePtr RSPixelStretchDrawable::Generate(const RSRenderC
 void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     auto& properties = content.GetRenderProperties();
-    auto borderColorAlpha = properties.GetBorderColor()[0].GetAlpha();
     Drawing::Brush brush = brush_;
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        if (borderColorAlpha < BORDER_TRANSPARENT) {
+        if (properties.GetBorderColorIsTransparent()) {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
             canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()));
         }
     } else {
         canvas.AttachBrush(brush);
-        if (borderColorAlpha < BORDER_TRANSPARENT) {
+        if (properties.GetBorderColorIsTransparent()) {
             canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
         } else {
             canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());
@@ -1037,6 +1036,19 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
 {
     auto& properties = content.GetRenderProperties();
     const auto& image = properties.GetBgImage();
+
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto pixelMap = image->GetPixelMap();
+    if (pixelMap && pixelMap->IsAstc()) {
+        const void* data = pixelMap->GetPixels();
+        std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
+        const int seekSize = 16;
+        if (pixelMap->GetCapacity() > seekSize) {
+            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
+        }
+        image->SetCompressData(fileData);
+    }
+#endif
 
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();

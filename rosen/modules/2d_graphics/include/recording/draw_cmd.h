@@ -803,6 +803,7 @@ public:
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
 protected:
     void DrawHighContrast(Canvas* canvas) const;
+    void DrawHighContrastEnabled(Canvas* canvas) const;
 private:
     scalar x_;
     scalar y_;

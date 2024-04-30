@@ -38,6 +38,7 @@ public:
         GREY,
         AIBAR,
         LINEAR_GRADIENT_BLUR,
+        MASK_COLOR,
     };
 
     ShaderFilterType GetShaderFilterType() const
@@ -53,7 +54,7 @@ public:
     }
     
     virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) {};
-    virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
+    virtual void PostProcess(Drawing::Canvas& canvas) {};
 
     uint32_t Hash() const
     {

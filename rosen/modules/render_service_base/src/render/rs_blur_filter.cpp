@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 const auto BLUR_TYPE = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilter(
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilterOriginal(
     Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP, nullptr,
         BLUR_TYPE)),
     blurRadiusX_(blurRadiusX),
@@ -72,7 +72,8 @@ bool RSBlurFilter::IsValid() const
     return blurRadiusX_ > epsilon || blurRadiusY_ > epsilon;
 }
 
-std::shared_ptr<RSDrawingFilter> RSBlurFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
+std::shared_ptr<RSDrawingFilterOriginal> RSBlurFilter::Compose(
+    const std::shared_ptr<RSDrawingFilterOriginal>& other) const
 {
     std::shared_ptr<RSBlurFilter> result = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
@@ -139,9 +140,10 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
         return;
     }
     if (greyCoef_.has_value()) {
-        auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);
-        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]); // 模糊半径
-        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]); // 模糊半径
+        auto greyFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_GREY, Drawing::DrawingPaintType::BRUSH);
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_1, greyCoef_.value()[0]); // 模糊半径
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_2, greyCoef_.value()[1]); // 模糊半径
         visualEffectContainer->AddToChainedFilter(greyFilter);
     }
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
@@ -152,8 +154,9 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
     static bool DDGR_ENABLED = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
     KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, brush.GetColor().GetAlphaF());
     if (!DDGR_ENABLED && KAWASE_BLUR_ENABLED) {
-        auto kawaseFilter = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR", Drawing::DrawingPaintType::BRUSH);
-        kawaseFilter->SetParam("KAWASE_BLUR_RADIUS", (int)blurRadiusX_); // 模糊半径
+        auto kawaseFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR, Drawing::DrawingPaintType::BRUSH);
+        kawaseFilter->SetParam(Drawing::GE_FILTER_KAWASE_BLUR_RADIUS, (int)blurRadiusX_); // 模糊半径
         visualEffectContainer->AddToChainedFilter(kawaseFilter);
 
         auto outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,

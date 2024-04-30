@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -25,7 +26,8 @@ void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId target
 {
     // PLANNING: if we run in RS and target not found, we should display a warning
     auto targetNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(targetId);
-    auto node = std::make_shared<RSProxyRenderNode>(id, targetNode, targetId, context.weak_from_this());
+    auto node = std::shared_ptr<RSProxyRenderNode>(new RSProxyRenderNode(id,
+        targetNode, targetId, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
+static constexpr int NUMBER_FOR_HALF = 2;
 
 RSPropertyAnimation::RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property) : property_(property)
 {
@@ -110,14 +111,14 @@ void RSPropertyAnimation::OnUpdateStagingValue(bool isFirstStart)
     auto byValue = endValue - startValue;
     auto targetValue = endValue;
     if (isFirstStart) {
-        if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
+        if (GetAutoReverse() && GetRepeatCount() % NUMBER_FOR_HALF == 0) {
             targetValue = startValue;
         } else {
             targetValue = endValue;
         }
     } else {
         auto currentValue = GetPropertyValue();
-        if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
+        if (GetAutoReverse() && GetRepeatCount() % NUMBER_FOR_HALF == 0) {
             targetValue = IsReversed() ? currentValue + byValue : currentValue - byValue;
         } else {
             targetValue = IsReversed() ? currentValue - byValue : currentValue + byValue;

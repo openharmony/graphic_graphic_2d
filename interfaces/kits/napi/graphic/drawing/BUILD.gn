@@ -68,8 +68,12 @@ ohos_shared_library("drawing_napi_impl") {
     "js_common.cpp",
     "js_drawing_init.cpp",
     "js_drawing_utils.cpp",
+    "mask_filter_napi/js_mask_filter.cpp",
+    "path_effect_napi/js_path_effect.cpp",
     "path_napi/js_path.cpp",
     "pen_napi/js_pen.cpp",
+    "sampling_options_napi/js_sampling_options.cpp",
+    "shadow_layer_napi/js_shadow_layer.cpp",
     "text_blob_napi/js_text_blob.cpp",
   ]
 
@@ -88,6 +92,7 @@ ohos_shared_library("drawing_napi_impl") {
     external_deps += [
       "hilog:libhilog",
       "image_framework:image_native",
+      "init:libbegetutil",
     ]
     deps += [ "../../../../../utils:libgraphic_utils" ]
     defines += [ "ROSEN_OHOS" ]

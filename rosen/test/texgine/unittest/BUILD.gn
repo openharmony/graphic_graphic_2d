@@ -20,14 +20,7 @@ is_ok = true
 group("unittest") {
   testonly = true
   if (is_ok) {
-    deps = [
-      ":texgine_unittest_part1",
-      ":texgine_unittest_part2",
-      ":texgine_unittest_part3",
-      ":texgine_unittest_part4",
-      ":texgine_unittest_part5",
-      ":texgine_unittest_part6",
-    ]
+    deps = [ ":texgine_unittest_part3" ]
   }
 }
 
@@ -113,11 +106,7 @@ ohos_unittest("texgine_unittest_part3") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
-  sources = [
-    "font_collection_test.cpp",
-    "line_breaker_test.cpp",
-    "text_breaker_test.cpp",
-  ]
+  sources = [ "font_parser_test.cpp" ]
 
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]

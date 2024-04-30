@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT RSAIBarFilter : public RSDrawingFilter {
+class RSB_EXPORT RSAIBarFilter : public RSDrawingFilterOriginal {
 public:
     RSAIBarFilter();
     RSAIBarFilter(const RSAIBarFilter&) = delete;
@@ -33,7 +33,8 @@ public:
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
 
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override
+    std::shared_ptr<RSDrawingFilterOriginal> Compose(
+        const std::shared_ptr<RSDrawingFilterOriginal>& other) const override
     {
         return nullptr;
     };

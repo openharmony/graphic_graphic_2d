@@ -26,16 +26,13 @@ class RSRenderThreadParams;
 class RSSurfaceRenderNode;
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
-#ifdef RS_PARALLEL
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
-#endif
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     ~RSSurfaceRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
@@ -43,7 +40,6 @@ public:
     void OnCapture(Drawing::Canvas& canvas) override;
     bool EnableRecordingOptimization(RSRenderParams& params);
 
-#ifdef RS_PARALLEL
     void SubDraw(Drawing::Canvas& canvas);
 
     void UpdateCacheSurface();
@@ -70,7 +66,7 @@ public:
     {
         std::string res = "pid_";
         res.append("_name_");
-        res.append(std::static_pointer_cast<const RSSurfaceRenderNode>(renderNode_)->GetName());
+        res.append(name_);
         return res;
     }
 
@@ -135,33 +131,35 @@ public:
     {
         return priority_;
     }
-#endif
+
     void DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
 private:
+    explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, std::shared_ptr<RSDisplayRenderNode> curDisplayNode);
     bool DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
 
-    void CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
-        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    void CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
+    void CaptureSurface(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
     void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams* uniParam,
         RSSurfaceRenderParams* surfaceParams,
         std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
-        std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const;
+    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams* uniParam,
+        RSSurfaceRenderParams* surfaceParams, std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
+        bool isOffscreen) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
-#ifdef RS_PARALLEL
+
     std::string name_;
-    bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas);
+    bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
+    void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
+        RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
 
     // UIFIRST
     UIFirstParams uiFirstParams;
@@ -183,7 +181,6 @@ private:
     std::atomic<bool> isTextureValid_ = false;
     pid_t lastFrameUsedThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
-#endif
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

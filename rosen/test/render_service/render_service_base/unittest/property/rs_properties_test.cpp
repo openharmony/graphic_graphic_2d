@@ -710,6 +710,17 @@ HWTEST_F(RSPropertiesTest, SetGet002, TestSize.Level1)
     RSRenderParticleVector particles2;
     properties.SetParticles(particles2);
 
+    properties.SetSkewX(1.0);
+    properties.SetSkewY(1.0);
+    Vector2f skew2 = { 1.0, 1.0 };
+    properties.SetSkew(skew2);
+    auto skew = properties.GetSkew();
+    ASSERT_NE(0, skew.GetLength());
+    auto skewX = properties.GetSkewX();
+    auto skewY = properties.GetSkewY();
+    ASSERT_NE(0, skewX);
+    ASSERT_NE(0, skewY);
+
     properties.SetAlpha(0.f);
     float alpha = properties.GetAlpha();
     ASSERT_EQ(0.f, alpha);
@@ -990,6 +1001,24 @@ HWTEST_F(RSPropertiesTest, SetShadowColorStrategy001, TestSize.Level1)
     RSProperties properties;
     properties.SetShadowColorStrategy(1);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
+}
+
+/**
+ * @tc.name: SetShadowColorStrategy002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetShadowColorStrategy002, TestSize.Level1)
+{
+    RSProperties properties;
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
+    properties.SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_EQ(properties.GetShadowColorStrategy(), shadowColorStrategy);
+
+    shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
+    properties.SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_EQ(properties.GetShadowColorStrategy(), shadowColorStrategy);
 }
 
 /**
@@ -1492,6 +1521,52 @@ HWTEST_F(RSPropertiesTest, SetColorBlendMode001, TestSize.Level1)
     RSProperties properties;
     properties.SetColorBlendMode(1);
     EXPECT_EQ(properties.contentDirty_, true);
+}
+
+/**
+ * @tc.name: SetPixelStretchTileMode001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetPixelStretchTileMode001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::CLAMP));
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::DECAL));
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::REPEAT));
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::MIRROR));
+
+    auto mode = properties.GetPixelStretchTileMode();
+    ASSERT_EQ(static_cast<int>(Drawing::TileMode::MIRROR), mode);
+}
+
+/**
+ * @tc.name: GetPixelStretchTileMode001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, GetPixelStretchTileMode001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::CLAMP));
+    auto mode = properties.GetPixelStretchTileMode();
+    ASSERT_EQ(static_cast<int>(Drawing::TileMode::CLAMP), mode);
+
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::REPEAT));
+    mode = properties.GetPixelStretchTileMode();
+    ASSERT_EQ(static_cast<int>(Drawing::TileMode::REPEAT), mode);
+
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::MIRROR));
+    mode = properties.GetPixelStretchTileMode();
+    ASSERT_EQ(static_cast<int>(Drawing::TileMode::MIRROR), mode);
+
+    properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::DECAL));
+    mode = properties.GetPixelStretchTileMode();
+    ASSERT_EQ(static_cast<int>(Drawing::TileMode::DECAL), mode);
 }
 } // namespace Rosen
 } // namespace OHOS

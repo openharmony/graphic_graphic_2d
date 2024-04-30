@@ -55,8 +55,6 @@ GELinearGradientBlurShaderFilter::GELinearGradientBlurShaderFilter(
     isOffscreenCanvas_ = params.isOffscreenCanvas;
 }
 
-GELinearGradientBlurShaderFilter::~GELinearGradientBlurShaderFilter() = default;
-
 std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImageDDGR(
     Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image, uint8_t directionBias)
 {
@@ -73,7 +71,7 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImageDD
         blurType = Drawing::GradientBlurType::AlPHA_BLEND;
         radius /= 2; // 2: half radius.
     } else {
-        radius -= para->originalBase_;
+        radius -= GELinearGradientBlurPara::ORIGINAL_BASE;
         radius = std::clamp(radius, 0.0f, 60.0f); // 60.0 represents largest blur radius
         blurType = Drawing::GradientBlurType::RADIUS_GRADIENT;
     }
@@ -121,7 +119,7 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImage(D
         return DrawMaskLinearGradientBlur(image, canvas, filter, alphaGradientShader, dst);
     } else {
         // use original LinearGradientBlur
-        float radius = para->blurRadius_ - para->originalBase_;
+        float radius = para->blurRadius_ - GELinearGradientBlurPara::ORIGINAL_BASE;
         radius = std::clamp(radius, 0.0f, 60.0f); // 60.0 represents largest blur radius
         radius = radius / 2 * imageScale_;        // 2 half blur radius
         MakeHorizontalMeanBlurEffect();

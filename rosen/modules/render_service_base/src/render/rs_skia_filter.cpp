@@ -19,12 +19,12 @@
 
 namespace OHOS {
 namespace Rosen {
-RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter)
+RSDrawingFilterOriginal::RSDrawingFilterOriginal(std::shared_ptr<Drawing::ImageFilter> imageFilter)
     : RSFilter(), imageFilter_(imageFilter) {}
 
-RSDrawingFilter::~RSDrawingFilter() {}
+RSDrawingFilterOriginal::~RSDrawingFilterOriginal() {}
 
-Drawing::Brush RSDrawingFilter::GetBrush() const
+Drawing::Brush RSDrawingFilterOriginal::GetBrush() const
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
@@ -34,12 +34,12 @@ Drawing::Brush RSDrawingFilter::GetBrush() const
     return brush;
 }
 
-std::shared_ptr<Drawing::ImageFilter> RSDrawingFilter::GetImageFilter() const
+std::shared_ptr<Drawing::ImageFilter> RSDrawingFilterOriginal::GetImageFilter() const
 {
     return imageFilter_;
 }
 
-void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+void RSDrawingFilterOriginal::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
     auto brush = GetBrush();

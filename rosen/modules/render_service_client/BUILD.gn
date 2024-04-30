@@ -24,11 +24,16 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
 
-    "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
     "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
+  if (defined(is_arkui_x) && is_arkui_x) {
+    include_dirs += [
+      "$graphic_2d_root/utils/color_manager/export",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    ]
+  }
 }
 
 template("render_service_client_source_set") {
@@ -59,6 +64,13 @@ template("render_service_client_source_set") {
       "$graphic_2d_root/utils/log",
       "$graphic_2d_root/utils/sandbox",
     ]
+
+    if (defined(is_arkui_x) && is_arkui_x) {
+      include_dirs += [
+        "$graphic_2d_root/utils/color_manager/export",
+        "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      ]
+    }
 
     sources = [
       #animation
@@ -113,6 +125,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_ext_node_operation.cpp",
       "core/ui/rs_frame_rate_linker.cpp",
       "core/ui/rs_frame_rate_policy.cpp",
+      "core/ui/rs_hdr_manager.cpp",
       "core/ui/rs_node.cpp",
       "core/ui/rs_proxy_node.cpp",
       "core/ui/rs_root_node.cpp",
@@ -284,6 +297,8 @@ ohos_shared_library("librender_service_client") {
     debug = false
     blocklist = "./rs_client_blocklist.txt"
   }
+
+  public_configs = [ ":render_service_client_config" ]
 
   public_deps = [ ":render_service_client_src" ]
 

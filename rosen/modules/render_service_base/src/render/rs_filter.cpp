@@ -63,6 +63,12 @@ std::shared_ptr<RSFilter> RSFilter::CreateLightUpEffectFilter(float lightUpDegre
     return std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
 }
 
+float RSFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
+{
+    float radiusPx = radiusVp * dipScale;
+    return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + 0.5f : 0.0f;
+}
+
 std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs, const std::shared_ptr<RSFilter>& rhs)
 {
     if (lhs == nullptr) {

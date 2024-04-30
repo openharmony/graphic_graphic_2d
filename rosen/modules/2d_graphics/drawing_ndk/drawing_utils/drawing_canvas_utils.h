@@ -31,4 +31,16 @@ public:
         const OHOS::Rosen::Drawing::Rect* src, const OHOS::Rosen::Drawing::Rect* dst,
         const OHOS::Rosen::Drawing::SamplingOptions* sampling);
 };
+
+// Default typeface does not support chinese characters, needs to load chinese character ttf file.
+static constexpr char ZH_CN_TTF[] = "/system/fonts/HarmonyOS_Sans_SC_Regular.ttf";
+
+inline std::shared_ptr<OHOS::Rosen::Drawing::Typeface> g_LoadZhCnTypeface()
+{
+    auto typeface = OHOS::Rosen::Drawing::Typeface::MakeFromFile(ZH_CN_TTF);
+    if (typeface == nullptr) {
+        typeface = OHOS::Rosen::Drawing::Typeface::MakeDefault();
+    }
+    return typeface;
+}
 #endif // DRAWING_CANVAS_H

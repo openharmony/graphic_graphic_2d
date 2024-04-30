@@ -147,12 +147,16 @@ private:
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
+    void WaitForVsyncOrTimeOut(std::unique_lock<std::mutex> &locker);
     VsyncError SetQosVSyncRateByPid(uint32_t pid, int32_t rate);
 
 #ifdef COMPOSER_SCHED_ENABLE
     void SubScribeSystemAbility(const std::string& threadName);
 #endif
-    void NotifyMainThread();
+    void OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
+    void CollectConns(bool &waitForVSync, int64_t &timestamp,
+        std::vector<sptr<VSyncConnection>> &conns);
+    bool PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
@@ -170,12 +174,12 @@ private:
     VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; // default LTPS
     std::mutex changingConnsRefreshRatesMtx_;
     uint32_t generatorRefreshRate_ = 0;
+    uint32_t countTraceValue_ = 0;
 #if defined(RS_ENABLE_DVSYNC)
+    void OnDVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     sptr<DVsync> dvsync_ = nullptr;
     bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync
     std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
-    bool pendingRNVInDVsync_ = false;
-    bool lockExecute_ = false;
 #endif
     bool isRs_ = false;
 };

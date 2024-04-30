@@ -12,10 +12,14 @@
         },
         "instance_extensions": [
             { "name": "VK_KHR_surface", "spec_version": "25" },
-            { "name": "VK_OHOS_surface", "spec_version": "1" }
+            { "name": "VK_OHOS_surface", "spec_version": "1" },
+            { "name": "VK_EXT_swapchain_colorspace", "spec_version": "4" },
+            { "name": "VK_KHR_get_surface_capabilities2", "spec_version": "1" }
         ],
         "device_extensions": [
-            { "name": "VK_KHR_swapchain", "spec_version": "70" }
+            { "name": "VK_KHR_swapchain", "spec_version": "70" },
+            { "name": "VK_EXT_hdr_metadata", "spec_version": "2" },
+            { "name": "VK_EXT_swapchain_maintenance1", "spec_version": "1" }
         ]
     }
 }

@@ -85,7 +85,7 @@ private:
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool animationStart_ = true;
-    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::UP;
+    Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;

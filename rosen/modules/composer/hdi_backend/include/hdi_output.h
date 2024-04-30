@@ -119,7 +119,7 @@ private:
 
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
-    std::mutex layerMutex_;
+    mutable std::mutex layerMutex_;
 
     std::vector<uint32_t> layersId_;
     std::vector<sptr<SyncFence>> fences_;

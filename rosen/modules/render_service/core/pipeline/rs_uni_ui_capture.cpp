@@ -32,6 +32,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "pipeline/rs_render_engine.h"
 
@@ -245,7 +246,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
         RS_LOGE("RSUniUICaptureVisitor::SetCanvas: canvas == nullptr");
         return;
     }
-    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+    auto renderContext = RSOffscreenRenderThread::Instance().GetRenderContext();
     canvas->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->Scale(scaleX_, scaleY_);
@@ -299,7 +300,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     if (node.GetId() == nodeId_) {
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();
-        auto geoPtr = (property.GetBoundsGeometry());
+        auto& geoPtr = (property.GetBoundsGeometry());
         Drawing::Matrix relativeMatrix = Drawing::Matrix();
         relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, scaleX_);
         relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, scaleY_);
@@ -367,7 +368,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRe
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node)
 {
-    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGI(
             "RSUniUICaptureVisitor::ProcessSurfaceRenderNode node:%{public}" PRIu64 ", get geoPtr failed",
@@ -384,7 +385,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     canvas_->Save();
 
     const auto& property = node.GetRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
+    auto& geoPtr = (property.GetBoundsGeometry());
     if (!geoPtr) {
         RS_LOGE("RSUniUICaptureVisitor::ProcessSurfaceViewWithUni node:%{public}" PRIu64 ", get geoPtr failed",
             node.GetId());

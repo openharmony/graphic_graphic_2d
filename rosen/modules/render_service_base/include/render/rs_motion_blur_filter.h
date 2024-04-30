@@ -33,7 +33,7 @@ public:
     ~MotionBlurParam() = default;
 };
 
-class RSB_EXPORT RSMotionBlurFilter : public RSDrawingFilter {
+class RSB_EXPORT RSMotionBlurFilter : public RSDrawingFilterOriginal {
 public:
     RSMotionBlurFilter(const std::shared_ptr<MotionBlurParam>& para);
     RSMotionBlurFilter(const RSMotionBlurFilter&) = delete;
@@ -45,7 +45,8 @@ public:
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
     void PreProcess(std::shared_ptr<Drawing::Image> image) override {};
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override
+    std::shared_ptr<RSDrawingFilterOriginal> Compose(
+        const std::shared_ptr<RSDrawingFilterOriginal>& other) const override
     {
         return nullptr;
     }
@@ -59,17 +60,18 @@ public:
     }
 
 private:
+    void DrawMotionBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::Rect& src, const Drawing::Rect& dst) const;
+    static std::shared_ptr<Drawing::ShaderEffect> MakeMotionBlurShader(
+        std::shared_ptr<Drawing::ShaderEffect> srcImageShader, Vector2f& scaleAnchor, Vector2f& scaleSize,
+        Vector2f& rectOffset, float radius);
     static bool RectValid(const Drawing::Rect& rect1, const Drawing::Rect& rect2);
     static void OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst);
 
-    static std::shared_ptr<Drawing::ShaderEffect> MakeMotionBlurShader(
-        std::shared_ptr<Drawing::ShaderEffect> srcImageShader, Vector2f& scaleAnchor, Vector2f& scaleSize,
-        Vector2f& rectOffset, float radius);
-
     friend class RSMarshallingHelper;
-    inline static Drawing::Rect lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
-    inline static Drawing::Rect curRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
+    mutable Drawing::Rect lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
+    mutable Drawing::Rect curRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
 
     static std::shared_ptr<Drawing::RuntimeEffect> motionBlurShaderEffect_;

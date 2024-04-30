@@ -24,9 +24,12 @@
 namespace OHOS {
 namespace Rosen {
 
-GEAIBarShaderFilter::~GEAIBarShaderFilter() = default;
+GEAIBarShaderFilter::GEAIBarShaderFilter(const Drawing::GEAIBarShaderFilterParams& params)
+    : aiBarLow_(params.aiBarLow), aiBarHigh_(params.aiBarHigh), aiBarThreshold_(params.aiBarThreshold),
+    aiBarOpacity_(params.aiBarOpacity), aiBarSaturation_(params.aiBarSaturation)
+{}
 
-std::string GEAIBarShaderFilter::GetDescription()
+const std::string GEAIBarShaderFilter::GetDescription() const
 {
     return "GEAIBarShaderFilter";
 }

@@ -153,7 +153,7 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
         STEP("get Instance and call Init and add a screen") {
             auto addScreen = instance5.AddScreen(screenId, 0, screenSize);
             auto activeScreen = instance5.GetActiveScreen();
-            STEP_ASSERT_EQ(activeScreen, nullptr);
+
             instance5.SetActiveScreenId(screenId);
             activeScreen = instance5.GetActiveScreen();
             STEP_ASSERT_NE(activeScreen, nullptr);

@@ -57,6 +57,11 @@ ohos_shared_library("sync_fence") {
     "chipsetsdk",
     "platformsdk_indirect",
   ]
+
+  if (!is_emulator && !build_ohos_sdk && current_os == "ohos") {
+    defines = [ "FENCE_SCHED_ENABLE" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

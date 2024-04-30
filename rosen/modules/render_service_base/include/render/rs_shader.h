@@ -24,15 +24,15 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSShader {
 public:
+    RSShader() = default;
+    ~RSShader() = default;
     static std::shared_ptr<RSShader> CreateRSShader();
     static std::shared_ptr<RSShader> CreateRSShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
 
     void SetDrawingShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const;
-    ~RSShader() = default;
 
 private:
-    RSShader() = default;
     RSShader(const RSShader&) = delete;
     RSShader(const RSShader&&) = delete;
     RSShader& operator=(const RSShader&) = delete;

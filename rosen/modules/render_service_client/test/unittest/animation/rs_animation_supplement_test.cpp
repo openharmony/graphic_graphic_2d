@@ -28,8 +28,13 @@
 #include "animation/rs_render_animation.h"
 #include "animation/rs_keyframe_animation.h"
 #include "modifier/rs_modifier_manager.h"
+#include "transaction/rs_interfaces.h"
 #include "render/rs_path.h"
+#include "render/rs_light_up_effect_filter.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_proxy_node.h"
+#include "ui/rs_ui_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -952,6 +957,199 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest019, TestSize.Level1)
     animation3->Start(node1);
     animation3->OnStart();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest019 end";
+}
+
+class MyData : public RSAnimatableArithmetic<MyData> {
+public:
+    MyData() : data(0.f) {}
+    explicit MyData(const float num) : data(num) {}
+    virtual ~MyData() = default;
+
+    MyData Add(const MyData& value) const override
+    {
+        float res = data + value.data;
+        return MyData(res);
+    }
+    MyData Minus(const MyData& value) const override
+    {
+        float res = data - value.data;
+        return MyData(res);
+    }
+    MyData Multiply(const float scale) const override
+    {
+        float res = data * scale;
+        return MyData(res);
+    }
+    bool IsEqual(const MyData& value) const override
+    {
+        return data == value.data;
+    }
+
+    float data;
+};
+
+/**
+ * @tc.name: AnimationSupplementTest020
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest020 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    auto data1 = MyData();
+    auto data2 = MyData();
+    [[maybe_unused]] bool ret = data1 == data2;
+
+    RSFilter filter1;
+    filter1.IsNearEqual(nullptr, ANIMATION_DEFAULT_VALUE);
+    filter1.IsNearZero(ANIMATION_DEFAULT_VALUE);
+
+    RSImageBase imageBase;
+    Parcel parcel;
+    imageBase.Marshalling(parcel);
+
+    RRectT<float> rect1;
+    RRectT<float> rect2;
+    auto tmp = rect1 * ANIMATION_END_VALUE;
+    tmp *= ANIMATION_END_VALUE;
+    [[maybe_unused]] bool ret1 = tmp != rect2;
+    rect1.IsNearEqual(rect2, ANIMATION_DEFAULT_VALUE);
+
+    RectT<float> rect3;
+    RectT<float> rect4;
+    rect3.Intersect(rect4);
+
+    RSDisplayNodeConfig config = { 0, false, 0 };
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    displayNode->Marshalling(parcel);
+
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.EnableCacheForRotation();
+    rsInterfaces.DisableCacheForRotation();
+
+    auto mask = RSMask::Unmarshalling(parcel);
+    delete mask;
+
+    RSLightUpEffectFilter filter3(ANIMATION_DEFAULT_VALUE);
+    filter3.IsNearEqual(nullptr, ANIMATION_DEFAULT_VALUE);
+    filter3.IsNearZero(ANIMATION_DEFAULT_VALUE);
+
+    RSModifierExtractor extractor;
+    extractor.GetCameraDistance();
+    extractor.GetShadowMask();
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest020 end";
+}
+
+/**
+ * @tc.name: AnimationSupplementTest021
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    RSPropertyBase property;
+    [[maybe_unused]] auto tmp = property.GetThreshold();
+    property.SetValueFromRender(nullptr);
+
+    RSModifierManager modifierManager;
+    modifierManager.HasUIAnimation();
+
+    std::string str;
+    RSMotionPathOption option(str);
+    option.GetRotationMode();
+    option.GetPathNeedAddOrigin();
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
+}
+
+/**
+ * @tc.name: AnimationSupplementTest022
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    property->GetStagingValue();
+    auto stagingValue = property->Get();
+    property->Set(stagingValue);
+    property->GetShowingValueAndCancelAnimation();
+    property->RequestCancelAnimation();
+    auto propertyUnit_ { RSPropertyUnit::UNKNOWN };
+    property->SetPropertyUnit(propertyUnit_);
+    auto base = std::make_shared<RSRenderPropertyBase>();
+    property->SetValueFromRender(base);
+    property->SetUpdateCallback(nullptr);
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    std::shared_ptr<RSPropertyBase> targetValue = std::make_shared<RSAnimatableProperty<float>>(0.1f);
+    property->AnimateWithInitialVelocity(timingProtocol, timingCurve, targetValue);
+
+    std::shared_ptr<RSNode> node = RSCanvasNode::Create();
+    node->SetShadowMask(true);
+    node->IsImplicitAnimationOpen();
+    node->GetChildIdByIndex(1);
+    std::string nodeName = "nodeName";
+    node->SetNodeName(nodeName);
+    PropertyCallback callback;
+    callback = []() {
+    };
+    node->AddDurationKeyFrame(100, timingCurve, callback); // 100 Set duration is 100ms
+    NodeId id1 = 0;
+    NodeId id2 = 1;
+    node->RegisterTransitionPair(id1, id2);
+    node->UnregisterTransitionPair(id1, id2);
+    node->AnimateWithCurrentCallback(timingProtocol, timingCurve, callback);
+    std::optional<Vector2f> vec(Vector2f(1.f, 1.f));
+    node->SetSandBox(vec);
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end";
+}
+
+/**
+ * @tc.name: AnimationSupplementTest023
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest023 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    Vector4f vec1(1.f, 1.f, 1.f, 1.f);
+    NodeId nodeId = 1;
+    NodeId childNode = 2; // 2 is childNode
+    auto node = RSProxyNode::Create(nodeId);
+    auto child = RSProxyNode::Create(childNode);
+    node->SetBounds(vec1);
+    node->SetFrame(vec1);
+    node->SetBounds(1.f, 1.f, 1.f, 1.f);
+    node->SetBoundsWidth(1.f);
+    node->SetBoundsHeight(1.f);
+    node->SetFrame(1.f, 1.f, 1.f, 1.f);
+    node->SetFramePositionX(1.f);
+    node->SetFramePositionY(1.f);
+    node->GetType();
+    node->RemoveChild(child);
+    node->ClearChildren();
+
+    auto rsUiDirector = RSUIDirector::Create();
+    rsUiDirector->FlushAnimationStartTime(1);
+    rsUiDirector->HasUIAnimation();
+
+    Vector4 vec = { 0.f, 0.f, 0.f, 0.f };
+    vec.IsNearEqual(vec1, 1.f);
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest023 end";
 }
 
 } // namespace Rosen

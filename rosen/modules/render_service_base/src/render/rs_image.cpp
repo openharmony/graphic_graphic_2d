@@ -221,7 +221,6 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             if (canvas.GetGPUContext() == nullptr) {
                 return;
             }
-            RS_TRACE_NAME("make compress img");
             Media::ImageInfo imageInfo;
             pixelMap_->GetImageInfo(imageInfo);
             Media::Size realSize;
@@ -364,6 +363,15 @@ void RSImage::SetScale(double scale)
 void RSImage::SetNodeId(NodeId nodeId)
 {
     nodeId_ = nodeId;
+}
+
+void RSImage::SetPaint(Drawing::Paint paint)
+{
+    paint_ = paint;
+}
+void RSImage::SetDyamicRangeMode(uint32_t dynamicRangeMode)
+{
+    dynamicRangeMode_ = dynamicRangeMode;
 }
 
 #ifdef ROSEN_OHOS

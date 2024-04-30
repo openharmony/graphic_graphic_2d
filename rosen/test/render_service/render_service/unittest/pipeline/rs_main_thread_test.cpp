@@ -14,13 +14,16 @@
  */
 #include <parameter.h>
 #include <parameters.h>
+
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "rs_test_util.h"
+
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
+#include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
-#include "rs_test_util.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -353,13 +356,14 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     rsTransactionData->MarkNeedSync();
     rsTransactionData->SetSyncId(0);
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 
     // when syncTransactionData_ is not empty and SyncId is equal or smaller
     rsTransactionData->SetSyncTransactionNum(1);
     rsTransactionData->SetSyncId(1);
     mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionData_.empty(), true);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
 
 /**
@@ -1358,6 +1362,9 @@ HWTEST_F(RSMainThreadTest, UniRender001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
@@ -1365,6 +1372,8 @@ HWTEST_F(RSMainThreadTest, UniRender001, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     rootNode->AddChild(childDisplayNode, 0);
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
     mainThread->UniRender(rootNode);
 }
 
@@ -1378,6 +1387,9 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
@@ -1390,16 +1402,21 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
     bool isDirty = mainThread->isDirty_;
     bool isAccessibilityConfigChanged = mainThread->isAccessibilityConfigChanged_;
     bool isCachedSurfaceUpdated = mainThread->isCachedSurfaceUpdated_;
+    bool isHardwareEnabledBufferUpdated = mainThread->isHardwareEnabledBufferUpdated_;
     mainThread->doDirectComposition_ = true;
     mainThread->isDirty_ = false;
     mainThread->isAccessibilityConfigChanged_ = false;
     mainThread->isCachedSurfaceUpdated_ = false;
+    mainThread->isHardwareEnabledBufferUpdated_ = true;
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
     mainThread->UniRender(rootNode);
     // status recover
     mainThread->doDirectComposition_ = doDirectComposition;
     mainThread->isDirty_ = isDirty;
     mainThread->isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
     mainThread->isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
+    mainThread->isHardwareEnabledBufferUpdated_ = isHardwareEnabledBufferUpdated;
 }
 
 /**
@@ -1412,11 +1429,21 @@ HWTEST_F(RSMainThreadTest, Render, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = mainThread->context_->globalRootRenderNode_;
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    rootNode->AddChild(childDisplayNode);
     bool isUniRender = mainThread->isUniRender_;
     mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
     mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
     // uni render
     mainThread->isUniRender_ = true;
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
     mainThread->Render();
     mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;

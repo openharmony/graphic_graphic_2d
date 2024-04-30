@@ -22,9 +22,11 @@
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "image/gpu_context.h"
+#include "src/core/SkOpts.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 enum BLUR_COLOR_MODE : int {
     PRE_DEFINED = 0,           // use the pre-defined mask color
     AVERAGE     = 1,           // use the average color of the blurred area as mask color
@@ -59,6 +61,7 @@ public:
         float radius, float saturation, float brightness, uint32_t colorValue,
         BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT);
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
+    static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
     enum FilterType {
         NONE = 0,
@@ -74,6 +77,13 @@ public:
     {
         return type_;
     }
+
+    void SetFilterType(FilterType type)
+    {
+        type_ = type;
+        hash_ = SkOpts::hash(&type_, sizeof(type_), hash_);
+    }
+
     virtual bool IsValid() const
     {
         return type_ != FilterType::NONE;
@@ -85,7 +95,7 @@ public:
         return 0.01 * round(value * 100);
     }
 
-    uint32_t Hash() const
+    virtual uint32_t Hash() const
     {
         return hash_;
     }
@@ -101,9 +111,20 @@ public:
         return true;
     }
 
+    bool NeedSnapshotOutset() const
+    {
+        return needSnapshotOutset_;
+    }
+
+    void SetSnapshotOutset(bool needSnapshotOutset)
+    {
+        needSnapshotOutset_ = needSnapshotOutset;
+    }
+
 protected:
     FilterType type_;
     uint32_t hash_ = 0;
+    bool needSnapshotOutset_ = true;
     RSFilter();
     virtual std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
     virtual std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }

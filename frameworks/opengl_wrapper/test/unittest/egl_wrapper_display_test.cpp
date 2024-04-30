@@ -366,4 +366,82 @@ HWTEST_F(EglWrapperDisplayTest, SetDamageRegionKHR001, Level1)
     auto result = eglWrapperDisplay->SetDamageRegionKHR(nullptr, 0, 0);
     ASSERT_EQ(EGL_FALSE, result);
 }
+
+/**
+ * @tc.name: GetCompositorTimingSupportedANDROID001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, GetCompositorTimingSupportedANDROID001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->GetCompositorTimingSupportedANDROID(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: GetFrameTimestampSupportedANDROID001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, GetFrameTimestampSupportedANDROID001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->GetFrameTimestampSupportedANDROID(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: PresentationTimeANDROID001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, PresentationTimeANDROID001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->PresentationTimeANDROID(nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: CreatePlatformWindowSurfaceEXT001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreatePlatformWindowSurfaceEXT001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->CreatePlatformWindowSurfaceEXT(nullptr, nullptr, nullptr);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: CreatePlatformPixmapSurfaceEXT001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, CreatePlatformPixmapSurfaceEXT001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->CreatePlatformPixmapSurfaceEXT(nullptr, nullptr, nullptr);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+
+/**
+ * @tc.name: SwapBuffersWithDamageEXT001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageEXT001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+
+    auto result = eglWrapperDisplay->SwapBuffersWithDamageEXT(nullptr, nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+}
 } // OHOS::Rosen

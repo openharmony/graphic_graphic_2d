@@ -24,6 +24,7 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {
@@ -113,8 +114,36 @@ bool RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RSDirtyRegionMa
     }
 }
 
+bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& src, const Drawing::RectI& dst,
+    bool shouldClearFilteredCache)
+{
+    if (!RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled() || !shouldClearFilteredCache ||
+        cachedSnapshot_ == nullptr || cachedSnapshot_->cachedImage_ == nullptr) {
+        return false;
+    }
+    /* Reuse code from RSPropertiesPainter::DrawFilter() when cache manager is not available */
+    auto clipIBounds = src;
+    canvas.ResetMatrix();
+    auto visibleRect = canvas.GetVisibleRect();
+    visibleRect.Round();
+    auto visibleIRect = Drawing::RectI(
+        static_cast<int>(visibleRect.GetLeft()), static_cast<int>(visibleRect.GetTop()),
+        static_cast<int>(visibleRect.GetRight()), static_cast<int>(visibleRect.GetBottom()));
+    if (!visibleIRect.IsEmpty()) {
+        canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
+    }
+    Drawing::Rect srcRect = Drawing::Rect(0, 0, cachedSnapshot_->cachedImage_->GetWidth(),
+        cachedSnapshot_->cachedImage_->GetHeight());
+    Drawing::Rect dstRect = clipIBounds;
+    filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect);
+    filter->PostProcess(canvas);
+    cachedFilterHash_ = filter->Hash();
+    return true;
+}
+
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-    const bool needSnapshotOutset, const std::optional<Drawing::RectI>& srcRect,
+    const DrawFilterParams params, const std::optional<Drawing::RectI>& srcRect,
     const std::optional<Drawing::RectI>& dstRect)
 {
     RS_OPTIONAL_TRACE_FUNC();
@@ -127,11 +156,15 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
     RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState());
     if (!IsCacheValid()) {
-        TakeSnapshot(canvas, filter, src, needSnapshotOutset);
+        TakeSnapshot(canvas, filter, src, params.needSnapshotOutset);
     }
 
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        GenerateFilteredSnapshot(canvas, filter, dst);
+        if (DrawFilterWithoutSnapshot(canvas, filter, src, dst, params.shouldClearFilteredCache)) {
+            return;
+        } else {
+            GenerateFilteredSnapshot(canvas, filter, dst);
+        }
     }
     DrawCachedFilteredSnapshot(canvas, dst);
 }
@@ -283,7 +316,6 @@ void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
         RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::InvalidateFilterCache FILTERED_SNAPSHOT");
         cachedFilteredSnapshot_.reset();
     }
-    filterInvalid_ = true;
 }
 
 bool RSFilterCacheManager::GetFilterInvalid()

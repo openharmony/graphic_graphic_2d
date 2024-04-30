@@ -62,7 +62,8 @@ void RSJankStats::SetStartTime(bool doDirectComposition)
         lastReportTimeSteady_ = rtStartTimeSteady_;
     }
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
-        jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponse_;
+        jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponseTemp_;
+        jankFrames.isSetReportEventResponseTemp_ = jankFrames.isSetReportEventResponse_;
         jankFrames.isSetReportEventResponse_ = false;
         jankFrames.isReportEventComplete_ = jankFrames.isSetReportEventComplete_;
         jankFrames.isSetReportEventComplete_ = false;
@@ -91,7 +92,6 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
             ReportEventResponse(jankFrames);
             jankFrames.isUpdateJankFrame_ = true;
         }
-        // skip jank frame statistics at the first frame of animation && at the end frame of implicit animation
         if (jankFrames.isUpdateJankFrame_ && !jankFrames.isFirstFrame_ && !(!jankFrames.isDisplayAnimator_ &&
             (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_)) &&
             !(jankFrames.isDisplayAnimator_ && skipJankAnimatorFrame)) {
@@ -115,7 +115,8 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
             jankFrames.isUpdateJankFrame_ = false;
             jankFrames.isAnimationEnded_ = true;
         }
-        jankFrames.isFirstFrame_ = false;
+        jankFrames.isFirstFrame_ = jankFrames.isFirstFrameTemp_;
+        jankFrames.isFirstFrameTemp_ = false;
     }
     ReportEventFirstFrame();
     CheckAnimationTraceTimeout();
@@ -307,6 +308,7 @@ void RSJankStats::SetReportEventResponse(const DataBaseRs& info)
         jankFrames.isSetReportEventResponse_ = true;
         jankFrames.setTimeSteady_ = setTimeSteady;
         jankFrames.isFirstFrame_ = true;
+        jankFrames.isFirstFrameTemp_ = true;
         jankFrames.traceId_ = GetTraceIdInit(info, setTimeSteady);
         jankFrames.isDisplayAnimator_ = info.isDisplayAnimator;
         animateJankFrames_.emplace(animationId, jankFrames);

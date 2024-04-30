@@ -16,6 +16,7 @@
 #ifndef SKIA_BLENDER_H
 #define SKIA_BLENDER_H
 
+#include "effect/blender.h"
 #include "include/core/SkBlender.h"
 
 #include "impl_interface/blender_impl.h"
@@ -37,6 +38,8 @@ public:
 
     sk_sp<SkBlender> GetBlender() const;
     void SetSkBlender(const sk_sp<SkBlender>& skBlender);
+
+    static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
 
 private:
     sk_sp<SkBlender> blender_;

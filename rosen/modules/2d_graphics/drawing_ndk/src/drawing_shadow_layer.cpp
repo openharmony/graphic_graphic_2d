@@ -28,6 +28,9 @@ static BlurDrawLooper* CastToBlurDrawLooper(OH_Drawing_ShadowLayer* cShadowLayer
 
 OH_Drawing_ShadowLayer* OH_Drawing_ShadowLayerCreate(float blurRadius, float x, float y, uint32_t color)
 {
+    if (blurRadius <= 0.f) {
+        return nullptr;
+    }
     return (OH_Drawing_ShadowLayer*)new BlurDrawLooper(blurRadius, x, y, color);
 }
 

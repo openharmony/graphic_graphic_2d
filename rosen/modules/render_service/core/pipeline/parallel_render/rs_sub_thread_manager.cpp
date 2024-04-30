@@ -287,9 +287,9 @@ void RSSubThreadManager::ResetSubThreadGrContext()
     }
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
         auto subThread = threadList_[i];
-        subThread->PostTask([subThread]() {
-            subThread->ResetGrContext();
-        }, RELEASE_RESOURCE);
+        subThread->PostTask(
+            [subThread]() { subThread->ResetGrContext(); },
+            RELEASE_RESOURCE);
     }
     needResetContext_ = false;
     needCancelTask_ = true;
@@ -393,7 +393,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(DrawableV2::RSSurfaceRenderN
     if (!nodeDrawable) {
         return;
     }
-    auto& param = nodeDrawable->GetRenderNode()->GetRenderParams();
+    auto& param = nodeDrawable->GetRenderParams();
     if (!param) {
         return;
     }

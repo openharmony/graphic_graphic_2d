@@ -33,19 +33,18 @@ namespace Rosen {
 class GEKawaseBlurShaderFilter : public GEShaderFilter {
 public:
     GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams& params);
-    ~GEKawaseBlurShaderFilter() override;
+    ~GEKawaseBlurShaderFilter() override = default;
     int GetRadius() const;
 
     std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst) override;
 
 private:
-    friend class RSMarshallingHelper;
-
     static Drawing::Matrix GetShaderTransform(
         const Drawing::Canvas* canvas, const Drawing::Rect& blurRect, float scaleW = 1.0f, float scaleH = 1.0f);
     bool InitBlurEffect();
     bool InitMixEffect();
+    bool InitSimpleFilter();
 
     bool InitBlurEffectForAdvancedFilter();
     void CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -56,6 +55,9 @@ private:
     std::shared_ptr<Drawing::Image> ScaleAndAddRandomColor(Drawing::Canvas& canvas,
         const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& blurImage,
         const Drawing::Rect& src, const Drawing::Rect& dst, int& width, int& height) const;
+    std::shared_ptr<Drawing::ShaderEffect> ApplySimpleFilter(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& input, const std::shared_ptr<Drawing::ShaderEffect>& prevShader,
+        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const;
     void ComputeRadiusAndScale(int radius);
     void AdjustRadiusAndScale();
     std::string GetDescription() const;
