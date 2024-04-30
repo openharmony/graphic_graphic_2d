@@ -1210,8 +1210,9 @@ void RSRenderNode::UpdateBufferDirtyRegion()
 #endif
 }
 
-void RSRenderNode::UpdateSelfDrawRect()
+bool RSRenderNode::UpdateSelfDrawRect()
 {
+    auto prevSelfDrawRect = selfDrawRect_;
     // empty rect would not join and doesn't need to check
     auto& properties = GetRenderProperties();
     selfDrawRect_ = properties.GetLocalBoundsAndFramesRect();
@@ -1222,6 +1223,7 @@ void RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
+    return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
 
 const RectF& RSRenderNode::GetSelfDrawRect() const
@@ -1274,9 +1276,10 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
     RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect)
 {
     const static auto IdentityMatrix = Drawing::Matrix();
+    bool selfDrawRectChanged = false;
     // 1. update self drawrect if dirty
     if (IsDirty()) {
-        UpdateSelfDrawRect();
+        selfDrawRectChanged = UpdateSelfDrawRect();
     }
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
@@ -1304,7 +1307,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(
         // currently CheckAndUpdateGeoTrans without dirty check
         if (auto geoPtr = properties.boundsGeo_) {
             // selfdrawing node's geo may not dirty when its dirty region changes
-            if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ || isSelfDrawingNode_) {
+            if (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ ||
+                isSelfDrawingNode_ || selfDrawRectChanged) {
                 absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_);
                 if (isSelfDrawingNode_) {
                     selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);

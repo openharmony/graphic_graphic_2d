@@ -779,7 +779,7 @@ private:
     void CollectAndUpdateLocalPixelStretchRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
-    void UpdateSelfDrawRect();
+    bool UpdateSelfDrawRect();
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
