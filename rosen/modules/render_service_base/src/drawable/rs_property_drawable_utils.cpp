@@ -593,6 +593,8 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightness
     builder->SetUniform("ubo_fract", fract);
     builder->SetUniform("ubo_rate", params.rate_);
     builder->SetUniform("ubo_degree", params.lightUpDegree_);
+    builder->SetUniform("ubo_cubic", params.cubicCoeff_);
+    builder->SetUniform("ubo_quad", params.quadCoeff_);
     builder->SetUniform("ubo_baseSat", params.saturation_);
     builder->SetUniform("ubo_posr", params.posRGB_[IDNEX_ZERO]);
     builder->SetUniform("ubo_posg", params.posRGB_[IDNEX_ONE]);
@@ -610,6 +612,8 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_fract;
         uniform half ubo_rate;
         uniform half ubo_degree;
+        uniform half ubo_cubic;
+        uniform half ubo_quad;
         uniform half ubo_baseSat;
         uniform half ubo_posr;
         uniform half ubo_posg;
@@ -620,28 +624,27 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
 
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
 
-        half3 gray(half3 x, half a, half b) { return a * x + b; }
-
+        half3 gray(half3 x, half4 coeff) {
+            return coeff.x * x * x * x + coeff.y * x * x + coeff.z * x + coeff.w;
+        }
         half3 sat(half3 inColor, half n, half3 pos, half3 neg) {
             half base = dot(inColor, baseVec) * (1.0 - n);
-            half3 nColor = base + inColor * n;
-            half3 delta = nColor - inColor;
-            half3 grt = step(0, delta);
+            half3 delta = base + inColor * n - inColor;
             half3 posDelta = inColor + delta * pos;
             half3 negDelta = inColor + delta * neg;
-            half3 test = mix(negDelta, posDelta, grt);
+            half3 test = mix(negDelta, posDelta, step(0, delta));
             return test;
         }
-
         half4 main(half4 src, half4 dst) {
-            half3 color = gray(dst.rgb, ubo_rate, ubo_degree);
+            half4 coeff = half4(ubo_cubic, ubo_quad, ubo_rate, ubo_degree);
+            half3 color = gray(dst.rgb, coeff);
             half3 pos = half3(ubo_posr, ubo_posg, ubo_posb);
             half3 neg = half3(ubo_negr, ubo_negg, ubo_negb);
             color = sat(color, ubo_baseSat, pos, neg);
             color = clamp(color, 0.0, 1.0);
             color = mix(color, src.rgb, ubo_fract);
-            half4 res = half4(mix(dst.rgb, color, src.a), 1.0);
-            return res;
+            half4 res = half4(mix(dst.rgb, color, src.a), dst.a);
+            return dst.a * res;
         }
     )";
     if (dynamicBrightnessBlenderEffect_ == nullptr) {
