@@ -16,30 +16,45 @@
 #define DASHING_H
 #include "../test_base.h"
 
+struct Dashings {
+    float finalX = (600);
+    float finalY = (0);
+    float phase = (0);
+    float startX = (0);
+    float startY = (0);
+};
+
 class Dashing : public TestBase {
-  public:
+public:
     Dashing();
     ~Dashing() = default;
 
-  protected:
+protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
 };
 
 class Dashing2 : public TestBase {
-  public:
+public:
     Dashing2();
     ~Dashing2() = default;
 
-  protected:
+protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
 };
 
 class Dashing4 : public TestBase {
-  public:
+public:
     Dashing4();
     ~Dashing4() = default;
 
-  protected:
+protected:
+    struct Intervals {
+        int fOnInterval;
+        int fOffInterval;
+    };
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
+    void DashingNum(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings);
+    void DashingTow(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings);
+    void DashingThree(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashings dashings);
 };
 #endif // DASHING_H
