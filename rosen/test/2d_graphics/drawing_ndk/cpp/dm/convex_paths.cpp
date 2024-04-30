@@ -89,24 +89,24 @@ void ConvexPaths::MakePath()
     DrawRect r1 = { 0, 0, 50, 100 }; // 50 100 coordinate
     DrawRect r2 = { 0, 0, 100, 5 };  // 5 100 coordinate
     DrawRect r3 = { 0, 0, 1, 100 };  // 100 coordinate
-    OH_Drawing_PathAddRect(rect_path1, r.fLeft, r.fTop, r.fRight, r.fBottom,
+    OH_Drawing_PathAddRect(rect_path1, r.left, r.top, r.right, r.bottom,
         OH_Drawing_PathDirection::PATH_DIRECTION_CW);
-    OH_Drawing_PathAddRect(rect_path2, r.fLeft, r.fTop, r.fRight, r.fBottom,
+    OH_Drawing_PathAddRect(rect_path2, r.left, r.top, r.right, r.bottom,
         OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
     fPaths.push_back(rect_path1);
     fPaths.push_back(rect_path2);
 
     OH_Drawing_Path *Circle_path = OH_Drawing_PathCreate();
     float sweepAngle = 360;
-    OH_Drawing_PathAddArc(Circle_path, OH_Drawing_RectCreate(r.fLeft, r.fTop, r.fRight, r.fBottom), 0, sweepAngle);
+    OH_Drawing_PathAddArc(Circle_path, OH_Drawing_RectCreate(r.left, r.top, r.right, r.bottom), 0, sweepAngle);
     fPaths.push_back(Circle_path);
 
     OH_Drawing_Path *Oval_path1 = OH_Drawing_PathCreate();
     OH_Drawing_Path *Oval_path2 = OH_Drawing_PathCreate();
     OH_Drawing_Path *Oval_path3 = OH_Drawing_PathCreate();
-    auto Oval_bound1 = OH_Drawing_RectCreate(r1.fLeft, r1.fTop, r1.fRight, r1.fBottom);
-    auto Oval_bound2 = OH_Drawing_RectCreate(r2.fLeft, r2.fTop, r2.fRight, r2.fBottom);
-    auto Oval_bound3 = OH_Drawing_RectCreate(r3.fLeft, r3.fTop, r3.fRight, r3.fBottom);
+    auto Oval_bound1 = OH_Drawing_RectCreate(r1.left, r1.top, r1.right, r1.bottom);
+    auto Oval_bound2 = OH_Drawing_RectCreate(r2.left, r2.top, r2.right, r2.bottom);
+    auto Oval_bound3 = OH_Drawing_RectCreate(r3.left, r3.top, r3.right, r3.bottom);
     OH_Drawing_PathAddOvalWithInitialPoint(Oval_path1, Oval_bound1, 0, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
     OH_Drawing_PathAddOvalWithInitialPoint(Oval_path2, Oval_bound2, 0, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
     OH_Drawing_PathAddOvalWithInitialPoint(Oval_path3, Oval_bound3, 0, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
@@ -115,7 +115,7 @@ void ConvexPaths::MakePath()
     fPaths.push_back(Oval_path3);
 
     OH_Drawing_Path *rrect_path = OH_Drawing_PathCreate();
-    OH_Drawing_Rect *rrect = OH_Drawing_RectCreate(r.fLeft, r.fTop, r.fRight, r.fBottom);
+    OH_Drawing_Rect *rrect = OH_Drawing_RectCreate(r.left, r.top, r.right, r.bottom);
     float xRad = 40;
     float yRad = 20;
     OH_Drawing_RoundRect *round_rect = OH_Drawing_RoundRectCreate(rrect, xRad, yRad);

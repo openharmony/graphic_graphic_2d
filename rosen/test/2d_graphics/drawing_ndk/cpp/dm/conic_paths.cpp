@@ -96,7 +96,7 @@ void ConicPaths::OnTestFunction(OH_Drawing_Canvas *canvas)
                     OH_Drawing_PenSetWidth(pen, fh != 0);
                     DrawRect bounds = pathsBounds[p]; // const SkRect& bounds = fPaths[p].getBounds();
                     OH_Drawing_CanvasSave(canvas);
-                    OH_Drawing_CanvasTranslate(canvas, -bounds.fLeft, -bounds.fTop);
+                    OH_Drawing_CanvasTranslate(canvas, -bounds.left, -bounds.top);
                     if (fh != 0) {
                         OH_Drawing_CanvasDetachBrush(canvas);
                         OH_Drawing_PenSetColor(pen, OH_Drawing_ColorSetArgb(kAlphaValue[a], 0, 0, 0));
