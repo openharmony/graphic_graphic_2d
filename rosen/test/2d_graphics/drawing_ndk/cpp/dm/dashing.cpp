@@ -106,20 +106,20 @@ void Dashing::OnTestFunction(OH_Drawing_Canvas *canvas)
 
 void make_path_line(OH_Drawing_Path *path, DrawRect rect)
 {
-    OH_Drawing_PathMoveTo(path, rect.fLeft, rect.fTop);
-    OH_Drawing_PathLineTo(path, rect.fRight, rect.fBottom);
+    OH_Drawing_PathMoveTo(path, rect.left, rect.top);
+    OH_Drawing_PathLineTo(path, rect.right, rect.bottom);
 }
 
 void make_path_rect(OH_Drawing_Path *path, DrawRect rect)
 {
-    OH_Drawing_PathAddRect(path, rect.fLeft, rect.fTop, rect.fRight, rect.fBottom,
+    OH_Drawing_PathAddRect(path, rect.left, rect.top, rect.right, rect.bottom,
         OH_Drawing_PathDirection::PATH_DIRECTION_CW);
 }
 
 void make_path_oval(OH_Drawing_Path *path, DrawRect rect)
 {
     OH_Drawing_PathAddOvalWithInitialPoint(path,
-        OH_Drawing_RectCreate(rect.fLeft, rect.fTop, rect.fRight, rect.fBottom), 45,
+        OH_Drawing_RectCreate(rect.left, rect.top, rect.right, rect.bottom), 45,
         OH_Drawing_PathDirection::PATH_DIRECTION_CW); // 45正方形
 }
 
@@ -172,9 +172,9 @@ void Dashing2::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_PenSetWidth(pen, 6.0); // 6.0 宽度
 
     DrawRect bounds = { 0, 0, 120, 120 };
-    bounds.offset(20, 20); // 20 坐标
-    float dx = bounds.width() * 4.0 / 3;
-    float dy = bounds.height() * 4.0 / 3;
+    bounds.Offset(20, 20); // 20 坐标
+    float dx = bounds.Width() * 4.0 / 3;
+    float dy = bounds.Height() * 4.0 / 3;
 
     const int *intervals = &gIntervals[1];
     for (int y = 0; y < gIntervals[0]; ++y) {
@@ -191,7 +191,7 @@ void Dashing2::OnTestFunction(OH_Drawing_Canvas *canvas)
         for (size_t x = 0; x < sizeof(gProc) / sizeof(gProc[0]); ++x) {
             OH_Drawing_Path *path = OH_Drawing_PathCreate();
             DrawRect r = bounds;
-            r.offset(x * dx, y * dy);
+            r.Offset(x * dx, y * dy);
             gProc[x](path, r);
             OH_Drawing_CanvasDrawPath(canvas, path);
             OH_Drawing_PathDestroy(path);
