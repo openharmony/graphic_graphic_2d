@@ -51,6 +51,9 @@ HWTEST_F(RSLightUpEffectFilterTest, RSLightUpEffectFilterTest001, TestSize.Level
     auto filter2 = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
     auto result = filter->Compose(filter2);
     EXPECT_TRUE(result != nullptr);
+
+    RSLightUpEffectFilter rsLightUpEffectFilter = RSLightUpEffectFilter(lightUpDegree);
+    rsLightUpEffectFilter.GetDescription();
 }
 
 /**
@@ -142,7 +145,7 @@ HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTest001ionTest001, TestSize.Le
     auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
     auto rhs = std::make_shared<RSFilter>();
     EXPECT_NE(filter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilter::FilterType::LIGHT_UP_EFFECT;
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
     EXPECT_NE(filter->Add(rhs), nullptr);
 }
 
@@ -157,7 +160,7 @@ HWTEST_F(RSLightUpEffectFilterTest, SubTest001, TestSize.Level1)
     auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
     auto rhs = std::make_shared<RSFilter>();
     EXPECT_NE(filter->Sub(rhs), nullptr);
-    rhs->type_ = RSDrawingFilter::FilterType::LIGHT_UP_EFFECT;
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
     EXPECT_NE(filter->Sub(rhs), nullptr);
 }
 

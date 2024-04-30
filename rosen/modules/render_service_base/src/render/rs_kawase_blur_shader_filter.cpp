@@ -41,7 +41,7 @@ void RSKawaseBlurShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
     auto kawaseFilter = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR", Drawing::DrawingPaintType::BRUSH);
-    kawaseFilter->SetParam("KWASE_BLUR_RADIUS", (int)radius_); // 模糊半径
+    kawaseFilter->SetParam("KAWASE_BLUR_RADIUS", (int)radius_); // blur radius
     visualEffectContainer->AddToChainedFilter(kawaseFilter);
 }
 } // namespace Rosen

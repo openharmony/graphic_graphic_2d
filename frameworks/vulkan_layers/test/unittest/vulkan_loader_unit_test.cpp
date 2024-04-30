@@ -82,6 +82,11 @@ public:
     static inline PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
     static inline PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
 
+    static inline PFN_vkGetPhysicalDevicePresentRectanglesKHR fpGetPhysicalDevicePresentRectanglesKHR;
+    static inline PFN_vkGetPhysicalDeviceSurfaceFormats2KHR fpGetPhysicalDeviceSurfaceFormats2KHR;
+    static inline PFN_vkSetHdrMetadataEXT fpSetHdrMetadataEXT;
+    static inline PFN_vkReleaseSwapchainImagesEXT fpReleaseSwapchainImagesEXT;
+
     static inline void *libVulkan_ = nullptr;
     static inline VkInstance instance_ = nullptr;
     static inline VkSurfaceKHR surface_ = VK_NULL_HANDLE;
@@ -502,6 +507,8 @@ HWTEST_F(VulkanLoaderUnitTest, vkCreateDevice_Test, TestSize.Level1)
 
         std::vector<const char*> deviceExtensions;
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_HDR_METADATA_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
         deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
         deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
         VkDevice logicalDevice;
@@ -547,13 +554,9 @@ HWTEST_F(VulkanLoaderUnitTest, vkCreateSurfaceOHOS_Test2, TestSize.Level1)
         EXPECT_NE(vkCreateSurfaceOHOS, nullptr);
         EXPECT_NE(instance_, nullptr);
 
-        OHNativeWindow* nativeWindow = CreateNativeWindow("createSurfaceUT2");
-        EXPECT_NE(nativeWindow, nullptr);
-        int ret = NativeWindowHandleOpt(nativeWindow, SET_USAGE, 0);
-        EXPECT_EQ(ret, OHOS::GSERROR_OK);
         VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
         surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS;
-        surfaceCreateInfo.window = nativeWindow;
+        surfaceCreateInfo.window = nullptr;
         VkSurfaceKHR surface2 = VK_NULL_HANDLE;
         VkResult err = vkCreateSurfaceOHOS(instance_, &surfaceCreateInfo, NULL, &surface2);
         EXPECT_NE(err, VK_SUCCESS);
@@ -603,6 +606,13 @@ HWTEST_F(VulkanLoaderUnitTest, LoadDeviceFuncPtr, TestSize.Level1)
         fpGetSwapchainImagesKHR = reinterpret_cast<PFN_vkGetSwapchainImagesKHR>(
             vkGetDeviceProcAddr(device_, "vkGetSwapchainImagesKHR"));
         EXPECT_NE(fpGetSwapchainImagesKHR, nullptr);
+
+        fpSetHdrMetadataEXT = reinterpret_cast<PFN_vkSetHdrMetadataEXT>(
+            vkGetDeviceProcAddr(device_, "vkSetHdrMetadataEXT"));
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        fpReleaseSwapchainImagesEXT = reinterpret_cast<PFN_vkReleaseSwapchainImagesEXT>(
+            vkGetDeviceProcAddr(device_, "vkReleaseSwapchainImagesEXT"));
+        EXPECT_NE(fpReleaseSwapchainImagesEXT, nullptr);
     }
 }
 

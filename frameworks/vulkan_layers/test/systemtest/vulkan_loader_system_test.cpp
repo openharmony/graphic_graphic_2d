@@ -67,6 +67,10 @@ public:
     static inline PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
     static inline PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR;
     static inline PFN_vkQueuePresentKHR fpQueuePresentKHR;
+    static inline PFN_vkGetPhysicalDevicePresentRectanglesKHR fpGetPhysicalDevicePresentRectanglesKHR;
+    static inline PFN_vkGetPhysicalDeviceSurfaceFormats2KHR fpGetPhysicalDeviceSurfaceFormats2KHR;
+    static inline PFN_vkSetHdrMetadataEXT fpSetHdrMetadataEXT;
+    static inline PFN_vkReleaseSwapchainImagesEXT fpReleaseSwapchainImagesEXT;
 
     static inline void *libVulkan_ = nullptr;
     static inline VkInstance instance_ = nullptr;
@@ -188,6 +192,12 @@ HWTEST_F(VulkanLoaderSystemTest, LoadInstanceFuncPtr, TestSize.Level1)
         fpGetPhysicalDeviceSurfacePresentModesKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfacePresentModesKHR>(
             vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceSurfacePresentModesKHR"));
         EXPECT_NE(fpGetPhysicalDeviceSurfacePresentModesKHR, nullptr);
+        fpGetPhysicalDevicePresentRectanglesKHR = reinterpret_cast<PFN_vkGetPhysicalDevicePresentRectanglesKHR>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDevicePresentRectanglesKHR"));
+        EXPECT_NE(fpGetPhysicalDevicePresentRectanglesKHR, nullptr);
+        fpGetPhysicalDeviceSurfaceFormats2KHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceFormats2KHR>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceSurfaceFormats2KHR"));
+        EXPECT_NE(fpGetPhysicalDeviceSurfaceFormats2KHR, nullptr);
     }
 }
 
@@ -242,6 +252,7 @@ HWTEST_F(VulkanLoaderSystemTest, createDevice_Test, TestSize.Level1)
         // Device
         std::vector<const char*> deviceExtensions;
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
         VkDeviceCreateInfo deviceCreateInfo = {};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -280,6 +291,12 @@ HWTEST_F(VulkanLoaderSystemTest, LoadDeviceFuncPtr, TestSize.Level1)
         EXPECT_NE(fpAcquireNextImageKHR, nullptr);
         fpQueuePresentKHR = reinterpret_cast<PFN_vkQueuePresentKHR>(vkGetDeviceProcAddr(device_, "vkQueuePresentKHR"));
         EXPECT_NE(fpQueuePresentKHR, nullptr);
+        fpSetHdrMetadataEXT = reinterpret_cast<PFN_vkSetHdrMetadataEXT>(
+            vkGetDeviceProcAddr(device_, "vkSetHdrMetadataEXT"));
+        EXPECT_NE(fpAcquireNextImageKHR, nullptr);
+        fpReleaseSwapchainImagesEXT = reinterpret_cast<PFN_vkReleaseSwapchainImagesEXT>(
+            vkGetDeviceProcAddr(device_, "vkReleaseSwapchainImagesEXT"));
+        EXPECT_NE(fpReleaseSwapchainImagesEXT, nullptr);
     }
 }
 

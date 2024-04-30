@@ -15,16 +15,19 @@
 #include "test_case_factory.h"
 #include "test_case/draw_path_test.h"
 #include "test_case/draw_rect_test.h"
+#include "test_case/draw_textblob_test.h"
 
 using namespace OHOS::Rosen;
 namespace {
 std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> FunctionalMap = {
     {"drawrect", []() -> std::shared_ptr<TestBase> {return std::make_shared<DrawRectTest>();}},
     {"drawpath", []() -> std::shared_ptr<TestBase> {return std::make_shared<DrawPathTest>();}},
+    {"drawtextblob", []() -> std::shared_ptr<TestBase> {return std::make_shared<DrawTextBlobTest>();}},
 };
 std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> PerformanceMap = {
     {"drawrect", []() -> std::shared_ptr<TestBase> {return std::make_shared<DrawRectTest>();}},
     {"drawpath", []() -> std::shared_ptr<TestBase> {return std::make_shared<DrawPathTest>();}},
+    {"drawtextblob", []() -> std::shared_ptr<TestBase> {return std::make_shared<DrawTextBlobTest>();}},
 };
 } // namespace
 

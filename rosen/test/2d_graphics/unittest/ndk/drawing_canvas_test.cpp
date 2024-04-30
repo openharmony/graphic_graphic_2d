@@ -1016,6 +1016,8 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob035, TestS
     OH_Drawing_TextBlob *textBlob = OH_Drawing_TextBlobCreateFromText(str, strlen(str),
         font, OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
     EXPECT_NE(textBlob, nullptr);
+    EXPECT_TRUE(OH_Drawing_TextBlobUniqueID(nullptr) == 0);
+    EXPECT_TRUE(OH_Drawing_TextBlobUniqueID(textBlob) > 0);
     // draw textblob
     OH_Drawing_CanvasDrawTextBlob(canvas_, textBlob, 0, 0);
 
@@ -1169,6 +1171,18 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawBackground039, Tes
     OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
     OH_Drawing_CanvasDrawBackground(canvas_, brush);
     OH_Drawing_BrushDestroy(brush);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRect040
+ * @tc.desc: test for DrawPixelMapRect
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRect040, TestSize.Level1)
+{
+    // unkown how to create napi pixelmap
+    OH_Drawing_CanvasDrawPixelMapRect(canvas_, nullptr, nullptr, nullptr, nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

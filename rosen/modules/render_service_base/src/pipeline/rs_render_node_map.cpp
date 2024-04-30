@@ -29,6 +29,7 @@ constexpr const char* WALLPAPER_VIEW = "SCBWallpaper";
 constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock";
 constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
 constexpr const char* NEGATIVE_SCREEN = "SCBNegativeScreen";
+constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
 constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
 RSRenderNodeMap::RSRenderNodeMap()
@@ -165,7 +166,7 @@ void RSRenderNodeMap::EraseAbilityComponentNumsInProcess(NodeId id)
     auto surfaceNodeIter = surfaceNodeMap_.find(id);
     if (surfaceNodeIter != surfaceNodeMap_.end()) {
         auto surfaceNode = GetRenderNode<RSSurfaceRenderNode>(id);
-        if (surfaceNode->IsAbilityComponent()) {
+        if ((surfaceNode->IsAbilityComponent()) && (surfaceNode->GetName() != ARKTS_CARD_NODE)) {
             auto pid = ExtractPid(id);
             auto iter = abilityComponentNumsInProcess_.find(pid);
             if (iter != abilityComponentNumsInProcess_.end()) {

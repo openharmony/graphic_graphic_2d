@@ -20,6 +20,8 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_render_node_shadow_drawable.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
@@ -27,9 +29,8 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen::DrawableV2 {
-RSRenderNodeDrawableAdapter::Generator RSRenderNodeDrawableAdapter::shadowGenerator_ = nullptr;
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
-std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache;
+std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
     : nodeType_(node->GetType()), renderNode_(std::move(node)) {}
@@ -37,7 +38,7 @@ RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const R
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableById(NodeId id)
 {
     std::lock_guard<std::mutex> lock(cacheMapMutex_);
-    if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
+    if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
         if (const auto ptr = cacheIt->second.lock()) {
             return ptr;
         }
@@ -57,7 +58,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
         {
             std::lock_guard<std::mutex> lock(cacheMapMutex_);
-            RenderNodeDrawableCache.erase(ptr->nodeId_); // Remove from cache before deleting
+            RenderNodeDrawableCache_.erase(ptr->nodeId_); // Remove from cache before deleting
         }
         RSRenderNodeGC::DrawableDestructor(ptr);
     };
@@ -65,11 +66,11 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     // Try to get a cached drawable if it exists.
     {
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
-        if (const auto cacheIt = RenderNodeDrawableCache.find(id); cacheIt != RenderNodeDrawableCache.end()) {
+        if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
                 return ptr;
             } else {
-                RenderNodeDrawableCache.erase(cacheIt);
+                RenderNodeDrawableCache_.erase(cacheIt);
             }
         }
     }
@@ -87,7 +88,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
 
     {
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
-        RenderNodeDrawableCache.emplace(id, sharedPtr);
+        RenderNodeDrawableCache_.emplace(id, sharedPtr);
     }
     return sharedPtr;
 }
@@ -104,6 +105,10 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->renderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
             break;
+        case RSRenderNodeType::CANVAS_DRAWING_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
+            break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
@@ -112,25 +117,27 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
-    const std::shared_ptr<const RSRenderNode>& node)
+    const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable)
 {
     static std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> shadowDrawableCache;
-    static std::mutex cacheMapMutex;
+    static std::mutex shadowCacheMapMutex;
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
         {
-            std::lock_guard<std::mutex> lock(cacheMapMutex);
+            std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
             shadowDrawableCache.erase(ptr->nodeId_); // Remove from cache before deleting
         }
+        // tell associated RenderNodeDrawable not to skip shadow
+        static_cast<RSRenderNodeShadowDrawable*>(ptr)->OnDetach();
         RSRenderNodeGC::DrawableDestructor(ptr);
     };
 
-    if (node == nullptr || shadowGenerator_ == nullptr) {
+    if (node == nullptr) {
         return nullptr;
     }
     auto id = node->GetId();
     // Try to get a cached drawable if it exists.
     {
-        std::lock_guard<std::mutex> lock(cacheMapMutex);
+        std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
         if (const auto cacheIt = shadowDrawableCache.find(id); cacheIt != shadowDrawableCache.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
                 return ptr;
@@ -140,10 +147,10 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
         }
     }
 
-    auto ptr = shadowGenerator_(node);
+    auto ptr = new RSRenderNodeShadowDrawable(node, drawable);
     auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
     {
-        std::lock_guard<std::mutex> lock(cacheMapMutex);
+        std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
         shadowDrawableCache.emplace(id, sharedPtr);
     }
     return sharedPtr;
@@ -156,16 +163,19 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
-    if (UNLIKELY(skipIndex_ != -1)) {
+    if (UNLIKELY(skipType_ != SkipType::NONE)) {
+        auto skipIndex_ = GetSkipIndex();
         if (start <= skipIndex_ || end > skipIndex_) {
+            // skip index is in the range
             for (auto i = start; i < skipIndex_; i++) {
                 drawCmdList_[i](&canvas, &rect);
             }
             for (auto i = skipIndex_ + 1; i < end; i++) {
                 drawCmdList_[i](&canvas, &rect);
             }
+            return;
         }
-        return;
+        // skip index is not in the range, fall back to normal drawing
     }
 
     for (auto i = start; i < end; i++) {
@@ -252,6 +262,10 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
     renderNode->DumpSubClassNode(out);
     out += ", DrawableVec:[" + DumpDrawableVec() + "]";
     out += ", " + renderNode->GetRenderParams()->ToString();
+    if (skipType_ != SkipType::NONE) {
+        out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
+        out += ", SkipIndex:" + std::to_string(GetSkipIndex());
+    }
     out += "\n";
 
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
@@ -363,19 +377,16 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
 }
-void RSRenderNodeDrawableAdapter::SetSkip(SkipType type)
+int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
 {
-    switch (type) {
+    switch (skipType_) {
         case SkipType::SKIP_BACKGROUND_COLOR:
-            skipIndex_ = drawCmdIndex_.backgroundColorIndex_;
-            break;
+            return drawCmdIndex_.backgroundColorIndex_;
         case SkipType::SKIP_SHADOW:
-            skipIndex_ = drawCmdIndex_.shadowIndex_;
-            break;
+            return drawCmdIndex_.shadowIndex_;
         case SkipType::NONE:
         default:
-            skipIndex_ = -1;
-            break;
+            return -1;
     }
 }
 } // namespace OHOS::Rosen::DrawableV2

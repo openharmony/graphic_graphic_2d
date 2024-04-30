@@ -85,6 +85,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
+        rsImage_->SetDyamicRangeMode(imageInfo.dynamicRangeMode);
     }
 }
 
@@ -92,6 +93,13 @@ void RSExtendImageObject::SetNodeId(NodeId id)
 {
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageObject::SetPaint(Drawing::Paint paint)
+{
+    if (rsImage_) {
+        rsImage_->SetPaint(paint);
     }
 }
 

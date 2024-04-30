@@ -99,7 +99,7 @@ private:
         ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
     void DrawPathOnCanvas(
         ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
-    bool CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
+    bool CalcTimePercents(std::vector<float>& timePercents, const uint32_t totalDuration,
         const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas);
 
     std::shared_ptr<RSAnimation> ScaleSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,

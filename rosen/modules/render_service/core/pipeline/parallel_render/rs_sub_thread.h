@@ -47,10 +47,6 @@ public:
     void DumpMem(DfxString& log);
     MemoryGraphic CountSubMem(int pid);
     float GetAppGpuMemoryInMB();
-    uint32_t getThreadIndex()
-    {
-        return threadIndex_;
-    }
     unsigned int GetDoingCacheProcessNum()
     {
         return doingCacheProcessNum.load();

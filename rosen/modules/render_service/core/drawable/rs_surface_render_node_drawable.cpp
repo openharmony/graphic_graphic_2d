@@ -35,6 +35,7 @@
 #include "draw/brush.h"
 
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_node_stats.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 
@@ -69,8 +70,10 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
     return new RSSurfaceRenderNodeDrawable(std::move(node));
 }
 
-Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRenderParams *surfaceParams,
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThreadParams* uniParam,
+    RSSurfaceRenderParams *surfaceParams,
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
+    bool isOffscreen) const
 {
     Drawing::Region resultRegion;
     if (!surfaceParams->IsMainWindowType()) {
@@ -84,6 +87,9 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSSurfaceRen
         return resultRegion;
     }
 
+    if (uniParam->IsOcclusionEnabled() && surfaceParams->GetVisibleRegion().IsEmpty()) {
+        return resultRegion;
+    }
     // The region is dirty region of this SurfaceNode.
     Occlusion::Region surfaceNodeDirtyRegion(surfaceNode->GetSyncDirtyManager()->GetDirtyRegion());
     // The region is the result of global dirty region AND occlusion region.
@@ -170,12 +176,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
-    Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(surfaceParams, surfaceNode, isuifirstNode);
     auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if (!uniParam) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
         return;
     }
+    Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(uniParam, surfaceParams, surfaceNode, isuifirstNode);
     // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
     auto curDisplayNode = rscanvas->GetCurDisplayNode();
     if (curDisplayNode && surfaceParams->GetName().find("CapsuleWindow") != std::string::npos) {
@@ -228,8 +234,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->PushDirtyRegion(curSurfaceDrawRegion);
     }
 
-    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
-    RSRenderParams::parentSurfaceMatrix_ = rscanvas->GetTotalMatrix();
+    auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
+    RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
 
     auto bounds = surfaceParams->GetFrameRect();
 
@@ -263,9 +269,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         rscanvas->PopDirtyRegion();
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw SurfaceNode: [%s], NodeId: %llu, ProcessedNodes: %d",
             surfaceNode->GetName().c_str(), surfaceNode->GetId(), RSRenderNodeDrawable::GetProcessedNodeCount());
+        const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(
+            RSRenderNodeDrawable::GetProcessedNodeCount(), surfaceNode->GetId(), surfaceNode->GetName());
+        RSNodeStats::GetInstance().AddNodeStats(nodeStats);
     }
 
-    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
+    RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
 void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThreadParams* uniParam,
@@ -278,10 +287,9 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(RSRenderThread
     }
     if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
         auto& accumulatedDirtyRegion = uniParam->GetAccumulatedDirtyRegion();
-        if (surfaceParams->GetIsTransparent()) {
-            auto oldDirtyInSurface = Occlusion::Region{
-                Occlusion::Rect{ surfaceParams->GetOldDirtyInSurface() } };
-            auto dirtyRegion = oldDirtyInSurface.And(accumulatedDirtyRegion);
+        auto transparentRegion = surfaceParams->GetTransparentRegion();
+        if (!transparentRegion.IsEmpty()) {
+            auto dirtyRegion = transparentRegion.And(accumulatedDirtyRegion);
             if (!dirtyRegion.IsEmpty()) {
                 for (auto& rect : dirtyRegion.GetRegionRects()) {
                     Drawing::Region tempRegion;
@@ -334,11 +342,17 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + name_ + "] " +
         surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " + std::to_string(surfaceNode->GetGlobalAlpha()));
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-        CaptureSingleSurfaceNode(*surfaceNode, *rscanvas, *surfaceParams);
+    
+    // First node don't need to concat matrix for application
+    if (RSUniRenderThread::GetCaptureParam().isFirstNode_) {
+        // Planning: If node is a sandbox.
+        rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
+        RSUniRenderThread::GetCaptureParam().isFirstNode_ = false;
     } else {
-        CaptureSurfaceInDisplay(*surfaceNode, *rscanvas, *surfaceParams);
+        surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
     }
+
+    CaptureSurface(*surfaceNode, *rscanvas, *surfaceParams);
 }
 
 bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& params)
@@ -361,20 +375,30 @@ bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& pa
     return false;
 }
 
-void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
+void RSSurfaceRenderNodeDrawable::CaptureSurface(RSSurfaceRenderNode& surfaceNode,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     if (surfaceParams.GetIsSecurityLayer() || surfaceParams.GetIsSkipLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
-            surfaceParams.GetId());
-        canvas.Clear(Drawing::Color::COLOR_WHITE);
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
+            surfaceParams.GetId(), name_.c_str());
+        if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+            canvas.Clear(Drawing::Color::COLOR_WHITE);
+        }
+        return;
+    }
+
+    if (surfaceParams.GetIsProtectedLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with protected layer.",
+            surfaceParams.GetId(), name_.c_str());
+        canvas.Clear(Drawing::Color::COLOR_BLACK);
         return;
     }
 
     auto uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
     if (!uniParams) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode uniParams is nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
         return;
     }
 
@@ -390,33 +414,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
         canvas.Save();
     }
 
-    // First node don't need to cancat matrix for application
-    if (RSUniRenderThread::GetCaptureParam().isFirstNode_) {
-        // Planning: If node is a sandbox.
-        canvas.MultiplyAlpha(surfaceParams.GetAlpha());
-        RSUniRenderThread::GetCaptureParam().isFirstNode_ = false;
-    } else {
-        surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
-    }
-
-    if (surfaceParams.GetIsProtectedLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear black since it is protected layer.",
-            surfaceParams.GetId());
-        Drawing::Brush rectBrush;
-        rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
-        canvas.AttachBrush(rectBrush);
-        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
-            surfaceParams.GetBounds().GetHeight()));
-        canvas.DetachBrush();
-        if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
-            canvas.Restore();
-        }
-        return;
-    }
-
-    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
-    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
+    auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
+    RSRenderParams::SetParentSurfaceMatrix(canvas.GetTotalMatrix());
 
     auto bounds = surfaceParams.GetFrameRect();
 
@@ -445,88 +444,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSingleSurfaceNode(RSSurfaceRenderNode& 
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
 
-    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
-}
-
-void RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
-    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
-{
-    if (surfaceParams.GetIsSecurityLayer() || surfaceParams.GetIsSkipLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) paused since it is security layer.",
-            surfaceParams.GetId());
-        return;
-    }
-
-    canvas.ConcatMatrix(surfaceParams.GetMatrix());
-
-    auto uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    if (!uniParams) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay uniParams is nullptr");
-        return;
-    }
-
-    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer()) &&
-        DealWithUIFirstCache(surfaceNode, canvas, surfaceParams, *uniParams)) {
-        return;
-    }
-
-    auto nodeType = surfaceParams.GetSurfaceNodeType();
-    bool isSelfDrawingSurface = (nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE);
-    if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
-        SetSkip(surfaceParams.GetBuffer() != nullptr ? SkipType::SKIP_BACKGROUND_COLOR : SkipType::NONE);
-        canvas.Save();
-    }
-
-    surfaceParams.ApplyAlphaAndMatrixToCanvas(canvas);
-
-    if (surfaceParams.GetIsProtectedLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurfaceInDisplay: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear black since it is protected layer.",
-            surfaceParams.GetId());
-        Drawing::Brush rectBrush;
-        rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
-        canvas.AttachBrush(rectBrush);
-        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
-            surfaceParams.GetBounds().GetHeight()));
-        canvas.DetachBrush();
-        if (isSelfDrawingSurface && !surfaceParams.IsSpherizeValid()) {
-            canvas.Restore();
-        }
-        return;
-    }
-
-    auto parentSurfaceMatrix = RSRenderParams::parentSurfaceMatrix_;
-    RSRenderParams::parentSurfaceMatrix_ = canvas.GetTotalMatrix();
-
-    auto bounds = surfaceParams.GetFrameRect();
-
-    // 1. draw background
-    DrawBackground(canvas, bounds);
-
-    if (isSelfDrawingSurface) {
-        RSUniRenderUtil::CeilTransXYInCanvasMatrix(canvas);
-    }
-
-    // 2. draw self drawing node
-    if (surfaceParams.GetBuffer() != nullptr) {
-        DealWithSelfDrawingNodeBuffer(surfaceNode, canvas, surfaceParams);
-    }
-
-    if (isSelfDrawingSurface) {
-        canvas.Restore();
-    }
-
-    // 3. Draw content of this node by the main canvas.
-    DrawContent(canvas, bounds);
-
-    // 4. Draw children of this node by the main canvas.
-    DrawChildren(canvas, bounds);
-
-    // 5. Draw foreground of this node by the main canvas.
-    DrawForeground(canvas, bounds);
-
-    RSRenderParams::parentSurfaceMatrix_ = parentSurfaceMatrix;
+    RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSSurfaceRenderNode& surfaceNode,
@@ -590,8 +508,8 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(RSSurfaceRenderNode& surf
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     RSAutoCanvasRestore acr(&canvas);
-    canvas.MultiplyAlpha(surfaceParams.GetAlpha());
-    if (!RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+    if (!RSUniRenderThread::GetCaptureParam().isInCaptureFlag_) {
+        canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
     DrawBackground(canvas, bounds);

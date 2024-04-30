@@ -365,6 +365,15 @@ void RSImage::SetNodeId(NodeId nodeId)
     nodeId_ = nodeId;
 }
 
+void RSImage::SetPaint(Drawing::Paint paint)
+{
+    paint_ = paint;
+}
+void RSImage::SetDyamicRangeMode(uint32_t dynamicRangeMode)
+{
+    dynamicRangeMode_ = dynamicRangeMode;
+}
+
 #ifdef ROSEN_OHOS
 static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& width, int& height)
 {

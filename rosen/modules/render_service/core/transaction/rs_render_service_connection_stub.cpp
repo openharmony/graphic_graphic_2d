@@ -413,6 +413,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "GET_SHOW_REFRESH_RATE_ENABLED");
+                return ERR_INVALID_STATE;
+            }
             bool enable = GetShowRefreshRateEnabled();
             reply.WriteBool(enable);
             break;
@@ -422,6 +427,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
                 break;
+            }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "SET_SHOW_REFRESH_RATE_ENABLED");
+                return ERR_INVALID_STATE;
             }
             bool enable = data.ReadBool();
             SetShowRefreshRateEnabled(enable);
@@ -547,6 +557,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
                 break;
+            }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::OnRemoteRequest no permission to access GET_MEMORY_GRAPHICS");
+                return ERR_INVALID_STATE;
             }
             std::vector<MemoryGraphic> memoryGraphics = GetMemoryGraphics();
             reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()));

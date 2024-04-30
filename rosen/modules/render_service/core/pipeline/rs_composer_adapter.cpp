@@ -524,7 +524,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
         RS_LOGE("RSComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
     }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node, true)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }

@@ -429,7 +429,7 @@ napi_value JsParagraph::OnGetLineCount(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsParagraph::OnGetLineCount paragraph_ is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    size_t lineCount = paragraph_->GetLineCount();
+    size_t lineCount = static_cast<size_t>(paragraph_->GetLineCount());
     return CreateJsNumber(env, lineCount);
 }
 

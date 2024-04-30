@@ -38,6 +38,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 #endif
+#include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "metadata_helper.h"
 
@@ -223,14 +224,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #else
     (void)colorGamut;
 #endif
-    Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
     auto pixelFmt = buffer->GetFormat();
-    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-        colorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
-    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-        colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
-    }
-    Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
 
     auto image = std::make_shared<Drawing::Image>();
     Drawing::TextureInfo externalTextureInfo;
@@ -251,7 +246,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         auto glType = GR_GL_RGBA8;
         if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
             glType = GR_GL_BGRA8;
-        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
+            pixelFmt == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
             glType = GR_GL_RGB10_A2;
         }
         externalTextureInfo.SetFormat(glType);
@@ -661,16 +657,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
 #endif
-        Drawing::ColorType drawingColorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-        auto pixelFmt = params.buffer->GetFormat();
-        if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-            drawingColorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
-        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-            drawingColorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
-        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_RGB_565) {
-            drawingColorType = Drawing::ColorType::COLORTYPE_RGB_565;
-        }
-        Drawing::BitmapFormat bitmapFormat = { drawingColorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+        auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
 #ifndef ROSEN_EMULATOR
         auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
 #else

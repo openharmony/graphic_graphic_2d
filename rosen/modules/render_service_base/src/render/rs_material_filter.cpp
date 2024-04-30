@@ -37,7 +37,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 // style to MaterialParam map
 static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> MATERIAL_PARAM {
     // card blur params
@@ -82,7 +81,7 @@ const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 const bool HPS_BLUR_ENABLED = RSSystemProperties::GetHpsBlurEnabled();
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
-    : RSDrawingFilter(nullptr), colorMode_(mode)
+    : RSDrawingFilterOriginal(nullptr), colorMode_(mode)
 {
     imageFilter_ = RSMaterialFilter::CreateMaterialStyle(static_cast<MATERIAL_BLUR_STYLE>(style), dipScale, ratio);
     type_ = FilterType::MATERIAL;
@@ -94,7 +93,8 @@ RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mo
 }
 
 RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode)
-    : RSDrawingFilter(nullptr), colorMode_(mode), radius_(materialParam.radius), saturation_(materialParam.saturation),
+    : RSDrawingFilterOriginal(nullptr), colorMode_(mode),
+      radius_(materialParam.radius), saturation_(materialParam.saturation),
       brightness_(materialParam.brightness), maskColor_(materialParam.maskColor)
 {
     imageFilter_ = RSMaterialFilter::CreateMaterialFilter(
@@ -145,7 +145,8 @@ std::string RSMaterialFilter::GetDetailedDescription()
     return "RSMaterialFilterBlur, maskColorStr failed";
 }
 
-std::shared_ptr<RSDrawingFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
+std::shared_ptr<RSDrawingFilterOriginal> RSMaterialFilter::Compose(
+    const std::shared_ptr<RSDrawingFilterOriginal>& other) const
 {
     if (other == nullptr) {
         return nullptr;
@@ -229,6 +230,10 @@ void RSMaterialFilter::PostProcess(Drawing::Canvas& canvas)
 {
     Drawing::Brush brush;
     brush.SetColor(maskColor_.AsArgbInt());
+    // Missed from copying snapshot to canvas if doesn't use snapshot
+    // Not used without cache
+    if (RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled())
+        brush.SetAntiAlias(true);
     canvas.DrawBackground(brush);
 }
 
@@ -245,8 +250,11 @@ std::shared_ptr<RSFilter> RSMaterialFilter::TransformFilter(float fraction) cons
 
 bool RSMaterialFilter::IsValid() const
 {
-    constexpr float epsilon = 0.999f;
-    return radius_ > epsilon;
+    static constexpr float epsilon = 0.999f;
+    bool isApplyColorFilter = (!ROSEN_EQ(saturation_, 1.0f) && ROSEN_GE(saturation_, 0.0f)) ||
+                              (!ROSEN_EQ(brightness_, 1.0f) && ROSEN_GE(brightness_, 0.0f));
+
+    return ROSEN_GNE(radius_, epsilon) || isApplyColorFilter;
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
@@ -298,6 +306,22 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Negate()
     return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
 }
 
+void RSMaterialFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& greyImage,
+    const Drawing::Rect& src, const Drawing::Rect& dst) const
+{
+    Drawing::Brush brush;
+    if (colorFilter_) {
+        Drawing::Filter filter;
+        filter.SetColorFilter(colorFilter_);
+        brush.SetFilter(filter);
+    }
+    canvas.AttachBrush(brush);
+    canvas.DrawImageRect(*greyImage, src, dst, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+
+    return;
+}
+
 void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
@@ -309,9 +333,10 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
         if (!visualEffectContainer) {
             return;
         }
-        auto greyFilter = std::make_shared<Drawing::GEVisualEffect>("GREY", Drawing::DrawingPaintType::BRUSH);
-        greyFilter->SetParam("GREY_COEF_1", greyCoef_.value()[0]);
-        greyFilter->SetParam("GREY_COEF_2", greyCoef_.value()[1]);
+        auto greyFilter =
+            std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_GREY, Drawing::DrawingPaintType::BRUSH);
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_1, greyCoef_.value()[0]); // blur radius
+        greyFilter->SetParam(Drawing::GE_FILTER_GREY_COEF_2, greyCoef_.value()[1]); // blur radius
         visualEffectContainer->AddToChainedFilter(greyFilter);
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         if (!geRender) {
@@ -323,7 +348,11 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
     if (greyImage == nullptr) {
         greyImage = image;
     }
-
+    static constexpr float epsilon = 0.999f;
+    if (ROSEN_LE(radius_, epsilon)) {
+        ApplyColorFilter(canvas, greyImage, src, dst);
+        return;
+    }
     // if hps blur failed, use kawase blur
     if (HPS_BLUR_ENABLED &&
         canvas.DrawBlurImage(*greyImage, Drawing::HpsBlurParameter(src, dst, GetRadius(), saturation_, brightness_))) {
@@ -350,6 +379,26 @@ void RSMaterialFilter::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
 float RSMaterialFilter::GetRadius() const
 {
     return radius_;
+}
+
+float RSMaterialFilter::GetSaturation() const
+{
+    return saturation_;
+}
+
+float RSMaterialFilter::GetBrightness() const
+{
+    return brightness_;
+}
+
+RSColor RSMaterialFilter::GetMaskColor() const
+{
+    return maskColor_;
+}
+
+BLUR_COLOR_MODE RSMaterialFilter::GetColorMode() const
+{
+    return colorMode_;
 }
 
 bool RSMaterialFilter::CanSkipFrame() const

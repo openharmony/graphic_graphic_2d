@@ -24,6 +24,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_mask_filter.cpp",
     "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_picture.cpp",
     "skia_bitmap_test.cpp",
+    "skia_canvas_autocache_test.cpp",
     "skia_canvas_test.cpp",
     "skia_color_filter_test.cpp",
     "skia_color_space_test.cpp",

@@ -39,13 +39,15 @@ template("color_space_object_convertor_source_set") {
       "color_space_object_convertor/js_color_space_utils.cpp",
     ]
 
-    include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
     configs = [
       ":color_space_object_config",
       "$graphic_2d_root/utils/color_manager:color_manager_public_config",
     ]
 
-    external_deps = [ "napi:ace_napi" ]
+    external_deps = [
+      "hilog:libhilog",
+      "napi:ace_napi",
+    ]
 
     cflags_cc = [ "-std=c++17" ]
     part_name = "graphic_2d"
@@ -56,13 +58,14 @@ template("color_space_object_convertor_source_set") {
 color_space_object_convertor_source_set("color_space_object_convertor_source") {
 }
 
+config("color_space_object_convertor_public_config") {
+  include_dirs = [ "color_space_object_convertor" ]
+}
+
 if (current_os == "ohos") {
   ohos_shared_library("color_space_object_convertor") {
+    public_configs = [ ":color_space_object_convertor_public_config" ]
     public_deps = [ ":color_space_object_convertor_source" ]
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-    ]
     innerapi_tags = [ "platformsdk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
@@ -96,13 +99,15 @@ template("colorspacemanager_napi_source_set") {
       "colorspacemanager_napi/js_color_space_manager.cpp",
     ]
 
-    include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
     configs = [
       ":color_manager_napi_config",
       "$graphic_2d_root/utils/color_manager:color_manager_public_config",
     ]
 
-    external_deps = [ "napi:ace_napi" ]
+    external_deps = [
+      "hilog:libhilog",
+      "napi:ace_napi",
+    ]
 
     cflags_cc = [ "-std=c++17" ]
     part_name = "graphic_2d"
@@ -116,10 +121,6 @@ colorspacemanager_napi_source_set("colorspacemanager_napi_source") {
 if (current_os == "ohos") {
   ohos_shared_library("colorspacemanager_napi") {
     public_deps = [ ":colorspacemanager_napi_source" ]
-    external_deps = [
-      "hilog:libhilog",
-      "napi:ace_napi",
-    ]
     deps = [
       ":color_space_object_convertor",
       "$graphic_2d_root/utils/color_manager:color_manager",

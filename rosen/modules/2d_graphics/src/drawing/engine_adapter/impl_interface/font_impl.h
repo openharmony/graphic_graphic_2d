@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,8 +35,11 @@ public:
     ~FontImpl() override = default;
 
     virtual void SetEdging(FontEdging edging) = 0;
+    virtual void SetBaselineSnap(bool baselineSnap) = 0;
+    virtual void SetForceAutoHinting(bool isForceAutoHinting) = 0;
     virtual void SetSubpixel(bool isSubpixel) = 0;
     virtual void SetHinting(FontHinting hintingLevel) = 0;
+    virtual void SetEmbeddedBitmaps(bool embeddedBitmaps) = 0;
     virtual void SetTypeface(std::shared_ptr<Typeface> typeface) = 0;
     virtual void SetSize(scalar textSize) = 0;
     virtual void SetEmbolden(bool isEmbolden) = 0;
@@ -54,6 +57,11 @@ public:
     virtual FontHinting GetHinting() const = 0;
     virtual scalar GetScaleX() const = 0;
     virtual scalar GetSkewX() const = 0;
+    virtual bool IsBaselineSnap() const = 0;
+    virtual bool IsEmbeddedBitmaps() const = 0;
+    virtual bool IsEmbolden() const = 0;
+    virtual bool IsForceAutoHinting() const = 0;
+    virtual bool IsLinearMetrics() const = 0;
     virtual bool IsSubpixel() const = 0;
 
     virtual uint16_t UnicharToGlyph(int32_t uni) const = 0;

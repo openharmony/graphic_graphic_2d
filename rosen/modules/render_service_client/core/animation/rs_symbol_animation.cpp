@@ -91,6 +91,16 @@ void CreateAnimationTimingCurve(const OHOS::Rosen::Drawing::DrawingCurveType typ
         return;
     }
 }
+
+void CalcOneTimePercent(std::vector<float>& timePercents, const uint32_t totalDuration, const uint32_t duration)
+{
+    if (totalDuration == 0) {
+        return;
+    }
+    float timePercent = static_cast<float>(duration) / static_cast<float>(totalDuration);
+    timePercent = timePercent > 1 ? 1.0 : timePercent;
+    timePercents.push_back(timePercent);
+}
 } // namespace SymbolAnimation
 
 RSSymbolAnimation::RSSymbolAnimation() {}
@@ -126,7 +136,7 @@ void RSSymbolAnimation::NodeProcessBeforeAnimation(
         PopNodeFromReplaceList(symbolAnimationConfig->symbolSpanId);
         return;
     }
-    
+
     if (rsNode_->canvasNodesListMap.count(symbolAnimationConfig->symbolSpanId) > 0) {
         std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
         rsNode_->canvasNodesListMap.erase(symbolAnimationConfig->symbolSpanId);
@@ -147,7 +157,7 @@ void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
         std::unordered_map<NodeId,
             OHOS::Rosen::AnimationNodeConfig> invalidNodes = rsNode_->replaceNodesSwapMap[INVALID_STATUS];
         for (const auto& [id, config] : invalidNodes) {
-            if (rsNode_->canvasNodesListMap[symbolSpanId].count(id)>0) {
+            if (rsNode_->canvasNodesListMap[symbolSpanId].count(id) > 0) {
                 rsNode_->canvasNodesListMap[symbolSpanId].erase(id);
             }
         }
@@ -186,20 +196,19 @@ bool RSSymbolAnimation::SetReplaceDisappear(
         rsNode_->childrenNodeLock_.lock();
         rsNode_->replaceNodesSwapMap[INVALID_STATUS][id] = config;
         rsNode_->replaceNodesSwapMap[APPEAR_STATUS].erase(id);
-        TextEngine::SymbolNode symbolNode = config.symbolNode;
         rsNode_->childrenNodeLock_.unlock();
-        if (!res || (symbolNode.animationIndex < 0)) {
+        if (!res || (config.symbolNode.animationIndex < 0)) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
         auto canvasNode = rsNode_->canvasNodesListMap[symbolAnimationConfig->symbolSpanId][id];
 
-        if (parameters.size() <= symbolNode.animationIndex ||
-            parameters.at(symbolNode.animationIndex).empty()) {
+        if (static_cast<int>(parameters.size()) <= config.symbolNode.animationIndex ||
+            parameters.at(config.symbolNode.animationIndex).empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto oneGroupParas = parameters[int(symbolNode.animationIndex)];
+        auto oneGroupParas = parameters[config.symbolNode.animationIndex];
         if (oneGroupParas.empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
@@ -247,11 +256,12 @@ bool RSSymbolAnimation::SetReplaceAppear(
         if (!isStartAnimation || !res || (symbolNode.animationIndex < 0)) {
             continue;
         }
-        if (parameters.size() <= symbolNode.animationIndex || parameters[symbolNode.animationIndex].empty()) {
+        if (static_cast<int>(parameters.size()) <= symbolNode.animationIndex ||
+            parameters[symbolNode.animationIndex].empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto oneGroupParas = parameters[int(symbolNode.animationIndex)];
+        auto oneGroupParas = parameters[symbolNode.animationIndex];
         if (oneGroupParas.empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
@@ -280,7 +290,7 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
     int animationLevelNum = -1;
     auto nodeNum = symbolAnimationConfig->numNodes;
     for (uint32_t n = 0; n < nodeNum; n++) {
-        auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
+        const auto& symbolNode = symbolAnimationConfig->SymbolNodes[n];
         animationLevelNum =
             animationLevelNum < symbolNode.animationIndex ? symbolNode.animationIndex : animationLevelNum;
     }
@@ -369,11 +379,12 @@ bool RSSymbolAnimation::SetPublicAnimation(
             continue;
         }
 
-        if (parameters.size() <= symbolNode.animationIndex || parameters[symbolNode.animationIndex].empty()) {
+        if (static_cast<int>(parameters.size()) <= symbolNode.animationIndex ||
+            parameters[symbolNode.animationIndex].empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
         }
-        auto oneGroupParas = parameters[int(symbolNode.animationIndex)];
+        auto oneGroupParas = parameters[symbolNode.animationIndex];
         if (oneGroupParas.empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter \n", __func__);
             continue;
@@ -429,7 +440,7 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
 void RSSymbolAnimation::BounceAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
-    int animationStageNum = 2; // the count of atomizated animations
+    unsigned int animationStageNum = 2; // the count of atomizated animations
     if (rsNode == nullptr || parameters.empty() || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;
@@ -444,7 +455,7 @@ void RSSymbolAnimation::BounceAnimation(
 void RSSymbolAnimation::AppearAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
-    int animationStageNum = 2; // the count of atomizated animations
+    unsigned int animationStageNum = 2; // the count of atomizated animations
     if (rsNode == nullptr || parameters.empty() || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;
@@ -538,7 +549,7 @@ bool RSSymbolAnimation::GetScaleUnitAnimationParas(
 bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<RSNode>& rsNode,
     std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
-    int validSize = 2; // 2 means this animation type has two animation stages
+    unsigned int validSize = 2; // 2 means this animation type has two animation stages
     if (rsNode_ == nullptr || parameters.size() != validSize) {
         ROSEN_LOGD("HmSymbol SetScaleUnitAnimation::getNode or get parameters:failed");
         return false;
@@ -658,16 +669,19 @@ bool RSSymbolAnimation::GetKeyframeAlphaAnimationParas(
         return false;
     }
     totalDuration = 0;
-    uint32_t interval = 0;
+    int interval = 0;
     // traverse all time stages
-    for (unsigned long i = 0; i < oneGroupParas.size(); i++) {
+    for (unsigned int i = 0; i < oneGroupParas.size(); i++) {
         if (i + 1 < oneGroupParas.size()) {
             interval = oneGroupParas[i + 1].delay -
                        (static_cast<int>(oneGroupParas[i].duration) + oneGroupParas[i].delay);
         } else {
             interval = 0;
         }
-        totalDuration = oneGroupParas[i].duration + totalDuration + interval;
+        if (interval < 0) {
+            return false;
+        }
+        totalDuration = oneGroupParas[i].duration + totalDuration + static_cast<uint32_t>(interval);
         if (!SymbolAnimation::ElementInMap(ALPHA_PROP, oneGroupParas[i].properties) ||
             oneGroupParas[i].properties[ALPHA_PROP].size() != PROPERTIES) {
             return false;
@@ -683,33 +697,31 @@ bool RSSymbolAnimation::GetKeyframeAlphaAnimationParas(
         SymbolAnimation::CreateOrSetModifierValue(alphaPropertyEnd, alphaValueEnd);
         alphaPropertyStages_.push_back(alphaPropertyEnd);
     }
-    return CalcTimePercents(timePercents, static_cast<float>(totalDuration), oneGroupParas);
+    return CalcTimePercents(timePercents, totalDuration, oneGroupParas);
 }
 
-bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const float totalDuration,
+bool RSSymbolAnimation::CalcTimePercents(std::vector<float>& timePercents, const uint32_t totalDuration,
     const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas)
 {
-    if (totalDuration <= 0) {
+    if (totalDuration == 0) {
         return false;
     }
     uint32_t duration = 0;
-    float timePercent = 0;
-    uint32_t interval = 0;
-    timePercents.push_back(timePercent); // the first property of timePercent
-    for (unsigned long i = 0; i < oneGroupParas.size(); i++) {
+    int interval = 0;
+    timePercents.push_back(0); // the first property of timePercent
+    for (unsigned int i = 0; i < oneGroupParas.size() - 1; i++) {
         duration = duration + oneGroupParas[i].duration;
-        timePercent = static_cast<float>(duration) / static_cast<float>(totalDuration);
-        timePercent = timePercent > 1 ? 1.0 : timePercent;
-        timePercents.push_back(timePercent);
-        if (i + 1 < oneGroupParas.size()) {
-            interval = oneGroupParas[i + 1].delay -
-                       (static_cast<int>(oneGroupParas[i].duration) + oneGroupParas[i].delay);
-            duration = duration + interval;
-            timePercent = static_cast<float>(duration) / static_cast<float>(totalDuration);
-            timePercent = timePercent > 1 ? 1.0 : timePercent;
-            timePercents.push_back(timePercent);
+        SymbolAnimation::CalcOneTimePercent(timePercents, totalDuration, duration);
+        interval = oneGroupParas[i + 1].delay -
+                   (static_cast<int>(oneGroupParas[i].duration) + oneGroupParas[i].delay);
+        if (interval < 0) {
+            return false;
         }
+        duration = duration + static_cast<uint32_t>(interval);
+        SymbolAnimation::CalcOneTimePercent(timePercents, totalDuration, duration);
     }
+    duration = duration + oneGroupParas.back().duration;
+    SymbolAnimation::CalcOneTimePercent(timePercents, totalDuration, duration);
     return true;
 }
 
@@ -741,7 +753,7 @@ std::shared_ptr<RSAnimation> RSSymbolAnimation::KeyframeAlphaSymbolAnimation(con
     RSAnimationTimingCurve timingCurve;
     SymbolAnimation::CreateAnimationTimingCurve(oneStageParas.curveType, oneStageParas.curveArgs, timingCurve);
     std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes;
-    for (unsigned long i = 1; i < alphaPropertyStages_.size(); i++) {
+    for (unsigned int i = 1; i < alphaPropertyStages_.size(); i++) {
         keyframes.push_back(std::make_tuple(timePercents[i], alphaPropertyStages_[i], timingCurve));
     }
     keyframeAnimation->AddKeyFrames(keyframes);
@@ -757,17 +769,20 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return;
     }
-    int validSize = 2;
-    if (scaleParameter.properties.count("sx") <= 0 || scaleParameter.properties.count("sy") <= 0 ||
-        scaleParameter.properties["sx"].size() < validSize || scaleParameter.properties["sx"].size() < validSize) {
+    unsigned int validSize = 2;
+    if (scaleParameter.properties.count(SCALE_PROP_X) <= 0 || scaleParameter.properties.count(SCALE_PROP_Y) <= 0 ||
+        scaleParameter.properties[SCALE_PROP_X].size() < validSize ||
+        scaleParameter.properties[SCALE_PROP_Y].size() < validSize) {
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return;
     }
 
     SetNodePivot(rsNode);
 
-    const Vector2f scaleValueBegin = { scaleParameter.properties["sx"][0], scaleParameter.properties["sy"][0] };
-    const Vector2f scaleValueEnd = { scaleParameter.properties["sx"][1], scaleParameter.properties["sy"][1] };
+    const Vector2f scaleValueBegin = {scaleParameter.properties[SCALE_PROP_X][0],
+        scaleParameter.properties[SCALE_PROP_Y][0]};
+    const Vector2f scaleValueEnd = {scaleParameter.properties[SCALE_PROP_X][1],
+        scaleParameter.properties[SCALE_PROP_Y][1]};
 
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty;
     bool isCreate = SymbolAnimation::CreateOrSetModifierValue(scaleProperty, scaleValueBegin);
@@ -785,10 +800,8 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
     SymbolAnimation::CreateAnimationTimingCurve(scaleParameter.curveType, scaleParameter.curveArgs, scaleCurve);
 
     RSAnimationTimingProtocol scaleprotocol;
-    int startDelay = int(scaleParameter.delay);
-    scaleprotocol.SetStartDelay(startDelay);
-    int duration = int(scaleParameter.duration);
-    scaleprotocol.SetDuration(duration);
+    scaleprotocol.SetStartDelay(scaleParameter.delay);
+    scaleprotocol.SetDuration(scaleParameter.duration);
 
     // set animation
     std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(
@@ -807,14 +820,14 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return;
     }
-    int validSize = 2;
+    unsigned int validSize = 2;
     if (alphaParameter.properties.count("alpha") <= 0 || alphaParameter.properties["alpha"].size() < validSize) {
         ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
         return;
     }
 
-    float alphaBegin = float(alphaParameter.properties["alpha"][0]);
-    float alphaValueEnd = float(alphaParameter.properties["alpha"][1]);
+    float alphaBegin = static_cast<float>(alphaParameter.properties["alpha"][0]);
+    float alphaValueEnd = static_cast<float>(alphaParameter.properties["alpha"][1]);
 
     std::shared_ptr<RSAnimatableProperty<float>> alphaProperty;
 

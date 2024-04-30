@@ -52,7 +52,7 @@ public:
         idleEventCallback_ = idleEventCallback;
     }
 
-    void TouchEventHandle(TouchEvent event);
+    void TouchEventHandle(TouchEvent event, const std::string& pkgName = "");
     
     void TouchDown();
     void TouchUp();
@@ -67,12 +67,14 @@ public:
     {
         return currentState_;
     }
+    void NotifyStateChange();
 private:
     TouchState currentState_;
     std::mutex touchStateMutex_;
     std::mutex touchTimerMapMutex_;
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> touchTimerMap_;
     IdleEventCallback idleEventCallback_ = nullptr;
+    std::string pkgName_;
 };
 
 class HgmTouchManager {

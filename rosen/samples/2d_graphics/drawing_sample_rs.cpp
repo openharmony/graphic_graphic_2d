@@ -267,7 +267,7 @@ void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
     SamplingOptions sampling = SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
     auto e = ShaderEffect::CreateImageShader(image, TileMode::REPEAT, TileMode::MIRROR, sampling, matrix);
     LOGI("sampling useCubic = %{public}d, filter = %{public}d, mipmap = %{public}d",
-            sampling.GetUseCubic(), sampling.GetFilterMode(), sampling.GetMipmapMode());
+        sampling.GetUseCubic(), sampling.GetFilterMode(), sampling.GetMipmapMode());
     auto c = Drawing::ColorSpace::CreateRefImage(image);
 
     Pen pen;
@@ -318,7 +318,8 @@ void TestPicture(Canvas& canvas, uint32_t width, uint32_t height)
     image.BuildFromPicture(picture, {50, 50}, matrix, brush, BitDepth::KU8, srgbColorSpace);
 
     Drawing::Rect rect(1000, 0, 1300, 300); // The tile rectangle size in picture coordinates.
-    auto e = ShaderEffect::CreatePictureShader(picture, TileMode::REPEAT, TileMode::MIRROR, FilterMode::NEAREST, matrix, rect);
+    auto e = ShaderEffect::CreatePictureShader(picture, TileMode::REPEAT, TileMode::MIRROR,
+        FilterMode::NEAREST, matrix, rect);
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
@@ -459,7 +460,8 @@ std::unique_ptr<PixelMap> ConstructPixmap()
     info.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     info.colorSpace = Media::ColorSpace::SRGB;
     pixelMap->SetImageInfo(info);
-    LOGI("Constructed pixelMap info: width = %{public}d, height = %{public}d, pixelformat = %{public}d, alphatype = %{public}d, colorspace = %{public}d",
+    LOGI("Constructed pixelMap info: width = %{public}d, height = %{public}d, pixelformat = %{public}d, "
+        "alphatype = %{public}d, colorspace = %{public}d",
         info.size.width, info.size.height, info.pixelFormat, info.alphaType, info.colorSpace);
 
     uint32_t rowDataSize = pixelMapWidth;

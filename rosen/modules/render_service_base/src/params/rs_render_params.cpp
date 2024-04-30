@@ -20,7 +20,9 @@
 #include "property/rs_properties.h"
 
 namespace OHOS::Rosen {
-Drawing::Matrix RSRenderParams::parentSurfaceMatrix_;
+namespace {
+thread_local Drawing::Matrix parentSurfaceMatrix_;
+}
 
 void RSRenderParams::SetAlpha(float alpha)
 {
@@ -365,6 +367,15 @@ std::string RSRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(shouldPaint_);
     ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
     return ret;
+}
+
+void RSRenderParams::SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix)
+{
+    parentSurfaceMatrix_ = parentSurfaceMatrix;
+}
+const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
+{
+    return parentSurfaceMatrix_;
 }
 
 } // namespace OHOS::Rosen

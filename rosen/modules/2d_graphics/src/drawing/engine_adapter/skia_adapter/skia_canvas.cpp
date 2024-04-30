@@ -24,6 +24,7 @@
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
+#include "skia_convert_utils.h"
 #include "skia_image_filter.h"
 #include "skia_path.h"
 #include "skia_image_info.h"
@@ -209,12 +210,12 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         uint64_t num = para.size();
         for (uint64_t i = 1; i <= num; i++) {
             char buf[10] = {0}; // maximum length of string needed is 10.
-            (void)sprintf_s(buf, sizeof(buf), "para%d", i);
+            (void)sprintf_s(buf, sizeof(buf), "para%lld", i);
             builder.uniform(buf) = para[i-1];
         }
         for (uint64_t i = 1; i <= num1; i++) {
             char buf[15] = {0}; // maximum length of string needed is 15.
-            (void)sprintf_s(buf, sizeof(buf), "transpara%d", i);
+            (void)sprintf_s(buf, sizeof(buf), "transpara%lld", i);
             builder.uniform(buf) = para1[i-1];
         }
         std::vector<float> color = shape.GetColorPara();
@@ -710,6 +711,67 @@ std::shared_ptr<Drawing::OpListHandle> SkiaCanvas::OpCalculateAfter(const Rect& 
     return handle;
 }
 // opinc_end
+
+void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
+    int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
+{
+    if (!skCanvas_ || !atlas) {
+        LOGD("skCanvas_ or atlas is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    const int maxCount = 2000; // max count supported is 2000
+    if (count <= 0 || count > maxCount) {
+        LOGD("invalid count for atlas, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    auto skImageImpl = atlas->GetImpl<SkiaImage>();
+    if (skImageImpl == nullptr) {
+        LOGD("skImageImpl is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    sk_sp<SkImage> img = skImageImpl->GetImage();
+    if (img == nullptr) {
+        LOGD("img is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    SkRSXform skRSXform[count];
+    SkRect skTex[count];
+    for (int i = 0; i < count; ++i) {
+        SkiaConvertUtils::DrawingRSXformCastToSkXform(xform[i], skRSXform[i]);
+        SkiaConvertUtils::DrawingRectCastToSkRect(tex[i], skTex[i]);
+    }
+
+    std::vector<SkColor> skColors = {};
+    if (colors != nullptr) {
+        skColors.resize(count);
+        for (int i = 0; i < count; ++i) {
+            skColors[i] = static_cast<SkColor>(colors[i]);
+        }
+    }
+
+    SkSamplingOptions samplingOptions;
+    SkiaConvertUtils::DrawingSamplingCastToSkSampling(sampling, samplingOptions);
+
+    SkRect skCullRect;
+    if (cullRect != nullptr) {
+        SkiaConvertUtils::DrawingRectCastToSkRect(*cullRect, skCullRect);
+    }
+    
+    SortedPaints& paints = skiaPaint_.GetSortedPaints();
+    if (paints.count_ == 0) {
+        skCanvas_->drawAtlas(img.get(), skRSXform, skTex, skColors.empty() ? nullptr : skColors.data(), count,
+            static_cast<SkBlendMode>(mode), samplingOptions, cullRect ? &skCullRect : nullptr, nullptr);
+        return;
+    }
+
+    for (int i = 0; i < paints.count_; i++) {
+        const SkPaint* paint = paints.paints_[i];
+        skCanvas_->drawAtlas(img.get(), skRSXform, skTex, skColors.empty() ? nullptr : skColors.data(), count,
+            static_cast<SkBlendMode>(mode), samplingOptions, cullRect ? &skCullRect : nullptr, paint);
+    }
+}
 
 void SkiaCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {

@@ -142,16 +142,6 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
     return nullptr;
 }
 
-void RSBackgroundThread::SetGrResourceFinishFlag(const bool& resourceFinish)
-{
-    resourceFinish_ = resourceFinish;
-}
-
-bool RSBackgroundThread::GetGrResourceFinishFlag()
-{
-    return resourceFinish_;
-}
-
 void RSBackgroundThread::CleanGrResource()
 {
     PostTask([this]() {

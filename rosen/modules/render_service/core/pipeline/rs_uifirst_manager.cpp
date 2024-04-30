@@ -125,12 +125,52 @@ void RSUifirstManager::RenderGroupUpdate(DrawableV2::RSSurfaceRenderNodeDrawable
             break;
         }
         if (node->IsSuggestedDrawInGroup()) {
-            RS_TRACE_NAME_FMT("cache_changed by uifirst card %lx", node->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("cache_changed by uifirst card %lx", node->GetId());
             node->SetDrawingCacheChanged(true);
             node->AddToPendingSyncList();
         }
         node = node->GetParent().lock();
     } while (node);
+}
+
+void RSUifirstManager::ProcessForceUpdateNode()
+{
+    if (!mainThread_) {
+        return;
+    }
+    std::vector<std::shared_ptr<RSRenderNode>> toDirtyNodes;
+    for (auto id : pendingForceUpdateNode_) {
+        auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
+        if (!node) {
+            continue;
+        }
+        toDirtyNodes.push_back(node);
+        if (!node->IsDirty() && !node->IsSubTreeDirty()) {
+            markForceUpdateByUifirst_.push_back(node);
+            node->SetForceUpdateByUifirst(true);
+        }
+        if (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
+            continue;
+        }
+        for (auto& child : *node->GetChildren()) {
+            if (!child) {
+                continue;
+            }
+            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (!surfaceNode || !surfaceNode->IsMainWindowType()) {
+                continue;
+            }
+            toDirtyNodes.push_back(child);
+            if (!child->IsDirty() && !child->IsSubTreeDirty()) {
+                markForceUpdateByUifirst_.push_back(child);
+                child->SetForceUpdateByUifirst(true);
+            }
+        }
+    }
+    for (auto& node : toDirtyNodes) {
+        node->SetDirty(true);
+    }
+    pendingForceUpdateNode_.clear();
 }
 
 void RSUifirstManager::ProcessDoneNode()
@@ -151,6 +191,7 @@ void RSUifirstManager::ProcessDoneNode()
             drawable->UpdateCompletedCacheSurface();
             RenderGroupUpdate(drawable);
             SetHasDoneNodeFlag(true);
+            pendingForceUpdateNode_.push_back(id);
         }
         subthreadProcessingNode_.erase(id);
     }
@@ -194,7 +235,10 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             ++it;
             continue;
         }
-        if (drawable->HasCachedTexture() && drawable->IsCurFrameStatic(deviceType) &&
+        auto node = it->second;
+        bool staticContent = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD ?
+            node->GetForceUpdateByUifirst() : drawable->IsCurFrameStatic(deviceType);
+        if (drawable->HasCachedTexture() && staticContent &&
             (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end())) {
             RS_OPTIONAL_TRACE_NAME_FMT("Purge node name %s", surfaceParams->GetName().c_str());
             it = pendingNode.erase(it);
@@ -208,6 +252,11 @@ void RSUifirstManager::PurgePendingPostNodes()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("PurgePendingPostNodes");
     DoPurgePendingPostNodes(pendingPostNodes_);
+    DoPurgePendingPostNodes(pendingPostCardNodes_);
+    for (auto& node : markForceUpdateByUifirst_) {
+        node->SetForceUpdateByUifirst(false);
+    }
+    markForceUpdateByUifirst_.clear();
 }
 
 void RSUifirstManager::PostSubTask(NodeId id)
@@ -514,24 +563,6 @@ CacheProcessStatus RSUifirstManager::GetNodeStatus(NodeId id)
     return CacheProcessStatus::UNKNOWN;
 }
 
-static int GetChildrenAppWindowNum(RSRenderNode& node)
-{
-    int num = 0;
-    for (auto& child : *(node.GetChildren())) {
-        if (!child) {
-            continue;
-        }
-        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceChild) {
-            continue;
-        }
-        if (surfaceChild->IsAppWindow()) {
-            ++num;
-        }
-    }
-    return num;
-}
-
 void RSUifirstManager::UpdateCompletedSurface(NodeId id)
 {
     DrawableV2::RSSurfaceRenderNodeDrawable* drawable = GetSurfaceDrawableByID(id);
@@ -644,7 +675,7 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     return false;
 }
 
-bool RSUifirstManager::CurrentEventsStopLeashWindow(RSSurfaceRenderNode& node)
+bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 {
     if (currentFrameEvent_.empty()) {
         return false;
@@ -691,7 +722,7 @@ bool RSUifirstManager::IsUifirstNode(RSSurfaceRenderNode& node, bool animation)
         return false;
     }
     // 1: Planning: support multi appwindows
-    if (isUIFirstEnable && node.IsLeashWindow() && (GetChildrenAppWindowNum(node) <= 1)) {
+    if (isUIFirstEnable && node.IsLeashWindow()) {
         isNeedAssignToSubThread = (animation || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||
             node.GetForceUIFirst()) && !node.HasFilter();
     }
@@ -732,7 +763,8 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
-    return RSUifirstManager::IsUifirstNode(node, animation);
+    return RSUifirstManager::IsUifirstNode(node, animation) &&
+        !RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node);
 }
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)

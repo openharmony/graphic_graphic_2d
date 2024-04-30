@@ -24,6 +24,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -187,8 +188,20 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     canvas.DetachPaint();
 }
 
+bool RSCanvasDrawingRenderNode::IsNeedProcess() const
+{
+    return renderDrawable_->GetRenderParams()->IsNeedProcess();
+}
+
 void RSCanvasDrawingRenderNode::SetNeedProcess(bool needProcess)
 {
+    auto stagingCanvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
+    if (stagingCanvasDrawingParams) {
+        stagingCanvasDrawingParams->SetNeedProcess(needProcess);
+        if (stagingRenderParams_->NeedSync()) {
+            AddToPendingSyncList();
+        }
+    }
     isNeedProcess_ = needProcess;
 }
 
@@ -442,6 +455,16 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface() const
     return false;
 }
 
+void RSCanvasDrawingRenderNode::InitRenderParams()
+{
+    stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
+    if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::InitRenderParams failed");
+        return;
+    }
+}
+
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
 {
     dirtyTypes_.set(static_cast<int>(type), true);
@@ -463,11 +486,11 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
                 continue;
             }
             drawCmdLists_[type].emplace_back(cmd);
-            isNeedProcess_ = true;
+            SetNeedProcess(true);
         }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
-        while ((GetOldDirtyInSurface().IsEmpty() || IsDirty()) &&
+        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || drawCmdListsVisited_) &&
             drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             RS_LOGI("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
                 type, drawCmdLists_[type].size());

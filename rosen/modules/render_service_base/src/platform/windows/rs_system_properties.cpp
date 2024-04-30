@@ -339,6 +339,16 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetBlurExtraFilterEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;

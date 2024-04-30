@@ -126,8 +126,7 @@ VsyncError VSyncReceiver::Init()
         runner->Run();
     }
 
-    looper_->AddFileDescriptorListener(
-        fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask", AppExecFwk::EventQueue::Priority::VIP);
+    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
     return VSYNC_ERROR_OK;
 }
@@ -205,6 +204,7 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
 
 void VSyncReceiver::CloseVsyncReceiverFd()
 {
+    std::lock_guard<std::mutex> locker(initMutex_);
     if (looper_ != nullptr) {
         looper_->RemoveFileDescriptorListener(fd_);
         VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);

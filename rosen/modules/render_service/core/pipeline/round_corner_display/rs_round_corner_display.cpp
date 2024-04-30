@@ -14,11 +14,6 @@
  */
 
 #include "rs_round_corner_display.h"
-#include <SkImage.h>
-#include <SkData.h>
-#include <SkStream.h>
-#include <SkMatrix.h>
-#include <SkCanvas.h>
 #include <mutex>
 #include "platform/common/rs_system_properties.h"
 #include "common/rs_optional_trace.h"

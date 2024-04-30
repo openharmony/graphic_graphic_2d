@@ -270,6 +270,15 @@ void Network::SendTelemetry(double startTime)
     SendBinary(out.data(), out.size());
 }
 
+void Network::SendRSTreeDumpJSON(const std::string& jsonstr)
+{
+    Packet packet { Packet::BINARY };
+    packet.Write(static_cast<char>(PackageID::RS_PROFILER_RSTREE_DUMP_JSON));
+    packet.Write(jsonstr);
+    const std::lock_guard<std::mutex> guard(outgoingMutex_);
+    outgoing_.emplace(packet.Release());
+}
+
 void Network::SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNodesList)
 {
     Packet packet { Packet::BINARY };

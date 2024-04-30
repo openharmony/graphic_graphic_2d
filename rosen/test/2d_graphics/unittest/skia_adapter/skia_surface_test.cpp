@@ -276,9 +276,9 @@ HWTEST_F(SkiaSurfaceTest, Flush001, TestSize.Level1)
  */
 HWTEST_F(SkiaSurfaceTest, Width001, TestSize.Level1)
 {
-    auto surface = std::make_unique<SkiaSurface>();
-    ASSERT_TRUE(surface != nullptr);
-    ASSERT_TRUE(surface->Width() == 0);
+    auto sf = SkiaSurface::MakeRasterN32Premul(800, 800); // 800: width, height
+    ASSERT_TRUE(sf != nullptr);
+    ASSERT_TRUE(sf->Width() == 800);
 }
 
 /**
@@ -289,9 +289,9 @@ HWTEST_F(SkiaSurfaceTest, Width001, TestSize.Level1)
  */
 HWTEST_F(SkiaSurfaceTest, Height001, TestSize.Level1)
 {
-    auto surface = std::make_unique<SkiaSurface>();
-    ASSERT_TRUE(surface != nullptr);
-    ASSERT_TRUE(surface->Height() == 0);
+    auto sf = SkiaSurface::MakeRasterN32Premul(800, 800); // 800: width, height
+    ASSERT_TRUE(sf != nullptr);
+    ASSERT_TRUE(sf->Height() == 800);
 }
 } // namespace Drawing
 } // namespace Rosen

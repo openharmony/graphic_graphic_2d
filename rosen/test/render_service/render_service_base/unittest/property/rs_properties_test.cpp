@@ -710,6 +710,17 @@ HWTEST_F(RSPropertiesTest, SetGet002, TestSize.Level1)
     RSRenderParticleVector particles2;
     properties.SetParticles(particles2);
 
+    properties.SetSkewX(1.0);
+    properties.SetSkewY(1.0);
+    Vector2f skew2 = { 1.0, 1.0 };
+    properties.SetSkew(skew2);
+    auto skew = properties.GetSkew();
+    ASSERT_NE(0, skew.GetLength());
+    auto skewX = properties.GetSkewX();
+    auto skewY = properties.GetSkewY();
+    ASSERT_NE(0, skewX);
+    ASSERT_NE(0, skewY);
+
     properties.SetAlpha(0.f);
     float alpha = properties.GetAlpha();
     ASSERT_EQ(0.f, alpha);
@@ -990,6 +1001,24 @@ HWTEST_F(RSPropertiesTest, SetShadowColorStrategy001, TestSize.Level1)
     RSProperties properties;
     properties.SetShadowColorStrategy(1);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
+}
+
+/**
+ * @tc.name: SetShadowColorStrategy002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetShadowColorStrategy002, TestSize.Level1)
+{
+    RSProperties properties;
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
+    properties.SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_EQ(properties.GetShadowColorStrategy(), shadowColorStrategy);
+
+    shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
+    properties.SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_EQ(properties.GetShadowColorStrategy(), shadowColorStrategy);
 }
 
 /**

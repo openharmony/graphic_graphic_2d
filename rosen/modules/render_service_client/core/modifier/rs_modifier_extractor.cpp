@@ -67,8 +67,9 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
             return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                   \
         }                                                                                                           \
                                                                                                                     \
-        auto modifier = node_->modifiersTypeMap_[(int16_t)RSModifierType::propertyType];                            \
-        if (modifier != nullptr) {                                                                                  \
+        auto typeIter = node_->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
+        if (typeIter != node_->modifiersTypeMap_.end()) {                                                            \
+            auto modifier = typeIter->second;                                                                         \
             return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                       \
         } else {                                                                                                     \
             return defaultValue;                                                                                    \

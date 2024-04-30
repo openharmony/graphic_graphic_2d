@@ -18,6 +18,9 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_material_filter.h"
 
 namespace OHOS {
@@ -203,10 +206,16 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         return;
     }
 
-    bool needSnapshotOutset = true;
-    if (rsFilter->GetFilterType() == RSFilter::MATERIAL) {
-        auto material = std::static_pointer_cast<RSMaterialFilter>(rsFilter);
-        needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    if (filter->GetFilterType() == RSFilter::MATERIAL) {
+        float radius = 0.f;
+        std::shared_ptr<RSShaderFilter> rsShaderFilter =
+            filter->GetShaderFilterWithType(RSShaderFilter::KAWASE);
+        if (rsShaderFilter != nullptr) {
+            auto kawaseShaderFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(rsShaderFilter);
+            radius = kawaseShaderFilter->GetRadius();
+        }
+        filter->SetSnapshotOutset(radius >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
     }
     auto clipIBounds = canvas->GetDeviceClipBounds();
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + rsFilter->GetDescription());
@@ -214,7 +223,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         rsFilter->GetFilterType(), rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     g_blurCnt++;
 
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter surface null");
@@ -238,22 +246,29 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
-        if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-            filter->IsOffscreenCanvas(true);
-            needSnapshotOutset = false;
+        std::shared_ptr<RSShaderFilter> rsShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+        if (rsShaderFilter != nullptr) {
+            auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
+            tmpFilter->IsOffscreenCanvas(true);
+            filter->SetSnapshotOutset(false);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter, needSnapshotOutset);
+        cacheManager->DrawFilter(*paintFilterCanvas, filter,
+            { filter->NeedSnapshotOutset(), shouldClearFilteredCache });
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         return;
     }
 #endif
 
-    if (filter->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR) {
-        filter->IsOffscreenCanvas(false);
-        needSnapshotOutset = false;
+    std::shared_ptr<RSShaderFilter> rsShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+    if (rsShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
+        tmpFilter->IsOffscreenCanvas(true);
+        filter->SetSnapshotOutset(false);
     }
     auto imageClipIBounds = clipIBounds;
-    if (needSnapshotOutset) {
+    if (filter->NeedSnapshotOutset()) {
         imageClipIBounds.MakeOutset(-1, -1);
     }
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
@@ -319,17 +334,7 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter image null");
         return;
     }
-    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-
-    if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
-        auto canvasOriginal = canvas.GetOriginalCanvas();
-        if (canvas.GetDisableFilterCache()) {
-            foregroundFilter->IsOffscreenCanvas(true);
-        } else {
-            foregroundFilter->IsOffscreenCanvas(false);
-            foregroundFilter->SetGeometry(*canvasOriginal, 0.f, 0.f);
-        }
-    }
+    auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
         imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));

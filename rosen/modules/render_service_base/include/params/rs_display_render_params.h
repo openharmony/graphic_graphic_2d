@@ -104,6 +104,11 @@ public:
     void SetRotationChanged(bool changed);
     bool IsRotationChanged() const;
 
+    void SetNewColorSpace(const GraphicColorGamut& newColorSpace);
+    GraphicColorGamut GetNewColorSpace() const;
+    void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
+    GraphicPixelFormat GetNewPixelFormat() const;
+
     // dfx
     std::string ToString() const override;
 
@@ -131,6 +136,8 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
+    GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H

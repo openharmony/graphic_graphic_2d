@@ -141,17 +141,16 @@ private:
     bool DealWithUIFirstCache(RSSurfaceRenderNode& surfaceNode, RSPaintFilterCanvas& canvas,
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
 
-    void CaptureSingleSurfaceNode(RSSurfaceRenderNode& surfaceNode,
-        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    void CaptureSurfaceInDisplay(RSSurfaceRenderNode& surfaceNode,
+    void CaptureSurface(RSSurfaceRenderNode& surfaceNode,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
     void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams* uniParam,
         RSSurfaceRenderParams* surfaceParams,
         std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSSurfaceRenderParams* surfaceParams,
-        std::shared_ptr<RSSurfaceRenderNode> surfaceNode, bool isOffscreen) const;
+    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams* uniParam,
+        RSSurfaceRenderParams* surfaceParams, std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
+        bool isOffscreen) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 

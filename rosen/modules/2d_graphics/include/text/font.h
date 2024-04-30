@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,6 +48,19 @@ public:
     void SetEdging(FontEdging edging);
 
     /**
+     * @brief               Requests that baselines be snapped to pixels when the current
+     *                      transformation matrix is axis aligned.
+     * @param baselineSnap  Setting for baseline snapping to pixels.
+     */
+    void SetBaselineSnap(bool baselineSnap);
+
+    /**
+     * @brief                     Set whether the font outline is automatically adjusted.
+     * @param isForceAutoHinting  Indicate whether the font outline is automatically adjusted.
+     */
+    void SetForceAutoHinting(bool isForceAutoHinting);
+
+    /**
      * @brief             Set glyphs are drawn at sub-pixel offsets.
      * @param isSubpixel  Glyphs should be drawn at sub-pixel.
      */
@@ -58,6 +71,12 @@ public:
      * @param hintingLevel  Font hinting level.
      */
     void SetHinting(FontHinting hintingLevel);
+
+    /**
+     * @brief                  Set font bitmaps mode.
+     * @param embeddedBitmaps  Font bitmaps mode.
+     */
+    void SetEmbeddedBitmaps(bool embeddedBitmaps);
 
     /**
      * @brief           Set Typeface to font.
@@ -156,10 +175,40 @@ public:
     scalar GetSkewX() const;
 
     /**
+     * @brief         Returns true if baselines may be snapped to pixels.
+     * @return        True if baselines will be snapped to pixel positions.
+     */
+    bool IsBaselineSnap() const;
+
+    /**
+     * @brief         Returns font bitmaps mode.
+     * @return        Font bitmaps mode.
+     */
+    bool IsEmbeddedBitmaps() const;
+
+    /**
+     * @brief         Returns true if bold is approximated by increasing the stroke width.
+     * @return        True if bold is approximated through stroke width.
+     */
+    bool IsEmbolden() const;
+
+    /**
+     * @brief         Returns true if the font outline is automatically adjusted.
+     * @return        True if the font outline adjusts automatically
+     */
+    bool IsForceAutoHinting() const;
+
+    /**
      * @brief         Returns true if glyphs may be drawn at sub-pixel offsets.
      * @return        True if glyphs may be drawn at sub-pixel offsets.
      */
     bool IsSubpixel() const;
+
+    /**
+     * @brief         Returns true if font and glyph metrics are requested to be linearly scalable.
+     * @return        True if font and glyph metrics are requested to be linearly scalable.
+     */
+    bool IsLinearMetrics() const;
 
     /**
      * @brief         Returns glyph index for Unicode character.

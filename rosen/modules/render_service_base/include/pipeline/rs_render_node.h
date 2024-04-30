@@ -68,6 +68,7 @@ public:
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     using ClearSurfaceTask = std::function<void()>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
+    std::atomic<int32_t> cacheCnt_ = -1;
     virtual RSRenderNodeType GetType() const
     {
         return Type;
@@ -353,6 +354,7 @@ public:
         bool needCheckThread = true, bool releaseAfterGet = false);
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
+    bool IsCacheCompletedSurfaceValid() const;
     bool IsCacheSurfaceValid() const;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -462,7 +464,8 @@ public:
     // for blur filter cache
     void UpdateLastFilterCacheRegion(const std::optional<RectI>& clipRect = std::nullopt);
     void UpdateLastFilterCacheRegionInSkippedSubTree(const RectI& rect);
-    void UpdateFilterRegionInSkippedSubTree(const RSRenderNode& subTreeRoot, RectI& filterRect);
+    void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const std::optional<RectI>& clipRect);
     void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
     virtual void UpdateFilterCacheWithBelowDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty(const std::optional<RectI>& clipRect = std::nullopt,
@@ -586,6 +589,9 @@ public:
     }
 
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
+
+    // Deprecated! Do not use this interface.
+    // This interface has crash risks and will be deleted in later versions.
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
 
     void UpdatePointLightDirtySlot();
@@ -600,6 +606,26 @@ public:
     void SetUifirstSkipPartialSync(bool skip)
     {
         uifirstSkipPartialSync_ = skip;
+    }
+
+    void SetForceUpdateByUifirst(bool b)
+    {
+        forceUpdateByUifirst_ = b;
+    }
+
+    bool GetForceUpdateByUifirst() const
+    {
+        return forceUpdateByUifirst_;
+    }
+
+    MultiThreadCacheType GetLastFrameUifirstFlag()
+    {
+        return lastFrameUifirstFlag_;
+    }
+
+    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
+    {
+        lastFrameUifirstFlag_ = b;
     }
 
     void SkipSync()
@@ -622,6 +648,8 @@ public:
     const RectI GetFilterCachedRegion() const;
     bool IsEffectNodeNeedTakeSnapShot() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
+    virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
+
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -881,6 +909,8 @@ private:
     bool drawCmdListNeedSync_ = false;
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
+    bool forceUpdateByUifirst_ = false;
+    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
 
@@ -927,6 +957,8 @@ struct SharedTransitionParam {
     NodeId outNodeId_;
 
     RSB_EXPORT static std::map<NodeId, std::weak_ptr<SharedTransitionParam>> unpairedShareTransitions_;
+    bool paired_ = true; // treated as paired by default, until we fail to pair them
+
 private:
     enum class NodeHierarchyRelation : uint8_t {
         UNKNOWN = -1,

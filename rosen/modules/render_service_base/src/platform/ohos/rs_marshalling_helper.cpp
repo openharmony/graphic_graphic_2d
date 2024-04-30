@@ -516,8 +516,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 {
     Drawing::Matrix::Buffer buffer;
     val.GetAll(buffer);
-    int32_t size = buffer.size() * sizeof(Drawing::scalar);
-    bool ret = parcel.WriteInt32(size);
+    uint32_t size = buffer.size() * sizeof(Drawing::scalar);
+    bool ret = parcel.WriteUint32(size);
     ret &= RSMarshallingHelper::WriteToParcel(parcel, buffer.data(), size);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::Matrix");
@@ -527,7 +527,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
-    int32_t size = parcel.ReadInt32();
+    uint32_t size = parcel.ReadUint32();
     if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}d", size);
         return false;

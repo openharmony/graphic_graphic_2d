@@ -246,7 +246,8 @@ HWTEST_F(LinearGradientBlurFilterTest, DrawMaskLinearGradientBlurTest001, TestSi
     Drawing::Canvas canvas;
     Drawing::Rect dst = { 1.f, 1.f, 1.f, 1.f };
     auto image = std::make_shared<Drawing::Image>();
-    auto blurFilter = std::static_pointer_cast<RSDrawingFilter>(linearGradientBlurPara->LinearGradientBlurFilter_);
+    auto blurFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(
+        linearGradientBlurPara->LinearGradientBlurFilter_);
     auto alphaGradientShader = std::make_shared<Drawing::ShaderEffect>();
     filter->DrawMaskLinearGradientBlur(imagef, canvas, blurFilter, alphaGradientShader, dst);
     EXPECT_TRUE(filter != nullptr);

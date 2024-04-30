@@ -37,16 +37,13 @@ public:
     HMSymbolRun() : animationFunc_(nullptr), symbolId_(0) {}
     ~HMSymbolRun() {}
 
-    RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
+    static RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
 
     static void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode, const std::vector<RSSColor>& colors,
         RSSymbolLayers& symbolInfo);
 
-    bool GetAnimationGroups(const uint32_t glyohId, const RSEffectStrategy effectStrategy,
+    static bool GetAnimationGroups(const uint32_t glyohId, const RSEffectStrategy effectStrategy,
         RSAnimationSetting& animationOut);
-
-    bool SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
-        std::vector<RSRenderGroup>& renderGroups);
 
     bool SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyohId,
         const std::pair<double, double> offset, const RSEffectStrategy effectMode);
@@ -75,7 +72,7 @@ private:
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
 
-    uint64_t symbolId_;
+    uint64_t symbolId_ = 0;
 };
 } // namespace TextEngine
 } // namespace Rosen

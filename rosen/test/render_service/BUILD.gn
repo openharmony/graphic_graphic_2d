@@ -27,6 +27,7 @@ group("test") {
     "render_service/unittest/transaction:unittest",
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasecommon_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommand_fuzzer:fuzztest",

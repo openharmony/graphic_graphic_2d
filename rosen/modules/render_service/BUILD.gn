@@ -130,7 +130,6 @@ ohos_shared_library("librender_service") {
     "core/drawable/rs_display_render_node_drawable.cpp",
     "core/drawable/rs_effect_render_node_drawable.cpp",
     "core/drawable/rs_render_node_drawable.cpp",
-    "core/drawable/rs_render_node_shadow_drawable.cpp",
     "core/drawable/rs_root_render_node_drawable.cpp",
     "core/drawable/rs_surface_render_node_drawable.cpp",
     "core/drawable/rs_ui_first_surface_render_node_drawable.cpp",
@@ -189,6 +188,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
@@ -204,6 +204,7 @@ ohos_shared_library("librender_service") {
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
+    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -230,7 +231,6 @@ ohos_shared_library("librender_service") {
     defines += [ "RS_PROFILER_ENABLED" ]
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
-      "$rosen_root/modules/render_service_profiler/rs_profiler_archive.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
@@ -238,7 +238,6 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
-      "$rosen_root/modules/render_service_profiler/rs_profiler_utils.cpp",
     ]
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
@@ -341,7 +340,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (use_memmgr_plugin) {
-    external_deps += [ "memmgr_plugin:memmgrclient" ]
+    external_deps += [ "memmgr_override:memmgrclient" ]
   } else if (use_memmgr) {
     external_deps += [ "memmgr:memmgrclient" ]
   }

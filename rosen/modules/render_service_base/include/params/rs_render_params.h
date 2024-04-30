@@ -23,8 +23,8 @@
 
 namespace OHOS::Rosen {
 #define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string(#basicType "[") + std::to_string(basicType) + "] ")
-#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + rect.ToString() + "] ")
-#define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + param.ToString() + "] ")
+#define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + (rect).ToString() + "] ")
+#define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + (param).ToString() + "] ")
 
 struct DirtyRegionInfoForDFX {
     RectI oldDirty;
@@ -60,6 +60,7 @@ public:
     // return to add some dirtynode does not mark pending
     bool SetLocalDrawRect(const RectF& localDrawRect);
     const RectF& GetLocalDrawRect() const;
+    virtual bool IsNeedProcess() const { return false; };
 
     void SetHasSandBox(bool hasSandBox);
     bool HasSandBox() const;
@@ -132,7 +133,8 @@ public:
     // dfx
     virtual std::string ToString() const;
 
-    static Drawing::Matrix parentSurfaceMatrix_;
+    static void SetParentSurfaceMatrix(const Drawing::Matrix& parentSurfaceMatrix);
+    static const Drawing::Matrix& GetParentSurfaceMatrix();
 
 protected:
     bool needSync_ = false;

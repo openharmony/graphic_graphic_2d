@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -108,6 +108,17 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromString(const char* str,
  * @version 1.0
  */
 void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob*, OH_Drawing_Rect*);
+
+/**
+ * @brief Gets a non-zero value unique among all <b>OH_Drawing_TextBlob</b> objects.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextBlob Indicates the pointer to an <b>OH_Drawing_TextBlob</b> object.
+ * @return Returns identifier for the <b>OH_Drawing_TextBlob</b> object.
+ * @since 12
+ * @version 1.0
+ */
+uint32_t OH_Drawing_TextBlobUniqueID(const OH_Drawing_TextBlob*);
 
 /**
  * @brief Defines a run, supplies storage for glyphs and positions.

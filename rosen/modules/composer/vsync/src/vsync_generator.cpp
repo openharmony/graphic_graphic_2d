@@ -22,6 +22,7 @@
 #include <sys/resource.h>
 #include <string>
 #include "vsync_log.h"
+#include <ctime>
 
 #ifdef COMPOSER_SCHED_ENABLE
 #include "if_system_ability_manager.h"
@@ -33,10 +34,11 @@ namespace OHOS {
 namespace Rosen {
 namespace impl {
 namespace {
-static int64_t GetSysTimeNs()
+static int64_t systemTime()
 {
-    auto now = std::chrono::steady_clock::now().time_since_epoch();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
 }
 
 // 1.5ms
@@ -47,6 +49,7 @@ constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t REFERENCETIME_CHECK_THRESHOLD = 2000000; // 2000000ns == 2.0ms
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
+constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 
 static void SetThreadHighPriority()
 {
@@ -76,7 +79,7 @@ void VSyncGenerator::DeleteInstance() noexcept
 }
 
 VSyncGenerator::VSyncGenerator()
-    : period_(0), phase_(0), referenceTime_(0), wakeupDelay_(0),
+    : period_(DEFAULT_SOFT_VSYNC_PERIOD), phase_(0), referenceTime_(0), wakeupDelay_(0),
       pulse_(0), currRefreshRate_(0), referenceTimeOffsetPulseNum_(0), defaultReferenceTimeOffsetPulseNum_(0)
 {
     vsyncThreadRunning_ = true;
@@ -99,10 +102,12 @@ VSyncGenerator::~VSyncGenerator()
 void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTimeStamp,
     int64_t occurReferenceTime, bool isWakeup)
 {
+    ScopedBytrace trace("occurTimestamp:" + std::to_string(occurTimestamp) +
+                        ", nextTimeStamp:" + std::to_string(nextTimeStamp));
     std::vector<Listener> listeners;
     {
         std::unique_lock<std::mutex> locker(mutex_);
-        int64_t newOccurTimestamp = GetSysTimeNs();
+        int64_t newOccurTimestamp = systemTime();
         if (isWakeup) {
             UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
         }
@@ -116,6 +121,7 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         ", period:" + std::to_string(periodRecord_) + ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
         ", vsyncMode_:" + std::to_string(vsyncMode_));
     for (uint32_t i = 0; i < listeners.size(); i++) {
+        ScopedBytrace func("listener phase is " + std::to_string(listeners[i].phase_));
         listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
     }
 }
@@ -131,9 +137,12 @@ void VSyncGenerator::ThreadLoop()
     int64_t occurTimestamp = 0;
     int64_t nextTimeStamp = 0;
     int64_t occurReferenceTime = 0;
-    while (vsyncThreadRunning_ == true) {
+    while (true) {
         {
             std::unique_lock<std::mutex> locker(mutex_);
+            if (vsyncThreadRunning_ == false) {
+                break;
+            }
             UpdateVSyncModeLocked();
             occurReferenceTime = referenceTime_;
             phaseRecord_ = phase_;
@@ -145,7 +154,7 @@ void VSyncGenerator::ThreadLoop()
                 }
                 continue;
             }
-            occurTimestamp = GetSysTimeNs();
+            occurTimestamp = systemTime();
             nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp, occurReferenceTime);
             if (nextTimeStamp == INT64_MAX) {
                 ScopedBytrace func("VSyncGenerator: there has no listener");
@@ -162,19 +171,24 @@ void VSyncGenerator::ThreadLoop()
             }
         }
 
-        bool isWakeup = false;
-        if (occurTimestamp < nextTimeStamp) {
-            std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
-            auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
-            if (err == std::cv_status::timeout) {
-                isWakeup = true;
-            } else {
-                ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
-                continue;
-            }
-        }
-        ListenerVsyncEventCB(occurTimestamp, nextTimeStamp, occurReferenceTime, isWakeup);
+        WaitForTimeout(occurTimestamp, nextTimeStamp, occurReferenceTime);
     }
+}
+
+void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStamp, int64_t occurReferenceTime)
+{
+    bool isWakeup = false;
+    if (occurTimestamp < nextTimeStamp) {
+        std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
+        auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
+        if (err == std::cv_status::timeout) {
+            isWakeup = true;
+        } else {
+            ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
+            return;
+        }
+    }
+    ListenerVsyncEventCB(occurTimestamp, nextTimeStamp, occurReferenceTime, isWakeup);
 }
 
 bool VSyncGenerator::ChangeListenerOffsetInternal()
@@ -368,7 +382,7 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     std::vector<VSyncGenerator::Listener> ret;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
-        if (t - GetSysTimeNs() < errorThreshold) {
+        if (t - systemTime() < errorThreshold) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
@@ -435,6 +449,7 @@ void VSyncGenerator::SubScribeSystemAbility()
 
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {
+    std::lock_guard<std::mutex> locker(mutex_);
     ScopedBytrace func("UpdateMode, period:" + std::to_string(period) +
                         ", phase:" + std::to_string(phase) +
                         ", referenceTime:" + std::to_string((referenceTime)) +
@@ -443,7 +458,6 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
         VLOGE("wrong parameter, period:" VPUBI64 ", referenceTime:" VPUBI64, period, referenceTime);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    std::lock_guard<std::mutex> locker(mutex_);
     phase_ = phase;
     if (period != 0) {
         UpdatePeriodLocked(period);
@@ -464,7 +478,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
-    listener.lastTime_ = GetSysTimeNs() - period_ + phase_;
+    listener.lastTime_ = systemTime() - period_ + phase_;
 
     listeners_.push_back(listener);
 
@@ -738,6 +752,7 @@ void VSyncGenerator::SetPendingMode(int64_t period, int64_t timestamp)
 
 void VSyncGenerator::Dump(std::string &result)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     result.append("\n-- VSyncGenerator --");
     result += "\nperiod:" + std::to_string(period_);
     result += "\nphase:" + std::to_string(phase_);

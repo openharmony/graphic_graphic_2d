@@ -146,4 +146,16 @@ HWTEST_F(RSFilterTest, operatorTest003, TestSize.Level1)
     lhs = std::make_shared<RSFilter>();
     EXPECT_EQ(lhs * 1.0f, nullptr);
 }
+
+/**
+ * @tc.name: CreateLightUpEffectFilter
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, CreateLightUpEffectFilter, TestSize.Level1)
+{
+    float lightUpDegree = 0.5f;
+    auto filter = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
+    ASSERT_NE(filter, nullptr);
+}
 } // namespace OHOS::Rosen

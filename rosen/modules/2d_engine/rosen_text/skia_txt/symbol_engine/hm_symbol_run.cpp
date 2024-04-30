@@ -52,29 +52,6 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     return symbolInfo;
 }
 
-bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
-    std::vector<RSRenderGroup>& renderGroups)
-{
-    RSAnimationSetting animationSetting;
-    if (GetAnimationGroups(glyphId, effectStrategy, animationSetting)) {
-        std::vector<RSRenderGroup> newRenderGroups;
-        RSRenderGroup group;
-        for (size_t i = 0, j = 0; i < animationSetting.groupSettings.size(); i++) {
-            if (j < renderGroups.size()) {
-                group = renderGroups[j];
-                j++;
-            }
-            group.groupInfos = animationSetting.groupSettings[i].groupInfos;
-            newRenderGroups.push_back(group);
-        }
-        if (!newRenderGroups.empty()) {
-            renderGroups = newRenderGroups;
-            return true;
-        }
-    }
-    return false;
-}
-
 void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
     const std::vector<RSSColor>& colors, RSSymbolLayers& symbolInfo)
 {
