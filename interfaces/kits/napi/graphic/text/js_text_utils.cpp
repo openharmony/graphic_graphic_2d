@@ -163,17 +163,6 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     }
 }
 
-void SetTextShadowPoint(napi_env env, napi_value argValue, const std::string& str, Drawing::Point& offset)
-{
-    napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, str.c_str(), &tempValue);
-    if (tempValue == nullptr) {
-        return;
-    }
-    GetPointFromJsValue(env, tempValue, offset);
-    return;
-}
-
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
 {
     textStyle.shadows.clear();
@@ -187,7 +176,14 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
             return;
         }
         SetTextStyleColor(env, element, "color", colorSrc);
-        SetTextShadowPoint(env, element, "point", offset);
+
+        napi_value pointValue = nullptr;
+        if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
+            ROSEN_LOGE("The parameter of as private point is unvaild");
+            return;
+        }
+        GetPointFromJsValue(env, pointValue, offset);
+
         napi_value radius = nullptr;
         if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
             napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {

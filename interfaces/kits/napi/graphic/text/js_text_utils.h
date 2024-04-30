@@ -406,7 +406,5 @@ size_t GetParamLen(napi_env env, napi_value param);
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle);
 
 void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textStyle);
-
-void SetTextShadowPoint(napi_env env, napi_value argValue, const std::string& str, Drawing::Point& offset);
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H
