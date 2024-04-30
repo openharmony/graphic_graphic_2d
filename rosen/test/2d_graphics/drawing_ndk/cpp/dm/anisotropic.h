@@ -18,6 +18,7 @@
 #include "test_common.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
+#include <native_drawing/drawing_image.h>
 #include <native_drawing/drawing_canvas.h>
 
 class Anisotropic : public TestBase {
@@ -27,6 +28,9 @@ class Anisotropic : public TestBase {
     int kNumLines = 100;
     float kAngleStep = 360.0f / kNumLines;
     int kInnerOffset = 10;
+    int xOff;
+    int yOff;
+    float angle = 0.0f;
 
 public:
     Anisotropic()
@@ -38,6 +42,7 @@ public:
     ~Anisotropic() = default;
 
 protected:
+    OH_Drawing_Image *image = OH_Drawing_ImageCreate();
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
     void BeforeDraw(OH_Drawing_Canvas *canvas);
     void Draw(OH_Drawing_Canvas *canvas, int x, int y, int xSize, int ySize);

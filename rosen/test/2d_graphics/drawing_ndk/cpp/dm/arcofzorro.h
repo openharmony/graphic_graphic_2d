@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ArcOfZorro_H
-#define ArcOfZorro_H
+#ifndef ARCOFZORRO_H
+#define ARCOFZORRO_H
 #include "../test_base.h"
 #include <bits/alltypes.h>
 #include <native_drawing/drawing_rect.h>
@@ -26,5 +26,12 @@ class ArcOfZorro : public TestBase {
 
   protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
+    float x = 10;
+    float y = 10;
+    float w = 200;
+    float h = 200;
+    int xOffset = 0;
+    int yOffset = 0;
+    int direction = 0;
 };
-#endif // ArcOfZorro_H
+#endif // ARCOFZORRO_H
