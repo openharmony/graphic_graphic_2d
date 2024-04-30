@@ -882,5 +882,13 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
 }
+
+bool RSSystemProperties::GetHDRImageEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "0");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
+}
 } // namespace Rosen
 } // namespace OHOS
