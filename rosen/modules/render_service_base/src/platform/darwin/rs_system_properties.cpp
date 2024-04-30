@@ -373,7 +373,7 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
-uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
+int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
     return {};
 }

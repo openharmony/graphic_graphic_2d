@@ -1187,10 +1187,10 @@ private:
     {
         RectI screenRect_;
         RectI absRect_;
-        ScreenRotation screenRotation_;
-        bool isFocusWindow_;
-        bool isTransparent_;
-        bool hasContainerWindow_;
+        ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+        bool isFocusWindow_ = false;
+        bool isTransparent_ = false;
+        bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
     };
 

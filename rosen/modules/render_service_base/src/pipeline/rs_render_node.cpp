@@ -2260,25 +2260,25 @@ void RSRenderNode::UpdateDisplayList()
 
         // Update index of BACKGROUND_END
         stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdIndex_.contentIndex_ == -1 ?
-            stagingDrawCmdList_.size() : stagingDrawCmdIndex_.contentIndex_;
+            static_cast<int8_t>(stagingDrawCmdList_.size()) : stagingDrawCmdIndex_.contentIndex_;
 
         // Update index of CHILDREN
         stagingDrawCmdIndex_.childrenIndex_ = AppendDrawFunc(RSDrawableSlot::CHILDREN);
-        stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+        stagingDrawCmdIndex_.foregroundBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
 
         AppendDrawFunc(RSDrawableSlot::RESTORE_FRAME);
     } else {
         // Nothing inside frame, skip useless slots and update indexes
         stagingDrawCmdIndex_.contentIndex_ = -1;
         stagingDrawCmdIndex_.childrenIndex_ = -1;
-        stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdList_.size();
-        stagingDrawCmdIndex_.foregroundBeginIndex_ = stagingDrawCmdList_.size();
+        stagingDrawCmdIndex_.backgroundEndIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
+        stagingDrawCmdIndex_.foregroundBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
         index = static_cast<int8_t>(RSDrawableSlot::FG_SAVE_BOUNDS);
     }
-    stagingDrawCmdIndex_.renderGroupEndIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.renderGroupEndIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
 
     AppendDrawFunc(RSDrawableSlot::RESTORE_ALL);
-    stagingDrawCmdIndex_.endIndex_ = stagingDrawCmdList_.size();
+    stagingDrawCmdIndex_.endIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
     stagingRenderParams_->SetContentEmpty(false);
 #endif
 }
