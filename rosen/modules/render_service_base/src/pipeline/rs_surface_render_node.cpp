@@ -1217,9 +1217,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
-    if (stagingRenderParams_->NeedSync()) {
-        AddToPendingSyncList();
-    }
+    AddToPendingSyncList();
 #endif
 }
 

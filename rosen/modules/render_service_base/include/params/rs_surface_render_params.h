@@ -266,6 +266,7 @@ private:
     RSLayerInfo layerInfo_;
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
@@ -277,6 +278,7 @@ private:
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
+    friend class RSUniRenderThread;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
