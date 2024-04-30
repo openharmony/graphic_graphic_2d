@@ -34,6 +34,12 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "rs_render_service_proxy_test.cpp",
     "rs_surface_ohos_test.cpp",
     "rs_vsync_client_ohos_test.cpp",
+    "rs_render_service_connection_proxy_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   configs = [
