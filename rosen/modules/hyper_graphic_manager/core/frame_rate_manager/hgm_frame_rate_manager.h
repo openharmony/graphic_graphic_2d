@@ -99,7 +99,7 @@ public:
     void HandleLightFactorStatus(bool isSafe);
     void HandlePackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleTouchEvent(int32_t touchStatus);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
@@ -128,7 +128,7 @@ public:
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
-    std::shared_ptr<HgmTouchManager> touchMgr_ = std::make_unique<HgmTouchManager>();
+    std::unique_ptr<HgmTouchManager> touchMgr_ = std::make_unique<HgmTouchManager>();
 private:
     void Reset();
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -182,7 +182,6 @@ private:
     bool isTouchEnable_ = false;
     int32_t touchFps_ = 120;
     int32_t idleFps_ = 60;
-    int32_t touchCnt_ = 0;
     HgmMultiAppStrategy multiAppStrategy_;
 };
 } // namespace Rosen

@@ -2091,7 +2091,7 @@ void RSRenderServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eve
     }
 }
 
-void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus)
+void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2100,6 +2100,9 @@ void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus)
         return;
     }
     if (!data.WriteUint32(touchStatus)) {
+        return;
+    }
+    if (!data.WriteUint32(touchCnt)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
