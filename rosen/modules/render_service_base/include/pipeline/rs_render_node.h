@@ -532,6 +532,7 @@ public:
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
+    void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
