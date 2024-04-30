@@ -396,7 +396,8 @@ void PathRConicTo::OnTestPerformance(OH_Drawing_Canvas* canvas)
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_PathMoveTo(path, rand.nextULessThan(bitmapWidth_), rand.nextULessThan(bitmapHeight_));
         OH_Drawing_PathRConicTo(path, rand.nextULessThan(bitmapWidth_), rand.nextULessThan(bitmapHeight_),
-            rand.nextULessThan(bitmapWidth_), rand.nextULessThan(bitmapHeight_), rand.nextULessThan(10));
+            rand.nextULessThan(bitmapWidth_), rand.nextULessThan(bitmapHeight_),
+            rand.nextULessThan(10)); // 10 产生小于10的随机整数
         OH_Drawing_CanvasDrawPath(canvas, path);
         OH_Drawing_PathReset(path);
     }
