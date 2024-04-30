@@ -62,7 +62,7 @@ static void show_zero_len_dash(OH_Drawing_Canvas *canvas)
 static void show_giant_dash(OH_Drawing_Canvas *canvas)
 {
     Dashings dashings;
-    dashings.finalX = (20 * 1000);
+    dashings.finalX = (20 * 1000); // 20, 1000 int on, int off
     OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
     drawline(canvas, 1, 1, pen, dashings); // 1,20, 1000 int on, int off
     OH_Drawing_PenDestroy(pen);
@@ -243,28 +243,28 @@ void Dashing4::DashingTow(OH_Drawing_Canvas *canvas, OH_Drawing_Pen *pen, Dashin
         OH_Drawing_PenSetWidth(pen, 8.f);
         OH_Drawing_PenSetCap(pen, LINE_SQUARE_CAP);
         // Single dash element that is cut off at start and end
-        dashings.finalX = 20.0;
-        dashings.phase = 5.0;
+        dashings.finalX = 20.0; // 20.0 坐标
+        dashings.phase = 5.0; // 5.0 坐标
         drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 20.0, 0, 5.0 画线
         OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
-        dashings.finalX = 56.0;
+        dashings.finalX = 56.0; // 56.0 坐标
         // Two dash elements where each one is cut off at beginning and end respectively
         drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 56.0, 0, 5.0 画线
         OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
-        dashings.finalX = 584.0;
+        dashings.finalX = 584.0; // 584.0 坐标
         // Many dash elements where first and last are cut off at beginning and end respectively
         drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 584.0, 0, 5.0 画线
         OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
 
         // Diagonal dash line where src pnts are not axis aligned (as apposed to being diagonal from
         // a canvas rotation)
-        dashings.finalX = 600.0;
-        dashings.finalY = 30.0;
+        dashings.finalX = 600.0; // 600.0 坐标
+        dashings.finalY = 30.0; // 30.0 坐标
         drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 600.0, 30.0 画线
         OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
-        dashings.finalX = 8.0;
+        dashings.finalX = 8.0; // 8.0 坐标
         dashings.finalY = 0.0;
-        dashings.phase = 40.0;
+        dashings.phase = 40.0; // 40.0 坐标
         // Case where only the off interval exists on the line. Thus nothing should be drawn
         drawline(canvas, 32, 16, pen, dashings);   // canvas, 32, 16, pen, 8.0, 0.0, 40.0 画线
         OH_Drawing_CanvasTranslate(canvas, 0, 20); // 0, 20平移坐标
