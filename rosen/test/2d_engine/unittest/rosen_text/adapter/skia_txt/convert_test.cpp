@@ -134,6 +134,7 @@ HWTEST_F(OH_Drawing_ConvertTest, OH_Drawing_ConvertTest009, TestSize.Level1)
 {
     TextStyle textStyle;
     SPText::TextStyle sptextStyle = AdapterTxt::Convert(textStyle);
+    //The default fontsize for TextStyle is 14.0
     EXPECT_EQ(sptextStyle.fontSize == 14.0, true);
 }
 } // namespace Rosen

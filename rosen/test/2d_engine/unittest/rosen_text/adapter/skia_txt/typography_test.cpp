@@ -126,21 +126,27 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest006, TestSize.Level
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    // 1, 10, 20.0 for unit test
     typography->UpdateFontSize(1, 10, 20.0);
+    // {1.2, 3.4} for unit test
     std::vector<float> indents = {1.2, 3.4};
     typography->SetIndents(indents);
     //3 > indents.size(), return indents.back()
     EXPECT_EQ(typography->DetectIndents(3), indents[1]);
+    // 100 for unit test
     typography->Layout(100);
     SkCanvas* canvas = nullptr;
+    // 10.0, 10.0 for unit test
     typography->Paint(canvas, 10.0, 10.0);
     OHOS::Rosen::Drawing::Canvas* drawingCanvas = nullptr;
+    // 20.0, 20.0 for unit test
     typography->Paint(drawingCanvas, 20.0, 20.0);
     TextRectHeightStyle textRectHeightStyle = TextRectHeightStyle::TIGHT;
     TextRectWidthStyle textRectWidthtStyle = TextRectWidthStyle::MAX;
     std::vector<TextRect> vectorTextRect = typography->GetTextRectsByBoundary(
         1, 2, textRectHeightStyle, textRectWidthtStyle);
     vectorTextRect = typography->GetTextRectsOfPlaceholders();
+    // 1.0, 2.0 for unit test
     typography->GetGlyphIndexByCoordinate(1.0, 2.0);
 }
 
