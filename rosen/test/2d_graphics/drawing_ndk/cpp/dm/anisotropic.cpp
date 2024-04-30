@@ -37,6 +37,8 @@ enum SkAlphaType : int {
     K_LAST_ENUM_SK_ALPHA_TYPE = K_UNPREMUL_SK_ALPHA_TYPE, // !< last valid value
 };
 
+float gScales[] = {0.9f, 0.8f, 0.75f, 0.6f, 0.5f, 0.4f, 0.25f, 0.2f, 0.1f};
+
 void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
 {
     OH_Drawing_Bitmap *bitmap = OH_Drawing_BitmapCreate();
@@ -52,14 +54,10 @@ void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetAntiAlias(pen, true);
     OH_Drawing_CanvasAttachPen(bimap_canvas, pen);
-
-    float angle = 0.0f;
-    float sin;
-    float cos;
     OH_Drawing_CanvasTranslate(bimap_canvas, kImageSize / 2.0f, kImageSize / 2.0f); // 2.0f距离
     for (int i = 0; i < kNumLines; ++i, angle += kAngleStep) {
-        sin = sinf(angle);
-        cos = cosf(angle);
+        float sin = sinf(angle);
+        float cos = cosf(angle);
         OH_Drawing_CanvasDrawLine(bimap_canvas, cos * kInnerOffset, sin * kInnerOffset,
             cos * kImageSize / 2, sin * kImageSize / 2); // 2 cout
     }
@@ -67,14 +65,9 @@ void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_SamplingOptions *fsampling = OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMode::FILTER_MODE_NEAREST,
         OH_Drawing_MipmapMode::MIPMAP_MODE_LINEAR);
 
-    float gScales[] = {0.9f, 0.8f, 0.75f, 0.6f, 0.5f, 0.4f, 0.25f, 0.2f, 0.1f};
-
     for (int i = 0; i < sizeof(gScales); ++i) {
         int height = (int)(OH_Drawing_BitmapGetHeight(bitmap) * gScales[i]);
-
-        int yOff;
-        int count = 2;
-        if (i <= static_cast<int>(sizeof(gScales) / sizeof(gScales[0])) / count) {
+        if (i <= static_cast<int>(sizeof(gScales) / sizeof(gScales[0])) / 2) { // 2cout
             yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
         } else {
             yOff = (sizeof(gScales) - i) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer) - height;
@@ -90,15 +83,11 @@ void Anisotropic::OnTestFunction(OH_Drawing_Canvas *canvas)
 
     for (int i = 0; i < sizeof(gScales); ++i) {
         int width = (int)(OH_Drawing_BitmapGetWidth(bitmap) * gScales[i]);
-
-        int xOff;
-        int yOff;
         if (i <= static_cast<int>(sizeof(gScales) / sizeof(gScales[0])) / 2) { // 2被除数
             xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer;            // 2 cout
             yOff = kSpacer + i * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
         } else {
-            xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer + OH_Drawing_BitmapGetWidth(bitmap) - width; // 2
-                                                                                                                // cout
+            xOff = OH_Drawing_BitmapGetWidth(bitmap) + 2 * kSpacer + OH_Drawing_BitmapGetWidth(bitmap) - width; // 2cout
             yOff = kSpacer + (sizeof(gScales) - i - 1) * (OH_Drawing_BitmapGetHeight(bitmap) + kSpacer);
         }
 

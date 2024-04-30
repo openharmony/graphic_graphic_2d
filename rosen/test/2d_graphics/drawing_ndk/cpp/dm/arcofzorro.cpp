@@ -42,18 +42,10 @@ void ArcOfZorro::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
     // 创建一个矩形对象
     TestRend rand;
-    float x = 10;
-    float y = 10;
-    float w = 200;
-    float h = 200;
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(x, y, x + w, y + h);
     // 创建画笔pen对象
     OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetWidth(pen, 35); // 35宽度
-
-    int xOffset = 0;
-    int yOffset = 0;
-    int direction = 0;
     for (float arc = 134.0f; arc < 136.0f; arc += 0.01f) {
         DRAWING_LOGI("ArcOfZorro::arc");
         uint32_t color = rand.nextU();
@@ -95,5 +87,4 @@ void ArcOfZorro::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_PenDestroy(pen);
-    pen = nullptr;
 }
