@@ -70,8 +70,8 @@ void StrokeRectShader::OnTestFunction(OH_Drawing_Canvas* canvas)
 {
     float kSize = 100;
     DrawRect Rect = { 0, 0, kSize, kSize };
-    OH_Drawing_Point* startPts = OH_Drawing_PointCreate(Rect.fLeft, Rect.fTop);
-    OH_Drawing_Point* endPts = OH_Drawing_PointCreate(Rect.fRight, Rect.fBottom);
+    OH_Drawing_Point* startPts = OH_Drawing_PointCreate(Rect.left, Rect.top);
+    OH_Drawing_Point* endPts = OH_Drawing_PointCreate(Rect.right, Rect.bottom);
     const uint32_t kColors[] = {
         0xFFFF0000,
         0xFF0000FF,
@@ -85,7 +85,7 @@ void StrokeRectShader::OnTestFunction(OH_Drawing_Canvas* canvas)
 
     float fHalf = 0.5f;
 
-    OH_Drawing_CanvasTranslate(canvas, fHalf * (Rect.fLeft + Rect.fRight), fHalf * (Rect.fTop + Rect.fBottom));
+    OH_Drawing_CanvasTranslate(canvas, fHalf * (Rect.left + Rect.right), fHalf * (Rect.top + Rect.bottom));
     float kPad = 20;
     for (auto aa : { false, true }) {
         drawRect(canvas, pen, aa);

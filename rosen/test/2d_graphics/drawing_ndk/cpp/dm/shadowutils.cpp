@@ -187,8 +187,8 @@ void ShadowUtils::draw_paths(OH_Drawing_Canvas *canvas, ShadowMode mode) {
             for (const auto path : paths) {
                 // 计算各个path的bound，避免碰撞，并对其进行移动
                 DrawRect postMBounds = pathsBounds[pathCounter];
-                float boundWidth = postMBounds.width();
-                float boundHeight = postMBounds.height();
+                float boundWidth = postMBounds.Width();
+                float boundHeight = postMBounds.Height();
                 float w = boundWidth + kHeight;
                 float dx = w + kPad;
                 if (x + dx > K_W - 3 * kPad) { // 3倍间距
@@ -261,8 +261,8 @@ void ShadowUtils::draw_paths(OH_Drawing_Canvas *canvas, ShadowMode mode) {
         int pathCounter = 0;
         for (const auto path : concavePaths) {
             DrawRect postMBounds = concavePathsBounds[pathCounter];
-            float boundWidth = postMBounds.width();
-            float boundHeight = postMBounds.height();
+            float boundWidth = postMBounds.Width();
+            float boundHeight = postMBounds.Height();
             float w = boundWidth + kHeight;
             float dx = w + kPad;
 

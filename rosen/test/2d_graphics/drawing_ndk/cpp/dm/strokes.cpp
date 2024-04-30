@@ -45,8 +45,8 @@ void rnd_rect(DrawRect& r, OH_Drawing_Pen* pen, TestRend& rand)
     float hoffset = rand.nextUScalar1();
     float woffset = rand.nextUScalar1();
 
-    r.setXYWH(x, y, w, h);
-    r.offset(-w / 2 + woffset, -h / 2 + hoffset); // 2 表示去中点进行偏移
+    r.SetXYWH(x, y, w, h);
+    r.Offset(-w / 2 + woffset, -h / 2 + hoffset); // 2 表示去中点进行偏移
 
     OH_Drawing_PenSetColor(pen, rand.nextU() | 0xFF000000);
 }
