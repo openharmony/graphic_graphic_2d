@@ -32,6 +32,8 @@ const uint32_t NUMBER = 2;
 const uint32_t SET_POINT_SIZE1 = 12;
 const uint32_t SET_POINT_SIZE2 = 4;
 const uint32_t SET_COLOR_QUAD_SIZE = 4;
+const uint32_t SET_RIGHT = 10;
+const uint32_t SET_TOP_BOTTOM = 80;
 const uint32_t SCALAR_XORY = 255;
 const uint32_t SET_COLOR = 0xFF000000;
 class RSPaintFilterCanvasTest : public testing::Test {
@@ -985,6 +987,191 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest001, TestSize.Level1)
     paintFilterCanvas_->SetAlpha(SET_ALPHA);
     paintFilterCanvas_->SetBlendMode(1);
     EXPECT_TRUE(paintFilterCanvas_->AttachPaint(paint).impl_);
+}
+
+/**
+ * @tc.name: AlphaStackToPushOrOutbackTest
+ * @tc.desc: AlphaStackToPushOrOutback Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, AlphaStackToPushOrOutbackTest, TestSize.Level1)
+{
+    // Ensure that the stack is empty before testing
+    EXPECT_TRUE(AlphaStackClear());
+    // RestoreAlpha Test
+    paintFilterCanvas_->RestoreAlpha();
+    paintFilterCanvas_->alphaStack_.push(SET_ALPHA);
+    EXPECT_EQ(paintFilterCanvas_->SaveAlpha(), 1);
+    EXPECT_EQ(paintFilterCanvas_->GetAlphaSaveCount(), NUMBER);
+    paintFilterCanvas_->RestoreAlpha();
+    EXPECT_EQ(paintFilterCanvas_->GetAlphaSaveCount(), 1);
+
+    // RestoreAlphaToCount Test
+    EXPECT_EQ(paintFilterCanvas_->SaveAlpha(), 1);
+    paintFilterCanvas_->RestoreAlphaToCount(0);
+    EXPECT_EQ(paintFilterCanvas_->GetAlphaSaveCount(), 1);
+
+    // Ensure that the stack is empty after testing
+    EXPECT_TRUE(AlphaStackClear());
+}
+
+/**
+ * @tc.name: EnvStackToPushOrOutbackTest
+ * @tc.desc: EnvStackToPushOrOutback Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, EnvStackToPushOrOutbackTest, TestSize.Level1)
+{
+    // Ensure that the stack is empty before testing
+    EXPECT_TRUE(EnvStackClear());
+
+    Rosen::RSColor rsColor;
+    RSPaintFilterCanvas::Env env;
+
+    // envStack_ is empty
+    EXPECT_EQ(paintFilterCanvas_->GetEnvForegroundColor(), Drawing::Color::COLOR_BLACK);
+    paintFilterCanvas_->SetEnvForegroundColor(rsColor);
+    paintFilterCanvas_->RestoreEnv();
+
+    // envStack_ is not empty
+    paintFilterCanvas_->envStack_.push(env);
+    auto asArgbInt = paintFilterCanvas_->envStack_.top().envForegroundColor_.AsArgbInt();
+    EXPECT_EQ(paintFilterCanvas_->GetEnvForegroundColor(), asArgbInt);
+    paintFilterCanvas_->SetBlendMode(0);
+    paintFilterCanvas_->SetEnvForegroundColor(rsColor);
+    EXPECT_EQ(paintFilterCanvas_->GetEnvSaveCount(), 1);
+    EXPECT_EQ(paintFilterCanvas_->SaveEnv(), 1);
+
+    // envStack_ Outback
+    paintFilterCanvas_->RestoreEnv();
+    EXPECT_EQ(paintFilterCanvas_->GetEnvSaveCount(), 1);
+    EXPECT_EQ(paintFilterCanvas_->SaveEnv(), 1);
+    paintFilterCanvas_->RestoreEnvToCount(0);
+
+    // Ensure that the stack is empty after testing
+    EXPECT_TRUE(EnvStackClear());
+}
+
+/**
+ * @tc.name: SaveAllStatusTest
+ * @tc.desc: SaveAllStatus Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SaveAllStatusTest, TestSize.Level1)
+{
+    // The second condition of the ternary operation
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>();
+    paintFilterCanvas_->canvas_ = drawingCanvas.get();
+
+    RSPaintFilterCanvas::SaveStatus secondStatus = paintFilterCanvas_->SaveAllStatus(RSPaintFilterCanvas::kNone);
+    EXPECT_EQ(paintFilterCanvas_->GetSaveCount(), secondStatus.canvasSaveCount);
+    EXPECT_EQ(paintFilterCanvas_->GetAlphaSaveCount(), secondStatus.alphaSaveCount);
+    EXPECT_EQ(paintFilterCanvas_->GetEnvSaveCount(), secondStatus.envSaveCount);
+    // The first condition of the ternary operation
+    paintFilterCanvas_->canvas_ = nullptr;
+    RSPaintFilterCanvas::Env env;
+    paintFilterCanvas_->envStack_.push(env);
+    paintFilterCanvas_->alphaStack_.push(SET_ALPHA);
+    RSPaintFilterCanvas::SaveStatus firstStatus = paintFilterCanvas_->SaveAllStatus(RSPaintFilterCanvas::kAll);
+    EXPECT_EQ(paintFilterCanvas_->Save(), firstStatus.canvasSaveCount);
+    EXPECT_EQ(paintFilterCanvas_->GetAlphaSaveCount() - 1, firstStatus.alphaSaveCount);
+    EXPECT_EQ(paintFilterCanvas_->GetEnvSaveCount() - 1, firstStatus.envSaveCount);
+
+    EXPECT_TRUE(AlphaStackClear());
+    EXPECT_TRUE(EnvStackClear());
+}
+
+/**
+ * @tc.name: CopyConfigurationTest
+ * @tc.desc: CopyConfiguration Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, CopyConfigurationTest, TestSize.Level1)
+{
+    // building a new RSPaintFilterCanvas object
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas::Env env;
+    RSPaintFilterCanvas::Env envOther;
+    RSPaintFilterCanvas rsPaintFilterCanvas(drawingCanvas.get());
+
+    paintFilterCanvas_->envStack_.push(env);
+    rsPaintFilterCanvas.envStack_.push(envOther);
+
+    rsPaintFilterCanvas.SetHighContrast(false);
+    paintFilterCanvas_->CopyConfiguration(rsPaintFilterCanvas);
+
+    rsPaintFilterCanvas.SetHighContrast(true);
+    paintFilterCanvas_->CopyConfiguration(rsPaintFilterCanvas);
+    EXPECT_TRUE(EnvStackClear());
+}
+
+/**
+ * @tc.name: ReplaceOrSwapMainScreenTest
+ * @tc.desc: ReplaceMainScreenData and SwapBackMainScreenData Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest, TestSize.Level1)
+{
+    Drawing::Surface surface;
+    Drawing::Canvas canvas(&surface);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    std::shared_ptr<RSPaintFilterCanvas> canvasPtr = std::make_shared<RSPaintFilterCanvas>(&canvas);
+
+    // Replace data
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    EXPECT_EQ(paintFilterCanvas.GetSurface(), surfacePtr.get());
+    // paintFilterCanvas.canvas_ is nullptr;
+    EXPECT_EQ(paintFilterCanvas.GetRecordingCanvas(), nullptr);
+
+    // Swap data
+    paintFilterCanvas.SwapBackMainScreenData();
+    EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
+}
+
+/**
+ * @tc.name: SaveOrRestoreTest
+ * @tc.desc: SavePCanvasList and RestorePCanvasList Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SaveOrRestoreTest, TestSize.Level1)
+{
+    paintFilterCanvas_->SavePCanvasList();
+    EXPECT_EQ(paintFilterCanvas_->storedPCanvasList_.size(), 1);
+    paintFilterCanvas_->RestorePCanvasList();
+    EXPECT_TRUE(paintFilterCanvas_->storedPCanvasList_.empty());
+    paintFilterCanvas_->pCanvasList_.clear();
+    EXPECT_TRUE(paintFilterCanvas_->pCanvasList_.empty());
+}
+
+/**
+ * @tc.name: GetLocalClipBoundsTest
+ * @tc.desc: GetLocalClipBounds Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GetLocalClipBoundsTest, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+
+    Drawing::RectI* clipRects = nullptr;
+    std::optional<Drawing::Rect> result = paintFilterCanvas_->GetLocalClipBounds(canvas, clipRects);
+    EXPECT_FALSE(result.has_value());
+
+    Drawing::RectI clipRect;
+    Drawing::RectI* clipRectPtr = &clipRect;
+    result = paintFilterCanvas_->GetLocalClipBounds(canvas, clipRectPtr);
+    EXPECT_FALSE(result.has_value());
+
+    Drawing::RectI rectI = { 0, SET_RIGHT, SET_TOP_BOTTOM, SET_TOP_BOTTOM };
+    result = paintFilterCanvas_->GetLocalClipBounds(canvas, &rectI);
+    EXPECT_TRUE(result.has_value());
 }
 } // namespace Rosen
 } // namespace OHOS
