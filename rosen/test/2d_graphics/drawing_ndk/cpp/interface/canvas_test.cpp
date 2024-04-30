@@ -57,30 +57,29 @@ void CanvasDrawRect::OnTestPerformance(OH_Drawing_Canvas* canvas)
 void CanvasDrawBitmapRect::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
     TestRend rand;
-    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
-
-    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE };
-    OH_Drawing_BitmapBuild(bitmap, 200, 200, &cFormat); // 200 用于定义位图（bitmap）的宽度和高度
-    OH_Drawing_Canvas* bitmapCanvas = OH_Drawing_CanvasCreate();
-    OH_Drawing_CanvasBind(bitmapCanvas, bitmap);
-    OH_Drawing_CanvasClear(bitmapCanvas, OH_Drawing_ColorSetArgb(0xff, 0x00, 0xff, 0x00));
+    float l = rand.nextULessThan(bitmapWidth_);
+    float t = rand.nextULessThan(bitmapHeight_);
+    float r = l + rand.nextULessThan(bitmapWidth_);
+    float b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
     OH_Drawing_SamplingOptions* sampling = OH_Drawing_SamplingOptionsCreate(
-        OH_Drawing_FilterMode::FILTER_MODE_LINEAR, OH_Drawing_MipmapMode::MIPMAP_MODE_LINEAR);
-
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NONE);
+    float l_1 = rand.nextULessThan(bitmapWidth_);
+    float t_1 = rand.nextULessThan(bitmapHeight_);
+    float r_1 = l_1 + rand.nextULessThan(bitmapWidth_);
+    float b_1 = t_1 + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Bitmap* bm = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_BGRA_8888, ALPHA_FORMAT_OPAQUE };
+    OH_Drawing_BitmapBuild(bm, bitmapWidth_, bitmapHeight_, &cFormat);
+    OH_Drawing_Rect* dst = OH_Drawing_RectCreate(l_1, t_1, r_1, b_1); // 指定区域
     for (int i = 0; i < testCount_; i++) {
-        float l = rand.nextULessThan(bitmapWidth_);
-        float t = rand.nextULessThan(bitmapHeight_);
-        float r = l + rand.nextULessThan(bitmapWidth_);
-        float b = t + rand.nextULessThan(bitmapHeight_);
-        OH_Drawing_Rect* dst = OH_Drawing_RectCreate(l, t, r, b);
-        OH_Drawing_CanvasDrawBitmapRect(canvas, bitmap, nullptr, dst, sampling);
-
-        OH_Drawing_RectDestroy(dst);
+        // 将位图的指定区域绘制到画布的指定区域，指定区域
+        OH_Drawing_CanvasDrawBitmapRect(canvas, bm, rect, dst, sampling);
     }
-
     OH_Drawing_SamplingOptionsDestroy(sampling);
-    OH_Drawing_BitmapDestroy(bitmap);
-    OH_Drawing_CanvasDestroy(bitmapCanvas);
+    OH_Drawing_BitmapDestroy(bm);
+    OH_Drawing_RectDestroy(dst);
+    OH_Drawing_RectDestroy(rect);
 }
 
 void CanvasDrawCircle::OnTestPerformance(OH_Drawing_Canvas* canvas)
@@ -236,38 +235,36 @@ void CanvasRotate::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void CanvasTranslate::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    float randNumberx = renderer.nextF();
-    float randNumbery = renderer.nextF();
+    TestRend rand;
+    float l = rand.nextULessThan(bitmapWidth_);
+    float t = rand.nextULessThan(bitmapHeight_);
+    float r = l + rand.nextULessThan(bitmapWidth_);
+    float b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    float randNumberx = rand.nextF();
+    float randNumbery = rand.nextF();
     for (int i = 0; i < testCount_; i++) {
-        int l = i % bitmapWidth_;
-        int t = (i + 100) % bitmapHeight_;                               // 100 用于高度计算
-        int r = ((l + 100) > bitmapWidth_) ? bitmapWidth_ : (l + 100);   // 100 用于高宽度计算
-        int b = ((t + 100) > bitmapHeight_) ? bitmapHeight_ : (t + 100); // 100 用于高度计算
-        OH_Drawing_Canvas* drawingCanvas = OH_Drawing_CanvasCreate();
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-        OH_Drawing_RectDestroy(rect);
-        OH_Drawing_CanvasTranslate(drawingCanvas, randNumberx, randNumbery);
-        OH_Drawing_CanvasDestroy(drawingCanvas);
+        OH_Drawing_CanvasTranslate(canvas, randNumberx, randNumbery);
     }
+    OH_Drawing_RectDestroy(rect);
 }
 
 void CanvasScale::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    float randNumberx = renderer.nextF();
-    float randNumbery = renderer.nextF();
+    TestRend rand;
+    float l = rand.nextULessThan(bitmapWidth_);
+    float t = rand.nextULessThan(bitmapHeight_);
+    float r = l + rand.nextULessThan(bitmapWidth_);
+    float b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    float randNumberx = rand.nextF();
+    float randNumbery = rand.nextF();
     for (int i = 0; i < testCount_; i++) {
-        int l = i % bitmapWidth_;
-        int t = (i + 100) % bitmapHeight_;                               // 100 用于高度计算
-        int r = ((l + 100) > bitmapWidth_) ? bitmapWidth_ : (l + 100);   // 100 用于宽度计算
-        int b = ((t + 100) > bitmapHeight_) ? bitmapHeight_ : (t + 100); // 100 用于高度计算
-        OH_Drawing_Canvas* drawingCanvas = OH_Drawing_CanvasCreate();
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-        OH_Drawing_CanvasScale(drawingCanvas, randNumberx, randNumbery);
-        OH_Drawing_RectDestroy(rect);
-        OH_Drawing_CanvasDestroy(drawingCanvas);
+        OH_Drawing_CanvasScale(canvas, randNumberx, randNumbery);
     }
+    OH_Drawing_RectDestroy(rect);
 }
 
 void CanvasConcatMatrix::OnTestPerformance(OH_Drawing_Canvas* canvas)
@@ -363,34 +360,28 @@ void CanvasDrawImageRectWithSrc::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void CanvasDrawShadow::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
+    TestRend rand;
     OH_Drawing_Path* pathCreate = OH_Drawing_PathCreate(); // 用于创建一个路径对象。
-
-    OH_Drawing_Point3D planeParams, devLightPos;
-    planeParams.x = 1.2f; // 1.2f 定义平面的参数
-    planeParams.y = 2.0f; // 2.0f 定义平面的参数
-    planeParams.z = 3.0f; // 3.0f 定义平面的参数
-    devLightPos.x = 4.0f; // 4.0f 定义坐标的位置
-    devLightPos.y = 5.0f; // 5.0f 定义坐标的位置
-    devLightPos.z = 6.0f; // 6.0f 定义坐标的位置
-
-    float lightRadius = 10.0f;  // 10.0f 表示半径
-    uint32_t ambientColor = 11; // 11 表示颜色
-    uint32_t spotColor = 12;    // 12 表示颜色
+    OH_Drawing_Point3D planeParams;
+    OH_Drawing_Point3D devLightPos;
+    planeParams.x = 0; // 0 用于坐标计算
+    planeParams.y = 0; // 0 用于坐标计算
+    planeParams.z = 50.f;  // 50.f 用于坐标计算
+    devLightPos.x = 100.f; // 100.f 用于坐标计算
+    devLightPos.y = 100.f; // 100.f 用于坐标计算
+    devLightPos.z = 100.f; // 100.f 用于坐标计算
+    float lightRadius = 50.f; // 50.f 用于坐标计算
+    uint32_t ambientColor = 0x19000000;
+    uint32_t spotColor = 0x40000000;
     OH_Drawing_CanvasShadowFlags flag = SHADOW_FLAGS_TRANSPARENT_OCCLUDER;
-
+    float l = rand.nextULessThan(bitmapWidth_);
+    float t = rand.nextULessThan(bitmapHeight_);
+    float r = l + rand.nextULessThan(bitmapWidth_);
+    float b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_PathAddRect(pathCreate, l, t, r, b, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
     for (int i = 0; i < testCount_; i++) {
-        int l = i % bitmapWidth_;
-        int t = (i + 100) % bitmapHeight_;                               // 100 用于高度计算
-        int r = ((l + 100) > bitmapWidth_) ? bitmapWidth_ : (l + 100);   // 100 用于宽度计算
-        int b = ((t + 100) > bitmapHeight_) ? bitmapHeight_ : (t + 100); // 100 用于高度计算
-        // 针对 rect，每次的绘制起点位置，绘制的宽高大小需要不一致
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
-
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-
         OH_Drawing_CanvasDrawShadow(
             canvas, pathCreate, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
-        OH_Drawing_RectDestroy(rect);
     }
     // 在使用完路径后销毁它
     OH_Drawing_PathDestroy(pathCreate);
@@ -398,24 +389,19 @@ void CanvasDrawShadow::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void CanvasSkew::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    float sx = renderer.nextF();
-    float sy = renderer.nextF();
-    float randNumberx = renderer.nextF();
-    float randNumbery = renderer.nextF();
+    TestRend rand;
+    float l = rand.nextULessThan(bitmapWidth_);
+    float t = rand.nextULessThan(bitmapHeight_);
+    float r = l + rand.nextULessThan(bitmapWidth_);
+    float b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_CanvasDrawRect(canvas, rect);
     for (int i = 0; i < testCount_; i++) {
-        int l = i % bitmapWidth_;
-        int t = (i + 100) % bitmapHeight_;                               // 100 用于高度计算
-        int r = ((l + 100) > bitmapWidth_) ? bitmapWidth_ : (l + 100);   // 100 用于宽度计算
-        int b = ((t + 100) > bitmapHeight_) ? bitmapHeight_ : (t + 100); // 100 用于高度计算
-        // 针对rect，每次的绘制起点位置，绘制的宽高大小需要不一致
-        OH_Drawing_Canvas* drawingCanvas = OH_Drawing_CanvasCreate();
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
-        OH_Drawing_CanvasTranslate(drawingCanvas, randNumberx, randNumbery);
-        OH_Drawing_CanvasDestroy(drawingCanvas);
+        float sx = rand.nextF();
+        float sy = rand.nextF();
         OH_Drawing_CanvasSkew(canvas, sx, sy);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-        OH_Drawing_RectDestroy(rect);
     }
+    OH_Drawing_RectDestroy(rect);
 }
 
 void CanvasDrawImageRect::OnTestPerformance(OH_Drawing_Canvas* canvas)
@@ -461,42 +447,48 @@ void CanvasDrawVertices::OnTestPerformance(OH_Drawing_Canvas* canvas)
 
 void CanvasReadPixels::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    int32_t w = 64; // 64 用于宽度计算
-    int32_t h = 64; // 64 用于高度计算
-    OH_Drawing_Bitmap* bm = OH_Drawing_BitmapCreate();
-    OH_Drawing_Image_Info imageInfo { w, h, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_PREMUL };
-    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_PREMUL };
-    OH_Drawing_BitmapBuild(bm, w, h, &cFormat);
+    int32_t w = 100; // 100 用于宽度计算
+    int32_t h = 100; // 100 用于高度计算
+    bool res;
+    TestRend rand;
+    OH_Drawing_Image_Info imageInfo { w, h, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
+    float l = rand.nextULessThan(bitmapWidth_);
+    float t = rand.nextULessThan(bitmapHeight_);
+    float r = l + rand.nextULessThan(bitmapWidth_);
+    float b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
     for (int i = 0; i < testCount_; i++) {
-        int l = i % bitmapWidth_;
-        int t = (i + 100) % bitmapHeight_;                               // 100 用于高度计算
-        int r = ((l + 100) > bitmapWidth_) ? bitmapWidth_ : (l + 100);   // 100 用于宽度计算
-        int b = ((t + 100) > bitmapHeight_) ? bitmapHeight_ : (t + 100); // 100 用于高度计算
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-        OH_Drawing_CanvasReadPixels(canvas, &imageInfo, OH_Drawing_BitmapGetPixels(bm), w, w, h);
-        OH_Drawing_RectDestroy(rect);
+        void* dstPixels = malloc(r * b * 4); // 4 用于像素计算
+        // 从画布中拷贝像素数据到指定地址，去掉readPixels接口就只有drawRect接口画的一个矩形,用日志看读数据的结果
+        res = OH_Drawing_CanvasReadPixels(canvas, &imageInfo, dstPixels, r * 4, l, t); // 4 用于像素计算
+        free(dstPixels);
     }
-    OH_Drawing_BitmapDestroy(bm);
+    DRAWING_LOGI("CanvasReadPixels::OnTestPerformance readPixels success=%{public}s", res ? "true" : "false");
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_RectDestroy(rect);
 }
 
 void CanvasReadPixelsToBitmap::OnTestPerformance(OH_Drawing_Canvas* canvas)
 {
-    int32_t w = 64; // 64 用于宽度计算
-    int32_t h = 64; // 64 用于高度计算
+    int32_t w = 100; // 100 用于宽度计算
+    int32_t h = 100; // 100 用于高度计算
+    bool res;
+    TestRend rand;
     OH_Drawing_Bitmap* bm = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_PREMUL };
+    OH_Drawing_BitmapFormat cFormat { fCT, fAT };
     OH_Drawing_BitmapBuild(bm, w, h, &cFormat);
+    float l = rand.nextULessThan(bitmapWidth_);
+    float t = rand.nextULessThan(bitmapHeight_);
+    float r = l + rand.nextULessThan(bitmapWidth_);
+    float b = t + rand.nextULessThan(bitmapHeight_);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
+    OH_Drawing_CanvasDrawRect(canvas, rect);
     for (int i = 0; i < testCount_; i++) {
-        int l = i % bitmapWidth_;
-        int t = (i + 100) % bitmapHeight_;                               // 100 用于高度计算
-        int r = ((l + 100) > bitmapWidth_) ? bitmapWidth_ : (l + 100);   // 100 用于宽度计算
-        int b = ((t + 100) > bitmapHeight_) ? bitmapHeight_ : (t + 100); // 100 用于高度计算
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(l, t, r, b);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-        OH_Drawing_CanvasReadPixelsToBitmap(canvas, bm, l, h);
-        OH_Drawing_RectDestroy(rect);
+        // 从画布拷贝像素数据到位图中,去掉readPixels接口就只有drawRect接口画的一个矩形,用日志看读数据的结果
+        res = OH_Drawing_CanvasReadPixelsToBitmap(canvas, bm, l, t);
     }
+    DRAWING_LOGI("CanvasReadPixelsToBitmap::OnTestPerformance readPixels success=%{public}s", res ? "true" : "false");
+    OH_Drawing_RectDestroy(rect);
     OH_Drawing_BitmapDestroy(bm);
 }
 
@@ -517,19 +509,19 @@ void CanvasRestoreToCount::OnTestPerformance(OH_Drawing_Canvas* canvas)
     fSave_Count = OH_Drawing_CanvasGetSaveCount(canvas);
     OH_Drawing_CanvasSave(canvas);
     TestRend rand;
+    float x1 = rand.nextULessThan(bitmapWidth_);
+    float y1 = rand.nextULessThan(bitmapHeight_);
+    float x2 = rand.nextULessThan(bitmapWidth_);
+    float y2 = rand.nextULessThan(bitmapHeight_);
+    // 针对rect，每次的绘制起点位置，绘制的宽高大小需要不一致
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(x1, y1, x2, y2);
+    OH_Drawing_CanvasTranslate(canvas, x1, y1);
+
     for (int i = 0; i < testCount_; i++) {
-        float x1 = rand.nextULessThan(bitmapWidth_);
-        float y1 = rand.nextULessThan(bitmapHeight_);
-        float x2 = rand.nextULessThan(bitmapWidth_);
-        float y2 = rand.nextULessThan(bitmapHeight_);
-        // 针对rect，每次的绘制起点位置，绘制的宽高大小需要不一致
-        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(x1, y1, x2, y2);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
-        OH_Drawing_CanvasTranslate(canvas, x1, y1);
-        OH_Drawing_CanvasDrawRect(canvas, rect);
         OH_Drawing_CanvasRestoreToCount(canvas, fSave_Count);
-        OH_Drawing_RectDestroy(rect);
     }
+    OH_Drawing_CanvasDrawRect(canvas, rect);
+    OH_Drawing_RectDestroy(rect);
 }
 
 void CanvasDrawPoints::OnTestPerformance(OH_Drawing_Canvas* canvas)
