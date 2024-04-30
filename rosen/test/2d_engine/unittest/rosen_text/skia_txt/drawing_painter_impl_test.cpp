@@ -87,7 +87,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest001, TestSize
     EXPECT_EQ(textBlob != nullptr, true);
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecords_.size()) - 1;
     ParagraphPainter::SkPaintOrID paint;
-    paint.emplace<ParagraphPainter::PaintID>(paintID); 
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
     canvasParagraphPainter_->drawTextBlob(textBlob, 0.0, 0.0, paint);
 }
 
