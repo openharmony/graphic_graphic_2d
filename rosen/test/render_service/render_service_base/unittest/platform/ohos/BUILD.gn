@@ -31,6 +31,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "rs_node_stats_test.cpp",
     "rs_render_service_client_test.cpp",
     "rs_render_service_connect_hub_test.cpp",
+    "rs_render_service_connection_proxy_test.cpp",
     "rs_render_service_proxy_test.cpp",
     "rs_surface_ohos_converter_test.cpp",
     "rs_surface_ohos_test.cpp",
