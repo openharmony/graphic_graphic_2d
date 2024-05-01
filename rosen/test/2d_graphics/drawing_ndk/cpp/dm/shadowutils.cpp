@@ -31,7 +31,7 @@
 
 enum { K_W = 800, K_H = 960 };
 const uint32_t AMBIENT_COLOR = OH_Drawing_ColorSetArgb(0.1 * 255, 0, 0, 0); // 0.1 * 255 ambientColor
-const uint32_t  SPOT_COLOR = OH_Drawing_ColorSetArgb(0.25 * 255, 0, 0, 0);   // 0.25 * 255  spotColor
+const uint32_t SPOT_COLOR = OH_Drawing_ColorSetArgb(0.25 * 255, 0, 0, 0);   // 0.25 * 255  spotColor
 typedef struct {
     float height;
     uint32_t color;
@@ -215,8 +215,7 @@ void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
                     OH_Drawing_PenSetWidth(pen, 0);
                     OH_Drawing_CanvasAttachPen(canvas, pen);
                 } else {
-                    OH_Drawing_BrushSetColor(brush,
-                        ShadowUtils::K_NO_OCCLUDERS == mode ? 0xFFCCCCCC: 0xFFFFFFFF); 
+                    OH_Drawing_BrushSetColor(brush, ShadowUtils::K_NO_OCCLUDERS == mode ? 0xFFCCCCCC : 0xFFFFFFFF);
                     if (flags & SHADOW_FLAGS_TRANSPARENT_OCCLUDER)
                         OH_Drawing_BrushSetAlpha(brush, 0x80); // 0.5 alpha
                     OH_Drawing_CanvasAttachBrush(canvas, brush);
