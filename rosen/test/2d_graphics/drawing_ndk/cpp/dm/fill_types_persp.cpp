@@ -55,9 +55,12 @@ void FillTypePersp::MakePath()
     DrawPathAddCircle(fPath, centerX2, centerY2, radius2);
 }
 
-void FillTypePersp::ShowPath(
-    OH_Drawing_Canvas* canvas, int x, int y, OH_Drawing_PathFillType ft, float scale, OH_Drawing_Brush* brush)
+void FillTypePersp::ShowPath(OH_Drawing_Canvas* canvas, DATA_PARAM param, OH_Drawing_Brush* brush)
 {
+    int x = param.x;
+    int y = param.y;
+    OH_Drawing_PathFillType ft = param.ft;
+    float scale = param.scale;
     DrawRect r = { 0, 0, 150, 150 }; // 0, 0, 150, 150 DrawRect 参数
     OH_Drawing_Rect* rc = DrawCreateRect(r);
     OH_Drawing_CanvasSave(canvas);
@@ -79,24 +82,31 @@ void FillTypePersp::ShowFour(OH_Drawing_Canvas* canvas, float scale, bool aa)
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_Point* center = OH_Drawing_PointCreate(100, 100); // 100, 100  PointCreate参数值
     uint32_t colors[] = { DRAW_COLORBLUE, DRAW_COLORRED, DRAW_COLORGREEN };
-    float pos[] = { 0, 0.5,
-        1.0 }; //{ 0, 0.5, 1.0 }   Indicates the relative position of each corresponding color in the colors array.
+    float pos[] = { 0, 0.5, 1.0 }; //{ 0, 0.5, 1.0 }   alpha array
     OH_Drawing_ShaderEffect* effect = OH_Drawing_ShaderEffectCreateRadialGradient(
-        center, 100, colors, pos, 3, OH_Drawing_TileMode::CLAMP); // 100Indicates the radius of the circle for this
-                                                                  // gradient.3Indicates the number of colors and pos.
+        center, 100, colors, pos, 3, OH_Drawing_TileMode::CLAMP); // 100 gradient radius 3 pos count
     OH_Drawing_BrushSetShaderEffect(brush, effect);
     OH_Drawing_BrushSetAntiAlias(brush, aa);
     OH_Drawing_CanvasAttachBrush(canvas, brush);
 
     float offset = 200.0;
-    ShowPath(canvas, 0, 0, OH_Drawing_PathFillType::PATH_FILL_TYPE_WINDING, scale,
-        brush); // 0 、0是绘制路径时的平移量
-    ShowPath(canvas, offset, 0, OH_Drawing_PathFillType::PATH_FILL_TYPE_EVEN_ODD, scale,
-        brush); // 200、 0  是绘制路径时的平移量
-    ShowPath(canvas, 0, offset, OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_WINDING, scale,
-        brush); // 0、200  是绘制路径时的平移量
-    ShowPath(canvas, offset, offset, OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_EVEN_ODD, scale,
-        brush); // 200、200  是绘制路径时的平移量
+    DATA_PARAM param;
+    param.x = 0;
+    param.y = 0;
+    param.ft = OH_Drawing_PathFillType::PATH_FILL_TYPE_WINDING;
+    param.scale = scale;
+    ShowPath(canvas, param, brush); // 0 、0是绘制路径时的平移量
+    param.x = offset;
+    param.ft = OH_Drawing_PathFillType::PATH_FILL_TYPE_EVEN_ODD;
+    ShowPath(canvas, param, brush); // 200、 0  是绘制路径时的平移量
+    param.x = 0;
+    param.y = offset;
+    param.ft = OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_WINDING;
+    ShowPath(canvas, param, brush); // 0、200  是绘制路径时的平移量
+    param.x = offset;
+    param.y = offset;
+    param.ft = OH_Drawing_PathFillType::PATH_FILL_TYPE_INVERSE_EVEN_ODD;
+    ShowPath(canvas, param, brush); // 200、200  是绘制路径时的平移量
 
     OH_Drawing_CanvasDetachBrush(canvas);
     OH_Drawing_ShaderEffectDestroy(effect);
@@ -113,8 +123,7 @@ void FillTypePersp::OnTestFunction(OH_Drawing_Canvas* canvas)
     uint32_t colors[] = { DRAW_COLORBLACK, DRAW_COLORCYAN, DRAW_COLORYELLOW, DRAW_COLORWHITE };
     float pos[] = { 0, 0.25, 0.75, 1.0 }; //{ 0, 0.25, 0.75, 1.0 }  alpha值
     OH_Drawing_ShaderEffect* effect = OH_Drawing_ShaderEffectCreateRadialGradient(
-        center, 1000, colors, pos, 4, OH_Drawing_TileMode::CLAMP); // 1000 Indicates the radius of the circle for this
-                                                                   // gradient.4 Indicates the number of colors and pos.
+        center, 1000, colors, pos, 4, OH_Drawing_TileMode::CLAMP); // 1000 radius ,4 colors and pos count
     OH_Drawing_BrushSetShaderEffect(bkgnrd, effect);
     OH_Drawing_CanvasAttachBrush(canvas, bkgnrd);
 
