@@ -79,52 +79,46 @@ void make_path_rect(std::vector<OH_Drawing_Path*>& paths, std::vector<DrawRect>&
 {
     float rSize = 50.f;
     // add rrect
-    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, rSize, rSize);
     OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 10.f, 10.00002f); // 10.f, 10.00002f 圆角矩形rad
-    OH_Drawing_PathAddRoundRect(path, roundRect, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
-    paths.push_back(OH_Drawing_PathCopy(path));
+    OH_Drawing_PathAddRoundRect(path1, roundRect, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
+    paths.push_back(path1);
     pathsBounds.push_back({ 0, 0, rSize, rSize });
-    OH_Drawing_RoundRectDestroy(roundRect);
-    OH_Drawing_PathDestroy(path);
+
 
     // add rrect 这里应该是不规则的圆角矩形，四个圆角不同，oh暂不支持，先用普通圆角代替
     OH_Drawing_RoundRect* addRRect = OH_Drawing_RoundRectCreate(rect, 9.f, 13.f); // 9.f, 13.f 圆角矩形rad
-    path = OH_Drawing_PathCreate();
-    OH_Drawing_PathAddRoundRect(path, addRRect, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
-    paths.push_back(OH_Drawing_PathCopy(path));
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    OH_Drawing_PathAddRoundRect(path2, addRRect, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
+    paths.push_back(path2);
     pathsBounds.push_back({ 0, 0, rSize, rSize });
-    OH_Drawing_PathDestroy(path);
     OH_Drawing_RoundRectDestroy(addRRect);
 
     // add rect
-    path = OH_Drawing_PathCreate();
-    OH_Drawing_PathAddRect(path, 0, 0, rSize, rSize, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
-    paths.push_back(OH_Drawing_PathCopy(path));
+    OH_Drawing_Path* path3 = OH_Drawing_PathCreate();
+    OH_Drawing_PathAddRect(path3, 0, 0, rSize, rSize, OH_Drawing_PathDirection::PATH_DIRECTION_CCW);
+    paths.push_back(path3);
     pathsBounds.push_back({ 0, 0, rSize, rSize });
-    OH_Drawing_PathDestroy(path);
-
+    
     // add circle
-    path = OH_Drawing_PathCreate();
-    OH_Drawing_PathAddArc(path, rect, 0, 360.f); // 360.f 旋转角度
-    paths.push_back(OH_Drawing_PathCopy(path));
+    OH_Drawing_Path* path4 = OH_Drawing_PathCreate();
+    OH_Drawing_PathAddArc(path4, rect, 0, 360.f); // 360.f 旋转角度
+    paths.push_back(path4);
     pathsBounds.push_back({ 0, 0, rSize, rSize });
-    OH_Drawing_PathDestroy(path);
     OH_Drawing_RectDestroy(rect);
 
-    path = OH_Drawing_PathCreate();
-    OH_Drawing_PathCubicTo(path, 100, 50, 20, 100, 0, 0); // 100, 50, 20, 100, 0, 0 gm 要求的图形坐标
-    paths.push_back(OH_Drawing_PathCopy(path));
+    OH_Drawing_Path* path5 = OH_Drawing_PathCreate();
+    OH_Drawing_PathCubicTo(path5, 100, 50, 20, 100, 0, 0); // 100, 50, 20, 100, 0, 0 gm 要求的图形坐标
+    paths.push_back(path5);
     pathsBounds.push_back({ 0, 0, 100.f, 100.f }); // 100.f, 100.f 矩形参数
-    OH_Drawing_PathDestroy(path);
 
     // add oval
-    path = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path6 = OH_Drawing_PathCreate();
     rect = OH_Drawing_RectCreate(0, 0, 20.f, 60.f); // 20.f, 60.f 矩形参数
-    OH_Drawing_PathAddArc(path, rect, 0, 360.f);    // 360.f 旋转角度
-    paths.push_back(OH_Drawing_PathCopy(path));
+    OH_Drawing_PathAddArc(path6, rect, 0, 360.f);    // 360.f 旋转角度
+    paths.push_back(path6);
     pathsBounds.push_back({ 0, 0, 20.f, 60.f }); // 20.f, 60.f 矩形参数
-    OH_Drawing_PathDestroy(path);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -147,19 +141,17 @@ void make_path_star(std::vector<OH_Drawing_Path*>& paths, std::vector<DrawRect>&
     OH_Drawing_PathLineTo(path, -28.867f, -16.6667f); // -28.867f, -16.6667f gm 要求的图形坐标
     OH_Drawing_PathLineTo(path, -9.62f, -16.6667f);   // -9.62f, -16.6667f gm 要求的图形坐标
     OH_Drawing_PathClose(path);
-    concavePaths.push_back(OH_Drawing_PathCopy(path));
+    concavePaths.push_back(path);
     concavePathsBounds.push_back(
-        { -28.867f, -33.3333, 28.867f, 33.3333f }); //  -28.867f, -33.3333, 28.867f, 33.3333f gm 要求的图形坐标
-    OH_Drawing_PathDestroy(path);
+        { -28.867f, -33.3333, 28.867f, 33.3333f }); //  -28.867f, -33.3333, 28.867f, 33.3333f gm 要求的图形坐
 
     // dumbbell
-    path = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, 50.0, 0);                 // 50.0, 0 gm 要求的图形坐标
     OH_Drawing_PathCubicTo(path, 100, 25, 60, 50, 50, 0); // 100, 25, 60, 50, 50, 0 gm 要求的图形坐标
     OH_Drawing_PathCubicTo(path, 0, -25, 40, -50, 50, 0); // 0, -25, 40, -50, 50, 0 gm 要求的图形坐标
-    concavePaths.push_back(OH_Drawing_PathCopy(path));
+    concavePaths.push_back(path1);
     concavePathsBounds.push_back({ 0, -50, 100, 50 }); // 0, -50, 100, 50  gm 要求的图形坐标
-    OH_Drawing_PathDestroy(path);
 }
 
 void draw_rect(DRAW_RECT_PARAM param, std::vector<DrawRect>& pathsBounds, float& x, float& dy)
@@ -360,10 +352,8 @@ void ShadowUtils::draw_paths(OH_Drawing_Canvas* canvas, ShadowMode mode)
     OH_Drawing_MatrixPostScale(matrix, 1.2, 0.8, 25.0, 25.0); // 1.2, 0.8, 25.0, 25.0 gm 要求的矩阵参数
     matrices.push_back(matrix);
 
-    float alphaAmbient = 0.1 * 255;
-    float alphaSpot = 0.25 * 255;
-    float n = 80;
 
+    float n = 80;
     for (auto m : matrices) {
         for (OH_Drawing_CanvasShadowFlags flags : { SHADOW_FLAGS_NONE, SHADOW_FLAGS_TRANSPARENT_OCCLUDER }) {
             int pathCounter = 0;
@@ -390,4 +380,14 @@ void ShadowUtils::draw_paths(OH_Drawing_Canvas* canvas, ShadowMode mode)
     }
 
     draw_black_point(canvas, lightPos, kLightR);
+    
+    for(auto p:paths){
+        OH_Drawing_PathDestroy(p);
+    }
+    for(auto p:concavePaths){
+        OH_Drawing_PathDestroy(p);    
+    }
+    for (auto m : matrices) {
+        OH_Drawing_MatrixDestroy(m);
+    }
 }

@@ -62,7 +62,6 @@ void PointsMaskFilter::OnTestFunction(OH_Drawing_Canvas* canvas)
     // 创建一个pen对象
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetAntiAlias(pen, true);
-    OH_Drawing_CanvasAttachPen(canvas, pen);
     OH_Drawing_PenSetWidth(pen, fWidth);
     OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
     for (auto cap : caps) {
@@ -84,7 +83,6 @@ void PointsMaskFilter::OnTestFunction(OH_Drawing_Canvas* canvas)
     OH_Drawing_PenDestroy(pen);
     OH_Drawing_FilterDestroy(filter);
     OH_Drawing_MaskFilterDestroy(maskFilter);
-    OH_Drawing_CanvasDestroy(canvas);
 
     DRAWING_LOGI("pointsmaskfilter::OnTestFunction end");
 }

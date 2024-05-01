@@ -66,6 +66,7 @@ void drawRect(OH_Drawing_Canvas* canvas, OH_Drawing_Pen* pen, bool aa)
 
     OH_Drawing_RectDestroy(kRect);
 }
+
 void StrokeRectShader::OnTestFunction(OH_Drawing_Canvas* canvas)
 {
     float kSize = 100;

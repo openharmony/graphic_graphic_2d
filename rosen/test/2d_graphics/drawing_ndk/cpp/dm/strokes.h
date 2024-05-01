@@ -21,12 +21,12 @@
 #include <native_drawing/drawing_canvas.h>
 
 class Strokes2 : public TestBase {
-  public:
+public:
     Strokes2();
     ~Strokes2() = default;
 
-  protected:
+protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
-    OH_Drawing_Path *fPath;
+    OH_Drawing_Path *fPath = nullptr;
 };
-#endif // AA_RECT_MODES_H
+#endif // STROKES_H
