@@ -30,6 +30,8 @@
 #include "common/log_common.h"
 
 enum { K_W = 800, K_H = 960 };
+const uint32_t AMBIENT_COLOR = OH_Drawing_ColorSetArgb(0.1 * 255, 0, 0, 0); // 0.1 * 255 ambientColor
+const uint32_t  SPOT_COLOR = OH_Drawing_ColorSetArgb(0.25 * 255, 0, 0, 0);   // 0.25 * 255  spotColor
 typedef struct {
     float height;
     uint32_t color;
@@ -178,12 +180,8 @@ void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
         for (OH_Drawing_CanvasShadowFlags flags : { SHADOW_FLAGS_NONE, SHADOW_FLAGS_TRANSPARENT_OCCLUDER }) {
             int pathCounter = 0;
             for (const auto path : param.paths) {
-                // 计算各个path的bound，避免碰撞，并对其进行移动
                 DrawRect postMBounds = param.pathsBounds[pathCounter];
-                float boundWidth = postMBounds.Width();
-                float boundHeight = postMBounds.Height();
-                float w = boundWidth + kHeight;
-                float dx = w + kPad;
+                float dx = postMBounds.Width() + kHeight + kPad;
                 if (x + dx > K_W - 3 * kPad) { // 3倍间距
                     OH_Drawing_CanvasRestore(canvas);
                     OH_Drawing_CanvasTranslate(canvas, 0, dy);
@@ -201,10 +199,8 @@ void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
                     draw_shadow(canvas, path, { kHeight, 0xFFFF0000, lightPos, kLightR, true, flags });
                     draw_shadow(canvas, path, { kHeight, 0xFF0000FF, lightPos, kLightR, false, flags });
                 } else if (ShadowUtils::K_GRAY_SCALE == mode) {
-                    uint32_t ambientColor = OH_Drawing_ColorSetArgb(0.1 * 255, 0, 0, 0); // 0.1 * 255 ambientColor
-                    uint32_t spotColor = OH_Drawing_ColorSetArgb(0.25 * 255, 0, 0, 0);   // 0.25 * 255  spotColor
                     OH_Drawing_CanvasDrawShadow(
-                        canvas, path, { 0, 0, kHeight }, lightPos, kLightR, ambientColor, spotColor, flags);
+                        canvas, path, { 0, 0, kHeight }, lightPos, kLightR, AMBIENT_COLOR, SPOT_COLOR, flags);
                 }
                 OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
                 OH_Drawing_BrushSetAntiAlias(brush, true);
@@ -220,8 +216,7 @@ void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
                     OH_Drawing_CanvasAttachPen(canvas, pen);
                 } else {
                     OH_Drawing_BrushSetColor(brush,
-                        ShadowUtils::K_NO_OCCLUDERS == mode ? 0xFFCCCCCC
-                                                            : 0xFFFFFFFF); // SK_ColorLTGRAY : SK_ColorWHITE
+                        ShadowUtils::K_NO_OCCLUDERS == mode ? 0xFFCCCCCC: 0xFFFFFFFF); 
                     if (flags & SHADOW_FLAGS_TRANSPARENT_OCCLUDER)
                         OH_Drawing_BrushSetAlpha(brush, 0x80); // 0.5 alpha
                     OH_Drawing_CanvasAttachBrush(canvas, brush);
@@ -237,8 +232,7 @@ void draw_rect(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
                 OH_Drawing_CanvasRestore(canvas);
                 OH_Drawing_CanvasTranslate(canvas, dx, 0);
                 x += dx;
-
-                dy = std::max(dy, boundHeight + kPad + kHeight);
+                dy = std::max(dy, postMBounds.Height() + kPad + kHeight);
                 ++pathCounter;
             }
         }
@@ -258,21 +252,15 @@ void draw_star(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
         int pathCounter = 0;
         for (const auto path : param.paths) {
             DrawRect postMBounds = param.pathsBounds[pathCounter];
-            float boundWidth = postMBounds.Width();
-            float boundHeight = postMBounds.Height();
-            float w = boundWidth + kHeight;
-            float dx = w + kPad;
-
+            float dx = postMBounds.Width() + kHeight + kPad;
             OH_Drawing_CanvasSave(canvas);
             OH_Drawing_CanvasConcatMatrix(canvas, m);
             if (ShadowUtils::K_NO_OCCLUDERS == mode || ShadowUtils::K_NO_OCCLUDERS == mode) {
                 draw_shadow(canvas, path, { kHeight, 0xFFFF0000, lightPos, kLightR, true, SHADOW_FLAGS_NONE });
                 draw_shadow(canvas, path, { kHeight, 0xFF0000FF, lightPos, kLightR, false, SHADOW_FLAGS_NONE });
             } else if (ShadowUtils::K_GRAY_SCALE == mode) {
-                uint32_t ambientColor = OH_Drawing_ColorSetArgb(0.1 * 255, 0, 0, 0); // 0.1 * 255 alphaAmbient
-                uint32_t spotColor = OH_Drawing_ColorSetArgb(0.25 * 255, 0, 0, 0);   // 0.25 * 255 alphaSpot
                 OH_Drawing_CanvasDrawShadow(
-                    canvas, path, { 0, 0, kHeight }, lightPos, kLightR, ambientColor, spotColor, SHADOW_FLAGS_NONE);
+                    canvas, path, { 0, 0, kHeight }, lightPos, kLightR, AMBIENT_COLOR, SPOT_COLOR, SHADOW_FLAGS_NONE);
             }
             OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
             OH_Drawing_BrushSetAntiAlias(brush, true);
@@ -295,7 +283,7 @@ void draw_star(OH_Drawing_Canvas* canvas, DRAW_RECT_PARAM param)
             OH_Drawing_CanvasRestore(canvas);
             OH_Drawing_CanvasTranslate(canvas, dx, 0);
             x += dx;
-            dy = std::max(dy, boundHeight + kPad + kHeight);
+            dy = std::max(dy, postMBounds.Height() + kPad + kHeight);
             pathCounter++;
         }
     }

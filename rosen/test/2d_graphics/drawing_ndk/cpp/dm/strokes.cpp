@@ -55,7 +55,7 @@ void rnd_rect(DrawRect& r, OH_Drawing_Pen* pen, TestRend& rand)
 Strokes2::Strokes2()
 {
     bitmapWidth_ = K_W;
-    bitmapHeight_ = K_H * 2;// 2 只画一半的高度
+    bitmapHeight_ = K_H * 2; // 2 只画一半的高度
     fileName_ = "strokes_poly";
 }
 
