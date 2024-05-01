@@ -41,7 +41,7 @@ public:
     static inline std::shared_ptr<RSRenderServiceConnectionProxy> proxy;
 };
 
-void RSRenderServiceConnectionProxyTest::SetUpTestCase() 
+void RSRenderServiceConnectionProxyTest::SetUpTestCase()
 {
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
