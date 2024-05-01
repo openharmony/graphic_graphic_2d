@@ -1126,7 +1126,6 @@ HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest, TestSize.Level1)
     // Replace data
     paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
     EXPECT_EQ(paintFilterCanvas.GetSurface(), surfacePtr.get());
-    // paintFilterCanvas.canvas_ is nullptr;
     EXPECT_EQ(paintFilterCanvas.GetRecordingCanvas(), nullptr);
 
     // Swap data
