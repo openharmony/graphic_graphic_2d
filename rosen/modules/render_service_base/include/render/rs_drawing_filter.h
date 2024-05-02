@@ -75,6 +75,14 @@ public:
     }
 
     static bool CanSkipFrame(float radius);
+    void SetSaturationForHPS(float saturationForHPS)
+    {
+        saturationForHPS_ = saturationForHPS;
+    }
+    void SetBrightnessForHPS(float brightnessForHPS)
+    {
+        brightnessForHPS_ = brightnessForHPS;
+    }
     void PreProcess(std::shared_ptr<Drawing::Image>& image);
     void PostProcess(Drawing::Canvas& canvas);
 
@@ -83,6 +91,8 @@ private:
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
     uint32_t imageFilterHash_;
     bool canSkipFrame_ = false;
+    float saturationForHPS_ = 1.f;
+    float brightnessForHPS_ = 1.f;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen
