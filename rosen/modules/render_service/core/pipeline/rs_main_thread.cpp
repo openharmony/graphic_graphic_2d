@@ -1288,13 +1288,34 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     bool isMultiDisplay = rootNode && rootNode->GetChildrenCount() > 1;
 
+    // check all children of global root node, and only disable hardware composer
+    // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE
+    const auto& children = rootNode->GetChildren();
+    auto itr = std::find_if(children->begin(), children->end(), [](const std::shared_ptr<RSRenderNode>& child) -> bool {
+            if (child == nullptr) {
+                return false;
+            }
+            if (child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+                return false;
+            }
+            auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(child);
+            return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    });
+
+    bool isExpandScreenCase = itr != children->end();
+
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
     isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ ||
-        (isMultiDisplay && !hasProtectedLayer_) || hasColorFilter;
+        (isMultiDisplay && isExpandScreenCase && !hasProtectedLayer_) || hasColorFilter;
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
         "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
         isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
+
+    if (isMultiDisplay && !isHardwareForcedDisabled_) {
+        // Disable direct composition when hardware composer is enabled for virtual screen
+        doDirectComposition_ = false;
+    }
 }
 
 void RSMainThread::ReleaseAllNodesBuffer()
