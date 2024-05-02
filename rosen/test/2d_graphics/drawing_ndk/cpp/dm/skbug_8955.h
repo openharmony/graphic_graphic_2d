@@ -17,10 +17,10 @@
 #define SKBUG_8955_H
 #include "../test_base.h"
 
-class SkBug_8955 : public TestBase {
+class SkBug8955 : public TestBase {
 public:
-    SkBug_8955();
-    ~SkBug_8955() = default;
+    SkBug8955();
+    ~SkBug8955() = default;
 
 protected:
     void OnTestFunction(OH_Drawing_Canvas* canvas) override;

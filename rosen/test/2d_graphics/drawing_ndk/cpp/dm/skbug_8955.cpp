@@ -28,7 +28,7 @@ enum {
     K_H = 100,
 };
 
-SkBug_8955::SkBug_8955()
+SkBug8955::SkBug8955()
 {
     // dm file gm/skbug_8955.cpp
     bitmapWidth_ = K_W;
@@ -50,7 +50,7 @@ OH_Drawing_TextBlob* makeFromText(const void* text, size_t byteLength, OH_Drawin
     return OH_Drawing_TextBlobCreateFromText(text, byteLength, font, encoding);
 }
 
-void SkBug_8955::OnTestFunction(OH_Drawing_Canvas* canvas)
+void SkBug8955::OnTestFunction(OH_Drawing_Canvas* canvas)
 {
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
 
