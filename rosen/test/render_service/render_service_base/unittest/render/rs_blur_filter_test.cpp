@@ -258,12 +258,13 @@ HWTEST_F(RSBlurFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
 {
     float blurRadiusX = 27.0f;
     float blurRadiusY = 26.0f;
-    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);      
+    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
     blurFilter->GetDetailedDescription();
 
     std::optional<Vector2f> greyCoef({1.f, 1.f});
     blurFilter->SetGreyCoef(greyCoef);
     blurFilter->GetDetailedDescription();
+}
 
 /**
  * @tc.name: SubTest002
