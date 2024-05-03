@@ -15,6 +15,7 @@
 
 #include "vsync_connection_proxy.h"
 #include "graphic_common.h"
+#include "vsync_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,7 +38,8 @@ VsyncError VSyncConnectionProxy::RequestNextVSync(const std::string& fromWhom, i
     arg.WriteInterfaceToken(GetDescriptor());
     int res = Remote()->SendRequest(IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC, arg, ret, opt);
     if (res != NO_ERROR) {
-        return VSYNC_ERROR_BINDER_ERROR;
+        VLOGE("ipc send fail, error:%{public}d", res);
+        return VSYNC_ERROR_UNKOWN;
     }
     return VSYNC_ERROR_OK;
 }
