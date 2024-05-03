@@ -17,7 +17,10 @@ ace_root = "//foundation/arkui/ace_engine"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 ace_platforms = []
 
-_adapters = [ "preview", "ohos" ]
+_adapters = [
+  "preview",
+  "ohos",
+]
 foreach(item, _adapters) {
   import_var = {
   }
