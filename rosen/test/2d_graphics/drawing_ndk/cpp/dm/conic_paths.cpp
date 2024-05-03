@@ -18,16 +18,16 @@
 #include <native_drawing/drawing_path.h>
 #include <native_drawing/drawing_pen.h>
 
-const float w = sqrt(2.0f) / 2; // 2被除数
+const float WEIGHT = sqrt(2.0f) / 2; // 2 曲线参数
 
 void ConicPaths::Makepath1()
 {
     OH_Drawing_Path* conicCircle = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(conicCircle, 0, 0);
-    OH_Drawing_PathConicTo(conicCircle, 0, 50, 50, 50, w);     // 50曲线
-    OH_Drawing_PathRConicTo(conicCircle, 50, 0, 50, -50, w);   // 50,-50曲线
-    OH_Drawing_PathRConicTo(conicCircle, 0, -50, -50, -50, w); // -50曲线
-    OH_Drawing_PathRConicTo(conicCircle, -50, 0, -50, 50, w);  // 50,-50曲线
+    OH_Drawing_PathConicTo(conicCircle, 0, 50, 50, 50, WEIGHT);     // 50曲线
+    OH_Drawing_PathRConicTo(conicCircle, 50, 0, 50, -50, WEIGHT);   // 50,-50曲线
+    OH_Drawing_PathRConicTo(conicCircle, 0, -50, -50, -50, WEIGHT); // -50曲线
+    OH_Drawing_PathRConicTo(conicCircle, -50, 0, -50, 50, WEIGHT);  // 50,-50曲线
     pathsBounds.push_back({ 0, -50, 50, 50 });
     fPaths.push_back(conicCircle);
 
@@ -144,10 +144,10 @@ void ConicPaths::OnTestFunction(OH_Drawing_Canvas* canvas)
     // draw fGiantCircle path
     OH_Drawing_Path* fGiantCircle = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(fGiantCircle, 2.1e+11f, -1.05e+11f);
-    OH_Drawing_PathConicTo(fGiantCircle, 2.1e+11f, 0, 1.05e+11f, 0, w);
-    OH_Drawing_PathConicTo(fGiantCircle, 0, 0, 0, -1.05e+11f, w);
-    OH_Drawing_PathConicTo(fGiantCircle, 0, -2.1e+11f, 1.05e+11f, -2.1e+11f, w);
-    OH_Drawing_PathConicTo(fGiantCircle, 2.1e+11f, -2.1e+11f, 2.1e+11f, -1.05e+11f, w);
+    OH_Drawing_PathConicTo(fGiantCircle, 2.1e+11f, 0, 1.05e+11f, 0, WEIGHT);
+    OH_Drawing_PathConicTo(fGiantCircle, 0, 0, 0, -1.05e+11f, WEIGHT);
+    OH_Drawing_PathConicTo(fGiantCircle, 0, -2.1e+11f, 1.05e+11f, -2.1e+11f, WEIGHT);
+    OH_Drawing_PathConicTo(fGiantCircle, 2.1e+11f, -2.1e+11f, 2.1e+11f, -1.05e+11f, WEIGHT);
     OH_Drawing_CanvasAttachPen(canvas, pen);
     OH_Drawing_CanvasDrawPath(canvas, fGiantCircle);
 
