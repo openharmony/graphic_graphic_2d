@@ -18,7 +18,6 @@
 #include "include/core/SkMatrix.h"
 #include "include/pathops/SkPathOps.h"
 #include "include/utils/SkParsePath.h"
-#include "include/core/SkPathMeasure.h"
 #include "include/core/SkString.h"
 #include "skia_matrix.h"
 
@@ -62,16 +61,19 @@ std::string SkiaPath::ConvertToSVGString() const
 void SkiaPath::MoveTo(scalar x, scalar y)
 {
     path_.moveTo(x, y);
+    isChanged_ = true;
 }
 
 void SkiaPath::LineTo(scalar x, scalar y)
 {
     path_.lineTo(x, y);
+    isChanged_ = true;
 }
 
 void SkiaPath::ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle)
 {
     path_.arcTo(SkRect::MakeLTRB(pt1X, pt1Y, pt2X, pt2Y), startAngle, sweepAngle, false);
+    isChanged_ = true;
 }
 
 void SkiaPath::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY)
@@ -79,36 +81,43 @@ void SkiaPath::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
     SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
     path_.arcTo(rx, ry, angle, arcLarge, pathDir, endX, endY);
+    isChanged_ = true;
 }
 
 void SkiaPath::ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius)
 {
     path_.arcTo(x1, y1, x2, y2, radius);
+    isChanged_ = true;
 }
 
 void SkiaPath::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY)
 {
     path_.cubicTo(ctrlPt1X, ctrlPt1Y, ctrlPt2X, ctrlPt2Y, endPtX, endPtY);
+    isChanged_ = true;
 }
 
 void SkiaPath::QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY)
 {
     path_.quadTo(ctrlPtX, ctrlPtY, endPtX, endPtY);
+    isChanged_ = true;
 }
 
 void SkiaPath::ConicTo(scalar ctrlX, scalar ctrlY, scalar endX, scalar endY, scalar weight)
 {
     path_.conicTo(ctrlX, ctrlY, endX, endY, weight);
+    isChanged_ = true;
 }
 
 void SkiaPath::RMoveTo(scalar dx, scalar dy)
 {
     path_.rMoveTo(dx, dy);
+    isChanged_ = true;
 }
 
 void SkiaPath::RLineTo(scalar dx, scalar dy)
 {
     path_.rLineTo(dx, dy);
+    isChanged_ = true;
 }
 
 void SkiaPath::RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy)
@@ -116,50 +125,59 @@ void SkiaPath::RArcTo(scalar rx, scalar ry, scalar angle, PathDirection directio
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
     SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
     path_.arcTo(rx, ry, angle, arcLarge, pathDir, dx, dy);
+    isChanged_ = true;
 }
 
 void SkiaPath::RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, scalar dy3)
 {
     path_.rCubicTo(dx1, dy1, dx2, dy2, dx3, dy3);
+    isChanged_ = true;
 }
 
 void SkiaPath::RConicTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY, scalar weight)
 {
     path_.rConicTo(ctrlPtX, ctrlPtY, endPtX, endPtY, weight);
+    isChanged_ = true;
 }
 
 void SkiaPath::RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2)
 {
     path_.rQuadTo(dx1, dy1, dx2, dy2);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
     path_.addRect(SkRect::MakeLTRB(left, top, right, bottom), pathDir);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddRect(const Rect& rect, unsigned start, PathDirection dir)
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
     path_.addRect(SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()), pathDir, start);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
     path_.addOval(SkRect::MakeLTRB(left, top, right, bottom), pathDir);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddOval(scalar left, scalar top, scalar right, scalar bottom, unsigned start, PathDirection dir)
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
     path_.addOval(SkRect::MakeLTRB(left, top, right, bottom), pathDir, start);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddArc(scalar left, scalar top, scalar right, scalar bottom, scalar startAngle, scalar sweepAngle)
 {
     path_.addArc(SkRect::MakeLTRB(left, top, right, bottom), startAngle, sweepAngle);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddPoly(const std::vector<Point>& points, int count, bool close)
@@ -169,12 +187,14 @@ void SkiaPath::AddPoly(const std::vector<Point>& points, int count, bool close)
         pt.emplace_back(SkPoint::Make(points[i].GetX(), points[i].GetY()));
     }
     path_.addPoly(&pt[0], count, close);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddCircle(scalar x, scalar y, scalar radius, PathDirection dir)
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
     path_.addCircle(x, y, radius, pathDir);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddRoundRect(
@@ -182,6 +202,7 @@ void SkiaPath::AddRoundRect(
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
     path_.addRoundRect(SkRect::MakeLTRB(left, top, right, bottom), xRadius, yRadius, pathDir);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
@@ -205,6 +226,7 @@ void SkiaPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
     SkRRect skRRect;
     skRRect.setRectRadii(outer, radii);
     path_.addRRect(skRRect, pathDir);
+    isChanged_ = true;
 }
 
 void SkiaPath::AddPath(const Path& src, scalar dx, scalar dy, PathAddMode mode)
@@ -212,6 +234,7 @@ void SkiaPath::AddPath(const Path& src, scalar dx, scalar dy, PathAddMode mode)
     auto skPathImpl = src.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
         path_.addPath(skPathImpl->GetPath(), dx, dy, static_cast<SkPath::AddPathMode>(mode));
+        isChanged_ = true;
     }
 }
 
@@ -220,6 +243,7 @@ void SkiaPath::AddPath(const Path& src, PathAddMode mode)
     auto skPathImpl = src.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
         path_.addPath(skPathImpl->GetPath(), static_cast<SkPath::AddPathMode>(mode));
+        isChanged_ = true;
     }
 }
 
@@ -231,6 +255,7 @@ bool SkiaPath::Contains(scalar x, scalar y) const
 void SkiaPath::ReverseAddPath(const Path& src)
 {
     path_.reverseAddPath(src.GetImpl<SkiaPath>()->GetPath());
+    isChanged_ = true;
 }
 
 void SkiaPath::AddPath(const Path& src, const Matrix& matrix, PathAddMode mode)
@@ -239,6 +264,7 @@ void SkiaPath::AddPath(const Path& src, const Matrix& matrix, PathAddMode mode)
     auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
     if (skPathImpl != nullptr && skMatrixImpl != nullptr) {
         path_.addPath(skPathImpl->GetPath(), skMatrixImpl->ExportSkiaMatrix(), static_cast<SkPath::AddPathMode>(mode));
+        isChanged_ = true;
     }
 }
 
@@ -252,6 +278,7 @@ void SkiaPath::SetFillStyle(PathFillType fillstyle)
 {
     SkPathFillType ft = static_cast<SkPathFillType>(fillstyle);
     path_.setFillType(ft);
+    isChanged_ = true;
 }
 
 bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
@@ -263,6 +290,7 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
         SkPath interp;
         isSuccess = path_.interpolate(skPathImpl1->GetPath(), weight, &interp);
         skPathImpl2->SetPath(interp);
+        isChanged_ = true;
     }
     return isSuccess;
 }
@@ -270,6 +298,7 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
 bool SkiaPath::InitWithInterpolate(const Path& srcPath, const Path& endingPath, scalar weight)
 {
     const SkPath& srcSkPath = srcPath.GetImpl<SkiaPath>()->GetPath();
+    isChanged_ = true;
     return srcSkPath.interpolate(endingPath.GetImpl<SkiaPath>()->GetPath(), weight, &path_);
 }
 
@@ -278,6 +307,7 @@ void SkiaPath::Transform(const Matrix& matrix)
     auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
     if (skMatrixImpl != nullptr) {
         path_.transform(skMatrixImpl->ExportSkiaMatrix());
+        isChanged_ = true;
     }
 }
 
@@ -300,11 +330,13 @@ void SkiaPath::TransformWithPerspectiveClip(const Matrix& matrix, Path* dst, boo
     }
     path_.transform(skMatrixImpl->ExportSkiaMatrix(), &dstPathImpl->path_,
         static_cast<SkApplyPerspectiveClip>(applyPerspectiveClip));
+    isChanged_ = true;
 }
 
 void SkiaPath::Offset(scalar dx, scalar dy)
 {
     path_.offset(dx, dy);
+    isChanged_ = true;
 }
 
 void SkiaPath::Offset(Path* dst, scalar dx, scalar dy)
@@ -319,6 +351,7 @@ void SkiaPath::Offset(Path* dst, scalar dx, scalar dy)
         return;
     }
     path_.offset(dx, dy, &dstPathImpl->path_);
+    isChanged_ = true;
 }
 
 bool SkiaPath::OpWith(const Path& path1, const Path& path2, PathOp op)
@@ -332,6 +365,7 @@ bool SkiaPath::OpWith(const Path& path1, const Path& path2, PathOp op)
         isOpSuccess = Op(skPathImpl1->GetPath(), skPathImpl2->GetPath(), pathOp, &path_);
     }
 
+    isChanged_ = true;
     if (isOpSuccess) {
         return true;
     }
@@ -346,16 +380,19 @@ bool SkiaPath::IsValid() const
 void SkiaPath::Reset()
 {
     path_.reset();
+    isChanged_ = true;
 }
 
 void SkiaPath::Close()
 {
     path_.close();
+    isChanged_ = true;
 }
 
 void SkiaPath::SetPath(const SkPath& path)
 {
     path_ = path;
+    isChanged_ = true;
 }
 
 const SkPath& SkiaPath::GetPath() const
@@ -365,22 +402,39 @@ const SkPath& SkiaPath::GetPath() const
 
 SkPath& SkiaPath::GetMutablePath()
 {
+    isChanged_ = true;
     return path_;
 }
 
-scalar SkiaPath::GetLength(bool forceClosed) const
+void SkiaPath::PathMeasureUpdate(bool forceClosed)
 {
-    SkPathMeasure pathMeasure(path_, forceClosed);
-    return pathMeasure.getLength();
+    if (pathMeasure_ == nullptr) {
+        pathMeasure_ = std::make_unique<SkPathMeasure>(path_, forceClosed);
+        isChanged_ = false;
+        forceClosed_ = forceClosed;
+        return;
+    }
+
+    if (isChanged_ || forceClosed != forceClosed_) {
+        pathMeasure_->setPath(&path_, forceClosed);
+        isChanged_ = false;
+        forceClosed_ = forceClosed;
+    }
 }
 
-bool SkiaPath::GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const
+scalar SkiaPath::GetLength(bool forceClosed)
 {
+    PathMeasureUpdate(forceClosed);
+    return pathMeasure_->getLength();
+}
+
+bool SkiaPath::GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed)
+{
+    PathMeasureUpdate(forceClosed);
     bool ret = false;
     SkPoint skPosition;
     SkVector skTangent;
-    SkPathMeasure pathMeasure(path_, forceClosed);
-    ret = pathMeasure.getPosTan(distance, &skPosition, &skTangent);
+    ret = pathMeasure_->getPosTan(distance, &skPosition, &skTangent);
     if (ret) {
         position.SetX(skPosition.x());
         position.SetY(skPosition.y());
@@ -389,6 +443,22 @@ bool SkiaPath::GetPositionAndTangent(scalar distance, Point& position, Point& ta
     }
 
     return ret;
+}
+
+bool SkiaPath::IsClosed(bool forceClosed)
+{
+    PathMeasureUpdate(forceClosed);
+    return pathMeasure_->isClosed();
+}
+
+bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag)
+{
+    if (matrix == nullptr) {
+        return false;
+    }
+    PathMeasureUpdate(forceClosed);
+    return pathMeasure_->getMatrix(distance,
+        &matrix->GetImpl<SkiaMatrix>()->ExportMatrix(), static_cast<SkPathMeasure::MatrixFlags>(flag));
 }
 
 std::shared_ptr<Data> SkiaPath::Serialize() const

@@ -32,6 +32,11 @@ static const Matrix* CastToMatrix(const OH_Drawing_Matrix* cMatrix)
     return reinterpret_cast<const Matrix*>(cMatrix);
 }
 
+static Matrix* CastToMatrix(OH_Drawing_Matrix* cMatrix)
+{
+    return reinterpret_cast<Matrix*>(cMatrix);
+}
+
 static const Rect& CastToRect(const OH_Drawing_Rect& cRect)
 {
     return reinterpret_cast<const Rect&>(cRect);
@@ -47,9 +52,15 @@ static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
     return reinterpret_cast<const RoundRect&>(cRoundRect);
 }
 
+
 static const Point* CastToPoint(const OH_Drawing_Point2D* cPoint)
 {
     return reinterpret_cast<const Point*>(cPoint);
+}
+
+static Point* CastToPoint(OH_Drawing_Point2D* cPoint)
+{
+    return reinterpret_cast<Point*>(cPoint);
 }
 
 OH_Drawing_Path* OH_Drawing_PathCreate()
@@ -442,4 +453,46 @@ void OH_Drawing_PathGetBounds(OH_Drawing_Path* cPath, OH_Drawing_Rect* cRect)
         return;
     }
     *rect = path->GetBounds();
+}
+
+bool OH_Drawing_PathIsClosed(OH_Drawing_Path* cPath, bool forceClosed)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return false;
+    }
+    return path->IsClosed(forceClosed);
+}
+
+bool OH_Drawing_PathGetPositionTangent(OH_Drawing_Path* cPath, bool forceClosed,
+    float distance, OH_Drawing_Point2D* cPosition, OH_Drawing_Point2D* cTangent)
+{
+    Path* path = CastToPath(cPath);
+    Point* position = CastToPoint(cPosition);
+    Point* tangent = CastToPoint(cTangent);
+    if (path == nullptr || position == nullptr || tangent == nullptr) {
+        return false;
+    }
+    return path->GetPositionAndTangent(distance, *position, *tangent, forceClosed);
+}
+
+bool OH_Drawing_PathOp(OH_Drawing_Path* cPath, const OH_Drawing_Path* src, OH_Drawing_PathOpMode op)
+{
+    Path* path = CastToPath(cPath);
+    Path* srcPath = CastToPath(const_cast<OH_Drawing_Path*>(src));
+    if (path == nullptr || srcPath == nullptr) {
+        return false;
+    }
+    return path->Op(*path, *srcPath, static_cast<PathOp>(op));
+}
+
+bool OH_Drawing_PathGetMatrix(OH_Drawing_Path* cPath, bool forceClosed,
+    float distance, OH_Drawing_Matrix* cMatrix, OH_Drawing_PathMeasureMatrixFlags flag)
+{
+    Path* path = CastToPath(cPath);
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (path == nullptr || matrix == nullptr) {
+        return false;
+    }
+    return path->GetMatrix(forceClosed, distance, matrix, static_cast<PathMeasureMatrixFlags>(flag));
 }
