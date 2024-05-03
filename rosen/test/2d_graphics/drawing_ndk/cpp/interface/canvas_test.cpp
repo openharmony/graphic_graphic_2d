@@ -475,7 +475,8 @@ void CanvasReadPixelsToBitmap::OnTestPerformance(OH_Drawing_Canvas* canvas)
     bool res;
     TestRend rand;
     OH_Drawing_Bitmap* bm = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat { OH_Drawing_ColorFormat::COLOR_FORMAT_RGBA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE };
+    OH_Drawing_BitmapFormat cFormat { OH_Drawing_ColorFormat::COLOR_FORMAT_RGBA_8888,
+        OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE };
     OH_Drawing_BitmapBuild(bm, w, h, &cFormat);
     float l = rand.nextULessThan(bitmapWidth_);
     float t = rand.nextULessThan(bitmapHeight_);
