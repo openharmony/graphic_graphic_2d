@@ -17,9 +17,7 @@ ace_root = "//foundation/arkui/ace_engine"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 ace_platforms = []
 
-_ace_adapter_dir = rebase_path("$graphic_2d_root/adapter", root_build_dir)
-_adapters =
-    exec_script("$ace_root/build/search.py", [ _ace_adapter_dir ], "list lines")
+_adapters = [ "preview", "ohos" ]
 foreach(item, _adapters) {
   import_var = {
   }
