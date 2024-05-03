@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 #include "conic_paths.h"
+
+#include <native_drawing/drawing_brush.h>
 #include <native_drawing/drawing_path.h>
 #include <native_drawing/drawing_pen.h>
-#include <native_drawing/drawing_brush.h>
 
-void ConicPaths::Makepath()
+const float w = sqrt(2.0f) / 2; // 2被除数
+
+void ConicPaths::Makepath1()
 {
-    OH_Drawing_Path *conicCircle = OH_Drawing_PathCreate();
+    OH_Drawing_Path* conicCircle = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(conicCircle, 0, 0);
     OH_Drawing_PathConicTo(conicCircle, 0, 50, 50, 50, w);     // 50曲线
     OH_Drawing_PathRConicTo(conicCircle, 50, 0, 50, -50, w);   // 50,-50曲线
@@ -28,96 +31,110 @@ void ConicPaths::Makepath()
     pathsBounds.push_back({ 0, -50, 50, 50 });
     fPaths.push_back(conicCircle);
 
-    OH_Drawing_Path *hyperbola = OH_Drawing_PathCreate();
+    OH_Drawing_Path* hyperbola = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(hyperbola, 0, 0);
     OH_Drawing_PathConicTo(hyperbola, 0, 100, 100, 100, 2); // 100,2曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(hyperbola);
 
-    OH_Drawing_Path *thinHyperbola = OH_Drawing_PathCreate();
+    OH_Drawing_Path* thinHyperbola = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(thinHyperbola, 0, 0);
     OH_Drawing_PathConicTo(thinHyperbola, 100, 100, 5, 0, 2); // 100,5,2曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(thinHyperbola);
 
-    OH_Drawing_Path *veryThinHyperbola = OH_Drawing_PathCreate();
+    OH_Drawing_Path* veryThinHyperbola = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(veryThinHyperbola, 0, 0);
     OH_Drawing_PathConicTo(veryThinHyperbola, 100, 100, 1, 0, 2); // 100,1,2曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(veryThinHyperbola);
 
-    OH_Drawing_Path *closedHyperbola = OH_Drawing_PathCreate();
+    OH_Drawing_Path* closedHyperbola = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(closedHyperbola, 0, 0);
     OH_Drawing_PathConicTo(closedHyperbola, 100, 100, 0, 0, 2); // 100,2曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(closedHyperbola);
+}
 
-    OH_Drawing_Path *nearParabola = OH_Drawing_PathCreate();
+void ConicPaths::Makepath2()
+{
+    OH_Drawing_Path* nearParabola = OH_Drawing_PathCreate();
     // using 1 as weight defaults to using quadTo
     OH_Drawing_PathMoveTo(nearParabola, 0, 0);
     OH_Drawing_PathConicTo(nearParabola, 0, 100, 100, 100, 0.999f); // 0, 100, 100, 100, 0.999f曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(nearParabola);
 
-    OH_Drawing_Path *thinEllipse = OH_Drawing_PathCreate();
+    OH_Drawing_Path* thinEllipse = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(thinEllipse, 0, 0);
     OH_Drawing_PathConicTo(thinEllipse, 100, 100, 5, 0, 0.5f); // 100, 100, 5, 0, 0.5f曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(thinEllipse);
 
-    OH_Drawing_Path *veryThinEllipse = OH_Drawing_PathCreate();
+    OH_Drawing_Path* veryThinEllipse = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(veryThinEllipse, 0, 0);
     OH_Drawing_PathConicTo(veryThinEllipse, 100, 100, 1, 0, 0.5f); // 100, 100, 1, 0, 0.5f曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(veryThinEllipse);
 
-    OH_Drawing_Path *closedEllipse = OH_Drawing_PathCreate();
+    OH_Drawing_Path* closedEllipse = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(closedEllipse, 0, 0);
     OH_Drawing_PathConicTo(closedEllipse, 100, 100, 0, 0, 0.5f); // 100, 100, 0, 0, 0.5f曲线
     pathsBounds.push_back({ 0, 0, 100, 100 });
     fPaths.push_back(closedEllipse);
 }
 
-void ConicPaths::OnTestFunction(OH_Drawing_Canvas *canvas)
+void ConicPaths::Makepath()
 {
-    constexpr uint8_t kAlphaValue[] = {0xFF, 0x40};
+    Makepath1();
+    Makepath2();
+}
+
+void ConicPaths::DrawSence(OH_Drawing_Canvas* canvas, OH_Drawing_Pen* pen, OH_Drawing_Brush* brush, uint8_t a, int p)
+{
+    for (int aa = 0; aa < 2; ++aa) {     // 2 max
+        for (int fh = 0; fh < 2; ++fh) { // 2 max
+            OH_Drawing_PenSetWidth(pen, fh != 0);
+            DrawRect bounds = pathsBounds[p]; // const SkRect& bounds = fPaths[p].getBounds();
+            OH_Drawing_CanvasSave(canvas);
+            OH_Drawing_CanvasTranslate(canvas, -bounds.left, -bounds.top);
+            if (fh != 0) {
+                OH_Drawing_CanvasDetachBrush(canvas);
+                OH_Drawing_PenSetColor(pen, OH_Drawing_ColorSetArgb(a, 0, 0, 0));
+                OH_Drawing_CanvasAttachPen(canvas, pen);
+                OH_Drawing_PenSetAntiAlias(pen, (bool)aa);
+                OH_Drawing_CanvasAttachPen(canvas, pen);
+                OH_Drawing_CanvasDrawPath(canvas, fPaths[p]);
+            } else {
+                OH_Drawing_CanvasDetachPen(canvas);
+                OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(a, 0, 0, 0));
+                OH_Drawing_BrushSetAntiAlias(brush, (bool)aa);
+                OH_Drawing_CanvasAttachBrush(canvas, brush);
+                OH_Drawing_CanvasDrawPath(canvas, fPaths[p]);
+                OH_Drawing_CanvasDetachBrush(canvas);
+            }
+            OH_Drawing_CanvasRestore(canvas);
+
+            OH_Drawing_CanvasTranslate(canvas, 110, 0); // 110距离
+        }
+    }
+}
+
+void ConicPaths::OnTestFunction(OH_Drawing_Canvas* canvas)
+{
+    constexpr uint8_t kAlphaValue[] = { 0xFF, 0x40 };
     constexpr float margin = 15;
     OH_Drawing_CanvasTranslate(canvas, margin, margin);
 
     Makepath();
-    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
-    OH_Drawing_Brush *brush = OH_Drawing_BrushCreate();
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
 
     for (int p = 0; p < fPaths.size(); ++p) {
         OH_Drawing_CanvasSave(canvas);
-        for (unsigned int a = 0; a < sizeof(kAlphaValue); ++a) {
-            for (int aa = 0; aa < 2; ++aa) {     // 2 max
-                for (int fh = 0; fh < 2; ++fh) { // 2 max
-                    OH_Drawing_PenSetWidth(pen, fh != 0);
-                    DrawRect bounds = pathsBounds[p]; // const SkRect& bounds = fPaths[p].getBounds();
-                    OH_Drawing_CanvasSave(canvas);
-                    OH_Drawing_CanvasTranslate(canvas, -bounds.left, -bounds.top);
-                    if (fh != 0) {
-                        OH_Drawing_CanvasDetachBrush(canvas);
-                        OH_Drawing_PenSetColor(pen, OH_Drawing_ColorSetArgb(kAlphaValue[a], 0, 0, 0));
-                        OH_Drawing_CanvasAttachPen(canvas, pen);
-                        OH_Drawing_PenSetAntiAlias(pen, (bool)aa);
-                        OH_Drawing_CanvasAttachPen(canvas, pen);
-                        OH_Drawing_CanvasDrawPath(canvas, fPaths[p]);
-                    } else {
-                        OH_Drawing_CanvasDetachPen(canvas);
-                        OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(kAlphaValue[a], 0, 0, 0));
-                        OH_Drawing_BrushSetAntiAlias(brush, (bool)aa);
-                        OH_Drawing_CanvasAttachBrush(canvas, brush);
-                        OH_Drawing_CanvasDrawPath(canvas, fPaths[p]);
-                        OH_Drawing_CanvasDetachBrush(canvas);
-                    }
-                    OH_Drawing_CanvasRestore(canvas);
+        DrawSence(canvas, pen, brush, kAlphaValue[0], p);
+        DrawSence(canvas, pen, brush, kAlphaValue[1], p);
 
-                    OH_Drawing_CanvasTranslate(canvas, 110, 0); // 110距离
-                }
-            }
-        }
         OH_Drawing_CanvasRestore(canvas);
         OH_Drawing_CanvasTranslate(canvas, 0, 110); // 110距离
     }
@@ -125,7 +142,7 @@ void ConicPaths::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_CanvasDetachBrush(canvas);
 
     // draw fGiantCircle path
-    OH_Drawing_Path *fGiantCircle = OH_Drawing_PathCreate();
+    OH_Drawing_Path* fGiantCircle = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(fGiantCircle, 2.1e+11f, -1.05e+11f);
     OH_Drawing_PathConicTo(fGiantCircle, 2.1e+11f, 0, 1.05e+11f, 0, w);
     OH_Drawing_PathConicTo(fGiantCircle, 0, 0, 0, -1.05e+11f, w);

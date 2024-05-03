@@ -14,14 +14,16 @@
  */
 #ifndef CONVEX_PATHS_H
 #define CONVEX_PATHS_H
-#include "../test_base.h"
 #include <bits/alltypes.h>
-#include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>
-#include <native_drawing/drawing_mask_filter.h>
 #include <native_drawing/drawing_filter.h>
-#include "common/log_common.h"
+#include <native_drawing/drawing_mask_filter.h>
+#include <native_drawing/drawing_rect.h>
+
+#include "../test_base.h"
 #include "test_common.h"
+
+#include "common/log_common.h"
 
 class ConvexPaths : public TestBase {
 public:
@@ -35,7 +37,13 @@ public:
     void MakePath();
 
 protected:
-    void OnTestFunction(OH_Drawing_Canvas *canvas) override;
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+    void MakePath1();
+    void MakePath2();
+    void MakePath3();
+    void MakePath4();
+    void MakePath5();
+    void MakePath6();
 };
 
 #endif // CONVEX_PATHS_H

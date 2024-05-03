@@ -14,14 +14,16 @@
  */
 #ifndef CONIC_PATHS_H
 #define CONIC_PATHS_H
-#include "../test_base.h"
 #include <bits/alltypes.h>
-#include <native_drawing/drawing_rect.h>
 #include <native_drawing/drawing_canvas.h>
-#include <native_drawing/drawing_mask_filter.h>
 #include <native_drawing/drawing_filter.h>
-#include "common/log_common.h"
+#include <native_drawing/drawing_mask_filter.h>
+#include <native_drawing/drawing_rect.h>
+
+#include "../test_base.h"
 #include "test_common.h"
+
+#include "common/log_common.h"
 
 class ConicPaths : public TestBase {
 public:
@@ -35,10 +37,13 @@ public:
     void Makepath();
 
 protected:
-    void OnTestFunction(OH_Drawing_Canvas *canvas) override;
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
     std::vector<DrawRect> pathsBounds;
-    std::vector<OH_Drawing_Path *> fPaths;
-    const float w = sqrt(2.0f) / 2; // 2被除数
+    std::vector<OH_Drawing_Path*> fPaths;
+    //    const float w = sqrt(2.0f) / 2; // 2被除数
+    void Makepath1();
+    void Makepath2();
+    void DrawSence(OH_Drawing_Canvas* canvas, OH_Drawing_Pen* pen, OH_Drawing_Brush* brush, uint8_t a, int p);
 };
 
 #endif // MyApplication_conic_paths_H
