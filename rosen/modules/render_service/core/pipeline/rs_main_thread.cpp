@@ -1801,6 +1801,7 @@ void RSMainThread::Render()
     }
     if (isUniRender_) {
         renderThreadParams_->SetWatermark(watermarkFlag_, watermarkImg_);
+        renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
         UniRender(rootNode);
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();

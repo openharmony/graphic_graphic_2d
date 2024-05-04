@@ -76,6 +76,8 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
     
+    bool IsCurtainScreenOn() const;
+
     static void SetCaptureParam(const CaptureParam& param);
     static CaptureParam& GetCaptureParam();
     static void ResetCaptureParam();

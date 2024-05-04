@@ -398,6 +398,11 @@ bool RSUniRenderThread::GetWatermarkFlag()
     return renderThreadParams->GetWatermarkFlag();
 }
 
+bool RSUniRenderThread::IsCurtainScreenOn() const
+{
+    return renderThreadParams_->IsCurtainScreenOn();
+}
+
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {
