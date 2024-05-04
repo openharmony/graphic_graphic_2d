@@ -765,6 +765,9 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
+    if (!RSSystemProperties::GetHDRImageEnable()) {
+        hasHdrpresent_ = false;
+    }
     RS_LOGD("SetHDRPresent: [%{public}d] prepare", hasHdrpresent_);
     curDisplayNode_->SetHDRPresent(hasHdrpresent_);
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
