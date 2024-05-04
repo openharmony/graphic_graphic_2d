@@ -184,6 +184,9 @@ public:
     void SetTunnelHandleChange(bool change);
     bool GetTunnelHandleChange() const;
 
+    void SetChildHasSharedTransition(bool val);
+    bool ChildHasSharedTransition() const;
+
     // type-safe reinterpret_cast
     template<typename T>
     bool IsInstanceOf() const
@@ -714,6 +717,7 @@ protected:
         renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
     }
     bool isChildSupportUifirst_ = true;
+    bool childHasSharedTransition_ = false;
     bool lastFrameSynced_ = true;
     bool clipAbsDrawRectChange_ = false;
 
@@ -950,6 +954,7 @@ struct SharedTransitionParam {
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
+    void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
 
     std::weak_ptr<RSRenderNode> inNode_;

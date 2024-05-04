@@ -2300,6 +2300,9 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
             nodeParent->SetChildHasVisibleEffect(true);
             nodeParent->UpdateVisibleEffectChild(node);
         }
+        if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
+            nodeParent->SetChildHasSharedTransition(true);
+        }
     }
     node.MapAndUpdateChildrenRect();
     node.UpdateLocalDrawRect();
