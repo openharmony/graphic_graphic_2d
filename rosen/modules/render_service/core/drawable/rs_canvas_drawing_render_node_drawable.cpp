@@ -208,6 +208,14 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         canvasDrawingParams->SetNeedProcess(false);
         canvasDrawingNode->SetDrawCmdListsVisited(true);
     };
+
+    {
+        // check params, if params is invalid, do not post the task
+        std::lock_guard<std::mutex> lockTask(taskMutex_);
+        if (!surface_ || !canvas_) {
+            return;
+        }
+    }
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
 }
 
