@@ -400,6 +400,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     canvasRotation_ = screenManager->GetCanvasRotation(params->GetScreenId());
 
     auto mirroredNode = params->GetMirrorSource().lock();
+    if (!mirroredNode && displayNodeSp->GetCacheImgForCapture()) {
+        mirroredNode->SetCacheImgForCapture(nullptr);
+    }
     if (mirroredNode ||
         displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();

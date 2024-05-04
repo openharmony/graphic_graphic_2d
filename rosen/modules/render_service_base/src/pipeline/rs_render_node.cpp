@@ -353,6 +353,7 @@ void RSRenderNode::ResetChildRelevantFlags()
 {
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
+    childHasSharedTransition_ = false;
     visibleFilterChild_.clear();
     visibleEffectChild_.clear();
     childrenRect_ = RectI();
@@ -914,6 +915,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         // reset iff traverses dirty subtree
         SetSubTreeDirty(false);
         UpdateChildrenOutOfRectFlag(false); // collect again
+        return true;
+    }
+    if (childHasSharedTransition_) {
         return true;
     }
     if (ChildHasVisibleFilter()) {
@@ -2084,6 +2088,16 @@ void RSRenderNode::ApplyPositionZModifier()
     dirtyTypes_.reset(positionZModifierType);
 }
 
+void RSRenderNode::SetChildHasSharedTransition(bool val)
+{
+    childHasSharedTransition_ = val;
+}
+
+bool RSRenderNode::ChildHasSharedTransition() const
+{
+    return childHasSharedTransition_;
+}
+
 void RSRenderNode::ApplyModifiers()
 {
     if (UNLIKELY(!isFullChildrenListValid_)) {
@@ -2119,6 +2133,12 @@ void RSRenderNode::ApplyModifiers()
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
     UpdateShouldPaint();
+
+    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
+        !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
+        auto paramCopy = sharedTransitionParam_;
+        paramCopy->InternalUnregisterSelf();
+    }
 
     // Temporary code, copy matrix into render params
     UpdateDrawableVec();
@@ -3917,5 +3937,16 @@ std::string SharedTransitionParam::Dump() const
 {
     return ", SharedTransitionParam: [" + std::to_string(inNodeId_) + " -> " + std::to_string(outNodeId_) + "]";
 }
+
+void SharedTransitionParam::InternalUnregisterSelf()
+{
+    if (auto inNode = inNode_.lock()) {
+        inNode->SetSharedTransitionParam(nullptr);
+    }
+    if (auto outNode = outNode_.lock()) {
+        outNode->SetSharedTransitionParam(nullptr);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
