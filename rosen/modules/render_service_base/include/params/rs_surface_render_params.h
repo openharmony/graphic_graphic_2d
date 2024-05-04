@@ -35,8 +35,8 @@ struct RSLayerInfo {
     GraphicIRect dstRect;
     GraphicIRect boundRect;
     Drawing::Matrix matrix;
-    int32_t gravity;
-    int32_t zOrder;
+    int32_t gravity = 0;
+    int32_t zOrder = 0;
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> preBuffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;

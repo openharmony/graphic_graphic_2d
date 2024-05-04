@@ -255,7 +255,7 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRende
 }
 
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node,
-    bool forceCPU, pid_t threadIndex, bool isRenderThread)
+    bool forceCPU, uint32_t threadIndex, bool isRenderThread)
 {
     BufferDrawParam params;
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());

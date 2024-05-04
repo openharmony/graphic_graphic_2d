@@ -222,7 +222,7 @@ bool RSMaskDrawable::OnUpdate(const RSRenderNode& node)
     canvas.Save();
     Drawing::SaveLayerOps slr(&maskBounds, nullptr);
     canvas.SaveLayer(slr);
-    int tmpLayer = canvas.GetSaveCount();
+    uint32_t tmpLayer = canvas.GetSaveCount();
 
     Drawing::Brush maskfilter;
     Drawing::Filter filter;
