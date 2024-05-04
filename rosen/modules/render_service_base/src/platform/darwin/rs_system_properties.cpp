@@ -373,7 +373,7 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
-uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
+int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
     return {};
 }
@@ -394,6 +394,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 }
 
 bool RSSystemProperties::GetUIFirstForceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 {
     return false;
 }

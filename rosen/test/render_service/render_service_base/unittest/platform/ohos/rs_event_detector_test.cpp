@@ -58,12 +58,50 @@ HWTEST_F(RSEventDetectorTest, CreateRSTimeOutDetector, TestSize.Level1)
  */
 HWTEST_F(RSEventDetectorTest, settings, TestSize.Level1)
 {
+    rsDetector->SetParam("0", "1");
     rsDetector->SetParam("timeOutThresholdMs", "1");
+    rsDetector->SetParam("timeOutThresholdMs", "-1");
     rsDetector->SetLoopStartTag();
     std::string bundle = "bundle";
     std::string ability = "ability";
     rsDetector->SetLoopFinishTag(1, 1, bundle, ability);
 }
 
+/**
+ * @tc.name: GetSysTimeMsTest
+ * @tc.desc: Verify function GetSysTimeMs
+ * @tc.type:FUNC
+ * @tc.require:issuesI9JRWH
+ */
+HWTEST_F(RSEventDetectorTest, GetSysTimeMsTest, TestSize.Level1)
+{
+    EXPECT_NE(RSEventTimer::GetSysTimeMs(), 0);
+}
+
+/**
+ * @tc.name: RSTimeOutDetectorTest
+ * @tc.desc: Verify function RSTimeOutDetector
+ * @tc.type:FUNC
+ * @tc.require:issuesI9JRWH
+ */
+HWTEST_F(RSEventDetectorTest, RSTimeOutDetectorTest, TestSize.Level1)
+{
+    auto rsTimeOutDetector = std::make_shared<RSTimeOutDetector>(1, "0");
+    EXPECT_TRUE(rsTimeOutDetector);
+}
+
+/**
+ * @tc.name: EventReportTest
+ * @tc.desc: Verify function EventReport
+ * @tc.type:FUNC
+ * @tc.require:issuesI9JRWH
+ */
+HWTEST_F(RSEventDetectorTest, EventReportTest, TestSize.Level1)
+{
+    auto rsTimeOutDetector = std::make_shared<RSTimeOutDetector>(1, "0");
+    rsTimeOutDetector->eventCallback_ = [](const RSSysEventMsg& eventMsg) {};
+    rsTimeOutDetector->EventReport(1);
+    EXPECT_TRUE(rsTimeOutDetector->eventCallback_ != nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

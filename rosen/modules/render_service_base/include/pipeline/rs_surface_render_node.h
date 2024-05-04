@@ -858,7 +858,7 @@ public:
         bool isUniRender,
         bool filterCacheOcclusionEnabled);
 
-    bool LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode);
+    bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
 
     void OnTreeStateChanged() override;
 
@@ -1018,16 +1018,6 @@ public:
 
     void SetIsParentUifirstNodeEnableParam(bool b);
 
-    MultiThreadCacheType GetLastFrameUifirstFlag()
-    {
-        return lastFrameUifirstFlag_;
-    }
-
-    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
-    {
-        lastFrameUifirstFlag_ = b;
-    }
-
     void SetUifirstChildrenDirtyRectParam(RectI rect);
 
     RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
@@ -1042,6 +1032,16 @@ public:
     bool GetHasTransparentSurface() const;
     void UpdatePartialRenderParams();
     void UpdateAncestorDisplayNodeInRenderParams();
+
+    void SetNeedDrawFocusChange(bool needDrawFocusChange)
+    {
+        needDrawFocusChange_ = needDrawFocusChange;
+    }
+
+    bool GetNeedDrawFocusChange() const
+    {
+        return needDrawFocusChange_;
+    }
 
     bool HasWindowCorner()
     {
@@ -1187,10 +1187,10 @@ private:
     {
         RectI screenRect_;
         RectI absRect_;
-        ScreenRotation screenRotation_;
-        bool isFocusWindow_;
-        bool isTransparent_;
-        bool hasContainerWindow_;
+        ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+        bool isFocusWindow_ = false;
+        bool isTransparent_ = false;
+        bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
     };
 
@@ -1286,13 +1286,14 @@ private:
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
 
+    bool needDrawFocusChange_ = false;
+
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     bool forceUIFirstChanged_ = false;
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
-    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
 
     bool ancoForceDoDirect_ = false;
 

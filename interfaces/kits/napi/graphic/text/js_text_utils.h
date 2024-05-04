@@ -21,8 +21,8 @@
 #include "native_engine/native_value.h"
 #include "utils/point.h"
 
-#include "utils/log.h"
 #include "draw/color.h"
+#include "js_drawing_utils.h"
 #include "text_style.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -266,15 +266,48 @@ inline napi_value NapiGetUndefined(napi_env env)
     return result;
 }
 
-inline napi_value GetPointAndConvertToJsValue(napi_env env, Drawing::Point& ponit)
+inline napi_value GetPointAndConvertToJsValue(napi_env env, Drawing::Point& point)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "x", CreateJsNumber(env, ponit.GetX()));
-        napi_set_named_property(env, objValue, "y", CreateJsNumber(env, ponit.GetY()));
+        napi_set_named_property(env, objValue, "x", CreateJsNumber(env, point.GetX()));
+        napi_set_named_property(env, objValue, "y", CreateJsNumber(env, point.GetY()));
     }
     return objValue;
+}
+
+inline void GetPointXFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    double targetX = 0;
+    if (napi_get_named_property(env, argValue, "x", &objValue) != napi_ok ||
+        napi_get_value_double(env, objValue, &targetX) != napi_ok) {
+        ROSEN_LOGE("The Parameter of number x about JsPoint is unvaild");
+        return;
+    }
+    point.SetX(targetX);
+    return;
+}
+
+inline void GetPointYFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    napi_value objValue = nullptr;
+    double targetY = 0;
+    if (napi_get_named_property(env, argValue, "y", &objValue) != napi_ok ||
+        napi_get_value_double(env, objValue, &targetY) != napi_ok) {
+        ROSEN_LOGE("The Parameter of number y about JsPoint is unvaild");
+        return;
+    }
+    point.SetY(targetY);
+    return;
+}
+
+inline void GetPointFromJsValue(napi_env env, napi_value argValue, Drawing::Point& point)
+{
+    GetPointXFromJsNumber(env, argValue, point);
+    GetPointYFromJsNumber(env, argValue, point);
+    return;
 }
 
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func);
@@ -366,6 +399,12 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan);
 
+void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle);
+
 size_t GetParamLen(napi_env env, napi_value param);
+
+void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle);
+
+void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textStyle);
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

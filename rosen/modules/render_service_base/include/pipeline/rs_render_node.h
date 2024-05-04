@@ -532,6 +532,7 @@ public:
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
+    void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
@@ -589,6 +590,9 @@ public:
     }
 
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
+
+    // Deprecated! Do not use this interface.
+    // This interface has crash risks and will be deleted in later versions.
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
 
     void UpdatePointLightDirtySlot();
@@ -603,6 +607,26 @@ public:
     void SetUifirstSkipPartialSync(bool skip)
     {
         uifirstSkipPartialSync_ = skip;
+    }
+
+    void SetForceUpdateByUifirst(bool b)
+    {
+        forceUpdateByUifirst_ = b;
+    }
+
+    bool GetForceUpdateByUifirst() const
+    {
+        return forceUpdateByUifirst_;
+    }
+
+    MultiThreadCacheType GetLastFrameUifirstFlag()
+    {
+        return lastFrameUifirstFlag_;
+    }
+
+    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
+    {
+        lastFrameUifirstFlag_ = b;
     }
 
     void SkipSync()
@@ -755,7 +779,7 @@ private:
     void CollectAndUpdateLocalPixelStretchRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
-    void UpdateSelfDrawRect();
+    bool UpdateSelfDrawRect();
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
@@ -886,6 +910,8 @@ private:
     bool drawCmdListNeedSync_ = false;
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
+    bool forceUpdateByUifirst_ = false;
+    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
 

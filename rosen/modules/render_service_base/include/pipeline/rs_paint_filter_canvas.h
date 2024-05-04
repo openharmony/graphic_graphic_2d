@@ -44,6 +44,8 @@ public:
 
     Drawing::RectI GetDeviceClipBounds() const override;
 
+    Drawing::RectI GetRoundInDeviceClipBounds() const override;
+
     uint32_t GetSaveCount() const override;
 
 #ifdef ACE_ENABLE_GPU

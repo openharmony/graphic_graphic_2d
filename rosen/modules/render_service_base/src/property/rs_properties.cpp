@@ -2359,6 +2359,8 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
         backgroundColorMode_, backgroundMaskColor_);
     originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(backgroundBlurRadius_));
+    originalFilter->SetSaturationForHPS(backgroundBlurSaturation_);
+    originalFilter->SetBrightnessForHPS(backgroundBlurBrightness_);
     backgroundFilter_ = originalFilter;
     maskColorShaderFilter->InitColorMod();
     backgroundFilter_->SetFilterType(RSFilter::MATERIAL);
@@ -2431,6 +2433,8 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
         foregroundColorMode_, foregroundMaskColor_);
     originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(foregroundBlurRadius_));
+    originalFilter->SetSaturationForHPS(foregroundBlurSaturation_);
+    originalFilter->SetBrightnessForHPS(foregroundBlurBrightness_);
     filter_ = originalFilter;
     maskColorShaderFilter->InitColorMod();
     filter_->SetFilterType(RSFilter::MATERIAL);

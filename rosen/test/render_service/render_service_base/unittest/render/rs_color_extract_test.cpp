@@ -42,6 +42,27 @@ void RSColorExtractTest::TearDown()
 }
 
 /**
+ * @tc.name: testInterface
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorExtractTest, testInterface, TestSize.Level1)
+{
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN,
+        Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    auto pixelmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto colorExtract = std::make_shared<RSColorExtract>(pixelmap);
+
+    double coordinates[4] = {1.f, 1.f, 1.f, 1.f};
+    auto ohterColorExtract = std::make_shared<RSColorExtract>(pixelmap, coordinates);
+
+    auto nullColorExtract1 = std::make_shared<RSColorExtract>(nullptr);
+    auto nullColorExtract2 = std::make_shared<RSColorExtract>(nullptr, nullptr);
+}
+
+/**
  * @tc.name: QuantizedRedTest
  * @tc.desc: Verify function QuantizedRed
  * @tc.type:FUNC

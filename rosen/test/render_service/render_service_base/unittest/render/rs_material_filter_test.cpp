@@ -396,6 +396,38 @@ HWTEST_F(RSMaterialFilterTest, IsNearZero001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDetailedDescription001
+ * @tc.desc: Verify function GetDetailedDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, GetDetailedDescription001, TestSize.Level1)
+{
+    float dipScale = 1.0f;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    float ratio = 1.0f;
+    MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
+    RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
+
+    rsMaterialFilter.GetDetailedDescription();
+}
+
+/**
+ * @tc.name: GetColorPickerCacheTask001
+ * @tc.desc: Verify function GetColorPickerCacheTask001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, GetColorPickerCacheTask001, TestSize.Level1)
+{
+    float dipScale = 1.0f;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    float ratio = 1.0f;
+    MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
+    RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
+
+    EXPECT_NE(rsMaterialFilter.GetColorPickerCacheTask(), nullptr);
+}
+
+/**
  * @tc.name: GetColorPickerCacheTaskFilterTest001
  * @tc.desc: Verify function GetColorPickerCacheTask
  * @tc.type:FUNC

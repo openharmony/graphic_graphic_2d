@@ -159,7 +159,7 @@ napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    m_path->MoveTo(x, y);
+    JS_CALL_DRAWING_FUNC(m_path->MoveTo(x, y));
     return NapiGetUndefined(env);
 }
 
@@ -185,7 +185,7 @@ napi_value JsPath::OnLineTo(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    m_path->LineTo(x, y);
+    JS_CALL_DRAWING_FUNC(m_path->LineTo(x, y));
     return NapiGetUndefined(env);
 }
 
@@ -217,7 +217,7 @@ napi_value JsPath::OnArcTo(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    m_path->ArcTo(x1, y1, x2, y2, startDeg, sweepDeg);
+    JS_CALL_DRAWING_FUNC(m_path->ArcTo(x1, y1, x2, y2, startDeg, sweepDeg));
     return NapiGetUndefined(env);
 }
 
@@ -246,7 +246,7 @@ napi_value JsPath::OnQuadTo(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    m_path->QuadTo(ctrlPtX, ctrlPtY, endPtX, endPtY);
+    JS_CALL_DRAWING_FUNC(m_path->QuadTo(ctrlPtX, ctrlPtY, endPtX, endPtY));
     return NapiGetUndefined(env);
 }
 
@@ -278,7 +278,7 @@ napi_value JsPath::OnCubicTo(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    m_path->CubicTo(Point(px1, py1), Point(px2, py2), Point(px3, py3));
+    JS_CALL_DRAWING_FUNC(m_path->CubicTo(Point(px1, py1), Point(px2, py2), Point(px3, py3)));
     return NapiGetUndefined(env);
 }
 
@@ -289,7 +289,7 @@ napi_value JsPath::OnClose(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    m_path->Close();
+    JS_CALL_DRAWING_FUNC(m_path->Close());
     return NapiGetUndefined(env);
 }
 
@@ -300,7 +300,7 @@ napi_value JsPath::OnReset(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    m_path->Reset();
+    JS_CALL_DRAWING_FUNC(m_path->Reset());
     return NapiGetUndefined(env);
 }
 

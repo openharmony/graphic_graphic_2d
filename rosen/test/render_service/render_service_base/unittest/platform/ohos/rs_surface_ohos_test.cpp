@@ -21,6 +21,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "platform/drawing/rs_surface_converter.h"
+#include "render_context/render_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -89,6 +90,75 @@ HWTEST_F(RSSurfaceOhosTest, ConvertToOhosSurface_Test, TestSize.Level1)
         auto surface = rsSurfaceCnvrt->ConvertToOhosSurface(nullptr);
 #endif
     delete rsSurfaceCnvrt;
+}
+
+/**
+ * @tc.name: GetRenderContext
+ * @tc.desc: GetRenderContext Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSSurfaceOhosTest, GetRenderContext, TestSize.Level1)
+{
+    csurf = IConsumerSurface::Create();
+    producer = csurf->GetProducer();
+    pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    RenderContext context;
+    rsSurface->SetRenderContext(&context);
+    ASSERT_EQ(rsSurface->GetRenderContext(), &context);
+}
+
+/**
+ * @tc.name: GetColorSpace
+ * @tc.desc: GetColorSpace Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSSurfaceOhosTest, GetColorSpace, TestSize.Level1)
+{
+    csurf = IConsumerSurface::Create();
+    producer = csurf->GetProducer();
+    pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
+    rsSurface->SetColorSpace(colorSpace);
+    ASSERT_EQ(rsSurface->GetColorSpace(), colorSpace);
+}
+
+/**
+ * @tc.name: GetQueueSize
+ * @tc.desc: GetQueueSize Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSSurfaceOhosTest, GetQueueSize, TestSize.Level1)
+{
+    csurf = IConsumerSurface::Create();
+    producer = csurf->GetProducer();
+    pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    rsSurface->GetQueueSize();
+    ASSERT_EQ(rsSurface->GetQueueSize(), 3);
+}
+
+/**
+ * @tc.name: ClearAllBuffer
+ * @tc.desc: ClearAllBuffer Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JY8B
+ */
+HWTEST_F(RSSurfaceOhosTest, ClearAllBuffer, TestSize.Level1)
+{
+    csurf = IConsumerSurface::Create();
+    producer = csurf->GetProducer();
+    pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    rsSurface->ClearAllBuffer();
+    sptr<Surface> producer;
+    auto rsSurfaceTwo = std::make_shared<RSSurfaceOhosRaster>(producer);
+    rsSurfaceTwo->ClearAllBuffer();
+    ASSERT_EQ(rsSurfaceTwo->producer_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

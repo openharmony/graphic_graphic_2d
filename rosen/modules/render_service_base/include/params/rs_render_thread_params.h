@@ -138,6 +138,16 @@ public:
         return isOcclusionEnabled_;
     }
 
+    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+    {
+        isCurtainScreenOn_ = isCurtainScreenOn;
+    }
+
+    bool IsCurtainScreenOn() const
+    {
+        return isCurtainScreenOn_;
+    }
+    
     void SetForceCommitLayer(bool forceCommit)
     {
         isForceCommitLayer_ = forceCommit;
@@ -261,6 +271,7 @@ private:
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
+    bool isCurtainScreenOn_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

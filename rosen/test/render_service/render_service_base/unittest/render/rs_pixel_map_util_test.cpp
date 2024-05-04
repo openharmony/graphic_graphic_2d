@@ -96,6 +96,37 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsYUVFormat
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, IsYUVFormat, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+
+    EXPECT_FALSE(RSPixelMapUtil::IsYUVFormat(pixelmap));
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
  * @tc.name: DrawPixelMapTest001
  * @tc.desc: Verify function DrawPixelMap
  * @tc.type:FUNC

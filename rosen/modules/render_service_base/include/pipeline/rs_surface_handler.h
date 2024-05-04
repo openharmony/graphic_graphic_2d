@@ -104,6 +104,16 @@ public:
         return consumer_;
     }
 
+    void SetHoldBuffer(std::shared_ptr<SurfaceBufferEntry> buffer)
+    {
+        holdBuffer_ = buffer;
+    }
+
+    inline std::shared_ptr<SurfaceBufferEntry> GetHoldBuffer()
+    {
+        return holdBuffer_;
+    }
+
     void SetBuffer(
         const sptr<SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence,
@@ -221,6 +231,7 @@ public:
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
     void CacheBuffer(SurfaceBufferEntry buffer);
     RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
+    bool HasBufferCache() const;
 #endif
 
 protected:
@@ -237,6 +248,7 @@ private:
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
     std::map<uint64_t, SurfaceBufferEntry> bufferCache_;
+    std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 };
 }
 }

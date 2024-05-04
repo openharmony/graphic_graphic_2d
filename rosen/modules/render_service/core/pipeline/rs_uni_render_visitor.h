@@ -562,6 +562,8 @@ private:
     bool curContentDirty_ = false;
     bool isPhone_ = false;
     bool isPc_ = false;
+    bool isOverdrawDfxOn_ = false;
+    bool aceDebugBoundaryEnabled_ = false;
     bool isCacheBlurPartialRenderEnabled_ = false;
     bool drawCacheWithBlur_ = false;
     bool notRunCheckAndSetNodeCacheType_ = false;

@@ -92,6 +92,7 @@ ohos_shared_library("drawing_napi_impl") {
     external_deps += [
       "hilog:libhilog",
       "image_framework:image_native",
+      "init:libbegetutil",
     ]
     deps += [ "../../../../../utils:libgraphic_utils" ]
     defines += [ "ROSEN_OHOS" ]

@@ -50,7 +50,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
-constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
+constexpr uint32_t TIME_OF_TWENTY_FRAMES = 20000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 };
@@ -355,12 +355,6 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
     displayNodeBufferReleasedCond_.notify_one();
 }
 
-
-bool RSUniRenderThread::GetClearMemoryFinished() const
-{
-    return clearMemoryFinished_;
-}
-
 bool RSUniRenderThread::GetClearMemDeeply() const
 {
     return clearMemDeeply_;
@@ -396,6 +390,11 @@ bool RSUniRenderThread::GetWatermarkFlag()
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     return renderThreadParams->GetWatermarkFlag();
+}
+
+bool RSUniRenderThread::IsCurtainScreenOn() const
+{
+    return renderThreadParams_->IsCurtainScreenOn();
 }
 
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
@@ -462,7 +461,6 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
     }
-    this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
     this->exitedPidSet_.emplace(pid);
@@ -488,13 +486,12 @@ void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, 
                 MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
             }
             grContext->FlushAndSubmit(true);
-            this->clearMemoryFinished_ = true;
             this->exitedPidSet_.clear();
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         };
     PostTask(task, CLEAR_GPU_CACHE,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES)
+        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_TWENTY_FRAMES : TIME_OF_THE_FRAMES)
                 / GetRefreshRate());
 }
 

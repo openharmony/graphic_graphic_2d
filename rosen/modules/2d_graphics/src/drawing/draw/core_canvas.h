@@ -173,6 +173,12 @@ public:
      */
     virtual RectI GetDeviceClipBounds() const;
 
+    /**
+     * @brief Gets bounds of clip in device coordinates with round in.
+     * @return Returns bounds of clip in device coordinates.
+     */
+    virtual RectI GetRoundInDeviceClipBounds() const;
+
 #ifdef ACE_ENABLE_GPU
     /**
      * @brief Gets GPU context of the GPU surface associated with Canvas.

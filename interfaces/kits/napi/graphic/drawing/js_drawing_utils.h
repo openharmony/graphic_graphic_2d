@@ -21,6 +21,7 @@
 #include "hilog/log.h"
 #endif
 
+#include "common/rs_common_def.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "text/font_metrics.h"
@@ -28,6 +29,29 @@
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
+
+// used for test
+class JsDrawingTestUtils {
+public:
+    static bool GetDrawingTestDisabled() { return closeDrawingTest_; }
+private:
+    static bool closeDrawingTest_;
+};
+
+#ifdef JS_DRAWING_TEST
+#define JS_CALL_DRAWING_FUNC(func)                                  \
+    do {                                                            \
+        if (LIKELY(JsDrawingTestUtils::GetDrawingTestDisabled())) { \
+            func;                                                   \
+        }                                                           \
+    } while (0)
+#else
+#define JS_CALL_DRAWING_FUNC(func)           \
+    do {                                     \
+        func;                                \
+    } while (0)
+#endif
+
 namespace Drawing {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;

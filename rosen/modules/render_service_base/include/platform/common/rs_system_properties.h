@@ -216,6 +216,7 @@ public:
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSubSurfaceEnabled();
+    static bool GetAceDebugBoundaryEnabled();
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
@@ -238,7 +239,7 @@ public:
     static bool GetDumpUIPixelmapEnabled();
     static bool GetDumpImgEnabled();
 
-    static uint32_t GetVirtualScreenScaleModeDFX();
+    static int GetVirtualScreenScaleModeDFX();
 
     static inline GpuApiType GetGpuApiType()
     {

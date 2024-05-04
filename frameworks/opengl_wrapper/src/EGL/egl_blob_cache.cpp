@@ -209,7 +209,11 @@ EGLsizeiANDROID BlobCache::GetBlob(const void *key, EGLsizeiANDROID keySize, voi
         } else if (ret == 0) {
             WLOGE("shader not exist");
         } else {
-            memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
+            errno_t ret = memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
+            if (ret != EOK) {
+                WLOGE("memcpy_s failed");
+                return false;
+            }
             auto moveblob = it->first;
             moveblob->prev_->next_ = moveblob->next_;
             moveblob->next_->prev_ = moveblob->prev_;

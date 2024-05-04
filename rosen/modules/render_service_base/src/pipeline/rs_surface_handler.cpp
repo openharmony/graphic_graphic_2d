@@ -74,6 +74,11 @@ void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
     bufferCache_[static_cast<uint64_t>(buffer.timestamp)] = buffer;
 }
 
+bool RSSurfaceHandler::HasBufferCache() const
+{
+    return bufferCache_.size() != 0;
+}
+
 RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64_t vsyncTimestamp)
 {
     RSSurfaceHandler::SurfaceBufferEntry buffer;

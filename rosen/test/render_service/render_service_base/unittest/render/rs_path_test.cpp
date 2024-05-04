@@ -83,6 +83,31 @@ HWTEST_F(RSPathTest, GetDrawingPathTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReverseTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathTest, ReverseTest, TestSize.Level1)
+{
+    Drawing::Path path = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath(path);
+    auto reveseRsPath = rsPath->Reverse();
+    EXPECT_NE(rsPath, reveseRsPath);
+}
+
+/**
+ * @tc.name: GetDistanceTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathTest, GetDistanceTest, TestSize.Level1)
+{
+    Drawing::Path path = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath(path);
+    EXPECT_EQ(rsPath->GetDistance(), path.GetLength(false));
+}
+
+/**
  * @tc.name: SetSkiaPathTest
  * @tc.desc:
  * @tc.type: FUNC

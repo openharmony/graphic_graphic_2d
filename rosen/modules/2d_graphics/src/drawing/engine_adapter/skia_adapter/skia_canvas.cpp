@@ -117,6 +117,16 @@ RectI SkiaCanvas::GetDeviceClipBounds() const
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
 }
 
+RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
+{
+    if (skCanvas_ == nullptr) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return RectI();
+    }
+    auto iRect = skCanvas_->getRoundInDeviceClipBounds();
+    return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
+}
+
 #ifdef ACE_ENABLE_GPU
 std::shared_ptr<GPUContext> SkiaCanvas::GetGPUContext() const
 {
@@ -210,12 +220,12 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         uint64_t num = para.size();
         for (uint64_t i = 1; i <= num; i++) {
             char buf[10] = {0}; // maximum length of string needed is 10.
-            (void)sprintf_s(buf, sizeof(buf), "para%lld", i);
+            (void)sprintf_s(buf, sizeof(buf), "para%lu", i);
             builder.uniform(buf) = para[i-1];
         }
         for (uint64_t i = 1; i <= num1; i++) {
             char buf[15] = {0}; // maximum length of string needed is 15.
-            (void)sprintf_s(buf, sizeof(buf), "transpara%lld", i);
+            (void)sprintf_s(buf, sizeof(buf), "transpara%lu", i);
             builder.uniform(buf) = para1[i-1];
         }
         std::vector<float> color = shape.GetColorPara();
@@ -758,7 +768,7 @@ void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect
     if (cullRect != nullptr) {
         SkiaConvertUtils::DrawingRectCastToSkRect(*cullRect, skCullRect);
     }
-    
+
     SortedPaints& paints = skiaPaint_.GetSortedPaints();
     if (paints.count_ == 0) {
         skCanvas_->drawAtlas(img.get(), skRSXform, skTex, skColors.empty() ? nullptr : skColors.data(), count,

@@ -839,6 +839,11 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
     return subSurfaceEnabled;
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return system::GetParameter("persist.ace.debug.boundary.enabled", "false") == "true";
+}
+
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     static bool openSecurityPermissionCheck =
@@ -868,9 +873,9 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return dumpUIPixelmapEnabled;
 }
 
-uint32_t RSSystemProperties::GetVirtualScreenScaleModeDFX()
+int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
-    static uint32_t scaleModeDFX =
+    static int scaleModeDFX =
         std::atoi((system::GetParameter("persist.rosen.virtualScreenScaleMode.debugType", "2")).c_str());
     return (scaleModeDFX > DEFAULT_SCALE_MODE) ? DEFAULT_SCALE_MODE : scaleModeDFX;
 }

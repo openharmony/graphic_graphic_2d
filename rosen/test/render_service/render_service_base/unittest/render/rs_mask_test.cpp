@@ -103,6 +103,7 @@ HWTEST_F(RSMaskTest, LifeCycle003, TestSize.Level1)
     ASSERT_TRUE(mask != nullptr);
 
     ASSERT_TRUE(mask->IsSvgMask());
+    ASSERT_TRUE(mask->GetSvgDom() == svgDom);
 }
 
 /**
@@ -387,6 +388,7 @@ HWTEST_F(RSMaskTest, CreatePixelMapMask001, TestSize.Level1)
     ASSERT_TRUE(mask != nullptr);
     mask->SetPixelMap(pixelmap);
     ASSERT_TRUE(mask->GetImage() == nullptr);
+    EXPECT_EQ(mask->GetPixelMap(), nullptr);
     ASSERT_TRUE(mask->IsPixelMapMask());
 }
 

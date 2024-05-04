@@ -72,6 +72,7 @@ public:
     virtual Matrix GetTotalMatrix() const = 0;
     virtual Rect GetLocalClipBounds() const = 0;
     virtual RectI GetDeviceClipBounds() const = 0;
+    virtual RectI GetRoundInDeviceClipBounds() const = 0;
 #ifdef ACE_ENABLE_GPU
     virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
 #endif

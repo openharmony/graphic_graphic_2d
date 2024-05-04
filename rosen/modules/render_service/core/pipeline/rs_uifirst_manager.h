@@ -51,6 +51,7 @@ public:
     void ProcessSubDoneNode();
     bool CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node);
     void ForceClearSubthreadRes();
+    void ProcessForceUpdateNode();
 
     // event process
     void OnProcessEventResponse(DataBaseRs& info);
@@ -119,7 +120,9 @@ private:
     bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
 
-    // only use in mainThread; keep ref by subthreadProcessingNode_
+    // only use in mainThread & RT onsync
+    std::vector<NodeId> pendingForceUpdateNode_;
+    std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
 
     // only use in RT
     std::unordered_map<NodeId, std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> subthreadProcessingNode_;

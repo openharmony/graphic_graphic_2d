@@ -362,6 +362,9 @@ int FontConfigJson::ParseFallback(const cJSON* root, const char* key)
             continue;
         }
         cJSON* item2 = cJSON_GetArrayItem(item, 0);
+        if (item2 == nullptr) {
+            continue;
+        }
         FallbackInfo fallbackInfo;
         fallbackInfo.familyName = item2->valuestring;
         fallbackInfo.font = item2->string;
