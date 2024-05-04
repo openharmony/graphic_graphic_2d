@@ -426,6 +426,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetFrameIsRender(true);
     RSUniRenderThread::Instance().DvsyncRequestNextVsync();
 
+    ScreenId screenId = curScreenInfo.id;
+    bool hdrPresent = params->GetHDRPresent();
+    RS_LOGD("SetHDRPresent: %{public}d OnDraw", hdrPresent);
+    if (hdrPresent) {
+        params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    }
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(displayNodeSp, *params, processor);
     if (!renderFrame) {
@@ -453,6 +459,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!curCanvas_) {
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw failed to create canvas");
         return;
+    }
+
+    curCanvas_->SetHDRPresent(hdrPresent);
+    if (hdrPresent) {
+        curCanvas_->SetBrightnessRatio(0.5f);
+        curCanvas_->SetScreenId(screenId);
     }
     curCanvas_->SetCurDisplayNode(displayNodeSp);
 
@@ -780,7 +792,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     Drawing::AutoCanvasRestore acr(canvas, true);
 
     if (params->HasSecurityLayer() || params->HasSkipLayer() || params->HasProtectedLayer() ||
-        params->HasCaptureWindow() || RSUniRenderThread::Instance().IsCurtainScreenOn()) {
+        params->HasCaptureWindow() || params->GetHDRPresent() || RSUniRenderThread::Instance().IsCurtainScreenOn()) {
         RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: params %{public}s \
             process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
             params->ToString().c_str(), params->GetId());
@@ -792,6 +804,8 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             rscanvas->ConcatMatrix(params->GetMatrix());
         }
 
+        // Currently, capture do not support HDR display
+        rscanvas->SetCapture(true);
         RSRenderNodeDrawable::OnCapture(canvas);
         DrawWatermarkIfNeed(*displayNodeSp, *rscanvas);
     } else {

@@ -31,6 +31,12 @@ class PixelMap;
 }
 namespace Rosen {
 
+using DynamicRangeMode = enum {
+    HIGH = 0,
+    CONSTRAINT = 1,
+    STANDARD = 2,
+}
+
 using VPEConvert = Media::VideoProcessingEngine::ColorSpaceConverterDisplay;
 using VPEParameter = Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter;
 class RSB_EXPORT RSColorSpaceConvert {
@@ -39,7 +45,7 @@ public:
     static RSColorSpaceConvert Instance();
 
     bool ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> inputShader,
-        const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GaphicColorGamut targetColorSpace,
+        const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
         ScreenId screenId, uint32_t dynamicRangeMode);
     bool SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer, VPEParameter& parameter,
         GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode);

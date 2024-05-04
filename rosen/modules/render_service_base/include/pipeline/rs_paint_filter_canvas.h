@@ -284,12 +284,16 @@ public:
     }
     bool GetHDRPresent() const;
     void SetHDRPresent(bool hasHdrPresent);
+    bool IsCapture() const;
+    void SetCapture(bool isCapture);
     ScreenId GetScreenId() const;
     void SetScreenId(ScreenId screenId);
     GraphicColorGamut GetTargetColorGamut() const;
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
+    template <typename T>
+    void PaintFilter(T& paint);
 
 protected:
     using Env = struct {
@@ -339,7 +343,7 @@ private:
     Drawing::Rect visibleRect_ = Drawing::Rect();
 
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    float brightnessRatio_ = 0.0f;
+    float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
     ScreenId screenId_ = INVALID_SCREEN_ID;
 
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
@@ -348,6 +352,7 @@ private:
     bool recordingState_ = false;
     bool recordDrawable_ = false;
     bool hasHdrPresent_ = false;
+    bool isCapture_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env
