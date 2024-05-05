@@ -44,7 +44,7 @@ public:
     RSB_EXPORT void SetSdrLuminance([[maybe_unused]] uint64_t screenId, [[maybe_unused]] uint32_t level);
     RSB_EXPORT uint32_t GetNewHdrLuminance([[maybe_unused]] uint64_t screenId);
     RSB_EXPORT void SetNowHdrLuminance([[maybe_unused]] uint64_t screenId, [[maybe_unused]] uint32_t level);
-    RSB_EXPORT bool IsNeedUpdateLuminace([[maybe_unused]] uint64_t screenId);
+    RSB_EXPORT bool IsNeedUpdateLuminance([[maybe_unused]] uint64_t screenId);
 
     RSB_EXPORT float GetHdrTmoNits([[maybe_unused]] uint64_t screenId, int Mode) const;
     RSB_EXPORT float GetHdrDisplayNits([[maybe_unused]] uint64_t screenId) const;
